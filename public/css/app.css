@@ -1,0 +1,392 @@
+/* =========================================
+   GOLD GYS - ROYAL THEME (MASTER CSS)
+   ========================================= */
+
+:root {
+    /* --- KRALİYET RENK PALETİ --- */
+    --gold-main: #D4AF37;       /* Asıl Altın Rengi */
+    --gold-light: #F3E5AB;      /* Açık Altın (Arkaplanlar) */
+    --gold-dark: #B5952F;       /* Koyu Altın (Hover/Border) */
+    
+    --navy-deep: #0F172A;       /* En Koyu Lacivert (Sidebar/Footer/Hero) */
+    --navy-light: #1E293B;      /* Açık Lacivert (Header/Kartlar) */
+    
+    --text-main: #1E293B;       /* Ana Metin Rengi */
+    --text-muted: #64748B;      /* İkincil Metin Rengi */
+    --text-on-dark: #F8FAFC;    /* Koyu Zemin Üstü Yazı */
+
+    --success: #10B981;         /* Zümrüt Yeşili (Doğru Cevap) */
+    --danger: #EF4444;          /* Yakut Kırmızısı (Yanlış Cevap) */
+    --warning: #F59E0B;         /* Kehribar (Uyarılar) */
+    
+    --bg-body: #F1F5F9;         /* Genel Sayfa Arkaplanı */
+    --surface: #FFFFFF;         /* Kart/Kutu Arkaplanı */
+    
+    --radius: 16px;             /* Yuvarlatılmış Köşeler */
+    --shadow-soft: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-strong: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    --shadow-gold: 0 4px 15px rgba(212, 175, 55, 0.3);
+
+    --font-main: 'Inter', system-ui, -apple-system, sans-serif;
+    --font-serif: 'Playfair Display', serif; /* Başlıklar için */
+}
+
+/* --- GENEL SIFIRLAMA & TEMEL --- */
+* { box-sizing: border-box; margin: 0; padding: 0; outline: none; }
+
+body {
+    font-family: var(--font-main);
+    background-color: var(--bg-body);
+    color: var(--text-main);
+    line-height: 1.6;
+    overflow-x: hidden; /* Yatay taşmayı engelle */
+    min-height: 100vh;
+}
+
+a { text-decoration: none; color: inherit; transition: 0.3s ease; }
+ul { list-style: none; }
+button { font-family: inherit; }
+
+/* --- ORTAK BİLEŞENLER (BUTONLAR) --- */
+.btn-gold {
+    background: linear-gradient(135deg, var(--gold-main) 0%, var(--gold-dark) 100%);
+    color: var(--navy-deep);
+    border: none; padding: 12px 24px; border-radius: 50px;
+    font-weight: 700; cursor: pointer; text-transform: uppercase; letter-spacing: 0.5px;
+    box-shadow: var(--shadow-gold); transition: all 0.3s ease;
+    display: inline-flex; align-items: center; justify-content: center; text-decoration: none;
+}
+.btn-gold:hover { 
+    transform: translateY(-2px); 
+    background: white; 
+    box-shadow: 0 6px 20px rgba(255, 255, 255, 0.4); 
+}
+
+.btn-navy {
+    background: var(--navy-light); color: var(--gold-main);
+    border: 1px solid var(--gold-main); padding: 12px 24px; border-radius: 50px;
+    font-weight: 600; cursor: pointer; transition: 0.3s;
+    display: inline-flex; align-items: center; justify-content: center; text-decoration: none;
+}
+.btn-navy:hover { background: var(--gold-main); color: var(--navy-deep); }
+
+/* =========================================
+   1. LANDING PAGE (VİTRİN) STİLLERİ
+   ========================================= */
+/* Not: Index.html içindeki <style> tag'leri ile çakışmaz, burası temeldir. 
+   Landing page özel stilleri genellikle index.html içinde bırakılır ancak 
+   ortak kullanılan header/footer yapıları buradadır. */
+
+.landing-nav {
+    /* Index.html'de inline tanımlı, buraya genel yapı eklenebilir */
+    font-family: var(--font-main);
+}
+
+/* =========================================
+   2. AUTH PAGE (LOGIN/REGISTER)
+   ========================================= */
+.auth-wrapper {
+    min-height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+    background: radial-gradient(circle at top right, var(--navy-light) 0%, var(--navy-deep) 100%);
+    padding: 20px;
+}
+
+.auth-card {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 40px; border-radius: 24px; width: 100%; max-width: 420px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    text-align: center;
+}
+
+.auth-logo { 
+    font-family: var(--font-serif); font-size: 2rem; color: white; margin-bottom: 10px; font-weight: 700;
+}
+.auth-logo span { color: var(--gold-main); }
+
+.input-group { margin-bottom: 20px; text-align: left; }
+.input-group label { display: block; margin-bottom: 8px; color: var(--gold-light); font-size: 0.9rem; }
+.input-group input {
+    width: 100%; padding: 14px; background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1); border-radius: 12px;
+    color: white; font-size: 1rem; transition: 0.3s;
+}
+.input-group input:focus { border-color: var(--gold-main); background: rgba(255,255,255,0.1); }
+
+/* =========================================
+   3. INTERNAL LAYOUT (PANEL/DASHBOARD)
+   ========================================= */
+.app-layout { display: flex; min-height: 100vh; }
+
+/* SIDEBAR */
+.app-sidebar {
+    width: 280px; background: var(--navy-deep); color: var(--text-on-dark);
+    position: fixed; height: 100vh; left: 0; top: 0; z-index: 1000;
+    border-right: 1px solid rgba(255,255,255,0.05);
+    display: flex; flex-direction: column; transition: transform 0.3s ease;
+}
+
+.sidebar-header { padding: 30px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+.sidebar-logo { font-family: var(--font-serif); font-size: 1.5rem; color: white; font-weight: 700; display: flex; align-items: center; gap: 8px;}
+.sidebar-logo span { color: var(--gold-main); }
+
+.sidebar-nav { flex: 1; padding: 20px; overflow-y: auto; }
+.sidebar-nav ul li { margin-bottom: 8px; }
+.sidebar-nav a {
+    display: flex; align-items: center; padding: 12px 16px;
+    border-radius: 12px; color: rgba(255,255,255,0.7); font-weight: 500;
+    text-decoration: none;
+}
+.sidebar-nav a:hover, .sidebar-nav a.active {
+    background: rgba(212, 175, 55, 0.15); color: var(--gold-main);
+}
+.sidebar-nav .icon { margin-right: 12px; font-size: 1.2rem; min-width: 24px; text-align: center; }
+
+/* MAIN CONTENT AREA */
+.app-main {
+    flex: 1; margin-left: 280px; width: calc(100% - 280px);
+    display: flex; flex-direction: column; background: var(--bg-body);
+}
+
+/* TOP HEADER */
+.app-header {
+    height: 80px; background: white; padding: 0 40px;
+    display: flex; justify-content: space-between; align-items: center;
+    position: sticky; top: 0; z-index: 900;
+    box-shadow: var(--shadow-soft);
+}
+
+.user-profile { display: flex; align-items: center; gap: 12px; }
+.user-avatar {
+    width: 40px; height: 40px; background: var(--gold-main); color: var(--navy-deep);
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-weight: bold; font-size: 1.2rem;
+}
+
+.app-content { padding: 40px; flex: 1; }
+
+/* =========================================
+   4. EXAM ENGINE (TEST & DENEME EKRANI)
+   ========================================= */
+/* Sticky Header (Sınavda üstte kalan bilgi çubuğu) */
+.header-sticky {
+    position: sticky; top: 0;
+    background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px);
+    box-shadow: var(--shadow-soft); z-index: 950;
+    padding: 15px 5%; display: flex; justify-content: space-between; align-items: center;
+    border-top: 4px solid var(--gold-main);
+}
+
+.test-title { 
+    font-weight: 800; font-size: 1.1rem; color: var(--navy-deep); 
+    display: flex; align-items: center; gap: 10px;
+}
+.score-board { 
+    display: flex; gap: 15px; background: var(--navy-deep);
+    padding: 8px 20px; border-radius: 50px; color: var(--gold-main);
+    font-weight: 700; box-shadow: var(--shadow-soft); font-size: 0.9rem;
+}
+.score-item span { color: white; margin-left: 5px; }
+#trueVal { color: var(--success); }
+#falseVal { color: var(--danger); }
+
+/* Soru Konteyner */
+.quiz-container { max-width: 800px; margin: 40px auto; padding: 0 20px; padding-bottom: 100px; /* Footer payı */ }
+
+/* Soru Kartı */
+.soru-kart {
+    background: var(--surface); border-radius: var(--radius);
+    box-shadow: var(--shadow-soft); margin-bottom: 30px;
+    border: 1px solid rgba(0,0,0,0.05); overflow: hidden;
+}
+
+.kart-header {
+    background: var(--navy-deep); padding: 15px 25px;
+    display: flex; justify-content: space-between; align-items: center;
+}
+.soru-no {
+    color: var(--gold-main); font-weight: 800; letter-spacing: 1px;
+    font-size: 0.9rem; text-transform: uppercase;
+}
+
+.soru-metni { 
+    padding: 30px; font-size: 1.1rem; color: var(--navy-deep); font-weight: 500;
+    text-align: justify;
+}
+.vurgu-negatif { color: var(--danger); font-weight: 800; text-decoration: underline; }
+
+/* Şıklar */
+.siklar-alani { padding: 0 30px 30px; display: flex; flex-direction: column; gap: 12px; }
+
+.sik-btn {
+    display: flex; align-items: center; width: 100%;
+    padding: 16px 20px; border: 2px solid #E2E8F0; border-radius: 12px; 
+    background: white; cursor: pointer; transition: all 0.2s; 
+    text-align: left; font-size: 1rem; color: var(--text-main); font-weight: 500;
+}
+.sik-btn:hover { border-color: var(--gold-main); background-color: #FFFDF5; }
+
+.sik-harf {
+    background: var(--navy-light); color: var(--gold-main); 
+    width: 36px; height: 36px; border-radius: 8px; 
+    display: flex; align-items: center; justify-content: center; 
+    margin-right: 15px; font-weight: bold; flex-shrink: 0;
+}
+
+/* Şık Durumları */
+.sik-btn.correct { background: #ECFDF5; border-color: var(--success); color: #065F46; }
+.sik-btn.correct .sik-harf { background: var(--success); color: white; }
+
+.sik-btn.wrong { background: #FEF2F2; border-color: var(--danger); color: #991B1B; }
+.sik-btn.wrong .sik-harf { background: var(--danger); color: white; }
+
+.sik-btn.disabled { pointer-events: none; opacity: 0.7; }
+
+/* Çözüm Alanı */
+.cozum-container {
+    background: #F8FAFC; border-top: 2px solid var(--gold-main);
+    padding: 30px; display: none; animation: slideDown 0.3s ease;
+}
+@keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+.cozum-header { 
+    color: var(--navy-deep); font-size: 1.1rem; font-weight: 800; 
+    margin-bottom: 15px; display: flex; align-items: center; gap: 10px;
+}
+.tuzak-kutu { 
+    background: #FFFBEB; border-left: 4px solid #F59E0B; 
+    padding: 15px; margin: 15px 0; border-radius: 0 8px 8px 0; color: #92400E; font-size: 0.95rem;
+}
+.hap-kutu { 
+    background: #EFF6FF; border-left: 4px solid #3B82F6; 
+    padding: 15px; margin: 15px 0; border-radius: 0 8px 8px 0; color: #1E40AF; font-size: 0.95rem;
+}
+
+/* Static Footer (Sınav butonları) */
+.footer-static {
+    position: fixed; bottom: 0; left: 0; width: 100%;
+    display: flex; justify-content: center; gap: 15px;
+    padding: 15px; background: white; 
+    box-shadow: 0 -5px 20px rgba(0,0,0,0.05); z-index: 900;
+    /* Sidebar varsa soldan itmesi için JS ile class eklenebilir, varsayılan full */
+}
+
+
+
+/* =========================================
+   5. RESPONSIVE (MOBİL UYUM)
+   ========================================= */
+@media (max-width: 900px) {
+    /* Layout */
+    .app-sidebar { transform: translateX(-100%); }
+    .app-sidebar.open { transform: translateX(0); }
+    .app-main { margin-left: 0; width: 100%; }
+    .app-header { padding: 0 20px; }
+    .app-content { padding: 20px; }
+    
+    /* Exam */
+    .header-sticky { padding: 10px; flex-direction: column; gap: 10px; }
+    .score-board { width: 100%; justify-content: space-around; }
+    .soru-metni { padding: 20px; font-size: 1rem; }
+    .sik-btn { padding: 12px; font-size: 0.95rem; }
+    
+    /* Footer Buttons */
+    .footer-static { padding: 10px; flex-wrap: wrap; }
+    .footer-static button { flex: 1; font-size: 0.85rem; padding: 10px; }
+}
+
+:root {
+    --gold-main: #D4AF37;
+    --navy-deep: #0F172A;
+    --navy-light: #1E293B;
+    --text-main: #F8FAFC;
+    --text-muted: #94A3B8;
+    --danger: #EF4444;
+    --success: #10B981;
+    --font-main: 'Inter', sans-serif;
+    --font-serif: 'Playfair Display', serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; outline: none; }
+
+body {
+    font-family: var(--font-main);
+    background-color: var(--navy-deep); /* Arka plan rengini sabitledik */
+    color: var(--text-main);
+    margin: 0;
+    min-height: 100vh;
+}
+
+/* --- LOGIN SAYFASI --- */
+.auth-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 20px;
+    background: radial-gradient(circle at top, #1e293b 0%, #0f172a 100%);
+}
+
+.auth-card {
+    background: rgba(30, 41, 59, 0.8);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 40px;
+    border-radius: 20px;
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+}
+
+.auth-logo {
+    font-family: var(--font-serif);
+    font-size: 2.5rem;
+    color: white;
+    margin-bottom: 5px;
+    font-weight: 700;
+}
+.auth-logo span { color: var(--gold-main); }
+
+/* Google Butonu Düzeltmesi */
+.btn-google {
+    background: white;
+    color: #1f1f1f;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 50px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    width: 100%;
+    font-size: 1rem;
+    font-family: var(--font-main);
+    margin-top: 20px;
+}
+
+.btn-google:hover { background: #f1f1f1; transform: translateY(-2px); }
+
+/* SVG İkonunu Zorla Küçült */
+.btn-google svg {
+    width: 24px !important;
+    height: 24px !important;
+    min-width: 24px;
+}
+
+/* Durum Kutuları */
+.status-box {
+    margin-top: 20px;
+    padding: 15px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    text-align: left;
+    display: none;
+}
+.status-pending { background: rgba(245, 158, 11, 0.2); color: #FCD34D; border: 1px solid #F59E0B; }
+.status-error { background: rgba(239, 68, 68, 0.2); color: #FCA5A5; border: 1px solid #EF4444; }

@@ -1,0 +1,23 @@
+
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>Konu Yönetimi</title>
+</head>
+<body>
+<h1>Konu Yönetimi</h1>
+<input id="title" placeholder="Konu adı">
+<select id="category">
+  <option value="ortak">Ortak</option>
+  <option value="alan">Alan</option>
+</select>
+<button onclick="addTopic()">Ekle</button>
+<ul id="list"></ul>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="/js/firebase-config.js"></script>
+<script src="/admin/js/admin-topics.js"></script>
+</body>
+</html>

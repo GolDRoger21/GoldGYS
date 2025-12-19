@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panelim | GOLD GYS</title>
+    
+    <link rel="stylesheet" href="/css/app.css">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230F172A'/><text x='50' y='70' font-family='serif' font-size='60' fill='%23D4AF37' text-anchor='middle' font-weight='bold'>G</text><text x='80' y='35' font-size='30'>⚖️</text></svg>">
+</head>
+<body>
+
+    <div class="app-layout">
+        
+        <aside id="sidebar-area" class="app-sidebar"></aside>
+
+        <main class="app-main">
+            
+            <header id="header-area" class="app-header"></header>
+
+            <div class="app-content">
+                
+                <div style="
+                    background: linear-gradient(135deg, var(--navy-deep) 0%, #1E293B 100%);
+                    color: white;
+                    padding: 40px;
+                    border-radius: 24px;
+                    margin-bottom: 40px;
+                    position: relative;
+                    overflow: hidden;
+                    box-shadow: var(--shadow-strong);
+                    border: 1px solid rgba(255,255,255,0.05);
+                ">
+                    <div style="position: absolute; right: -20px; bottom: -40px; font-size: 12rem; opacity: 0.05; transform: rotate(-15deg); pointer-events: none;">⚖️</div>
+                    <div style="position: absolute; left: -50px; top: -50px; width: 200px; height: 200px; background: radial-gradient(circle, rgba(212,175,55,0.2) 0%, transparent 70%); border-radius: 50%; pointer-events: none;"></div>
+
+                    <div style="position: relative; z-index: 2;">
+                        <h1 style="font-family: 'Playfair Display', serif; font-size: 2.2rem; margin-bottom: 10px;">
+                            Hoş Geldiniz, <span id="dashUserName" style="color: var(--gold-main);">Kaptan</span> 👑
+                        </h1>
+                        <p style="color: #94A3B8; max-width: 600px; font-size: 1.05rem; line-height: 1.6; margin-bottom: 30px;">
+                            Bugün, hedeflerine bir adım daha yaklaşmak için harika bir gün. Eksik konularını tamamla, rakiplerinin önüne geç.
+                        </p>
+                        
+                        <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                            <a href="testler.html" class="btn-gold" style="width: auto; padding-left: 30px; padding-right: 30px;">
+                                📝 Hemen Test Çöz
+                            </a>
+                            <a href="denemeler.html" class="btn-navy" style="border-color: rgba(255,255,255,0.2); color: white; width: auto;">
+                                🏆 Deneme Sınavı
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 30px; margin-bottom: 40px;">
+                    
+                    <div style="background: white; padding: 30px; border-radius: 20px; box-shadow: var(--shadow-soft); display: flex; align-items: center; gap: 20px; border: 1px solid rgba(0,0,0,0.03);">
+                        <div style="width: 60px; height: 60px; background: var(--gold-light); color: var(--gold-dark); border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem;">
+                            📚
+                        </div>
+                        <div>
+                            <div style="font-size: 0.9rem; color: var(--text-muted); font-weight: 500;">Çözülen Soru</div>
+                            <div style="font-size: 2rem; font-weight: 800; color: var(--navy-deep);">0</div>
+                        </div>
+                    </div>
+
+                    <div style="background: white; padding: 30px; border-radius: 20px; box-shadow: var(--shadow-soft); display: flex; align-items: center; gap: 20px; border: 1px solid rgba(0,0,0,0.03);">
+                        <div style="width: 60px; height: 60px; background: #ECFDF5; color: var(--success); border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem;">
+                            🎯
+                        </div>
+                        <div>
+                            <div style="font-size: 0.9rem; color: var(--text-muted); font-weight: 500;">Başarı Oranı</div>
+                            <div style="font-size: 2rem; font-weight: 800; color: var(--navy-deep);">%0</div>
+                        </div>
+                    </div>
+
+                    <div style="background: white; padding: 30px; border-radius: 20px; box-shadow: var(--shadow-soft); border: 1px solid rgba(0,0,0,0.03);">
+                        <div style="font-size: 0.9rem; color: var(--text-muted); font-weight: 500; margin-bottom: 15px;">⚡ Hızlı Erişim</div>
+                        <div style="display: flex; gap: 10px;">
+                            <a href="yanlislarim.html" class="btn-navy" style="flex: 1; font-size: 0.85rem; padding: 10px;">⚠️ Yanlışlar</a>
+                            <a href="favoriler.html" class="btn-navy" style="flex: 1; font-size: 0.85rem; padding: 10px;">⭐ Favoriler</a>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 30px; align-items: start;">
+                    
+                    <div style="background: white; border-radius: 20px; box-shadow: var(--shadow-soft); overflow: hidden;">
+                        <div style="padding: 25px; border-bottom: 1px solid rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center;">
+                            <h3 style="font-family: 'Playfair Display', serif; color: var(--navy-deep); font-size: 1.2rem;">Son Aktiviteler</h3>
+                        </div>
+                        <div style="padding: 30px; text-align: center; color: var(--text-muted);">
+                            <p>Henüz bir aktivite kaydı bulunmuyor.</p>
+                            <p style="font-size: 0.9rem; margin-top: 5px;">İlk testini çözerek maceraya başla!</p>
+                        </div>
+                    </div>
+
+                    <div style="background: var(--navy-deep); color: white; border-radius: 20px; box-shadow: var(--shadow-soft); padding: 30px; text-align: center; position: relative; overflow: hidden;">
+                        <div style="position: absolute; top: -20px; right: -20px; width: 100px; height: 100px; background: var(--gold-main); opacity: 0.1; border-radius: 50%;"></div>
+                        
+                        <div style="font-size: 2.5rem; margin-bottom: 10px;">📅</div>
+                        <h3 style="color: var(--gold-main); margin-bottom: 10px; font-family: 'Playfair Display';">Sınav Takvimi</h3>
+                        <p style="opacity: 0.8; margin-bottom: 20px; font-size: 0.9rem;">
+                            Sınav tarihi henüz resmi olarak açıklanmadı.
+                        </p>
+                        <div style="background: rgba(255,255,255,0.1); padding: 10px; border-radius: 8px; font-size: 0.85rem;">
+                            Takipte Kalın
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <script type="module">
+        import { initLayout } from '/js/ui-loader.js';
+        import { auth } from '/js/firebase-config.js';
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+        // Sayfa yüklendiğinde Layout'u başlat
+        // 'dashboard' parametresi sidebar'da "Panelim" linkini aktif (sarı) yapar
+        initLayout('dashboard');
+
+        // Kullanıcı adını Firebase'den çekip yaz
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                const nameEl = document.getElementById("dashUserName");
+                if(user.displayName) {
+                    // İsim varsa yaz
+                    nameEl.innerText = user.displayName;
+                } else if(user.email) {
+                    // Yoksa mailin başını yaz
+                    const name = user.email.split('@')[0];
+                    nameEl.innerText = name.charAt(0).toUpperCase() + name.slice(1);
+                }
+            } else {
+                // Giriş yapmamışsa login'e at (Güvenlik Önlemi)
+                window.location.href = "/login.html";
+            }
+        });
+    </script>
+
+</body>
+</html>

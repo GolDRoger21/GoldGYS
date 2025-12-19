@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test Çöz | GOLD GYS</title>
+  <link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+
+<header class="header-sticky">
+    <div class="test-title" id="testTitle">Test Yükleniyor...</div>
+    <div class="score-board">
+        <div class="score-item">D: <span id="trueVal">0</span></div>
+        <div class="score-item">Y: <span id="falseVal">0</span></div>
+        <div class="score-item">K: <span id="remainVal">--</span></div>
+    </div>
+</header>
+
+<div class="quiz-container" id="quizContainer">
+    <div style="text-align:center; padding: 50px;">Sorular Getiriliyor...</div>
+</div>
+
+<div class="footer-static">
+    <button id="btnReset" class="btn-action">Sıfırla</button>
+    <button id="btnWrong" class="btn-action">Yanlışları Çöz</button>
+    <button id="btnFinish" class="btn-action">Testi Bitir</button>
+</div>
+
+<div id="resultModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:2000; align-items:center; justify-content:center;">
+    <div style="background:white; padding:30px; border-radius:12px; text-align:center; max-width:400px; width:90%;">
+        <h2>Test Sonucu</h2>
+        <div id="scoreDisplay" style="font-size:3rem; font-weight:800; color:var(--accent); margin:15px 0;">%0</div>
+        <p id="resultText">...</p>
+        <button onclick="document.getElementById('resultModal').style.display='none'" class="btn-action" style="background:var(--primary); margin-top:20px; width:100%;">Kapat</button>
+    </div>
+</div>
+
+<script type="module" src="/js/firebase-config.js"></script>
+<script type="module" src="/js/test-engine.js"></script>
+</body>
+</html>

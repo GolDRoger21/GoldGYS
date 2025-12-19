@@ -1,0 +1,77 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null; }
+    function isAdmin()  { return signedIn() && request.auth.token.admin == true; }
+    function isSelf(uid){ return signedIn() && request.auth.uid == uid; }
+
+    // Public (read-only) content collections
+    match /topics/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /lessons/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /tests/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /questions/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /exams/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Reports: students can create; admin can read/update
+    match /reports/{id} {
+      allow create: if signedIn()
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.status == "open";
+      allow read, update, delete: if isAdmin();
+    }
+
+    // Users root doc: self read; admin read; self can create minimal profile
+    match /users/{uid} {
+      allow create: if isSelf(uid);
+      allow read: if isSelf(uid) || isAdmin();
+      allow update: if isSelf(uid) || isAdmin();
+      allow delete: if isAdmin();
+
+      // User private subcollections
+      match /progress/{docId} {
+        allow read, write: if isSelf(uid);
+      }
+
+      match /wrongs/{docId} {
+        allow read, write: if isSelf(uid);
+      }
+
+      match /favorites/{docId} {
+        allow read, write: if isSelf(uid);
+      }
+
+      match /examSessions/{docId} {
+        allow read, write: if isSelf(uid);
+      }
+
+      match /examResults/{docId} {
+        allow read, write: if isSelf(uid);
+      }
+    }
+
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
