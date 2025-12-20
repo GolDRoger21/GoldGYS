@@ -61,6 +61,7 @@ const tabMetaCount = document.getElementById("tabMetaCount");
 const tabMetaUpdated = document.getElementById("tabMetaUpdated");
 const tabMetaSuccess = document.getElementById("tabMetaSuccess");
 const contentSkeleton = document.getElementById("contentSkeleton");
+const pendingSkeletonCount = 3;
 const contentTables = {
   topics: document.getElementById("topicsTableBody"),
   tests: document.getElementById("testsTableBody"),
@@ -241,6 +242,11 @@ document.querySelectorAll("[data-content-modal-close]").forEach((btn) =>
   btn.addEventListener("click", closeContentEditModal)
 );
 contentSaveBtn?.addEventListener("click", saveContentEdit);
+preparePendingEmptyState();
+preparePendingErrorState();
+setupModalAccessibility(roleModal, saveRoleSelection, closeRoleModal);
+setupModalAccessibility(detailModal, () => detailUpdateBtn?.click(), closeDetailModal);
+setupModalAccessibility(contentEditModal, saveContentEdit, closeContentEditModal);
 
 function debounceFilters() {
   if (debounceTimer) {
@@ -283,7 +289,7 @@ async function loadPendingMembers(forceReload = false) {
   }
 
   if (!pendingListEl.childElementCount) {
-    pendingListEl.innerHTML = "<li class='pending-card'>Bekleyen üyeler yükleniyor...</li>";
+    renderPendingSkeleton();
   }
 
   filterState.search = (searchInput?.value || "").trim().toLowerCase();
@@ -307,7 +313,8 @@ async function loadPendingMembers(forceReload = false) {
   try {
     const snapshot = await getDocs(query(...constraints));
 
-    if (forceReload) {
+    const firstChildIsSkeleton = pendingListEl.firstElementChild?.getAttribute("aria-busy") === "true";
+    if (forceReload || firstChildIsSkeleton) {
       pendingListEl.innerHTML = "";
     }
 
@@ -365,36 +372,117 @@ function renderPendingCard(uid, data) {
   const currentRoles = Array.isArray(data.roles) ? data.roles.join(", ") : data.role || "student";
   const createdText = data.createdAt?.toDate ? data.createdAt.toDate().toLocaleString() : "-";
 
-  li.innerHTML = `
-    <div class="top">
-      <div>
-        <div class="title">${data.displayName || "İsimsiz Kullanıcı"}</div>
-        <div class="email">${data.email || "E-posta belirtilmemiş"}</div>
-      </div>
-      <div class="pill">UID: ${uid}</div>
-    </div>
-    <div class="meta">
-      <span>Mevcut rol: <strong>${data.role || "belirtilmemiş"}</strong></span>
-      <span>Durum: <strong>${data.status || "-"}</strong></span>
-      <span>Roller: <strong>${currentRoles}</strong></span>
-      <span>Oluşturulma: <strong>${createdText}</strong></span>
-    </div>
-    <p class="note">Onaylanan üyeler seçtiğiniz rolle aktif edilir ve Firestore güvenlik kurallarına uygun şekilde yetkilendirilir.</p>
-    <div class="actions">
-      <button type="button" class="btn-navy" data-action="detail" data-uid="${uid}">Detay</button>
-      <button type="button" class="btn-gold" data-action="edit-role" data-uid="${uid}">Rolü Düzenle</button>
-      <label style="display: flex; align-items: center; gap: 8px; font-weight: 700;">
-        Rol:
-        <select data-uid="${uid}">
-          ${ROLE_OPTIONS
-            .map((opt) => `<option value="${opt.value}" ${opt.value === preferredRole ? "selected" : ""}>${opt.label}</option>`)
-            .join("")}
-        </select>
-      </label>
-      <button type="button" class="btn-navy" data-action="approve" data-uid="${uid}">Onayla</button>
-      <button type="button" class="btn-gold" data-action="reject" data-uid="${uid}" style="background: #fee2e2; color: #991b1b; border: 1px solid rgba(153,27,27,0.2); box-shadow: none;">Reddet</button>
-    </div>
-  `;
+  const top = document.createElement("div");
+  top.className = "top";
+
+  const personInfo = document.createElement("div");
+  const title = document.createElement("div");
+  title.className = "title";
+  title.textContent = data.displayName || "İsimsiz Kullanıcı";
+  const email = document.createElement("div");
+  email.className = "email";
+  email.textContent = data.email || "E-posta belirtilmemiş";
+  personInfo.appendChild(title);
+  personInfo.appendChild(email);
+
+  const pill = document.createElement("div");
+  pill.className = "pill";
+  pill.textContent = `UID: ${uid}`;
+
+  top.appendChild(personInfo);
+  top.appendChild(pill);
+
+  const meta = document.createElement("div");
+  meta.className = "meta";
+
+  const roleSpan = document.createElement("span");
+  const roleLabel = document.createElement("strong");
+  roleLabel.textContent = data.role || "belirtilmemiş";
+  roleSpan.append("Mevcut rol: ", roleLabel);
+
+  const statusSpan = document.createElement("span");
+  const statusLabel = document.createElement("strong");
+  statusLabel.textContent = data.status || "-";
+  statusSpan.append("Durum: ", statusLabel);
+
+  const rolesSpan = document.createElement("span");
+  const rolesLabel = document.createElement("strong");
+  rolesLabel.textContent = currentRoles;
+  rolesSpan.append("Roller: ", rolesLabel);
+
+  const createdSpan = document.createElement("span");
+  const createdLabel = document.createElement("strong");
+  createdLabel.textContent = createdText;
+  createdSpan.append("Oluşturulma: ", createdLabel);
+
+  meta.append(roleSpan, statusSpan, rolesSpan, createdSpan);
+
+  const note = document.createElement("p");
+  note.className = "note";
+  note.textContent =
+    "Onaylanan üyeler seçtiğiniz rolle aktif edilir ve Firestore güvenlik kurallarına uygun şekilde yetkilendirilir.";
+
+  const actions = document.createElement("div");
+  actions.className = "actions";
+
+  const detailBtn = document.createElement("button");
+  detailBtn.type = "button";
+  detailBtn.className = "btn-navy";
+  detailBtn.dataset.action = "detail";
+  detailBtn.dataset.uid = uid;
+  detailBtn.textContent = "Detay";
+  detailBtn.setAttribute("aria-label", "Kullanıcı detaylarını aç");
+
+  const editBtn = document.createElement("button");
+  editBtn.type = "button";
+  editBtn.className = "btn-gold";
+  editBtn.dataset.action = "edit-role";
+  editBtn.dataset.uid = uid;
+  editBtn.textContent = "Rolü Düzenle";
+  editBtn.setAttribute("aria-label", "Rolü düzenle");
+
+  const roleLabelWrapper = document.createElement("label");
+  roleLabelWrapper.style.display = "flex";
+  roleLabelWrapper.style.alignItems = "center";
+  roleLabelWrapper.style.gap = "8px";
+  roleLabelWrapper.style.fontWeight = "700";
+  roleLabelWrapper.textContent = "Rol:";
+
+  const select = document.createElement("select");
+  select.dataset.uid = uid;
+  select.setAttribute("aria-label", "Rol seçimi");
+  ROLE_OPTIONS.forEach((opt) => {
+    const option = document.createElement("option");
+    option.value = opt.value;
+    option.textContent = opt.label;
+    if (opt.value === preferredRole) option.selected = true;
+    select.appendChild(option);
+  });
+  roleLabelWrapper.appendChild(select);
+
+  const approveBtn = document.createElement("button");
+  approveBtn.type = "button";
+  approveBtn.className = "btn-navy";
+  approveBtn.dataset.action = "approve";
+  approveBtn.dataset.uid = uid;
+  approveBtn.textContent = "Onayla";
+  approveBtn.setAttribute("aria-label", "Başvuruyu onayla");
+
+  const rejectBtn = document.createElement("button");
+  rejectBtn.type = "button";
+  rejectBtn.className = "btn-gold";
+  rejectBtn.dataset.action = "reject";
+  rejectBtn.dataset.uid = uid;
+  rejectBtn.textContent = "Reddet";
+  rejectBtn.style.background = "#fee2e2";
+  rejectBtn.style.color = "#991b1b";
+  rejectBtn.style.border = "1px solid rgba(153,27,27,0.2)";
+  rejectBtn.style.boxShadow = "none";
+  rejectBtn.setAttribute("aria-label", "Başvuruyu reddet");
+
+  actions.append(detailBtn, editBtn, roleLabelWrapper, approveBtn, rejectBtn);
+
+  li.append(top, meta, note, actions);
 
   return li;
 }
@@ -431,6 +519,7 @@ function openRoleModal(uid) {
 
   roleModal.classList.add("open");
   roleModal.setAttribute("aria-hidden", "false");
+  focusFirstElement(roleModal);
 }
 
 function closeRoleModal() {
@@ -458,6 +547,7 @@ async function openDetailModal(uid) {
   resetDetailModal();
   detailModal.classList.add("open");
   detailModal.setAttribute("aria-hidden", "false");
+  focusFirstElement(detailModal);
 
   try {
     showContentSkeleton(true);
@@ -510,7 +600,7 @@ async function openDetailModal(uid) {
   } catch (error) {
     console.error("Detay modal yüklenemedi", error);
     showContentSkeleton(false);
-    setDetailStatus("Detaylar getirilemedi. Lütfen tekrar deneyin.", true);
+    setDetailStatus("Detaylar getirilemedi. Lütfen tekrar deneyin.", true, false, () => openDetailModal(uid));
   }
 }
 
@@ -546,11 +636,19 @@ function closeDetailModal() {
   detailModal.setAttribute("aria-hidden", "true");
 }
 
-function setDetailStatus(message, isError = false, hide = false) {
+function setDetailStatus(message, isError = false, hide = false, onRetry) {
   if (!detailModalStatus) return;
   detailModalStatus.style.display = hide ? "none" : "block";
   detailModalStatus.className = `alert ${isError ? "error" : "success"}`;
-  detailModalStatus.textContent = message;
+  detailModalStatus.innerHTML = "";
+  const text = document.createElement("span");
+  text.textContent = message;
+  detailModalStatus.appendChild(text);
+  if (isError && typeof onRetry === "function") {
+    const retryBtn = createActionButton("Tekrar dene", "btn-secondary", onRetry);
+    retryBtn.style.marginLeft = "8px";
+    detailModalStatus.appendChild(retryBtn);
+  }
 }
 
 function formatDateValue(value) {
@@ -736,6 +834,7 @@ function openContentEditModal(item, sectionKey) {
   setContentEditStatus("", false, true);
   contentEditModal.classList.add("open");
   contentEditModal.setAttribute("aria-hidden", "false");
+  focusFirstElement(contentEditModal);
 }
 
 function closeContentEditModal() {
@@ -906,6 +1005,9 @@ class ContentSection {
     try {
       this.state.loading = true;
       showContentSkeleton(true);
+      if (!this.tableBody.childElementCount) {
+        renderTableLoadingPlaceholder(this.tableBody);
+      }
       const snapshot = await getDocs(queryRef);
       const rows = snapshot.docs.map((docSnap) => {
         const data = docSnap.data();
@@ -937,7 +1039,7 @@ class ContentSection {
       updateTabMetaWithLiveData(this.key, { count: this.cache.size, lastUpdated: filteredRows[0]?.updatedAt });
     } catch (error) {
       console.error(`${this.key} listesi yüklenemedi`, error);
-      setDetailStatus("İçerik listesi yüklenemedi.", true);
+      setDetailStatus("İçerik listesi yüklenemedi.", true, false, () => this.load(true));
     } finally {
       this.state.loading = false;
       showContentSkeleton(false);
@@ -949,7 +1051,11 @@ class ContentSection {
     this.tableBody.innerHTML = "";
 
     if (!rows.length) {
-      this.emptyState.style.display = "block";
+      renderSectionEmptyState(
+        this.emptyState,
+        () => this.load(true),
+        () => this.clearFiltersAndReload()
+      );
       return;
     }
 
@@ -957,22 +1063,70 @@ class ContentSection {
 
     rows.forEach((row) => {
       const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${row.title}</td>
-        <td><span class="badge-muted">${row.status || "-"}</span></td>
-        <td>${formatDateValue(row.updatedAt)}</td>
-        <td>${formatSuccess(row.successRate)}</td>
-        <td>
-          <div class="table-actions">
-            <button type="button" class="btn-secondary" data-action="view" data-id="${row.id}">Görüntüle</button>
-            <button type="button" class="btn-navy" data-action="edit" data-id="${row.id}">Düzenle</button>
-            <button type="button" class="btn-danger" data-action="delete" data-id="${row.id}">Sil</button>
-            <button type="button" class="btn-gold" data-action="toggle" data-id="${row.id}">Durum Değiştir</button>
-          </div>
-        </td>
-      `;
+      const titleCell = document.createElement("td");
+      titleCell.textContent = row.title;
+
+      const statusCell = document.createElement("td");
+      const statusBadge = document.createElement("span");
+      statusBadge.className = "badge-muted";
+      statusBadge.textContent = row.status || "-";
+      statusCell.appendChild(statusBadge);
+
+      const updatedCell = document.createElement("td");
+      updatedCell.textContent = formatDateValue(row.updatedAt);
+
+      const successCell = document.createElement("td");
+      successCell.textContent = formatSuccess(row.successRate);
+
+      const actionCell = document.createElement("td");
+      const actionWrapper = document.createElement("div");
+      actionWrapper.className = "table-actions";
+
+      const viewBtn = document.createElement("button");
+      viewBtn.type = "button";
+      viewBtn.className = "btn-secondary";
+      viewBtn.dataset.action = "view";
+      viewBtn.dataset.id = row.id;
+      viewBtn.textContent = "Görüntüle";
+      viewBtn.setAttribute("aria-label", `${row.title} kaydını görüntüle`);
+
+      const editBtn = document.createElement("button");
+      editBtn.type = "button";
+      editBtn.className = "btn-navy";
+      editBtn.dataset.action = "edit";
+      editBtn.dataset.id = row.id;
+      editBtn.textContent = "Düzenle";
+      editBtn.setAttribute("aria-label", `${row.title} kaydını düzenle`);
+
+      const deleteBtn = document.createElement("button");
+      deleteBtn.type = "button";
+      deleteBtn.className = "btn-danger";
+      deleteBtn.dataset.action = "delete";
+      deleteBtn.dataset.id = row.id;
+      deleteBtn.textContent = "Sil";
+      deleteBtn.setAttribute("aria-label", `${row.title} kaydını sil`);
+
+      const toggleBtn = document.createElement("button");
+      toggleBtn.type = "button";
+      toggleBtn.className = "btn-gold";
+      toggleBtn.dataset.action = "toggle";
+      toggleBtn.dataset.id = row.id;
+      toggleBtn.textContent = "Durum Değiştir";
+      toggleBtn.setAttribute("aria-label", `${row.title} durumunu değiştir`);
+
+      actionWrapper.append(viewBtn, editBtn, deleteBtn, toggleBtn);
+      actionCell.appendChild(actionWrapper);
+
+      tr.append(titleCell, statusCell, updatedCell, successCell, actionCell);
       this.tableBody.appendChild(tr);
     });
+  }
+
+  clearFiltersAndReload() {
+    if (this.searchInput) this.searchInput.value = "";
+    if (this.statusSelect) this.statusSelect.value = "all";
+    this.state = { page: 1, anchors: [null], reachedEnd: false, loading: false };
+    this.load(true);
   }
 
   updatePagination() {
@@ -1036,11 +1190,13 @@ function createContentItem(item, key) {
   title.textContent = item.title || "(Başlıksız)";
   const meta = document.createElement("div");
   meta.className = "content-meta";
-  meta.innerHTML = `
-    <span>Güncelleme: ${formatDateValue(item.updatedAt)}</span>
-    <span>Başarı: ${formatSuccess(item.successRate)}</span>
-    <span>Durum: ${item.status || "-"}</span>
-  `;
+  const updatedSpan = document.createElement("span");
+  updatedSpan.textContent = `Güncelleme: ${formatDateValue(item.updatedAt)}`;
+  const successSpan = document.createElement("span");
+  successSpan.textContent = `Başarı: ${formatSuccess(item.successRate)}`;
+  const statusSpan = document.createElement("span");
+  statusSpan.textContent = `Durum: ${item.status || "-"}`;
+  meta.append(updatedSpan, successSpan, statusSpan);
   info.appendChild(title);
   info.appendChild(meta);
 
@@ -1497,11 +1653,163 @@ function toggleLoadMore(shouldShow) {
 function showErrorState(message) {
   if (!errorStateEl) return;
   errorStateEl.style.display = "block";
-  errorStateEl.textContent = message;
+  errorStateEl.innerHTML = "";
+  const text = document.createElement("span");
+  text.textContent = message;
+  const retryBtn = document.createElement("button");
+  retryBtn.type = "button";
+  retryBtn.className = "btn-secondary";
+  retryBtn.textContent = "Tekrar dene";
+  retryBtn.setAttribute("aria-label", "Listeyi yeniden yükle");
+  retryBtn.addEventListener("click", () => loadPendingMembers(true));
+  errorStateEl.append(text, retryBtn);
 }
 
 function hideErrorState() {
   if (!errorStateEl) return;
   errorStateEl.style.display = "none";
   errorStateEl.textContent = "";
+}
+
+function renderPendingSkeleton() {
+  if (!pendingListEl) return;
+  pendingListEl.innerHTML = "";
+  for (let i = 0; i < pendingSkeletonCount; i += 1) {
+    const li = document.createElement("li");
+    li.className = "pending-card";
+    li.setAttribute("aria-busy", "true");
+    const loadingRow = document.createElement("div");
+    loadingRow.className = "top";
+    const spinner = createSpinner();
+    const label = document.createElement("span");
+    label.textContent = "Yükleniyor";
+    loadingRow.append(spinner, label);
+    li.appendChild(loadingRow);
+    pendingListEl.appendChild(li);
+  }
+}
+
+function preparePendingEmptyState() {
+  if (!emptyStateEl) return;
+  emptyStateEl.innerHTML = "";
+  const message = document.createElement("p");
+  message.textContent = "Bu filtrelerle eşleşen kullanıcı bulunamadı.";
+  const actions = document.createElement("div");
+  actions.className = "empty-actions";
+  const refreshBtn = createActionButton("Yenile", "btn-navy", () => loadPendingMembers(true));
+  const clearBtn = createActionButton("Filtreleri temizle", "btn-secondary", () => {
+    if (searchInput) searchInput.value = "";
+    if (statusFilter) statusFilter.value = "pending";
+    if (roleFilter) roleFilter.value = "all";
+    loadPendingMembers(true);
+  });
+  actions.append(refreshBtn, clearBtn);
+  emptyStateEl.append(message, actions);
+}
+
+function preparePendingErrorState() {
+  if (!errorStateEl) return;
+  errorStateEl.setAttribute("role", "alert");
+}
+
+function renderTableLoadingPlaceholder(tableBody) {
+  if (!tableBody) return;
+  tableBody.innerHTML = "";
+  const row = document.createElement("tr");
+  const cell = document.createElement("td");
+  cell.colSpan = 5;
+  cell.style.textAlign = "center";
+  const spinner = createSpinner();
+  const label = document.createElement("span");
+  label.textContent = "İçerik yükleniyor...";
+  label.style.marginLeft = "8px";
+  cell.append(spinner, label);
+  row.appendChild(cell);
+  tableBody.appendChild(row);
+}
+
+function renderSectionEmptyState(container, onRefresh, onClear) {
+  if (!container) return;
+  container.innerHTML = "";
+  const message = document.createElement("p");
+  message.className = "muted";
+  message.textContent = "Bu filtrelerle sonuç bulunamadı.";
+  const actions = document.createElement("div");
+  actions.className = "empty-actions";
+  const refreshBtn = createActionButton("Yenile", "btn-navy", onRefresh);
+  const clearBtn = createActionButton("Filtreleri temizle", "btn-secondary", onClear);
+  actions.append(refreshBtn, clearBtn);
+  container.append(message, actions);
+  container.style.display = "block";
+}
+
+function createSpinner() {
+  const spinner = document.createElement("span");
+  spinner.className = "spinner";
+  spinner.setAttribute("aria-hidden", "true");
+  return spinner;
+}
+
+function createActionButton(label, className, handler) {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = className;
+  button.textContent = label;
+  button.setAttribute("aria-label", label);
+  if (typeof handler === "function") {
+    button.addEventListener("click", handler);
+  }
+  return button;
+}
+
+function setupModalAccessibility(modal, onSubmit, onClose) {
+  if (!modal) return;
+  modal.addEventListener("keydown", (event) => handleModalKeydown(event, modal, onSubmit, onClose));
+}
+
+function handleModalKeydown(event, modal, onSubmit, onClose) {
+  if (!modal || modal.getAttribute("aria-hidden") === "true") return;
+  if (event.key === "Escape") {
+    event.preventDefault();
+    if (typeof onClose === "function") onClose();
+    return;
+  }
+
+  if (event.key === "Enter" && !event.shiftKey) {
+    const targetTag = (event.target?.tagName || "").toLowerCase();
+    if (targetTag !== "textarea") {
+      event.preventDefault();
+      if (typeof onSubmit === "function") onSubmit();
+    }
+  }
+
+  if (event.key === "Tab") {
+    trapFocus(event, modal);
+  }
+}
+
+function trapFocus(event, modal) {
+  const focusable = modal.querySelectorAll(
+    'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+  );
+  if (!focusable.length) return;
+  const first = focusable[0];
+  const last = focusable[focusable.length - 1];
+
+  if (event.shiftKey && document.activeElement === first) {
+    event.preventDefault();
+    last.focus();
+  } else if (!event.shiftKey && document.activeElement === last) {
+    event.preventDefault();
+    first.focus();
+  }
+}
+
+function focusFirstElement(modal) {
+  const focusable = modal?.querySelector(
+    'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+  );
+  if (focusable) {
+    focusable.focus();
+  }
 }
