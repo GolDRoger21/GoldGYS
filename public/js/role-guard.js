@@ -11,13 +11,21 @@ export function protectPage(options = {}) {
         normalizedOptions = { requireRole: options };
     } else if (Array.isArray(options)) {
         normalizedOptions = { allow: options };
+    } else if (options && typeof options === "object") {
+        normalizedOptions = options;
     }
 
     const { allow = null, requireRole = null } = normalizedOptions;
 
-    const allowedRoles = Array.isArray(allow)
-        ? allow
-        : (allow ? [allow] : (requireRole ? [requireRole] : []));
+    const normalizeToArray = (value) => {
+        if (!value) return [];
+        if (Array.isArray(value)) return value.filter(Boolean);
+        return [value];
+    };
+
+    const allowedRoles = normalizeToArray(allow).length
+        ? normalizeToArray(allow)
+        : normalizeToArray(requireRole);
 
     // Sayfa yüklenmeden önce content'i gizle
     document.body.style.opacity = "0.5";

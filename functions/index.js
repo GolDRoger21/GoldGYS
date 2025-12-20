@@ -46,10 +46,14 @@ exports.setAdminClaim = functions.https.onCall(async (data, context) => {
 exports.setUserRole = functions.https.onCall(async (data, context) => {
   await ensureCallerIsAdmin(context);
 
-  const { uid, role } = data;
+  const { uid, role } = data || {};
 
-  if (!uid || !role || !ALLOWED_ROLES.includes(role)) {
+  if (!uid || !role) {
     throw new functions.https.HttpsError("invalid-argument", "Geçerli uid ve rol gereklidir.");
+  }
+
+  if (!ALLOWED_ROLES.includes(role)) {
+    throw new functions.https.HttpsError("invalid-argument", "İzin verilmeyen bir rol seçtiniz.");
   }
 
   const claims = {
@@ -58,7 +62,39 @@ exports.setUserRole = functions.https.onCall(async (data, context) => {
     editor: role === "editor" || role === "admin",
   };
 
+  const callerInfo = {
+    uid: context.auth.uid,
+    email: context.auth.token?.email || null,
+  };
+
+  const userRef = admin.firestore().collection("users").doc(uid);
+  const userSnap = await userRef.get();
+  const previousRole = userSnap.exists ? userSnap.data().role || null : null;
+
+  const updatedRoles = new Set();
+  const existingRoles = Array.isArray(userSnap.data()?.roles) ? userSnap.data().roles : [];
+  existingRoles.forEach((r) => ALLOWED_ROLES.includes(r) && updatedRoles.add(r));
+  updatedRoles.add(role);
+
+  await userRef.set(
+    {
+      role,
+      roles: Array.from(updatedRoles),
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      changedBy: callerInfo,
+    },
+    { merge: true }
+  );
+
   await admin.auth().setCustomUserClaims(uid, claims);
+
+  await admin.firestore().collection("roleAudit").add({
+    targetUid: uid,
+    previousRole,
+    newRole: role,
+    changedBy: callerInfo,
+    changedAt: admin.firestore.FieldValue.serverTimestamp(),
+  });
 
   return { ok: true, uid, role };
 });

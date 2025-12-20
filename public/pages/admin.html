@@ -63,6 +63,21 @@
     .alert.success { background: #ecfdf3; border: 1px solid rgba(22, 163, 74, 0.2); color: #166534; }
     .alert.error { background: #fef2f2; border: 1px solid rgba(220, 38, 38, 0.2); color: #b91c1c; }
 
+    .modal-backdrop { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.65); display: none; align-items: center; justify-content: center; z-index: 60; }
+    .modal-backdrop.open { display: flex; }
+    .modal-card { background: white; border-radius: 18px; padding: 20px; width: min(520px, 90vw); box-shadow: var(--shadow-strong); position: relative; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 12px; }
+    .modal-title { margin: 0; font-family: var(--font-serif); color: var(--navy-deep); }
+    .modal-body { display: grid; gap: 14px; }
+    .modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 6px; }
+    .modal-close { background: none; border: none; font-size: 1.2rem; cursor: pointer; color: var(--text-muted); }
+    .role-options { display: grid; gap: 10px; }
+    .role-option { display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.06); }
+    .role-option input { margin: 0; }
+    .pill-inline { display: inline-flex; align-items: center; gap: 6px; padding: 4px 8px; border-radius: 10px; background: #f1f5f9; border: 1px solid rgba(0,0,0,0.04); color: var(--navy-deep); font-weight: 700; }
+    .spinner { width: 16px; height: 16px; border-radius: 50%; border: 2px solid rgba(0,0,0,0.1); border-top-color: var(--navy-deep); animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
     @media (max-width: 768px) {
       .admin-hero { flex-direction: column; align-items: flex-start; }
       .panel-card .section-head { flex-direction: column; align-items: flex-start; }
@@ -102,6 +117,27 @@
         </section>
       </div>
     </main>
+  </div>
+
+  <div id="roleModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div>
+          <p class="eyebrow" id="roleModalEyebrow">Kullanıcı rolü</p>
+          <h3 class="modal-title" id="roleModalTitle">Rol Güncelle</h3>
+        </div>
+        <button class="modal-close" type="button" aria-label="Kapat" data-role-modal-close>&times;</button>
+      </div>
+      <div class="modal-body">
+        <p id="roleModalDescription" style="margin:0; color: var(--text-muted);">Kullanıcı için yeni bir rol seçin. Değişiklikler Firestore ve yetki claim'lerine işlenecek.</p>
+        <div id="roleOptions" class="role-options"></div>
+        <div id="roleModalStatus" class="alert" role="status"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-gold" data-role-modal-close>Vazgeç</button>
+        <button type="button" class="btn-navy" id="saveRoleBtn">Kaydet</button>
+      </div>
+    </div>
   </div>
 
   <script type="module" src="/js/admin-page.js"></script>
