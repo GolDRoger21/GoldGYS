@@ -5,6 +5,52 @@ admin.initializeApp();
 const ALLOWED_ROLES = ["student", "editor", "admin"];
 const ALLOWED_STATUS = ["pending", "active", "rejected", "suspended", "deleted"];
 
+function normalizeDate(value) {
+  if (!value) return null;
+  if (typeof value.toDate === "function") {
+    return value.toDate();
+  }
+  if (value instanceof Date) {
+    return value;
+  }
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function serializeDate(value) {
+  const date = normalizeDate(value);
+  return date ? date.toISOString() : null;
+}
+
+function pickSuccessValue(data) {
+  if (!data) return null;
+  if (typeof data.successRate === "number") return data.successRate;
+  if (typeof data.averageScore === "number") return data.averageScore;
+  if (typeof data.score === "number") return data.score;
+
+  if (typeof data.correct === "number" && typeof data.total === "number" && data.total > 0) {
+    return (data.correct / data.total) * 100;
+  }
+
+  if (typeof data.correctAnswers === "number" && typeof data.attemptedQuestions === "number" && data.attemptedQuestions > 0) {
+    return (data.correctAnswers / data.attemptedQuestions) * 100;
+  }
+
+  if (typeof data.accuracy === "number") return data.accuracy;
+
+  return null;
+}
+
+function ensureUniqueDocs(list) {
+  const map = new Map();
+  list.forEach((docSnap) => {
+    if (!map.has(docSnap.id)) {
+      map.set(docSnap.id, docSnap);
+    }
+  });
+  return Array.from(map.values());
+}
+
 // Rol atama (HTTPS callable)
 // Sadece mevcut admin kullanıcıları çalıştırabilir (caller admin olmalı)
 async function ensureCallerIsAdmin(context) {
@@ -261,4 +307,194 @@ exports.getUserClaims = functions.https.onCall(async (data, context) => {
       "Claim bilgisi alınamadı."
     );
   }
+});
+
+function pickFirstDate(data, fields = []) {
+  for (const field of fields) {
+    const value = normalizeDate(data[field]);
+    if (value) return value;
+  }
+  return null;
+}
+
+function mapContentItem(docSnap, dateFields = [], customTitleField) {
+  const data = docSnap.data() || {};
+  const updatedAt = pickFirstDate(data, dateFields);
+  const title =
+    (customTitleField && data[customTitleField]) || data.title || data.name || data.examId || docSnap.id;
+
+  return {
+    id: docSnap.id,
+    title,
+    updatedAt,
+    successRate: pickSuccessValue(data),
+    status: data.status || (data.isActive === false ? "inactive" : "active"),
+    path: docSnap.ref.path,
+  };
+}
+
+async function fetchOwnerCount(collectionName, ownerField, uid) {
+  const ref = admin.firestore().collection(collectionName).where(ownerField, "==", uid);
+  try {
+    const snap = await ref.count().get();
+    return snap.data().count || 0;
+  } catch (error) {
+    console.warn(`${collectionName} sayımı yapılamadı`, error.message || error);
+    return 0;
+  }
+}
+
+async function fetchOwnerSamples(collectionName, ownerField, uid, dateFields = [], limitSize = 5) {
+  const ref = admin.firestore().collection(collectionName).where(ownerField, "==", uid);
+  for (const field of dateFields) {
+    try {
+      const snap = await ref.orderBy(field, "desc").limit(limitSize).get();
+      if (!snap.empty) {
+        return snap.docs;
+      }
+    } catch (error) {
+      console.warn(`${collectionName} örnekleri alınamadı`, error.message || error);
+    }
+  }
+  const fallbackSnap = await ref.limit(limitSize).get();
+  return fallbackSnap.docs;
+}
+
+function summarizeDocs(docs, dateFields = []) {
+  const lastDate = docs.reduce((latest, docSnap) => {
+    const candidate = pickFirstDate(docSnap.data() || {}, dateFields);
+    const normalized = normalizeDate(candidate);
+    if (normalized && (!latest || normalized > latest)) return normalized;
+    return latest;
+  }, null);
+
+  const successValues = docs
+    .map((docSnap) => pickSuccessValue(docSnap.data()))
+    .filter((value) => typeof value === "number");
+
+  const averageSuccess = successValues.length
+    ? Number((successValues.reduce((sum, val) => sum + val, 0) / successValues.length).toFixed(2))
+    : null;
+
+  return { lastDate, averageSuccess };
+}
+
+async function summarizeOwnerCollection(collectionName, uid, options = {}) {
+  const ownerFields = options.ownerFields || ["ownerId", "createdBy"];
+  const dateFields = options.dateFields || ["updatedAt", "createdAt"];
+  const sampleLimit = options.limit || 5;
+
+  let totalCount = 0;
+  let sampleDocs = [];
+
+  for (const ownerField of ownerFields) {
+    totalCount += await fetchOwnerCount(collectionName, ownerField, uid);
+    sampleDocs = sampleDocs.concat(
+      await fetchOwnerSamples(collectionName, ownerField, uid, dateFields, sampleLimit)
+    );
+  }
+
+  const uniqueDocs = ensureUniqueDocs(sampleDocs).slice(0, sampleLimit);
+  const { lastDate, averageSuccess } = summarizeDocs(uniqueDocs, dateFields);
+
+  return {
+    count: totalCount,
+    lastUpdated: serializeDate(lastDate),
+    averageSuccess,
+    items: uniqueDocs.map((docSnap) => {
+      const item = mapContentItem(docSnap, dateFields);
+      return { ...item, updatedAt: serializeDate(item.updatedAt) };
+    }),
+  };
+}
+
+async function summarizeSubCollection(colRef, options = {}) {
+  const dateFields = options.dateFields || ["updatedAt", "completedAt", "createdAt"];
+  const limitSize = options.limit || 5;
+  const titleField = options.titleField;
+
+  let count = 0;
+  try {
+    const countSnap = await colRef.count().get();
+    count = countSnap.data().count || 0;
+  } catch (error) {
+    console.warn(`${colRef.path} sayımı yapılamadı`, error.message || error);
+  }
+
+  let docs = [];
+  for (const field of dateFields) {
+    try {
+      const snap = await colRef.orderBy(field, "desc").limit(limitSize).get();
+      if (!snap.empty) {
+        docs = snap.docs;
+        break;
+      }
+    } catch (error) {
+      console.warn(`${colRef.path} örnekleri alınamadı`, error.message || error);
+    }
+  }
+
+  if (!docs.length) {
+    const fallback = await colRef.limit(limitSize).get();
+    docs = fallback.docs;
+  }
+
+  const { lastDate, averageSuccess } = summarizeDocs(docs, dateFields);
+  const items = docs.slice(0, limitSize).map((docSnap) => {
+    const item = mapContentItem(docSnap, dateFields, titleField);
+    return { ...item, updatedAt: serializeDate(item.updatedAt) };
+  });
+
+  return { count, lastDate, averageSuccess, items };
+}
+
+async function summarizeAttempts(uid) {
+  const userRef = admin.firestore().collection("users").doc(uid);
+  const [examResults, attempts] = await Promise.all([
+    summarizeSubCollection(userRef.collection("examResults"), {
+      dateFields: ["completedAt", "updatedAt", "createdAt"],
+      titleField: "examId",
+    }),
+    summarizeSubCollection(userRef.collection("attempts"), {
+      dateFields: ["updatedAt", "createdAt", "completedAt"],
+      titleField: "title",
+    }),
+  ]);
+
+  const combinedItems = [...(examResults.items || []), ...(attempts.items || [])];
+  const combinedSuccessValues = combinedItems
+    .map((item) => (typeof item.successRate === "number" ? item.successRate : null))
+    .filter((val) => typeof val === "number");
+
+  const averageSuccess = combinedSuccessValues.length
+    ? Number((combinedSuccessValues.reduce((sum, val) => sum + val, 0) / combinedSuccessValues.length).toFixed(2))
+    : null;
+
+  const lastUpdated = [normalizeDate(examResults.lastDate), normalizeDate(attempts.lastDate)]
+    .filter(Boolean)
+    .sort((a, b) => b - a)[0];
+
+  return {
+    count: (examResults.count || 0) + (attempts.count || 0),
+    lastUpdated: serializeDate(lastUpdated),
+    averageSuccess,
+    items: combinedItems.slice(0, 5),
+  };
+}
+
+exports.getUserContentSummary = functions.https.onCall(async (data, context) => {
+  await ensureCallerIsAdmin(context);
+
+  const uid = data?.uid;
+  if (!uid) {
+    throw new functions.https.HttpsError("invalid-argument", "Kullanıcı kimliği gerekli.");
+  }
+
+  const [topics, tests, attempts] = await Promise.all([
+    summarizeOwnerCollection("topics", uid, { ownerFields: ["ownerId", "createdBy"] }),
+    summarizeOwnerCollection("tests", uid, { ownerFields: ["ownerId", "createdBy"] }),
+    summarizeAttempts(uid),
+  ]);
+
+  return { ok: true, uid, topics, tests, attempts };
 });

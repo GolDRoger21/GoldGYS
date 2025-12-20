@@ -221,10 +221,41 @@
               </select>
             </div>
           </div>
-          <div style="margin-top:12px; display:grid; grid-template-columns: repeat(auto-fit, minmax(180px,1fr)); gap:10px;">
-            <div class="empty-state" style="border-style: solid;">Konular: <strong id="topicCount">-</strong></div>
-            <div class="empty-state" style="border-style: solid;">Testler: <strong id="testCount">-</strong></div>
-            <div class="empty-state" style="border-style: solid;">Deneme/Sınavlar: <strong id="attemptCount">-</strong></div>
+          <div class="content-summary-grid">
+            <div class="summary-chip">Konular: <strong id="topicCount">-</strong></div>
+            <div class="summary-chip">Testler: <strong id="testCount">-</strong></div>
+            <div class="summary-chip">Deneme/Sınavlar: <strong id="attemptCount">-</strong></div>
+          </div>
+          <div class="content-tabs">
+            <div class="tab-header">
+              <button type="button" class="tab-button active" data-tab-target="topics">Konular</button>
+              <button type="button" class="tab-button" data-tab-target="tests">Testler</button>
+              <button type="button" class="tab-button" data-tab-target="attempts">Denemeler/Sonuçlar</button>
+            </div>
+            <div class="tab-meta-row">
+              <div class="meta-pill">Toplam: <span id="tabMetaCount">-</span></div>
+              <div class="meta-pill">Son Güncelleme: <span id="tabMetaUpdated">-</span></div>
+              <div class="meta-pill">Başarı Ort.: <span id="tabMetaSuccess">-</span></div>
+            </div>
+            <div id="contentSkeleton" class="content-skeleton" aria-hidden="true" style="display:none;">
+              <div class="skeleton-line"></div>
+              <div class="skeleton-line short"></div>
+              <div class="skeleton-line"></div>
+            </div>
+            <div class="tab-panels">
+              <div class="tab-panel active" data-tab-panel="topics">
+                <ul id="topicsList" class="content-list"></ul>
+                <p class="muted" id="topicsEmpty" style="display:none;">Bu kullanıcıya ait konu bulunmadı.</p>
+              </div>
+              <div class="tab-panel" data-tab-panel="tests">
+                <ul id="testsList" class="content-list"></ul>
+                <p class="muted" id="testsEmpty" style="display:none;">Bu kullanıcıya ait test bulunmadı.</p>
+              </div>
+              <div class="tab-panel" data-tab-panel="attempts">
+                <ul id="attemptsList" class="content-list"></ul>
+                <p class="muted" id="attemptsEmpty" style="display:none;">Bu kullanıcıya ait deneme/sonuç bulunmadı.</p>
+              </div>
+            </div>
           </div>
           <div class="button-row">
             <button type="button" class="btn-secondary" id="detailSuspendBtn">Askıya Al</button>

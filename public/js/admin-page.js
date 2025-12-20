@@ -54,12 +54,29 @@ const detailDeleteBtn = document.getElementById("detailDeleteBtn");
 const topicCountEl = document.getElementById("topicCount");
 const testCountEl = document.getElementById("testCount");
 const attemptCountEl = document.getElementById("attemptCount");
+const tabButtons = document.querySelectorAll("[data-tab-target]");
+const tabPanels = document.querySelectorAll("[data-tab-panel]");
+const tabMetaCount = document.getElementById("tabMetaCount");
+const tabMetaUpdated = document.getElementById("tabMetaUpdated");
+const tabMetaSuccess = document.getElementById("tabMetaSuccess");
+const contentSkeleton = document.getElementById("contentSkeleton");
+const contentLists = {
+  topics: document.getElementById("topicsList"),
+  tests: document.getElementById("testsList"),
+  attempts: document.getElementById("attemptsList"),
+};
+const contentEmptyStates = {
+  topics: document.getElementById("topicsEmpty"),
+  tests: document.getElementById("testsEmpty"),
+  attempts: document.getElementById("attemptsEmpty"),
+};
 
 const functions = getFunctions(auth.app);
 const setUserRoleFn = httpsCallable(functions, "setUserRole");
 const getUserClaimsFn = httpsCallable(functions, "getUserClaims");
 const updateUserProfileFn = httpsCallable(functions, "updateUserProfile");
 const deleteUserFn = httpsCallable(functions, "deleteUserAccount");
+const getUserContentSummaryFn = httpsCallable(functions, "getUserContentSummary");
 const pendingCache = new Map();
 const paginationState = { cursor: null, pageSize: 10, reachedEnd: false };
 const filterState = { search: "", status: "pending", role: "all" };
@@ -67,6 +84,7 @@ let debounceTimer = null;
 let activeRoleTarget = null;
 let activeDetailTarget = null;
 let activeDetailData = null;
+let contentSummary = getEmptyContentSummary();
 const ROLE_OPTIONS = [
   { value: "student", label: "Öğrenci" },
   { value: "editor", label: "Editör" },
@@ -152,6 +170,8 @@ detailDeleteBtn?.addEventListener("click", () => {
 
   handleMemberAction(activeDetailTarget, "delete", detailDeleteBtn, { hardDelete });
 });
+
+bindContentTabs();
 
 function debounceFilters() {
   if (debounceTimer) {
@@ -371,13 +391,16 @@ async function openDetailModal(uid) {
   detailModal.setAttribute("aria-hidden", "false");
 
   try {
-    const [profileSnap, claimsResult, counts] = await Promise.all([
+    showContentSkeleton(true);
+
+    const [profileSnap, claimsResult, summary] = await Promise.all([
       getDoc(doc(db, "users", uid)),
       getUserClaimsFn({ uid }),
-      fetchUserCounts(uid),
+      fetchContentSummary(uid),
     ]);
 
     if (!profileSnap.exists()) {
+      showContentSkeleton(false);
       setDetailStatus("Kullanıcı profili bulunamadı.", true);
       return;
     }
@@ -405,14 +428,18 @@ async function openDetailModal(uid) {
           .join(", ")
       : "Claim bulunamadı";
 
-    topicCountEl.textContent = counts.topics;
-    testCountEl.textContent = counts.tests;
-    attemptCountEl.textContent = counts.attempts;
+    const safeSummary = summary || getEmptyContentSummary();
+    topicCountEl.textContent = safeSummary.topics.count;
+    testCountEl.textContent = safeSummary.tests.count;
+    attemptCountEl.textContent = safeSummary.attempts.count;
 
+    renderContentSummary(safeSummary);
+    showContentSkeleton(false);
     detailSkeleton.style.display = "none";
     detailContent.style.display = "block";
   } catch (error) {
     console.error("Detay modal yüklenemedi", error);
+    showContentSkeleton(false);
     setDetailStatus("Detaylar getirilemedi. Lütfen tekrar deneyin.", true);
   }
 }
@@ -435,6 +462,10 @@ function resetDetailModal() {
   if (detailRoleSelect) detailRoleSelect.value = "student";
   if (detailStatusSelect) detailStatusSelect.value = "pending";
   syncSuspendButton("active");
+  contentSummary = getEmptyContentSummary();
+  renderContentSummary(contentSummary);
+  showContentSkeleton(false);
+  setActiveTab("topics");
 }
 
 function closeDetailModal() {
@@ -457,6 +488,10 @@ function formatDateValue(value) {
   }
   if (value instanceof Date) {
     return value.toLocaleString();
+  }
+  const parsed = new Date(value);
+  if (!Number.isNaN(parsed.getTime())) {
+    return parsed.toLocaleString("tr-TR", { dateStyle: "medium", timeStyle: "short" });
   }
   return String(value);
 }
@@ -497,6 +532,298 @@ async function countUserContent(references) {
   }
 
   return 0;
+}
+
+function getEmptyContentSummary() {
+  return {
+    topics: { count: 0, lastUpdated: null, averageSuccess: null, items: [] },
+    tests: { count: 0, lastUpdated: null, averageSuccess: null, items: [] },
+    attempts: { count: 0, lastUpdated: null, averageSuccess: null, items: [] },
+  };
+}
+
+function countsToSummary(counts = { topics: 0, tests: 0, attempts: 0 }) {
+  return {
+    topics: { count: counts.topics || 0, lastUpdated: null, averageSuccess: null, items: [] },
+    tests: { count: counts.tests || 0, lastUpdated: null, averageSuccess: null, items: [] },
+    attempts: { count: counts.attempts || 0, lastUpdated: null, averageSuccess: null, items: [] },
+  };
+}
+
+function normalizeContentSummary(data) {
+  const empty = getEmptyContentSummary();
+  if (!data) return empty;
+
+  const normalizeSection = (section, fallback) => {
+    const safe = section || {};
+    const numericCount = Number(safe.count);
+    const countValue = Number.isFinite(numericCount) ? numericCount : fallback.count;
+
+    let averageSuccess = fallback.averageSuccess;
+    if (typeof safe.averageSuccess === "number") {
+      averageSuccess = Number(safe.averageSuccess.toFixed(2));
+    } else if (Number.isFinite(Number(safe.averageSuccess))) {
+      averageSuccess = Number(Number(safe.averageSuccess).toFixed(2));
+    }
+
+    return {
+      count: countValue,
+      lastUpdated: safe.lastUpdated || fallback.lastUpdated,
+      averageSuccess,
+      items: Array.isArray(safe.items) ? safe.items : fallback.items,
+    };
+  };
+
+  return {
+    topics: normalizeSection(data.topics, empty.topics),
+    tests: normalizeSection(data.tests, empty.tests),
+    attempts: normalizeSection(data.attempts, empty.attempts),
+  };
+}
+
+async function fetchContentSummary(uid) {
+  try {
+    const callableResult = await getUserContentSummaryFn({ uid });
+    return normalizeContentSummary(callableResult?.data);
+  } catch (error) {
+    console.warn("Sunucu tarafı içerik özeti alınamadı", error);
+    try {
+      const counts = await fetchUserCounts(uid);
+      return countsToSummary(counts);
+    } catch (fallbackError) {
+      console.error("İçerik sayıları alınamadı", fallbackError);
+      return getEmptyContentSummary();
+    }
+  }
+}
+
+function renderContentSummary(summary) {
+  contentSummary = summary || getEmptyContentSummary();
+
+  topicCountEl.textContent = contentSummary.topics.count ?? "-";
+  testCountEl.textContent = contentSummary.tests.count ?? "-";
+  attemptCountEl.textContent = contentSummary.attempts.count ?? "-";
+
+  renderContentList("topics", contentSummary.topics.items);
+  renderContentList("tests", contentSummary.tests.items);
+  renderContentList("attempts", contentSummary.attempts.items);
+
+  const activeKey = document.querySelector(".tab-button.active")?.dataset.tabTarget || "topics";
+  updateTabMeta(activeKey);
+}
+
+function updateTabMeta(key) {
+  const section = contentSummary[key] || {};
+  if (tabMetaCount) tabMetaCount.textContent = section.count ?? "-";
+  if (tabMetaUpdated) tabMetaUpdated.textContent = section.lastUpdated ? formatDateValue(section.lastUpdated) : "-";
+  if (tabMetaSuccess) tabMetaSuccess.textContent = formatSuccess(section.averageSuccess);
+}
+
+function renderContentList(key, items = []) {
+  const listEl = contentLists[key];
+  const emptyEl = contentEmptyStates[key];
+  if (!listEl || !emptyEl) return;
+
+  listEl.innerHTML = "";
+  if (!items.length) {
+    emptyEl.style.display = "block";
+    return;
+  }
+
+  emptyEl.style.display = "none";
+  items.forEach((item) => listEl.appendChild(createContentItem(item, key)));
+}
+
+function createContentItem(item, key) {
+  const li = document.createElement("li");
+  li.className = "content-item";
+
+  const head = document.createElement("div");
+  head.className = "content-item-head";
+
+  const info = document.createElement("div");
+  const title = document.createElement("div");
+  title.className = "content-title";
+  title.textContent = item.title || "(Başlıksız)";
+  const meta = document.createElement("div");
+  meta.className = "content-meta";
+  meta.innerHTML = `
+    <span>Güncelleme: ${formatDateValue(item.updatedAt)}</span>
+    <span>Başarı: ${formatSuccess(item.successRate)}</span>
+    <span>Durum: ${item.status || "-"}</span>
+  `;
+  info.appendChild(title);
+  info.appendChild(meta);
+
+  const actions = document.createElement("div");
+  actions.className = "content-actions";
+
+  if (item.path) {
+    const visitBtn = document.createElement("button");
+    visitBtn.type = "button";
+    visitBtn.className = "btn-ghost";
+    visitBtn.textContent = "Kayda Git";
+    visitBtn.addEventListener("click", () => openRecordPath(item.path));
+    actions.appendChild(visitBtn);
+  }
+
+  let editor = null;
+  if (key !== "attempts") {
+    const editBtn = document.createElement("button");
+    editBtn.type = "button";
+    editBtn.className = "btn-ghost";
+    editBtn.textContent = "Düzenle";
+    editBtn.addEventListener("click", () => {
+      editor = editor || createInlineEditor(item, key, li);
+      editor.style.display = editor.style.display === "grid" ? "none" : "grid";
+    });
+    actions.appendChild(editBtn);
+  }
+
+  head.appendChild(info);
+  head.appendChild(actions);
+  li.appendChild(head);
+
+  if (key !== "attempts") {
+    editor = editor || createInlineEditor(item, key, li);
+    editor.style.display = "none";
+    li.appendChild(editor);
+  }
+
+  return li;
+}
+
+function createInlineEditor(item, key, container) {
+  const wrapper = document.createElement("div");
+  wrapper.className = "inline-editor";
+
+  const titleLabel = document.createElement("label");
+  titleLabel.textContent = "Başlık";
+  const titleInput = document.createElement("input");
+  titleInput.type = "text";
+  titleInput.value = item.title || "";
+  titleInput.setAttribute("data-field", "title");
+
+  const statusLabel = document.createElement("label");
+  statusLabel.textContent = "Durum";
+  const statusSelect = document.createElement("select");
+  statusSelect.setAttribute("data-field", "status");
+  [
+    { value: "active", label: "Aktif" },
+    { value: "draft", label: "Taslak" },
+    { value: "inactive", label: "Pasif" },
+  ].forEach((opt) => {
+    const option = document.createElement("option");
+    option.value = opt.value;
+    option.textContent = opt.label;
+    if ((item.status || "").toString() === opt.value) option.selected = true;
+    statusSelect.appendChild(option);
+  });
+
+  const actionRow = document.createElement("div");
+  actionRow.className = "inline-actions";
+  const saveBtn = document.createElement("button");
+  saveBtn.type = "button";
+  saveBtn.className = "btn-navy";
+  saveBtn.textContent = "Kaydet";
+  saveBtn.addEventListener("click", () => saveInlineEdit(item, key, wrapper, saveBtn));
+
+  const cancelBtn = document.createElement("button");
+  cancelBtn.type = "button";
+  cancelBtn.className = "btn-secondary";
+  cancelBtn.textContent = "İptal";
+  cancelBtn.addEventListener("click", () => {
+    wrapper.style.display = "none";
+  });
+
+  actionRow.appendChild(saveBtn);
+  actionRow.appendChild(cancelBtn);
+
+  wrapper.appendChild(titleLabel);
+  wrapper.appendChild(titleInput);
+  wrapper.appendChild(statusLabel);
+  wrapper.appendChild(statusSelect);
+  wrapper.appendChild(actionRow);
+
+  if (container) container.appendChild(wrapper);
+  return wrapper;
+}
+
+async function saveInlineEdit(item, key, form, trigger) {
+  if (!item?.path) return;
+
+  const payload = { updatedAt: serverTimestamp() };
+  const title = form.querySelector("[data-field='title']")?.value?.trim();
+  const status = form.querySelector("[data-field='status']")?.value;
+
+  if (title !== undefined) payload.title = title;
+  if (status) {
+    payload.status = status;
+    payload.isActive = status === "active";
+  }
+
+  if (trigger) {
+    trigger.disabled = true;
+    trigger.dataset.originalText = trigger.textContent;
+    trigger.textContent = "Kaydediliyor...";
+  }
+
+  try {
+    await updateDoc(doc(db, item.path), payload);
+    showToast("Kaydedildi", "success");
+    item.title = payload.title || item.title;
+    item.status = payload.status || item.status;
+    item.updatedAt = new Date().toISOString();
+    renderContentSummary(contentSummary);
+    if (form) form.style.display = "none";
+  } catch (error) {
+    console.error("Inline güncelleme hatası", error);
+    setDetailStatus("Değişiklik kaydedilemedi.", true);
+  } finally {
+    if (trigger) {
+      trigger.disabled = false;
+      trigger.textContent = trigger.dataset.originalText || "Kaydet";
+    }
+  }
+}
+
+function openRecordPath(path) {
+  if (!path) return;
+  const encoded = path.split("/").map((p) => encodeURIComponent(p)).join("~2F");
+  const url = `https://console.firebase.google.com/project/goldgys/firestore/data/~2F${encoded}`;
+  window.open(url, "_blank", "noopener");
+}
+
+function formatSuccess(value) {
+  if (typeof value === "number") {
+    return `%${value.toFixed(1)}`;
+  }
+  return "-";
+}
+
+function showContentSkeleton(visible) {
+  if (!contentSkeleton) return;
+  contentSkeleton.style.display = visible ? "grid" : "none";
+  tabPanels.forEach((panel) => {
+    panel.style.opacity = visible ? "0.6" : "1";
+  });
+}
+
+function bindContentTabs() {
+  tabButtons.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const target = btn.dataset.tabTarget;
+      setActiveTab(target);
+    });
+  });
+
+  setActiveTab("topics");
+}
+
+function setActiveTab(key) {
+  tabButtons.forEach((btn) => btn.classList.toggle("active", btn.dataset.tabTarget === key));
+  tabPanels.forEach((panel) => panel.classList.toggle("active", panel.dataset.tabPanel === key));
+  updateTabMeta(key);
 }
 
 async function saveRoleSelection() {
