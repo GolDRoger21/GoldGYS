@@ -1,16 +1,27 @@
+<div class="header-inner">
+    <nav class="main-nav" aria-label="Ana menü">
+        <a href="dashboard.html" data-page="dashboard">Panel</a>
+        <a href="konular.html" data-page="konular">Konular</a>
+        <a href="testler.html" data-page="testler">Testler</a>
+        <a href="denemeler.html" data-page="denemeler">Denemeler</a>
+        <a href="analiz.html" data-page="analiz">Analiz</a>
+    </nav>
 
-<div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-    <div style="display: flex; gap: 30px; flex: 1;">
-        <a href="dashboard.html">Panel</a>
-        <a href="konular.html">Konular</a>
-        <a href="testler.html">Testler</a>
-        <a href="denemeler.html">Denemeler</a>
-        <a href="profil.html">Profil</a>
-    </div>
-    <div class="user-profile" style="gap: 15px;">
-        <span id="headerUserName" style="font-weight: 600; color: var(--navy-deep);">Kullanıcı</span>
-        <button onclick="window.handleLogout()" style="background: var(--danger); color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.9rem; transition: 0.3s;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
-            Çıkış Yap
-        </button>
+    <div class="header-actions">
+        <div class="user-menu" data-profile-menu>
+            <div class="user-avatar" id="headerUserInitial" aria-hidden="true">K</div>
+            <div class="user-meta">
+                <span class="user-name" id="headerUserName">Kullanıcı</span>
+                <span class="user-subtitle">Profil · Ayarlar</span>
+            </div>
+            <button class="profile-toggle" type="button" data-profile-toggle aria-expanded="false" aria-controls="profileDropdown">
+                ▾
+            </button>
+            <div id="profileDropdown" class="profile-dropdown" role="menu">
+                <a href="/pages/profil.html" role="menuitem">👤 Profilim</a>
+                <a href="/pages/profil.html#ayarlar" role="menuitem">⚙️ Hesap Ayarları</a>
+                <button type="button" class="logout-btn" onclick="window.handleLogout()" role="menuitem">🚪 Çıkış Yap</button>
+            </div>
+        </div>
     </div>
 </div>

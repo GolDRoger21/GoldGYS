@@ -1,20 +1,23 @@
+<div class="sidebar-header">
+  <div class="sidebar-logo">⚖️ GOLD <span>GYS</span></div>
+  <p class="sidebar-subtitle">Akıllı çalışma asistanı</p>
+</div>
 
-<aside class="sidebar">
-  <ul>
-    <li><a href="dashboard.html" data-page="dashboard">Panel</a></li>
-    <li><a href="konular.html" data-page="konular">Konular</a></li>
-    <li><a href="testler.html" data-page="testler">Testler</a></li>
-    <li><a href="denemeler.html" data-page="denemeler">Denemeler</a></li>
-    <li><a href="analiz.html" data-page="analiz">Analiz</a></li>
-    <li><a href="yanlislarim.html" data-page="yanlislar">Yanlışlarım</a></li>
-    <li><a href="favoriler.html" data-page="favoriler">Favoriler</a></li>
-    <li><a href="yardim.html" data-page="yardim">Yardım</a></li>
-    <li><a href="yasal.html" data-page="yasal">Yasal</a></li>
-    <li style="border-top: 1px solid rgba(255,255,255,0.1); margin-top: 15px; padding-top: 15px;">
-      <a onclick="window.handleLogout()" style="cursor: pointer; color: var(--danger); font-weight: 600; display: flex; align-items: center; gap: 8px;" data-page="logout">
-        🚪 Çıkış Yap
-      </a>
-    </li>
+<nav class="sidebar-nav" aria-label="Kenar menü">
+  <ul class="sidebar-menu">
+    <li><a href="dashboard.html" data-page="dashboard"><span class="icon">🏠</span><div class="link-text"><strong>Panel</strong><span>Genel bakış</span></div></a></li>
+    <li><a href="konular.html" data-page="konular"><span class="icon">📚</span><div class="link-text"><strong>Konular</strong><span>Konu listesi</span></div></a></li>
+    <li><a href="testler.html" data-page="testler"><span class="icon">📝</span><div class="link-text"><strong>Testler</strong><span>Soru pratikleri</span></div></a></li>
+    <li><a href="denemeler.html" data-page="denemeler"><span class="icon">🏆</span><div class="link-text"><strong>Denemeler</strong><span>Sınav simülasyonları</span></div></a></li>
+    <li><a href="analiz.html" data-page="analiz"><span class="icon">📊</span><div class="link-text"><strong>Analiz</strong><span>İlerleme raporu</span></div></a></li>
+    <li><a href="yanlislarim.html" data-page="yanlislar"><span class="icon">⚠️</span><div class="link-text"><strong>Yanlışlarım</strong><span>Hata analizi</span></div></a></li>
+    <li><a href="favoriler.html" data-page="favoriler"><span class="icon">⭐</span><div class="link-text"><strong>Favoriler</strong><span>Kaydedilenler</span></div></a></li>
+    <li><a href="yardim.html" data-page="yardim"><span class="icon">❓</span><div class="link-text"><strong>Yardım</strong><span>Destek</span></div></a></li>
+    <li><a href="yasal.html" data-page="yasal"><span class="icon">📜</span><div class="link-text"><strong>Yasal</strong><span>Kullanım koşulları</span></div></a></li>
   </ul>
-</aside>
+</nav>
 
+<div class="sidebar-footer">
+  <a href="profil.html" class="profile-link"><span class="icon">👤</span>Hesabım</a>
+  <button type="button" class="logout-link" onclick="window.handleLogout()"><span class="icon">🚪</span>Çıkış Yap</button>
+</div>
