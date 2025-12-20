@@ -102,8 +102,15 @@ if (googleLoginButton) {
             const code = error?.code || "";
 
             if (code === "auth/popup-blocked") {
-                await loginWithRedirect();
-                return;
+                try {
+                    await loginWithRedirect();
+                    return;
+                } catch (redirectError) {
+                    console.error("Google yönlendirme hatası", redirectError);
+                    showStatus("error", friendlyErrorMessage(redirectError?.code));
+                    toggleLoading(false);
+                    return;
+                }
             }
 
             showStatus("error", friendlyErrorMessage(code));
