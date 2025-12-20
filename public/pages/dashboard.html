@@ -361,7 +361,7 @@
         </main>
     </div>
 
-    <script type="module">
+  <script type="module">
         import { initLayout } from '/js/ui-loader.js';
         import { auth, db } from '/js/firebase-config.js';
         import { protectPage } from '/js/role-guard.js';
@@ -376,15 +376,13 @@
             query
         } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+        // Sayfa korumasını başlat
         protectPage();
         initLayout('dashboard');
 
         const formatter = new Intl.DateTimeFormat('tr-TR', {
-            day: '2-digit',
-            month: 'long',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
+            day: '2-digit', month: 'long', year: 'numeric',
+            hour: '2-digit', minute: '2-digit'
         });
 
         const examTitleCache = new Map();
@@ -392,12 +390,7 @@
         function setUserName(user) {
             const nameEl = document.getElementById("dashUserName");
             if (!nameEl) return;
-
-            if (!user) {
-                nameEl.innerText = "Yükleniyor…";
-                return;
-            }
-
+            if (!user) { nameEl.innerText = "Yükleniyor…"; return; }
             if (user.displayName) {
                 nameEl.innerText = user.displayName;
             } else if (user.email) {
@@ -410,20 +403,14 @@
 
         function waitForAuthUser() {
             return new Promise((resolve, reject) => {
-                const unsubscribe = onAuthStateChanged(
-                    auth,
-                    (user) => {
-                        unsubscribe();
-                        resolve(user);
-                    },
-                    (error) => {
-                        unsubscribe();
-                        reject(error);
-                    }
+                const unsubscribe = onAuthStateChanged(auth, 
+                    (user) => { unsubscribe(); resolve(user); },
+                    (error) => { unsubscribe(); reject(error); }
                 );
             });
         }
 
+        // --- Render Fonksiyonları (Aynı) ---
         function renderStats(stats) {
             document.getElementById('statSolved').innerText = stats.solved.toLocaleString('tr-TR');
             document.getElementById('statAccuracy').innerText = `%${stats.accuracy}`;
@@ -434,12 +421,10 @@
         function renderModules(modules) {
             const container = document.getElementById('moduleList');
             container.innerHTML = '';
-
             if (!modules.length) {
                 container.innerHTML = '<p style="color: var(--text-muted);">Henüz bir konu hedefi bulunamadı.</p>';
                 return;
             }
-
             modules.forEach((module) => {
                 const item = document.createElement('div');
                 item.className = 'module-card';
@@ -447,15 +432,12 @@
                     <div>
                         <div class="title">${module.title}</div>
                         <div class="meta">${module.target}</div>
-                        <div class="progress-bar" aria-label="Tamamlanma oranı ${module.completion}%">
-                            <span style="width: ${module.completion}%"></span>
-                        </div>
+                        <div class="progress-bar"><span style="width: ${module.completion}%"></span></div>
                     </div>
                     <div style="display: flex; flex-direction: column; gap: 8px; align-items: flex-end;">
                         <div class="chip">${module.completion}%</div>
-                        ${module.tags.map((tag) => `<div class="chip" style="background:#e2e8f0;">#${tag}</div>`).join('')}
-                    </div>
-                `;
+                        ${module.tags.map(tag => `<div class="chip" style="background:#e2e8f0;">#${tag}</div>`).join('')}
+                    </div>`;
                 container.appendChild(item);
             });
         }
@@ -463,12 +445,10 @@
         function renderActivities(activities) {
             const container = document.getElementById('activityList');
             container.innerHTML = '';
-
             if (!activities.length) {
                 container.innerHTML = '<p style="color: var(--text-muted);">Henüz aktivite kaydı yok.</p>';
                 return;
             }
-
             activities.forEach((activity) => {
                 const item = document.createElement('div');
                 item.className = 'activity-item';
@@ -477,8 +457,7 @@
                     <div class="activity-text">
                         <div class="title">${activity.title}</div>
                         <div class="time">${activity.time}</div>
-                    </div>
-                `;
+                    </div>`;
                 container.appendChild(item);
             });
         }
@@ -486,20 +465,17 @@
         function renderCalendar(events) {
             const container = document.getElementById('calendarList');
             container.innerHTML = '';
-
             if (!events.length) {
                 container.innerHTML = '<p style="color: rgba(255,255,255,0.8);">Gösterilecek sınav bulunamadı.</p>';
                 return;
             }
-
             events.forEach((event) => {
                 const item = document.createElement('div');
                 item.className = 'event';
                 item.innerHTML = `
                     <strong>${event.title}</strong>
                     <div style="opacity: 0.85;">${event.date}</div>
-                    <div style="color: rgba(255,255,255,0.8); font-size: 0.9rem;">${event.note}</div>
-                `;
+                    <div style="color: rgba(255,255,255,0.8); font-size: 0.9rem;">${event.note}</div>`;
                 container.appendChild(item);
             });
         }
@@ -511,195 +487,135 @@
         }
 
         function calculateStreak(progressDocs) {
-            const days = progressDocs
-                .map((p) => p.lastAccessedAt)
-                .filter(Boolean)
-                .map(normalizeDate)
-                .sort((a, b) => b - a);
-
+            const days = progressDocs.map(p => p.lastAccessedAt).filter(Boolean).map(normalizeDate).sort((a, b) => b - a);
             if (!days.length) return 0;
-
-            let streak = 0;
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            let cursor = today;
-
+            let streak = 0, cursor = new Date(); cursor.setHours(0,0,0,0);
             for (const day of days) {
                 const diff = (cursor - day) / (1000 * 60 * 60 * 24);
-                if (diff === 0) {
-                    streak++;
-                } else if (diff === 1) {
-                    streak++;
-                    cursor = day;
-                } else if (diff > 1) {
-                    break;
-                }
+                if (diff === 0 || diff === 1) { streak++; if(diff===1) cursor=day; }
+                else if (diff > 1) break;
             }
-
             return streak;
         }
 
-        async function fetchUserProgress(uid) {
+        // --- Veri Çekme Fonksiyonları (Hata Yakalamalı) ---
+
+        async function safeFetch(name, fn) {
             try {
-                const snap = await getDocs(collection(db, 'users', uid, 'progress'));
-                const items = [];
-                let attempted = 0;
-                let correct = 0;
-
-                snap.forEach((doc) => {
-                    const data = doc.data();
-                    items.push(data);
-                    attempted += data.attemptedQuestions || 0;
-                    correct += data.correctAnswers || 0;
-                });
-
-                const accuracy = attempted ? Math.round((correct / attempted) * 100) : 0;
-                const streak = calculateStreak(items);
-
-                return {
-                    progressItems: items,
-                    stats: {
-                        solved: attempted,
-                        accuracy,
-                        streak,
-                        rank: null
-                    }
-                };
-            } catch (err) {
-                console.error('Progress verisi alınamadı', err);
-                return { progressItems: [], stats: { solved: 0, accuracy: 0, streak: 0, rank: null } };
+                return await fn();
+            } catch (error) {
+                console.error(`[${name}] Verisi çekilemedi:`, error);
+                // Kullanıcıya hatayı göstermek yerine konsola yazıyoruz, UI boş kalacak
+                if (error.code === 'permission-denied') {
+                     alert(`YETKİ HATASI: '${name}' verisini okuyamıyorum. Kuralları kontrol edin.`);
+                }
+                return null;
             }
+        }
+
+        async function fetchUserProgress(uid) {
+            const snap = await getDocs(collection(db, 'users', uid, 'progress'));
+            const items = []; let attempted = 0, correct = 0;
+            snap.forEach(doc => {
+                const d = doc.data(); items.push(d);
+                attempted += d.attemptedQuestions || 0; correct += d.correctAnswers || 0;
+            });
+            const accuracy = attempted ? Math.round((correct / attempted) * 100) : 0;
+            const streak = calculateStreak(items);
+            return { progressItems: items, stats: { solved: attempted, accuracy, streak, rank: null } };
         }
 
         function buildModules(topics, progressItems) {
             const progressMap = new Map();
-            progressItems.forEach((item) => {
-                if (item.topicId) progressMap.set(item.topicId, item);
-            });
-
-            return topics.slice(0, 6).map((topic) => {
+            progressItems.forEach(item => { if (item.topicId) progressMap.set(item.topicId, item); });
+            return topics.slice(0, 6).map(topic => {
                 const progress = progressMap.get(topic.id) || {};
                 const target = topic.totalQuestionTarget || 0;
                 const attempted = progress.attemptedQuestions || 0;
-                const completion = target
-                    ? Math.min(100, Math.round((attempted / target) * 100))
-                    : Math.min(100, Math.round((attempted / 50) * 100));
-
+                const completion = target ? Math.min(100, Math.round((attempted / target) * 100)) : 0;
                 return {
-                    title: topic.title,
-                    completion: Number.isFinite(completion) ? completion : 0,
-                    target: target ? `Hedef: ${target} soru` : 'Hedef bilgisi yok',
-                    tags: (topic.subTopics || []).slice(0, 2).map((s) => s.title)
+                    title: topic.title, completion,
+                    target: target ? `Hedef: ${target} soru` : 'Hedef yok',
+                    tags: (topic.subTopics || []).slice(0, 2).map(s => s.title)
                 };
             });
         }
 
         async function fetchTopics() {
             try {
-                const topicsQuery = query(collection(db, 'topics'), orderBy('order'));
-                const snap = await getDocs(topicsQuery);
-                const topics = [];
-                snap.forEach((doc) => topics.push({ id: doc.id, ...doc.data() }));
+                const q = query(collection(db, 'topics'), orderBy('order'));
+                const snap = await getDocs(q);
+                const topics = []; snap.forEach(d => topics.push({ id: d.id, ...d.data() }));
                 return topics;
-            } catch (err) {
-                console.error('Topics alınamadı, orderBy olmadan tekrar denenecek', err);
+            } catch (e) {
                 const snap = await getDocs(collection(db, 'topics'));
-                const topics = [];
-                snap.forEach((doc) => topics.push({ id: doc.id, ...doc.data() }));
+                const topics = []; snap.forEach(d => topics.push({ id: d.id, ...d.data() }));
                 return topics;
             }
         }
 
         async function resolveExamTitle(examId) {
-            if (!examId) return 'Deneme Sınavı';
+            if (!examId) return 'Deneme';
             if (examTitleCache.has(examId)) return examTitleCache.get(examId);
-
             try {
-                const examSnap = await getDoc(doc(db, 'exams', examId));
-                const title = examSnap.exists() ? examSnap.data().title || `Sınav ${examId}` : `Sınav ${examId}`;
-                examTitleCache.set(examId, title);
-                return title;
-            } catch (err) {
-                console.error('Exam başlığı alınamadı', err);
-                return `Sınav ${examId}`;
-            }
+                const snap = await getDoc(doc(db, 'exams', examId));
+                const t = snap.exists() ? snap.data().title : `Sınav ${examId}`;
+                examTitleCache.set(examId, t); return t;
+            } catch { return `Sınav ${examId}`; }
         }
 
         async function fetchActivities(uid) {
-            try {
-                const resultsQuery = query(
-                    collection(db, 'users', uid, 'examResults'),
-                    orderBy('completedAt', 'desc'),
-                    limit(4)
-                );
-                const snap = await getDocs(resultsQuery);
-                const activities = await Promise.all(
-                    snap.docs.map(async (docSnap) => {
-                        const data = docSnap.data();
-                        const examTitle = await resolveExamTitle(data.examId);
-                        const total = data.totalQuestions || 0;
-                        const correct = data.correctAnswers || 0;
-                        const ratio = total ? `${correct}/${total}` : 'Sonuç';
-                        return {
-                            icon: '🧠',
-                            title: `${examTitle} · ${ratio}`,
-                            time: data.completedAt ? formatter.format(data.completedAt.toDate()) : 'Tarih bilgisi yok'
-                        };
-                    })
-                );
-
-                return activities;
-            } catch (err) {
-                console.error('Aktiviteler alınamadı', err);
-                return [];
-            }
+            const q = query(collection(db, 'users', uid, 'examResults'), orderBy('completedAt', 'desc'), limit(4));
+            const snap = await getDocs(q);
+            return await Promise.all(snap.docs.map(async d => {
+                const data = d.data();
+                const title = await resolveExamTitle(data.examId);
+                const ratio = data.totalQuestions ? `${data.correctAnswers}/${data.totalQuestions}` : 'Sonuç';
+                return { icon: '🧠', title: `${title} · ${ratio}`, time: data.completedAt ? formatter.format(data.completedAt.toDate()) : '' };
+            }));
         }
 
         async function fetchEvents() {
             try {
-                const examsQuery = query(collection(db, 'exams'), orderBy('createdAt', 'desc'), limit(3));
-                const snap = await getDocs(examsQuery);
-                return snap.docs.map((d) => {
+                const q = query(collection(db, 'exams'), orderBy('createdAt', 'desc'), limit(3));
+                const snap = await getDocs(q);
+                return snap.docs.map(d => {
                     const data = d.data();
-                    const dateLabel = data.createdAt ? formatter.format(data.createdAt.toDate()) : 'Tarih belirtilmemiş';
-                    const note = data.duration ? `${data.duration} dk · ${data.totalQuestions || 0} soru` : 'Süre bilgisi yok';
                     return {
-                        title: data.title || 'Deneme sınavı',
-                        date: dateLabel,
-                        note
+                        title: data.title || 'Deneme',
+                        date: data.createdAt ? formatter.format(data.createdAt.toDate()) : '',
+                        note: `${data.duration || 0} dk · ${data.totalQuestions || 0} soru`
                     };
                 });
             } catch (err) {
-                console.error('Sınavlar alınamadı, orderBy olmadan tekrar denenecek', err);
-                try {
-                    const snap = await getDocs(collection(db, 'exams'));
-                    return snap.docs.slice(0, 3).map((d) => {
-                        const data = d.data();
-                        return {
-                            title: data.title || 'Deneme sınavı',
-                            date: data.createdAt && data.createdAt.toDate ? formatter.format(data.createdAt.toDate()) : 'Tarih belirtilmemiş',
-                            note: data.duration ? `${data.duration} dk · ${data.totalQuestions || 0} soru` : 'Süre bilgisi yok'
-                        };
-                    });
-                } catch (e) {
-                    console.error('Sınavlar alınamadı', e);
-                    return [];
-                }
+                // Sıralama hatası varsa düz çekmeyi dene
+                const snap = await getDocs(collection(db, 'exams'));
+                return snap.docs.slice(0, 3).map(d => {
+                     const data = d.data();
+                     return { title: data.title || 'Deneme', date: '', note: '' };
+                });
             }
         }
 
         async function loadDashboard(user) {
-            const [{ progressItems, stats }, topics, activities, events] = await Promise.all([
-                fetchUserProgress(user.uid),
-                fetchTopics(),
-                fetchActivities(user.uid),
-                fetchEvents()
-            ]);
+            // Hepsini ayrı ayrı güvenli şekilde çağırıyoruz
+            console.log("Dashboard verileri yükleniyor...");
+            
+            const progressData = await safeFetch('İlerleme Verisi', () => fetchUserProgress(user.uid));
+            const topics = await safeFetch('Konular', () => fetchTopics());
+            const activities = await safeFetch('Aktiviteler', () => fetchActivities(user.uid));
+            const events = await safeFetch('Sınav Takvimi', () => fetchEvents());
 
-            renderStats(stats);
-            renderModules(buildModules(topics, progressItems));
-            renderActivities(activities);
-            renderCalendar(events);
+            // UI Render (Veri gelmeyen kısımlar boş geçilecek)
+            const safeProgress = progressData || { progressItems: [], stats: { solved:0, accuracy:0, streak:0, rank:null } };
+            const safeTopics = topics || [];
+            const safeActivities = activities || [];
+            const safeEvents = events || [];
+
+            renderStats(safeProgress.stats);
+            renderModules(buildModules(safeTopics, safeProgress.progressItems));
+            renderActivities(safeActivities);
+            renderCalendar(safeEvents);
         }
 
         setUserName(null);
@@ -714,13 +630,8 @@
                     window.location.href = "/login.html";
                 }
             } catch (err) {
-                console.error('Dashboard yükleme hatası (Detaylı):', err);
-                
-                // HATA OLDUĞUNDA LOOP'A GİRMEMEK İÇİN YÖNLENDİRMEYİ KALDIRDIK
-                // window.location.href = "/login.html";
-                
-                // Hatayı kullanıcıya bildir:
-                alert("Dashboard yüklenirken bir sorun oluştu: " + err.message);
+                console.error('Kritik Dashboard Hatası:', err);
+                alert("Dashboard başlatılamadı: " + err.message);
             }
         })();
     </script>

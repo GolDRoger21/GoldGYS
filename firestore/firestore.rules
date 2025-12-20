@@ -1,10 +1,12 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    
+    // --- Yardımcı Fonksiyonlar ---
     function signedIn() {
       return request.auth != null;
     }
-
+    
     function isAdmin() {
       return signedIn() && (request.auth.token.admin == true || request.auth.token.role == 'admin');
     }
@@ -17,31 +19,40 @@ service cloud.firestore {
       return signedIn() && request.auth.uid == uid;
     }
 
-    // Kullanıcı profilleri ve alt koleksiyonları
+    // --- KULLANICILAR (users) ---
+    // Kullanıcının kendi profilini okuması/yazması
     match /users/{uid} {
       allow read: if isSelf(uid) || isAdmin();
       allow create: if isSelf(uid);
       allow update: if isSelf(uid) || isAdmin();
       allow delete: if isAdmin();
-
+      
+      // Kullanıcının alt koleksiyonları (progress, examResults vb.) için genel kural
       match /{subcollection=**}/{docId} {
-        allow read, write: if isSelf(uid) || isAdmin();
+         allow read, write: if isSelf(uid) || isAdmin();
       }
     }
 
-    // Sistem ayarları ve roller
+    // --- SİSTEM & AYARLAR ---
     match /system/{docId} {
       allow read: if signedIn();
       allow write: if isAdmin();
     }
 
-    // İçerik koleksiyonları
+    // --- KONULAR (topics) ---
     match /topics/{topicId} {
       allow read: if signedIn();
       allow write: if isEditor();
     }
 
-    // Varsayılan güvenli davranış: sadece adminler yazar, tüm authenticated kullanıcılar okur
+    // --- SINAVLAR (exams) --- 
+    // (Burası eksikti, açıkça ekliyoruz)
+    match /exams/{examId} {
+      allow read: if signedIn();
+      allow write: if isEditor();
+    }
+
+    // --- DİĞER HER ŞEY (Fallback) ---
     match /{document=**} {
       allow read: if signedIn();
       allow write: if isAdmin();
