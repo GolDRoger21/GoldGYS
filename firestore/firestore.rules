@@ -23,7 +23,10 @@ service cloud.firestore {
     match /users/{uid} {
       allow read: if isSelf(uid) || isAdmin();
       allow create: if isSelf(uid);
-      allow update: if isSelf(uid) || isAdmin();
+      allow update: if (isSelf(uid) &&
+                       request.resource.data.diff(resource.data)
+                       .affectedKeys().hasOnly(['displayName', 'photoURL', 'email']))
+                       || isAdmin();
       allow delete: if isAdmin();
       
       // Kullanıcının alt koleksiyonları (progress, examResults vb.)
