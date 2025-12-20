@@ -1,6 +1,5 @@
-import { auth, db } from "./firebase-config.js";
+import { auth } from "./firebase-config.js";
 import { ensureUserDocument } from "./user-profile.js";
-import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import {
     GoogleAuthProvider,
     browserLocalPersistence,
@@ -70,41 +69,45 @@ const handleLoginSuccess = async (user) => {
     showStatus("pending", "Profil doğrulanıyor...");
 
     try {
-        // Kullanıcı belgesini oluştur/güncelle
-        await ensureUserDocument(user);
+        // ensureUserDocument artık statüsü de döndürüyor
+        const userProfile = await ensureUserDocument(user);
         
-        // Firestore'dan kullanıcının durumunu kontrol et
-        const userDocRef = doc(db, "users", user.uid);
-        const userSnap = await getDoc(userDocRef);
-        const userData = userSnap.data() || {};
-        
-        // Status kontrolü: pending ise giriş yapmasını engelle
-        if (userData.status === "pending" || userData.status === "rejected") {
-            showStatus("error", "⏳ Hesabınızın onaylanması bekleniyor. Yönetici tarafından onaylanana kadar sisteme giriş yapamazsınız. Lütfen daha sonra tekrar deneyin.");
-            
-            // Hata mesajını uzun süre göster
+        // Status kontrolü
+        if (userProfile.status === "pending") {
+            showStatus("pending", "Hesabınız onay bekleniyor, yönlendiriliyorsunuz...");
             setTimeout(() => {
-                toggleLoading(false);
+                window.location.href = "/pages/pending-approval.html";
+            }, 1500);
+            return;
+        }
+        
+        if (userProfile.status === "rejected") {
+            showStatus("error", "❌ Başvurunuz reddedilmiştir. Sistem yöneticisine başvurunuz.");
+            setTimeout(async () => {
+                await auth.signOut();
+                window.location.href = "/login.html";
             }, 2000);
             return;
         }
         
-        if (userData.status === "rejected") {
-            showStatus("error", "❌ Başvurunuz reddedilmiştir. Sistem yöneticisine başvurunuz.");
-            setTimeout(() => {
-                toggleLoading(false);
+        if (userProfile.status === "suspended") {
+            showStatus("error", "⚠️ Hesabınız askıya alınmıştır.");
+            setTimeout(async () => {
+                await auth.signOut();
+                window.location.href = "/login.html";
             }, 2000);
             return;
         }
 
+        // Active ise Dashboard'a yönlendir
         showStatus("pending", "Giriş başarılı, yönlendiriliyorsunuz...");
         redirectToDashboard();
     } catch (error) {
-        console.error("Kullanıcı profili oluşturulamadı", error);
-        showStatus("pending", "Profil hazırlanıyor, yönlendiriliyorsunuz...");
+        console.error("Kullanıcı profili hatası", error);
+        showStatus("error", "Profil yüklenirken hata oluştu. Lütfen tekrar deneyin.");
         setTimeout(() => {
-            redirectToDashboard();
-        }, 1000);
+            toggleLoading(false);
+        }, 2000);
     }
 };
 
