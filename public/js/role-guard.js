@@ -15,6 +15,10 @@ export function protectPage(options = {}) {
 
     const { allow = null, requireRole = null } = normalizedOptions;
 
+    const allowedRoles = Array.isArray(allow)
+        ? allow
+        : (allow ? [allow] : (requireRole ? [requireRole] : []));
+
     // Sayfa yüklenmeden önce content'i gizle (emniyetçi önlem)
     document.body.style.opacity = "0.5";
     document.body.style.pointerEvents = "none";
@@ -26,6 +30,9 @@ export function protectPage(options = {}) {
         }
 
         try {
+            const tokenResult = await user.getIdTokenResult(true);
+            const claimRole = tokenResult.claims.role || (tokenResult.claims.admin ? "admin" : null);
+
             // 1. Kullanıcı Dokümanını Çek (Status kontrolü için)
             const userRef = doc(db, "users", user.uid);
             const userSnap = await getDoc(userRef);
@@ -53,14 +60,10 @@ export function protectPage(options = {}) {
             }
 
             // 3. Rol Kontrolü (Varsa uygulan)
-            const allowedRoles = Array.isArray(allow)
-                ? allow
-                : (allow ? [allow] : (requireRole ? [requireRole] : []));
-
             if (allowedRoles.length > 0) {
                 // Dokümandaki role öncelik veriyoruz (daha güncel olabilir)
-                const currentRole = userData.role || "student"; 
-                
+                const currentRole = userData.role || claimRole || "student";
+
                 // Admin her yere girebilsin
                 if (currentRole === 'admin') {
                     // İzin ver
@@ -82,6 +85,21 @@ export function protectPage(options = {}) {
 
         } catch (error) {
             console.error("Yetki kontrolü hatası:", error);
+
+            if (error.code === 'permission-denied') {
+                const fallbackRole = (await auth.currentUser?.getIdTokenResult(true))?.claims.role || "student";
+
+                if (allowedRoles.length > 0 && !allowedRoles.includes(fallbackRole) && fallbackRole !== 'admin') {
+                    alert("Bu sayfaya erişim yetkiniz yok.");
+                    window.location.href = "/pages/dashboard.html";
+                    return;
+                }
+
+                document.body.style.opacity = "1";
+                document.body.style.pointerEvents = "auto";
+                return;
+            }
+
             // Hata durumunda güvenli tarafta kalıp login'e yönlendir
             window.location.href = "/login.html";
         }
