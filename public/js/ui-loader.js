@@ -87,7 +87,11 @@ export async function initLayout(pageKey, options = {}) {
 
 // Global Fonksiyonlar (HTML onclick için)
 window.toggleSidebar = () => {
-    document.querySelector('.app-sidebar').classList.toggle('open');
+    const sidebar = document.querySelector('.app-sidebar');
+    if (!sidebar) return;
+
+    const isOpen = sidebar.classList.toggle('open');
+    document.body.classList.toggle('sidebar-open', isOpen);
 };
 
 window.handleLogout = () => {
