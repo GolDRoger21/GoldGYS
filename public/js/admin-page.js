@@ -10,6 +10,7 @@ import {
   query,
   serverTimestamp,
   startAfter,
+  deleteDoc,
   updateDoc,
   where,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -60,16 +61,50 @@ const tabMetaCount = document.getElementById("tabMetaCount");
 const tabMetaUpdated = document.getElementById("tabMetaUpdated");
 const tabMetaSuccess = document.getElementById("tabMetaSuccess");
 const contentSkeleton = document.getElementById("contentSkeleton");
-const contentLists = {
-  topics: document.getElementById("topicsList"),
-  tests: document.getElementById("testsList"),
-  attempts: document.getElementById("attemptsList"),
+const contentTables = {
+  topics: document.getElementById("topicsTableBody"),
+  tests: document.getElementById("testsTableBody"),
+  attempts: document.getElementById("attemptsTableBody"),
 };
 const contentEmptyStates = {
   topics: document.getElementById("topicsEmpty"),
   tests: document.getElementById("testsEmpty"),
   attempts: document.getElementById("attemptsEmpty"),
 };
+const searchInputs = {
+  topics: document.getElementById("topicsSearch"),
+  tests: document.getElementById("testsSearch"),
+  attempts: document.getElementById("attemptsSearch"),
+};
+const statusSelects = {
+  topics: document.getElementById("topicsStatus"),
+  tests: document.getElementById("testsStatus"),
+  attempts: document.getElementById("attemptsStatus"),
+};
+const paginationControls = {
+  topics: {
+    prev: document.getElementById("topicsPrev"),
+    next: document.getElementById("topicsNext"),
+    info: document.getElementById("topicsPageInfo"),
+  },
+  tests: {
+    prev: document.getElementById("testsPrev"),
+    next: document.getElementById("testsNext"),
+    info: document.getElementById("testsPageInfo"),
+  },
+  attempts: {
+    prev: document.getElementById("attemptsPrev"),
+    next: document.getElementById("attemptsNext"),
+    info: document.getElementById("attemptsPageInfo"),
+  },
+};
+const contentEditModal = document.getElementById("contentEditModal");
+const contentEditEyebrow = document.getElementById("contentEditEyebrow");
+const contentEditTitle = document.getElementById("contentEditTitle");
+const contentTitleInput = document.getElementById("contentTitleInput");
+const contentStatusSelect = document.getElementById("contentStatusSelect");
+const contentEditStatus = document.getElementById("contentEditStatus");
+const contentSaveBtn = document.getElementById("contentSaveBtn");
 
 const functions = getFunctions(auth.app);
 const setUserRoleFn = httpsCallable(functions, "setUserRole");
@@ -91,6 +126,35 @@ const ROLE_OPTIONS = [
   { value: "admin", label: "Admin" },
 ];
 const STATUS_OPTIONS = ["pending", "active", "rejected", "suspended", "deleted"];
+const SECTION_CONFIGS = {
+  topics: {
+    collectionPath: (uid) => ["topics"],
+    filters: [
+      { field: "ownerId", value: (uid) => uid },
+      { field: "createdBy", value: (uid) => uid },
+    ],
+    statusField: "status",
+    orderBy: { field: "updatedAt", direction: "desc" },
+  },
+  tests: {
+    collectionPath: (uid) => ["tests"],
+    filters: [
+      { field: "ownerId", value: (uid) => uid },
+      { field: "createdBy", value: (uid) => uid },
+    ],
+    statusField: "status",
+    orderBy: { field: "updatedAt", direction: "desc" },
+  },
+  attempts: {
+    collectionPath: (uid) => ["users", uid, "examResults"],
+    filters: [],
+    statusField: "result",
+    orderBy: { field: "createdAt", direction: "desc" },
+  },
+};
+const sectionManagers = {};
+let activeContentEdit = null;
+const SECTION_PAGE_SIZE = 6;
 
 protectPage({ requireRole: "admin" });
 initLayout("admin");
@@ -172,6 +236,11 @@ detailDeleteBtn?.addEventListener("click", () => {
 });
 
 bindContentTabs();
+initContentSections();
+document.querySelectorAll("[data-content-modal-close]").forEach((btn) =>
+  btn.addEventListener("click", closeContentEditModal)
+);
+contentSaveBtn?.addEventListener("click", saveContentEdit);
 
 function debounceFilters() {
   if (debounceTimer) {
@@ -434,6 +503,7 @@ async function openDetailModal(uid) {
     attemptCountEl.textContent = safeSummary.attempts.count;
 
     renderContentSummary(safeSummary);
+    loadSectionDataForUser();
     showContentSkeleton(false);
     detailSkeleton.style.display = "none";
     detailContent.style.display = "block";
@@ -458,6 +528,8 @@ function resetDetailModal() {
   topicCountEl.textContent = "-";
   testCountEl.textContent = "-";
   attemptCountEl.textContent = "-";
+  Object.values(contentTables).forEach((table) => table && (table.innerHTML = ""));
+  Object.values(contentEmptyStates).forEach((state) => state && (state.style.display = "none"));
   if (detailNameInput) detailNameInput.value = "";
   if (detailRoleSelect) detailRoleSelect.value = "student";
   if (detailStatusSelect) detailStatusSelect.value = "pending";
@@ -604,10 +676,6 @@ function renderContentSummary(summary) {
   testCountEl.textContent = contentSummary.tests.count ?? "-";
   attemptCountEl.textContent = contentSummary.attempts.count ?? "-";
 
-  renderContentList("topics", contentSummary.topics.items);
-  renderContentList("tests", contentSummary.tests.items);
-  renderContentList("attempts", contentSummary.attempts.items);
-
   const activeKey = document.querySelector(".tab-button.active")?.dataset.tabTarget || "topics";
   updateTabMeta(activeKey);
 }
@@ -617,6 +685,327 @@ function updateTabMeta(key) {
   if (tabMetaCount) tabMetaCount.textContent = section.count ?? "-";
   if (tabMetaUpdated) tabMetaUpdated.textContent = section.lastUpdated ? formatDateValue(section.lastUpdated) : "-";
   if (tabMetaSuccess) tabMetaSuccess.textContent = formatSuccess(section.averageSuccess);
+}
+
+function updateTabMetaWithLiveData(key, stats) {
+  if (!stats) return;
+  if (tabMetaCount) tabMetaCount.textContent = stats.count ?? tabMetaCount.textContent;
+  if (tabMetaUpdated) tabMetaUpdated.textContent = stats.lastUpdated ? formatDateValue(stats.lastUpdated) : tabMetaUpdated.textContent;
+}
+
+function buildUserContentQuery(config, uid, filters, cursor) {
+  const path = typeof config.collectionPath === "function" ? config.collectionPath(uid) : [];
+  const ref = collection(db, ...path);
+  const constraints = [ref];
+
+  const statusField = config.statusField;
+  if (filters.status && filters.status !== "all" && statusField) {
+    constraints.push(where(statusField, "==", filters.status));
+  }
+
+  if (Array.isArray(config.filters)) {
+    const filter = config.filters.find((f) => f && typeof f.value === "function" && f.value(uid));
+    if (filter) {
+      constraints.push(where(filter.field, "==", filter.value(uid)));
+    }
+  }
+
+  if (config.orderBy?.field) {
+    constraints.push(orderBy(config.orderBy.field, config.orderBy.direction || "desc"));
+  }
+
+  constraints.push(limit(SECTION_PAGE_SIZE));
+  if (cursor) {
+    constraints.push(startAfter(cursor));
+  }
+
+  return query(...constraints);
+}
+
+function docRefFromPath(path) {
+  return doc(db, ...path.split("/"));
+}
+
+function openContentEditModal(item, sectionKey) {
+  if (!contentEditModal || !item) return;
+  activeContentEdit = { ...item, sectionKey };
+  contentEditEyebrow.textContent = `ID: ${item.id}`;
+  contentEditTitle.textContent = item.title || "Kayıt";
+  if (contentTitleInput) contentTitleInput.value = item.title || "";
+  if (contentStatusSelect) contentStatusSelect.value = (item.status || "active").toString();
+  setContentEditStatus("", false, true);
+  contentEditModal.classList.add("open");
+  contentEditModal.setAttribute("aria-hidden", "false");
+}
+
+function closeContentEditModal() {
+  if (!contentEditModal) return;
+  activeContentEdit = null;
+  contentEditModal.classList.remove("open");
+  contentEditModal.setAttribute("aria-hidden", "true");
+  toggleContentSaveLoading(false);
+}
+
+async function saveContentEdit() {
+  if (!activeContentEdit) return;
+  const title = contentTitleInput?.value?.trim();
+  const status = contentStatusSelect?.value;
+
+  if (!title) {
+    setContentEditStatus("Başlık zorunludur.", true);
+    return;
+  }
+
+  toggleContentSaveLoading(true);
+  const ref = docRefFromPath(activeContentEdit.path);
+  const sectionKey = activeContentEdit.sectionKey;
+  try {
+    await updateDoc(ref, {
+      title,
+      status,
+      isActive: status === "active",
+      updatedAt: serverTimestamp(),
+    });
+    showToast("İçerik güncellendi", "success");
+    setContentEditStatus("Kaydedildi", false);
+    closeContentEditModal();
+    sectionManagers[sectionKey]?.load(true);
+  } catch (error) {
+    console.error("İçerik kaydedilemedi", error);
+    setContentEditStatus("Değişiklik kaydedilemedi.", true);
+  } finally {
+    toggleContentSaveLoading(false);
+  }
+}
+
+function setContentEditStatus(message, isError = false, hide = false) {
+  if (!contentEditStatus) return;
+  contentEditStatus.style.display = hide ? "none" : "block";
+  contentEditStatus.className = `alert ${isError ? "error" : "success"}`;
+  contentEditStatus.textContent = message;
+}
+
+function toggleContentSaveLoading(isLoading) {
+  if (!contentSaveBtn) return;
+  contentSaveBtn.disabled = isLoading;
+  if (isLoading) {
+    contentSaveBtn.innerHTML = '<span class="spinner" aria-hidden="true"></span> Kaydediliyor...';
+  } else {
+    contentSaveBtn.innerHTML = "Kaydet";
+  }
+}
+
+async function confirmAndDelete(item, sectionKey, trigger) {
+  const confirmed = window.confirm("Bu kaydı silmek istediğinize emin misiniz?");
+  if (!confirmed) return;
+
+  if (trigger) trigger.disabled = true;
+  try {
+    await deleteDoc(docRefFromPath(item.path));
+    showToast("Kayıt silindi", "success");
+    sectionManagers[sectionKey]?.load(true);
+  } catch (error) {
+    console.error("Silme işlemi başarısız", error);
+    showToast("Silme tamamlanamadı", "error");
+  } finally {
+    if (trigger) trigger.disabled = false;
+  }
+}
+
+async function toggleContentStatus(item, sectionKey, trigger) {
+  const nextStatus = item.status === "active" ? "inactive" : "active";
+  if (trigger) trigger.disabled = true;
+  try {
+    await updateDoc(docRefFromPath(item.path), {
+      status: nextStatus,
+      isActive: nextStatus === "active",
+      updatedAt: serverTimestamp(),
+    });
+    showToast("Durum güncellendi", "success");
+    sectionManagers[sectionKey]?.load(true);
+  } catch (error) {
+    console.error("Durum değiştirilemedi", error);
+    showToast("Durum değiştirilemedi", "error");
+  } finally {
+    if (trigger) trigger.disabled = false;
+  }
+}
+
+function initContentSections() {
+  Object.keys(SECTION_CONFIGS).forEach((key) => {
+    sectionManagers[key] = new ContentSection(key, SECTION_CONFIGS[key]);
+  });
+}
+
+function loadSectionDataForUser() {
+  Object.values(sectionManagers).forEach((manager) => manager?.load(true));
+}
+
+class ContentSection {
+  constructor(key, config) {
+    this.key = key;
+    this.config = config;
+    this.tableBody = contentTables[key];
+    this.emptyState = contentEmptyStates[key];
+    this.searchInput = searchInputs[key];
+    this.statusSelect = statusSelects[key];
+    this.pagination = paginationControls[key];
+    this.cache = new Map();
+    this.state = { page: 1, anchors: [null], reachedEnd: false, loading: false };
+    this.bindEvents();
+  }
+
+  bindEvents() {
+    if (this.searchInput) {
+      this.searchInput.addEventListener("input", () => this.debounceLoad());
+    }
+    if (this.statusSelect) {
+      this.statusSelect.addEventListener("change", () => this.load(true));
+    }
+    if (this.pagination?.next) {
+      this.pagination.next.addEventListener("click", () => this.goToPage(1));
+    }
+    if (this.pagination?.prev) {
+      this.pagination.prev.addEventListener("click", () => this.goToPage(-1));
+    }
+    if (this.tableBody) {
+      this.tableBody.addEventListener("click", (event) => this.handleActionClick(event));
+    }
+  }
+
+  debounceLoad() {
+    clearTimeout(this.debounceTimer);
+    this.debounceTimer = setTimeout(() => this.load(true), 300);
+  }
+
+  goToPage(delta) {
+    const nextPage = this.state.page + delta;
+    if (nextPage < 1) return;
+    if (delta > 0 && this.state.reachedEnd) return;
+
+    this.state.page = nextPage;
+    this.load();
+  }
+
+  async load(reset = false) {
+    if (!activeDetailTarget || !this.tableBody) return;
+    if (this.state.loading) return;
+
+    if (reset) {
+      this.state = { page: 1, anchors: [null], reachedEnd: false, loading: false };
+    }
+
+    const cursor = this.state.anchors[this.state.page - 1] || null;
+    const filters = {
+      search: (this.searchInput?.value || "").trim().toLowerCase(),
+      status: this.statusSelect?.value || "all",
+    };
+
+    const queryRef = buildUserContentQuery(this.config, activeDetailTarget, filters, cursor);
+
+    try {
+      this.state.loading = true;
+      showContentSkeleton(true);
+      const snapshot = await getDocs(queryRef);
+      const rows = snapshot.docs.map((docSnap) => {
+        const data = docSnap.data();
+        return {
+          id: docSnap.id,
+          title: data.title || data.name || "(Başlıksız)",
+          status: data[this.config.statusField] || data.status || "-",
+          updatedAt: data.updatedAt || data.createdAt,
+          successRate: data.successRate || data.averageScore || data.score,
+          path: docSnap.ref.path,
+        };
+      });
+
+      const filteredRows = rows.filter((row) => {
+        const matchesSearch = filters.search
+          ? row.title.toLowerCase().includes(filters.search)
+          : true;
+        const matchesStatus = filters.status === "all" || (row.status || "").toString() === filters.status;
+        return matchesSearch && matchesStatus;
+      });
+
+      this.renderRows(filteredRows);
+      this.cache.clear();
+      filteredRows.forEach((row) => this.cache.set(row.id, row));
+
+      this.state.reachedEnd = snapshot.size < SECTION_PAGE_SIZE;
+      this.state.anchors[this.state.page] = snapshot.docs[snapshot.docs.length - 1] || null;
+      this.updatePagination();
+      updateTabMetaWithLiveData(this.key, { count: this.cache.size, lastUpdated: filteredRows[0]?.updatedAt });
+    } catch (error) {
+      console.error(`${this.key} listesi yüklenemedi`, error);
+      setDetailStatus("İçerik listesi yüklenemedi.", true);
+    } finally {
+      this.state.loading = false;
+      showContentSkeleton(false);
+    }
+  }
+
+  renderRows(rows) {
+    if (!this.tableBody || !this.emptyState) return;
+    this.tableBody.innerHTML = "";
+
+    if (!rows.length) {
+      this.emptyState.style.display = "block";
+      return;
+    }
+
+    this.emptyState.style.display = "none";
+
+    rows.forEach((row) => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${row.title}</td>
+        <td><span class="badge-muted">${row.status || "-"}</span></td>
+        <td>${formatDateValue(row.updatedAt)}</td>
+        <td>${formatSuccess(row.successRate)}</td>
+        <td>
+          <div class="table-actions">
+            <button type="button" class="btn-secondary" data-action="view" data-id="${row.id}">Görüntüle</button>
+            <button type="button" class="btn-navy" data-action="edit" data-id="${row.id}">Düzenle</button>
+            <button type="button" class="btn-danger" data-action="delete" data-id="${row.id}">Sil</button>
+            <button type="button" class="btn-gold" data-action="toggle" data-id="${row.id}">Durum Değiştir</button>
+          </div>
+        </td>
+      `;
+      this.tableBody.appendChild(tr);
+    });
+  }
+
+  updatePagination() {
+    if (!this.pagination?.info) return;
+    this.pagination.info.textContent = `${this.state.page} / ${this.state.reachedEnd && !this.state.anchors[this.state.page] ? this.state.page : this.state.page + 1}`;
+    if (this.pagination.prev) this.pagination.prev.disabled = this.state.page === 1;
+    if (this.pagination.next) this.pagination.next.disabled = this.state.reachedEnd;
+  }
+
+  handleActionClick(event) {
+    const button = event.target.closest("button[data-action]");
+    if (!button) return;
+    const id = button.getAttribute("data-id");
+    const item = this.cache.get(id);
+    if (!item) return;
+
+    const action = button.getAttribute("data-action");
+    if (action === "view") {
+      openRecordPath(item.path);
+      return;
+    }
+    if (action === "edit") {
+      openContentEditModal(item, this.key);
+      return;
+    }
+    if (action === "delete") {
+      confirmAndDelete(item, this.key, button);
+      return;
+    }
+    if (action === "toggle") {
+      toggleContentStatus(item, this.key, button);
+    }
+  }
 }
 
 function renderContentList(key, items = []) {
