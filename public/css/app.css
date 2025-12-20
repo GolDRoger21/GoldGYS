@@ -7,6 +7,7 @@
     --gold-main: #D4AF37;       /* Asıl Altın Rengi */
     --gold-light: #F3E5AB;      /* Açık Altın (Arkaplanlar) */
     --gold-dark: #B5952F;       /* Koyu Altın (Hover/Border) */
+    --gold-gradient: linear-gradient(to right, #BF953F, #FCF6BA, #B38728, #FBF5B7, #AA771C);
     
     --navy-deep: #0F172A;       /* En Koyu Lacivert (Sidebar/Footer/Hero) */
     --navy-light: #1E293B;      /* Açık Lacivert (Header/Kartlar) */
@@ -70,6 +71,46 @@ button { font-family: inherit; }
 }
 .btn-navy:hover { background: var(--gold-main); color: var(--navy-deep); }
 
+/* --- MARKA KİMLİĞİ --- */
+.brand-mark {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-serif);
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    color: var(--navy-deep);
+    text-decoration: none;
+    transition: color 0.2s ease, text-shadow 0.2s ease, outline-color 0.2s ease;
+}
+
+.brand-mark .brand-highlight {
+    background: var(--gold-gradient);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow: 0 0 20px rgba(212, 175, 55, 0.35);
+    font-weight: 900;
+}
+
+.brand-mark.brand-on-dark { color: var(--text-on-dark); }
+
+.brand-mark:hover,
+.brand-mark:focus-visible {
+    color: var(--gold-light);
+    text-shadow: 0 0 12px rgba(212, 175, 55, 0.35);
+}
+
+.brand-mark:focus-visible {
+    outline: 2px solid var(--gold-main);
+    outline-offset: 6px;
+    border-radius: 12px;
+}
+
+.brand-large { font-size: 1.8rem; }
+.brand-compact { font-size: 1.5rem; }
+.header-brand { font-size: 1.4rem; }
+
 /* =========================================
    1. LANDING PAGE (VİTRİN) STİLLERİ
    ========================================= */
@@ -129,8 +170,19 @@ button { font-family: inherit; }
 }
 
 .sidebar-header { padding: 30px; border-bottom: 1px solid rgba(255,255,255,0.05); }
-.sidebar-logo { font-family: var(--font-serif); font-size: 1.5rem; color: white; font-weight: 700; display: flex; align-items: center; gap: 8px;}
-.sidebar-logo span { color: var(--gold-main); }
+.sidebar-logo {
+    padding: 30px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.sidebar-logo .brand-mark {
+    color: var(--text-on-dark);
+}
+
+.sidebar-logo .brand-mark:hover,
+.sidebar-logo .brand-mark:focus-visible {
+    color: var(--gold-light);
+}
 
 .sidebar-nav { flex: 1; padding: 20px; overflow-y: auto; }
 .sidebar-nav ul li { margin-bottom: 8px; }
@@ -202,6 +254,48 @@ button { font-family: inherit; }
     gap: 20px;
 }
 
+.app-header .brand-mark {
+    color: var(--navy-deep);
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    justify-content: flex-end;
+    flex: 1;
+}
+
+.page-title {
+    font-size: 1rem;
+    color: var(--text-muted);
+    font-weight: 700;
+}
+
+.mobile-menu-toggle {
+    background: rgba(15, 23, 42, 0.06);
+    border: 1px solid rgba(15, 23, 42, 0.1);
+    border-radius: 10px;
+    padding: 10px 12px;
+    cursor: pointer;
+    font-weight: 800;
+    color: var(--navy-deep);
+    display: none;
+}
+
+.mobile-menu-toggle:hover,
+.mobile-menu-toggle:focus-visible {
+    background: rgba(212, 175, 55, 0.2);
+    color: var(--navy-deep);
+    outline: none;
+}
+
 .main-nav {
     display: flex;
     align-items: center;
@@ -221,6 +315,13 @@ button { font-family: inherit; }
 .main-nav a.active {
     background: rgba(15, 23, 42, 0.06);
     color: var(--gold-main);
+}
+
+.main-nav a:focus-visible {
+    outline: 2px solid var(--gold-main);
+    outline-offset: 4px;
+    background: rgba(212, 175, 55, 0.15);
+    color: var(--navy-deep);
 }
 
 .header-actions {

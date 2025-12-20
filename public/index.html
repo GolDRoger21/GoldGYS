@@ -33,31 +33,13 @@
             box-shadow: 0 4px 30px rgba(0,0,0,0.3);
         }
 
-        /* LOGO TASARIMI (Kraliyet Altını Efekti) */
-        .brand {
-            font-family: 'Playfair Display', serif;
-            font-size: 1.8rem; font-weight: 800; color: white;
-            display: flex; align-items: center; gap: 8px;
-            letter-spacing: 0.5px;
-            cursor: default;
-        }
-        
-        /* GOLD Yazısı için Metalik Efekt */
-        .brand span.gold-text {
-            background: linear-gradient(to right, #BF953F, #FCF6BA, #B38728, #FBF5B7, #AA771C);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-            text-shadow: 0 0 20px rgba(212, 175, 55, 0.4); /* Hafif Parlama */
-            font-weight: 900;
-        }
-
         .nav-links { display: flex; gap: 30px; align-items: center; }
-        .nav-links a { 
-            text-decoration: none; color: rgba(255,255,255,0.7); 
-            font-weight: 500; font-size: 0.95rem; transition: 0.3s;
+        .nav-links a {
+            text-decoration: none; color: rgba(255,255,255,0.78);
+            font-weight: 600; font-size: 0.95rem; transition: 0.3s;
         }
-        .nav-links a:hover { color: #FCF6BA; text-shadow: 0 0 5px rgba(212, 175, 55, 0.5); }
+        .nav-links a:hover,
+        .nav-links a:focus-visible { color: var(--gold-light); text-shadow: 0 0 6px rgba(212, 175, 55, 0.55); outline: none; }
 
         .btn-nav-login {
             background: linear-gradient(135deg, #D4AF37 0%, #B5952F 100%);
@@ -214,9 +196,9 @@
 <body>
 
     <nav class="landing-nav">
-        <div class="brand">
-            <span class="gold-text">GOLD</span>GYS
-        </div>
+        <a class="brand-mark brand-large brand-on-dark" href="/" aria-label="Gold GYS anasayfa">
+            <span class="brand-highlight">GOLD</span>GYS
+        </a>
         <div class="nav-links">
             <a href="#features">Özellikler</a>
             <a href="#curriculum">Müfredat</a>
@@ -297,7 +279,9 @@
     <footer>
         <div class="footer-grid">
             <div class="footer-info">
-                <div class="brand"><span class="gold-text">GOLD</span>GYS</div>
+                <a class="brand-mark brand-on-dark brand-large" href="/" aria-label="Gold GYS anasayfa">
+                    <span class="brand-highlight">GOLD</span>GYS
+                </a>
                 <p>Adalet Bakanlığı personeli için geliştirilmiş, Türkiye'nin en kapsamlı ve prestijli görevde yükselme sınavı hazırlık platformu.</p>
             </div>
             <div class="footer-links">
