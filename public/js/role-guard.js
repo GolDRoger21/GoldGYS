@@ -19,7 +19,7 @@ export function protectPage(options = {}) {
         ? allow
         : (allow ? [allow] : (requireRole ? [requireRole] : []));
 
-    // Sayfa yüklenmeden önce content'i gizle (emniyetçi önlem)
+    // Sayfa yüklenmeden önce content'i gizle
     document.body.style.opacity = "0.5";
     document.body.style.pointerEvents = "none";
 
@@ -29,8 +29,13 @@ export function protectPage(options = {}) {
             return;
         }
 
+        // --- YEDEK MEKANİZMA (Veritabanı erişilemezse devreye girer) ---
         const useFallbackRole = async (extraCheck = true) => {
+            console.log("Firestore erişilemedi, Token Claims üzerinden kontrol ediliyor...");
+            
+            // Token'ı tazeleyerek en güncel yetkileri al
             const tokenResult = await auth.currentUser?.getIdTokenResult(true);
+            
             const claimStatus = tokenResult?.claims?.status || (tokenResult?.claims?.admin ? "active" : null);
             const fallbackRole = tokenResult?.claims?.role || (tokenResult?.claims?.admin ? "admin" : "student");
 
@@ -40,12 +45,14 @@ export function protectPage(options = {}) {
                 return false;
             }
 
+            // Eğer ekstra rol kontrolü gerekiyorsa ve kullanıcı admin değilse
             if (extraCheck && allowedRoles.length > 0 && !allowedRoles.includes(fallbackRole) && fallbackRole !== 'admin') {
-                alert("Bu sayfaya erişim yetkiniz yok.");
+                alert("Bu sayfaya erişim yetkiniz yok (Token tabanlı kontrol).");
                 window.location.href = "/pages/dashboard.html";
                 return false;
             }
 
+            // Giriş Başarılı
             document.body.style.opacity = "1";
             document.body.style.pointerEvents = "auto";
             return true;
@@ -56,29 +63,19 @@ export function protectPage(options = {}) {
             const claimRole = tokenResult.claims.role || (tokenResult.claims.admin ? "admin" : null);
             const claimStatus = tokenResult.claims.status || (tokenResult.claims.admin ? "active" : null);
 
-            // 1. Kullanıcı Dokümanını Çek (Status kontrolü için)
+            // 1. Kullanıcı Dokümanını Çek
             const userRef = doc(db, "users", user.uid);
             const userSnap = await getDoc(userRef);
 
             if (!userSnap.exists()) {
-                // Doküman yoksa claim bilgisini kullanarak erişim kontrolü yap
-                const allowed = await useFallbackRole();
-                if (!allowed) return;
-
-                // Claim tabanlı durum (pending vs active)
-                if (claimStatus && claimStatus !== "active" && !window.location.pathname.includes("pending-approval.html")) {
-                    window.location.href = "/pages/pending-approval.html";
-                    return;
-                }
-
-                document.body.style.opacity = "1";
-                document.body.style.pointerEvents = "auto";
+                // Doküman yoksa yedek mekanizmayı kullan
+                await useFallbackRole();
                 return;
             }
 
             const userData = userSnap.data();
 
-            // Status alanı geçmiş verilerde boş kaldıysa claim veya aktif varsayımla doldur
+            // Status alanı boşsa doldurmaya çalış
             const profileStatus = userData.status || claimStatus || "active";
             if (!userData.status) {
                 try {
@@ -88,27 +85,23 @@ export function protectPage(options = {}) {
                 }
             }
 
-            // 2. STATUS KONTROLÜ (KRİTİK BÖLÜM)
-            // Eğer sayfa 'pending-approval.html' değilse ve kullanıcı 'active' değilse
+            // 2. STATUS KONTROLÜ
             if (profileStatus !== "active" && !window.location.pathname.includes("pending-approval.html")) {
                 window.location.href = "/pages/pending-approval.html";
                 return;
             }
 
-            // Eğer kullanıcı active ise ama 'pending-approval' sayfasındaysa dashboard'a yolla
             if (profileStatus === "active" && window.location.pathname.includes("pending-approval.html")) {
                 window.location.href = "/pages/dashboard.html";
                 return;
             }
 
-            // 3. Rol Kontrolü (Varsa uygulan)
+            // 3. Rol Kontrolü
             if (allowedRoles.length > 0) {
-                // Dokümandaki role öncelik veriyoruz (daha güncel olabilir)
                 const currentRole = userData.role || claimRole || "student";
 
-                // Admin her yere girebilsin
+                // Admin her yere girebilir
                 if (currentRole === 'admin') {
-                    // İzin ver
                     document.body.style.opacity = "1";
                     document.body.style.pointerEvents = "auto";
                     return;
@@ -121,29 +114,16 @@ export function protectPage(options = {}) {
                 }
             }
 
-            // Tüm kontroller geçti, sayfayı göster
+            // Tüm kontroller geçti
             document.body.style.opacity = "1";
             document.body.style.pointerEvents = "auto";
 
         } catch (error) {
-            console.error("Yetki kontrolü hatası:", error);
-            const code = error?.code || '';
-
-            // Firestore bağlantı sorunlarında claim bilgileriyle devam et
-            const transientIssues = ['unavailable', 'deadline-exceeded', 'cancelled', 'resource-exhausted'];
-            if (transientIssues.includes(code)) {
-                alert("Profil bilgileri yüklenemedi (bağlantı sorunu). Geçici olarak izin kontrolleri token üzerinden yapılıyor.");
-                await useFallbackRole();
-                return;
-            }
-
-            if (code === 'permission-denied') {
-                await useFallbackRole();
-                return;
-            }
-
-            // Hata durumunda güvenli tarafta kalıp login'e yönlendir
-            window.location.href = "/login.html";
+            console.error("Yetki kontrolü hatası (Firestore):", error);
+            
+            // HATA OLDUĞUNDA LOGİN'E ATMAK YERİNE TOKEN İLE DEVAM ET
+            // Bu, sorununuzu çözecek olan kısımdır.
+            await useFallbackRole();
         }
     });
 }

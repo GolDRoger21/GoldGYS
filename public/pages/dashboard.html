@@ -714,8 +714,13 @@
                     window.location.href = "/login.html";
                 }
             } catch (err) {
-                console.error('Kimlik doğrulama kontrolü başarısız', err);
-                window.location.href = "/login.html";
+                console.error('Dashboard yükleme hatası (Detaylı):', err);
+                
+                // HATA OLDUĞUNDA LOOP'A GİRMEMEK İÇİN YÖNLENDİRMEYİ KALDIRDIK
+                // window.location.href = "/login.html";
+                
+                // Hatayı kullanıcıya bildir:
+                alert("Dashboard yüklenirken bir sorun oluştu: " + err.message);
             }
         })();
     </script>
