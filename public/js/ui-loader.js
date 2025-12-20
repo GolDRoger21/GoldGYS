@@ -24,20 +24,23 @@ export async function initLayout(pageKey) {
 
     // 2. Aktif Menüyü İşaretle
     if (pageKey) {
-        const activeLink = document.querySelector(`.sidebar-menu a[data-page="${pageKey}"]`);
-        if (activeLink) {
-            activeLink.classList.add('active');
-        }
+        document.querySelectorAll(`.sidebar-nav a[data-page="${pageKey}"], .sidebar-menu a[data-page="${pageKey}"]`)
+            .forEach(link => link.classList.add('active'));
+        document.querySelectorAll(`.main-nav a[data-page="${pageKey}"]`)
+            .forEach(link => link.classList.add('active'));
     }
 
     // 3. Kullanıcı Bilgisini Getir (Firebase Auth)
     auth.onAuthStateChanged(async user => {
         const userNameEl = document.getElementById('headerUserName');
-        if (user && userNameEl) {
+        const userInitialEl = document.getElementById('headerUserInitial');
+        if (user && (userNameEl || userInitialEl)) {
             await ensureUserDocument(user);
             // Email'in baş kısmını veya varsa display name'i göster
-            userNameEl.innerText = user.displayName || user.email.split('@')[0];
-            
+            const displayName = user.displayName || user.email.split('@')[0];
+            if (userNameEl) userNameEl.innerText = displayName;
+            if (userInitialEl) userInitialEl.innerText = displayName.charAt(0).toUpperCase();
+
             // Admin kontrolü (Custom Claims)
             user.getIdTokenResult().then(idTokenResult => {
                 if (idTokenResult.claims.admin) {
@@ -49,6 +52,25 @@ export async function initLayout(pageKey) {
             window.location.href = '/login.html';
         }
     });
+
+    // 4. Profil menüsü etkileşimleri
+    const profileToggle = document.querySelector('[data-profile-toggle]');
+    const profileDropdown = document.getElementById('profileDropdown');
+    const profileMenu = document.querySelector('[data-profile-menu]');
+    if (profileToggle && profileDropdown && profileMenu) {
+        profileToggle.addEventListener('click', event => {
+            event.stopPropagation();
+            const isOpen = profileDropdown.classList.toggle('open');
+            profileToggle.setAttribute('aria-expanded', isOpen);
+        });
+
+        document.addEventListener('click', event => {
+            if (!profileMenu.contains(event.target)) {
+                profileDropdown.classList.remove('open');
+                profileToggle.setAttribute('aria-expanded', 'false');
+            }
+        });
+    }
 }
 
 // Global Fonksiyonlar (HTML onclick için)
