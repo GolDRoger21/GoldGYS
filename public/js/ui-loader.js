@@ -1,4 +1,5 @@
 import { auth } from "./firebase-config.js";
+import { ensureUserDocument } from "./user-profile.js";
 
 async function loadComponent(elementId, filePath) {
     const element = document.getElementById(elementId);
@@ -30,9 +31,10 @@ export async function initLayout(pageKey) {
     }
 
     // 3. Kullanıcı Bilgisini Getir (Firebase Auth)
-    auth.onAuthStateChanged(user => {
+    auth.onAuthStateChanged(async user => {
         const userNameEl = document.getElementById('headerUserName');
         if (user && userNameEl) {
+            await ensureUserDocument(user);
             // Email'in baş kısmını veya varsa display name'i göster
             userNameEl.innerText = user.displayName || user.email.split('@')[0];
             

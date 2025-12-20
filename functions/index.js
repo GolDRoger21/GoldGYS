@@ -15,26 +15,29 @@ exports.setAdminClaim = functions.https.onCall(async (data, context) => {
   if (!uid) {
     throw new functions.https.HttpsError("invalid-argument", "uid gerekli.");
   }
+  await admin.auth().setCustomUserClaims(uid, { admin: true });
+  return { ok: true, uid };
+});
 
-  if (!role || typeof role !== "string") {
-    throw new functions.https.HttpsError(
-      "invalid-argument",
-      "role parametresi gereklidir."
-    );
+exports.setUserRole = functions.https.onCall(async (data, context) => {
+  if (!context.auth || context.auth.token.admin !== true) {
+    throw new functions.https.HttpsError("permission-denied", "Admin yetkisi gerekli.");
   }
 
-  const normalizedRole = role.trim();
-  if (!normalizedRole) {
-    throw new functions.https.HttpsError(
-      "invalid-argument",
-      "role boş olamaz."
-    );
+  const { uid, role } = data;
+  const allowedRoles = ["student", "editor", "admin"];
+
+  if (!uid || !role || !allowedRoles.includes(role)) {
+    throw new functions.https.HttpsError("invalid-argument", "Geçerli uid ve rol gereklidir.");
   }
-  const isAdmin = normalizedRole === "admin";
 
-  await admin
-    .auth()
-    .setCustomUserClaims(uid, { role: normalizedRole, admin: isAdmin });
+  const claims = {
+    role,
+    admin: role === "admin",
+    editor: role === "editor" || role === "admin",
+  };
 
-  return { ok: true, uid, role: normalizedRole, admin: isAdmin };
+  await admin.auth().setCustomUserClaims(uid, claims);
+
+  return { ok: true, uid, role };
 });
