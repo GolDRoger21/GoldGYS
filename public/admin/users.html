@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kullanıcı Rolleri | GOLD GYS</title>
+  <link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+  <div class="app-layout">
+    <aside id="sidebar-area" class="app-sidebar"></aside>
+
+    <main class="app-main">
+      <header id="header-area" class="app-header"></header>
+
+      <div class="app-content">
+        <div class="section-header">
+          <div>
+            <p class="section-eyebrow">Yönetici İşlemleri</p>
+            <h1 class="section-title">Kullanıcı Rol Yönetimi</h1>
+            <p class="section-subtitle">Kullanıcı rolünü güncelleyerek erişim haklarını belirleyin.</p>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h2>Kullanıcılar</h2>
+            <button id="refreshUsers" class="btn-navy">↻ Yenile</button>
+          </div>
+          <div class="card-body">
+            <div id="userNotice" class="alert" style="display: none;"></div>
+            <div class="table-responsive">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Ad Soyad</th>
+                    <th>E-posta</th>
+                    <th>Rol</th>
+                    <th>İşlem</th>
+                  </tr>
+                </thead>
+                <tbody id="userTableBody">
+                  <tr>
+                    <td colspan="4">Kullanıcılar yükleniyor...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script type="module" src="/admin/js/admin-users.js"></script>
+</body>
+</html>
