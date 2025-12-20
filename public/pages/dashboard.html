@@ -4,116 +4,358 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panelim | GOLD GYS</title>
-    
+
     <link rel="stylesheet" href="/css/app.css">
-    
+
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
-    
+
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230F172A'/><text x='50' y='70' font-family='serif' font-size='60' fill='%23D4AF37' text-anchor='middle' font-weight='bold'>G</text><text x='80' y='35' font-size='30'>⚖️</text></svg>">
+
+    <style>
+        .dashboard-hero {
+            background: linear-gradient(135deg, var(--navy-deep) 0%, #1E293B 100%);
+            color: white;
+            padding: 40px;
+            border-radius: 24px;
+            margin-bottom: 30px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: var(--shadow-strong);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .dashboard-hero::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 15% 15%, rgba(212,175,55,0.18), transparent 35%),
+                        radial-gradient(circle at 85% 10%, rgba(255,255,255,0.12), transparent 30%),
+                        radial-gradient(circle at 80% 80%, rgba(212,175,55,0.15), transparent 30%);
+            pointer-events: none;
+        }
+        .dashboard-hero .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            padding: 10px 16px;
+            border-radius: 999px;
+            font-weight: 600;
+            color: var(--gold-light);
+            letter-spacing: 0.3px;
+        }
+        .dashboard-hero .actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+        .dashboard-hero h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+        }
+        .dashboard-hero p {
+            color: #cbd5e1;
+            max-width: 660px;
+            font-size: 1.05rem;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 1;
+        }
+        .hero-overlay-icon {
+            position: absolute;
+            right: -14px;
+            bottom: -28px;
+            font-size: 12rem;
+            opacity: 0.05;
+            transform: rotate(-15deg);
+            pointer-events: none;
+        }
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 18px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: white;
+            padding: 22px 20px;
+            border-radius: 18px;
+            box-shadow: var(--shadow-soft);
+            border: 1px solid rgba(0,0,0,0.04);
+            display: flex;
+            gap: 14px;
+            align-items: center;
+        }
+        .stat-icon {
+            width: 54px;
+            height: 54px;
+            border-radius: 14px;
+            display: grid;
+            place-items: center;
+            font-size: 1.6rem;
+            font-weight: 700;
+        }
+        .stat-details .label {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        .stat-details .value {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--navy-deep);
+        }
+        .stat-details .caption {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+        .content-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 22px;
+        }
+        .section-card {
+            background: white;
+            border-radius: 18px;
+            padding: 22px;
+            box-shadow: var(--shadow-soft);
+            border: 1px solid rgba(0,0,0,0.04);
+        }
+        .section-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+        .section-head h3 {
+            font-family: 'Playfair Display', serif;
+            color: var(--navy-deep);
+            font-size: 1.2rem;
+        }
+        .section-head span { color: var(--text-muted); font-size: 0.9rem; }
+        .module-list, .activity-list, .calendar-list { display: flex; flex-direction: column; gap: 12px; }
+        .module-card {
+            border: 1px solid rgba(0,0,0,0.04);
+            border-radius: 14px;
+            padding: 14px 16px;
+            background: #f8fafc;
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 8px;
+            align-items: center;
+        }
+        .module-card .title { font-weight: 700; color: var(--navy-deep); }
+        .module-card .meta { color: var(--text-muted); font-size: 0.9rem; }
+        .chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 10px;
+            border-radius: 999px;
+            background: white;
+            color: var(--navy-deep);
+            border: 1px solid rgba(0,0,0,0.06);
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        .progress-bar {
+            height: 10px;
+            background: rgba(15, 23, 42, 0.08);
+            border-radius: 999px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+        .progress-bar span {
+            display: block;
+            height: 100%;
+            background: linear-gradient(90deg, var(--gold-main), var(--gold-dark));
+        }
+        .activity-item {
+            display: flex;
+            gap: 12px;
+            padding: 12px 10px;
+            border-radius: 12px;
+            border: 1px solid rgba(0,0,0,0.04);
+            align-items: center;
+            background: #f8fafc;
+        }
+        .activity-icon {
+            width: 38px; height: 38px;
+            border-radius: 10px;
+            display: grid; place-items: center;
+            font-size: 1.2rem;
+            background: rgba(212, 175, 55, 0.15);
+        }
+        .activity-text { flex: 1; }
+        .activity-text .title { font-weight: 700; color: var(--navy-deep); }
+        .activity-text .time { color: var(--text-muted); font-size: 0.9rem; }
+        .calendar-card { background: var(--navy-deep); color: white; position: relative; overflow: hidden; }
+        .calendar-card::after {
+            content: "";
+            position: absolute;
+            top: -40px; right: -40px;
+            width: 120px; height: 120px;
+            background: var(--gold-main);
+            opacity: 0.08;
+            border-radius: 50%;
+        }
+        .calendar-list .event {
+            padding: 12px 14px;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+        .event strong { color: var(--gold-light); }
+        .quick-actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
+        .quick-actions a {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 14px;
+            background: #f8fafc;
+            border: 1px solid rgba(0,0,0,0.05);
+            border-radius: 12px;
+            font-weight: 700;
+            color: var(--navy-deep);
+        }
+        .quick-actions a:hover { background: white; box-shadow: var(--shadow-soft); }
+        .insight-card {
+            background: linear-gradient(135deg, #fef3c7, #fde68a);
+            border: 1px solid rgba(212, 175, 55, 0.35);
+            color: #78350f;
+        }
+        @media (max-width: 1100px) { .content-grid { grid-template-columns: 1fr; } .app-main { margin-left: 0; width: 100%; } .app-sidebar { display: none; } }
+        @media (max-width: 640px) { .dashboard-hero { padding: 28px; } .stat-grid { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); } }
+    </style>
 </head>
 <body>
 
     <div class="app-layout">
-        
+
         <aside id="sidebar-area" class="app-sidebar"></aside>
 
         <main class="app-main">
-            
+
             <header id="header-area" class="app-header"></header>
 
             <div class="app-content">
-                
-                <div style="
-                    background: linear-gradient(135deg, var(--navy-deep) 0%, #1E293B 100%);
-                    color: white;
-                    padding: 40px;
-                    border-radius: 24px;
-                    margin-bottom: 40px;
-                    position: relative;
-                    overflow: hidden;
-                    box-shadow: var(--shadow-strong);
-                    border: 1px solid rgba(255,255,255,0.05);
-                ">
-                    <div style="position: absolute; right: -20px; bottom: -40px; font-size: 12rem; opacity: 0.05; transform: rotate(-15deg); pointer-events: none;">⚖️</div>
-                    <div style="position: absolute; left: -50px; top: -50px; width: 200px; height: 200px; background: radial-gradient(circle, rgba(212,175,55,0.2) 0%, transparent 70%); border-radius: 50%; pointer-events: none;"></div>
 
-                    <div style="position: relative; z-index: 2;">
-                        <h1 style="font-family: 'Playfair Display', serif; font-size: 2.2rem; margin-bottom: 10px;">
-                            Hoş Geldiniz, <span id="dashUserName" style="color: var(--gold-main);">Kaptan</span> 👑
-                        </h1>
-                        <p style="color: #94A3B8; max-width: 600px; font-size: 1.05rem; line-height: 1.6; margin-bottom: 30px;">
-                            Bugün, hedeflerine bir adım daha yaklaşmak için harika bir gün. Eksik konularını tamamla, rakiplerinin önüne geç.
-                        </p>
-                        
-                        <div style="display: flex; gap: 15px; flex-wrap: wrap;">
-                            <a href="testler.html" class="btn-gold" style="width: auto; padding-left: 30px; padding-right: 30px;">
-                                📝 Hemen Test Çöz
-                            </a>
-                            <a href="denemeler.html" class="btn-navy" style="border-color: rgba(255,255,255,0.2); color: white; width: auto;">
-                                🏆 Deneme Sınavı
-                            </a>
-                        </div>
+                <section class="dashboard-hero">
+                    <div class="badge">⚡ GYS Hızlandırıcı · Sürüm 1.0</div>
+                    <h1>Hoş Geldiniz, <span id="dashUserName" style="color: var(--gold-main);">Kaptan</span> 👑</h1>
+                    <p>
+                        Günlük hedeflerinize odaklanın, eksik konularınızı tamamlayın ve deneme sınavlarıyla seviyenizi görün.
+                        Yolculuğunuza kaldığınız yerden devam edebilmeniz için her şey hazır.
+                    </p>
+                    <div class="actions">
+                        <a href="testler.html" class="btn-gold">📝 Hemen Test Çöz</a>
+                        <a href="denemeler.html" class="btn-navy">🏆 Deneme Sınavı</a>
+                        <a href="yanlislarim.html" class="chip" aria-label="Yanlışlarım">⚠️ Yanlışlar</a>
+                        <a href="favoriler.html" class="chip" aria-label="Favori sorular">⭐ Favoriler</a>
                     </div>
-                </div>
+                    <div class="hero-overlay-icon">⚖️</div>
+                </section>
 
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 30px; margin-bottom: 40px;">
-                    
-                    <div style="background: white; padding: 30px; border-radius: 20px; box-shadow: var(--shadow-soft); display: flex; align-items: center; gap: 20px; border: 1px solid rgba(0,0,0,0.03);">
-                        <div style="width: 60px; height: 60px; background: var(--gold-light); color: var(--gold-dark); border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem;">
-                            📚
+                <section class="stat-grid">
+                    <article class="stat-card">
+                        <div class="stat-icon" style="background: var(--gold-light); color: var(--gold-dark);">📚</div>
+                        <div class="stat-details">
+                            <div class="label">Çözülen Soru</div>
+                            <div class="value" id="statSolved">0</div>
+                            <div class="caption">Bu hafta hedefin 1000 soru.</div>
                         </div>
-                        <div>
-                            <div style="font-size: 0.9rem; color: var(--text-muted); font-weight: 500;">Çözülen Soru</div>
-                            <div style="font-size: 2rem; font-weight: 800; color: var(--navy-deep);">0</div>
+                    </article>
+                    <article class="stat-card">
+                        <div class="stat-icon" style="background: #ECFDF5; color: var(--success);">🎯</div>
+                        <div class="stat-details">
+                            <div class="label">Başarı Oranı</div>
+                            <div class="value" id="statAccuracy">%0</div>
+                            <div class="caption">Doğru yanıt yüzdesi.</div>
                         </div>
-                    </div>
+                    </article>
+                    <article class="stat-card">
+                        <div class="stat-icon" style="background: #EFF6FF; color: #1D4ED8;">🔥</div>
+                        <div class="stat-details">
+                            <div class="label">Çalışma Serisi</div>
+                            <div class="value" id="statStreak">0 gün</div>
+                            <div class="caption">Aralıksız ilerleme.</div>
+                        </div>
+                    </article>
+                    <article class="stat-card">
+                        <div class="stat-icon" style="background: #FEF2F2; color: #DC2626;">🏅</div>
+                        <div class="stat-details">
+                            <div class="label">Sıralama</div>
+                            <div class="value" id="statRank">-</div>
+                            <div class="caption">Topluluk performansın.</div>
+                        </div>
+                    </article>
+                </section>
 
-                    <div style="background: white; padding: 30px; border-radius: 20px; box-shadow: var(--shadow-soft); display: flex; align-items: center; gap: 20px; border: 1px solid rgba(0,0,0,0.03);">
-                        <div style="width: 60px; height: 60px; background: #ECFDF5; color: var(--success); border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem;">
-                            🎯
-                        </div>
-                        <div>
-                            <div style="font-size: 0.9rem; color: var(--text-muted); font-weight: 500;">Başarı Oranı</div>
-                            <div style="font-size: 2rem; font-weight: 800; color: var(--navy-deep);">%0</div>
-                        </div>
-                    </div>
+                <section class="content-grid">
+                    <div class="column">
+                        <article class="section-card">
+                            <div class="section-head">
+                                <h3>Çalışma Planı</h3>
+                                <span>Bu haftanın odak konuları</span>
+                            </div>
+                            <div id="moduleList" class="module-list" aria-live="polite"></div>
+                        </article>
 
-                    <div style="background: white; padding: 30px; border-radius: 20px; box-shadow: var(--shadow-soft); border: 1px solid rgba(0,0,0,0.03);">
-                        <div style="font-size: 0.9rem; color: var(--text-muted); font-weight: 500; margin-bottom: 15px;">⚡ Hızlı Erişim</div>
-                        <div style="display: flex; gap: 10px;">
-                            <a href="yanlislarim.html" class="btn-navy" style="flex: 1; font-size: 0.85rem; padding: 10px;">⚠️ Yanlışlar</a>
-                            <a href="favoriler.html" class="btn-navy" style="flex: 1; font-size: 0.85rem; padding: 10px;">⭐ Favoriler</a>
-                        </div>
-                    </div>
-
-                </div>
-
-                <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 30px; align-items: start;">
-                    
-                    <div style="background: white; border-radius: 20px; box-shadow: var(--shadow-soft); overflow: hidden;">
-                        <div style="padding: 25px; border-bottom: 1px solid rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center;">
-                            <h3 style="font-family: 'Playfair Display', serif; color: var(--navy-deep); font-size: 1.2rem;">Son Aktiviteler</h3>
-                        </div>
-                        <div style="padding: 30px; text-align: center; color: var(--text-muted);">
-                            <p>Henüz bir aktivite kaydı bulunmuyor.</p>
-                            <p style="font-size: 0.9rem; margin-top: 5px;">İlk testini çözerek maceraya başla!</p>
-                        </div>
+                        <article class="section-card" style="margin-top: 16px;">
+                            <div class="section-head">
+                                <h3>Son Aktiviteler</h3>
+                                <span>Günlük ilerleme kayıtları</span>
+                            </div>
+                            <div id="activityList" class="activity-list" aria-live="polite"></div>
+                        </article>
                     </div>
 
-                    <div style="background: var(--navy-deep); color: white; border-radius: 20px; box-shadow: var(--shadow-soft); padding: 30px; text-align: center; position: relative; overflow: hidden;">
-                        <div style="position: absolute; top: -20px; right: -20px; width: 100px; height: 100px; background: var(--gold-main); opacity: 0.1; border-radius: 50%;"></div>
-                        
-                        <div style="font-size: 2.5rem; margin-bottom: 10px;">📅</div>
-                        <h3 style="color: var(--gold-main); margin-bottom: 10px; font-family: 'Playfair Display';">Sınav Takvimi</h3>
-                        <p style="opacity: 0.8; margin-bottom: 20px; font-size: 0.9rem;">
-                            Sınav tarihi henüz resmi olarak açıklanmadı.
-                        </p>
-                        <div style="background: rgba(255,255,255,0.1); padding: 10px; border-radius: 8px; font-size: 0.85rem;">
-                            Takipte Kalın
-                        </div>
-                    </div>
+                    <div class="column" style="display: flex; flex-direction: column; gap: 16px;">
+                        <article class="section-card insight-card">
+                            <div class="section-head" style="margin-bottom: 6px;">
+                                <h3 style="color: #92400e;">Haftalık Öneri</h3>
+                                <span style="color: #b45309;">Fark yaratacak ipucu</span>
+                            </div>
+                            <p style="color: #713f12; margin-bottom: 8px;">
+                                Karmaşık konuları küçük bloklara böl ve her blok için 25 dakikalık odaklı çalışma planla. Blok bitiminde
+                                5 dakikalık kısa özet yazarak öğrenmeni pekiştir.
+                            </p>
+                            <div class="chip" style="background: white; color: #92400e; border-color: rgba(180,83,9,0.4);">⏳ Pomodoro</div>
+                        </article>
 
-                </div>
+                        <article class="section-card">
+                            <div class="section-head">
+                                <h3>Hızlı İşlemler</h3>
+                                <span>Tek dokunuşla başla</span>
+                            </div>
+                            <div class="quick-actions">
+                                <a href="testler.html">🧠 Yeni Test</a>
+                                <a href="denemeler.html">📅 Deneme</a>
+                                <a href="yanlislarim.html">⚠️ Yanlışlarım</a>
+                                <a href="favoriler.html">⭐ Favoriler</a>
+                                <a href="/">🏰 Anasayfa</a>
+                                <a href="/profil.html">👤 Profilim</a>
+                            </div>
+                        </article>
+
+                        <article class="section-card calendar-card">
+                            <div class="section-head">
+                                <h3 style="color: var(--gold-main);">Sınav Takvimi</h3>
+                                <span style="color: rgba(255,255,255,0.8);">Yaklaşan tarihler</span>
+                            </div>
+                            <div id="calendarList" class="calendar-list"></div>
+                        </article>
+                    </div>
+                </section>
 
             </div>
         </main>
@@ -124,24 +366,115 @@
         import { auth } from '/js/firebase-config.js';
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-        // Sayfa yüklendiğinde Layout'u başlat
-        // 'dashboard' parametresi sidebar'da "Panelim" linkini aktif (sarı) yapar
         initLayout('dashboard');
 
-        // Kullanıcı adını Firebase'den çekip yaz
+        const statNumbers = {
+            solved: 842,
+            accuracy: 88,
+            streak: 12,
+            rank: 18
+        };
+
+        const modules = [
+            { title: 'TYT Matematik', completion: 72, target: '1 Mart', tags: ['Problem', 'Fonksiyon'] },
+            { title: 'Vatandaşlık Bilgisi', completion: 46, target: '4 Mart', tags: ['Hukuk', 'Güncel'] },
+            { title: 'Türkçe Paragraf', completion: 90, target: '28 Şubat', tags: ['Zaman Yönetimi'] },
+            { title: 'Coğrafya Haritalar', completion: 38, target: '6 Mart', tags: ['Harita', 'Kavram'] }
+        ];
+
+        const activities = [
+            { icon: '✅', title: '15 soruluk deneme tamamlandı', time: 'Bugün · 09:45' },
+            { icon: '⭐', title: 'Favorilere 3 soru eklendi', time: 'Dün · 20:10' },
+            { icon: '🧠', title: 'Çözülen test: Mantık ve Paragraf', time: 'Dün · 17:30' },
+            { icon: '📌', title: 'Hedef belirlendi: 1000 soru / hafta', time: 'Pazartesi · 08:00' }
+        ];
+
+        const events = [
+            { title: 'GYS Deneme Sınavı - 4', date: '9 Mart 2024', note: 'Sabah 10:00 · Çevrimiçi' },
+            { title: 'Çıkmış Sorular Kampı', date: '15 Mart 2024', note: 'Canlı oturum · 19:30' },
+            { title: 'Genel Tarama', date: '23 Mart 2024', note: 'Sonuç analizi raporu' }
+        ];
+
+        function renderStats() {
+            document.getElementById('statSolved').innerText = statNumbers.solved.toLocaleString('tr-TR');
+            document.getElementById('statAccuracy').innerText = `%${statNumbers.accuracy}`;
+            document.getElementById('statStreak').innerText = `${statNumbers.streak} gün`;
+            document.getElementById('statRank').innerText = `#${statNumbers.rank}`;
+        }
+
+        function renderModules() {
+            const container = document.getElementById('moduleList');
+            container.innerHTML = '';
+
+            modules.forEach((module) => {
+                const item = document.createElement('div');
+                item.className = 'module-card';
+                item.innerHTML = `
+                    <div>
+                        <div class="title">${module.title}</div>
+                        <div class="meta">Hedef tarih: ${module.target}</div>
+                        <div class="progress-bar" aria-label="Tamamlanma oranı ${module.completion}%">
+                            <span style="width: ${module.completion}%"></span>
+                        </div>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 8px; align-items: flex-end;">
+                        <div class="chip">${module.completion}%</div>
+                        ${module.tags.map((tag) => `<div class="chip" style="background:#e2e8f0;">#${tag}</div>`).join('')}
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function renderActivities() {
+            const container = document.getElementById('activityList');
+            container.innerHTML = '';
+
+            activities.forEach((activity) => {
+                const item = document.createElement('div');
+                item.className = 'activity-item';
+                item.innerHTML = `
+                    <div class="activity-icon">${activity.icon}</div>
+                    <div class="activity-text">
+                        <div class="title">${activity.title}</div>
+                        <div class="time">${activity.time}</div>
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function renderCalendar() {
+            const container = document.getElementById('calendarList');
+            container.innerHTML = '';
+
+            events.forEach((event) => {
+                const item = document.createElement('div');
+                item.className = 'event';
+                item.innerHTML = `
+                    <strong>${event.title}</strong>
+                    <div style="opacity: 0.85;">${event.date}</div>
+                    <div style="color: rgba(255,255,255,0.8); font-size: 0.9rem;">${event.note}</div>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        renderStats();
+        renderModules();
+        renderActivities();
+        renderCalendar();
+
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 const nameEl = document.getElementById("dashUserName");
-                if(user.displayName) {
-                    // İsim varsa yaz
+                if (user.displayName) {
                     nameEl.innerText = user.displayName;
-                } else if(user.email) {
-                    // Yoksa mailin başını yaz
+                } else if (user.email) {
                     const name = user.email.split('@')[0];
                     nameEl.innerText = name.charAt(0).toUpperCase() + name.slice(1);
                 }
             } else {
-                // Giriş yapmamışsa login'e at (Güvenlik Önlemi)
                 window.location.href = "/login.html";
             }
         });
