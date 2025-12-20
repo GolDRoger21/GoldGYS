@@ -4,6 +4,7 @@ admin.initializeApp();
 
 const ALLOWED_ROLES = ["student", "editor", "admin"];
 const ALLOWED_STATUS = ["pending", "active", "rejected", "suspended", "deleted"];
+const ADMIN_AUDIT_COLLECTION = "adminAuditLogs";
 
 function normalizeDate(value) {
   if (!value) return null;
@@ -51,6 +52,25 @@ function ensureUniqueDocs(list) {
   return Array.from(map.values());
 }
 
+async function writeAdminAuditLog({ action, targetId, context, success, details = {} }) {
+  try {
+    const actor = context?.auth
+      ? { uid: context.auth.uid, email: context.auth.token?.email || null }
+      : null;
+
+    await admin.firestore().collection(ADMIN_AUDIT_COLLECTION).add({
+      action,
+      targetId,
+      actor,
+      success,
+      details,
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
+  } catch (error) {
+    console.warn("Audit log yazılamadı", error.message || error);
+  }
+}
+
 // Rol atama (HTTPS callable)
 // Sadece mevcut admin kullanıcıları çalıştırabilir (caller admin olmalı)
 async function ensureCallerIsAdmin(context) {
@@ -85,8 +105,26 @@ exports.setAdminClaim = functions.https.onCall(async (data, context) => {
   if (!uid) {
     throw new functions.https.HttpsError("invalid-argument", "uid gerekli.");
   }
-  await admin.auth().setCustomUserClaims(uid, { admin: true });
-  return { ok: true, uid };
+  try {
+    await admin.auth().setCustomUserClaims(uid, { admin: true });
+    await writeAdminAuditLog({
+      action: "setAdminClaim",
+      targetId: uid,
+      context,
+      success: true,
+      details: { role },
+    });
+    return { ok: true, uid };
+  } catch (error) {
+    await writeAdminAuditLog({
+      action: "setAdminClaim",
+      targetId: uid,
+      context,
+      success: false,
+      details: { error: error?.message, role },
+    });
+    throw error;
+  }
 });
 
 exports.setUserRole = functions.https.onCall(async (data, context) => {
@@ -113,36 +151,55 @@ exports.setUserRole = functions.https.onCall(async (data, context) => {
     email: context.auth.token?.email || null,
   };
 
-  const userRef = admin.firestore().collection("users").doc(uid);
-  const userSnap = await userRef.get();
-  const previousRole = userSnap.exists ? userSnap.data().role || null : null;
+  try {
+    const userRef = admin.firestore().collection("users").doc(uid);
+    const userSnap = await userRef.get();
+    const previousRole = userSnap.exists ? userSnap.data().role || null : null;
 
-  const updatedRoles = new Set();
-  const existingRoles = Array.isArray(userSnap.data()?.roles) ? userSnap.data().roles : [];
-  existingRoles.forEach((r) => ALLOWED_ROLES.includes(r) && updatedRoles.add(r));
-  updatedRoles.add(role);
+    const updatedRoles = new Set();
+    const existingRoles = Array.isArray(userSnap.data()?.roles) ? userSnap.data().roles : [];
+    existingRoles.forEach((r) => ALLOWED_ROLES.includes(r) && updatedRoles.add(r));
+    updatedRoles.add(role);
 
-  await userRef.set(
-    {
-      role,
-      roles: Array.from(updatedRoles),
-      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    await userRef.set(
+      {
+        role,
+        roles: Array.from(updatedRoles),
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        changedBy: callerInfo,
+      },
+      { merge: true }
+    );
+
+    await admin.auth().setCustomUserClaims(uid, claims);
+
+    await admin.firestore().collection("roleAudit").add({
+      targetUid: uid,
+      previousRole,
+      newRole: role,
       changedBy: callerInfo,
-    },
-    { merge: true }
-  );
+      changedAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
 
-  await admin.auth().setCustomUserClaims(uid, claims);
+    await writeAdminAuditLog({
+      action: "setUserRole",
+      targetId: uid,
+      context,
+      success: true,
+      details: { previousRole, newRole: role, actor: callerInfo },
+    });
 
-  await admin.firestore().collection("roleAudit").add({
-    targetUid: uid,
-    previousRole,
-    newRole: role,
-    changedBy: callerInfo,
-    changedAt: admin.firestore.FieldValue.serverTimestamp(),
-  });
-
-  return { ok: true, uid, role };
+    return { ok: true, uid, role };
+  } catch (error) {
+    await writeAdminAuditLog({
+      action: "setUserRole",
+      targetId: uid,
+      context,
+      success: false,
+      details: { error: error?.message, role },
+    });
+    throw error;
+  }
 });
 
 exports.updateUserProfile = functions.https.onCall(async (data, context) => {
@@ -206,13 +263,32 @@ exports.updateUserProfile = functions.https.onCall(async (data, context) => {
     updates.roles = normalizedRoles;
   }
 
-  await admin.firestore().collection("users").doc(uid).set(updates, { merge: true });
+  try {
+    await admin.firestore().collection("users").doc(uid).set(updates, { merge: true });
 
-  if (claimsToApply) {
-    await admin.auth().setCustomUserClaims(uid, claimsToApply);
+    if (claimsToApply) {
+      await admin.auth().setCustomUserClaims(uid, claimsToApply);
+    }
+
+    await writeAdminAuditLog({
+      action: "updateUserProfile",
+      targetId: uid,
+      context,
+      success: true,
+      details: { role: role || null, status: status || null, roles: normalizedRoles, actor: actorInfo },
+    });
+
+    return { ok: true, uid, role: role || null, status: status || null, roles: normalizedRoles };
+  } catch (error) {
+    await writeAdminAuditLog({
+      action: "updateUserProfile",
+      targetId: uid,
+      context,
+      success: false,
+      details: { error: error?.message, role: role || null, status: status || null },
+    });
+    throw error;
   }
-
-  return { ok: true, uid, role: role || null, status: status || null, roles: normalizedRoles };
 });
 
 async function deleteCollectionDocs(collectionRef, field, value) {
@@ -249,43 +325,71 @@ exports.deleteUserAccount = functions.https.onCall(async (data, context) => {
 
   const userRef = admin.firestore().collection("users").doc(uid);
 
-  if (!hard) {
-    await userRef.set(
-      {
-        status: "deleted",
-        deletedAt: admin.firestore.FieldValue.serverTimestamp(),
-        deletedBy: actorInfo,
-        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-        changedBy: actorInfo,
-      },
-      { merge: true }
-    );
-    return { ok: true, uid, deleted: true };
-  }
-
-  await deleteUserSubcollections(uid).catch((err) => {
-    console.warn("Alt koleksiyonlar silinirken hata", err.message || err);
-  });
-
-  await Promise.allSettled([
-    deleteCollectionDocs(admin.firestore().collection("topics"), "ownerId", uid),
-    deleteCollectionDocs(admin.firestore().collection("tests"), "ownerId", uid),
-    deleteCollectionDocs(admin.firestore().collection("exams"), "createdBy", uid),
-  ]);
-
-  await userRef.delete().catch((err) => {
-    console.warn("Firestore kullanıcı silme hatası (devam ediliyor):", err.message || err);
-  });
-
   try {
-    await admin.auth().deleteUser(uid);
-  } catch (error) {
-    if (error?.code !== "auth/user-not-found") {
-      throw error;
-    }
-  }
+    if (!hard) {
+      await userRef.set(
+        {
+          status: "deleted",
+          deletedAt: admin.firestore.FieldValue.serverTimestamp(),
+          deletedBy: actorInfo,
+          updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+          changedBy: actorInfo,
+        },
+        { merge: true }
+      );
 
-  return { ok: true, uid, hardDeleted: true };
+      await writeAdminAuditLog({
+        action: "deleteUserAccount",
+        targetId: uid,
+        context,
+        success: true,
+        details: { hard, actor: actorInfo },
+      });
+
+      return { ok: true, uid, deleted: true };
+    }
+
+    await deleteUserSubcollections(uid).catch((err) => {
+      console.warn("Alt koleksiyonlar silinirken hata", err.message || err);
+    });
+
+    await Promise.allSettled([
+      deleteCollectionDocs(admin.firestore().collection("topics"), "ownerId", uid),
+      deleteCollectionDocs(admin.firestore().collection("tests"), "ownerId", uid),
+      deleteCollectionDocs(admin.firestore().collection("exams"), "createdBy", uid),
+    ]);
+
+    await userRef.delete().catch((err) => {
+      console.warn("Firestore kullanıcı silme hatası (devam ediliyor):", err.message || err);
+    });
+
+    try {
+      await admin.auth().deleteUser(uid);
+    } catch (error) {
+      if (error?.code !== "auth/user-not-found") {
+        throw error;
+      }
+    }
+
+    await writeAdminAuditLog({
+      action: "deleteUserAccount",
+      targetId: uid,
+      context,
+      success: true,
+      details: { hard, actor: actorInfo },
+    });
+
+    return { ok: true, uid, hardDeleted: true };
+  } catch (error) {
+    await writeAdminAuditLog({
+      action: "deleteUserAccount",
+      targetId: uid,
+      context,
+      success: false,
+      details: { error: error?.message, hard, actor: actorInfo },
+    });
+    throw error;
+  }
 });
 
 // Admin kullanıcılar için özel claim bilgilerini getirir
@@ -299,9 +403,22 @@ exports.getUserClaims = functions.https.onCall(async (data, context) => {
 
   try {
     const user = await admin.auth().getUser(uid);
+    await writeAdminAuditLog({
+      action: "getUserClaims",
+      targetId: uid,
+      context,
+      success: true,
+    });
     return { ok: true, uid, claims: user.customClaims || {} };
   } catch (error) {
     console.error("Claim bilgisi alınamadı", error);
+    await writeAdminAuditLog({
+      action: "getUserClaims",
+      targetId: uid,
+      context,
+      success: false,
+      details: { error: error?.message },
+    });
     throw new functions.https.HttpsError(
       error?.code === "auth/user-not-found" ? "not-found" : "internal",
       "Claim bilgisi alınamadı."

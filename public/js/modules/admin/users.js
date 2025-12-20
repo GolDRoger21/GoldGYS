@@ -1,15 +1,28 @@
 import { initLayout } from "/js/ui-loader.js";
 import { auth, db } from "/js/firebase-config.js";
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
   collection,
   doc,
   getDoc,
   getDocs,
+  getCountFromServer,
+  limit,
+  orderBy,
+  query,
+  startAfter,
   updateDoc,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-functions.js";
 import { protectPage } from "/js/role-guard.js";
+import {
+  formatDate,
+  statusLabel,
+  showNotice,
+  hideNotice,
+  toggleButtons,
+  ensureAdmin,
+  setupLazyLoader,
+} from "./utils.js";
 
 const functions = getFunctions(auth.app);
 const setUserRoleFn = httpsCallable(functions, "setUserRole");
@@ -18,6 +31,8 @@ const deleteUserFn = httpsCallable(functions, "deleteUserAccount");
 
 const tableBody = document.getElementById("userTableBody");
 const refreshButton = document.getElementById("refreshUsers");
+const loadMoreButton = document.getElementById("loadMoreUsers");
+const lazyLoader = document.getElementById("userLazyLoader");
 const noticeBox = document.getElementById("userNotice");
 const searchInput = document.getElementById("userSearch");
 
@@ -43,29 +58,44 @@ const pendingCount = document.getElementById("pendingCount");
 const rejectedCount = document.getElementById("rejectedCount");
 
 const allowedRoles = ["student", "editor", "admin"];
-const allowedStatus = ["pending", "active", "rejected", "suspended"];
+const allowedStatus = ["pending", "active", "rejected", "suspended", "deleted"];
+const PAGE_SIZE = 20;
 
 const state = {
-  users: [],
+  users: new Map(),
+  order: [],
   filtered: [],
   selectedUser: null,
   adminVerified: false,
+  cursor: null,
+  reachedEnd: false,
+  loading: false,
+  lazyObserver: null,
+  totalCount: null,
 };
 
 initLayout("users");
 protectPage(true);
 
-refreshButton?.addEventListener("click", loadUsers);
+refreshButton?.addEventListener("click", () => loadUsers(true));
+loadMoreButton?.addEventListener("click", () => loadUsers());
 searchInput?.addEventListener("input", () => {
   filterUsers(searchInput.value);
   renderTable();
 });
 
-onAuthStateChanged(auth, async (user) => {
-  if (!user) return;
+saveProfileBtn?.addEventListener("click", saveProfile);
+refreshClaimsBtn?.addEventListener("click", refreshClaims);
+deleteUserBtn?.addEventListener("click", deleteUser);
 
-  if (await ensureAdminAccess(user)) {
-    loadUsers();
+ensureAdmin(auth, ensureAdminAccess).then((ok) => {
+  if (ok) {
+    loadUsers(true);
+    if (!state.lazyObserver) {
+      state.lazyObserver = setupLazyLoader(lazyLoader, () => {
+        if (!state.loading && !state.reachedEnd) loadUsers();
+      });
+    }
   }
 });
 
@@ -93,10 +123,10 @@ async function ensureAdminAccess(user) {
       return true;
     }
 
-    showNotice("Bu alan için admin yetkisi gerekir.", true);
+    showNotice(noticeBox, "Bu alan için admin yetkisi gerekir.", true);
   } catch (error) {
     console.error("Admin kontrolü hatası", error);
-    showNotice("Yetki doğrulanamadı. Lütfen tekrar deneyin.", true);
+    showNotice(noticeBox, "Yetki doğrulanamadı. Lütfen tekrar deneyin.", true);
   }
 
   return false;
@@ -116,56 +146,105 @@ function normalizeUser(docSnap) {
   };
 }
 
-async function loadUsers() {
-  const user = auth.currentUser;
+async function fetchTotalCount() {
+  try {
+    const snap = await getCountFromServer(collection(db, "users"));
+    state.totalCount = snap.data().count || null;
+  } catch (error) {
+    console.warn("Toplam kullanıcı sayısı alınamadı", error);
+  }
+}
 
-  if (!user) {
-    showNotice("Giriş yapmanız gerekiyor.", true);
-    return;
+async function loadUsers(reset = false) {
+  if (state.loading) return;
+  if (state.reachedEnd && !reset) return;
+
+  state.loading = true;
+  hideNotice(noticeBox);
+
+  if (reset) {
+    state.cursor = null;
+    state.reachedEnd = false;
+    state.order = [];
+    state.users.clear();
+    tableBody.innerHTML = "";
+    fetchTotalCount();
   }
 
-  const isAdmin = await ensureAdminAccess(user);
-  if (!isAdmin) {
-    return;
+  if (!tableBody.childElementCount) {
+    tableBody.innerHTML = `<tr aria-busy="true"><td colspan="6">Kullanıcılar getiriliyor...</td></tr>`;
   }
-
-  tableBody.innerHTML = `<tr><td colspan="6">Kullanıcılar getiriliyor...</td></tr>`;
-  hideNotice();
 
   try {
-    const snapshot = await getDocs(collection(db, "users"));
-    const currentSelectionId = state.selectedUser?.id;
-    state.users = snapshot.docs.map(normalizeUser);
+    const constraints = [collection(db, "users"), orderBy("createdAt", "desc"), limit(PAGE_SIZE)];
+    if (state.cursor && !reset) {
+      constraints.push(startAfter(state.cursor));
+    }
+
+    const snapshot = await getDocs(query(...constraints));
+
+    if (snapshot.empty) {
+      state.reachedEnd = true;
+      toggleLoadMore();
+      return;
+    }
+
+    snapshot.forEach((docSnap) => {
+      const user = normalizeUser(docSnap);
+      state.users.set(user.id, user);
+      if (!state.order.includes(user.id)) {
+        state.order.push(user.id);
+      }
+    });
+
     filterUsers(searchInput?.value || "");
     renderOverview();
     renderTable();
-    if (currentSelectionId) {
-      const found = state.users.find((u) => u.id === currentSelectionId);
-      selectUser(found || null);
-    }
+
+    state.cursor = snapshot.docs[snapshot.docs.length - 1];
+    state.reachedEnd = snapshot.size < PAGE_SIZE;
+    toggleLoadMore();
   } catch (error) {
-    showNotice("Kullanıcılar yüklenirken hata oluştu.", true);
-    console.error("User load error", error);
+    console.error("Kullanıcılar yüklenirken hata oluştu", error);
+    showNotice(noticeBox, "Kullanıcılar yüklenemedi. Lütfen tekrar deneyin.", true);
+  } finally {
+    state.loading = false;
   }
 }
 
-function filterUsers(query = "") {
-  const text = query.toLowerCase();
-  state.filtered = state.users.filter((u) => {
-    return (
-      u.displayName.toLowerCase().includes(text) ||
-      u.email.toLowerCase().includes(text) ||
-      u.status.toLowerCase().includes(text) ||
-      u.role.toLowerCase().includes(text)
-    );
-  });
+function toggleLoadMore() {
+  if (loadMoreButton) {
+    loadMoreButton.style.display = state.reachedEnd ? "none" : "inline-flex";
+    loadMoreButton.disabled = state.loading;
+  }
+  if (lazyLoader) {
+    lazyLoader.style.display = state.reachedEnd ? "none" : "block";
+  }
+}
+
+function filterUsers(queryText = "") {
+  const text = queryText.toLowerCase();
+  state.filtered = state.order
+    .map((id) => state.users.get(id))
+    .filter((u) => {
+      if (!u) return false;
+      if (!text) return true;
+      return (
+        u.displayName.toLowerCase().includes(text) ||
+        u.email.toLowerCase().includes(text) ||
+        u.status.toLowerCase().includes(text) ||
+        u.role.toLowerCase().includes(text)
+      );
+    });
 }
 
 function renderOverview() {
-  totalCount.textContent = state.users.length;
-  activeCount.textContent = state.users.filter((u) => u.status === "active").length;
-  pendingCount.textContent = state.users.filter((u) => u.status === "pending").length;
-  rejectedCount.textContent = state.users.filter((u) => u.status === "rejected" || u.status === "suspended").length;
+  const users = Array.from(state.users.values());
+  const total = state.totalCount ?? users.length;
+  totalCount.textContent = total;
+  activeCount.textContent = users.filter((u) => u.status === "active").length;
+  pendingCount.textContent = users.filter((u) => u.status === "pending").length;
+  rejectedCount.textContent = users.filter((u) => u.status === "rejected" || u.status === "suspended").length;
 }
 
 function renderTable() {
@@ -198,7 +277,7 @@ function bindRowActions() {
   tableBody.querySelectorAll("button[data-action='view']").forEach((btn) => {
     btn.addEventListener("click", (e) => {
       const uid = e.currentTarget.getAttribute("data-uid");
-      const selected = state.users.find((u) => u.id === uid);
+      const selected = state.users.get(uid);
       selectUser(selected);
     });
   });
@@ -235,7 +314,7 @@ function selectUser(user) {
 
 async function saveProfile() {
   if (!state.selectedUser) return;
-  hideNotice();
+  hideNotice(noticeBox);
 
   const uid = state.selectedUser.id;
   const role = primaryRoleSelect.value;
@@ -243,29 +322,32 @@ async function saveProfile() {
   const roles = Array.from(roleChips.querySelectorAll("input[type='checkbox']:checked")).map((el) => el.value);
 
   if (!allowedRoles.includes(role)) {
-    showNotice("Geçerli bir rol seçin.", true);
+    showNotice(noticeBox, "Geçerli bir rol seçin.", true);
     return;
   }
 
   if (!allowedStatus.includes(status)) {
-    showNotice("Geçerli bir statü seçin.", true);
+    showNotice(noticeBox, "Geçerli bir statü seçin.", true);
     return;
   }
 
-  toggleDetailButtons(true, "Kaydediliyor...");
+  toggleButtons([saveProfileBtn, refreshClaimsBtn, deleteUserBtn], true, "Kaydediliyor...");
 
   try {
     await updateUserProfileFn({ uid, role, status, roles });
     await updateDoc(doc(db, "users", uid), { role, status, roles });
-    showNotice("Üye profili güncellendi.");
-    await loadUsers();
-    const updated = state.users.find((u) => u.id === uid);
+    const updated = { ...state.selectedUser, role, status, roles };
+    state.users.set(uid, updated);
+    filterUsers(searchInput?.value || "");
+    renderOverview();
+    renderTable();
     selectUser(updated);
+    showNotice(noticeBox, "Üye profili güncellendi.");
   } catch (error) {
     console.error("Profil güncellenemedi", error);
-    showNotice("Profil güncellenirken hata oluştu.", true);
+    showNotice(noticeBox, "Profil güncellenirken hata oluştu.", true);
   } finally {
-    toggleDetailButtons(false);
+    toggleButtons([saveProfileBtn, refreshClaimsBtn, deleteUserBtn], false);
   }
 }
 
@@ -276,20 +358,20 @@ async function refreshClaims() {
   const role = primaryRoleSelect.value;
 
   if (!allowedRoles.includes(role)) {
-    showNotice("Geçerli bir rol seçin.", true);
+    showNotice(noticeBox, "Geçerli bir rol seçin.", true);
     return;
   }
 
-  toggleDetailButtons(true, "Yetkiler güncelleniyor...");
+  toggleButtons([refreshClaimsBtn], true, "Yetkiler güncelleniyor...");
 
   try {
     await setUserRoleFn({ uid, role });
-    showNotice("Yetkiler yenilendi ve oturum güncellendi.");
+    showNotice(noticeBox, "Yetkiler yenilendi ve oturum güncellendi.");
   } catch (error) {
     console.error("Yetki yenileme hatası", error);
-    showNotice("Yetkiler güncellenemedi.", true);
+    showNotice(noticeBox, "Yetkiler güncellenemedi.", true);
   } finally {
-    toggleDetailButtons(false);
+    toggleButtons([refreshClaimsBtn], false);
   }
 }
 
@@ -299,65 +381,21 @@ async function deleteUser() {
   const confirmed = window.confirm(`${state.selectedUser.displayName} kullanıcısını silmek istediğinize emin misiniz?`);
   if (!confirmed) return;
 
-  toggleDetailButtons(true, "Siliniyor...");
+  toggleButtons([deleteUserBtn], true, "Siliniyor...");
 
   try {
     await deleteUserFn({ uid: state.selectedUser.id });
-    await loadUsers();
-    state.selectedUser = null;
+    state.users.delete(state.selectedUser.id);
+    state.order = state.order.filter((id) => id !== state.selectedUser.id);
+    filterUsers(searchInput?.value || "");
+    renderOverview();
+    renderTable();
     selectUser(null);
-    showNotice("Üyelik silindi.");
+    showNotice(noticeBox, "Üyelik silindi.");
   } catch (error) {
     console.error("Silme hatası", error);
-    showNotice("Üyelik silinirken hata oluştu.", true);
+    showNotice(noticeBox, "Üyelik silinirken hata oluştu.", true);
   } finally {
-    toggleDetailButtons(false);
+    toggleButtons([deleteUserBtn], false);
   }
-}
-
-function formatDate(dateValue) {
-  if (!dateValue) return "-";
-  const date = dateValue.toDate ? dateValue.toDate() : new Date(dateValue);
-  if (Number.isNaN(date.getTime())) return "-";
-  return date.toLocaleString("tr-TR", { dateStyle: "medium", timeStyle: "short" });
-}
-
-function statusLabel(status) {
-  const labels = {
-    active: "Aktif",
-    pending: "Beklemede",
-    rejected: "Reddedildi",
-    suspended: "Askıda",
-  };
-  return labels[status] || status;
-}
-
-function toggleDetailButtons(disabled, loadingText) {
-  [saveProfileBtn, refreshClaimsBtn, deleteUserBtn].forEach((btn) => {
-    if (!btn) return;
-    btn.disabled = disabled;
-    if (loadingText && disabled) {
-      btn.dataset.originalText = btn.textContent;
-      btn.textContent = loadingText;
-    } else if (btn.dataset.originalText) {
-      btn.textContent = btn.dataset.originalText;
-      delete btn.dataset.originalText;
-    }
-  });
-}
-
-saveProfileBtn?.addEventListener("click", saveProfile);
-refreshClaimsBtn?.addEventListener("click", refreshClaims);
-deleteUserBtn?.addEventListener("click", deleteUser);
-
-function showNotice(message, isError = false) {
-  if (!noticeBox) return;
-  noticeBox.style.display = "block";
-  noticeBox.className = isError ? "alert alert-danger" : "alert alert-success";
-  noticeBox.innerText = message;
-}
-
-function hideNotice() {
-  if (!noticeBox) return;
-  noticeBox.style.display = "none";
 }
