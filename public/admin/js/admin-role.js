@@ -1,6 +1,9 @@
 import { auth, functions } from "/js/firebase-config.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { httpsCallable } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-functions.js";
+import { protectPage } from "/js/role-guard.js";
+
+protectPage(true);
 
 const roleSection = document.getElementById("roleUpdateSection");
 const roleForm = document.getElementById("roleUpdateForm");
