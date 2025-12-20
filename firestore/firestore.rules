@@ -1,11 +1,50 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
 
-    // TEMPORARY TEST RULES -- DO NOT LEAVE IN PRODUCTION
-    // Allow any authenticated user to read/write all documents. Use only for debugging.
+    function isAdmin() {
+      return signedIn() && (request.auth.token.admin == true || request.auth.token.role == 'admin');
+    }
+
+    function isEditor() {
+      return isAdmin() || (signedIn() && (request.auth.token.editor == true || request.auth.token.role == 'editor'));
+    }
+
+    function isSelf(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+
+    // Kullanıcı profilleri ve alt koleksiyonları
+    match /users/{uid} {
+      allow read: if isSelf(uid) || isAdmin();
+      allow create: if isSelf(uid);
+      allow update: if isSelf(uid) || isAdmin();
+      allow delete: if isAdmin();
+
+      match /{subcollection=**}/{docId} {
+        allow read, write: if isSelf(uid) || isAdmin();
+      }
+    }
+
+    // Sistem ayarları ve roller
+    match /system/{docId} {
+      allow read: if signedIn();
+      allow write: if isAdmin();
+    }
+
+    // İçerik koleksiyonları
+    match /topics/{topicId} {
+      allow read: if signedIn();
+      allow write: if isEditor();
+    }
+
+    // Varsayılan güvenli davranış: sadece adminler yazar, tüm authenticated kullanıcılar okur
     match /{document=**} {
-      allow read, write: if request.auth != null;
+      allow read: if signedIn();
+      allow write: if isAdmin();
     }
   }
 }
