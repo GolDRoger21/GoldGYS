@@ -391,12 +391,35 @@
             const nameEl = document.getElementById("dashUserName");
             if (!nameEl) return;
 
+            if (!user) {
+                nameEl.innerText = "Yükleniyor…";
+                return;
+            }
+
             if (user.displayName) {
                 nameEl.innerText = user.displayName;
             } else if (user.email) {
                 const name = user.email.split('@')[0];
                 nameEl.innerText = name.charAt(0).toUpperCase() + name.slice(1);
+            } else {
+                nameEl.innerText = "Kullanıcı";
             }
+        }
+
+        function waitForAuthUser() {
+            return new Promise((resolve, reject) => {
+                const unsubscribe = onAuthStateChanged(
+                    auth,
+                    (user) => {
+                        unsubscribe();
+                        resolve(user);
+                    },
+                    (error) => {
+                        unsubscribe();
+                        reject(error);
+                    }
+                );
+            });
         }
 
         function renderStats(stats) {
@@ -677,14 +700,22 @@
             renderCalendar(events);
         }
 
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                setUserName(user);
-                loadDashboard(user).catch((err) => console.error('Panel yüklenemedi', err));
-            } else {
+        setUserName(null);
+
+        (async () => {
+            try {
+                const user = await waitForAuthUser();
+                if (user) {
+                    setUserName(user);
+                    await loadDashboard(user);
+                } else {
+                    window.location.href = "/login.html";
+                }
+            } catch (err) {
+                console.error('Kimlik doğrulama kontrolü başarısız', err);
                 window.location.href = "/login.html";
             }
-        });
+        })();
     </script>
 
 </body>
