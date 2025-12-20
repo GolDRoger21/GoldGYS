@@ -20,8 +20,18 @@ export async function ensureUserDocument(user) {
   if (!user) return null;
 
   const userRef = doc(db, "users", user.uid);
-  const snap = await getDoc(userRef);
-  
+
+  let snap;
+  try {
+    snap = await getDoc(userRef);
+  } catch (error) {
+    console.error("Kullanıcı dokümanı alınamadı", error);
+    throw Object.assign(new Error("profile-read-failed"), {
+      code: error?.code || "profile-read-failed",
+      original: error,
+    });
+  }
+
   // Kullanıcı veritabanında var mı?
   const isNewUser = !snap.exists();
   const existingData = snap.exists() ? snap.data() : {};
@@ -40,20 +50,28 @@ export async function ensureUserDocument(user) {
       currentStatus = isNewUser ? "pending" : "active";
   }
 
-  await setDoc(
-    userRef,
-    {
-      uid: user.uid,
-      displayName: user.displayName || existingData.displayName || "",
-      email: user.email || existingData.email || "",
-      photoURL: user.photoURL || existingData.photoURL || "",
-      roles,
-      role: primaryRole,
-      status: currentStatus, // Belirlenen statüyü kaydet
-      lastLoginAt: new Date() // Son giriş zamanını da tutalım
-    },
-    { merge: true },
-  );
+  try {
+    await setDoc(
+      userRef,
+      {
+        uid: user.uid,
+        displayName: user.displayName || existingData.displayName || "",
+        email: user.email || existingData.email || "",
+        photoURL: user.photoURL || existingData.photoURL || "",
+        roles,
+        role: primaryRole,
+        status: currentStatus, // Belirlenen statüyü kaydet
+        lastLoginAt: new Date() // Son giriş zamanını da tutalım
+      },
+      { merge: true },
+    );
+  } catch (error) {
+    console.error("Kullanıcı dokümanı yazılamadı", error);
+    throw Object.assign(new Error("profile-write-failed"), {
+      code: error?.code || "profile-write-failed",
+      original: error,
+    });
+  }
 
   // Fonksiyondan statüyü de döndürelim ki auth.js'de kullanabilelim
   return { roles, role: primaryRole, status: currentStatus };
