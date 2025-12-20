@@ -31,13 +31,17 @@ export async function initLayout(pageKey) {
     }
 
     // 3. Kullanıcı Bilgisini Getir (Firebase Auth)
+    const userNameEl = document.getElementById('headerUserName');
+    const userInitialEl = document.getElementById('headerUserInitial');
+
+    if (userNameEl) userNameEl.innerText = 'Yükleniyor…';
+    if (userInitialEl) userInitialEl.innerText = '⏳';
+
     auth.onAuthStateChanged(async user => {
-        const userNameEl = document.getElementById('headerUserName');
-        const userInitialEl = document.getElementById('headerUserInitial');
         if (user && (userNameEl || userInitialEl)) {
             await ensureUserDocument(user);
-            // Email'in baş kısmını veya varsa display name'i göster
-            const displayName = user.displayName || user.email.split('@')[0];
+
+            const displayName = user.displayName || user.email?.split('@')[0] || 'Kullanıcı';
             if (userNameEl) userNameEl.innerText = displayName;
             if (userInitialEl) userInitialEl.innerText = displayName.charAt(0).toUpperCase();
 
