@@ -172,7 +172,7 @@ button { font-family: inherit; }
 
 .sidebar-header { padding: 30px; border-bottom: 1px solid rgba(255,255,255,0.05); }
 .sidebar-logo {
-    padding: 30px;
+    padding: 24px 24px 18px;
     border-bottom: 1px solid rgba(255,255,255,0.05);
 }
 
@@ -185,17 +185,25 @@ button { font-family: inherit; }
     color: var(--gold-light);
 }
 
-.sidebar-nav { flex: 1; padding: 20px; overflow-y: auto; }
-.sidebar-nav ul li { margin-bottom: 8px; }
-.sidebar-nav a {
-    display: flex; align-items: center; padding: 12px 16px;
+.sidebar-nav, .sidebar-menu {
+    flex: 1;
+    padding: 18px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,255,255,0.25) transparent;
+}
+
+.sidebar-menu ul { list-style: none; padding: 0; margin: 0; }
+.sidebar-nav ul li, .sidebar-menu ul li { margin-bottom: 8px; }
+.sidebar-nav a, .sidebar-menu a {
+    display: flex; align-items: center; padding: 12px 14px;
     border-radius: 12px; color: rgba(255,255,255,0.7); font-weight: 500;
     text-decoration: none;
 }
-.sidebar-nav a:hover, .sidebar-nav a.active {
+.sidebar-nav a:hover, .sidebar-nav a.active, .sidebar-menu a:hover, .sidebar-menu a.active {
     background: rgba(212, 175, 55, 0.15); color: var(--gold-main);
 }
-.sidebar-nav .icon { margin-right: 12px; font-size: 1.2rem; min-width: 24px; text-align: center; }
+.sidebar-nav .icon, .sidebar-menu .icon { margin-right: 12px; font-size: 1.2rem; min-width: 24px; text-align: center; }
 
 .sidebar-subtitle { color: rgba(255,255,255,0.6); margin-top: 8px; }
 .sidebar-menu .link-text { display: flex; flex-direction: column; line-height: 1.2; }
@@ -232,6 +240,13 @@ button { font-family: inherit; }
 }
 
 .sidebar-footer .logout-link { color: #fecaca; border-color: rgba(255,255,255,0.12); }
+
+.sidebar-nav::-webkit-scrollbar,
+.sidebar-menu::-webkit-scrollbar { width: 6px; }
+.sidebar-nav::-webkit-scrollbar-track,
+.sidebar-menu::-webkit-scrollbar-track { background: transparent; }
+.sidebar-nav::-webkit-scrollbar-thumb,
+.sidebar-menu::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.25); border-radius: 10px; }
 
 /* MAIN CONTENT AREA */
 .app-main {
