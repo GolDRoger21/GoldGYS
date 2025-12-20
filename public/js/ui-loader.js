@@ -32,20 +32,39 @@ export async function initLayout(pageKey, options = {}) {
     }
 
     // 3. Kullanıcı Bilgisini Getir (Firebase Auth)
+    // Yeni HTML yapısına göre ID'leri seçiyoruz
     const userNameEl = document.getElementById('headerUserName');
+    const userEmailEl = document.getElementById('headerUserEmail');
     const userInitialEl = document.getElementById('headerUserInitial');
-
-    if (userNameEl) userNameEl.innerText = 'Yükleniyor…';
-    if (userInitialEl) userInitialEl.innerText = '⏳';
+    const dropdownInitialEl = document.getElementById('dropdownUserInitial');
 
     auth.onAuthStateChanged(async user => {
-        if (user && (userNameEl || userInitialEl)) {
+        if (user) {
+            // İsim yerine "..." koyarak başla
+            if (userNameEl) userNameEl.innerText = 'Kullanıcı';
+            
             const profile = await ensureUserDocument(user);
+            
+            // İsim Belirleme
+            let displayName = 'Kullanıcı';
+            if (profile && (profile.name || profile.ad)) {
+                displayName = `${profile.name || profile.ad} ${profile.surname || profile.soyad || ''}`.trim();
+            } else if (user.displayName) {
+                displayName = user.displayName;
+            } else if (user.email) {
+                displayName = user.email.split('@')[0];
+            }
 
-            const displayName = user.displayName || user.email?.split('@')[0] || 'Kullanıcı';
+            // Baş harf
+            const initial = displayName.charAt(0).toUpperCase();
+
+            // HTML'e yerleştirme
             if (userNameEl) userNameEl.innerText = displayName;
-            if (userInitialEl) userInitialEl.innerText = displayName.charAt(0).toUpperCase();
+            if (userEmailEl) userEmailEl.innerText = user.email || '';
+            if (userInitialEl) userInitialEl.innerText = initial;
+            if (dropdownInitialEl) dropdownInitialEl.innerText = initial;
 
+            // Admin kontrolü (Mevcut kodunuzu koruyoruz)
             try {
                 const idTokenResult = await user.getIdTokenResult();
                 const hasAdminRole = idTokenResult.claims.admin
@@ -57,27 +76,37 @@ export async function initLayout(pageKey, options = {}) {
                     document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'block');
                 }
             } catch (error) {
-                console.error('Admin kontrolü sırasında hata:', error);
+                console.error('Admin yetki hatası:', error);
             }
+
         } else if (!user && requireAuth) {
-            // Giriş yapmamışsa login'e at
             window.location.href = '/login.html';
         }
     });
 
-    // 4. Profil menüsü etkileşimleri
+    // 4. Profil menüsü etkileşimleri (Google Style Toggle)
     const profileToggle = document.querySelector('[data-profile-toggle]');
     const profileDropdown = document.getElementById('profileDropdown');
-    const profileMenu = document.querySelector('[data-profile-menu]');
-    if (profileToggle && profileDropdown && profileMenu) {
-        profileToggle.addEventListener('click', event => {
+    const profileMenuContainer = document.querySelector('[data-profile-menu]');
+
+    if (profileToggle && profileDropdown && profileMenuContainer) {
+        // Tıklama olayı
+        profileToggle.addEventListener('click', (event) => {
             event.stopPropagation();
-            const isOpen = profileDropdown.classList.toggle('open');
-            profileToggle.setAttribute('aria-expanded', isOpen);
+            const isOpen = profileDropdown.classList.contains('open');
+            
+            if (isOpen) {
+                profileDropdown.classList.remove('open');
+                profileToggle.setAttribute('aria-expanded', 'false');
+            } else {
+                profileDropdown.classList.add('open');
+                profileToggle.setAttribute('aria-expanded', 'true');
+            }
         });
 
-        document.addEventListener('click', event => {
-            if (!profileMenu.contains(event.target)) {
+        // Dışarı tıklayınca kapat
+        document.addEventListener('click', (event) => {
+            if (!profileMenuContainer.contains(event.target)) {
                 profileDropdown.classList.remove('open');
                 profileToggle.setAttribute('aria-expanded', 'false');
             }
