@@ -20,16 +20,40 @@ export async function ensureUserDocument(user) {
   if (!user) return null;
 
   const userRef = doc(db, "users", user.uid);
+  // Force-refresh ID token so custom claims are available to Firestore rules.
+  try {
+    if (typeof user.getIdTokenResult === 'function') {
+      await user.getIdTokenResult(true);
+    }
+  } catch (tErr) {
+    // ignore token refresh errors and proceed to attempt the read; we'll handle permission errors below
+    console.warn('ID token refresh failed (ignored):', tErr?.message || tErr);
+  }
 
   let snap;
   try {
     snap = await getDoc(userRef);
   } catch (error) {
-    console.error("Kullanıcı dokümanı alınamadı", error);
-    throw Object.assign(new Error("profile-read-failed"), {
-      code: error?.code || "profile-read-failed",
-      original: error,
-    });
+    // If permissions error, try one token refresh and retry once (handles eventual claim propagation)
+    const code = error?.code || '';
+    if (code === 'permission-denied' && typeof user.getIdTokenResult === 'function') {
+      try {
+        await user.getIdTokenResult(true);
+        snap = await getDoc(userRef);
+      } catch (retryErr) {
+        console.error('Kullanıcı dokümanı alınamadı (retry)', retryErr);
+        throw Object.assign(new Error('profile-read-failed'), {
+          code: retryErr?.code || 'profile-read-failed',
+          original: retryErr,
+        });
+      }
+    } else {
+      console.error("Kullanıcı dokümanı alınamadı", error);
+      throw Object.assign(new Error("profile-read-failed"), {
+        code: error?.code || "profile-read-failed",
+        original: error,
+      });
+    }
   }
 
   // Kullanıcı veritabanında var mı?
