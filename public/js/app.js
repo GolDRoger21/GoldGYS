@@ -1,5 +1,6 @@
 import { auth } from "./firebase-config.js";
 import { signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { ensureUserDocument } from "./user-profile.js";
 
 async function loadComponent(id, path) {
     const el = document.getElementById(id);
@@ -19,6 +20,7 @@ function setupSidebar() {
     }
     onAuthStateChanged(auth, async (user) => {
         if(user) {
+            await ensureUserDocument(user);
             const token = await user.getIdTokenResult();
             if(token.claims.admin) {
                 document.querySelectorAll(".admin-link").forEach(l => l.style.display="block");
