@@ -73,6 +73,48 @@ async function writeAdminAuditLog({ action, targetId, context, success, details 
 
 // Rol atama (HTTPS callable)
 // Sadece mevcut admin kullanıcıları çalıştırabilir (caller admin olmalı)
+function deriveClaimsFromProfile(profile) {
+  const roles = Array.isArray(profile?.roles) ? profile.roles : [];
+  const primaryRole = profile?.role;
+  const hasAdminRole = primaryRole === "admin" || roles.includes("admin");
+  const hasEditorRole = hasAdminRole || primaryRole === "editor" || roles.includes("editor");
+
+  if (!hasAdminRole && !hasEditorRole) return null;
+
+  if (hasAdminRole) {
+    return { admin: true, editor: true, role: "admin" };
+  }
+
+  return { editor: true, role: "editor" };
+}
+
+async function syncClaimsWithProfile(uid, profile, tokenClaims = {}) {
+  const derivedClaims = deriveClaimsFromProfile(profile);
+  if (!derivedClaims) return;
+
+  const tokenAlreadyMatches = Object.entries(derivedClaims).every(
+    ([key, value]) => tokenClaims[key] === value
+  );
+
+  if (tokenAlreadyMatches) return;
+
+  try {
+    const user = await admin.auth().getUser(uid);
+    const existingClaims = user.customClaims || {};
+    const updatedClaims = { ...existingClaims, ...derivedClaims };
+
+    const hasDifferences = Object.entries(derivedClaims).some(
+      ([key, value]) => existingClaims[key] !== value
+    );
+
+    if (hasDifferences) {
+      await admin.auth().setCustomUserClaims(uid, updatedClaims);
+    }
+  } catch (error) {
+    console.warn("Custom claim senkronizasyonu başarısız", error.message || error);
+  }
+}
+
 async function ensureCallerIsAdmin(context) {
   const caller = context.auth;
 
@@ -94,6 +136,8 @@ async function ensureCallerIsAdmin(context) {
   if (!firestoreIsAdmin) {
     throw new functions.https.HttpsError("permission-denied", "Admin yetkisi gerekli.");
   }
+
+  await syncClaimsWithProfile(caller.uid, callerData, caller.token || {});
 }
 
 exports.setAdminClaim = functions.https.onCall(async (data, context) => {
