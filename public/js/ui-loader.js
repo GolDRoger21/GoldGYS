@@ -15,7 +15,8 @@ async function loadComponent(elementId, filePath) {
     }
 }
 
-export async function initLayout(pageKey) {
+export async function initLayout(pageKey, options = {}) {
+    const { requireAuth = true } = options;
     // 1. Sidebar ve Header'ı Yükle
     await Promise.all([
         loadComponent('sidebar-area', '/partials/sidebar.html'),
@@ -58,7 +59,7 @@ export async function initLayout(pageKey) {
             } catch (error) {
                 console.error('Admin kontrolü sırasında hata:', error);
             }
-        } else if (!user) {
+        } else if (!user && requireAuth) {
             // Giriş yapmamışsa login'e at
             window.location.href = '/login.html';
         }

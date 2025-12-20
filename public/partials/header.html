@@ -1,12 +1,18 @@
 <div class="header-inner">
-    <nav class="main-nav" aria-label="Ana menü">
-        <a href="dashboard.html" data-page="dashboard">Panel</a>
-        <a href="konular.html" data-page="konular">Konular</a>
-        <a href="testler.html" data-page="testler">Testler</a>
-        <a href="denemeler.html" data-page="denemeler">Denemeler</a>
-        <a href="analiz.html" data-page="analiz">Analiz</a>
-        <a href="/pages/admin.html" data-page="admin" class="admin-only" style="display: none;">Admin</a>
-    </nav>
+    <div class="header-left">
+        <button class="mobile-menu-toggle" type="button" onclick="window.toggleSidebar()" aria-label="Yan menüyü aç/kapat">☰</button>
+        <a class="brand-mark header-brand" href="/pages/dashboard.html" aria-label="Panel sayfasına dön">
+            <span class="brand-highlight">GOLD</span>GYS
+        </a>
+        <nav class="main-nav" aria-label="Ana menü">
+            <a href="/pages/dashboard.html" data-page="dashboard">Panel</a>
+            <a href="/pages/konular.html" data-page="konular">Konular</a>
+            <a href="/pages/testler.html" data-page="testler">Testler</a>
+            <a href="/pages/denemeler.html" data-page="denemeler">Denemeler</a>
+            <a href="/pages/analiz.html" data-page="analiz">Analiz</a>
+            <a href="/pages/admin.html" data-page="admin" class="admin-only" style="display: none;">Admin</a>
+        </nav>
+    </div>
 
     <div class="header-actions">
         <div class="user-menu" data-profile-menu>
