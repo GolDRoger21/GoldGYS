@@ -4,10 +4,31 @@ admin.initializeApp();
 
 // Rol atama (HTTPS callable)
 // Sadece mevcut admin kullanıcıları çalıştırabilir (caller admin olmalı)
-exports.setAdminClaim = functions.https.onCall(async (data, context) => {
-  if (!context.auth || context.auth.token.admin !== true) {
+async function ensureCallerIsAdmin(context) {
+  const caller = context.auth;
+
+  if (!caller) {
+    throw new functions.https.HttpsError("permission-denied", "Oturum bulunamadı.");
+  }
+
+  // Özel claim'de admin veya rol=admin varsa doğrudan izin ver
+  if (caller.token?.admin === true || caller.token?.role === "admin") {
+    return;
+  }
+
+  // Bazı kullanıcılar admin rolünü yalnızca Firestore profilinde taşıyor olabilir
+  const callerDoc = await admin.firestore().collection("users").doc(caller.uid).get();
+  const callerData = callerDoc.data();
+  const firestoreIsAdmin =
+    callerData?.role === "admin" || (Array.isArray(callerData?.roles) && callerData.roles.includes("admin"));
+
+  if (!firestoreIsAdmin) {
     throw new functions.https.HttpsError("permission-denied", "Admin yetkisi gerekli.");
   }
+}
+
+exports.setAdminClaim = functions.https.onCall(async (data, context) => {
+  await ensureCallerIsAdmin(context);
 
   const uid = data.uid;
   const role = data.role;
@@ -20,9 +41,7 @@ exports.setAdminClaim = functions.https.onCall(async (data, context) => {
 });
 
 exports.setUserRole = functions.https.onCall(async (data, context) => {
-  if (!context.auth || context.auth.token.admin !== true) {
-    throw new functions.https.HttpsError("permission-denied", "Admin yetkisi gerekli.");
-  }
+  await ensureCallerIsAdmin(context);
 
   const { uid, role } = data;
   const allowedRoles = ["student", "editor", "admin"];
