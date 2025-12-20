@@ -7,6 +7,7 @@ import {
   getDocs,
   getCountFromServer,
   limit,
+  documentId,
   orderBy,
   query,
   startAfter,
@@ -35,6 +36,8 @@ const loadMoreButton = document.getElementById("loadMoreUsers");
 const lazyLoader = document.getElementById("userLazyLoader");
 const noticeBox = document.getElementById("userNotice");
 const searchInput = document.getElementById("userSearch");
+const filterStatusSelect = document.getElementById("filterStatus");
+const filterRoleSelect = document.getElementById("filterRole");
 
 const detailName = document.getElementById("detailName");
 const detailStatus = document.getElementById("detailStatus");
@@ -60,6 +63,7 @@ const rejectedCount = document.getElementById("rejectedCount");
 const allowedRoles = ["student", "editor", "admin"];
 const allowedStatus = ["pending", "active", "rejected", "suspended", "deleted"];
 const PAGE_SIZE = 20;
+const DEFAULT_ORDER_FIELD = "createdAt";
 
 const state = {
   users: new Map(),
@@ -72,6 +76,7 @@ const state = {
   loading: false,
   lazyObserver: null,
   totalCount: null,
+  orderField: DEFAULT_ORDER_FIELD,
 };
 
 initLayout("users");
@@ -79,10 +84,9 @@ protectPage("admin");
 
 refreshButton?.addEventListener("click", () => loadUsers(true));
 loadMoreButton?.addEventListener("click", () => loadUsers());
-searchInput?.addEventListener("input", () => {
-  filterUsers(searchInput.value);
-  renderTable();
-});
+searchInput?.addEventListener("input", handleFilters);
+filterStatusSelect?.addEventListener("change", handleFilters);
+filterRoleSelect?.addEventListener("change", handleFilters);
 
 saveProfileBtn?.addEventListener("click", saveProfile);
 refreshClaimsBtn?.addEventListener("click", refreshClaims);
@@ -141,7 +145,7 @@ function normalizeUser(docSnap) {
     role: data.role || "student",
     roles: Array.isArray(data.roles) ? data.roles : [],
     status: data.status || "pending",
-    lastLoginAt: data.lastLoginAt,
+    lastLoginAt: data.lastLoginAt || data.lastLogin,
     raw: data,
   };
 }
@@ -167,6 +171,7 @@ async function loadUsers(reset = false) {
     state.reachedEnd = false;
     state.order = [];
     state.users.clear();
+    state.orderField = DEFAULT_ORDER_FIELD;
     tableBody.innerHTML = "";
     fetchTotalCount();
   }
@@ -176,12 +181,14 @@ async function loadUsers(reset = false) {
   }
 
   try {
-    const constraints = [collection(db, "users"), orderBy("createdAt", "desc"), limit(PAGE_SIZE)];
-    if (state.cursor && !reset) {
-      constraints.push(startAfter(state.cursor));
-    }
+    let snapshot = await fetchUsersPage(state.orderField, state.cursor);
 
-    const snapshot = await getDocs(query(...constraints));
+    if (snapshot.empty && state.orderField === DEFAULT_ORDER_FIELD) {
+      console.warn("createdAt ile sıralanan sorgu boş döndü, belge kimliği ile sıralamaya geçiliyor.");
+      state.orderField = "__name__";
+      state.cursor = null;
+      snapshot = await fetchUsersPage(state.orderField, state.cursor);
+    }
 
     if (snapshot.empty) {
       state.reachedEnd = true;
@@ -197,9 +204,8 @@ async function loadUsers(reset = false) {
       }
     });
 
-    filterUsers(searchInput?.value || "");
+    handleFilters();
     renderOverview();
-    renderTable();
 
     state.cursor = snapshot.docs[snapshot.docs.length - 1];
     state.reachedEnd = snapshot.size < PAGE_SIZE;
@@ -222,19 +228,46 @@ function toggleLoadMore() {
   }
 }
 
-function filterUsers(queryText = "") {
-  const text = queryText.toLowerCase();
+async function fetchUsersPage(orderField, cursor) {
+  const orderConstraint = orderField === "__name__" ? orderBy(documentId(), "desc") : orderBy(orderField, "desc");
+  const constraints = [collection(db, "users"), orderConstraint, limit(PAGE_SIZE)];
+  if (cursor) {
+    constraints.push(startAfter(cursor));
+  }
+  return getDocs(query(...constraints));
+}
+
+function handleFilters() {
+  filterUsers();
+  renderTable();
+}
+
+function filterUsers() {
+  const text = (searchInput?.value || "").toLowerCase();
+  const selectedStatus = filterStatusSelect?.value || "";
+  const selectedRole = filterRoleSelect?.value || "";
+
   state.filtered = state.order
     .map((id) => state.users.get(id))
     .filter((u) => {
       if (!u) return false;
-      if (!text) return true;
-      return (
+
+      const matchesText =
+        !text ||
         u.displayName.toLowerCase().includes(text) ||
         u.email.toLowerCase().includes(text) ||
         u.status.toLowerCase().includes(text) ||
-        u.role.toLowerCase().includes(text)
-      );
+        u.role.toLowerCase().includes(text);
+
+      if (!matchesText) return false;
+
+      const matchesStatus = !selectedStatus || u.status === selectedStatus;
+      const matchesRole =
+        !selectedRole ||
+        u.role === selectedRole ||
+        (Array.isArray(u.roles) && u.roles.includes(selectedRole));
+
+      return matchesStatus && matchesRole;
     });
 }
 
@@ -249,7 +282,7 @@ function renderOverview() {
 
 function renderTable() {
   if (!state.filtered.length) {
-    tableBody.innerHTML = `<tr><td colspan="6">Kayıtlı kullanıcı bulunamadı.</td></tr>`;
+    tableBody.innerHTML = `<tr><td colspan="6">Bu filtrelerle eşleşen kullanıcı bulunamadı.</td></tr>`;
     return;
   }
 
@@ -338,9 +371,8 @@ async function saveProfile() {
     await updateDoc(doc(db, "users", uid), { role, status, roles });
     const updated = { ...state.selectedUser, role, status, roles };
     state.users.set(uid, updated);
-    filterUsers(searchInput?.value || "");
+    handleFilters();
     renderOverview();
-    renderTable();
     selectUser(updated);
     showNotice(noticeBox, "Üye profili güncellendi.");
   } catch (error) {
@@ -387,9 +419,8 @@ async function deleteUser() {
     await deleteUserFn({ uid: state.selectedUser.id });
     state.users.delete(state.selectedUser.id);
     state.order = state.order.filter((id) => id !== state.selectedUser.id);
-    filterUsers(searchInput?.value || "");
+    handleFilters();
     renderOverview();
-    renderTable();
     selectUser(null);
     showNotice(noticeBox, "Üyelik silindi.");
   } catch (error) {
