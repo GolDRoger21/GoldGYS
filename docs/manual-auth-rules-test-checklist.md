@@ -1,6 +1,6 @@
 # Auth ve Firestore Rules Manuel Test Akışı
 
-Aşağıdaki adımlar, rol tabanlı korumaların ve Firestore kurallarının beklendiği gibi çalıştığını elle doğrulamak için hazırlanmıştır.
+Aşağıdaki adımlar, rol tabanlı korumaların ve Firestore kurallarının beklendiği gibi çalıştığını elle doğrulamak için hazırlandı.
 
 ## 1) Google ile ilk giriş
 1. `firebase emulators:start --only auth,firestore,hosting` komutu ile lokal ortamı açın (veya staging/prod için gerçek projeye bağlanın).
