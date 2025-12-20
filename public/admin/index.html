@@ -19,11 +19,31 @@
       <li><a href="reports.html">Hatalı Soru Bildirimleri</a></li>
       <li><a href="users.html">Kullanıcılar</a></li>
     </ul>
+
+    <section id="roleUpdateSection" style="display: none; margin-top: 24px;">
+      <h2>Kullanıcı Rolü Güncelle</h2>
+      <form id="roleUpdateForm" style="display: flex; flex-direction: column; gap: 12px; max-width: 400px;">
+        <label>
+          Kullanıcı UID
+          <input id="roleUpdateUid" name="uid" required placeholder="UID girin" />
+        </label>
+        <label>
+          Rol
+          <select id="roleUpdateRole" name="role" required>
+            <option value="editor">Editör</option>
+            <option value="admin">Admin</option>
+            <option value="member">Üye</option>
+          </select>
+        </label>
+        <button type="submit">Rolü Güncelle</button>
+      </form>
+      <p id="roleUpdateStatus" aria-live="polite" style="margin-top: 8px; font-weight: 600;"></p>
+    </section>
   </main>
 </div>
 <div data-include="../partials/footer.html"></div>
 
-<script src="/js/app.js"></script>
-<script src="/js/role-guard.js"></script>
+<script type="module" src="/js/app.js"></script>
+<script type="module" src="/admin/js/admin-role.js"></script>
 </body>
 </html>
