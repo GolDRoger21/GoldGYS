@@ -30,7 +30,15 @@ export function protectPage(options = {}) {
         }
 
         const useFallbackRole = async (extraCheck = true) => {
-            const fallbackRole = (await auth.currentUser?.getIdTokenResult(true))?.claims.role || "student";
+            const tokenResult = await auth.currentUser?.getIdTokenResult(true);
+            const claimStatus = tokenResult?.claims?.status || (tokenResult?.claims?.admin ? "active" : null);
+            const fallbackRole = tokenResult?.claims?.role || (tokenResult?.claims?.admin ? "admin" : "student");
+
+            // Claim durumuna göre beklemeye yönlendir
+            if (claimStatus && claimStatus !== "active" && !window.location.pathname.includes("pending-approval.html")) {
+                window.location.href = "/pages/pending-approval.html";
+                return false;
+            }
 
             if (extraCheck && allowedRoles.length > 0 && !allowedRoles.includes(fallbackRole) && fallbackRole !== 'admin') {
                 alert("Bu sayfaya erişim yetkiniz yok.");
@@ -46,15 +54,25 @@ export function protectPage(options = {}) {
         try {
             const tokenResult = await user.getIdTokenResult(true);
             const claimRole = tokenResult.claims.role || (tokenResult.claims.admin ? "admin" : null);
+            const claimStatus = tokenResult.claims.status || (tokenResult.claims.admin ? "active" : null);
 
             // 1. Kullanıcı Dokümanını Çek (Status kontrolü için)
             const userRef = doc(db, "users", user.uid);
             const userSnap = await getDoc(userRef);
 
             if (!userSnap.exists()) {
-                // Doküman yoksa güvenli tarafta kalıp logout yap
-                await auth.signOut();
-                window.location.href = "/login.html";
+                // Doküman yoksa claim bilgisini kullanarak erişim kontrolü yap
+                const allowed = await useFallbackRole();
+                if (!allowed) return;
+
+                // Claim tabanlı durum (pending vs active)
+                if (claimStatus && claimStatus !== "active" && !window.location.pathname.includes("pending-approval.html")) {
+                    window.location.href = "/pages/pending-approval.html";
+                    return;
+                }
+
+                document.body.style.opacity = "1";
+                document.body.style.pointerEvents = "auto";
                 return;
             }
 
