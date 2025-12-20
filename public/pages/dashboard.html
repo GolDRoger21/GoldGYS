@@ -154,6 +154,12 @@
         }
         .module-card .title { font-weight: 700; color: var(--navy-deep); }
         .module-card .meta { color: var(--text-muted); font-size: 0.9rem; }
+        .module-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            align-items: flex-end;
+        }
         .chip {
             display: inline-flex;
             align-items: center;
@@ -246,6 +252,30 @@
             .stat-grid { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
             .section-head { align-items: flex-start; flex-direction: column; }
             .quick-actions { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
+        }
+
+        @media (max-width: 640px) {
+            .dashboard-hero { padding: 20px; }
+            .dashboard-hero h1 { font-size: 1.65rem; line-height: 1.25; }
+            .dashboard-hero .actions { flex-direction: column; align-items: stretch; }
+            .dashboard-hero .actions a { width: 100%; justify-content: center; }
+            .hero-overlay-icon { font-size: 8rem; right: -10px; bottom: -14px; }
+
+            .stat-grid { grid-template-columns: 1fr; gap: 12px; }
+            .stat-card { padding: 18px 16px; align-items: flex-start; }
+            .stat-icon { width: 48px; height: 48px; font-size: 1.4rem; }
+            .stat-details .value { font-size: 1.5rem; }
+
+            .content-grid { gap: 16px; }
+            .section-card { padding: 18px; }
+
+            .module-card { grid-template-columns: 1fr; align-items: flex-start; }
+            .module-meta { align-items: flex-start; flex-direction: row; flex-wrap: wrap; gap: 8px; }
+
+            .activity-item { align-items: flex-start; }
+            .activity-icon { flex-shrink: 0; }
+
+            .quick-actions { grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); }
         }
     </style>
 </head>
@@ -446,7 +476,7 @@
                         <div class="meta">${module.target}</div>
                         <div class="progress-bar"><span style="width: ${module.completion}%"></span></div>
                     </div>
-                    <div style="display: flex; flex-direction: column; gap: 8px; align-items: flex-end;">
+                    <div class="module-meta">
                         <div class="chip">${module.completion}%</div>
                         ${module.tags.map(tag => `<div class="chip" style="background:#e2e8f0;">#${tag}</div>`).join('')}
                     </div>`;
