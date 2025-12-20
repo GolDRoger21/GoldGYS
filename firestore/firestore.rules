@@ -2,90 +2,10 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    function signedIn() { return request.auth != null; }
-    function isSelf(uid){ return signedIn() && request.auth.uid == uid; }
-
-    function roleIs(roleName) {
-      return signedIn() && request.auth.token.role == roleName;
-    }
-
-    function isAdmin()  { return roleIs('admin') || request.auth.token.admin == true; }
-    function isEditor() { return roleIs('editor'); }
-    function isStudent(){ return roleIs('student'); }
-    function canManageContent() { return isAdmin() || isEditor(); }
-
-    // Content collections (authenticated users can read; only privileged roles can write)
-    match /topics/{id} {
-      allow read: if signedIn();
-      allow write: if signedIn() && canManageContent();
-    }
-
-    match /lessons/{id} {
-      allow read: if signedIn();
-      allow write: if signedIn() && canManageContent();
-    }
-
-    match /tests/{id} {
-      allow read: if signedIn();
-      allow write: if signedIn() && canManageContent();
-    }
-
-    match /questions/{id} {
-      allow read: if signedIn();
-      allow write: if signedIn() && canManageContent();
-    }
-
-    match /exams/{id} {
-      allow read: if signedIn();
-      allow write: if signedIn() && canManageContent();
-    }
-
-    // Reports: students can create their own; admins and editors can review
-    match /reports/{id} {
-      allow create: if signedIn() && isStudent()
-        && request.resource.data.userId == request.auth.uid
-        && request.resource.data.status == "open";
-
-      allow read: if signedIn() && ((isAdmin() || isEditor())
-        || (isStudent() && request.auth.uid == resource.data.userId));
-
-      allow update: if signedIn() && (isAdmin() || isEditor());
-      allow delete: if signedIn() && isAdmin();
-    }
-
-    // Users root doc: self read; admin/editor read; self can create minimal profile
-    match /users/{uid} {
-      // User kendisinin UID'siyle yazabilir (signup sırasında)
-      allow create: if signedIn() && request.auth.uid == uid;
-      allow read: if signedIn() && (isSelf(uid) || isAdmin() || isEditor());
-      allow update: if signedIn() && (isSelf(uid) || isAdmin());
-      allow delete: if signedIn() && isAdmin();
-
-      // User private subcollections
-      match /progress/{docId} {
-        allow read, write: if isSelf(uid);
-      }
-
-      match /wrongs/{docId} {
-        allow read, write: if isSelf(uid);
-      }
-
-      match /favorites/{docId} {
-        allow read, write: if isSelf(uid);
-      }
-
-      match /examSessions/{docId} {
-        allow read, write: if isSelf(uid);
-      }
-
-      match /examResults/{docId} {
-        allow read, write: if isSelf(uid);
-      }
-    }
-
-    // Default deny
+    // TEMPORARY TEST RULES -- DO NOT LEAVE IN PRODUCTION
+    // Allow any authenticated user to read/write all documents. Use only for debugging.
     match /{document=**} {
-      allow read, write: if false;
+      allow read, write: if request.auth != null;
     }
   }
 }

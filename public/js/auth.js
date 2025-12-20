@@ -20,19 +20,26 @@ const retryProfileLoad = async (user) => {
     try {
         return await ensureUserDocument(user);
     } catch (error) {
-        const code = error?.code || "";
+        // support wrapped errors from user-profile.js which include original
+        const code = error?.code || error?.original?.code || "";
 
         // Token kaynaklı ya da geçici hatalarda bir kez daha dene
         if (["permission-denied", "unauthenticated"].includes(code)) {
-            await user.getIdToken(true);
+            try {
+                await user.getIdToken(true);
+            } catch (tErr) {
+                // ignore token refresh error, rethrow original
+            }
             return ensureUserDocument(user);
         }
 
-        if (code === "unavailable") {
-            await new Promise((resolve) => setTimeout(resolve, 500));
+        // Firestore geçici hatalarında kısa gecikme ile yeniden dene
+        if (code === "unavailable" || code === "resource-exhausted") {
+            await new Promise((resolve) => setTimeout(resolve, 600));
             return ensureUserDocument(user);
         }
 
+        // Eğer error profil okuma/yazma ile ilgili özel wrapper ise, yeniden fırlat
         throw error;
     }
 };
