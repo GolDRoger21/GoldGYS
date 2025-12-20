@@ -20,58 +20,65 @@ export async function ensureUserDocument(user) {
   if (!user) return null;
 
   const userRef = doc(db, "users", user.uid);
-  // Force-refresh ID token so custom claims are available to Firestore rules.
-  try {
-    if (typeof user.getIdTokenResult === 'function') {
-      await user.getIdTokenResult(true);
-    }
-  } catch (tErr) {
-    // ignore token refresh errors and proceed to attempt the read; we'll handle permission errors below
+  const tokenResult = await user.getIdTokenResult?.(true).catch((tErr) => {
     console.warn('ID token refresh failed (ignored):', tErr?.message || tErr);
-  }
+    return null;
+  });
 
+  const tokenClaims = tokenResult?.claims || {};
   let snap;
+  let readError = null;
+
   try {
     snap = await getDoc(userRef);
   } catch (error) {
-    // If permissions error, try one token refresh and retry once (handles eventual claim propagation)
     const code = error?.code || '';
     if (code === 'permission-denied' && typeof user.getIdTokenResult === 'function') {
       try {
         await user.getIdTokenResult(true);
         snap = await getDoc(userRef);
       } catch (retryErr) {
-        console.error('Kullanıcı dokümanı alınamadı (retry)', retryErr);
-        throw Object.assign(new Error('profile-read-failed'), {
-          code: retryErr?.code || 'profile-read-failed',
-          original: retryErr,
-        });
+        readError = retryErr;
       }
     } else {
-      console.error("Kullanıcı dokümanı alınamadı", error);
-      throw Object.assign(new Error("profile-read-failed"), {
-        code: error?.code || "profile-read-failed",
-        original: error,
-      });
+      readError = error;
     }
   }
 
-  // Kullanıcı veritabanında var mı?
-  const isNewUser = !snap.exists();
-  const existingData = snap.exists() ? snap.data() : {};
+  const readPermissionDenied = readError?.code === 'permission-denied';
+  if (readError && !readPermissionDenied) {
+    console.error("Kullanıcı dokümanı alınamadı", readError);
+    throw Object.assign(new Error("profile-read-failed"), {
+      code: readError?.code || "profile-read-failed",
+      original: readError,
+    });
+  }
 
-  const token = await user.getIdTokenResult?.().catch(() => null);
-  const roles = collectRoles(existingData, token?.claims || {});
+  const isNewUser = snap ? !snap.exists() : true;
+  const existingData = snap?.exists() ? snap.data() : {};
+
+  const roles = collectRoles(existingData, tokenClaims);
   const primaryRole = roles[0] || "student";
 
   // --- KRİTİK DEĞİŞİKLİK ---
   // Eğer kullanıcı yeniyse statüsü 'pending' olsun.
   // Eğer kullanıcı eskiyse mevcut statüsünü korusun.
-  // (Not: Adminler elle oluşturulursa veya eski kayıtsa varsayılan 'active' olabilir)
+  // Firestore izni yoksa admin gibi claim'lere bakarak aktif et.
   let currentStatus = existingData.status;
   if (!currentStatus) {
-      // Veritabanında statü yoksa, yeni kullanıcı mı diye bak:
-      currentStatus = isNewUser ? "pending" : "active";
+      if (tokenClaims.status) {
+        currentStatus = tokenClaims.status;
+      } else if (tokenClaims.admin) {
+        currentStatus = "active";
+      } else {
+        currentStatus = isNewUser ? "pending" : "active";
+      }
+  }
+
+  // Firestore okuma izni yoksa claim tabanlı profille devam et, yazmaya çalışmadan dön.
+  if (readPermissionDenied) {
+    console.warn('Profil Firestore erişimi reddedildi, claim bilgileriyle ilerleniyor.');
+    return { roles, role: primaryRole, status: currentStatus };
   }
 
   try {
@@ -90,6 +97,11 @@ export async function ensureUserDocument(user) {
       { merge: true },
     );
   } catch (error) {
+    if (error?.code === 'permission-denied') {
+      console.warn('Profil yazma izni reddedildi, claim profiliyle devam ediliyor.');
+      return { roles, role: primaryRole, status: currentStatus };
+    }
+
     console.error("Kullanıcı dokümanı yazılamadı", error);
     throw Object.assign(new Error("profile-write-failed"), {
       code: error?.code || "profile-write-failed",
