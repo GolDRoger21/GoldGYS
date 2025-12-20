@@ -356,8 +356,12 @@ async function loadPendingMembers(forceReload = false) {
     toggleLoadMore(!paginationState.reachedEnd);
   } catch (error) {
     console.error("Bekleyen kullanıcılar getirilirken hata oluştu", error);
+    const indexLink = extractIndexLink(error);
+    const friendlyMessage = indexLink
+      ? "Liste yüklenemedi: Firestore indeksi eksik. Aşağıdaki bağlantıdan oluşturabilirsiniz."
+      : "Liste yüklenemedi: " + (error?.message || "Bilinmeyen hata");
     showStatus("Bekleyen kullanıcılar yüklenemedi. Lütfen tekrar deneyin.", true);
-    showErrorState("Liste yüklenemedi: " + (error?.message || "Bilinmeyen hata"));
+    showErrorState(friendlyMessage, indexLink);
   } finally {
     pendingListEl.dataset.loading = "false";
   }
@@ -1650,19 +1654,43 @@ function toggleLoadMore(shouldShow) {
   loadMoreBtn.disabled = !shouldShow;
 }
 
-function showErrorState(message) {
+function extractIndexLink(error) {
+  const message = error?.message || "";
+  const match = message.match(/https:\/\/console\.firebase\.google\.com[^\s)]+/i);
+  return match ? match[0] : null;
+}
+
+function showErrorState(message, indexLink = null) {
   if (!errorStateEl) return;
   errorStateEl.style.display = "block";
   errorStateEl.innerHTML = "";
   const text = document.createElement("span");
   text.textContent = message;
+  const actions = document.createElement("div");
+  actions.style.display = "flex";
+  actions.style.gap = "8px";
+  actions.style.flexWrap = "wrap";
+
+  if (indexLink) {
+    const indexAnchor = document.createElement("a");
+    indexAnchor.href = indexLink;
+    indexAnchor.target = "_blank";
+    indexAnchor.rel = "noopener";
+    indexAnchor.className = "btn-secondary";
+    indexAnchor.textContent = "Gerekli indeksi oluştur";
+    indexAnchor.setAttribute("aria-label", "Firestore indeksini oluştur");
+    actions.appendChild(indexAnchor);
+  }
+
   const retryBtn = document.createElement("button");
   retryBtn.type = "button";
   retryBtn.className = "btn-secondary";
   retryBtn.textContent = "Tekrar dene";
   retryBtn.setAttribute("aria-label", "Listeyi yeniden yükle");
   retryBtn.addEventListener("click", () => loadPendingMembers(true));
-  errorStateEl.append(text, retryBtn);
+  actions.appendChild(retryBtn);
+
+  errorStateEl.append(text, actions);
 }
 
 function hideErrorState() {
