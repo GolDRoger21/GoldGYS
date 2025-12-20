@@ -1,4 +1,5 @@
 import { db } from "/js/firebase-config.js";
+import { protectPage } from "/js/role-guard.js";
 import {
   addDoc,
   collection,
@@ -10,6 +11,8 @@ import {
   startAfter,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { formatDate, showNotice, setupLazyLoader } from "./utils.js";
+
+protectPage(["admin", "editor"]);
 
 const topicTitleInput = document.getElementById("title");
 const topicCategorySelect = document.getElementById("category");
