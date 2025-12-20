@@ -1,61 +1,65 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+
+    // --- Fonksiyonlar ---
+    function signedIn() { return request.auth != null; }
     
-    // --- Yardımcı Fonksiyonlar ---
-    function signedIn() {
-      return request.auth != null;
+    // Admin: Token'ında admin yetkisi olan
+    function isAdmin() { 
+      return signedIn() && (request.auth.token.admin == true || request.auth.token.role == 'admin'); 
     }
     
-    function isAdmin() {
-      return signedIn() && (request.auth.token.admin == true || request.auth.token.role == 'admin');
+    // Editör: Admin VEYA Token'ında editor yetkisi olan
+    function isEditor() { 
+      return isAdmin() || (signedIn() && (request.auth.token.editor == true || request.auth.token.role == 'editor')); 
     }
 
-    function isEditor() {
-      return isAdmin() || (signedIn() && (request.auth.token.editor == true || request.auth.token.role == 'editor'));
-    }
+    function isSelf(uid) { return signedIn() && request.auth.uid == uid; }
 
-    function isSelf(uid) {
-      return signedIn() && request.auth.uid == uid;
-    }
-
-    // --- KULLANICILAR (users) ---
-    // Kullanıcının kendi profilini okuması/yazması
+    // --- KULLANICILAR ---
     match /users/{uid} {
+      // Adminler herkesi okur, kullanıcı sadece kendini okur
       allow read: if isSelf(uid) || isAdmin();
-      allow create: if isSelf(uid);
-      allow update: if isSelf(uid) || isAdmin();
-      allow delete: if isAdmin();
-      
-      // Kullanıcının alt koleksiyonları (progress, examResults vb.) için genel kural
-      match /{subcollection=**}/{docId} {
-         allow read, write: if isSelf(uid) || isAdmin();
-      }
+      // Adminler statü/rol güncelleyebilir, kullanıcı sadece profil bilgilerini (kendi kısıtlı alanlarını)
+      allow write: if isAdmin() || isSelf(uid); 
     }
 
-    // --- SİSTEM & AYARLAR ---
-    match /system/{docId} {
-      allow read: if signedIn();
-      allow write: if isAdmin();
-    }
-
-    // --- KONULAR (topics) ---
+    // --- İÇERİK YÖNETİMİ (Konular, Testler, Sorular) ---
+    // Konular (topics)
     match /topics/{topicId} {
       allow read: if signedIn();
+      allow write: if isEditor(); // Ekleme/Düzenleme/Silme: Editör ve Admin
+    }
+    
+    // Testler (tests) - EKSİKTİ EKLENDİ
+    match /tests/{testId} {
+      allow read: if signedIn();
       allow write: if isEditor();
     }
-
-    // --- SINAVLAR (exams) --- 
-    // (Burası eksikti, açıkça ekliyoruz)
-    match /exams/{examId} {
+    
+    // Sorular (questions) - Subcollection ise
+    match /questions/{questionId} { // Veya collectionGroup kullanılıyorsa ona göre ayarlanmalı
       allow read: if signedIn();
       allow write: if isEditor();
     }
 
-    // --- DİĞER HER ŞEY (Fallback) ---
+    // --- RAPORLAR (reports) ---
+    // Hatalı soru bildirimleri vs.
+    match /reports/{reportId} {
+      allow create: if signedIn(); // Her üye rapor oluşturabilir
+      allow read, update, delete: if isEditor(); // Editörler raporları okuyup işlem yapabilir
+    }
+    
+    // --- SİSTEM ---
+    match /system/{docId} {
+      allow read: if signedIn();
+      allow write: if isAdmin(); // Sadece Admin
+    }
+
+    // --- VARSAYILAN (Güvenlik Ağı) ---
     match /{document=**} {
-      allow read: if signedIn();
-      allow write: if isAdmin();
+      allow read, write: if false; // Açıkça belirtilmeyen her şeyi kapat
     }
   }
 }

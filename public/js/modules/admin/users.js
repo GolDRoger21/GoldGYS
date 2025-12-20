@@ -75,7 +75,7 @@ const state = {
 };
 
 initLayout("users");
-protectPage(true);
+protectPage("admin");
 
 refreshButton?.addEventListener("click", () => loadUsers(true));
 loadMoreButton?.addEventListener("click", () => loadUsers());
