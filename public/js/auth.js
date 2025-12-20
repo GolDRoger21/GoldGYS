@@ -1,5 +1,6 @@
-import { auth } from "./firebase-config.js";
+import { auth, db } from "./firebase-config.js";
 import { ensureUserDocument } from "./user-profile.js";
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import {
     GoogleAuthProvider,
     browserLocalPersistence,
@@ -66,16 +67,45 @@ const friendlyErrorMessage = (code = "") => {
 const handleLoginSuccess = async (user) => {
     if (!user) return;
 
-    showStatus("pending", "Giriş başarılı, yönlendiriliyorsunuz...");
+    showStatus("pending", "Profil doğrulanıyor...");
 
     try {
+        // Kullanıcı belgesini oluştur/güncelle
         await ensureUserDocument(user);
+        
+        // Firestore'dan kullanıcının durumunu kontrol et
+        const userDocRef = doc(db, "users", user.uid);
+        const userSnap = await getDoc(userDocRef);
+        const userData = userSnap.data() || {};
+        
+        // Status kontrolü: pending ise giriş yapmasını engelle
+        if (userData.status === "pending" || userData.status === "rejected") {
+            showStatus("error", "⏳ Hesabınızın onaylanması bekleniyor. Yönetici tarafından onaylanana kadar sisteme giriş yapamazsınız. Lütfen daha sonra tekrar deneyin.");
+            
+            // Hata mesajını uzun süre göster
+            setTimeout(() => {
+                toggleLoading(false);
+            }, 2000);
+            return;
+        }
+        
+        if (userData.status === "rejected") {
+            showStatus("error", "❌ Başvurunuz reddedilmiştir. Sistem yöneticisine başvurunuz.");
+            setTimeout(() => {
+                toggleLoading(false);
+            }, 2000);
+            return;
+        }
+
+        showStatus("pending", "Giriş başarılı, yönlendiriliyorsunuz...");
+        redirectToDashboard();
     } catch (error) {
         console.error("Kullanıcı profili oluşturulamadı", error);
         showStatus("pending", "Profil hazırlanıyor, yönlendiriliyorsunuz...");
+        setTimeout(() => {
+            redirectToDashboard();
+        }, 1000);
     }
-
-    redirectToDashboard();
 };
 
 const loginWithPopup = async () => {

@@ -21,11 +21,24 @@ export async function ensureUserDocument(user) {
 
   const userRef = doc(db, "users", user.uid);
   const snap = await getDoc(userRef);
+  
+  // Kullanıcı veritabanında var mı?
+  const isNewUser = !snap.exists();
   const existingData = snap.exists() ? snap.data() : {};
 
   const token = await user.getIdTokenResult?.().catch(() => null);
   const roles = collectRoles(existingData, token?.claims || {});
   const primaryRole = roles[0] || "student";
+
+  // --- KRİTİK DEĞİŞİKLİK ---
+  // Eğer kullanıcı yeniyse statüsü 'pending' olsun.
+  // Eğer kullanıcı eskiyse mevcut statüsünü korusun.
+  // (Not: Adminler elle oluşturulursa veya eski kayıtsa varsayılan 'active' olabilir)
+  let currentStatus = existingData.status;
+  if (!currentStatus) {
+      // Veritabanında statü yoksa, yeni kullanıcı mı diye bak:
+      currentStatus = isNewUser ? "pending" : "active";
+  }
 
   await setDoc(
     userRef,
@@ -36,10 +49,12 @@ export async function ensureUserDocument(user) {
       photoURL: user.photoURL || existingData.photoURL || "",
       roles,
       role: primaryRole,
-      status: existingData.status || "active",
+      status: currentStatus, // Belirlenen statüyü kaydet
+      lastLoginAt: new Date() // Son giriş zamanını da tutalım
     },
     { merge: true },
   );
 
-  return { roles, role: primaryRole };
+  // Fonksiyondan statüyü de döndürelim ki auth.js'de kullanabilelim
+  return { roles, role: primaryRole, status: currentStatus };
 }

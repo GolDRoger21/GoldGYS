@@ -1,5 +1,6 @@
-import { auth } from "./firebase-config.js";
+import { auth, db } from "./firebase-config.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 export function protectPage(options = {}) {
     let normalizedOptions = {};
@@ -14,7 +15,7 @@ export function protectPage(options = {}) {
         normalizedOptions = options;
     }
 
-    const { requireRole = null, allow = null } = normalizedOptions;
+    const { requireRole = null, allow = null, checkStatus = true } = normalizedOptions;
 
     onAuthStateChanged(auth, async (user) => {
         if (!user) {
@@ -22,15 +23,32 @@ export function protectPage(options = {}) {
             return;
         }
 
-        const allowedRoles = Array.isArray(allow)
-            ? allow
-            : (allow ? [allow] : (requireRole ? [requireRole] : []));
-
-        if (allowedRoles.length === 0) {
-            return; // No role restrictions
-        }
-
         try {
+            // Kullanıcı status'unu kontrol et (pending/rejected ise giriş yapmasını engelle)
+            if (checkStatus) {
+                const userDocRef = doc(db, "users", user.uid);
+                const userSnap = await getDoc(userDocRef);
+                const userData = userSnap.data() || {};
+
+                if (userData.status === "pending" || userData.status === "rejected") {
+                    const message = userData.status === "pending"
+                        ? "Hesabınızın onaylanması bekleniyor. Lütfen yönetici tarafından onaylanana kadar bekleyin."
+                        : "Başvurunuz reddedilmiştir. Sistem yöneticisine başvurunuz.";
+                    
+                    alert(message);
+                    window.location.href = "/login.html";
+                    return;
+                }
+            }
+
+            const allowedRoles = Array.isArray(allow)
+                ? allow
+                : (allow ? [allow] : (requireRole ? [requireRole] : []));
+
+            if (allowedRoles.length === 0) {
+                return; // No role restrictions
+            }
+
             const token = await user.getIdTokenResult();
             const role = token.claims.role || (token.claims.admin ? "admin" : null);
 
