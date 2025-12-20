@@ -40,13 +40,17 @@ const detailModalTitle = document.getElementById("detailModalTitle");
 const detailModalEyebrow = document.getElementById("detailModalEyebrow");
 const detailSkeleton = document.getElementById("detailSkeleton");
 const detailContent = document.getElementById("detailContent");
-const detailName = document.getElementById("detailName");
 const detailEmail = document.getElementById("detailEmail");
 const detailUid = document.getElementById("detailUid");
-const detailStatus = document.getElementById("detailStatus");
-const detailRole = document.getElementById("detailRole");
 const detailCreatedAt = document.getElementById("detailCreatedAt");
 const detailClaims = document.getElementById("detailClaims");
+const toastContainer = document.getElementById("toastContainer");
+const detailNameInput = document.getElementById("detailNameInput");
+const detailRoleSelect = document.getElementById("detailRoleSelect");
+const detailStatusSelect = document.getElementById("detailStatusSelect");
+const detailUpdateBtn = document.getElementById("detailUpdateBtn");
+const detailSuspendBtn = document.getElementById("detailSuspendBtn");
+const detailDeleteBtn = document.getElementById("detailDeleteBtn");
 const topicCountEl = document.getElementById("topicCount");
 const testCountEl = document.getElementById("testCount");
 const attemptCountEl = document.getElementById("attemptCount");
@@ -54,16 +58,21 @@ const attemptCountEl = document.getElementById("attemptCount");
 const functions = getFunctions(auth.app);
 const setUserRoleFn = httpsCallable(functions, "setUserRole");
 const getUserClaimsFn = httpsCallable(functions, "getUserClaims");
+const updateUserProfileFn = httpsCallable(functions, "updateUserProfile");
+const deleteUserFn = httpsCallable(functions, "deleteUserAccount");
 const pendingCache = new Map();
 const paginationState = { cursor: null, pageSize: 10, reachedEnd: false };
 const filterState = { search: "", status: "pending", role: "all" };
 let debounceTimer = null;
 let activeRoleTarget = null;
+let activeDetailTarget = null;
+let activeDetailData = null;
 const ROLE_OPTIONS = [
   { value: "student", label: "Öğrenci" },
   { value: "editor", label: "Editör" },
   { value: "admin", label: "Admin" },
 ];
+const STATUS_OPTIONS = ["pending", "active", "rejected", "suspended", "deleted"];
 
 protectPage({ requireRole: "admin" });
 initLayout("admin");
@@ -114,6 +123,34 @@ detailModal?.addEventListener("click", (event) => {
   if (event.target === detailModal) {
     closeDetailModal();
   }
+});
+
+detailStatusSelect?.addEventListener("change", (event) => {
+  const value = event.target?.value;
+  syncSuspendButton(value);
+});
+
+detailUpdateBtn?.addEventListener("click", () => {
+  if (!activeDetailTarget) return;
+  handleMemberAction(activeDetailTarget, "update", detailUpdateBtn, getDetailFormValues());
+});
+
+detailSuspendBtn?.addEventListener("click", () => {
+  if (!activeDetailTarget) return;
+  const nextAction = detailStatusSelect?.value === "suspended" ? "unsuspend" : "suspend";
+  handleMemberAction(activeDetailTarget, nextAction, detailSuspendBtn);
+});
+
+detailDeleteBtn?.addEventListener("click", () => {
+  if (!activeDetailTarget) return;
+  const confirmed = window.confirm("Bu kullanıcıyı silmek istediğinizden emin misiniz?");
+  if (!confirmed) return;
+
+  const hardDelete = window.confirm(
+    "Kalıcı silme yapılsın mı? Onaylarsanız hesap ve ilgili içerik geri alınamaz."
+  );
+
+  handleMemberAction(activeDetailTarget, "delete", detailDeleteBtn, { hardDelete });
 });
 
 function debounceFilters() {
@@ -346,14 +383,21 @@ async function openDetailModal(uid) {
     }
 
     const data = profileSnap.data();
+    activeDetailTarget = uid;
+    activeDetailData = data;
+
     detailModalTitle.textContent = data.displayName || "Kullanıcı Detayı";
     detailModalEyebrow.textContent = `UID: ${uid}`;
-    detailName.textContent = data.displayName || "Bilinmiyor";
     detailEmail.textContent = data.email || "-";
     detailUid.textContent = uid;
-    detailStatus.textContent = data.status || "-";
-    detailRole.textContent = data.role || "student";
     detailCreatedAt.textContent = formatDateValue(data.createdAt);
+
+    if (detailNameInput) detailNameInput.value = data.displayName || "";
+    if (detailRoleSelect) detailRoleSelect.value = data.role || "student";
+    if (detailStatusSelect)
+      detailStatusSelect.value = STATUS_OPTIONS.includes(data.status) ? data.status : "pending";
+    syncSuspendButton(detailStatusSelect?.value || data.status);
+
     const claims = claimsResult?.data?.claims || {};
     detailClaims.textContent = Object.keys(claims).length
       ? Object.entries(claims)
@@ -378,16 +422,19 @@ function resetDetailModal() {
   setDetailStatus("", false, true);
   detailSkeleton.style.display = "block";
   detailContent.style.display = "none";
-  detailName.textContent = "-";
+  activeDetailTarget = null;
+  activeDetailData = null;
   detailEmail.textContent = "-";
   detailUid.textContent = "-";
-  detailStatus.textContent = "-";
-  detailRole.textContent = "-";
   detailCreatedAt.textContent = "-";
   detailClaims.textContent = "-";
   topicCountEl.textContent = "-";
   testCountEl.textContent = "-";
   attemptCountEl.textContent = "-";
+  if (detailNameInput) detailNameInput.value = "";
+  if (detailRoleSelect) detailRoleSelect.value = "student";
+  if (detailStatusSelect) detailStatusSelect.value = "pending";
+  syncSuspendButton("active");
 }
 
 function closeDetailModal() {
@@ -519,7 +566,7 @@ function updateCardRole(uid, role, roles = []) {
   if (roleSelect) roleSelect.value = role;
 }
 
-async function handleMemberAction(uid, action, button) {
+async function handleMemberAction(uid, action, button, payload = {}) {
   if (!uid || !action) return;
 
   const currentUser = auth.currentUser;
@@ -536,55 +583,142 @@ async function handleMemberAction(uid, action, button) {
   }
 
   const roleSelect = pendingListEl?.querySelector(`select[data-uid='${uid}']`);
-  const selectedRole = roleSelect?.value || pendingCache.get(uid)?.role || "student";
-  const newStatus = action === "approve" ? "active" : "rejected";
+  const selectedRole = payload.role || roleSelect?.value || pendingCache.get(uid)?.role || "student";
+  const desiredStatus = payload.status;
   const changedBy = { uid: currentUser.uid, email: currentUser.email || null };
+  const loadingLabels = {
+    approve: "Onaylanıyor...",
+    reject: "Reddediliyor...",
+    update: "Güncelleniyor...",
+    suspend: "Askıya alınıyor...",
+    unsuspend: "Aktifleştiriliyor...",
+    delete: payload.hardDelete ? "Kalıcı siliniyor..." : "Siliniyor...",
+  };
 
-  button.disabled = true;
-  const originalText = button.innerText;
-  button.innerText = action === "approve" ? "Onaylanıyor..." : "Reddediliyor...";
+  setButtonLoading(button, true, loadingLabels[action]);
   hideStatus();
 
   try {
-    const userData = pendingCache.get(uid) || {};
-    const updatedRoles = Array.from(new Set([...(userData.roles || []), selectedRole]));
+    if (action === "approve" || action === "reject") {
+      const newStatus = action === "approve" ? "active" : "rejected";
+      const userData = pendingCache.get(uid) || {};
+      const updatedRoles = Array.from(new Set([...(userData.roles || []), selectedRole]));
 
-    await updateDoc(doc(db, "users", uid), {
-      status: newStatus,
-      updatedAt: serverTimestamp(),
-      changedBy,
-      ...(action === "approve"
-        ? {
-            role: selectedRole,
-            roles: updatedRoles,
-          }
-        : {}),
-    });
-
-    if (action === "approve") {
-      await setUserRoleFn({ uid, role: selectedRole });
-      pendingCache.set(uid, {
-        ...(pendingCache.get(uid) || {}),
-        role: selectedRole,
-        roles: updatedRoles,
+      await updateDoc(doc(db, "users", uid), {
+        status: newStatus,
+        updatedAt: serverTimestamp(),
+        changedBy,
+        ...(action === "approve"
+          ? {
+              role: selectedRole,
+              roles: updatedRoles,
+            }
+          : {}),
       });
+
+      if (action === "approve") {
+        await setUserRoleFn({ uid, role: selectedRole });
+        pendingCache.set(uid, {
+          ...(pendingCache.get(uid) || {}),
+          role: selectedRole,
+          roles: updatedRoles,
+        });
+      }
+
+      showToast(
+        action === "approve"
+          ? "Üye onaylandı ve rol ataması güncellendi."
+          : "Başvuru reddedildi.",
+        "success"
+      );
+      removeCard(uid);
+      return;
     }
 
-    showStatus(
-      action === "approve"
-        ? "Üye onaylandı ve rol ataması güncellendi."
-        : "Başvuru reddedildi.",
-      false
-    );
+    if (action === "update") {
+      const roleToApply = selectedRole || payload.role;
+      const statusToApply = STATUS_OPTIONS.includes(desiredStatus) ? desiredStatus : undefined;
 
-    removeCard(uid);
+      await updateUserProfileFn({
+        uid,
+        role: roleToApply,
+        status: statusToApply,
+        displayName: payload.displayName || undefined,
+      });
+
+      if (roleToApply) {
+        await setUserRoleFn({ uid, role: roleToApply });
+      }
+
+      showToast("Üye bilgileri güncellendi.");
+      await loadPendingMembers(true);
+      await openDetailModal(uid);
+      return;
+    }
+
+    if (action === "suspend" || action === "unsuspend") {
+      const statusToApply = action === "suspend" ? "suspended" : "active";
+      await updateUserProfileFn({ uid, status: statusToApply });
+      showToast(
+        statusToApply === "suspended" ? "Üye askıya alındı." : "Üye tekrar aktifleştirildi.",
+        "success"
+      );
+      if (detailStatusSelect) detailStatusSelect.value = statusToApply;
+      syncSuspendButton(statusToApply);
+      await loadPendingMembers(true);
+      await openDetailModal(uid);
+      return;
+    }
+
+    if (action === "delete") {
+      await deleteUserFn({ uid, hard: payload.hardDelete === true });
+      showToast(
+        payload.hardDelete ? "Hesap ve ilişkili veriler silindi." : "Üyelik silindi (soft delete).",
+        "success"
+      );
+      removeCard(uid);
+      await loadPendingMembers(true);
+      closeDetailModal();
+      return;
+    }
   } catch (error) {
     console.error("Üye durumu güncellenemedi", error);
+    showToast("İşlem tamamlanamadı. Lütfen tekrar deneyin.", "error");
     showStatus("İşlem tamamlanamadı. Lütfen tekrar deneyin.", true);
   } finally {
-    button.disabled = false;
-    button.innerText = originalText;
+    setButtonLoading(button, false);
   }
+}
+
+function setButtonLoading(button, isLoading, label) {
+  if (!button) return;
+  if (isLoading) {
+    button.disabled = true;
+    button.dataset.originalText = button.innerHTML;
+    const loadingText = label || button.innerText || "İşleniyor";
+    button.innerHTML = `<span class="spinner" aria-hidden="true"></span> ${loadingText}`;
+  } else {
+    button.disabled = false;
+    if (button.dataset.originalText) {
+      button.innerHTML = button.dataset.originalText;
+      delete button.dataset.originalText;
+    }
+  }
+}
+
+function syncSuspendButton(status) {
+  if (!detailSuspendBtn) return;
+  const isSuspended = status === "suspended";
+  detailSuspendBtn.textContent = isSuspended ? "Askıdan Çıkar" : "Askıya Al";
+  detailSuspendBtn.dataset.suspended = isSuspended ? "true" : "false";
+}
+
+function getDetailFormValues() {
+  return {
+    displayName: detailNameInput?.value?.trim() || undefined,
+    role: detailRoleSelect?.value || undefined,
+    status: detailStatusSelect?.value || undefined,
+  };
 }
 
 function removeCard(uid) {
@@ -598,6 +732,32 @@ function removeCard(uid) {
     emptyStateEl.style.display = "block";
     toggleLoadMore(false);
   }
+}
+
+function showToast(message, type = "success", duration = 3200) {
+  if (!toastContainer) {
+    showStatus(message, type === "error");
+    return;
+  }
+
+  const toast = document.createElement("div");
+  toast.className = `toast ${type}`;
+
+  const textSpan = document.createElement("span");
+  textSpan.textContent = message;
+
+  const closeBtn = document.createElement("button");
+  closeBtn.type = "button";
+  closeBtn.setAttribute("aria-label", "Kapat");
+  closeBtn.textContent = "×";
+
+  closeBtn.addEventListener("click", () => toast.remove());
+
+  toast.appendChild(textSpan);
+  toast.appendChild(closeBtn);
+  toastContainer.appendChild(toast);
+
+  setTimeout(() => toast.remove(), duration);
 }
 
 function showStatus(message, isError = false) {
