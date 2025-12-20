@@ -4,6 +4,7 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/fi
 import {
   collection,
   doc,
+  getDoc,
   getDocs,
   updateDoc,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -48,6 +49,7 @@ const state = {
   users: [],
   filtered: [],
   selectedUser: null,
+  adminVerified: false,
 };
 
 initLayout("users");
@@ -62,11 +64,43 @@ searchInput?.addEventListener("input", () => {
 onAuthStateChanged(auth, async (user) => {
   if (!user) return;
 
-  const token = await user.getIdTokenResult(true);
-  if (token.claims.admin) {
+  if (await ensureAdminAccess(user)) {
     loadUsers();
   }
 });
+
+async function ensureAdminAccess(user) {
+  if (!user) return false;
+  if (state.adminVerified) return true;
+
+  try {
+    const token = await user.getIdTokenResult(true);
+    const tokenRole = token.claims.role;
+    const tokenIsAdmin = token.claims?.admin === true || tokenRole === "admin";
+
+    if (tokenIsAdmin) {
+      state.adminVerified = true;
+      return true;
+    }
+
+    const profileSnap = await getDoc(doc(db, "users", user.uid));
+    const profile = profileSnap.data();
+    const firestoreIsAdmin =
+      profile?.role === "admin" || (Array.isArray(profile?.roles) && profile.roles.includes("admin"));
+
+    if (firestoreIsAdmin) {
+      state.adminVerified = true;
+      return true;
+    }
+
+    showNotice("Bu alan için admin yetkisi gerekir.", true);
+  } catch (error) {
+    console.error("Admin kontrolü hatası", error);
+    showNotice("Yetki doğrulanamadı. Lütfen tekrar deneyin.", true);
+  }
+
+  return false;
+}
 
 function normalizeUser(docSnap) {
   const data = docSnap.data();
@@ -90,9 +124,8 @@ async function loadUsers() {
     return;
   }
 
-  const token = await user.getIdTokenResult();
-  if (!token.claims.admin) {
-    showNotice("Bu alan için yetkiniz yok.", true);
+  const isAdmin = await ensureAdminAccess(user);
+  if (!isAdmin) {
     return;
   }
 
