@@ -5,6 +5,7 @@ Bu paket:
 - firestore/firestore.indexes.json
 - functions/ (admin claim atama şablonu)
 - docs/security-and-scaling.md
+- docs/manual-auth-rules-test-checklist.md (manuel doğrulama senaryoları)
 
 Uygulama:
 1) Firebase CLI ile rules deploy:
