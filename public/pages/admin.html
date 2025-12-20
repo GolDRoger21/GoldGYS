@@ -82,6 +82,18 @@
     .spinner { width: 16px; height: 16px; border-radius: 50%; border: 2px solid rgba(0,0,0,0.1); border-top-color: var(--navy-deep); animation: spin 0.8s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
+    .form-grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); margin-top: 12px; }
+    .form-control { display: grid; gap: 6px; }
+    .form-control label { font-weight: 700; color: var(--navy-deep); }
+    .form-control input,
+    .form-control select { padding: 10px 12px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.08); background: #f8fafc; }
+
+    .button-row { display: flex; flex-wrap: wrap; gap: 10px; justify-content: flex-end; margin-top: 12px; }
+    .toast-container { position: fixed; bottom: 18px; right: 18px; display: grid; gap: 8px; z-index: 80; }
+    .toast { padding: 12px 14px; border-radius: 14px; box-shadow: var(--shadow-strong); background: #0f172a; color: white; min-width: 240px; display: flex; justify-content: space-between; align-items: center; }
+    .toast.success { background: #16a34a; }
+    .toast.error { background: #b91c1c; }
+
     @media (max-width: 768px) {
       .admin-hero { flex-direction: column; align-items: flex-start; }
       .panel-card .section-head { flex-direction: column; align-items: flex-start; }
@@ -119,6 +131,8 @@
                 <option value="pending">Beklemede</option>
                 <option value="active">Aktif</option>
                 <option value="rejected">Reddedildi</option>
+                <option value="suspended">Askıya alındı</option>
+                <option value="deleted">Silindi</option>
                 <option value="all">Tümü</option>
               </select>
               <select id="roleFilter" aria-label="Rol filtresi">
@@ -165,7 +179,7 @@
   </div>
 
   <div id="detailModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-hidden="true">
-    <div class="modal-card" style="width: min(720px, 94vw);">
+    <div class="modal-card" style="width: min(760px, 94vw);">
       <div class="modal-header">
         <div>
           <p class="eyebrow" id="detailModalEyebrow">Kullanıcı detayları</p>
@@ -178,18 +192,44 @@
         <div id="detailSkeleton" class="muted">Kullanıcı bilgileri getiriliyor...</div>
         <div id="detailContent" style="display:none;">
           <div style="display:grid; gap:10px;">
-            <div><strong>Ad Soyad:</strong> <span id="detailName">-</span></div>
-            <div><strong>E-posta:</strong> <span id="detailEmail">-</span></div>
             <div><strong>UID:</strong> <span id="detailUid" class="pill-inline">-</span></div>
-            <div><strong>Durum:</strong> <span id="detailStatus">-</span></div>
-            <div><strong>Rol:</strong> <span id="detailRole">-</span></div>
+            <div><strong>E-posta:</strong> <span id="detailEmail">-</span></div>
             <div><strong>Oluşturulma:</strong> <span id="detailCreatedAt">-</span></div>
             <div><strong>Claims:</strong> <span id="detailClaims">-</span></div>
+          </div>
+          <div class="form-grid">
+            <div class="form-control">
+              <label for="detailNameInput">Ad Soyad</label>
+              <input type="text" id="detailNameInput" placeholder="Ad ve soyadı güncelleyin" />
+            </div>
+            <div class="form-control">
+              <label for="detailRoleSelect">Rol</label>
+              <select id="detailRoleSelect">
+                <option value="student">Öğrenci</option>
+                <option value="editor">Editör</option>
+                <option value="admin">Admin</option>
+              </select>
+            </div>
+            <div class="form-control">
+              <label for="detailStatusSelect">Durum</label>
+              <select id="detailStatusSelect">
+                <option value="pending">Beklemede</option>
+                <option value="active">Aktif</option>
+                <option value="rejected">Reddedildi</option>
+                <option value="suspended">Askıya alındı</option>
+                <option value="deleted">Silindi</option>
+              </select>
+            </div>
           </div>
           <div style="margin-top:12px; display:grid; grid-template-columns: repeat(auto-fit, minmax(180px,1fr)); gap:10px;">
             <div class="empty-state" style="border-style: solid;">Konular: <strong id="topicCount">-</strong></div>
             <div class="empty-state" style="border-style: solid;">Testler: <strong id="testCount">-</strong></div>
             <div class="empty-state" style="border-style: solid;">Deneme/Sınavlar: <strong id="attemptCount">-</strong></div>
+          </div>
+          <div class="button-row">
+            <button type="button" class="btn-secondary" id="detailSuspendBtn">Askıya Al</button>
+            <button type="button" class="btn-danger" id="detailDeleteBtn">Sil</button>
+            <button type="button" class="btn-navy" id="detailUpdateBtn">Güncelle</button>
           </div>
         </div>
       </div>
@@ -198,6 +238,8 @@
       </div>
     </div>
   </div>
+
+  <div id="toastContainer" class="toast-container" aria-live="polite"></div>
 
   <script type="module" src="/js/admin-page.js"></script>
 </body>

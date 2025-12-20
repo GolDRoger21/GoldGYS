@@ -3,7 +3,7 @@ const admin = require("firebase-admin");
 admin.initializeApp();
 
 const ALLOWED_ROLES = ["student", "editor", "admin"];
-const ALLOWED_STATUS = ["pending", "active", "rejected", "suspended"];
+const ALLOWED_STATUS = ["pending", "active", "rejected", "suspended", "deleted"];
 
 // Rol atama (HTTPS callable)
 // Sadece mevcut admin kullanıcıları çalıştırabilir (caller admin olmalı)
@@ -108,8 +108,14 @@ exports.updateUserProfile = functions.https.onCall(async (data, context) => {
     throw new functions.https.HttpsError("invalid-argument", "Geçerli bir kullanıcı kimliği gerekli.");
   }
 
+  const actorInfo = {
+    uid: context.auth.uid,
+    email: context.auth.token?.email || null,
+  };
+
   const updates = {
     updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    changedBy: actorInfo,
   };
 
   if (displayName !== undefined) updates.displayName = displayName;
@@ -120,6 +126,11 @@ exports.updateUserProfile = functions.https.onCall(async (data, context) => {
       throw new functions.https.HttpsError("invalid-argument", "Geçerli bir statü seçin.");
     }
     updates.status = status;
+
+    if (status === "deleted") {
+      updates.deletedAt = admin.firestore.FieldValue.serverTimestamp();
+      updates.deletedBy = actorInfo;
+    }
   }
 
   let claimsToApply = null;
@@ -158,15 +169,63 @@ exports.updateUserProfile = functions.https.onCall(async (data, context) => {
   return { ok: true, uid, role: role || null, status: status || null, roles: normalizedRoles };
 });
 
+async function deleteCollectionDocs(collectionRef, field, value) {
+  const querySnap = await collectionRef.where(field, "==", value).get();
+  const deletions = querySnap.docs.map((docSnap) => docSnap.ref.delete());
+  await Promise.all(deletions);
+}
+
+async function deleteUserSubcollections(uid) {
+  const userRef = admin.firestore().collection("users").doc(uid);
+  const subCollections = await userRef.listCollections();
+  for (const sub of subCollections) {
+    const subDocs = await sub.listDocuments();
+    if (subDocs.length) {
+      await Promise.all(subDocs.map((d) => d.delete()));
+    }
+  }
+}
+
 exports.deleteUserAccount = functions.https.onCall(async (data, context) => {
   await ensureCallerIsAdmin(context);
 
   const uid = data?.uid;
+  const hard = data?.hard === true;
+
   if (!uid) {
     throw new functions.https.HttpsError("invalid-argument", "Silinecek kullanıcı kimliği gerekli.");
   }
 
+  const actorInfo = {
+    uid: context.auth.uid,
+    email: context.auth.token?.email || null,
+  };
+
   const userRef = admin.firestore().collection("users").doc(uid);
+
+  if (!hard) {
+    await userRef.set(
+      {
+        status: "deleted",
+        deletedAt: admin.firestore.FieldValue.serverTimestamp(),
+        deletedBy: actorInfo,
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        changedBy: actorInfo,
+      },
+      { merge: true }
+    );
+    return { ok: true, uid, deleted: true };
+  }
+
+  await deleteUserSubcollections(uid).catch((err) => {
+    console.warn("Alt koleksiyonlar silinirken hata", err.message || err);
+  });
+
+  await Promise.allSettled([
+    deleteCollectionDocs(admin.firestore().collection("topics"), "ownerId", uid),
+    deleteCollectionDocs(admin.firestore().collection("tests"), "ownerId", uid),
+    deleteCollectionDocs(admin.firestore().collection("exams"), "createdBy", uid),
+  ]);
 
   await userRef.delete().catch((err) => {
     console.warn("Firestore kullanıcı silme hatası (devam ediliyor):", err.message || err);
@@ -180,7 +239,7 @@ exports.deleteUserAccount = functions.https.onCall(async (data, context) => {
     }
   }
 
-  return { ok: true, uid };
+  return { ok: true, uid, hardDeleted: true };
 });
 
 // Admin kullanıcılar için özel claim bilgilerini getirir
