@@ -20,10 +20,15 @@ function setupSidebar() {
     }
     onAuthStateChanged(auth, async (user) => {
         if(user) {
-            await ensureUserDocument(user);
+            const profile = await ensureUserDocument(user);
             const token = await user.getIdTokenResult();
-            if(token.claims.admin) {
-                document.querySelectorAll(".admin-link").forEach(l => l.style.display="block");
+            const hasAdminRole = token.claims.admin
+                || token.claims.role === "admin"
+                || profile?.role === "admin"
+                || profile?.roles?.includes("admin");
+
+            if(hasAdminRole) {
+                document.querySelectorAll(".admin-link, .admin-only").forEach(l => l.style.display="block");
             }
         }
     });
