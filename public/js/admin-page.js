@@ -19,6 +19,7 @@ import { auth, db } from "/js/firebase-config.js";
 import { initLayout } from "/js/ui-loader.js";
 import { protectPage } from "/js/role-guard.js";
 
+// --- DOM ELEMENTLERİ ---
 const pendingListEl = document.getElementById("pendingList");
 const emptyStateEl = document.getElementById("emptyState");
 const errorStateEl = document.getElementById("errorState");
@@ -157,6 +158,7 @@ const sectionManagers = {};
 let activeContentEdit = null;
 const SECTION_PAGE_SIZE = 6;
 
+// --- BAŞLATMA ---
 protectPage({ requireRole: "admin" });
 initLayout("admin");
 
@@ -226,7 +228,7 @@ detailSuspendBtn?.addEventListener("click", () => {
 
 detailDeleteBtn?.addEventListener("click", () => {
   if (!activeDetailTarget) return;
-  const confirmed = window.confirm("Bu kullanıcıyı silmek istediğinizden emin misiniz?");
+  const confirmed = window.confirm("Bu kullanıcıyı silmek istediğinize emin misiniz?");
   if (!confirmed) return;
 
   const hardDelete = window.confirm(
@@ -237,7 +239,8 @@ detailDeleteBtn?.addEventListener("click", () => {
 });
 
 bindContentTabs();
-initContentSections();
+// DİKKAT: initContentSections() buradan kaldırıldı ve dosya sonuna taşındı.
+
 document.querySelectorAll("[data-content-modal-close]").forEach((btn) =>
   btn.addEventListener("click", closeContentEditModal)
 );
@@ -256,6 +259,7 @@ function debounceFilters() {
   debounceTimer = setTimeout(() => loadPendingMembers(true), 350);
 }
 
+// --- AUTH LISTENER ---
 onAuthStateChanged(auth, async (user) => {
   if (!user) return;
 
@@ -269,6 +273,8 @@ onAuthStateChanged(auth, async (user) => {
 
   loadPendingMembers();
 });
+
+// --- FONKSİYONLAR ---
 
 async function loadPendingMembers(forceReload = false) {
   if (!pendingListEl || !emptyStateEl) return;
@@ -1841,3 +1847,8 @@ function focusFirstElement(modal) {
     focusable.focus();
   }
 }
+
+// ===========================================
+// initContentSections() TAŞINAN YERİ (EN SON)
+// ===========================================
+initContentSections();
