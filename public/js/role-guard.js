@@ -2,7 +2,19 @@ import { auth } from "./firebase-config.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 export function protectPage(options = {}) {
-    const { requireRole = null, allow = null } = options;
+    let normalizedOptions = {};
+
+    if (options === true) {
+        normalizedOptions = { requireRole: "admin" };
+    } else if (typeof options === "string") {
+        normalizedOptions = { requireRole: options };
+    } else if (Array.isArray(options)) {
+        normalizedOptions = { allow: options };
+    } else if (options && typeof options === "object") {
+        normalizedOptions = options;
+    }
+
+    const { requireRole = null, allow = null } = normalizedOptions;
 
     onAuthStateChanged(auth, async (user) => {
         if (!user) {
