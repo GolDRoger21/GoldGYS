@@ -17,7 +17,6 @@ import {
 import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-functions.js";
 import { auth, db } from "/js/firebase-config.js";
 import { initLayout } from "/js/ui-loader.js";
-import { protectPage } from "/js/role-guard.js";
 
 // --- DOM ELEMENTLERİ ---
 const pendingListEl = document.getElementById("pendingList");
@@ -158,10 +157,9 @@ const sectionManagers = {};
 let activeContentEdit = null;
 const SECTION_PAGE_SIZE = 6;
 let adminContextCache = null;
+let layoutInitialized = false;
 
 // --- BAŞLATMA ---
-protectPage({ requireRole: "admin" });
-initLayout("admin");
 
 refreshBtn?.addEventListener("click", () => loadPendingMembers(true));
 pendingListEl?.addEventListener("click", (event) => {
@@ -271,6 +269,7 @@ async function getAdminContext(forceRefresh = false) {
   const tokenResult = await currentUser.getIdTokenResult(true);
   const claimRole = tokenResult.claims.role || (tokenResult.claims.admin ? "admin" : null);
   const claimStatus = tokenResult.claims.status || (tokenResult.claims.admin ? "active" : null);
+  const isAdmin = claimRole === "admin" || tokenResult.claims.admin === true;
 
   let profile = null;
   try {
@@ -282,11 +281,8 @@ async function getAdminContext(forceRefresh = false) {
     console.warn("Profil alınamadı, claim bilgileri kullanılacak", error);
   }
 
-  const roleFromProfile = profile?.role || (Array.isArray(profile?.roles) && profile.roles.includes("admin") ? "admin" : null);
-  const statusFromProfile = profile?.status || null;
-  const effectiveRole = roleFromProfile || claimRole || null;
-  const effectiveStatus = statusFromProfile || claimStatus || (effectiveRole === "admin" ? "active" : null);
-  const isAdmin = effectiveRole === "admin";
+  const effectiveStatus = claimStatus || profile?.status || null;
+  const effectiveRole = claimRole;
 
   adminContextCache = {
     uid: currentUser.uid,
@@ -304,12 +300,21 @@ async function requireAdminAccess(requireActive = true) {
   const context = await getAdminContext(true);
 
   if (!context.isAdmin) {
-    showStatus("Bu sayfa yalnızca admin rolüne sahip hesaplar içindir.", true);
+    showStatus(
+      "Bu sayfa yalnızca admin rolüne sahip hesaplar içindir. Lütfen yönetici yetkisi olan bir hesapla giriş yapın.",
+      true
+    );
+    setTimeout(() => {
+      window.location.href = "/login.html";
+    }, 1500);
     return null;
   }
 
   if (requireActive && context.status && context.status !== "active") {
     showStatus("Bu işlem için hesabınızın aktif olması gerekiyor.", true);
+    setTimeout(() => {
+      window.location.href = "/pages/pending-approval.html";
+    }, 1500);
     return null;
   }
 
@@ -318,10 +323,18 @@ async function requireAdminAccess(requireActive = true) {
 
 // --- AUTH LISTENER ---
 onAuthStateChanged(auth, async (user) => {
-  if (!user) return;
+  if (!user) {
+    window.location.href = "/login.html";
+    return;
+  }
 
   const adminContext = await requireAdminAccess();
   if (!adminContext) return;
+
+  if (!layoutInitialized) {
+    initLayout("admin");
+    layoutInitialized = true;
+  }
 
   loadPendingMembers();
 });
