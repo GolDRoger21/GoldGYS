@@ -1,10 +1,14 @@
 <div class="header-inner">
     <div class="header-left">
-        <button class="mobile-menu-toggle" type="button" onclick="window.toggleSidebar()" aria-label="Yan menüyü aç/kapat">☰</button>
-        <a class="brand-mark header-brand" href="/pages/dashboard.html" aria-label="Panel sayfasına dön">
+        <button class="mobile-menu-toggle" type="button" onclick="window.toggleSidebar()" aria-label="Menü">
+            <span style="font-size: 1.2rem;">☰</span>
+        </button>
+        
+        <a class="brand-mark header-brand" href="/pages/dashboard.html">
             <span class="brand-highlight">GOLD</span>GYS
         </a>
-        <nav class="main-nav" aria-label="Ana menü">
+
+        <nav class="main-nav">
             <a href="/pages/dashboard.html" data-page="dashboard">Panel</a>
             <a href="/pages/konular.html" data-page="konular">Konular</a>
             <a href="/pages/testler.html" data-page="testler">Testler</a>
@@ -15,19 +19,36 @@
     </div>
 
     <div class="header-actions">
-        <div class="user-menu" data-profile-menu>
-            <div class="user-avatar" id="headerUserInitial" aria-hidden="true">K</div>
-            <div class="user-meta">
-                <span class="user-name" id="headerUserName">Kullanıcı</span>
-                <span class="user-subtitle">Profil · Ayarlar</span>
-            </div>
-            <button class="profile-toggle" type="button" data-profile-toggle aria-expanded="false" aria-controls="profileDropdown">
-                ▾
+        <div class="user-menu-container" data-profile-menu>
+            <button class="user-avatar-btn" type="button" data-profile-toggle aria-expanded="false" title="Hesap Yönetimi">
+                <div class="user-avatar-circle" id="headerUserInitial">?</div>
             </button>
-            <div id="profileDropdown" class="profile-dropdown" role="menu">
-                <a href="/pages/profil.html" role="menuitem">👤 Profilim</a>
-                <a href="/pages/profil.html#ayarlar" role="menuitem">⚙️ Hesap Ayarları</a>
-                <button type="button" class="logout-btn" onclick="window.handleLogout()" role="menuitem">🚪 Çıkış Yap</button>
+
+            <div id="profileDropdown" class="profile-dropdown">
+                <div class="dropdown-header-info">
+                    <div class="user-avatar-small" id="dropdownUserInitial">?</div>
+                    <div class="user-info-text">
+                        <span class="user-name-bold" id="headerUserName">Yükleniyor...</span>
+                        <span class="user-email-light" id="headerUserEmail">...</span>
+                    </div>
+                </div>
+                <hr class="dropdown-divider">
+                
+                <a href="/pages/profil.html" role="menuitem">
+                    <span class="icon">👤</span> Profilim
+                </a>
+                <a href="/pages/profil.html#ayarlar" role="menuitem">
+                    <span class="icon">⚙️</span> Ayarlar
+                </a>
+                <a href="/pages/yardim.html" role="menuitem">
+                    <span class="icon">❓</span> Yardım
+                </a>
+                
+                <hr class="dropdown-divider">
+                
+                <button type="button" class="logout-btn" onclick="window.handleLogout()" role="menuitem">
+                    <span class="icon">🚪</span> Çıkış Yap
+                </button>
             </div>
         </div>
     </div>
