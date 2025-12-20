@@ -508,11 +508,36 @@ button { font-family: inherit; }
 
 .app-content { padding: 40px; flex: 1; }
 
-.footer { margin-top: 40px; padding: 20px 40px; background: var(--navy-deep); color: white; }
-.footer-content { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.footer {
+    margin-top: 40px;
+    padding: 24px 40px;
+    background: radial-gradient(circle at 20% 20%, rgba(212, 175, 55, 0.1), transparent 35%), var(--navy-deep);
+    color: white;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.footer-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
 .footer-links { display: flex; gap: 12px; flex-wrap: wrap; }
-.footer a { color: rgba(255,255,255,0.85); text-decoration: none; font-weight: 600; }
-.footer a:hover { color: var(--gold-main); }
+
+.footer a {
+    color: rgba(255,255,255,0.9);
+    text-decoration: none;
+    font-weight: 700;
+    padding: 8px 10px;
+    border-radius: 10px;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+.footer a:hover { color: var(--gold-main); background: rgba(255,255,255,0.06); }
 
 /* =========================================
    4. EXAM ENGINE (TEST & DENEME EKRANI)
@@ -654,6 +679,12 @@ button { font-family: inherit; }
     /* Footer Buttons */
     .footer-static { padding: 10px; flex-wrap: wrap; }
     .footer-static button { flex: 1; font-size: 0.85rem; padding: 10px; }
+}
+
+@media (max-width: 640px) {
+    .footer { padding: 20px; }
+    .footer-content { flex-direction: column; align-items: flex-start; gap: 12px; }
+    .footer-links { width: 100%; justify-content: flex-start; }
 }
 
 :root {
