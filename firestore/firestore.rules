@@ -3,70 +3,83 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     function signedIn() { return request.auth != null; }
-    function isAdmin()  { return signedIn() && request.auth.token.admin == true; }
     function isSelf(uid){ return signedIn() && request.auth.uid == uid; }
+
+    function roleIs(roleName) {
+      return signedIn() && request.auth.token.role == roleName;
+    }
+
+    function isAdmin()  { return roleIs('admin') || request.auth.token.admin == true; }
+    function isEditor() { return roleIs('editor'); }
+    function isStudent(){ return roleIs('student'); }
+    function canManageContent() { return isAdmin() || isEditor(); }
 
     // Public (read-only) content collections
     match /topics/{id} {
       allow read: if true;
-      allow write: if isAdmin();
+      allow write: if canManageContent();
     }
 
     match /lessons/{id} {
       allow read: if true;
-      allow write: if isAdmin();
+      allow write: if canManageContent();
     }
 
     match /tests/{id} {
       allow read: if true;
-      allow write: if isAdmin();
+      allow write: if canManageContent();
     }
 
     match /questions/{id} {
       allow read: if true;
-      allow write: if isAdmin();
+      allow write: if canManageContent();
     }
 
     match /exams/{id} {
       allow read: if true;
-      allow write: if isAdmin();
+      allow write: if canManageContent();
     }
 
-    // Reports: students can create; admin can read/update
+    // Reports: students can create their own; admins and editors can review
     match /reports/{id} {
-      allow create: if signedIn()
+      allow create: if isStudent()
         && request.resource.data.userId == request.auth.uid
         && request.resource.data.status == "open";
-      allow read, update, delete: if isAdmin();
+
+      allow read: if (isAdmin() || isEditor())
+        || (isStudent() && request.auth.uid == resource.data.userId);
+
+      allow update: if isAdmin() || isEditor();
+      allow delete: if isAdmin();
     }
 
-    // Users root doc: self read; admin read; self can create minimal profile
+    // Users root doc: self read; admin/editor read; self can create minimal profile
     match /users/{uid} {
       // User kendisinin UID'siyle yazabilir (signup sırasında)
       allow create: if request.auth.uid == uid;
-      allow read: if request.auth.uid == uid || isAdmin();
-      allow update: if request.auth.uid == uid || isAdmin();
+      allow read: if isSelf(uid) || isAdmin() || isEditor();
+      allow update: if isSelf(uid) || isAdmin();
       allow delete: if isAdmin();
 
       // User private subcollections
       match /progress/{docId} {
-        allow read, write: if request.auth.uid == uid;
+        allow read, write: if isSelf(uid);
       }
 
       match /wrongs/{docId} {
-        allow read, write: if request.auth.uid == uid;
+        allow read, write: if isSelf(uid);
       }
 
       match /favorites/{docId} {
-        allow read, write: if request.auth.uid == uid;
+        allow read, write: if isSelf(uid);
       }
 
       match /examSessions/{docId} {
-        allow read, write: if request.auth.uid == uid;
+        allow read, write: if isSelf(uid);
       }
 
       match /examResults/{docId} {
-        allow read, write: if request.auth.uid == uid;
+        allow read, write: if isSelf(uid);
       }
     }
 

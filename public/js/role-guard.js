@@ -1,16 +1,41 @@
 import { auth } from "./firebase-config.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-export function protectPage(requireAdmin = false) {
+export function protectPage(options = {}) {
+    const { requireRole = null, allow = null } = options;
+
     onAuthStateChanged(auth, async (user) => {
         if (!user) {
             window.location.href = "/login.html";
-        } else if (requireAdmin) {
+            return;
+        }
+
+        const allowedRoles = Array.isArray(allow)
+            ? allow
+            : (allow ? [allow] : (requireRole ? [requireRole] : []));
+
+        if (allowedRoles.length === 0) {
+            return; // No role restrictions
+        }
+
+        try {
             const token = await user.getIdTokenResult();
-            if (!token.claims.admin) {
-                alert("Yetkisiz Giriş!");
+            const role = token.claims.role || (token.claims.admin ? "admin" : null);
+
+            const isAuthorized = role && allowedRoles.includes(role);
+
+            if (!isAuthorized) {
+                const message = allowedRoles.length === 1
+                    ? `Bu sayfa yalnızca ${allowedRoles[0]} yetkisine sahip kullanıcılar içindir.`
+                    : `Bu sayfa ${allowedRoles.join(" veya ")} yetkisine sahip kullanıcılar içindir.`;
+
+                alert(`${message} Dashboard'a yönlendiriliyorsunuz.`);
                 window.location.href = "/pages/dashboard.html";
             }
+        } catch (error) {
+            console.error("Rol doğrulaması sırasında hata oluştu:", error);
+            alert("Oturum doğrulaması sırasında bir hata oluştu. Lütfen tekrar giriş yapın.");
+            window.location.href = "/login.html";
         }
     });
 }
