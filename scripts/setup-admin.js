@@ -35,15 +35,22 @@ async function setupAdmin(email) {
     console.log(`✅ Admin claim'leri ayarlandı`);
 
     // Firestore'da da güncelle
-    await db.collection("users").doc(userRecord.uid).set(
-      {
-        role: "admin",
-        roles: ["admin", "editor", "student"],
-        status: "active",
-        isAdmin: true,
-      },
-      { merge: true }
-    );
+    const userDocRef = db.collection("users").doc(userRecord.uid);
+    const existingDoc = await userDocRef.get();
+
+    const payload = {
+      role: "admin",
+      roles: ["admin", "editor", "student"],
+      status: "active",
+      isAdmin: true,
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    };
+
+    if (!existingDoc.exists || !existingDoc.data()?.createdAt) {
+      payload.createdAt = admin.firestore.FieldValue.serverTimestamp();
+    }
+
+    await userDocRef.set(payload, { merge: true });
     console.log(`✅ Firestore dokümanı güncellendi`);
 
     console.log(`\n🎉 ${email} artık admin kullanıcısıdır!`);

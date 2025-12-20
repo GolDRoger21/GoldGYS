@@ -51,8 +51,22 @@
                 <h2>Kullanıcılar</h2>
                 <p class="card-subtitle">Üyeleri statü, rol veya isme göre filtreleyip seçin.</p>
               </div>
-              <div class="input-group">
-                <input type="search" id="userSearch" class="input" placeholder="İsim veya e-posta ara">
+              <div class="card-actions" style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center; justify-content: flex-end;">
+                <input type="search" id="userSearch" class="input" placeholder="İsim veya e-posta ara" style="min-width: 220px;">
+                <select id="filterStatus" class="select">
+                  <option value="">Tüm Durumlar</option>
+                  <option value="pending">Beklemede</option>
+                  <option value="active">Aktif</option>
+                  <option value="rejected">Reddedildi</option>
+                  <option value="suspended">Askıya Alındı</option>
+                  <option value="deleted">Silindi</option>
+                </select>
+                <select id="filterRole" class="select">
+                  <option value="">Tüm Roller</option>
+                  <option value="student">Öğrenci</option>
+                  <option value="editor">Editör</option>
+                  <option value="admin">Admin</option>
+                </select>
               </div>
             </div>
             <div class="card-body">
