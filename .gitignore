@@ -20,3 +20,14 @@ public/js/env.js
 # Build artifacts
 dist/
 build/
+
+# Firebase Admin / Service Account keys (NEVER COMMIT)
+**/*adminsdk*.json
+**/*service-account*.json
+**/serviceAccount*.json
+**/firebase-adminsdk-*.json
+**/goldgys-firebase-adminsdk-*.json
+
+# Optional: a dedicated folder for secrets
+firebase-keys/
+secrets/

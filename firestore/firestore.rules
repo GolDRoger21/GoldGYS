@@ -42,30 +42,31 @@ service cloud.firestore {
 
     // Users root doc: self read; admin read; self can create minimal profile
     match /users/{uid} {
-      allow create: if isSelf(uid);
-      allow read: if isSelf(uid) || isAdmin();
-      allow update: if isSelf(uid) || isAdmin();
+      // User kendisinin UID'siyle yazabilir (signup sırasında)
+      allow create: if request.auth.uid == uid;
+      allow read: if request.auth.uid == uid || isAdmin();
+      allow update: if request.auth.uid == uid || isAdmin();
       allow delete: if isAdmin();
 
       // User private subcollections
       match /progress/{docId} {
-        allow read, write: if isSelf(uid);
+        allow read, write: if request.auth.uid == uid;
       }
 
       match /wrongs/{docId} {
-        allow read, write: if isSelf(uid);
+        allow read, write: if request.auth.uid == uid;
       }
 
       match /favorites/{docId} {
-        allow read, write: if isSelf(uid);
+        allow read, write: if request.auth.uid == uid;
       }
 
       match /examSessions/{docId} {
-        allow read, write: if isSelf(uid);
+        allow read, write: if request.auth.uid == uid;
       }
 
       match /examResults/{docId} {
-        allow read, write: if isSelf(uid);
+        allow read, write: if request.auth.uid == uid;
       }
     }
 

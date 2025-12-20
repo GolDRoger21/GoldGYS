@@ -1,0 +1,13 @@
+{
+  "name": "goldgys-firestore-import",
+  "version": "1.0.0",
+  "description": "Firestore seed import utilities for GOLD GYS",
+  "main": "import_firestore.js",
+  "type": "module",
+  "scripts": {
+    "import": "node import_firestore.js"
+  },
+  "dependencies": {
+    "firebase-admin": "^11.8.0"
+  }
+}

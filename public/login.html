@@ -51,12 +51,39 @@
 
     <script type="module">
         import { auth, db } from "./js/firebase-config.js";
-        import { GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const googleBtn = document.getElementById("googleBtn");
         const loader = document.getElementById("loader");
         const statusBox = document.getElementById("statusBox");
+
+        // Eğer zaten giriş yapılmış ise, direkt panele git (unavailable hatasından sonra refresh durumunda da çalışır)
+        onAuthStateChanged(auth, async (user) => {
+            if (user && window.location.pathname !== '/pages/dashboard.html') {
+                // User var ve panelde değiliz
+                // Kullanıcının status'unu kontrol et
+                try {
+                    const userRef = doc(db, "users", user.uid);
+                    const userSnap = await getDoc(userRef);
+                    
+                    if (userSnap.exists()) {
+                        const data = userSnap.data();
+                        if (data.status === "active" || data.role === "admin") {
+                            window.location.href = "/pages/dashboard.html"; // Panele git
+                        }
+                    }
+                } catch (e) {
+                    console.log("Status kontrol hatası:", e);
+                }
+            }
+        });
+
+        let retryCount = 0;
+        const MAX_RETRIES = 3;
+
+        // Test modunda detaylı logging
+        const DEBUG_MODE = true;
 
         googleBtn.addEventListener("click", async () => {
             // UI Kilitle
@@ -68,29 +95,49 @@
             const provider = new GoogleAuthProvider();
 
             try {
+                if (DEBUG_MODE) console.log("1. Google signIn başlatılıyor...");
+                
                 // Giriş Penceresini Aç
                 const result = await signInWithPopup(auth, provider);
                 const user = result.user;
+                
+                if (DEBUG_MODE) console.log("2. Google signIn başarılı. UID:", user.uid);
 
                 // Veritabanı Kontrolü
                 const userRef = doc(db, "users", user.uid);
+                if (DEBUG_MODE) console.log("3. Firestore'dan kullanıcı sorgulanıyor...");
+                
                 const userSnap = await getDoc(userRef);
+                if (DEBUG_MODE) console.log("4. User var mı?", userSnap.exists());
 
                 if (!userSnap.exists()) {
                     // YENİ KAYIT
-                    await setDoc(userRef, {
-                        email: user.email,
-                        displayName: user.displayName || "Personel",
-                        role: "student",
-                        status: "pending", 
-                        createdAt: serverTimestamp()
-                    });
+                    if (DEBUG_MODE) console.log("5. Yeni kullanıcı kaydı oluşturuluyor...");
+                    
+                    try {
+                        await setDoc(userRef, {
+                            email: user.email,
+                            displayName: user.displayName || "Personel",
+                            role: "student",
+                            status: "pending", 
+                            createdAt: serverTimestamp()
+                        });
+                        if (DEBUG_MODE) console.log("6. Kullanıcı kaydı başarılı!");
+                    } catch (dbError) {
+                        if (DEBUG_MODE) console.error("Firestore yazma hatası:", dbError);
+                        throw dbError;
+                    }
+                    
                     showStatus("pending", `Hoş geldiniz <b>${user.displayName}</b>. Kaydınız oluşturuldu, yönetici onayı bekleniyor.`);
                     await signOut(auth);
                 } else {
                     // MEVCUT KULLANICI
+                    if (DEBUG_MODE) console.log("5. Mevcut kullanıcı kontrol ediliyor...");
                     const data = userSnap.data();
+                    if (DEBUG_MODE) console.log("6. Kullanıcı status:", data.status, "Role:", data.role);
+                    
                     if (data.status === "active" || data.role === "admin") {
+                        if (DEBUG_MODE) console.log("7. Panele yönlendiriliyor...");
                         window.location.href = "pages/dashboard.html"; // Panele git
                     } else {
                         showStatus("pending", `Hesap durumunuz: <b>${data.status}</b>. Yönetici onayı bekleniyor.`);
@@ -98,17 +145,51 @@
                     }
                 }
             } catch (error) {
-                console.error(error);
-                let msg = "Bir hata oluştu: " + error.code;
+                console.error("❌ Giriş hatası detayları:", error);
+                console.error("Error Code:", error?.code);
+                console.error("Error Message:", error?.message);
+                console.error("Full Error:", JSON.stringify(error, null, 2));
                 
-                if (error.code === 'auth/operation-not-allowed') {
+                let msg = "Bir hata oluştu.";
+                let shouldRetry = false;
+                
+                // Error code'u güvenli şekilde al
+                const errorCode = error?.code || error?.message || 'unknown';
+                
+                if (errorCode === 'auth/operation-not-allowed') {
                     msg = "HATA: Google Girişi Kapalı! Firebase Konsolu > Authentication > Sign-in method kısmından Google'ı açmalısın.";
-                } else if (error.code === 'auth/popup-closed-by-user') {
+                } else if (errorCode === 'auth/popup-closed-by-user') {
                     msg = "Giriş penceresini kapattınız.";
-                } else if (error.code === 'auth/network-request-failed') {
+                } else if (errorCode === 'auth/network-request-failed') {
                     msg = "İnternet bağlantısı yok veya güvenlik duvarı engelliyor.";
-                } else if (error.code === 'auth/unauthorized-domain') {
+                } else if (errorCode === 'auth/unauthorized-domain') {
                     msg = "HATA: Bu alan adına (domain) izin verilmiyor. Firebase Konsolu > Authentication > Settings > Authorized Domains kısmına site adresini ekle.";
+                } else if (errorCode?.includes('unavailable')) {
+                    shouldRetry = retryCount < MAX_RETRIES;
+                    if (shouldRetry) {
+                        retryCount++;
+                        msg = `Giriş servisleri geçici olarak kullanılamıyor. ${3 - retryCount}. deneme yapılıyor...`;
+                        showStatus("pending", msg);
+                        
+                        // 2 saniye sonra otomatik retry
+                        setTimeout(() => {
+                            googleBtn.click();
+                        }, 2000);
+                        
+                        // Return early, retry yapacağız
+                        loader.style.display = "none";
+                        googleBtn.style.opacity = "1";
+                        googleBtn.style.pointerEvents = "auto";
+                        return;
+                    } else {
+                        msg = "Giriş servisleri geçici olarak kullanılamıyor. Lütfen sayfayı yenileyin ve tekrar deneyin.";
+                    }
+                } else if (errorCode === 'permission-denied' || errorCode?.includes('PERMISSION_DENIED')) {
+                    msg = "HATA: Firestore yazma izni yok! Firebase Konsolu > Firestore Database > Rules kısmını kontrol edin. Rules: allow create: if request.auth.uid == uid;";
+                } else if (errorCode?.includes('Firestore')) {
+                    msg = `Veritabanı hatası: ${error.message}. Firestore'un etkin olduğundan emin olun.`;
+                } else {
+                    msg = `Giriş başarısız: ${errorCode}. Tekrar deneyin veya tarayıcı konsolunu kontrol edin.`;
                 }
 
                 showStatus("error", msg);

@@ -1,11 +1,16 @@
 
-<header class="topbar">
-  <div class="logo">GOLD GYS</div>
-  <nav class="top-nav">
-    <a href="dashboard.html">Panel</a>
-    <a href="konular.html">Konular</a>
-    <a href="testler.html">Testler</a>
-    <a href="denemeler.html">Denemeler</a>
-    <a href="profil.html">Profil</a>
-  </nav>
-</header>
+<div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+    <div style="display: flex; gap: 30px; flex: 1;">
+        <a href="dashboard.html">Panel</a>
+        <a href="konular.html">Konular</a>
+        <a href="testler.html">Testler</a>
+        <a href="denemeler.html">Denemeler</a>
+        <a href="profil.html">Profil</a>
+    </div>
+    <div class="user-profile" style="gap: 15px;">
+        <span id="headerUserName" style="font-weight: 600; color: var(--navy-deep);">Kullanıcı</span>
+        <button onclick="window.handleLogout()" style="background: var(--danger); color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.9rem; transition: 0.3s;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
+            Çıkış Yap
+        </button>
+    </div>
+</div>

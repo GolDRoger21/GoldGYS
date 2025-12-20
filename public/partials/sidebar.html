@@ -1,14 +1,20 @@
 
 <aside class="sidebar">
   <ul>
-    <li><a href="dashboard.html">Panel</a></li>
-    <li><a href="konular.html">Konular</a></li>
-    <li><a href="testler.html">Testler</a></li>
-    <li><a href="denemeler.html">Denemeler</a></li>
-    <li><a href="analiz.html">Analiz</a></li>
-    <li><a href="yanlislarim.html">Yanlışlarım</a></li>
-    <li><a href="favoriler.html">Favoriler</a></li>
-    <li><a href="yardim.html">Yardım</a></li>
-    <li><a href="yasal.html">Yasal</a></li>
+    <li><a href="dashboard.html" data-page="dashboard">Panel</a></li>
+    <li><a href="konular.html" data-page="konular">Konular</a></li>
+    <li><a href="testler.html" data-page="testler">Testler</a></li>
+    <li><a href="denemeler.html" data-page="denemeler">Denemeler</a></li>
+    <li><a href="analiz.html" data-page="analiz">Analiz</a></li>
+    <li><a href="yanlislarim.html" data-page="yanlislar">Yanlışlarım</a></li>
+    <li><a href="favoriler.html" data-page="favoriler">Favoriler</a></li>
+    <li><a href="yardim.html" data-page="yardim">Yardım</a></li>
+    <li><a href="yasal.html" data-page="yasal">Yasal</a></li>
+    <li style="border-top: 1px solid rgba(255,255,255,0.1); margin-top: 15px; padding-top: 15px;">
+      <a onclick="window.handleLogout()" style="cursor: pointer; color: var(--danger); font-weight: 600; display: flex; align-items: center; gap: 8px;" data-page="logout">
+        🚪 Çıkış Yap
+      </a>
+    </li>
   </ul>
 </aside>
+
