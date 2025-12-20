@@ -33,6 +33,17 @@
             box-shadow: 0 4px 30px rgba(0,0,0,0.3);
         }
 
+        .nav-toggle {
+            display: none;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(212, 175, 55, 0.35);
+            color: white;
+            padding: 10px 12px;
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
         .nav-links { display: flex; gap: 30px; align-items: center; }
         .nav-links a {
             text-decoration: none; color: rgba(255,255,255,0.78);
@@ -185,6 +196,28 @@
             .stats-bar { grid-template-columns: 1fr 1fr; }
             .footer-grid { grid-template-columns: 1fr; gap: 30px; text-align: center; }
             .nav-links { display: none; }
+            .nav-links.open {
+                position: absolute;
+                right: 6%; top: 70px;
+                background: rgba(15, 23, 42, 0.96);
+                border: 1px solid rgba(212, 175, 55, 0.25);
+                box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+                padding: 18px;
+                border-radius: 16px;
+                display: grid;
+                gap: 12px;
+            }
+            .nav-links a { padding: 8px 4px; display: block; text-align: right; }
+            .nav-toggle { display: inline-flex; }
+        }
+
+        @media (max-width: 640px) {
+            .hero-section { padding: 130px 8% 70px; }
+            .hero-title { font-size: 2.8rem; }
+            .hero-desc { font-size: 1.05rem; }
+            .hero-visual { width: 240px; height: 240px; margin-top: 30px; }
+            .stats-bar { grid-template-columns: 1fr; padding: 40px 8%; }
+            .feature-grid { grid-template-columns: 1fr; }
         }
 
         /* Animasyonlar */
@@ -199,7 +232,8 @@
         <a class="brand-mark brand-large brand-on-dark" href="/" aria-label="Gold GYS anasayfa">
             <span class="brand-highlight">GOLD</span>GYS
         </a>
-        <div class="nav-links">
+        <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="landingMenu">☰</button>
+        <div id="landingMenu" class="nav-links">
             <a href="#features">Özellikler</a>
             <a href="#curriculum">Müfredat</a>
             <a href="#pricing">Üyelik</a>
@@ -309,6 +343,23 @@
     <script type="module">
         import { auth } from "./js/firebase-config.js";
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+        const navToggle = document.querySelector('.nav-toggle');
+        const navLinks = document.getElementById('landingMenu');
+
+        if (navToggle && navLinks) {
+            navToggle.addEventListener('click', () => {
+                const isOpen = navLinks.classList.toggle('open');
+                navToggle.setAttribute('aria-expanded', isOpen);
+            });
+
+            navLinks.querySelectorAll('a').forEach(link => {
+                link.addEventListener('click', () => {
+                    navLinks.classList.remove('open');
+                    navToggle.setAttribute('aria-expanded', 'false');
+                });
+            });
+        }
 
         onAuthStateChanged(auth, (user) => {
             if (user) {
