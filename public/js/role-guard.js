@@ -1,6 +1,6 @@
 import { auth, db } from "./firebase-config.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 export function protectPage(options = {}) {
     let normalizedOptions = {};
@@ -78,15 +78,25 @@ export function protectPage(options = {}) {
 
             const userData = userSnap.data();
 
+            // Status alanı geçmiş verilerde boş kaldıysa claim veya aktif varsayımla doldur
+            const profileStatus = userData.status || claimStatus || "active";
+            if (!userData.status) {
+                try {
+                    await setDoc(userRef, { status: profileStatus }, { merge: true });
+                } catch (statusErr) {
+                    console.warn("Kullanıcı status alanı güncellenemedi", statusErr);
+                }
+            }
+
             // 2. STATUS KONTROLÜ (KRİTİK BÖLÜM)
             // Eğer sayfa 'pending-approval.html' değilse ve kullanıcı 'active' değilse
-            if (userData.status !== "active" && !window.location.pathname.includes("pending-approval.html")) {
+            if (profileStatus !== "active" && !window.location.pathname.includes("pending-approval.html")) {
                 window.location.href = "/pages/pending-approval.html";
                 return;
             }
 
             // Eğer kullanıcı active ise ama 'pending-approval' sayfasındaysa dashboard'a yolla
-            if (userData.status === "active" && window.location.pathname.includes("pending-approval.html")) {
+            if (profileStatus === "active" && window.location.pathname.includes("pending-approval.html")) {
                 window.location.href = "/pages/dashboard.html";
                 return;
             }
