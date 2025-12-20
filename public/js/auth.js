@@ -16,6 +16,27 @@ const statusBox = document.getElementById("statusBox");
 const provider = new GoogleAuthProvider();
 let persistenceReady;
 
+const retryProfileLoad = async (user) => {
+    try {
+        return await ensureUserDocument(user);
+    } catch (error) {
+        const code = error?.code || "";
+
+        // Token kaynaklı ya da geçici hatalarda bir kez daha dene
+        if (["permission-denied", "unauthenticated"].includes(code)) {
+            await user.getIdToken(true);
+            return ensureUserDocument(user);
+        }
+
+        if (code === "unavailable") {
+            await new Promise((resolve) => setTimeout(resolve, 500));
+            return ensureUserDocument(user);
+        }
+
+        throw error;
+    }
+};
+
 const ensurePersistence = () => {
     if (!persistenceReady) {
         persistenceReady = setPersistence(auth, browserLocalPersistence).catch((error) => {
@@ -70,7 +91,7 @@ const handleLoginSuccess = async (user) => {
 
     try {
         // ensureUserDocument artık statüsü de döndürüyor
-        const userProfile = await ensureUserDocument(user);
+        const userProfile = await retryProfileLoad(user);
         
         // Status kontrolü
         if (userProfile.status === "pending") {
@@ -104,7 +125,15 @@ const handleLoginSuccess = async (user) => {
         redirectToDashboard();
     } catch (error) {
         console.error("Kullanıcı profili hatası", error);
-        showStatus("error", "Profil yüklenirken hata oluştu. Lütfen tekrar deneyin.");
+        const code = error?.code || error?.original?.code || "";
+
+        if (code === "permission-denied") {
+            showStatus("error", "Profil bilgilerinize erişim izni alınamadı. Admin ile iletişime geçin.");
+        } else if (code === "unavailable") {
+            showStatus("error", "Profil yüklenirken bağlantı sorunu oluştu. İnternetinizi kontrol edip tekrar deneyin.");
+        } else {
+            showStatus("error", "Profil yüklenirken hata oluştu. Lütfen tekrar deneyin.");
+        }
         setTimeout(() => {
             toggleLoading(false);
         }, 2000);
