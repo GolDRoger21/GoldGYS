@@ -157,6 +157,7 @@ const SECTION_CONFIGS = {
 const sectionManagers = {};
 let activeContentEdit = null;
 const SECTION_PAGE_SIZE = 6;
+let adminContextCache = null;
 
 // --- BAŞLATMA ---
 protectPage({ requireRole: "admin" });
@@ -259,17 +260,68 @@ function debounceFilters() {
   debounceTimer = setTimeout(() => loadPendingMembers(true), 350);
 }
 
+async function getAdminContext(forceRefresh = false) {
+  const currentUser = auth.currentUser;
+  if (!currentUser) return { isAdmin: false, status: null, role: null };
+
+  if (!forceRefresh && adminContextCache?.uid === currentUser.uid) {
+    return adminContextCache;
+  }
+
+  const tokenResult = await currentUser.getIdTokenResult(true);
+  const claimRole = tokenResult.claims.role || (tokenResult.claims.admin ? "admin" : null);
+  const claimStatus = tokenResult.claims.status || (tokenResult.claims.admin ? "active" : null);
+
+  let profile = null;
+  try {
+    const snap = await getDoc(doc(db, "users", currentUser.uid));
+    if (snap.exists()) {
+      profile = snap.data();
+    }
+  } catch (error) {
+    console.warn("Profil alınamadı, claim bilgileri kullanılacak", error);
+  }
+
+  const roleFromProfile = profile?.role || (Array.isArray(profile?.roles) && profile.roles.includes("admin") ? "admin" : null);
+  const statusFromProfile = profile?.status || null;
+  const effectiveRole = roleFromProfile || claimRole || null;
+  const effectiveStatus = statusFromProfile || claimStatus || (effectiveRole === "admin" ? "active" : null);
+  const isAdmin = effectiveRole === "admin";
+
+  adminContextCache = {
+    uid: currentUser.uid,
+    profile,
+    claims: tokenResult.claims,
+    role: effectiveRole,
+    status: effectiveStatus,
+    isAdmin,
+  };
+
+  return adminContextCache;
+}
+
+async function requireAdminAccess(requireActive = true) {
+  const context = await getAdminContext(true);
+
+  if (!context.isAdmin) {
+    showStatus("Bu sayfa yalnızca admin rolüne sahip hesaplar içindir.", true);
+    return null;
+  }
+
+  if (requireActive && context.status && context.status !== "active") {
+    showStatus("Bu işlem için hesabınızın aktif olması gerekiyor.", true);
+    return null;
+  }
+
+  return context;
+}
+
 // --- AUTH LISTENER ---
 onAuthStateChanged(auth, async (user) => {
   if (!user) return;
 
-  const token = await user.getIdTokenResult(true);
-  const hasAdminRole = token.claims.admin || token.claims.role === "admin";
-
-  if (!hasAdminRole) {
-    showStatus("Bu sayfa yalnızca admin rolüne sahip hesaplar içindir.", true);
-    return;
-  }
+  const adminContext = await requireAdminAccess();
+  if (!adminContext) return;
 
   loadPendingMembers();
 });
@@ -1457,17 +1509,13 @@ async function handleMemberAction(uid, action, button, payload = {}) {
     return;
   }
 
-  const token = await currentUser.getIdTokenResult(true);
-  const hasAdminRole = token.claims.admin || token.claims.role === "admin";
-  if (!hasAdminRole) {
-    showStatus("Bu işlem için admin yetkisi gerekiyor.", true);
-    return;
-  }
+  const adminContext = await requireAdminAccess();
+  if (!adminContext) return;
 
   const roleSelect = pendingListEl?.querySelector(`select[data-uid='${uid}']`);
   const selectedRole = payload.role || roleSelect?.value || pendingCache.get(uid)?.role || "student";
   const desiredStatus = payload.status;
-  const changedBy = { uid: currentUser.uid, email: currentUser.email || null };
+  const changedBy = { uid: currentUser.uid, email: currentUser.email || null, role: adminContext.role };
   const loadingLabels = {
     approve: "Onaylanıyor...",
     reject: "Reddediliyor...",
