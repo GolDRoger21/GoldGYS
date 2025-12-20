@@ -39,18 +39,25 @@ export async function initLayout(pageKey) {
 
     auth.onAuthStateChanged(async user => {
         if (user && (userNameEl || userInitialEl)) {
-            await ensureUserDocument(user);
+            const profile = await ensureUserDocument(user);
 
             const displayName = user.displayName || user.email?.split('@')[0] || 'Kullanıcı';
             if (userNameEl) userNameEl.innerText = displayName;
             if (userInitialEl) userInitialEl.innerText = displayName.charAt(0).toUpperCase();
 
-            // Admin kontrolü (Custom Claims)
-            user.getIdTokenResult().then(idTokenResult => {
-                if (idTokenResult.claims.admin) {
+            try {
+                const idTokenResult = await user.getIdTokenResult();
+                const hasAdminRole = idTokenResult.claims.admin
+                    || idTokenResult.claims.role === 'admin'
+                    || profile?.role === 'admin'
+                    || profile?.roles?.includes('admin');
+
+                if (hasAdminRole) {
                     document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'block');
                 }
-            });
+            } catch (error) {
+                console.error('Admin kontrolü sırasında hata:', error);
+            }
         } else if (!user) {
             // Giriş yapmamışsa login'e at
             window.location.href = '/login.html';

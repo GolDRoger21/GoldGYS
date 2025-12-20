@@ -47,6 +47,7 @@ body {
 a { text-decoration: none; color: inherit; transition: 0.3s ease; }
 ul { list-style: none; }
 button { font-family: inherit; }
+.admin-only { display: none; }
 
 /* --- ORTAK BİLEŞENLER (BUTONLAR) --- */
 .btn-gold {

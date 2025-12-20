@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin | GOLD GYS</title>
+  <link rel="stylesheet" href="/css/app.css">
+
+  <style>
+    .admin-hero {
+      background: linear-gradient(135deg, var(--navy-deep) 0%, #1f2937 100%);
+      color: white;
+      padding: 28px;
+      border-radius: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      box-shadow: var(--shadow-strong);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      position: relative;
+      overflow: hidden;
+    }
+    .admin-hero::after {
+      content: "";
+      position: absolute;
+      width: 280px;
+      height: 280px;
+      background: radial-gradient(circle, rgba(212, 175, 55, 0.14), transparent 65%);
+      right: -80px;
+      bottom: -80px;
+    }
+    .admin-hero .eyebrow { text-transform: uppercase; letter-spacing: 1px; font-weight: 700; color: #fbbf24; }
+    .admin-hero h1 { margin: 6px 0; font-family: var(--font-serif); font-size: 2.1rem; }
+    .admin-hero p { margin: 0; color: #e2e8f0; max-width: 640px; line-height: 1.6; }
+    .admin-hero .badge { background: rgba(255,255,255,0.1); padding: 10px 14px; border-radius: 12px; font-weight: 700; border: 1px solid rgba(255,255,255,0.18); display: inline-flex; align-items: center; gap: 8px; color: #fde68a; }
+
+    .panel-card {
+      background: white;
+      padding: 20px;
+      border-radius: 16px;
+      box-shadow: var(--shadow-soft);
+      border: 1px solid rgba(0, 0, 0, 0.04);
+      margin-top: 18px;
+    }
+    .panel-card .section-head { display: flex; justify-content: space-between; gap: 14px; align-items: center; flex-wrap: wrap; }
+    .panel-card h2 { margin: 0; font-family: var(--font-serif); color: var(--navy-deep); }
+    .panel-card p { margin: 4px 0 0; color: var(--text-muted); }
+
+    .pending-list { list-style: none; padding: 0; margin: 14px 0 0; display: grid; gap: 12px; }
+    .pending-card { border: 1px solid rgba(0,0,0,0.05); border-radius: 14px; padding: 16px; background: #f8fafc; display: grid; gap: 10px; }
+    .pending-card .top { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; align-items: baseline; }
+    .pending-card .title { font-weight: 800; color: var(--navy-deep); font-size: 1.05rem; }
+    .pending-card .email { color: var(--text-muted); }
+    .pending-card .meta { display: flex; gap: 10px; flex-wrap: wrap; color: var(--text-muted); font-size: 0.95rem; }
+    .pending-card .actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
+    .pending-card select { padding: 10px 12px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.1); background: white; font-weight: 600; }
+    .pending-card .pill { background: #fff; border-radius: 10px; padding: 6px 10px; border: 1px solid rgba(0,0,0,0.06); font-weight: 700; color: var(--navy-deep); }
+    .pending-card .note { color: var(--text-muted); font-size: 0.95rem; }
+    .empty-state { margin: 14px 0 0; padding: 18px; border-radius: 12px; background: #f1f5f9; border: 1px dashed rgba(0,0,0,0.08); color: var(--text-muted); }
+
+    .alert { padding: 12px 14px; border-radius: 12px; margin: 12px 0 0; display: none; }
+    .alert.success { background: #ecfdf3; border: 1px solid rgba(22, 163, 74, 0.2); color: #166534; }
+    .alert.error { background: #fef2f2; border: 1px solid rgba(220, 38, 38, 0.2); color: #b91c1c; }
+
+    @media (max-width: 768px) {
+      .admin-hero { flex-direction: column; align-items: flex-start; }
+      .panel-card .section-head { flex-direction: column; align-items: flex-start; }
+      .pending-card .actions { justify-content: flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-layout">
+    <aside id="sidebar-area" class="app-sidebar"></aside>
+
+    <main class="app-main">
+      <header id="header-area" class="app-header"></header>
+
+      <div class="app-content">
+        <section class="admin-hero">
+          <div style="position: relative; z-index: 1;">
+            <p class="eyebrow">Yönetici alanı</p>
+            <h1>Üyelik yönetimi ve onaylar</h1>
+            <p>Bekleyen üyeleri görüntüleyin, rollerini belirleyin ve uygun gördüğünüz başvuruları onaylayın veya reddedin. Tüm işlemler Firestore güvenlik kuralları doğrultusunda yönetilir.</p>
+          </div>
+          <div class="badge" aria-live="polite">🔒 Yalnızca admin rolü erişebilir</div>
+        </section>
+
+        <section class="panel-card">
+          <div class="section-head">
+            <div>
+              <h2>Bekleyen üyelik başvuruları</h2>
+              <p>"pending" durumundaki kullanıcıları listeler. Onaylanan üyeler etkinleştirilir ve seçilen role atanır.</p>
+            </div>
+            <button class="btn-navy" id="refreshPending" type="button">Yenile</button>
+          </div>
+
+          <div id="adminStatus" class="alert" role="status"></div>
+          <ul id="pendingList" class="pending-list"></ul>
+          <div id="emptyState" class="empty-state" style="display: none;">Şu anda bekleyen bir üyelik bulunmuyor.</div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script type="module" src="/js/admin-page.js"></script>
+</body>
+</html>
