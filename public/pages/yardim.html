@@ -7,6 +7,125 @@
   <link rel="stylesheet" href="/css/app.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230F172A'/><text x='50' y='70' font-family='serif' font-size='60' fill='%23D4AF37' text-anchor='middle' font-weight='bold'>G</text><text x='80' y='35' font-size='30'>⚖️</text></svg>">
+  <style>
+    .hero {
+      background: linear-gradient(135deg, #0f172a 0%, #1f2937 100%);
+      color: white;
+      padding: 36px;
+      border-radius: 24px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: var(--shadow-strong);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      margin-bottom: 24px;
+    }
+    .hero::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 15% 20%, rgba(212, 175, 55, 0.2), transparent 30%),
+                  radial-gradient(circle at 85% 10%, rgba(255, 255, 255, 0.12), transparent 30%),
+                  radial-gradient(circle at 80% 80%, rgba(212, 175, 55, 0.12), transparent 25%);
+      pointer-events: none;
+    }
+    .hero h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.2rem;
+      margin: 6px 0 10px;
+      position: relative;
+      z-index: 1;
+    }
+    .hero p {
+      color: #cbd5e1;
+      max-width: 760px;
+      line-height: 1.65;
+      position: relative;
+      z-index: 1;
+    }
+    .hero .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 16px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: var(--gold-light);
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      position: relative;
+      z-index: 1;
+    }
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+    }
+    .info-card {
+      background: white;
+      border-radius: 18px;
+      padding: 18px;
+      border: 1px solid rgba(0, 0, 0, 0.04);
+      box-shadow: var(--shadow-soft);
+      display: grid;
+      gap: 6px;
+    }
+    .info-card .label {
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      font-weight: 700;
+      color: var(--text-muted);
+    }
+    .info-card .value {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--navy-deep);
+    }
+    .panel-muted {
+      background: #0f172a;
+      color: white;
+      border-radius: 18px;
+      padding: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: var(--shadow-strong);
+    }
+    .panel-muted h3, .panel-muted h2 {
+      color: white;
+      margin: 0 0 6px;
+    }
+    .panel-muted p, .panel-muted li, .panel-muted span {
+      color: #cbd5e1;
+    }
+    .faq-card {
+      background: white;
+      border-radius: 18px;
+      padding: 18px;
+      border: 1px solid rgba(0, 0, 0, 0.04);
+      box-shadow: var(--shadow-soft);
+    }
+    .faq-card h3 {
+      margin: 0 0 8px;
+      color: var(--navy-deep);
+    }
+    .faq-card p {
+      margin: 0;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+    .badge-inline {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.08);
+      color: var(--navy-deep);
+      font-weight: 700;
+      letter-spacing: 0.2px;
+      font-size: 0.9rem;
+    }
+  </style>
 </head>
 <body>
   <div class="app-layout">
@@ -16,12 +135,102 @@
       <header id="header-area" class="app-header"></header>
 
       <div class="app-content">
-        <section class="panel-card">
+        <section class="hero">
+          <div class="section-head" style="margin-bottom: 18px; position: relative; z-index: 1;">
+            <div>
+              <div class="badge">Destek merkezi · 7/24 yanıt</div>
+              <h1>Yardım</h1>
+              <p>İletişim, teknik destek ve sıkça sorulan soruların tamamı marka temasına uygun okunabilir bir yapıda sunuldu.</p>
+            </div>
+          </div>
+          <div class="info-grid" style="position: relative; z-index: 1;">
+            <div class="info-card">
+              <span class="label">Destek e-postası</span>
+              <span class="value">destek@goldgys.com</span>
+              <span class="text-muted">Başvurular ortalama 2 saat içinde yanıtlanır.</span>
+            </div>
+            <div class="info-card">
+              <span class="label">Telefon &amp; Çalışma saati</span>
+              <span class="value">0 (212) 555 00 00</span>
+              <span class="text-muted">Hafta içi 09.00 – 19.00 | Acil durumlarda nöbetçi ekip.</span>
+            </div>
+            <div class="info-card">
+              <span class="label">Canlı destek</span>
+              <span class="value">Uygulama içi sohbet</span>
+              <span class="text-muted">Profil menüsündeki sohbet balonu üzerinden anında ulaşın.</span>
+            </div>
+            <div class="info-card">
+              <span class="label">Sistem durumu</span>
+              <span class="value">status.goldgys.com</span>
+              <span class="text-muted">Planlı bakım ve kesinti bildirimleri bu adreste paylaşılır.</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel-card stack gap-lg">
           <div class="section-head">
             <div>
-              <p class="eyebrow">Destek merkezi</p>
-              <h1 style="margin: 6px 0 0;">Yardım</h1>
-              <p class="text-muted">Sık sorulan sorular, iletişim ve destek kaynaklarına buradan ulaşabilirsiniz.</p>
+              <p class="eyebrow">Sıkça sorulan sorular</p>
+              <h2 style="margin: 6px 0 8px;">GOLD GYS hakkında en sık alınan sorular</h2>
+              <p class="text-muted">Platform uyumluluğu, güvenlik ve üyelik yönetimi ile ilgili öne çıkan başlıklar aşağıda özetlendi.</p>
+            </div>
+          </div>
+
+          <div class="grid two-cols gap-lg">
+            <div class="stack gap-md">
+              <div class="faq-card">
+                <h3>GOLD GYS hangi cihazlarda çalışır?</h3>
+                <p>Platform masaüstü tarayıcılara tam uyumludur. Mobil ve tablet erişimi desteklenir; en iyi performans için güncel Chrome veya Edge tarayıcılarını öneriyoruz.</p>
+              </div>
+              <div class="faq-card">
+                <h3>Verilerim ne sıklıkla yedekleniyor?</h3>
+                <p>Çalışmalarınız bulut altyapımızda günlük olarak yedeklenir. Soru ve deneme performansları şifrelenmiş olarak saklanır; yedekler coğrafi olarak ayrık veri merkezlerinde tutulur.</p>
+              </div>
+            </div>
+
+            <div class="stack gap-md">
+              <div class="faq-card">
+                <h3>Üyelik paketimi değiştirebilir miyim?</h3>
+                <p>Profil &gt; Üyelik bölümünden mevcut planınızı görüntüleyebilir, üst veya alt paketlere geçiş yapabilirsiniz. Değişiklikler bir sonraki faturalama dönemine otomatik yansır.</p>
+              </div>
+              <div class="faq-card">
+                <h3>Hesabımın güvenliğini nasıl güçlendiririm?</h3>
+                <p>Çift aşamalı doğrulamayı açın, güçlü ve benzersiz parola kullanın, şüpheli oturumları <span class="badge-inline">Profil &gt; Güvenlik</span> ekranından sonlandırın. Olağandışı bir durum fark ederseniz destek ekibine bildirin.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel-muted">
+            <div class="grid two-cols gap-lg">
+              <div class="stack gap-sm">
+                <div class="eyebrow">İletişim</div>
+                <h3 style="margin: 0;">Doğrudan bağlantı kanallarımız</h3>
+                <p>Üyelik, içerik veya güvenlik konularında ekibimizle doğrudan görüşebilirsiniz.</p>
+                <div class="info-grid">
+                  <div class="info-card">
+                    <span class="label">E-posta</span>
+                    <span class="value">destek@goldgys.com</span>
+                    <span>Önceliklendirme için konu satırında “Acil” ibaresini kullanın.</span>
+                  </div>
+                  <div class="info-card">
+                    <span class="label">Adres</span>
+                    <span class="value">Büyükdere Cad. No:12/8 Şişli, İstanbul</span>
+                    <span>Randevulu ziyaretler için destek ekibiyle iletişime geçin.</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="stack gap-sm">
+                <div class="eyebrow">Teknik destek</div>
+                <h3 style="margin: 0;">Destek talebi oluştururken</h3>
+                <ul class="check-list">
+                  <li>Karşılaştığınız hatanın ekran görüntüsünü ekleyin.</li>
+                  <li>Kullandığınız tarayıcı, cihaz ve işletim sistemi bilgilerini yazın.</li>
+                  <li>Hatanın tekrar edilme adımlarını mümkün olduğunca açık belirtin.</li>
+                  <li>Hızlı dönüş için <strong>destek@goldgys.com</strong> adresini beyaz listeye ekleyin.</li>
+                </ul>
+                <p>Ortalama yanıt süremiz 2 iş saatidir. Kritik kesintilerde <strong>status.goldgys.com</strong> adresini takip edin.</p>
+              </div>
             </div>
           </div>
         </section>

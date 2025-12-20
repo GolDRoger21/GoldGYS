@@ -7,6 +7,119 @@
   <link rel="stylesheet" href="/css/app.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230F172A'/><text x='50' y='70' font-family='serif' font-size='60' fill='%23D4AF37' text-anchor='middle' font-weight='bold'>G</text><text x='80' y='35' font-size='30'>⚖️</text></svg>">
+  <style>
+    .hero {
+      background: linear-gradient(135deg, #0f172a 0%, #1f2937 100%);
+      color: white;
+      padding: 36px;
+      border-radius: 24px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: var(--shadow-strong);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      margin-bottom: 24px;
+    }
+    .hero::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 15% 20%, rgba(212, 175, 55, 0.2), transparent 30%),
+                  radial-gradient(circle at 85% 10%, rgba(255, 255, 255, 0.12), transparent 30%),
+                  radial-gradient(circle at 80% 80%, rgba(212, 175, 55, 0.12), transparent 25%);
+      pointer-events: none;
+    }
+    .hero h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.2rem;
+      margin: 6px 0 10px;
+      position: relative;
+      z-index: 1;
+    }
+    .hero p {
+      color: #cbd5e1;
+      max-width: 780px;
+      line-height: 1.65;
+      position: relative;
+      z-index: 1;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 16px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: var(--gold-light);
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      position: relative;
+      z-index: 1;
+    }
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+    }
+    .info-card {
+      background: white;
+      border-radius: 18px;
+      padding: 18px;
+      border: 1px solid rgba(0, 0, 0, 0.04);
+      box-shadow: var(--shadow-soft);
+      display: grid;
+      gap: 6px;
+    }
+    .info-card .label {
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      font-weight: 700;
+      color: var(--text-muted);
+    }
+    .info-card .value {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--navy-deep);
+    }
+    .legal-card {
+      background: white;
+      border-radius: 18px;
+      padding: 20px;
+      border: 1px solid rgba(0, 0, 0, 0.04);
+      box-shadow: var(--shadow-soft);
+    }
+    .legal-card h3 {
+      margin: 0 0 8px;
+      color: var(--navy-deep);
+    }
+    .legal-card p {
+      color: var(--text-muted);
+      line-height: 1.6;
+      margin: 0 0 10px;
+    }
+    .legal-card ul {
+      margin: 0;
+      padding-left: 18px;
+      color: var(--text-muted);
+      line-height: 1.55;
+    }
+    .accent-panel {
+      background: #0f172a;
+      color: white;
+      border-radius: 18px;
+      padding: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: var(--shadow-strong);
+    }
+    .accent-panel h3 {
+      margin: 0 0 6px;
+      color: white;
+    }
+    .accent-panel p, .accent-panel li, .accent-panel span {
+      color: #cbd5e1;
+    }
+  </style>
 </head>
 <body>
   <div class="app-layout">
@@ -16,12 +129,121 @@
       <header id="header-area" class="app-header"></header>
 
       <div class="app-content">
-        <section class="panel-card">
-          <div class="section-head">
+        <section class="hero">
+          <div class="section-head" style="margin-bottom: 18px; position: relative; z-index: 1;">
             <div>
-              <p class="eyebrow">Kullanım ve gizlilik</p>
-              <h1 style="margin: 6px 0 0;">Yasal Bilgilendirme</h1>
-              <p class="text-muted">Kullanım koşulları, KVKK ve gizlilik politikası detaylarını buradan inceleyebilirsiniz.</p>
+              <div class="badge">Kullanım &amp; gizlilik · Güncel</div>
+              <h1>Yasal Bilgilendirme</h1>
+              <p>Okunabilir, temaya uyumlu özetler halinde kullanım şartları, KVKK ve güvenlik yükümlülüklerini inceleyin.</p>
+            </div>
+          </div>
+          <div class="info-grid" style="position: relative; z-index: 1;">
+            <div class="info-card">
+              <span class="label">Son güncelleme</span>
+              <span class="value">05 Mayıs 2024</span>
+              <span class="text-muted">Güncellemeler üyelik panelinde duyurulur.</span>
+            </div>
+            <div class="info-card">
+              <span class="label">Sözleşme sahibi</span>
+              <span class="value">Gold GYS Eğitim Teknolojileri A.Ş.</span>
+              <span class="text-muted">Vergi No: 1234567890</span>
+            </div>
+            <div class="info-card">
+              <span class="label">KVKK iletişim</span>
+              <span class="value">kvkk@goldgys.com</span>
+              <span class="text-muted">Tüm talepler 30 gün içinde yanıtlanır.</span>
+            </div>
+            <div class="info-card">
+              <span class="label">Güvenlik soruları</span>
+              <span class="value">security@goldgys.com</span>
+              <span class="text-muted">Sızma testleri ve uyarılar için özel kanal.</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel-card stack gap-lg">
+          <div class="grid two-cols gap-lg">
+            <div class="legal-card">
+              <div class="eyebrow">Kullanım şartları</div>
+              <h3>Platformu kullanırken kabul ettiğiniz temel kurallar</h3>
+              <ul class="check-list">
+                <li>Hesap bilgilerinizin güvenliğinden siz sorumlusunuz; şifre paylaşımı veya yetkisiz erişim tespit edilirse hesabınız askıya alınabilir.</li>
+                <li>Platform içeriği yalnızca kişisel eğitim ve kurum içi kullanım içindir; izinsiz kopyalama, çoğaltma veya dağıtım yapılamaz.</li>
+                <li>Sisteme yüklenen dosyalar ve girdilerin yasalara uygunluğundan kullanıcı sorumludur; telif veya kişisel veri ihlali halinde erişim kısıtlanabilir.</li>
+                <li>Planlar, özellikler ve fiyatlandırma bildirim yapılarak güncellenebilir; güncel bilgiler üyelik panelinde duyurulur.</li>
+              </ul>
+            </div>
+
+            <div class="accent-panel">
+              <div class="eyebrow">Hızlı özet</div>
+              <h3>Kimlik ve referans bilgilerimiz</h3>
+              <ul class="link-list">
+                <li><span class="text-muted">Son güncelleme</span><br><strong>05 Mayıs 2024</strong></li>
+                <li><span class="text-muted">Sözleşme sahibi</span><br><strong>Gold GYS Eğitim Teknolojileri A.Ş.</strong></li>
+                <li><span class="text-muted">Vergi no</span><br><strong>1234567890</strong></li>
+                <li><span class="text-muted">KVKK iletişim</span><br><strong>kvkk@goldgys.com</strong></li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel-card stack gap-lg">
+          <div class="grid two-cols gap-lg">
+            <div class="legal-card">
+              <div class="eyebrow">Gizlilik ve KVKK</div>
+              <h3>Veri sorumlusu ve işleme amaçları</h3>
+              <p>Veri sorumlusu Gold GYS Eğitim Teknolojileri A.Ş.’dir. Kişisel verileriniz; kimlik doğrulama, sınav ve içerik kullanım istatistikleri, faturalandırma, güvenlik ve müşteri destek faaliyetleri için işlenir.</p>
+              <h3 style="margin-top: 10px;">Hangi verileri topluyoruz?</h3>
+              <ul class="check-list">
+                <li>Kimlik ve iletişim bilgileri (ad, soyad, e-posta, telefon).</li>
+                <li>Kullanıcı işlemleri ve oturum kayıtları (giriş zamanları, cihaz/tarayıcı bilgisi, IP).</li>
+                <li>Ödeme ve faturalama verileri (fatura adresi, ödeme sağlayıcı bilgisi).</li>
+                <li>Performans verileri (çözüm geçmişi, sınav sonuçları, geribildirimler).</li>
+              </ul>
+              <p>Verileriniz KVKK ve yürürlükteki mevzuata uygun olarak saklanır; zorunlu olmadıkça yurtdışına aktarılmaz.</p>
+            </div>
+
+            <div class="legal-card">
+              <div class="eyebrow">Haklarınız</div>
+              <h3>KVKK kapsamındaki talepler</h3>
+              <p>6698 sayılı Kanun kapsamındaki haklarınızı aşağıdaki kanallar üzerinden kullanabilirsiniz:</p>
+              <ul class="check-list">
+                <li>Kişisel verilerinizin işlenip işlenmediğini öğrenme; işlenme amacını ve uygun kullanılıp kullanılmadığını sorgulama.</li>
+                <li>Yurt içi veya yurt dışı aktarım yapılan üçüncü tarafları bilme.</li>
+                <li>Eksik veya yanlış işlenmiş verilerin düzeltilmesini, verilerinizin silinmesini veya anonimleştirilmesini talep etme.</li>
+                <li>Otomatik sistemler ile analiz edilmesi sonucu aleyhinize bir sonucun ortaya çıkmasına itiraz etme.</li>
+                <li>Haksız zarara uğramanız halinde tazmin talep etme.</li>
+              </ul>
+              <p>Talepler için <strong>kvkk@goldgys.com</strong> adresine kayıtlı elektronik posta (KEP) ya da imzalı dilekçe ile başvurabilirsiniz. Başvurular 30 gün içinde yanıtlanır.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel-card stack gap-lg">
+          <div class="grid two-cols gap-lg">
+            <div class="legal-card">
+              <div class="eyebrow">Çerez politikası</div>
+              <h3>Çerez kullanımımız</h3>
+              <p>GOLD GYS’de oturum yönetimi, performans takibi ve kişiselleştirme için zorunlu ve tercihe bağlı çerezler kullanılmaktadır.</p>
+              <ul class="check-list">
+                <li>Zorunlu çerezler: Güvenli oturum açma, sayfa geçişleri ve yetkilendirme için gereklidir.</li>
+                <li>Performans çerezleri: Hata takibi, hız optimizasyonu ve kullanım istatistikleri için anonim veriler toplar.</li>
+                <li>Tercih çerezleri: Dil, tema, son bakılan içerikler gibi kullanıcı ayarlarını hatırlar.</li>
+              </ul>
+              <p>Tarayıcınızın ayarlarından çerez tercihlerinizi değiştirebilir, bazı çerezleri kapatmanız halinde platformun belirli bölümleri sınırlı çalışabilir.</p>
+            </div>
+
+            <div class="legal-card">
+              <div class="eyebrow">Güvenlik</div>
+              <h3>Altyapı ve güvenlik önlemleri</h3>
+              <ul class="check-list">
+                <li>Tüm veri aktarımı TLS 1.2+ şifreleme ile korunur.</li>
+                <li>Hassas bilgiler (parola, token) tek yönlü hash veya şifreleme ile saklanır.</li>
+                <li>Rol tabanlı erişim kontrolü ve denetim logları ile yetkisiz erişimler izlenir.</li>
+                <li>Düzenli sızma testleri ve otomatik güvenlik taramaları uygulanır.</li>
+                <li>Felaket kurtarma planı kapsamında günlük yedekleme ve coğrafi yedeklilik sağlanır.</li>
+              </ul>
+              <p>Güvenlik ile ilgili sorularınız için <strong>security@goldgys.com</strong> adresine ulaşabilirsiniz.</p>
             </div>
           </div>
         </section>
