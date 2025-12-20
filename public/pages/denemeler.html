@@ -1,18 +1,40 @@
-
 <!DOCTYPE html>
 <html lang="tr">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Denemeler | GOLD GYS</title>
+  <link rel="stylesheet" href="/css/app.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230F172A'/><text x='50' y='70' font-family='serif' font-size='60' fill='%23D4AF37' text-anchor='middle' font-weight='bold'>G</text><text x='80' y='35' font-size='30'>⚖️</text></svg>">
 </head>
 <body>
-  <div data-include="../partials/header.html"></div>
-  <div class="layout">
-    <div data-include="../partials/sidebar.html"></div>
-    <main class="content">
-      <h1>Denemeler</h1>
+  <div class="app-layout">
+    <aside id="sidebar-area" class="app-sidebar"></aside>
+
+    <main class="app-main">
+      <header id="header-area" class="app-header"></header>
+
+      <div class="app-content">
+        <section class="panel-card">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Sınav simülasyonları</p>
+              <h1 style="margin: 6px 0 0;">Denemeler</h1>
+              <p class="text-muted">Gerçek sınav deneyimi için hazırlanmış deneme setlerine buradan ulaşabilirsiniz.</p>
+            </div>
+          </div>
+        </section>
+      </div>
     </main>
   </div>
-  <div data-include="../partials/footer.html"></div>
+
+  <script type="module">
+    import { protectPage } from '/js/role-guard.js';
+    import { initLayout } from '/js/ui-loader.js';
+
+    protectPage();
+    initLayout('denemeler');
+  </script>
 </body>
 </html>
