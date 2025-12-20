@@ -67,13 +67,23 @@ export async function initLayout(pageKey, options = {}) {
             // Admin kontrolü (Mevcut kodunuzu koruyoruz)
             try {
                 const idTokenResult = await user.getIdTokenResult();
-                const hasAdminRole = idTokenResult.claims.admin
-                    || idTokenResult.claims.role === 'admin'
-                    || profile?.role === 'admin'
-                    || profile?.roles?.includes('admin');
+                const roleFromClaims = idTokenResult.claims.role;
+                const roleSet = new Set([
+                    roleFromClaims,
+                    ...(Array.isArray(profile?.roles) ? profile.roles : []),
+                    profile?.role,
+                    idTokenResult.claims.admin ? 'admin' : null,
+                ].filter(Boolean));
+
+                const hasAdminRole = roleSet.has('admin');
+                const hasEditorRole = roleSet.has('editor') || hasAdminRole;
 
                 if (hasAdminRole) {
                     document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'block');
+                }
+
+                if (hasEditorRole) {
+                    document.querySelectorAll('.editor-only').forEach(el => el.style.display = 'block');
                 }
             } catch (error) {
                 console.error('Admin yetki hatası:', error);
