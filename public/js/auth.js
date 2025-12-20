@@ -1,4 +1,5 @@
 import { auth } from "./firebase-config.js";
+import { ensureUserDocument } from "./user-profile.js";
 import {
     GoogleAuthProvider,
     browserLocalPersistence,
@@ -62,15 +63,25 @@ const friendlyErrorMessage = (code = "") => {
     }
 };
 
-const handleLoginSuccess = () => {
+const handleLoginSuccess = async (user) => {
+    if (!user) return;
+
     showStatus("pending", "Giriş başarılı, yönlendiriliyorsunuz...");
+
+    try {
+        await ensureUserDocument(user);
+    } catch (error) {
+        console.error("Kullanıcı profili oluşturulamadı", error);
+        showStatus("pending", "Profil hazırlanıyor, yönlendiriliyorsunuz...");
+    }
+
     redirectToDashboard();
 };
 
 const loginWithPopup = async () => {
     await ensurePersistence();
     const result = await signInWithPopup(auth, provider);
-    if (result?.user) handleLoginSuccess();
+    if (result?.user) await handleLoginSuccess(result.user);
 };
 
 const loginWithRedirect = async () => {
@@ -82,7 +93,7 @@ const handleRedirectResult = async () => {
     try {
         await ensurePersistence();
         const result = await getRedirectResult(auth);
-        if (result?.user) handleLoginSuccess();
+        if (result?.user) await handleLoginSuccess(result.user);
     } catch (error) {
         console.error("Google redirect hatası", error);
         showStatus("error", friendlyErrorMessage(error?.code));
