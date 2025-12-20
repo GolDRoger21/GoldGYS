@@ -12,12 +12,14 @@
   <option value="ortak">Ortak</option>
   <option value="alan">Alan</option>
 </select>
-<button onclick="addTopic()">Ekle</button>
+<button id="addTopicBtn">Ekle</button>
+<p id="topicStatus" class="alert" style="display:none;"></p>
 <ul id="list"></ul>
+<div class="table-footer">
+  <button id="loadMoreTopics" style="display:none;">Daha Fazla Yükle</button>
+  <div id="topicLazyLoader" aria-hidden="true" style="height:1px;"></div>
+</div>
 
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<script src="/js/firebase-config.js"></script>
-<script src="/admin/js/admin-topics.js"></script>
+<script type="module" src="/js/modules/admin/content.js"></script>
 </body>
 </html>

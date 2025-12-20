@@ -1,9 +1,7 @@
 import { auth, functions } from "/js/firebase-config.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { httpsCallable } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-functions.js";
-import { protectPage } from "/js/role-guard.js";
-
-protectPage(true);
+import { showNotice, hideNotice } from "./utils.js";
 
 const roleSection = document.getElementById("roleUpdateSection");
 const roleForm = document.getElementById("roleUpdateForm");
@@ -35,7 +33,7 @@ roleForm?.addEventListener("submit", async (event) => {
   event.preventDefault();
 
   if (!setRoleCallable) {
-    statusEl.textContent = "Bu işlem için admin yetkisi gerekiyor.";
+    showNotice(statusEl, "Bu işlem için admin yetkisi gerekiyor.", true);
     return;
   }
 
@@ -43,10 +41,11 @@ roleForm?.addEventListener("submit", async (event) => {
   const role = roleSelect?.value.trim();
 
   if (!uid || !role) {
-    statusEl.textContent = "UID ve rol alanları gereklidir.";
+    showNotice(statusEl, "UID ve rol alanları gereklidir.", true);
     return;
   }
 
+  hideNotice(statusEl);
   statusEl.textContent = "Güncelleniyor...";
   const submitButton = roleForm.querySelector("button[type='submit']");
   if (submitButton) submitButton.disabled = true;
@@ -54,12 +53,11 @@ roleForm?.addEventListener("submit", async (event) => {
   try {
     const { data } = await setRoleCallable({ uid, role });
     await auth.currentUser?.getIdToken(true);
-    statusEl.textContent = `Rol güncellendi: ${data.uid} → ${data.role}`;
+    showNotice(statusEl, `Rol güncellendi: ${data.uid} → ${data.role}`);
   } catch (error) {
     const message = error?.message || "Rol güncellenemedi.";
-    statusEl.textContent = message;
+    showNotice(statusEl, message, true);
   } finally {
     if (submitButton) submitButton.disabled = false;
   }
 });
-
