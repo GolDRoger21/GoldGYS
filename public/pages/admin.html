@@ -89,6 +89,20 @@
     .form-control select { padding: 10px 12px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.08); background: #f8fafc; }
 
     .button-row { display: flex; flex-wrap: wrap; gap: 10px; justify-content: flex-end; margin-top: 12px; }
+    .table-controls { display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center; margin: 12px 0; }
+    .table-controls .filter-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+    .table-controls input[type="search"],
+    .table-controls select { padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(0,0,0,0.08); background: #f8fafc; min-width: 180px; }
+    .table-wrapper { width: 100%; overflow-x: auto; border: 1px solid rgba(0,0,0,0.05); border-radius: 12px; }
+    .content-table { width: 100%; border-collapse: collapse; min-width: 640px; }
+    .content-table th, .content-table td { padding: 12px; text-align: left; border-bottom: 1px solid rgba(0,0,0,0.04); }
+    .content-table th { background: #f8fafc; font-weight: 800; color: var(--navy-deep); }
+    .content-table tbody tr:hover { background: #f1f5f9; }
+    .table-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .pagination { display: inline-flex; align-items: center; gap: 8px; }
+    .pagination button { padding: 8px 12px; border-radius: 10px; border: 1px solid rgba(0,0,0,0.08); background: white; cursor: pointer; }
+    .pagination-info { color: var(--text-muted); font-weight: 700; }
+    .badge-muted { background: #e2e8f0; color: #1f2937; padding: 4px 10px; border-radius: 10px; font-weight: 700; }
     .toast-container { position: fixed; bottom: 18px; right: 18px; display: grid; gap: 8px; z-index: 80; }
     .toast { padding: 12px 14px; border-radius: 14px; box-shadow: var(--shadow-strong); background: #0f172a; color: white; min-width: 240px; display: flex; justify-content: space-between; align-items: center; }
     .toast.success { background: #16a34a; }
@@ -244,15 +258,101 @@
             </div>
             <div class="tab-panels">
               <div class="tab-panel active" data-tab-panel="topics">
-                <ul id="topicsList" class="content-list"></ul>
+                <div class="table-controls" data-section-controls="topics">
+                  <div class="filter-row">
+                    <input type="search" id="topicsSearch" placeholder="Konu ara" aria-label="Konu ara" />
+                    <select id="topicsStatus" aria-label="Konu durumu">
+                      <option value="all">Tümü</option>
+                      <option value="active">Aktif</option>
+                      <option value="draft">Taslak</option>
+                      <option value="inactive">Pasif</option>
+                    </select>
+                  </div>
+                  <div class="pagination">
+                    <button type="button" id="topicsPrev">Önceki</button>
+                    <span class="pagination-info" id="topicsPageInfo">1 / 1</span>
+                    <button type="button" id="topicsNext">Sonraki</button>
+                  </div>
+                </div>
+                <div class="table-wrapper">
+                  <table class="content-table" aria-label="Konu listesi">
+                    <thead>
+                      <tr>
+                        <th>Başlık</th>
+                        <th>Durum</th>
+                        <th>Güncelleme</th>
+                        <th>Başarı</th>
+                        <th>İşlemler</th>
+                      </tr>
+                    </thead>
+                    <tbody id="topicsTableBody"></tbody>
+                  </table>
+                </div>
                 <p class="muted" id="topicsEmpty" style="display:none;">Bu kullanıcıya ait konu bulunmadı.</p>
               </div>
               <div class="tab-panel" data-tab-panel="tests">
-                <ul id="testsList" class="content-list"></ul>
+                <div class="table-controls" data-section-controls="tests">
+                  <div class="filter-row">
+                    <input type="search" id="testsSearch" placeholder="Test ara" aria-label="Test ara" />
+                    <select id="testsStatus" aria-label="Test durumu">
+                      <option value="all">Tümü</option>
+                      <option value="active">Aktif</option>
+                      <option value="draft">Taslak</option>
+                      <option value="inactive">Pasif</option>
+                    </select>
+                  </div>
+                  <div class="pagination">
+                    <button type="button" id="testsPrev">Önceki</button>
+                    <span class="pagination-info" id="testsPageInfo">1 / 1</span>
+                    <button type="button" id="testsNext">Sonraki</button>
+                  </div>
+                </div>
+                <div class="table-wrapper">
+                  <table class="content-table" aria-label="Test listesi">
+                    <thead>
+                      <tr>
+                        <th>Başlık</th>
+                        <th>Durum</th>
+                        <th>Güncelleme</th>
+                        <th>Başarı</th>
+                        <th>İşlemler</th>
+                      </tr>
+                    </thead>
+                    <tbody id="testsTableBody"></tbody>
+                  </table>
+                </div>
                 <p class="muted" id="testsEmpty" style="display:none;">Bu kullanıcıya ait test bulunmadı.</p>
               </div>
               <div class="tab-panel" data-tab-panel="attempts">
-                <ul id="attemptsList" class="content-list"></ul>
+                <div class="table-controls" data-section-controls="attempts">
+                  <div class="filter-row">
+                    <input type="search" id="attemptsSearch" placeholder="Deneme ara" aria-label="Deneme ara" />
+                    <select id="attemptsStatus" aria-label="Deneme durumu">
+                      <option value="all">Tümü</option>
+                      <option value="passed">Başarılı</option>
+                      <option value="failed">Başarısız</option>
+                    </select>
+                  </div>
+                  <div class="pagination">
+                    <button type="button" id="attemptsPrev">Önceki</button>
+                    <span class="pagination-info" id="attemptsPageInfo">1 / 1</span>
+                    <button type="button" id="attemptsNext">Sonraki</button>
+                  </div>
+                </div>
+                <div class="table-wrapper">
+                  <table class="content-table" aria-label="Deneme listesi">
+                    <thead>
+                      <tr>
+                        <th>Başlık</th>
+                        <th>Durum</th>
+                        <th>Güncelleme</th>
+                        <th>Başarı</th>
+                        <th>İşlemler</th>
+                      </tr>
+                    </thead>
+                    <tbody id="attemptsTableBody"></tbody>
+                  </table>
+                </div>
                 <p class="muted" id="attemptsEmpty" style="display:none;">Bu kullanıcıya ait deneme/sonuç bulunmadı.</p>
               </div>
             </div>
@@ -266,6 +366,39 @@
       </div>
       <div class="modal-footer">
         <button type="button" class="btn-navy" data-detail-modal-close>Kapat</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="contentEditModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div>
+          <p class="eyebrow" id="contentEditEyebrow">İçerik düzenleme</p>
+          <h3 class="modal-title" id="contentEditTitle">Kaydı Düzenle</h3>
+        </div>
+        <button class="modal-close" type="button" aria-label="Kapat" data-content-modal-close>&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-control">
+          <label for="contentTitleInput">Başlık</label>
+          <input id="contentTitleInput" type="text" placeholder="Başlık girin" />
+        </div>
+        <div class="form-control">
+          <label for="contentStatusSelect">Durum</label>
+          <select id="contentStatusSelect">
+            <option value="active">Aktif</option>
+            <option value="draft">Taslak</option>
+            <option value="inactive">Pasif</option>
+            <option value="passed">Başarılı</option>
+            <option value="failed">Başarısız</option>
+          </select>
+        </div>
+        <div id="contentEditStatus" class="alert" role="status" style="display:none;"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" data-content-modal-close>Vazgeç</button>
+        <button type="button" class="btn-navy" id="contentSaveBtn">Kaydet</button>
       </div>
     </div>
   </div>
