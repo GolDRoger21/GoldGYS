@@ -58,6 +58,10 @@
     .pending-card .pill { background: #fff; border-radius: 10px; padding: 6px 10px; border: 1px solid rgba(0,0,0,0.06); font-weight: 700; color: var(--navy-deep); }
     .pending-card .note { color: var(--text-muted); font-size: 0.95rem; }
     .empty-state { margin: 14px 0 0; padding: 18px; border-radius: 12px; background: #f1f5f9; border: 1px dashed rgba(0,0,0,0.08); color: var(--text-muted); }
+    .inline-filters { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    .inline-filters input, .inline-filters select { padding: 10px 12px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.08); background: white; min-width: 180px; }
+    .muted { color: var(--text-muted); }
+    .helper-text { margin: 8px 0 0; color: var(--text-muted); }
 
     .alert { padding: 12px 14px; border-radius: 12px; margin: 12px 0 0; display: none; }
     .alert.success { background: #ecfdf3; border: 1px solid rgba(22, 163, 74, 0.2); color: #166534; }
@@ -107,13 +111,33 @@
             <div>
               <h2>Bekleyen üyelik başvuruları</h2>
               <p>"pending" durumundaki kullanıcıları listeler. Onaylanan üyeler etkinleştirilir ve seçilen role atanır.</p>
+              <p class="helper-text">Arama, durum ve rol filtrelerini kullanarak listeyi daraltabilirsiniz.</p>
             </div>
-            <button class="btn-navy" id="refreshPending" type="button">Yenile</button>
+            <div class="inline-filters">
+              <input type="search" id="pendingSearch" placeholder="İsim veya e-posta ara" aria-label="Kullanıcı ara" />
+              <select id="statusFilter" aria-label="Durum filtresi">
+                <option value="pending">Beklemede</option>
+                <option value="active">Aktif</option>
+                <option value="rejected">Reddedildi</option>
+                <option value="all">Tümü</option>
+              </select>
+              <select id="roleFilter" aria-label="Rol filtresi">
+                <option value="all">Tüm roller</option>
+                <option value="student">Öğrenci</option>
+                <option value="editor">Editör</option>
+                <option value="admin">Admin</option>
+              </select>
+              <button class="btn-navy" id="refreshPending" type="button">Yenile</button>
+            </div>
           </div>
 
           <div id="adminStatus" class="alert" role="status"></div>
           <ul id="pendingList" class="pending-list"></ul>
-          <div id="emptyState" class="empty-state" style="display: none;">Şu anda bekleyen bir üyelik bulunmuyor.</div>
+          <div id="emptyState" class="empty-state" style="display: none;">Bu filtrelerle eşleşen kullanıcı bulunamadı.</div>
+          <div id="errorState" class="alert error" role="alert" style="display: none;"></div>
+          <div style="display:flex; justify-content:center; margin-top: 12px;">
+            <button id="loadMore" class="btn-gold" type="button" style="display:none;">Daha fazla</button>
+          </div>
         </section>
       </div>
     </main>
@@ -136,6 +160,41 @@
       <div class="modal-footer">
         <button type="button" class="btn-gold" data-role-modal-close>Vazgeç</button>
         <button type="button" class="btn-navy" id="saveRoleBtn">Kaydet</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="detailModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="modal-card" style="width: min(720px, 94vw);">
+      <div class="modal-header">
+        <div>
+          <p class="eyebrow" id="detailModalEyebrow">Kullanıcı detayları</p>
+          <h3 class="modal-title" id="detailModalTitle">Profil</h3>
+        </div>
+        <button class="modal-close" type="button" aria-label="Kapat" data-detail-modal-close>&times;</button>
+      </div>
+      <div class="modal-body">
+        <div id="detailModalStatus" class="alert" role="status" style="display:none;"></div>
+        <div id="detailSkeleton" class="muted">Kullanıcı bilgileri getiriliyor...</div>
+        <div id="detailContent" style="display:none;">
+          <div style="display:grid; gap:10px;">
+            <div><strong>Ad Soyad:</strong> <span id="detailName">-</span></div>
+            <div><strong>E-posta:</strong> <span id="detailEmail">-</span></div>
+            <div><strong>UID:</strong> <span id="detailUid" class="pill-inline">-</span></div>
+            <div><strong>Durum:</strong> <span id="detailStatus">-</span></div>
+            <div><strong>Rol:</strong> <span id="detailRole">-</span></div>
+            <div><strong>Oluşturulma:</strong> <span id="detailCreatedAt">-</span></div>
+            <div><strong>Claims:</strong> <span id="detailClaims">-</span></div>
+          </div>
+          <div style="margin-top:12px; display:grid; grid-template-columns: repeat(auto-fit, minmax(180px,1fr)); gap:10px;">
+            <div class="empty-state" style="border-style: solid;">Konular: <strong id="topicCount">-</strong></div>
+            <div class="empty-state" style="border-style: solid;">Testler: <strong id="testCount">-</strong></div>
+            <div class="empty-state" style="border-style: solid;">Deneme/Sınavlar: <strong id="attemptCount">-</strong></div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-navy" data-detail-modal-close>Kapat</button>
       </div>
     </div>
   </div>

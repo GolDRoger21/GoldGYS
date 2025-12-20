@@ -182,3 +182,24 @@ exports.deleteUserAccount = functions.https.onCall(async (data, context) => {
 
   return { ok: true, uid };
 });
+
+// Admin kullanıcılar için özel claim bilgilerini getirir
+exports.getUserClaims = functions.https.onCall(async (data, context) => {
+  await ensureCallerIsAdmin(context);
+
+  const uid = data?.uid;
+  if (!uid) {
+    throw new functions.https.HttpsError("invalid-argument", "Kullanıcı kimliği gerekli.");
+  }
+
+  try {
+    const user = await admin.auth().getUser(uid);
+    return { ok: true, uid, claims: user.customClaims || {} };
+  } catch (error) {
+    console.error("Claim bilgisi alınamadı", error);
+    throw new functions.https.HttpsError(
+      error?.code === "auth/user-not-found" ? "not-found" : "internal",
+      "Claim bilgisi alınamadı."
+    );
+  }
+});
