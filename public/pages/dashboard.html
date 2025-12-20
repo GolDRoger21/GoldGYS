@@ -363,48 +363,57 @@
 
     <script type="module">
         import { initLayout } from '/js/ui-loader.js';
-        import { auth } from '/js/firebase-config.js';
+        import { auth, db } from '/js/firebase-config.js';
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import {
+            collection,
+            doc,
+            getDoc,
+            getDocs,
+            limit,
+            orderBy,
+            query
+        } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         initLayout('dashboard');
 
-        const statNumbers = {
-            solved: 842,
-            accuracy: 88,
-            streak: 12,
-            rank: 18
-        };
+        const formatter = new Intl.DateTimeFormat('tr-TR', {
+            day: '2-digit',
+            month: 'long',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
 
-        const modules = [
-            { title: 'TYT Matematik', completion: 72, target: '1 Mart', tags: ['Problem', 'Fonksiyon'] },
-            { title: 'Vatandaşlık Bilgisi', completion: 46, target: '4 Mart', tags: ['Hukuk', 'Güncel'] },
-            { title: 'Türkçe Paragraf', completion: 90, target: '28 Şubat', tags: ['Zaman Yönetimi'] },
-            { title: 'Coğrafya Haritalar', completion: 38, target: '6 Mart', tags: ['Harita', 'Kavram'] }
-        ];
+        const examTitleCache = new Map();
 
-        const activities = [
-            { icon: '✅', title: '15 soruluk deneme tamamlandı', time: 'Bugün · 09:45' },
-            { icon: '⭐', title: 'Favorilere 3 soru eklendi', time: 'Dün · 20:10' },
-            { icon: '🧠', title: 'Çözülen test: Mantık ve Paragraf', time: 'Dün · 17:30' },
-            { icon: '📌', title: 'Hedef belirlendi: 1000 soru / hafta', time: 'Pazartesi · 08:00' }
-        ];
+        function setUserName(user) {
+            const nameEl = document.getElementById("dashUserName");
+            if (!nameEl) return;
 
-        const events = [
-            { title: 'GYS Deneme Sınavı - 4', date: '9 Mart 2024', note: 'Sabah 10:00 · Çevrimiçi' },
-            { title: 'Çıkmış Sorular Kampı', date: '15 Mart 2024', note: 'Canlı oturum · 19:30' },
-            { title: 'Genel Tarama', date: '23 Mart 2024', note: 'Sonuç analizi raporu' }
-        ];
-
-        function renderStats() {
-            document.getElementById('statSolved').innerText = statNumbers.solved.toLocaleString('tr-TR');
-            document.getElementById('statAccuracy').innerText = `%${statNumbers.accuracy}`;
-            document.getElementById('statStreak').innerText = `${statNumbers.streak} gün`;
-            document.getElementById('statRank').innerText = `#${statNumbers.rank}`;
+            if (user.displayName) {
+                nameEl.innerText = user.displayName;
+            } else if (user.email) {
+                const name = user.email.split('@')[0];
+                nameEl.innerText = name.charAt(0).toUpperCase() + name.slice(1);
+            }
         }
 
-        function renderModules() {
+        function renderStats(stats) {
+            document.getElementById('statSolved').innerText = stats.solved.toLocaleString('tr-TR');
+            document.getElementById('statAccuracy').innerText = `%${stats.accuracy}`;
+            document.getElementById('statStreak').innerText = `${stats.streak} gün`;
+            document.getElementById('statRank').innerText = stats.rank ? `#${stats.rank}` : '-';
+        }
+
+        function renderModules(modules) {
             const container = document.getElementById('moduleList');
             container.innerHTML = '';
+
+            if (!modules.length) {
+                container.innerHTML = '<p style="color: var(--text-muted);">Henüz bir konu hedefi bulunamadı.</p>';
+                return;
+            }
 
             modules.forEach((module) => {
                 const item = document.createElement('div');
@@ -412,7 +421,7 @@
                 item.innerHTML = `
                     <div>
                         <div class="title">${module.title}</div>
-                        <div class="meta">Hedef tarih: ${module.target}</div>
+                        <div class="meta">${module.target}</div>
                         <div class="progress-bar" aria-label="Tamamlanma oranı ${module.completion}%">
                             <span style="width: ${module.completion}%"></span>
                         </div>
@@ -426,9 +435,14 @@
             });
         }
 
-        function renderActivities() {
+        function renderActivities(activities) {
             const container = document.getElementById('activityList');
             container.innerHTML = '';
+
+            if (!activities.length) {
+                container.innerHTML = '<p style="color: var(--text-muted);">Henüz aktivite kaydı yok.</p>';
+                return;
+            }
 
             activities.forEach((activity) => {
                 const item = document.createElement('div');
@@ -444,9 +458,14 @@
             });
         }
 
-        function renderCalendar() {
+        function renderCalendar(events) {
             const container = document.getElementById('calendarList');
             container.innerHTML = '';
+
+            if (!events.length) {
+                container.innerHTML = '<p style="color: rgba(255,255,255,0.8);">Gösterilecek sınav bulunamadı.</p>';
+                return;
+            }
 
             events.forEach((event) => {
                 const item = document.createElement('div');
@@ -460,20 +479,208 @@
             });
         }
 
-        renderStats();
-        renderModules();
-        renderActivities();
-        renderCalendar();
+        function normalizeDate(value) {
+            const date = value?.toDate ? value.toDate() : new Date(value);
+            date.setHours(0, 0, 0, 0);
+            return date;
+        }
+
+        function calculateStreak(progressDocs) {
+            const days = progressDocs
+                .map((p) => p.lastAccessedAt)
+                .filter(Boolean)
+                .map(normalizeDate)
+                .sort((a, b) => b - a);
+
+            if (!days.length) return 0;
+
+            let streak = 0;
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            let cursor = today;
+
+            for (const day of days) {
+                const diff = (cursor - day) / (1000 * 60 * 60 * 24);
+                if (diff === 0) {
+                    streak++;
+                } else if (diff === 1) {
+                    streak++;
+                    cursor = day;
+                } else if (diff > 1) {
+                    break;
+                }
+            }
+
+            return streak;
+        }
+
+        async function fetchUserProgress(uid) {
+            try {
+                const snap = await getDocs(collection(db, 'users', uid, 'progress'));
+                const items = [];
+                let attempted = 0;
+                let correct = 0;
+
+                snap.forEach((doc) => {
+                    const data = doc.data();
+                    items.push(data);
+                    attempted += data.attemptedQuestions || 0;
+                    correct += data.correctAnswers || 0;
+                });
+
+                const accuracy = attempted ? Math.round((correct / attempted) * 100) : 0;
+                const streak = calculateStreak(items);
+
+                return {
+                    progressItems: items,
+                    stats: {
+                        solved: attempted,
+                        accuracy,
+                        streak,
+                        rank: null
+                    }
+                };
+            } catch (err) {
+                console.error('Progress verisi alınamadı', err);
+                return { progressItems: [], stats: { solved: 0, accuracy: 0, streak: 0, rank: null } };
+            }
+        }
+
+        function buildModules(topics, progressItems) {
+            const progressMap = new Map();
+            progressItems.forEach((item) => {
+                if (item.topicId) progressMap.set(item.topicId, item);
+            });
+
+            return topics.slice(0, 6).map((topic) => {
+                const progress = progressMap.get(topic.id) || {};
+                const target = topic.totalQuestionTarget || 0;
+                const attempted = progress.attemptedQuestions || 0;
+                const completion = target
+                    ? Math.min(100, Math.round((attempted / target) * 100))
+                    : Math.min(100, Math.round((attempted / 50) * 100));
+
+                return {
+                    title: topic.title,
+                    completion: Number.isFinite(completion) ? completion : 0,
+                    target: target ? `Hedef: ${target} soru` : 'Hedef bilgisi yok',
+                    tags: (topic.subTopics || []).slice(0, 2).map((s) => s.title)
+                };
+            });
+        }
+
+        async function fetchTopics() {
+            try {
+                const topicsQuery = query(collection(db, 'topics'), orderBy('order'));
+                const snap = await getDocs(topicsQuery);
+                const topics = [];
+                snap.forEach((doc) => topics.push({ id: doc.id, ...doc.data() }));
+                return topics;
+            } catch (err) {
+                console.error('Topics alınamadı, orderBy olmadan tekrar denenecek', err);
+                const snap = await getDocs(collection(db, 'topics'));
+                const topics = [];
+                snap.forEach((doc) => topics.push({ id: doc.id, ...doc.data() }));
+                return topics;
+            }
+        }
+
+        async function resolveExamTitle(examId) {
+            if (!examId) return 'Deneme Sınavı';
+            if (examTitleCache.has(examId)) return examTitleCache.get(examId);
+
+            try {
+                const examSnap = await getDoc(doc(db, 'exams', examId));
+                const title = examSnap.exists() ? examSnap.data().title || `Sınav ${examId}` : `Sınav ${examId}`;
+                examTitleCache.set(examId, title);
+                return title;
+            } catch (err) {
+                console.error('Exam başlığı alınamadı', err);
+                return `Sınav ${examId}`;
+            }
+        }
+
+        async function fetchActivities(uid) {
+            try {
+                const resultsQuery = query(
+                    collection(db, 'users', uid, 'examResults'),
+                    orderBy('completedAt', 'desc'),
+                    limit(4)
+                );
+                const snap = await getDocs(resultsQuery);
+                const activities = await Promise.all(
+                    snap.docs.map(async (docSnap) => {
+                        const data = docSnap.data();
+                        const examTitle = await resolveExamTitle(data.examId);
+                        const total = data.totalQuestions || 0;
+                        const correct = data.correctAnswers || 0;
+                        const ratio = total ? `${correct}/${total}` : 'Sonuç';
+                        return {
+                            icon: '🧠',
+                            title: `${examTitle} · ${ratio}`,
+                            time: data.completedAt ? formatter.format(data.completedAt.toDate()) : 'Tarih bilgisi yok'
+                        };
+                    })
+                );
+
+                return activities;
+            } catch (err) {
+                console.error('Aktiviteler alınamadı', err);
+                return [];
+            }
+        }
+
+        async function fetchEvents() {
+            try {
+                const examsQuery = query(collection(db, 'exams'), orderBy('createdAt', 'desc'), limit(3));
+                const snap = await getDocs(examsQuery);
+                return snap.docs.map((d) => {
+                    const data = d.data();
+                    const dateLabel = data.createdAt ? formatter.format(data.createdAt.toDate()) : 'Tarih belirtilmemiş';
+                    const note = data.duration ? `${data.duration} dk · ${data.totalQuestions || 0} soru` : 'Süre bilgisi yok';
+                    return {
+                        title: data.title || 'Deneme sınavı',
+                        date: dateLabel,
+                        note
+                    };
+                });
+            } catch (err) {
+                console.error('Sınavlar alınamadı, orderBy olmadan tekrar denenecek', err);
+                try {
+                    const snap = await getDocs(collection(db, 'exams'));
+                    return snap.docs.slice(0, 3).map((d) => {
+                        const data = d.data();
+                        return {
+                            title: data.title || 'Deneme sınavı',
+                            date: data.createdAt && data.createdAt.toDate ? formatter.format(data.createdAt.toDate()) : 'Tarih belirtilmemiş',
+                            note: data.duration ? `${data.duration} dk · ${data.totalQuestions || 0} soru` : 'Süre bilgisi yok'
+                        };
+                    });
+                } catch (e) {
+                    console.error('Sınavlar alınamadı', e);
+                    return [];
+                }
+            }
+        }
+
+        async function loadDashboard(user) {
+            const [{ progressItems, stats }, topics, activities, events] = await Promise.all([
+                fetchUserProgress(user.uid),
+                fetchTopics(),
+                fetchActivities(user.uid),
+                fetchEvents()
+            ]);
+
+            renderStats(stats);
+            renderModules(buildModules(topics, progressItems));
+            renderActivities(activities);
+            renderCalendar(events);
+        }
 
         onAuthStateChanged(auth, (user) => {
             if (user) {
-                const nameEl = document.getElementById("dashUserName");
-                if (user.displayName) {
-                    nameEl.innerText = user.displayName;
-                } else if (user.email) {
-                    const name = user.email.split('@')[0];
-                    nameEl.innerText = name.charAt(0).toUpperCase() + name.slice(1);
-                }
+                setUserName(user);
+                loadDashboard(user).catch((err) => console.error('Panel yüklenemedi', err));
             } else {
                 window.location.href = "/login.html";
             }
