@@ -1,5 +1,9 @@
 // Tarayıcı için CDN bağlantılarını kullanıyoruz
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import {
+  getApp,
+  getApps,
+  initializeApp,
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getFirestore } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
@@ -13,8 +17,8 @@ export const firebaseConfig = {
   appId: "1:631874020828:web:976ae1de5e7bc246909b19",
 };
 
-// Firebase'i Başlat
-export const app = initializeApp(firebaseConfig);
+// Firebase'i Başlat (önceden başlatıldıysa mevcut uygulamayı kullan)
+export const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 
 // Servisleri Dışa Aktar (Diğer dosyalar bunları kullanacak)
 export const auth = getAuth(app);
