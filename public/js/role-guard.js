@@ -29,6 +29,20 @@ export function protectPage(options = {}) {
             return;
         }
 
+        const useFallbackRole = async (extraCheck = true) => {
+            const fallbackRole = (await auth.currentUser?.getIdTokenResult(true))?.claims.role || "student";
+
+            if (extraCheck && allowedRoles.length > 0 && !allowedRoles.includes(fallbackRole) && fallbackRole !== 'admin') {
+                alert("Bu sayfaya erişim yetkiniz yok.");
+                window.location.href = "/pages/dashboard.html";
+                return false;
+            }
+
+            document.body.style.opacity = "1";
+            document.body.style.pointerEvents = "auto";
+            return true;
+        };
+
         try {
             const tokenResult = await user.getIdTokenResult(true);
             const claimRole = tokenResult.claims.role || (tokenResult.claims.admin ? "admin" : null);
@@ -36,7 +50,7 @@ export function protectPage(options = {}) {
             // 1. Kullanıcı Dokümanını Çek (Status kontrolü için)
             const userRef = doc(db, "users", user.uid);
             const userSnap = await getDoc(userRef);
-            
+
             if (!userSnap.exists()) {
                 // Doküman yoksa güvenli tarafta kalıp logout yap
                 await auth.signOut();
@@ -45,7 +59,7 @@ export function protectPage(options = {}) {
             }
 
             const userData = userSnap.data();
-            
+
             // 2. STATUS KONTROLÜ (KRİTİK BÖLÜM)
             // Eğer sayfa 'pending-approval.html' değilse ve kullanıcı 'active' değilse
             if (userData.status !== "active" && !window.location.pathname.includes("pending-approval.html")) {
@@ -85,18 +99,18 @@ export function protectPage(options = {}) {
 
         } catch (error) {
             console.error("Yetki kontrolü hatası:", error);
+            const code = error?.code || '';
 
-            if (error.code === 'permission-denied') {
-                const fallbackRole = (await auth.currentUser?.getIdTokenResult(true))?.claims.role || "student";
+            // Firestore bağlantı sorunlarında claim bilgileriyle devam et
+            const transientIssues = ['unavailable', 'deadline-exceeded', 'cancelled', 'resource-exhausted'];
+            if (transientIssues.includes(code)) {
+                alert("Profil bilgileri yüklenemedi (bağlantı sorunu). Geçici olarak izin kontrolleri token üzerinden yapılıyor.");
+                await useFallbackRole();
+                return;
+            }
 
-                if (allowedRoles.length > 0 && !allowedRoles.includes(fallbackRole) && fallbackRole !== 'admin') {
-                    alert("Bu sayfaya erişim yetkiniz yok.");
-                    window.location.href = "/pages/dashboard.html";
-                    return;
-                }
-
-                document.body.style.opacity = "1";
-                document.body.style.pointerEvents = "auto";
+            if (code === 'permission-denied') {
+                await useFallbackRole();
                 return;
             }
 
