@@ -177,6 +177,31 @@ button { font-family: inherit; cursor: pointer; }
 .page-title { font-weight: 700; color: var(--navy-deep); font-size: 1.1rem; }
 .header-right { display: flex; align-items: center; gap: 20px; }
 
+.header-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    border-radius: 10px;
+    background: #0f172a;
+    color: white;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    box-shadow: var(--shadow-soft);
+}
+
+.main-nav { display: flex; align-items: center; gap: 12px; }
+.main-nav a {
+    padding: 10px 12px;
+    border-radius: 10px;
+    color: var(--text-muted);
+    font-weight: 600;
+}
+.main-nav a:hover, .main-nav a.active {
+    color: var(--navy-deep);
+    background: #f8fafc;
+}
+
 /* Profil Dropdown */
 .user-menu-container { position: relative; }
 .user-avatar-circle {
@@ -196,8 +221,23 @@ button { font-family: inherit; cursor: pointer; }
     display: flex; align-items: center; gap: 10px; width: 100%;
 }
 .profile-dropdown a:hover { background: #f1f5f9; }
+.dropdown-header-info { display: flex; align-items: center; gap: 10px; padding: 6px 6px 10px; }
+.user-avatar-small { min-width: 32px; }
 
 .app-content { padding: 30px; flex: 1; max-width: 1400px; margin: 0 auto; width: 100%; }
+
+/* Spinner */
+.spinner {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 4px solid #e2e8f0;
+    border-top-color: var(--gold-main);
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
 
 /* =========================================
    4. ADMIN PANEL & KULLANICI KARTLARI
@@ -350,7 +390,38 @@ button { font-family: inherit; cursor: pointer; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
 
 /* =========================================
-   7. MOBİL UYUM (RESPONSIVE)
+   7. FOOTER
+   ========================================= */
+.app-footer {
+    background: var(--navy-deep);
+    color: var(--text-on-dark);
+    padding: 18px 30px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    margin-top: auto;
+}
+
+.footer-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    font-weight: 600;
+}
+
+.footer-links { display: flex; align-items: center; gap: 14px; }
+.footer-links a {
+    color: rgba(255,255,255,0.75);
+    font-weight: 600;
+    padding: 6px 10px;
+    border-radius: 8px;
+}
+.footer-links a:hover { background: rgba(255,255,255,0.08); color: white; }
+
+/* =========================================
+   8. MOBİL UYUM (RESPONSIVE)
    ========================================= */
 @media (max-width: 900px) {
     .app-sidebar { transform: translateX(-100%); }
@@ -363,12 +434,17 @@ button { font-family: inherit; cursor: pointer; }
     .admin-hero { flex-direction: column; align-items: flex-start; gap: 16px; }
     .section-head { flex-direction: column; gap: 16px; }
     .inline-filters { width: 100%; } .inline-filters input, .inline-filters select { flex: 1; }
-    
+
     .footer-static { left: 0; flex-wrap: wrap; padding: 10px; }
     .footer-static button { flex: 1; font-size: 0.85rem; padding: 10px; }
-    
+
+    .main-nav { display: none; }
+    .header-brand { display: none; }
+    .footer-content { justify-content: center; text-align: center; }
+    .footer-links { width: 100%; justify-content: center; }
+
     .user-grid { grid-template-columns: 1fr; }
-    
+
     body.sidebar-open::after {
         content: ""; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 950;
     }
