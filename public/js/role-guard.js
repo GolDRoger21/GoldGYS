@@ -3,135 +3,141 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/fi
 import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 export function protectPage(options = {}) {
-    let normalizedOptions = {};
+    const { allow = null, requireRole = null } = normalizeOptions(options);
+    const allowedRoles = getRoleList(allow, requireRole);
 
-    if (options === true) {
-        normalizedOptions = { requireRole: "admin" };
-    } else if (typeof options === "string") {
-        normalizedOptions = { requireRole: options };
-    } else if (Array.isArray(options)) {
-        normalizedOptions = { allow: options };
-    } else if (options && typeof options === "object") {
-        normalizedOptions = options;
-    }
-
-    const { allow = null, requireRole = null } = normalizedOptions;
-
-    const normalizeToArray = (value) => {
-        if (!value) return [];
-        if (Array.isArray(value)) return value.filter(Boolean);
-        return [value];
-    };
-
-    const allowedRoles = normalizeToArray(allow).length
-        ? normalizeToArray(allow)
-        : normalizeToArray(requireRole);
-
-    // Sayfa yüklenmeden önce content'i gizle
-    document.body.style.opacity = "0.5";
-    document.body.style.pointerEvents = "none";
+    // Sayfa yüklenmeden önce içeriği gizle
+    document.body.style.opacity = "0";
+    document.body.style.transition = "opacity 0.3s ease-in-out";
 
     onAuthStateChanged(auth, async (user) => {
         if (!user) {
-            window.location.href = "/login.html";
-            return;
+            return redirectTo("/login.html");
         }
-
-        // --- YEDEK MEKANİZMA (Veritabanı erişilemezse devreye girer) ---
-        const useFallbackRole = async (extraCheck = true) => {
-            console.log("Firestore erişilemedi, Token Claims üzerinden kontrol ediliyor...");
-            
-            // Token'ı tazeleyerek en güncel yetkileri al
-            const tokenResult = await auth.currentUser?.getIdTokenResult(true);
-            
-            const claimStatus = tokenResult?.claims?.status || (tokenResult?.claims?.admin ? "active" : null);
-            const fallbackRole = tokenResult?.claims?.role || (tokenResult?.claims?.admin ? "admin" : "student");
-
-            // Claim durumuna göre beklemeye yönlendir
-            if (claimStatus && claimStatus !== "active" && !window.location.pathname.includes("pending-approval.html")) {
-                window.location.href = "/pages/pending-approval.html";
-                return false;
-            }
-
-            // Eğer ekstra rol kontrolü gerekiyorsa ve kullanıcı admin değilse
-            if (extraCheck && allowedRoles.length > 0 && !allowedRoles.includes(fallbackRole) && fallbackRole !== 'admin') {
-                alert("Bu sayfaya erişim yetkiniz yok (Token tabanlı kontrol).");
-                window.location.href = "/pages/dashboard.html";
-                return false;
-            }
-
-            // Giriş Başarılı
-            document.body.style.opacity = "1";
-            document.body.style.pointerEvents = "auto";
-            return true;
-        };
 
         try {
-            const tokenResult = await user.getIdTokenResult(true);
-            const claimRole = tokenResult.claims.role || (tokenResult.claims.admin ? "admin" : null);
-            const claimStatus = tokenResult.claims.status || (tokenResult.claims.admin ? "active" : null);
+            const profile = await getUserProfile(user);
 
-            // 1. Kullanıcı Dokümanını Çek
-            const userRef = doc(db, "users", user.uid);
-            const userSnap = await getDoc(userRef);
-
-            if (!userSnap.exists()) {
-                // Doküman yoksa yedek mekanizmayı kullan
-                await useFallbackRole();
-                return;
+            // Durum ve rol kontrolü
+            if (!isUserApproved(profile) && !isPendingPage()) {
+                return redirectTo("/pages/pending-approval.html");
+            }
+            if (isUserApproved(profile) && isPendingPage()) {
+                return redirectTo("/pages/dashboard.html");
+            }
+            if (!isUserAuthorized(profile, allowedRoles)) {
+                alert("Bu sayfaya erişim yetkiniz bulunmuyor.");
+                return redirectTo("/pages/dashboard.html");
             }
 
-            const userData = userSnap.data();
-
-            // Status alanı boşsa doldurmaya çalış
-            const profileStatus = userData.status || claimStatus || "active";
-            if (!userData.status) {
-                try {
-                    await setDoc(userRef, { status: profileStatus }, { merge: true });
-                } catch (statusErr) {
-                    console.warn("Kullanıcı status alanı güncellenemedi", statusErr);
-                }
-            }
-
-            // 2. STATUS KONTROLÜ
-            if (profileStatus !== "active" && !window.location.pathname.includes("pending-approval.html")) {
-                window.location.href = "/pages/pending-approval.html";
-                return;
-            }
-
-            if (profileStatus === "active" && window.location.pathname.includes("pending-approval.html")) {
-                window.location.href = "/pages/dashboard.html";
-                return;
-            }
-
-            // 3. Rol Kontrolü
-            if (allowedRoles.length > 0) {
-                const currentRole = userData.role || claimRole || "student";
-
-                // Admin her yere girebilir
-                if (currentRole === 'admin') {
-                    document.body.style.opacity = "1";
-                    document.body.style.pointerEvents = "auto";
-                    return;
-                }
-
-                if (!allowedRoles.includes(currentRole)) {
-                    alert("Bu sayfaya erişim yetkiniz yok.");
-                    window.location.href = "/pages/dashboard.html";
-                    return;
-                }
-            }
-
-            // Tüm kontroller geçti
+            // Tüm kontrollerden geçti, sayfayı göster
             document.body.style.opacity = "1";
-            document.body.style.pointerEvents = "auto";
 
         } catch (error) {
-            console.error("Yetki kontrolü hatası (Firestore):", error);
-            
-            // HATA OLDUĞUNDA LOGİN'E ATMAK YERİNE TOKEN İLE DEVAM ET
-            // Bu, sorununuzu çözecek olan kısımdır.
-            await useFallbackRole();
+            console.error("Giriş koruma hatası:", error);
+            // Hata durumunda, token tabanlı yedek kontrolü devreye al
+            await fallbackControl(user, allowedRoles);
         }
     });
+}
+
+// --- Yardımcı Fonksiyonlar ---
+
+function normalizeOptions(options) {
+    if (options === true) return { requireRole: "admin" };
+    if (typeof options === "string") return { requireRole: options };
+    if (Array.isArray(options)) return { allow: options };
+    return options || {};
+}
+
+function getRoleList(allow, requireRole) {
+    const normalize = (val) => (Array.isArray(val) ? val : (val ? [val] : []));
+    const allowed = normalize(allow);
+    return allowed.length > 0 ? allowed : normalize(requireRole);
+}
+
+function redirectTo(url) {
+    if (window.location.href !== url) {
+        window.location.href = url;
+    }
+}
+
+function isPendingPage() {
+    return window.location.pathname.includes("pending-approval.html");
+}
+
+async function getUserProfile(user) {
+    // Önce token'dan temel bilgileri al
+    const tokenResult = await user.getIdTokenResult(true);
+    const claims = tokenResult.claims || {};
+    const baseProfile = {
+        uid: user.uid,
+        role: claims.role || (claims.admin ? "admin" : "student"),
+        status: claims.status || (claims.admin ? "active" : "pending"),
+    };
+
+    try {
+        const userRef = doc(db, "users", user.uid);
+        const userSnap = await getDoc(userRef);
+
+        if (!userSnap.exists()) {
+            console.warn("Firestore'da kullanıcı dokümanı bulunamadı. Token bilgileri kullanılıyor.");
+            return baseProfile; // Doküman yoksa, sadece token bilgisiyle devam et
+        }
+
+        const dbData = userSnap.data();
+        
+        // Veritabanı profilini, token bilgileriyle birleştir/güncelle
+        const finalProfile = { ...baseProfile, ...dbData };
+        
+        // Eğer veritabanında `status` eksikse ve claim'de varsa, veritabanını güncelle
+        if (!dbData.status && baseProfile.status) {
+            await setDoc(userRef, { status: baseProfile.status }, { merge: true }).catch(err => 
+                console.warn("Kullanıcı durumu güncellenemedi:", err)
+            );
+        }
+
+        return finalProfile;
+
+    } catch (dbError) {
+        console.error("Firestore'dan profil alınamadı. Token bilgileri kullanılacak:", dbError);
+        return baseProfile; // Veritabanı hatasında, sadece token bilgisiyle devam et
+    }
+}
+
+function isUserApproved(profile) {
+    return profile.status === "active";
+}
+
+function isUserAuthorized(profile, allowedRoles) {
+    if (profile.role === 'admin') return true; // Admin her zaman yetkilidir
+    if (allowedRoles.length === 0) return true; // Rol belirtilmemişse herkes yetkilidir
+    return allowedRoles.includes(profile.role);
+}
+
+async function fallbackControl(user, allowedRoles) {
+    console.log("Firestore erişilemedi, yalnızca Token Claims ile kontrol ediliyor...");
+    try {
+        const tokenResult = await user.getIdTokenResult(true);
+        const claims = tokenResult.claims || {};
+        const profile = {
+            role: claims.role || (claims.admin ? "admin" : "student"),
+            status: claims.status || (claims.admin ? "active" : "pending"),
+        };
+
+        if (!isUserApproved(profile) && !isPendingPage()) {
+            return redirectTo("/pages/pending-approval.html");
+        }
+        if (!isUserAuthorized(profile, allowedRoles)) {
+            alert("Bu sayfaya erişim yetkiniz yok (Yedek kontrol).");
+            return redirectTo("/pages/dashboard.html");
+        }
+        
+        // Yedek kontrolden geçti
+        document.body.style.opacity = "1";
+
+    } catch (tokenError) {
+        console.error("Token alınamadı, giriş sayfasına yönlendiriliyor:", tokenError);
+        redirectTo("/login.html");
+    }
 }

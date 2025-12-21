@@ -83,17 +83,28 @@ export async function initAuthLayout() {
 /**
  * Initializes the main application layout for authenticated users.
  */
-export async function initAppLayout(pageKey) {
-  await loadComponent('app-header', `${COMPONENTS_PATH}/admin-header.html`);
-  await loadComponent('app-footer', `${COMPONENTS_PATH}/admin-footer.html`);
+export async function initLayout(pageKey) {
+  await Promise.all([
+    loadComponent('header-area', `../components/layouts/admin-header.html`),
+    loadComponent('sidebar-area', `../partials/sidebar.html`),
+    loadComponent('footer-area', `../components/layouts/admin-footer.html`)
+  ]);
   initTheme();
   setupAppInteractions();
-
+  
   // Handle auth state and user data
   onAuthStateChanged(auth, async (user) => {
     if (user) {
       const profile = await ensureUserDocument(user);
       updateUserInfo(profile, user);
+      // Activate the current page link in the sidebar
+      const sidebar = document.getElementById('sidebar-area');
+      if (sidebar && pageKey) {
+        const link = sidebar.querySelector(`a[href*="/${pageKey}.html"]`);
+        if (link) {
+          link.classList.add('active');
+        }
+      }
     } else {
       // If auth is required, redirect to login
       window.location.href = '/';
@@ -117,7 +128,7 @@ function updateUserInfo(profile, user) {
  * Sets up interactions for the main app (profile dropdown, logout).
  */
 function setupAppInteractions() {
-    const header = document.getElementById('app-header');
+    const header = document.getElementById('header-area');
     if (!header) return;
 
     header.addEventListener('click', (e) => {
