@@ -173,6 +173,13 @@ button { font-family: inherit; cursor: pointer; }
     position: sticky; top: 0; z-index: 900;
     box-shadow: 0 2px 10px rgba(0,0,0,0.03); border-bottom: 1px solid #e2e8f0;
 }
+.mobile-menu-toggle {
+    display: none;
+    border: none;
+    background: none;
+    font-size: 1.4rem;
+    color: var(--navy-deep);
+}
 .header-left { display: flex; align-items: center; gap: 16px; }
 .page-title { font-weight: 700; color: var(--navy-deep); font-size: 1.1rem; }
 .header-right { display: flex; align-items: center; gap: 20px; }
