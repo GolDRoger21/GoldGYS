@@ -121,6 +121,7 @@
             grid-template-columns: 2fr 1fr;
             gap: 22px;
         }
+        .column-stack { display: flex; flex-direction: column; gap: 16px; }
         .section-card {
             background: white;
             border-radius: 18px;
@@ -135,6 +136,7 @@
             gap: 10px;
             margin-bottom: 14px;
         }
+        .section-head.compact { margin-bottom: 6px; }
         .section-head h3 {
             font-family: 'Playfair Display', serif;
             color: var(--navy-deep);
@@ -293,7 +295,7 @@
 
                 <section class="dashboard-hero">
                     <div class="badge">⚡ GYS Hızlandırıcı</div>
-                    <h1>Hoş Geldiniz, <span id="dashUserName" style="color: var(--gold-main);">Kaptan</span> 👑</h1>
+                    <h1>Hoş Geldiniz, <span id="dashUserName" class="text-primary">Kaptan</span> 👑</h1>
                     <p>
                         Günlük hedeflerinize odaklanın, eksik konularınızı tamamlayın ve deneme sınavlarıyla seviyenizi görün.
                         Yolculuğunuza kaldığınız yerden devam edebilmeniz için her şey hazır.
@@ -309,7 +311,7 @@
 
                 <section class="stat-grid">
                     <article class="stat-card">
-                        <div class="stat-icon" style="background: var(--gold-light); color: var(--gold-dark);">📚</div>
+                        <div class="stat-icon bg-accent-soft">📚</div>
                         <div class="stat-details">
                             <div class="label">Çözülen Soru</div>
                             <div class="value" id="statSolved">0</div>
@@ -317,7 +319,7 @@
                         </div>
                     </article>
                     <article class="stat-card">
-                        <div class="stat-icon" style="background: #ECFDF5; color: var(--success);">🎯</div>
+                        <div class="stat-icon bg-success-soft">🎯</div>
                         <div class="stat-details">
                             <div class="label">Başarı Oranı</div>
                             <div class="value" id="statAccuracy">%0</div>
@@ -325,7 +327,7 @@
                         </div>
                     </article>
                     <article class="stat-card">
-                        <div class="stat-icon" style="background: #EFF6FF; color: #1D4ED8;">🔥</div>
+                        <div class="stat-icon bg-info-soft">🔥</div>
                         <div class="stat-details">
                             <div class="label">Çalışma Serisi</div>
                             <div class="value" id="statStreak">0 gün</div>
@@ -333,7 +335,7 @@
                         </div>
                     </article>
                     <article class="stat-card">
-                        <div class="stat-icon" style="background: #FEF2F2; color: #DC2626;">🏅</div>
+                        <div class="stat-icon bg-danger-soft">🏅</div>
                         <div class="stat-details">
                             <div class="label">Sıralama</div>
                             <div class="value" id="statRank">-</div>
@@ -352,7 +354,7 @@
                             <div id="moduleList" class="module-list" aria-live="polite"></div>
                         </article>
 
-                        <article class="section-card" style="margin-top: 16px;">
+                        <article class="section-card mt-md">
                             <div class="section-head">
                                 <h3>Son Aktiviteler</h3>
                                 <span>Günlük ilerleme kayıtları</span>
@@ -361,17 +363,17 @@
                         </article>
                     </div>
 
-                    <div class="column" style="display: flex; flex-direction: column; gap: 16px;">
+                    <div class="column column-stack">
                         <article class="section-card insight-card">
-                            <div class="section-head" style="margin-bottom: 6px;">
-                                <h3 style="color: #92400e;">Haftalık Öneri</h3>
-                                <span style="color: #b45309;">Fark yaratacak ipucu</span>
+                            <div class="section-head compact">
+                                <h3 class="text-warning-strong">Haftalık Öneri</h3>
+                                <span class="text-warning">Fark yaratacak ipucu</span>
                             </div>
-                            <p style="color: #713f12; margin-bottom: 8px;">
+                            <p class="text-warning-strong mb-xs">
                                 Karmaşık konuları küçük bloklara böl ve her blok için 25 dakikalık odaklı çalışma planla. Blok bitiminde
                                 5 dakikalık kısa özet yazarak öğrenmeni pekiştir.
                             </p>
-                            <div class="chip" style="background: white; color: #92400e; border-color: rgba(180,83,9,0.4);">⏳ Pomodoro</div>
+                            <div class="chip border-muted text-warning-strong">⏳ Pomodoro</div>
                         </article>
 
                         <article class="section-card">
@@ -391,8 +393,8 @@
 
                         <article class="section-card calendar-card">
                             <div class="section-head">
-                                <h3 style="color: var(--gold-main);">Sınav Takvimi</h3>
-                                <span style="color: rgba(255,255,255,0.8);">Yaklaşan tarihler</span>
+                                <h3 class="text-primary">Sınav Takvimi</h3>
+                                <span class="text-contrast-soft">Yaklaşan tarihler</span>
                             </div>
                             <div id="calendarList" class="calendar-list"></div>
                         </article>
@@ -466,7 +468,7 @@
             const container = document.getElementById('moduleList');
             container.innerHTML = '';
             if (!modules.length) {
-                container.innerHTML = '<p style="color: var(--text-muted);">Henüz bir konu hedefi bulunamadı.</p>';
+                container.innerHTML = '<p class="text-muted">Henüz bir konu hedefi bulunamadı.</p>';
                 return;
             }
             modules.forEach((module) => {
@@ -480,7 +482,7 @@
                     </div>
                     <div class="module-meta">
                         <div class="chip">${module.completion}%</div>
-                        ${module.tags.map(tag => `<div class="chip" style="background:#e2e8f0;">#${tag}</div>`).join('')}
+                        ${module.tags.map(tag => `<div class="chip bg-soft">#${tag}</div>`).join('')}
                     </div>`;
                 container.appendChild(item);
             });
@@ -490,7 +492,7 @@
             const container = document.getElementById('activityList');
             container.innerHTML = '';
             if (!activities.length) {
-                container.innerHTML = '<p style="color: var(--text-muted);">Henüz aktivite kaydı yok.</p>';
+                container.innerHTML = '<p class="text-muted">Henüz aktivite kaydı yok.</p>';
                 return;
             }
             activities.forEach((activity) => {
@@ -510,7 +512,7 @@
             const container = document.getElementById('calendarList');
             container.innerHTML = '';
             if (!events.length) {
-                container.innerHTML = '<p style="color: rgba(255,255,255,0.8);">Gösterilecek sınav bulunamadı.</p>';
+                container.innerHTML = '<p class="text-contrast-soft">Gösterilecek sınav bulunamadı.</p>';
                 return;
             }
             events.forEach((event) => {
@@ -518,8 +520,8 @@
                 item.className = 'event';
                 item.innerHTML = `
                     <strong>${event.title}</strong>
-                    <div style="opacity: 0.85;">${event.date}</div>
-                    <div style="color: rgba(255,255,255,0.8); font-size: 0.9rem;">${event.note}</div>`;
+                    <div class="text-contrast-soft text-dimmed">${event.date}</div>
+                    <div class="text-contrast-soft caption">${event.note}</div>`;
                 container.appendChild(item);
             });
         }

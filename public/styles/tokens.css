@@ -43,6 +43,10 @@
     --color-primary: #D4AF37;
     --color-primary-soft: #F3E5AB;
     --color-primary-strong: #B5952F;
+    --gold-main: var(--color-primary);
+    --gold-light: var(--color-primary-soft);
+    --gold-dark: var(--color-primary-strong);
+    --navy-deep: var(--color-layer-strong);
     --gradient-primary: linear-gradient(135deg, #BF953F, #FCF6BA, #B38728, #FBF5B7, #AA771C);
 
     --color-bg: #F1F5F9;
@@ -97,6 +101,10 @@
     --color-primary: #F3E5AB;
     --color-primary-soft: #FFE7A0;
     --color-primary-strong: #D4AF37;
+    --gold-main: var(--color-primary);
+    --gold-light: var(--color-primary-soft);
+    --gold-dark: var(--color-primary-strong);
+    --navy-deep: var(--color-layer-strong);
     --gradient-primary: linear-gradient(135deg, #D4AF37, #F3E5AB, #B5952F, #F3E5AB, #AA771C);
 
     --color-bg: #0B1224;

@@ -3,6 +3,7 @@
    ========================================= */
 
 @import url("../styles/tokens.css");
+@import url("./typography.css");
 @import url("./layout.css");
 @import url("./footer.css");
 
@@ -21,6 +22,17 @@ body {
 a { text-decoration: none; color: inherit; transition: 0.3s ease; }
 ul { list-style: none; }
 button { font-family: inherit; cursor: pointer; }
+
+:focus-visible {
+    outline: 3px solid var(--color-primary);
+    outline-offset: 3px;
+    box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.25);
+}
+
+a:hover,
+a:active {
+    color: var(--color-primary-strong);
+}
 
 /* =========================================
    1. BUTONLAR & ELEMENTLER (TÜM SİSTEM)
@@ -41,7 +53,8 @@ button { font-family: inherit; cursor: pointer; }
     justify-content: center;
     gap: var(--space-xs);
 }
-.btn-gold:hover { transform: translateY(-2px); background: var(--color-surface); box-shadow: 0 6px 20px rgba(255,255,255,0.4); }
+.btn-gold:hover { transform: translateY(-2px); background: var(--color-surface); color: var(--color-layer-strong); box-shadow: 0 6px 20px rgba(255,255,255,0.4); }
+.btn-gold:active { transform: translateY(0); filter: saturate(1.1); }
 
 .btn-navy {
     background: var(--color-layer);
@@ -56,7 +69,7 @@ button { font-family: inherit; cursor: pointer; }
     justify-content: center;
     gap: var(--space-xs);
 }
-.btn-navy:hover { background: var(--color-primary); color: var(--color-layer-strong); }
+.btn-navy:hover, .btn-navy:active { background: var(--color-primary); color: var(--color-layer-strong); }
 
 .btn-secondary {
     background: var(--color-surface);
@@ -71,7 +84,26 @@ button { font-family: inherit; cursor: pointer; }
     align-items: center;
     justify-content: center;
 }
-.btn-secondary:hover { background: var(--color-neutral-100); color: var(--color-layer-strong); border-color: var(--color-border-muted); }
+.btn-secondary:hover, .btn-secondary:active { background: var(--color-neutral-100); color: var(--color-layer-strong); border-color: var(--color-border-muted); }
+
+/* Utility text helpers */
+.text-primary { color: var(--color-primary); }
+.text-warning { color: var(--color-warning); }
+.text-warning-strong { color: var(--color-warning-strong); }
+.text-muted { color: var(--color-text-muted); }
+.text-contrast { color: var(--color-text-contrast); }
+.text-contrast-soft { color: rgba(255, 255, 255, 0.8); }
+.text-dimmed { opacity: 0.85; }
+
+.bg-soft { background: var(--color-surface-alt); }
+.bg-accent-soft { background: var(--gold-light); color: var(--gold-dark); }
+.bg-success-soft { background: var(--color-success-soft); color: var(--color-success-strong); }
+.bg-info-soft { background: var(--color-info-soft); color: var(--color-info-strong); }
+.bg-danger-soft { background: var(--color-danger-soft); color: var(--color-danger-strong); }
+.border-muted { border: 1px solid var(--color-border); }
+
+.mb-xs { margin-bottom: 8px; }
+.mt-md { margin-top: 16px; }
 
 .btn-sm { padding: var(--space-2xs) var(--space-xs); font-size: 0.85rem; border-radius: var(--radius-sm); border: none; font-weight: 600; }
 .btn-detail { background: var(--color-neutral-200); color: var(--color-neutral-600); } .btn-detail:hover { background: var(--color-neutral-300); }
