@@ -169,7 +169,7 @@ pendingListEl?.addEventListener("click", (event) => {
   const uid = button.getAttribute("data-uid");
   const action = button.getAttribute("data-action");
   if (action === "edit-role") {
-    openRoleModal(uid);
+    // openRoleModal(uid); // Artık kart üzerinde dropdown var, modal'a gerek kalmayabilir ama dursun
     return;
   }
 
@@ -438,126 +438,141 @@ async function loadPendingMembers(forceReload = false) {
   }
 }
 
+// --- PROFESYONEL KART TASARIMI (GÜNCELLENMİŞ HALİ) ---
 function renderPendingCard(uid, data) {
   const li = document.createElement("li");
-  li.className = "pending-card";
+  li.className = "user-card"; // Modern CSS sınıfı
   li.setAttribute("data-uid", uid);
 
+  // --- Veri Hazırlığı ---
+  const displayName = data.displayName || "İsimsiz Kullanıcı";
+  const email = data.email || "E-posta yok";
   const preferredRole = data.role || "student";
-  const currentRoles = Array.isArray(data.roles) ? data.roles.join(", ") : data.role || "student";
-  const createdText = data.createdAt?.toDate ? data.createdAt.toDate().toLocaleString() : "-";
+  const currentStatus = data.status || "pending";
+  
+  // Tarih Formatlama
+  let createdDate = "-";
+  if (data.createdAt && typeof data.createdAt.toDate === 'function') {
+    createdDate = data.createdAt.toDate().toLocaleDateString("tr-TR");
+  } else if (data.createdAt) {
+    createdDate = new Date(data.createdAt).toLocaleDateString("tr-TR");
+  }
 
-  const top = document.createElement("div");
-  top.className = "top";
+  // --- 1. HEADER (Üst Kısım: İsim ve Durum) ---
+  const header = document.createElement("div");
+  header.className = "user-card-header";
 
-  const personInfo = document.createElement("div");
-  const title = document.createElement("div");
-  title.className = "title";
-  title.textContent = data.displayName || "İsimsiz Kullanıcı";
-  const email = document.createElement("div");
-  email.className = "email";
-  email.textContent = data.email || "E-posta belirtilmemiş";
-  personInfo.appendChild(title);
-  personInfo.appendChild(email);
+  const userInfo = document.createElement("div");
+  userInfo.className = "user-info";
+  userInfo.innerHTML = `
+    <h4>${displayName}</h4>
+    <span class="email">${email}</span>
+  `;
 
-  const pill = document.createElement("div");
-  pill.className = "pill";
-  pill.textContent = `UID: ${uid}`;
+  // Durum Rozeti
+  const statusBadge = document.createElement("span");
+  statusBadge.className = `badge ${currentStatus}`;
+  const statusTr = {
+      active: "Aktif",
+      pending: "Beklemede",
+      suspended: "Askıda",
+      rejected: "Reddedildi",
+      deleted: "Silindi"
+  };
+  statusBadge.textContent = statusTr[currentStatus] || currentStatus;
 
-  top.appendChild(personInfo);
-  top.appendChild(pill);
+  header.appendChild(userInfo);
+  header.appendChild(statusBadge);
 
-  const meta = document.createElement("div");
-  meta.className = "meta";
+  // --- 2. BODY (Orta Kısım: Bilgiler) ---
+  const body = document.createElement("div");
+  body.className = "user-card-body";
 
-  const roleSpan = document.createElement("span");
-  const roleLabel = document.createElement("strong");
-  roleLabel.textContent = data.role || "belirtilmemiş";
-  roleSpan.append("Mevcut rol: ", roleLabel);
+  body.innerHTML = `
+    <div class="data-point">
+        <label>Kayıt Tarihi</label>
+        <span>${createdDate}</span>
+    </div>
+    <div class="data-point">
+        <label>Mevcut Rol</label>
+        <span>${preferredRole.toUpperCase()}</span>
+    </div>
+    <div class="uid-pill" title="Kullanıcı ID">UID: ${uid.substring(0, 8)}...</div>
+  `;
 
-  const statusSpan = document.createElement("span");
-  const statusLabel = document.createElement("strong");
-  statusLabel.textContent = data.status || "-";
-  statusSpan.append("Durum: ", statusLabel);
-
-  const rolesSpan = document.createElement("span");
-  const rolesLabel = document.createElement("strong");
-  rolesLabel.textContent = currentRoles;
-  rolesSpan.append("Roller: ", rolesLabel);
-
-  const createdSpan = document.createElement("span");
-  const createdLabel = document.createElement("strong");
-  createdLabel.textContent = createdText;
-  createdSpan.append("Oluşturulma: ", createdLabel);
-
-  meta.append(roleSpan, statusSpan, rolesSpan, createdSpan);
-
-  const note = document.createElement("p");
-  note.className = "note";
-  note.textContent =
-    "Onaylanan üyeler seçtiğiniz rolle aktif edilir ve Firestore güvenlik kurallarına uygun şekilde yetkilendirilir.";
-
-  const actions = document.createElement("div");
-  actions.className = "actions";
-
-  const detailBtn = document.createElement("button");
-  detailBtn.type = "button";
-  detailBtn.className = "btn-navy";
-  detailBtn.dataset.action = "detail";
-  detailBtn.dataset.uid = uid;
-  detailBtn.textContent = "Detay";
-  detailBtn.setAttribute("aria-label", "Kullanıcı detaylarını aç");
-
-  const editBtn = document.createElement("button");
-  editBtn.type = "button";
-  editBtn.className = "btn-gold";
-  editBtn.dataset.action = "edit-role";
-  editBtn.dataset.uid = uid;
-  editBtn.textContent = "Rolü Düzenle";
-  editBtn.setAttribute("aria-label", "Rolü düzenle");
-
-  const roleLabelWrapper = document.createElement("label");
-  roleLabelWrapper.style.display = "flex";
-  roleLabelWrapper.style.alignItems = "center";
-  roleLabelWrapper.style.gap = "8px";
-  roleLabelWrapper.style.fontWeight = "700";
-  roleLabelWrapper.textContent = "Rol:";
-
+  // Rol Seçimi Alanı
+  const roleArea = document.createElement("div");
+  roleArea.className = "role-selector-area";
+  
+  const roleLabel = document.createElement("label");
+  roleLabel.textContent = "Rol:";
+  roleLabel.style.fontWeight = "600";
+  roleLabel.style.fontSize = "0.85rem";
+  
   const select = document.createElement("select");
   select.dataset.uid = uid;
-  select.setAttribute("aria-label", "Rol seçimi");
-  ROLE_OPTIONS.forEach((opt) => {
-    const option = document.createElement("option");
-    option.value = opt.value;
-    option.textContent = opt.label;
-    if (opt.value === preferredRole) option.selected = true;
-    select.appendChild(option);
+  select.className = "role-select";
+  
+  const roles = [
+      { val: "student", label: "Öğrenci" },
+      { val: "editor", label: "Editör" },
+      { val: "admin", label: "Yönetici" }
+  ];
+  
+  roles.forEach(r => {
+      const opt = document.createElement("option");
+      opt.value = r.val;
+      opt.textContent = r.label;
+      if (r.val === preferredRole) opt.selected = true;
+      select.appendChild(opt);
   });
-  roleLabelWrapper.appendChild(select);
 
-  const approveBtn = document.createElement("button");
-  approveBtn.type = "button";
-  approveBtn.className = "btn-navy";
-  approveBtn.dataset.action = "approve";
-  approveBtn.dataset.uid = uid;
-  approveBtn.textContent = "Onayla";
-  approveBtn.setAttribute("aria-label", "Başvuruyu onayla");
+  roleArea.appendChild(roleLabel);
+  roleArea.appendChild(select);
+  body.appendChild(roleArea);
 
-  const rejectBtn = document.createElement("button");
-  rejectBtn.type = "button";
-  rejectBtn.className = "btn-gold";
-  rejectBtn.dataset.action = "reject";
-  rejectBtn.dataset.uid = uid;
-  rejectBtn.textContent = "Reddet";
-  rejectBtn.style.background = "#fee2e2";
-  rejectBtn.style.color = "#991b1b";
-  rejectBtn.style.border = "1px solid rgba(153,27,27,0.2)";
-  rejectBtn.style.boxShadow = "none";
-  rejectBtn.setAttribute("aria-label", "Başvuruyu reddet");
+  // --- 3. FOOTER (Alt Kısım: Butonlar) ---
+  const footer = document.createElement("div");
+  footer.className = "user-card-footer";
 
-  actions.append(detailBtn, editBtn, roleLabelWrapper, approveBtn, rejectBtn);
+  // Detay Butonu (Her zaman görünür)
+  const detailBtn = document.createElement("button");
+  detailBtn.className = "btn-sm btn-detail";
+  detailBtn.textContent = "Detay";
+  detailBtn.dataset.action = "detail";
+  detailBtn.dataset.uid = uid;
+  footer.appendChild(detailBtn);
 
-  li.append(top, meta, note, actions);
+  // Rol Kaydet Butonu (Her zaman görünür - Hızlı rol değişimi için)
+  const saveRoleBtn = document.createElement("button");
+  saveRoleBtn.className = "btn-sm btn-detail";
+  saveRoleBtn.textContent = "Kaydet";
+  saveRoleBtn.dataset.action = "approve"; // Approve fonksiyonu rolü de günceller
+  saveRoleBtn.dataset.uid = uid;
+  saveRoleBtn.title = "Seçili rolü kaydeder";
+  // footer.appendChild(saveRoleBtn); // Yer darlığı varsa açılabilir
+
+  // --- KRİTİK KISIM: Onayla/Reddet Sadece "Pending" ise görünür ---
+  if (currentStatus === "pending") {
+      const approveBtn = document.createElement("button");
+      approveBtn.className = "btn-sm btn-approve";
+      approveBtn.textContent = "✔ Onayla";
+      approveBtn.dataset.action = "approve";
+      approveBtn.dataset.uid = uid;
+
+      const rejectBtn = document.createElement("button");
+      rejectBtn.className = "btn-sm btn-reject";
+      rejectBtn.textContent = "✖ Reddet";
+      rejectBtn.dataset.action = "reject";
+      rejectBtn.dataset.uid = uid;
+
+      footer.appendChild(rejectBtn);
+      footer.appendChild(approveBtn);
+  }
+
+  li.appendChild(header);
+  li.appendChild(body);
+  li.appendChild(footer);
 
   return li;
 }
@@ -1504,13 +1519,13 @@ function updateCardRole(uid, role, roles = []) {
   const card = pendingListEl?.querySelector(`li[data-uid='${uid}']`);
   if (!card) return;
 
-  const roleLabel = card.querySelector(".meta span:nth-child(1) strong");
-  const rolesLabel = card.querySelector(".meta span:nth-child(3) strong");
-  const roleSelect = card.querySelector("select[data-uid]");
-
-  if (roleLabel) roleLabel.innerText = role;
-  if (rolesLabel) rolesLabel.innerText = Array.isArray(roles) ? roles.join(", ") : role;
+  // Yeni kart yapısına göre seçim elemanını güncelle
+  const roleSelect = card.querySelector(`select[data-uid='${uid}']`);
   if (roleSelect) roleSelect.value = role;
+  
+  // Body içindeki metin güncellenebilir (varsa)
+  const roleLabel = card.querySelector(".data-point:nth-child(2) span");
+  if(roleLabel) roleLabel.textContent = role.toUpperCase();
 }
 
 async function handleMemberAction(uid, action, button, payload = {}) {
@@ -1525,8 +1540,10 @@ async function handleMemberAction(uid, action, button, payload = {}) {
   const adminContext = await requireAdminAccess();
   if (!adminContext) return;
 
+  // Kartın içindeki select elementinden rolü al
   const roleSelect = pendingListEl?.querySelector(`select[data-uid='${uid}']`);
   const selectedRole = payload.role || roleSelect?.value || pendingCache.get(uid)?.role || "student";
+  
   const desiredStatus = payload.status;
   const changedBy = { uid: currentUser.uid, email: currentUser.email || null, role: adminContext.role };
   const loadingLabels = {
@@ -1574,7 +1591,12 @@ async function handleMemberAction(uid, action, button, payload = {}) {
           : "Başvuru reddedildi.",
         "success"
       );
-      removeCard(uid);
+      // Kartı listeden kaldır (bekleyenler listesindeysek) veya güncelle
+      if(filterState.status === 'pending') {
+          removeCard(uid);
+      } else {
+          loadPendingMembers(true); // Listeyi yenile ki durum güncellensin
+      }
       return;
     }
 
@@ -1771,15 +1793,21 @@ function renderPendingSkeleton() {
   pendingListEl.innerHTML = "";
   for (let i = 0; i < pendingSkeletonCount; i += 1) {
     const li = document.createElement("li");
-    li.className = "pending-card";
+    li.className = "user-card"; // Skeleton da user-card classını kullansın
     li.setAttribute("aria-busy", "true");
-    const loadingRow = document.createElement("div");
-    loadingRow.className = "top";
+    
+    // Basit skeleton yapısı
+    const loadingHeader = document.createElement("div");
+    loadingHeader.className = "user-card-header";
     const spinner = createSpinner();
-    const label = document.createElement("span");
-    label.textContent = "Yükleniyor";
-    loadingRow.append(spinner, label);
-    li.appendChild(loadingRow);
+    loadingHeader.appendChild(spinner);
+    
+    const loadingBody = document.createElement("div");
+    loadingBody.className = "user-card-body";
+    loadingBody.style.height = "60px";
+
+    li.appendChild(loadingHeader);
+    li.appendChild(loadingBody);
     pendingListEl.appendChild(li);
   }
 }

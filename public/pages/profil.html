@@ -3,67 +3,179 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Profil | GOLD GYS</title>
+  <title>Profilim | GOLD GYS</title>
   <link rel="stylesheet" href="/css/app.css">
-
   <style>
-    .profile-hero {
+    /* --- PROFİL SAYFASI ÖZEL STİLLERİ --- */
+    
+    .profile-layout {
       display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 20px;
-      align-items: center;
-      background: linear-gradient(135deg, var(--navy-deep) 0%, #1E293B 100%);
-      color: white;
-      padding: 28px;
+      grid-template-columns: 300px 1fr; /* Sol: Kart, Sağ: İçerik */
+      gap: 24px;
+      align-items: start;
+    }
+
+    /* Sol Taraf: Kimlik Kartı */
+    .profile-card {
+      background: white;
       border-radius: 20px;
-      box-shadow: var(--shadow-strong);
-      border: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 30px 20px;
+      text-align: center;
+      box-shadow: var(--shadow-soft);
+      border: 1px solid rgba(0,0,0,0.05);
       position: relative;
       overflow: hidden;
     }
-    .profile-hero::after {
+    
+    /* Kartın üstündeki altın süsleme */
+    .profile-card::before {
       content: "";
       position: absolute;
-      width: 220px;
-      height: 220px;
-      background: radial-gradient(circle, rgba(212, 175, 55, 0.14), transparent 65%);
-      right: -60px;
-      bottom: -60px;
+      top: 0; left: 0; right: 0;
+      height: 6px;
+      background: var(--gold-gradient);
     }
-    .profile-meta { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
-    .profile-hero h1 { margin: 6px 0; font-family: 'Playfair Display', serif; font-size: 2rem; }
-    .profile-hero p { margin: 4px 0 0; color: #e2e8f0; max-width: 520px; line-height: 1.5; }
-    .profile-pill { background: rgba(255,255,255,0.12); padding: 8px 12px; border-radius: 12px; font-weight: 600; color: #FDE68A; border: 1px solid rgba(255,255,255,0.16); }
-    .profile-avatar { width: 90px; height: 90px; border-radius: 24px; background: linear-gradient(135deg, #FCD34D, #F59E0B); display: grid; place-items: center; font-size: 2rem; font-weight: 800; color: #0F172A; box-shadow: 0 12px 30px rgba(0,0,0,0.35); border: 3px solid rgba(255,255,255,0.18); overflow: hidden; }
-    .profile-avatar img { width: 100%; height: 100%; object-fit: cover; display: none; }
-    .profile-card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
-    .profile-card { background: white; padding: 18px; border-radius: 14px; box-shadow: var(--shadow-soft); border: 1px solid rgba(0,0,0,0.04); }
-    .profile-card h3 { margin: 0 0 6px; font-size: 1rem; color: var(--navy-deep); }
-    .profile-card p { margin: 0; color: var(--text-muted); }
-    .section { background: white; border-radius: 16px; padding: 20px; box-shadow: var(--shadow-soft); border: 1px solid rgba(0,0,0,0.04); margin-top: 18px; }
-    .section h2 { font-family: 'Playfair Display', serif; margin-top: 0; color: var(--navy-deep); }
-    .details-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
-    .detail-item { padding: 14px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.05); background: #f8fafc; }
-    .detail-item .label { font-weight: 700; color: var(--navy-deep); }
-    .detail-item .value { color: var(--text-muted); margin-top: 4px; word-break: break-word; }
-    .chip { background: #eef2ff; color: #4338ca; border: 1px solid rgba(67,56,202,0.18); }
-    .status-banner { padding: 12px 14px; border-radius: 12px; background: #eff6ff; border: 1px solid rgba(59,130,246,0.15); color: #1d4ed8; display: flex; align-items: center; gap: 10px; margin: 10px 0 0; }
-    .status-banner.error { background: #fef2f2; border-color: rgba(220,38,38,0.2); color: #b91c1c; }
-    .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
-    .form-group { display: flex; flex-direction: column; gap: 6px; }
-    .form-group label { font-weight: 700; color: var(--navy-deep); }
-    .form-group input, .form-group textarea { padding: 12px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.08); background: #f8fafc; }
-    .toggle { display: flex; align-items: center; justify-content: space-between; padding: 12px; border: 1px solid rgba(0,0,0,0.06); border-radius: 12px; background: #f8fafc; }
-    .btn-primary { background: var(--navy-deep); color: white; padding: 12px 16px; border-radius: 12px; border: none; font-weight: 700; cursor: pointer; }
-    .btn-ghost { background: transparent; border: 1px solid rgba(0,0,0,0.08); padding: 12px 16px; border-radius: 12px; font-weight: 700; cursor: pointer; }
-    .btn-primary:hover { background: #0b1226; }
-    .form-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-    @media (max-width: 860px) { .profile-hero { grid-template-columns: 1fr; } .profile-avatar { width: 72px; height: 72px; } }
-    @media (max-width: 720px) {
-      .profile-hero { padding: 20px; gap: 16px; }
-      .profile-hero h1 { font-size: 1.6rem; }
-      .profile-card-grid { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
-      .form-grid { grid-template-columns: 1fr; }
+
+    .profile-avatar-xl {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      background: var(--navy-deep);
+      color: var(--gold-main);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.5rem;
+      font-weight: 800;
+      margin: 0 auto 16px;
+      border: 4px solid #f8fafc;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+    }
+
+    .profile-name { font-size: 1.25rem; font-weight: 800; color: var(--navy-deep); margin-bottom: 4px; }
+    .profile-email { color: var(--text-muted); font-size: 0.9rem; word-break: break-all; margin-bottom: 16px; }
+    
+    .profile-meta {
+      background: #f8fafc;
+      border-radius: 12px;
+      padding: 12px;
+      margin-top: 20px;
+      text-align: left;
+      font-size: 0.85rem;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .meta-row { display: flex; justify-content: space-between; color: var(--navy-light); }
+    .meta-row span:first-child { font-weight: 600; color: var(--text-muted); }
+
+    /* Sağ Taraf: İstatistikler ve Ayarlar */
+    .profile-main {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    /* İstatistik Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+    }
+
+    .stat-card {
+      background: white;
+      padding: 20px;
+      border-radius: 16px;
+      border: 1px solid rgba(0,0,0,0.05);
+      box-shadow: var(--shadow-soft);
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      transition: transform 0.2s;
+    }
+    .stat-card:hover { transform: translateY(-2px); }
+
+    .stat-icon {
+      width: 48px; height: 48px;
+      border-radius: 12px;
+      background: #f0f9ff;
+      color: #0369a1;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.5rem;
+    }
+    .stat-icon.gold { background: #fefce8; color: #ca8a04; }
+    .stat-icon.green { background: #f0fdf4; color: #15803d; }
+
+    .stat-info h3 { margin: 0; font-size: 1.5rem; font-weight: 800; color: var(--navy-deep); }
+    .stat-info p { margin: 0; font-size: 0.85rem; color: var(--text-muted); font-weight: 600; }
+
+    /* Ayarlar Kutusu */
+    .settings-box {
+      background: white;
+      border-radius: 20px;
+      padding: 30px;
+      box-shadow: var(--shadow-soft);
+      border: 1px solid rgba(0,0,0,0.05);
+    }
+
+    .settings-header {
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .settings-header h2 { margin: 0; font-family: var(--font-serif); color: var(--navy-deep); }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .form-group { display: flex; flex-direction: column; gap: 8px; }
+    .form-group label { font-weight: 700; color: var(--navy-deep); font-size: 0.9rem; }
+    
+    /* INPUT OKUNABİLİRLİK DÜZELTMESİ */
+    .form-group input, 
+    .form-group select {
+      padding: 12px 16px;
+      border-radius: 12px;
+      border: 1px solid #cbd5e1; /* Gri Kenarlık */
+      background: #f8fafc;      /* Çok açık gri zemin */
+      color: #0f172a;           /* Koyu lacivert yazı */
+      font-weight: 500;
+      font-size: 1rem;
+      transition: all 0.2s;
+    }
+    
+    .form-group input:focus {
+      background: white;
+      border-color: var(--gold-main);
+      box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.15);
+    }
+
+    .form-group input:disabled {
+      background: #e2e8f0;
+      color: #94a3b8;
+      cursor: not-allowed;
+    }
+
+    /* MOBİL DÜZENLEMELERİ */
+    @media (max-width: 900px) {
+      .profile-layout {
+        grid-template-columns: 1fr; /* Mobilde tek sütun */
+      }
+      .form-grid {
+        grid-template-columns: 1fr; /* Mobilde formlar alt alta */
+      }
+      .profile-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      .profile-meta {
+        width: 100%;
+      }
     }
   </style>
 </head>
@@ -75,249 +187,261 @@
       <header id="header-area" class="app-header"></header>
 
       <div class="app-content">
-        <section class="profile-hero">
-          <div style="display: flex; gap: 14px; align-items: center; position: relative; z-index: 1;">
-            <div class="profile-avatar" aria-hidden="true">
-              <span id="profileInitial">K</span>
-              <img id="profilePhoto" alt="Kullanıcı avatarı">
-            </div>
-            <div>
+        
+        <div id="profileLoader" style="text-align: center; padding: 50px;">
+          <div class="spinner" style="margin: 0 auto 10px;"></div>
+          <p class="muted">Profil bilgileriniz yükleniyor...</p>
+        </div>
+
+        <div id="profileContainer" class="profile-layout" style="display: none;">
+          
+          <aside>
+            <div class="profile-card">
+              <div class="profile-avatar-xl" id="displayAvatar">
+                </div>
+              <h2 class="profile-name" id="displayNameTitle">-</h2>
+              <div class="profile-email" id="displayEmail">-</div>
+              
+              <div class="badge active" id="displayRole" style="display:inline-block; margin-bottom:15px;">Öğrenci</div>
+
               <div class="profile-meta">
-                <span class="profile-pill">Profil · Ayarlar</span>
-                <span id="emailStatus" class="profile-pill" style="color: white; background: rgba(16, 185, 129, 0.2); border-color: rgba(16,185,129,0.25);">Giriş yapılıyor...</span>
+                <div class="meta-row">
+                  <span>Üyelik Durumu:</span>
+                  <span id="displayStatus" style="color:var(--success)">Aktif</span>
+                </div>
+                <div class="meta-row">
+                  <span>Kayıt Tarihi:</span>
+                  <span id="displayCreated">-</span>
+                </div>
+                <div class="meta-row">
+                  <span>Son Giriş:</span>
+                  <span id="displayLastLogin">-</span>
+                </div>
               </div>
-              <h1 id="profileName">Kullanıcı</h1>
-              <p id="profileSubtitle">Hesap bilgileriniz ve güvenlik ayarlarınız bu alanda.</p>
             </div>
-          </div>
-          <div class="profile-card-grid" style="position: relative; z-index: 1; max-width: 520px;">
-            <article class="profile-card">
-              <h3>Hesap E-postası</h3>
-              <p id="profileEmail">—</p>
-            </article>
-            <article class="profile-card">
-              <h3>Son Giriş</h3>
-              <p id="lastLogin">-</p>
-            </article>
-            <article class="profile-card">
-              <h3>Üyelik Tarihi</h3>
-              <p id="createdAt">-</p>
-            </article>
-          </div>
-        </section>
+          </aside>
 
-        <section class="section">
-          <h2>Hesap Özeti</h2>
-          <div class="details-grid">
-            <div class="detail-item">
-              <div class="label">Görünen İsim</div>
-              <div class="value" id="detailDisplayName">-</div>
+          <div class="profile-main">
+            
+            <div class="stats-grid">
+              <div class="stat-card">
+                <div class="stat-icon gold">★</div>
+                <div class="stat-info">
+                  <h3 id="statTotalTests">0</h3>
+                  <p>Çözülen Test</p>
+                </div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-icon green">✔</div>
+                <div class="stat-info">
+                  <h3 id="statSuccessRate">%0</h3>
+                  <p>Başarı Oranı</p>
+                </div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-icon">✎</div>
+                <div class="stat-info">
+                  <h3 id="statTotalQuestions">0</h3>
+                  <p>Çözülen Soru</p>
+                </div>
+              </div>
             </div>
-            <div class="detail-item">
-              <div class="label">Rol</div>
-              <div class="value" id="detailRole">-</div>
-            </div>
-            <div class="detail-item">
-              <div class="label">Kullanıcı ID</div>
-              <div class="value" id="detailUid">-</div>
-            </div>
-            <div class="detail-item">
-              <div class="label">E-Posta Doğrulaması</div>
-              <div class="value" id="detailVerification">-</div>
-            </div>
-          </div>
-        </section>
 
-        <section class="section">
-          <h2>Profil Bilgileri</h2>
-          <form id="profileForm" class="form-grid">
-            <div class="form-group">
-              <label for="displayNameInput">Görünen İsim</label>
-              <input type="text" id="displayNameInput" name="displayName" placeholder="Adınız Soyadınız" required>
-            </div>
-            <div class="form-group">
-              <label for="photoUrlInput">Fotoğraf URL</label>
-              <input type="url" id="photoUrlInput" name="photoUrl" placeholder="https://..." aria-describedby="photoHelp">
-              <small id="photoHelp" style="color: var(--text-muted);">Güvenilir bir görsel URL'si ekleyebilirsiniz.</small>
-            </div>
-            <div class="form-group" style="grid-column: 1 / -1;">
-              <label for="bioInput">Kısa Biyografi</label>
-              <textarea id="bioInput" rows="3" placeholder="Hedefleriniz, çalışma şekliniz..." style="resize: vertical;"></textarea>
-            </div>
-            <div class="form-actions" style="grid-column: 1 / -1;">
-              <button type="submit" class="btn-primary">Kaydet</button>
-              <button type="button" id="btnSendVerification" class="btn-ghost">E-postayı Doğrula</button>
-              <span id="profileStatus" class="status-banner" style="display: none;"></span>
-            </div>
-          </form>
-        </section>
+            <div class="settings-box">
+              <div class="settings-header">
+                <h2>Hesap Bilgileri</h2>
+              </div>
+              
+              <form id="profileForm">
+                <div class="form-grid">
+                  <div class="form-group">
+                    <label>Ad Soyad</label>
+                    <input type="text" id="inputName" placeholder="Adınız Soyadınız">
+                  </div>
+                  
+                  <div class="form-group">
+                    <label>E-posta Adresi</label>
+                    <input type="email" id="inputEmail" disabled title="E-posta değiştirilemez">
+                    <small style="color:#94a3b8; font-size:0.75rem;">E-posta adresinizi değiştirmek için yöneticiyle iletişime geçin.</small>
+                  </div>
 
-        <section class="section">
-          <h2>Bildirimler ve Tercihler</h2>
-          <p style="color: var(--text-muted); margin-top: -4px;">Bu ayarlar tarayıcınıza kaydedilir ve hemen uygulanır.</p>
-          <div class="details-grid" id="preferencesArea">
-            <label class="toggle">E-posta bildirimleri
-              <input type="checkbox" name="emailNotifications" checked>
-            </label>
-            <label class="toggle">Yeni özellik güncellemeleri
-              <input type="checkbox" name="productUpdates" checked>
-            </label>
-            <label class="toggle">Karanlık mod tercihi
-              <input type="checkbox" name="darkMode">
-            </label>
-            <label class="toggle">Hatırlatıcılar
-              <input type="checkbox" name="reminders" checked>
-            </label>
+                  <div class="form-group">
+                    <label>Tema Tercihi</label>
+                    <select id="inputTheme">
+                      <option value="light">Aydınlık (Varsayılan)</option>
+                      <option value="dark" disabled>Karanlık (Yakında)</option>
+                    </select>
+                  </div>
+
+                  <div class="form-group">
+                    <label>Bildirim İzinleri</label>
+                    <select id="inputNotifications">
+                      <option value="true">Açık</option>
+                      <option value="false">Kapalı</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div style="margin-top: 24px; text-align: right;">
+                  <button type="submit" class="btn-navy" id="saveBtn">Değişiklikleri Kaydet</button>
+                </div>
+              </form>
+            </div>
+
           </div>
-        </section>
+        </div>
+
       </div>
     </main>
   </div>
 
+  <div id="toastContainer" class="toast-container" aria-live="polite"></div>
+
   <script type="module">
-    import { initLayout } from '/js/ui-loader.js';
-    import { auth, db } from '/js/firebase-config.js';
-    import { ensureUserDocument } from '/js/user-profile.js';
-    import { onAuthStateChanged, sendEmailVerification, updateProfile } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-    import { doc, getDoc, setDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+    import { auth, db } from "/js/firebase-config.js";
+    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { doc, getDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { initLayout } from "/js/ui-loader.js";
+    import { ensureUserDocument } from "/js/user-profile.js";
 
-    const elements = {
-      profileName: document.getElementById('profileName'),
-      profileSubtitle: document.getElementById('profileSubtitle'),
-      profileEmail: document.getElementById('profileEmail'),
-      lastLogin: document.getElementById('lastLogin'),
-      createdAt: document.getElementById('createdAt'),
-      profileInitial: document.getElementById('profileInitial'),
-      profilePhoto: document.getElementById('profilePhoto'),
-      emailStatus: document.getElementById('emailStatus'),
-      detailDisplayName: document.getElementById('detailDisplayName'),
-      detailRole: document.getElementById('detailRole'),
-      detailUid: document.getElementById('detailUid'),
-      detailVerification: document.getElementById('detailVerification'),
-      profileStatus: document.getElementById('profileStatus'),
-      displayNameInput: document.getElementById('displayNameInput'),
-      photoUrlInput: document.getElementById('photoUrlInput'),
-      bioInput: document.getElementById('bioInput'),
-      btnSendVerification: document.getElementById('btnSendVerification'),
-      preferencesArea: document.getElementById('preferencesArea'),
-    };
-
-    let activeUser = null;
-    let userDocData = {};
-
-    initLayout('profil');
-
-    const formatDate = (value) => {
-      if (!value) return '-';
-      const date = new Date(value);
-      return date.toLocaleString('tr-TR', { dateStyle: 'long', timeStyle: 'short' });
-    };
-
-    const showStatus = (message, type = 'info') => {
-      if (!elements.profileStatus) return;
-      elements.profileStatus.textContent = message;
-      elements.profileStatus.className = `status-banner${type === 'error' ? ' error' : ''}`;
-      elements.profileStatus.style.display = 'flex';
-    };
-
-    const renderUser = (user, data = {}) => {
-      const displayName = user.displayName || data.displayName || (user.email ? user.email.split('@')[0] : 'Kullanıcı');
-      const role = data.role || 'student';
-
-      elements.profileName.textContent = displayName;
-      elements.profileSubtitle.textContent = role === 'admin' ? 'Yönetici yetkilerine sahipsiniz.' : 'Kişisel bilgilerinizi buradan güncelleyebilirsiniz.';
-      elements.profileEmail.textContent = user.email || '—';
-      elements.lastLogin.textContent = formatDate(user.metadata?.lastSignInTime);
-      elements.createdAt.textContent = formatDate(user.metadata?.creationTime);
-      elements.profileInitial.textContent = displayName.charAt(0).toUpperCase();
-
-      if (user.photoURL || data.photoURL) {
-        elements.profilePhoto.src = user.photoURL || data.photoURL;
-        elements.profilePhoto.style.display = 'block';
-        elements.profileInitial.style.display = 'none';
-      } else {
-        elements.profilePhoto.style.display = 'none';
-        elements.profileInitial.style.display = 'block';
-      }
-
-      elements.detailDisplayName.textContent = displayName;
-      elements.detailRole.textContent = role === 'admin' ? 'Yönetici' : 'Öğrenci';
-      elements.detailUid.textContent = user.uid;
-      elements.detailVerification.textContent = user.emailVerified ? 'Doğrulandı' : 'Doğrulanmadı';
-      elements.emailStatus.textContent = user.emailVerified ? '✅ Doğrulandı' : '⚠️ Doğrulama gerekli';
-      elements.emailStatus.style.background = user.emailVerified ? 'rgba(16,185,129,0.2)' : 'rgba(248,113,113,0.18)';
-      elements.emailStatus.style.borderColor = user.emailVerified ? 'rgba(16,185,129,0.25)' : 'rgba(248,113,113,0.25)';
-
-      elements.displayNameInput.value = displayName;
-      elements.photoUrlInput.value = user.photoURL || data.photoURL || '';
-      elements.bioInput.value = data.bio || '';
-    };
-
-    const loadPreferences = () => {
-      try {
-        const saved = JSON.parse(localStorage.getItem('ggys-preferences')) || {};
-        elements.preferencesArea.querySelectorAll('input[type="checkbox"]').forEach((input) => {
-          if (saved[input.name] !== undefined) {
-            input.checked = saved[input.name];
-          }
-          input.addEventListener('change', () => {
-            saved[input.name] = input.checked;
-            localStorage.setItem('ggys-preferences', JSON.stringify(saved));
-          });
-        });
-      } catch (error) {
-        console.error('Tercihler yüklenemedi', error);
+    const loader = document.getElementById("profileLoader");
+    const container = document.getElementById("profileContainer");
+    
+    // UI Elements
+    const els = {
+      avatar: document.getElementById("displayAvatar"),
+      title: document.getElementById("displayNameTitle"),
+      email: document.getElementById("displayEmail"),
+      role: document.getElementById("displayRole"),
+      status: document.getElementById("displayStatus"),
+      created: document.getElementById("displayCreated"),
+      lastLogin: document.getElementById("displayLastLogin"),
+      inputName: document.getElementById("inputName"),
+      inputEmail: document.getElementById("inputEmail"),
+      form: document.getElementById("profileForm"),
+      saveBtn: document.getElementById("saveBtn"),
+      stats: {
+        tests: document.getElementById("statTotalTests"),
+        rate: document.getElementById("statSuccessRate"),
+        questions: document.getElementById("statTotalQuestions")
       }
     };
-
-    const saveProfile = async (event) => {
-      event.preventDefault();
-      if (!activeUser) return;
-
-      const displayName = elements.displayNameInput.value.trim();
-      const photoURL = elements.photoUrlInput.value.trim() || null;
-      const bio = elements.bioInput.value.trim();
-
-      try {
-        await updateProfile(activeUser, { displayName, photoURL });
-        await setDoc(doc(db, 'users', activeUser.uid), { displayName, photoURL, bio }, { merge: true });
-        userDocData = { ...userDocData, displayName, photoURL, bio };
-        renderUser(activeUser, userDocData);
-        showStatus('Profil bilgileri güncellendi.');
-      } catch (error) {
-        console.error('Profil güncellenemedi', error);
-        showStatus('Profil güncellenirken bir hata oluştu.', 'error');
-      }
-    };
-
-    const sendVerification = async () => {
-      if (!activeUser || activeUser.emailVerified) return;
-      try {
-        await sendEmailVerification(activeUser);
-        showStatus('Doğrulama e-postası gönderildi. Gelen kutunuzu kontrol edin.');
-      } catch (error) {
-        console.error('Doğrulama gönderilemedi', error);
-        showStatus('E-posta gönderilemedi. Lütfen daha sonra tekrar deneyin.', 'error');
-      }
-    };
-
-    elements.profileForm?.addEventListener('submit', saveProfile);
-    elements.btnSendVerification?.addEventListener('click', sendVerification);
 
     onAuthStateChanged(auth, async (user) => {
-      if (!user) {
-        window.location.href = '/login.html';
+      if (user) {
+        initLayout("student"); // Sidebar'ı yükle
+        await loadUserProfile(user);
+      } else {
+        window.location.href = "/login.html";
+      }
+    });
+
+    async function loadUserProfile(user) {
+      try {
+        // Profil verisini garantile (eksikse oluştur)
+        await ensureUserDocument(user);
+        
+        // Güncel veriyi çek
+        const userRef = doc(db, "users", user.uid);
+        const snap = await getDoc(userRef);
+        
+        if (snap.exists()) {
+          renderProfile(snap.data(), user);
+        }
+      } catch (error) {
+        console.error("Profil yüklenirken hata:", error);
+        alert("Profil bilgileri alınamadı.");
+      } finally {
+        loader.style.display = "none";
+        container.style.display = "grid";
+      }
+    }
+
+    function renderProfile(data, userAuth) {
+      // 1. Sol Kart Bilgileri
+      const name = data.displayName || userAuth.displayName || "İsimsiz Kullanıcı";
+      const email = data.email || userAuth.email;
+      
+      // Avatar (Baş harfler)
+      const initials = name.split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase();
+      els.avatar.textContent = initials;
+      
+      els.title.textContent = name;
+      els.email.textContent = email;
+      els.role.textContent = (data.role || "student").toUpperCase();
+      
+      // Tarihler
+      if (data.createdAt && data.createdAt.toDate) {
+        els.created.textContent = data.createdAt.toDate().toLocaleDateString("tr-TR");
+      }
+      if (data.lastLoginAt && data.lastLoginAt.toDate) {
+        els.lastLogin.textContent = data.lastLoginAt.toDate().toLocaleString("tr-TR");
+      } else {
+        els.lastLogin.textContent = "Şimdi";
+      }
+
+      // 2. Form Bilgileri
+      els.inputName.value = name;
+      els.inputEmail.value = email;
+
+      // 3. İstatistikler (Varsa)
+      if (data.stats) {
+        els.stats.tests.textContent = data.stats.completedTests || 0;
+        els.stats.questions.textContent = data.stats.totalQuestionsSolved || 0;
+        
+        // Başarı oranı hesaplama
+        let rate = 0;
+        if (data.stats.totalQuestionsSolved > 0) {
+            rate = (data.stats.totalCorrect / data.stats.totalQuestionsSolved) * 100;
+        }
+        els.stats.rate.textContent = `%${rate.toFixed(1)}`;
+      }
+    }
+
+    // KAYDETME İŞLEMİ
+    els.form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const newName = els.inputName.value.trim();
+      const user = auth.currentUser;
+
+      if (!newName) {
+        alert("İsim alanı boş bırakılamaz.");
         return;
       }
-      activeUser = user;
-      await ensureUserDocument(user);
 
-      const userRef = doc(db, 'users', user.uid);
-      const snap = await getDoc(userRef);
-      userDocData = snap.exists() ? snap.data() : {};
-      renderUser(user, userDocData);
-      loadPreferences();
+      els.saveBtn.disabled = true;
+      els.saveBtn.textContent = "Kaydediliyor...";
+
+      try {
+        const userRef = doc(db, "users", user.uid);
+        await updateDoc(userRef, {
+          displayName: newName,
+          updatedAt: serverTimestamp()
+        });
+        
+        // Arayüzü güncelle
+        els.title.textContent = newName;
+        // Baş harfleri güncelle
+        const initials = newName.split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase();
+        els.avatar.textContent = initials;
+
+        showToast("Profil başarıyla güncellendi!");
+      } catch (error) {
+        console.error("Güncelleme hatası:", error);
+        alert("Bir hata oluştu: " + error.message);
+      } finally {
+        els.saveBtn.disabled = false;
+        els.saveBtn.textContent = "Değişiklikleri Kaydet";
+      }
     });
+
+    function showToast(msg) {
+      const toast = document.createElement("div");
+      toast.className = "toast success";
+      toast.textContent = msg;
+      document.getElementById("toastContainer").appendChild(toast);
+      setTimeout(() => toast.remove(), 3000);
+    }
   </script>
 </body>
 </html>

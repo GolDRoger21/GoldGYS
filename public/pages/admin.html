@@ -7,111 +7,132 @@
   <link rel="stylesheet" href="/css/app.css">
 
   <style>
+    /* Admin Sayfasına Özel Ek Stiller */
     .admin-hero {
-      background: linear-gradient(135deg, var(--navy-deep) 0%, #1f2937 100%);
+      background: linear-gradient(135deg, var(--navy-deep, #0f172a) 0%, #1e293b 100%);
       color: white;
-      padding: 28px;
-      border-radius: 22px;
+      padding: 32px;
+      border-radius: 20px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 24px;
-      box-shadow: var(--shadow-strong);
-      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.1);
       position: relative;
       overflow: hidden;
+      margin-bottom: 24px;
     }
     .admin-hero::after {
       content: "";
       position: absolute;
-      width: 280px;
-      height: 280px;
-      background: radial-gradient(circle, rgba(212, 175, 55, 0.14), transparent 65%);
-      right: -80px;
-      bottom: -80px;
+      width: 300px;
+      height: 300px;
+      background: radial-gradient(circle, rgba(212, 175, 55, 0.15), transparent 70%);
+      right: -50px;
+      bottom: -50px;
+      pointer-events: none;
     }
-    .admin-hero .eyebrow { text-transform: uppercase; letter-spacing: 1px; font-weight: 700; color: #fbbf24; }
-    .admin-hero h1 { margin: 6px 0; font-family: var(--font-serif); font-size: 2.1rem; }
-    .admin-hero p { margin: 0; color: #e2e8f0; max-width: 640px; line-height: 1.6; }
-    .admin-hero .badge { background: rgba(255,255,255,0.1); padding: 10px 14px; border-radius: 12px; font-weight: 700; border: 1px solid rgba(255,255,255,0.18); display: inline-flex; align-items: center; gap: 8px; color: #fde68a; }
+    .admin-hero .eyebrow { text-transform: uppercase; letter-spacing: 1.2px; font-weight: 700; color: #fbbf24; font-size: 0.85rem; margin-bottom: 8px; }
+    .admin-hero h1 { margin: 0 0 12px 0; font-family: var(--font-serif, serif); font-size: 2.2rem; line-height: 1.1; }
+    .admin-hero p { margin: 0; color: #cbd5e1; max-width: 600px; line-height: 1.6; font-size: 1rem; }
+    .admin-hero .badge { background: rgba(255,255,255,0.1); padding: 8px 16px; border-radius: 99px; font-weight: 600; border: 1px solid rgba(255,255,255,0.2); display: inline-flex; align-items: center; gap: 8px; color: #fde68a; font-size: 0.85rem; backdrop-filter: blur(4px); }
 
     .panel-card {
       background: white;
-      padding: 20px;
+      padding: 24px;
       border-radius: 16px;
-      box-shadow: var(--shadow-soft);
-      border: 1px solid rgba(0, 0, 0, 0.04);
-      margin-top: 18px;
+      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+      border: 1px solid #e2e8f0;
+      margin-bottom: 24px;
     }
-    .panel-card .section-head { display: flex; justify-content: space-between; gap: 14px; align-items: center; flex-wrap: wrap; }
-    .panel-card h2 { margin: 0; font-family: var(--font-serif); color: var(--navy-deep); }
-    .panel-card p { margin: 4px 0 0; color: var(--text-muted); }
+    .section-head { display: flex; justify-content: space-between; gap: 20px; align-items: flex-start; flex-wrap: wrap; margin-bottom: 24px; }
+    .section-head h2 { margin: 0 0 8px 0; font-family: var(--font-serif, serif); color: #1e293b; font-size: 1.5rem; }
+    .section-head p { margin: 0; color: #64748b; font-size: 0.95rem; line-height: 1.5; }
+    .helper-text { font-size: 0.85rem; color: #94a3b8; margin-top: 4px; }
 
-    .pending-list { list-style: none; padding: 0; margin: 14px 0 0; display: grid; gap: 12px; }
-    .pending-card { border: 1px solid rgba(0,0,0,0.05); border-radius: 14px; padding: 16px; background: #f8fafc; display: grid; gap: 10px; }
-    .pending-card .top { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; align-items: baseline; }
-    .pending-card .title { font-weight: 800; color: var(--navy-deep); font-size: 1.05rem; }
-    .pending-card .email { color: var(--text-muted); }
-    .pending-card .meta { display: flex; gap: 10px; flex-wrap: wrap; color: var(--text-muted); font-size: 0.95rem; }
-    .pending-card .actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
-    .pending-card select { padding: 10px 12px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.1); background: white; font-weight: 600; }
-    .pending-card .pill { background: #fff; border-radius: 10px; padding: 6px 10px; border: 1px solid rgba(0,0,0,0.06); font-weight: 700; color: var(--navy-deep); }
-    .pending-card .note { color: var(--text-muted); font-size: 0.95rem; }
-    .empty-state { margin: 14px 0 0; padding: 18px; border-radius: 12px; background: #f1f5f9; border: 1px dashed rgba(0,0,0,0.08); color: var(--text-muted); }
-    .inline-filters { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-    .inline-filters input, .inline-filters select { padding: 10px 12px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.08); background: white; min-width: 180px; }
-    .muted { color: var(--text-muted); }
-    .helper-text { margin: 8px 0 0; color: var(--text-muted); }
+    /* Kullanıcı Grid ve Kart Yapısı */
+    .user-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 20px;
+      padding: 0;
+      list-style: none;
+      margin: 0;
+    }
+    /* Kart stilleri app.css içinde tanımlı olmalı, buraya yedek ekliyoruz */
+    .user-card { background: white; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; transition: transform 0.2s, box-shadow 0.2s; display: flex; flex-direction: column; }
+    .user-card:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); border-color: #cbd5e1; }
+    .user-card-header { background: #f8fafc; padding: 16px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
+    .user-info h4 { margin: 0; color: #0f172a; font-size: 1rem; font-weight: 700; }
+    .user-info .email { font-size: 0.85rem; color: #64748b; display: block; }
+    .user-card-body { padding: 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; flex-grow: 1; }
+    .data-point { display: flex; flex-direction: column; }
+    .data-point label { font-size: 0.7rem; text-transform: uppercase; color: #94a3b8; font-weight: 700; margin-bottom: 4px; }
+    .data-point span { color: #334155; font-weight: 500; font-size: 0.9rem; }
+    .role-selector-area { grid-column: span 2; margin-top: 8px; background: #f1f5f9; padding: 10px; border-radius: 8px; display: flex; align-items: center; gap: 10px; }
+    .role-selector-area select { flex-grow: 1; padding: 6px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 0.9rem; }
+    .uid-pill { grid-column: span 2; font-family: monospace; font-size: 0.75rem; color: #cbd5e1; text-align: right; margin-top: 4px; }
+    .user-card-footer { padding: 12px 16px; background: white; border-top: 1px solid #e2e8f0; display: flex; justify-content: flex-end; gap: 8px; }
 
-    .alert { padding: 12px 14px; border-radius: 12px; margin: 12px 0 0; display: none; }
-    .alert.success { background: #ecfdf3; border: 1px solid rgba(22, 163, 74, 0.2); color: #166534; }
-    .alert.error { background: #fef2f2; border: 1px solid rgba(220, 38, 38, 0.2); color: #b91c1c; }
+    .btn-sm { padding: 6px 12px; font-size: 0.85rem; border-radius: 6px; cursor: pointer; border: none; font-weight: 600; transition: background 0.2s; }
+    .btn-detail { background: #f1f5f9; color: #475569; } .btn-detail:hover { background: #e2e8f0; }
+    .btn-approve { background: #0f172a; color: white; } .btn-approve:hover { background: #1e293b; }
+    .btn-reject { background: white; color: #dc2626; border: 1px solid #fecaca; } .btn-reject:hover { background: #fef2f2; }
 
-    .modal-backdrop { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.65); display: none; align-items: center; justify-content: center; z-index: 60; }
-    .modal-backdrop.open { display: flex; }
-    .modal-card { background: white; border-radius: 18px; padding: 20px; width: min(520px, 90vw); box-shadow: var(--shadow-strong); position: relative; }
-    .modal-header { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 12px; }
-    .modal-title { margin: 0; font-family: var(--font-serif); color: var(--navy-deep); }
-    .modal-body { display: grid; gap: 14px; }
-    .modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 6px; }
-    .modal-close { background: none; border: none; font-size: 1.2rem; cursor: pointer; color: var(--text-muted); }
-    .role-options { display: grid; gap: 10px; }
-    .role-option { display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.06); }
-    .role-option input { margin: 0; }
-    .pill-inline { display: inline-flex; align-items: center; gap: 6px; padding: 4px 8px; border-radius: 10px; background: #f1f5f9; border: 1px solid rgba(0,0,0,0.04); color: var(--navy-deep); font-weight: 700; }
-    .spinner { width: 16px; height: 16px; border-radius: 50%; border: 2px solid rgba(0,0,0,0.1); border-top-color: var(--navy-deep); animation: spin 0.8s linear infinite; }
-    @keyframes spin { to { transform: rotate(360deg); } }
+    /* Filtre Alanı */
+    .inline-filters { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+    .inline-filters input, .inline-filters select { padding: 10px 14px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 0.9rem; background: white; min-width: 160px; }
+    .inline-filters input:focus, .inline-filters select:focus { outline: 2px solid #3b82f6; border-color: transparent; }
 
-    .form-grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); margin-top: 12px; }
-    .form-control { display: grid; gap: 6px; }
-    .form-control label { font-weight: 700; color: var(--navy-deep); }
-    .form-control input,
-    .form-control select { padding: 10px 12px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.08); background: #f8fafc; }
+    .empty-state { text-align: center; padding: 40px; background: #f8fafc; border-radius: 12px; border: 2px dashed #e2e8f0; color: #64748b; margin-top: 20px; }
+    .alert { padding: 14px; border-radius: 8px; margin-bottom: 20px; font-weight: 500; font-size: 0.95rem; display: none; }
+    .alert.success { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
+    .alert.error { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
 
-    .button-row { display: flex; flex-wrap: wrap; gap: 10px; justify-content: flex-end; margin-top: 12px; }
-    .table-controls { display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center; margin: 12px 0; }
-    .table-controls .filter-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
-    .table-controls input[type="search"],
-    .table-controls select { padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(0,0,0,0.08); background: #f8fafc; min-width: 180px; }
-    .table-wrapper { width: 100%; overflow-x: auto; border: 1px solid rgba(0,0,0,0.05); border-radius: 12px; }
-    .content-table { width: 100%; border-collapse: collapse; min-width: 640px; }
-    .content-table th, .content-table td { padding: 12px; text-align: left; border-bottom: 1px solid rgba(0,0,0,0.04); }
-    .content-table th { background: #f8fafc; font-weight: 800; color: var(--navy-deep); }
-    .content-table tbody tr:hover { background: #f1f5f9; }
-    .table-actions { display: flex; gap: 8px; flex-wrap: wrap; }
-    .pagination { display: inline-flex; align-items: center; gap: 8px; }
-    .pagination button { padding: 8px 12px; border-radius: 10px; border: 1px solid rgba(0,0,0,0.08); background: white; cursor: pointer; }
-    .pagination-info { color: var(--text-muted); font-weight: 700; }
-    .badge-muted { background: #e2e8f0; color: #1f2937; padding: 4px 10px; border-radius: 10px; font-weight: 700; }
-    .toast-container { position: fixed; bottom: 18px; right: 18px; display: grid; gap: 8px; z-index: 80; }
-    .toast { padding: 12px 14px; border-radius: 14px; box-shadow: var(--shadow-strong); background: #0f172a; color: white; min-width: 240px; display: flex; justify-content: space-between; align-items: center; }
-    .toast.success { background: #16a34a; }
-    .toast.error { background: #b91c1c; }
+    /* Modal ve Diğer Bileşenler */
+    .modal-backdrop { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 100; opacity: 0; transition: opacity 0.2s; }
+    .modal-backdrop.open { display: flex; opacity: 1; }
+    .modal-card { background: white; border-radius: 16px; padding: 24px; width: min(600px, 92vw); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); position: relative; transform: scale(0.95); transition: transform 0.2s; max-height: 90vh; overflow-y: auto; }
+    .modal-backdrop.open .modal-card { transform: scale(1); }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid #e2e8f0; }
+    .modal-title { margin: 0; font-size: 1.25rem; color: #0f172a; font-weight: 700; }
+    .modal-close { background: none; border: none; font-size: 1.5rem; color: #64748b; cursor: pointer; padding: 4px; line-height: 1; }
+    .modal-close:hover { color: #0f172a; }
+
+    .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 20px; }
+    .form-control label { display: block; margin-bottom: 6px; font-weight: 600; color: #334155; font-size: 0.9rem; }
+    .form-control input, .form-control select { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 0.95rem; }
+
+    .content-summary-grid { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+    .summary-chip { background: #f1f5f9; padding: 8px 16px; border-radius: 99px; font-size: 0.85rem; color: #475569; border: 1px solid #e2e8f0; }
+    .summary-chip strong { color: #0f172a; margin-left: 4px; }
+
+    /* Tablo Stilleri */
+    .content-tabs { border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; }
+    .tab-header { display: flex; background: #f8fafc; border-bottom: 1px solid #e2e8f0; }
+    .tab-button { flex: 1; padding: 14px; background: none; border: none; font-weight: 600; color: #64748b; cursor: pointer; transition: all 0.2s; border-bottom: 2px solid transparent; }
+    .tab-button:hover { background: #f1f5f9; color: #334155; }
+    .tab-button.active { color: #0f172a; border-bottom-color: #0f172a; background: white; }
+    .tab-panel { display: none; padding: 20px; }
+    .tab-panel.active { display: block; }
+    .content-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+    .content-table th { text-align: left; padding: 12px; background: #f8fafc; color: #475569; font-weight: 600; border-bottom: 1px solid #e2e8f0; }
+    .content-table td { padding: 12px; border-bottom: 1px solid #f1f5f9; color: #334155; }
+    .content-table tr:last-child td { border-bottom: none; }
+
+    .toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 150; display: flex; flex-direction: column; gap: 10px; }
+    .toast { background: #1e293b; color: white; padding: 12px 20px; border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: space-between; min-width: 300px; animation: slideIn 0.3s ease; }
+    .toast.success { border-left: 4px solid #22c55e; }
+    .toast.error { border-left: 4px solid #ef4444; }
+    @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 
     @media (max-width: 768px) {
-      .admin-hero { flex-direction: column; align-items: flex-start; }
-      .panel-card .section-head { flex-direction: column; align-items: flex-start; }
-      .pending-card .actions { justify-content: flex-start; }
+      .admin-hero { flex-direction: column; align-items: flex-start; padding: 24px; }
+      .section-head { flex-direction: column; gap: 16px; }
+      .inline-filters { width: 100%; }
+      .inline-filters input, .inline-filters select { flex-grow: 1; }
+      .user-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -125,280 +146,181 @@
       <div class="app-content">
         <section class="admin-hero">
           <div style="position: relative; z-index: 1;">
-            <p class="eyebrow">Yönetici alanı</p>
-            <h1>Üyelik yönetimi ve onaylar</h1>
-            <p>Bekleyen üyeleri görüntüleyin, rollerini belirleyin ve uygun gördüğünüz başvuruları onaylayın veya reddedin. Tüm işlemler Firestore güvenlik kuralları doğrultusunda yönetilir.</p>
+            <p class="eyebrow">Yönetici Paneli</p>
+            <h1>Üyelik & İçerik Yönetimi</h1>
+            <p>Kullanıcı başvurularını inceleyin, rolleri yönetin ve sistem güvenliğini sağlayın.</p>
           </div>
-          <div class="badge" aria-live="polite">🔒 Yalnızca admin rolü erişebilir</div>
+          <div class="badge" aria-live="polite">
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+            Admin Yetkisi
+          </div>
         </section>
 
         <section class="panel-card">
           <div class="section-head">
             <div>
-              <h2>Bekleyen üyelik başvuruları</h2>
-              <p>"pending" durumundaki kullanıcıları listeler. Onaylanan üyeler etkinleştirilir ve seçilen role atanır.</p>
-              <p class="helper-text">Arama, durum ve rol filtrelerini kullanarak listeyi daraltabilirsiniz.</p>
+              <h2>Üyelik Başvuruları</h2>
+              <p>Bekleyen ve aktif kullanıcıları yönetin.</p>
             </div>
             <div class="inline-filters">
-              <input type="search" id="pendingSearch" placeholder="İsim veya e-posta ara" aria-label="Kullanıcı ara" />
+              <input type="search" id="pendingSearch" placeholder="İsim veya e-posta ara..." aria-label="Kullanıcı ara" />
               <select id="statusFilter" aria-label="Durum filtresi">
-                <option value="pending">Beklemede</option>
-                <option value="active">Aktif</option>
-                <option value="rejected">Reddedildi</option>
-                <option value="suspended">Askıya alındı</option>
-                <option value="deleted">Silindi</option>
+                <option value="pending">⏳ Bekleyenler</option>
+                <option value="active">✅ Aktif</option>
+                <option value="rejected">❌ Reddedilen</option>
+                <option value="suspended">⛔ Askıda</option>
                 <option value="all">Tümü</option>
               </select>
               <select id="roleFilter" aria-label="Rol filtresi">
-                <option value="all">Tüm roller</option>
+                <option value="all">Tüm Roller</option>
                 <option value="student">Öğrenci</option>
                 <option value="editor">Editör</option>
-                <option value="admin">Admin</option>
+                <option value="admin">Yönetici</option>
               </select>
-              <button class="btn-navy" id="refreshPending" type="button">Yenile</button>
+              <button class="btn-approve" id="refreshPending" type="button" style="padding: 10px 20px; border-radius: 8px;">Yenile</button>
             </div>
           </div>
 
           <div id="adminStatus" class="alert" role="status"></div>
-          <ul id="pendingList" class="pending-list"></ul>
-          <div id="emptyState" class="empty-state" style="display: none;">Bu filtrelerle eşleşen kullanıcı bulunamadı.</div>
+          
+          <ul id="pendingList" class="user-grid"></ul>
+          
+          <div id="emptyState" class="empty-state" style="display: none;">
+            <h3>Sonuç Bulunamadı</h3>
+            <p>Seçtiğiniz kriterlere uygun kullanıcı yok.</p>
+          </div>
+          
           <div id="errorState" class="alert error" role="alert" style="display: none;"></div>
-          <div style="display:flex; justify-content:center; margin-top: 12px;">
-            <button id="loadMore" class="btn-gold" type="button" style="display:none;">Daha fazla</button>
+          
+          <div style="display:flex; justify-content:center; margin-top: 24px;">
+            <button id="loadMore" class="btn-detail" type="button" style="display:none; padding: 10px 24px;">Daha Fazla Yükle</button>
           </div>
         </section>
       </div>
     </main>
   </div>
 
-  <div id="roleModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-hidden="true">
+  <div id="detailModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-hidden="true">
     <div class="modal-card">
       <div class="modal-header">
         <div>
-          <p class="eyebrow" id="roleModalEyebrow">Kullanıcı rolü</p>
-          <h3 class="modal-title" id="roleModalTitle">Rol Güncelle</h3>
-        </div>
-        <button class="modal-close" type="button" aria-label="Kapat" data-role-modal-close>&times;</button>
-      </div>
-      <div class="modal-body">
-        <p id="roleModalDescription" style="margin:0; color: var(--text-muted);">Kullanıcı için yeni bir rol seçin. Değişiklikler Firestore ve yetki claim'lerine işlenecek.</p>
-        <div id="roleOptions" class="role-options"></div>
-        <div id="roleModalStatus" class="alert" role="status"></div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn-gold" data-role-modal-close>Vazgeç</button>
-        <button type="button" class="btn-navy" id="saveRoleBtn">Kaydet</button>
-      </div>
-    </div>
-  </div>
-
-  <div id="detailModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-hidden="true">
-    <div class="modal-card" style="width: min(760px, 94vw);">
-      <div class="modal-header">
-        <div>
-          <p class="eyebrow" id="detailModalEyebrow">Kullanıcı detayları</p>
-          <h3 class="modal-title" id="detailModalTitle">Profil</h3>
+          <p class="eyebrow" id="detailModalEyebrow" style="color:#64748b; font-size:0.8rem; margin:0;">UID: -</p>
+          <h3 class="modal-title" id="detailModalTitle">Kullanıcı Detayı</h3>
         </div>
         <button class="modal-close" type="button" aria-label="Kapat" data-detail-modal-close>&times;</button>
       </div>
+      
       <div class="modal-body">
         <div id="detailModalStatus" class="alert" role="status" style="display:none;"></div>
-        <div id="detailSkeleton" class="muted">Kullanıcı bilgileri getiriliyor...</div>
+        
+        <div id="detailSkeleton" style="opacity:0.5; padding:20px; text-align:center;">Bilgiler yükleniyor...</div>
+        
         <div id="detailContent" style="display:none;">
-          <div style="display:grid; gap:10px;">
-            <div><strong>UID:</strong> <span id="detailUid" class="pill-inline">-</span></div>
-            <div><strong>E-posta:</strong> <span id="detailEmail">-</span></div>
-            <div><strong>Oluşturulma:</strong> <span id="detailCreatedAt">-</span></div>
-            <div><strong>Claims:</strong> <span id="detailClaims">-</span></div>
-          </div>
           <div class="form-grid">
             <div class="form-control">
-              <label for="detailNameInput">Ad Soyad</label>
-              <input type="text" id="detailNameInput" placeholder="Ad ve soyadı güncelleyin" />
+              <label>Ad Soyad</label>
+              <input type="text" id="detailNameInput" />
             </div>
             <div class="form-control">
-              <label for="detailRoleSelect">Rol</label>
+              <label>E-posta</label>
+              <input type="text" id="detailEmail" disabled style="background:#f1f5f9; cursor:not-allowed;" />
+            </div>
+            <div class="form-control">
+              <label>Rol</label>
               <select id="detailRoleSelect">
                 <option value="student">Öğrenci</option>
                 <option value="editor">Editör</option>
-                <option value="admin">Admin</option>
+                <option value="admin">Yönetici</option>
               </select>
             </div>
             <div class="form-control">
-              <label for="detailStatusSelect">Durum</label>
+              <label>Durum</label>
               <select id="detailStatusSelect">
                 <option value="pending">Beklemede</option>
                 <option value="active">Aktif</option>
                 <option value="rejected">Reddedildi</option>
-                <option value="suspended">Askıya alındı</option>
-                <option value="deleted">Silindi</option>
+                <option value="suspended">Askıya Alındı</option>
               </select>
             </div>
           </div>
+
+          <div style="border-top:1px solid #e2e8f0; margin: 20px 0;"></div>
+
+          <h4 style="margin-bottom:12px; color:#334155;">İçerik Özeti</h4>
           <div class="content-summary-grid">
-            <div class="summary-chip">Konular: <strong id="topicCount">-</strong></div>
-            <div class="summary-chip">Testler: <strong id="testCount">-</strong></div>
-            <div class="summary-chip">Deneme/Sınavlar: <strong id="attemptCount">-</strong></div>
+            <div class="summary-chip">Konular: <strong id="topicCount">0</strong></div>
+            <div class="summary-chip">Testler: <strong id="testCount">0</strong></div>
+            <div class="summary-chip">Denemeler: <strong id="attemptCount">0</strong></div>
           </div>
+
           <div class="content-tabs">
             <div class="tab-header">
-              <button type="button" class="tab-button active" data-tab-target="topics">Konular</button>
-              <button type="button" class="tab-button" data-tab-target="tests">Testler</button>
-              <button type="button" class="tab-button" data-tab-target="attempts">Denemeler/Sonuçlar</button>
-            </div>
-            <div class="tab-meta-row">
-              <div class="meta-pill">Toplam: <span id="tabMetaCount">-</span></div>
-              <div class="meta-pill">Son Güncelleme: <span id="tabMetaUpdated">-</span></div>
-              <div class="meta-pill">Başarı Ort.: <span id="tabMetaSuccess">-</span></div>
-            </div>
-            <div id="contentSkeleton" class="content-skeleton" aria-hidden="true" style="display:none;">
-              <div class="skeleton-line"></div>
-              <div class="skeleton-line short"></div>
-              <div class="skeleton-line"></div>
+              <button class="tab-button active" data-tab-target="topics">Konular</button>
+              <button class="tab-button" data-tab-target="tests">Testler</button>
+              <button class="tab-button" data-tab-target="attempts">Sonuçlar</button>
             </div>
             <div class="tab-panels">
               <div class="tab-panel active" data-tab-panel="topics">
-                <div class="table-controls" data-section-controls="topics">
-                  <div class="filter-row">
-                    <input type="search" id="topicsSearch" placeholder="Konu ara" aria-label="Konu ara" />
-                    <select id="topicsStatus" aria-label="Konu durumu">
-                      <option value="all">Tümü</option>
-                      <option value="active">Aktif</option>
-                      <option value="draft">Taslak</option>
-                      <option value="inactive">Pasif</option>
-                    </select>
-                  </div>
-                  <div class="pagination">
-                    <button type="button" id="topicsPrev">Önceki</button>
-                    <span class="pagination-info" id="topicsPageInfo">1 / 1</span>
-                    <button type="button" id="topicsNext">Sonraki</button>
-                  </div>
-                </div>
                 <div class="table-wrapper">
-                  <table class="content-table" aria-label="Konu listesi">
-                    <thead>
-                      <tr>
-                        <th>Başlık</th>
-                        <th>Durum</th>
-                        <th>Güncelleme</th>
-                        <th>Başarı</th>
-                        <th>İşlemler</th>
-                      </tr>
-                    </thead>
+                  <table class="content-table">
+                    <thead><tr><th>Başlık</th><th>Durum</th><th>Tarih</th><th>İşlem</th></tr></thead>
                     <tbody id="topicsTableBody"></tbody>
                   </table>
                 </div>
-                <p class="muted" id="topicsEmpty" style="display:none;">Bu kullanıcıya ait konu bulunmadı.</p>
+                <p id="topicsEmpty" style="padding:10px; color:#94a3b8; text-align:center; display:none;">Veri yok.</p>
               </div>
+              
               <div class="tab-panel" data-tab-panel="tests">
-                <div class="table-controls" data-section-controls="tests">
-                  <div class="filter-row">
-                    <input type="search" id="testsSearch" placeholder="Test ara" aria-label="Test ara" />
-                    <select id="testsStatus" aria-label="Test durumu">
-                      <option value="all">Tümü</option>
-                      <option value="active">Aktif</option>
-                      <option value="draft">Taslak</option>
-                      <option value="inactive">Pasif</option>
-                    </select>
-                  </div>
-                  <div class="pagination">
-                    <button type="button" id="testsPrev">Önceki</button>
-                    <span class="pagination-info" id="testsPageInfo">1 / 1</span>
-                    <button type="button" id="testsNext">Sonraki</button>
-                  </div>
-                </div>
                 <div class="table-wrapper">
-                  <table class="content-table" aria-label="Test listesi">
-                    <thead>
-                      <tr>
-                        <th>Başlık</th>
-                        <th>Durum</th>
-                        <th>Güncelleme</th>
-                        <th>Başarı</th>
-                        <th>İşlemler</th>
-                      </tr>
-                    </thead>
+                  <table class="content-table">
+                    <thead><tr><th>Başlık</th><th>Durum</th><th>Tarih</th><th>İşlem</th></tr></thead>
                     <tbody id="testsTableBody"></tbody>
                   </table>
                 </div>
-                <p class="muted" id="testsEmpty" style="display:none;">Bu kullanıcıya ait test bulunmadı.</p>
+                <p id="testsEmpty" style="padding:10px; color:#94a3b8; text-align:center; display:none;">Veri yok.</p>
               </div>
+
               <div class="tab-panel" data-tab-panel="attempts">
-                <div class="table-controls" data-section-controls="attempts">
-                  <div class="filter-row">
-                    <input type="search" id="attemptsSearch" placeholder="Deneme ara" aria-label="Deneme ara" />
-                    <select id="attemptsStatus" aria-label="Deneme durumu">
-                      <option value="all">Tümü</option>
-                      <option value="passed">Başarılı</option>
-                      <option value="failed">Başarısız</option>
-                    </select>
-                  </div>
-                  <div class="pagination">
-                    <button type="button" id="attemptsPrev">Önceki</button>
-                    <span class="pagination-info" id="attemptsPageInfo">1 / 1</span>
-                    <button type="button" id="attemptsNext">Sonraki</button>
-                  </div>
-                </div>
                 <div class="table-wrapper">
-                  <table class="content-table" aria-label="Deneme listesi">
-                    <thead>
-                      <tr>
-                        <th>Başlık</th>
-                        <th>Durum</th>
-                        <th>Güncelleme</th>
-                        <th>Başarı</th>
-                        <th>İşlemler</th>
-                      </tr>
-                    </thead>
+                  <table class="content-table">
+                    <thead><tr><th>Test</th><th>Puan</th><th>Tarih</th><th>İşlem</th></tr></thead>
                     <tbody id="attemptsTableBody"></tbody>
                   </table>
                 </div>
-                <p class="muted" id="attemptsEmpty" style="display:none;">Bu kullanıcıya ait deneme/sonuç bulunmadı.</p>
+                <p id="attemptsEmpty" style="padding:10px; color:#94a3b8; text-align:center; display:none;">Veri yok.</p>
               </div>
             </div>
           </div>
-          <div class="button-row">
-            <button type="button" class="btn-secondary" id="detailSuspendBtn">Askıya Al</button>
-            <button type="button" class="btn-danger" id="detailDeleteBtn">Sil</button>
-            <button type="button" class="btn-navy" id="detailUpdateBtn">Güncelle</button>
-          </div>
         </div>
       </div>
-      <div class="modal-footer">
-        <button type="button" class="btn-navy" data-detail-modal-close>Kapat</button>
+      
+      <div class="modal-footer" style="margin-top:20px; border-top:1px solid #e2e8f0; padding-top:16px;">
+        <button type="button" class="btn-reject" id="detailDeleteBtn" style="margin-right:auto;">Sil</button>
+        <button type="button" class="btn-detail" data-detail-modal-close>Kapat</button>
+        <button type="button" class="btn-approve" id="detailUpdateBtn">Değişiklikleri Kaydet</button>
       </div>
     </div>
   </div>
 
-  <div id="contentEditModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-hidden="true">
-    <div class="modal-card">
-      <div class="modal-header">
-        <div>
-          <p class="eyebrow" id="contentEditEyebrow">İçerik düzenleme</p>
-          <h3 class="modal-title" id="contentEditTitle">Kaydı Düzenle</h3>
-        </div>
-        <button class="modal-close" type="button" aria-label="Kapat" data-content-modal-close>&times;</button>
+  <div id="contentEditModal" class="modal-backdrop" role="dialog" aria-hidden="true">
+    <div class="modal-card" style="width: 400px;">
+      <h3 id="contentEditTitle" style="margin-top:0;">İçerik Düzenle</h3>
+      <div class="form-control" style="margin-bottom:12px;">
+        <label>Başlık</label>
+        <input type="text" id="contentTitleInput">
       </div>
-      <div class="modal-body">
-        <div class="form-control">
-          <label for="contentTitleInput">Başlık</label>
-          <input id="contentTitleInput" type="text" placeholder="Başlık girin" />
-        </div>
-        <div class="form-control">
-          <label for="contentStatusSelect">Durum</label>
-          <select id="contentStatusSelect">
-            <option value="active">Aktif</option>
-            <option value="draft">Taslak</option>
-            <option value="inactive">Pasif</option>
-            <option value="passed">Başarılı</option>
-            <option value="failed">Başarısız</option>
-          </select>
-        </div>
-        <div id="contentEditStatus" class="alert" role="status" style="display:none;"></div>
+      <div class="form-control" style="margin-bottom:12px;">
+        <label>Durum</label>
+        <select id="contentStatusSelect">
+          <option value="active">Aktif</option>
+          <option value="draft">Taslak</option>
+          <option value="inactive">Pasif</option>
+        </select>
       </div>
-      <div class="modal-footer">
-        <button type="button" class="btn-secondary" data-content-modal-close>Vazgeç</button>
-        <button type="button" class="btn-navy" id="contentSaveBtn">Kaydet</button>
+      <div id="contentEditStatus" class="alert" style="display:none;"></div>
+      <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:16px;">
+        <button class="btn-detail" data-content-modal-close>İptal</button>
+        <button class="btn-approve" id="contentSaveBtn">Kaydet</button>
       </div>
     </div>
   </div>
