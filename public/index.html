@@ -124,7 +124,7 @@
 
         /* Hero Visual */
         .hero-visual {
-            position: relative; width: 500px; height: 500px;
+            position: relative; width: 520px; height: 520px;
             display: flex; align-items: center; justify-content: center;
         }
         .visual-circle {
@@ -142,7 +142,16 @@
             border-color: rgba(212, 175, 55, 0.4);
             animation-direction: reverse;
         }
-        .visual-icon { font-size: 10rem; filter: drop-shadow(0 0 50px rgba(212, 175, 55, 0.5)); animation: float 6s ease-in-out infinite; }
+        .hero-visual-content {
+            position: relative; z-index: 2; display: flex; flex-direction: column; gap: 24px; align-items: center;
+        }
+        .visual-icon {
+            width: 140px; height: 140px; display: grid; place-items: center;
+            background: rgba(212, 175, 55, 0.12); border: 1px solid rgba(212, 175, 55, 0.3); border-radius: 28px;
+            filter: drop-shadow(0 0 50px rgba(212, 175, 55, 0.4)); animation: float 6s ease-in-out infinite;
+        }
+        .visual-icon svg { width: 96px; height: 96px; color: #D4AF37; }
+        .hero-screenshot { width: 100%; max-width: 440px; border-radius: 22px; box-shadow: 0 25px 60px rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.08); background: #0b1221; }
 
         /* 3. İSTATİSTİK */
         .stats-bar {
@@ -259,7 +268,10 @@
         <div class="hero-visual">
             <div class="visual-circle visual-ring"></div>
             <div class="visual-circle visual-ring is-inner"></div>
-            <div class="visual-icon">⚖️</div>
+            <div class="hero-visual-content">
+                <div class="visual-icon" data-icon="justice" data-icon-size="96"></div>
+                <img class="hero-screenshot" src="/img/dashboard-preview.svg" alt="Gold GYS panel ön izlemesi" loading="lazy" width="560" height="328">
+            </div>
         </div>
     </section>
 
@@ -290,19 +302,19 @@
 
         <div class="feature-grid">
             <div class="feature-card">
-                <div class="icon-box">📚</div>
+                <div class="icon-box" data-icon="book" data-icon-size="32"></div>
                 <h3>Konu Odaklı Çalışma</h3>
                 <p>Ek-2D listesindeki her başlık için (Anayasa, CMK, Resmi Yazışma) özel testlerle eksiklerinizi belirleyin.</p>
             </div>
-            
+
             <div class="feature-card">
-                <div class="icon-box">⚡</div>
+                <div class="icon-box" data-icon="bolt" data-icon-size="32"></div>
                 <h3>Dinamik Deneme Motoru</h3>
                 <p>Gerçek sınav süresine (80 Soru / Dakika) uygun, her defasında farklı sorularla oluşturulan simülasyonlar.</p>
             </div>
 
             <div class="feature-card">
-                <div class="icon-box">📊</div>
+                <div class="icon-box" data-icon="chart" data-icon-size="32"></div>
                 <h3>Akıllı Performans Analizi</h3>
                 <p>Detaylı grafikler, başarı oranları ve "Yanlışlarımı Çöz" modülü ile hata yapmayı unutun.</p>
             </div>

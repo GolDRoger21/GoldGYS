@@ -1,6 +1,7 @@
 import { auth } from "./firebase-config.js";
 import { ensureUserDocument } from "./user-profile.js";
 import { initNotificationContext } from "./notifications.js";
+import { hydrateIconPlaceholders, renderIcon } from "./icon-library.js";
 
 const FALLBACK_HTML = {
     sidebar: `
@@ -11,20 +12,20 @@ const FALLBACK_HTML = {
         </div>
         <nav class="sidebar-menu sidebar-nav">
             <ul>
-                <li><a href="/pages/dashboard.html" data-page="dashboard"><span class="icon">📊</span> Panelim</a></li>
-                <li><a href="/pages/konular.html" data-page="konular"><span class="icon">📚</span> Ders Notları</a></li>
-                <li><a href="/pages/testler.html" data-page="testler"><span class="icon">📝</span> Konu Testleri</a></li>
-                <li><a href="/pages/denemeler.html" data-page="denemeler"><span class="icon">🏆</span> Denemeler</a></li>
-                <li><a href="/pages/yanlislarim.html" data-page="yanlislarim"><span class="icon">⚠️</span> Yanlışlarım</a></li>
+                <li><a href="/pages/dashboard.html" data-page="dashboard"><span class="icon" data-icon="chart"></span> Panelim</a></li>
+                <li><a href="/pages/konular.html" data-page="konular"><span class="icon" data-icon="book"></span> Ders Notları</a></li>
+                <li><a href="/pages/testler.html" data-page="testler"><span class="icon" data-icon="bolt"></span> Konu Testleri</a></li>
+                <li><a href="/pages/denemeler.html" data-page="denemeler"><span class="icon" data-icon="spark"></span> Denemeler</a></li>
+                <li><a href="/pages/yanlislarim.html" data-page="yanlislarim"><span class="icon" data-icon="shield"></span> Yanlışlarım</a></li>
                 <li class="editor-only" style="display:none; margin-top:20px; border-top:1px solid rgba(255,255,255,0.1); padding-top:10px;">
-                    <a href="/pages/konular.html" data-page="editor"><span class="icon">✍️</span> Editör Araçları</a>
+                    <a href="/pages/konular.html" data-page="editor"><span class="icon" data-icon="spark"></span> Editör Araçları</a>
                 </li>
-                <li class="admin-only" style="display:none;"><a href="/pages/admin.html" data-page="admin"><span class="icon">⚙️</span> Yönetici Paneli</a></li>
+                <li class="admin-only" style="display:none;"><a href="/pages/admin.html" data-page="admin"><span class="icon" data-icon="bolt"></span> Yönetici Paneli</a></li>
             </ul>
         </nav>
         <div class="sidebar-footer">
             <button id="btnLogout" onclick="window.handleLogout()">
-                <span class="icon">🚪</span> Çıkış Yap
+                <span class="icon" data-icon="logout"></span> Çıkış Yap
             </button>
         </div>
     `,
@@ -47,10 +48,10 @@ const FALLBACK_HTML = {
                 </nav>
                 <div class="header-quick-actions" role="group" aria-label="Hızlı işlemler">
                     <button class="icon-button" type="button" aria-label="Tema değiştir" data-theme-toggle>
-                        <span class="icon" data-theme-icon>🌙</span>
+                        <span class="icon" data-theme-icon></span>
                     </button>
                     <button class="icon-button" type="button" aria-label="Bildirimler" data-notification-toggle>
-                        <span aria-hidden="true">🔔</span>
+                        <span class="icon" data-icon="bell" aria-hidden="true"></span>
                         <span class="badge-dot" data-notification-dot></span>
                     </button>
                     <div class="user-menu-container" data-profile-menu>
@@ -68,11 +69,11 @@ const FALLBACK_HTML = {
                                 </div>
                             </div>
                             <hr class="dropdown-separator" />
-                            <a href="/pages/profil.html"><span>👤</span> Profilim</a>
-                            <a href="/pages/profil.html"><span>⚙️</span> Ayarlar</a>
-                            <a href="/pages/yardim.html"><span>❓</span> Yardım</a>
+                            <a href="/pages/profil.html"><span class="icon" data-icon="user"></span> Profilim</a>
+                            <a href="/pages/profil.html"><span class="icon" data-icon="spark"></span> Ayarlar</a>
+                            <a href="/pages/yardim.html"><span class="icon" data-icon="book"></span> Yardım</a>
                             <hr class="dropdown-separator" />
-                            <button id="headerLogoutBtn" class="logout-btn" type="button"><span>🚪</span> Çıkış Yap</button>
+                            <button id="headerLogoutBtn" class="logout-btn" type="button"><span class="icon" data-icon="logout"></span> Çıkış Yap</button>
                         </div>
                     </div>
                 </div>
@@ -171,7 +172,10 @@ function setupThemeToggle(headerEl) {
     const toggleButton = headerEl.querySelector('[data-theme-toggle]');
     const iconEl = headerEl.querySelector('[data-theme-icon]');
     const setIcon = (theme) => {
-        if (iconEl) iconEl.textContent = theme === 'dark' ? '☀️' : '🌙';
+        if (iconEl) {
+            const iconName = theme === 'dark' ? 'sun' : 'moon';
+            iconEl.innerHTML = renderIcon(iconName, { size: 18, className: 'ui-icon' });
+        }
     };
 
     const syncTheme = () => {
@@ -270,6 +274,8 @@ export async function initLayout(pageKey, options = {}) {
         loadComponent('footer-area', componentSet.footer, layout === 'admin' ? 'adminFooter' : 'footer')
     ]);
 
+    hydrateIconPlaceholders(document);
+
     if (pageKey) {
         document.querySelectorAll(`.sidebar-nav a[data-page="${pageKey}"], .sidebar-menu a[data-page="${pageKey}"]`)
             .forEach(link => link.classList.add('active'));
@@ -365,6 +371,8 @@ export async function initPublicLayout() {
         }),
         loadComponent('public-footer', LAYOUT_COMPONENTS.public.footer, 'publicFooter')
     ]);
+
+    hydrateIconPlaceholders(document);
 }
 
 export async function initAuthLayout() {
@@ -375,6 +383,8 @@ export async function initAuthLayout() {
         loadComponent('auth-header', LAYOUT_COMPONENTS.auth.header, 'authHeader', (headerEl) => setupThemeToggle(headerEl)),
         loadComponent('auth-footer', LAYOUT_COMPONENTS.auth.footer, 'authFooter')
     ]);
+
+    hydrateIconPlaceholders(document);
 }
 
 // Global Fonksiyonlar (HTML onclick için)
