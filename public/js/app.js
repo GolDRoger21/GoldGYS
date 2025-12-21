@@ -35,6 +35,6 @@ function setupSidebar() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-    loadComponent("header-placeholder", "/partials/header.html");
+    loadComponent("header-placeholder", "/components/header.html");
     loadComponent("sidebar-placeholder", "/partials/sidebar.html");
 });

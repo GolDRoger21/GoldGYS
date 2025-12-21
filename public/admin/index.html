@@ -7,43 +7,70 @@
   <link rel="stylesheet" href="/css/app.css">
 </head>
 <body>
-<div data-include="../partials/header.html"></div>
-<div class="layout">
-  <div data-include="../partials/sidebar.html"></div>
-  <main class="content">
-    <h1>Admin Panel</h1>
-    <ul>
-      <li><a href="topics.html">Konu Yönetimi</a></li>
-      <li><a href="tests.html">Test Yönetimi</a></li>
-      <li><a href="questions.html">Soru Yönetimi</a></li>
-      <li><a href="reports.html">Hatalı Soru Bildirimleri</a></li>
-      <li><a href="users.html">Kullanıcılar</a></li>
-    </ul>
+  <div class="app-layout">
+    <aside id="sidebar-area" class="app-sidebar"></aside>
 
-    <section id="roleUpdateSection" style="display: none; margin-top: 24px;">
-      <h2>Kullanıcı Rolü Güncelle</h2>
-      <form id="roleUpdateForm" style="display: flex; flex-direction: column; gap: 12px; max-width: 400px;">
-        <label>
-          Kullanıcı UID
-          <input id="roleUpdateUid" name="uid" required placeholder="UID girin" />
-        </label>
-        <label>
-          Rol
-          <select id="roleUpdateRole" name="role" required>
-            <option value="editor">Editör</option>
-            <option value="admin">Admin</option>
-            <option value="member">Üye</option>
-          </select>
-        </label>
-        <button type="submit">Rolü Güncelle</button>
-      </form>
-      <p id="roleUpdateStatus" aria-live="polite" style="margin-top: 8px; font-weight: 600;"></p>
-    </section>
-  </main>
-</div>
-<div data-include="../partials/footer.html"></div>
+    <main class="app-main">
+      <header id="header-area" class="app-header"></header>
 
-<script type="module" src="/js/app.js"></script>
-<script type="module" src="/js/modules/admin/roles.js"></script>
+      <div class="app-content">
+        <section class="panel-card stack gap-md">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Yönetim araçları</p>
+              <h1>Admin Panel</h1>
+              <p class="text-muted">Konu, test ve kullanıcı yönetimi için hızlı bağlantılar.</p>
+            </div>
+          </div>
+
+          <ul class="stack gap-sm">
+            <li><a href="topics.html">Konu Yönetimi</a></li>
+            <li><a href="tests.html">Test Yönetimi</a></li>
+            <li><a href="questions.html">Soru Yönetimi</a></li>
+            <li><a href="reports.html">Hatalı Soru Bildirimleri</a></li>
+            <li><a href="users.html">Kullanıcılar</a></li>
+          </ul>
+        </section>
+
+        <section id="roleUpdateSection" class="panel-card" style="display: none;">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Yetki yönetimi</p>
+              <h2 style="margin: 0;">Kullanıcı Rolü Güncelle</h2>
+            </div>
+          </div>
+          <form id="roleUpdateForm" class="stack gap-sm" style="max-width: 420px;">
+            <label class="stack gap-2xs">
+              <span class="text-muted">Kullanıcı UID</span>
+              <input id="roleUpdateUid" name="uid" required placeholder="UID girin" />
+            </label>
+            <label class="stack gap-2xs">
+              <span class="text-muted">Rol</span>
+              <select id="roleUpdateRole" name="role" required>
+                <option value="editor">Editör</option>
+                <option value="admin">Admin</option>
+                <option value="member">Üye</option>
+              </select>
+            </label>
+            <div style="display: flex; gap: 10px;">
+              <button type="submit" class="btn-navy">Rolü Güncelle</button>
+              <p id="roleUpdateStatus" aria-live="polite" style="margin: 0; font-weight: 600;"></p>
+            </div>
+          </form>
+        </section>
+      </div>
+
+      <footer id="footer-area" class="app-footer"></footer>
+    </main>
+  </div>
+
+  <script type="module">
+    import { protectPage } from '/js/role-guard.js';
+    import { initLayout } from '/js/ui-loader.js';
+
+    protectPage();
+    initLayout('admin');
+  </script>
+  <script type="module" src="/js/modules/admin/roles.js"></script>
 </body>
 </html>
