@@ -1,5 +1,5 @@
 import { db } from "./firebase-config.js";
-import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 function collectRoles(existingData = {}, tokenClaims = {}) {
   const baseRoles = Array.isArray(existingData.roles)
@@ -60,10 +60,6 @@ export async function ensureUserDocument(user) {
   const roles = collectRoles(existingData, tokenClaims);
   const primaryRole = roles[0] || "student";
 
-  // --- KRİTİK DEĞİŞİKLİK ---
-  // Eğer kullanıcı yeniyse statüsü 'pending' olsun.
-  // Eğer kullanıcı eskiyse mevcut statüsünü korusun.
-  // Firestore izni yoksa admin gibi claim'lere bakarak aktif et.
   let currentStatus = existingData.status;
   if (!currentStatus) {
       if (tokenClaims.status) {
@@ -75,27 +71,31 @@ export async function ensureUserDocument(user) {
       }
   }
 
-  // Firestore okuma izni yoksa claim tabanlı profille devam et, yazmaya çalışmadan dön.
   if (readPermissionDenied) {
     console.warn('Profil Firestore erişimi reddedildi, claim bilgileriyle ilerleniyor.');
     return { roles, role: primaryRole, status: currentStatus };
   }
 
+  // --- DÜZELTME BURADA ---
+  // createdAt alanı sadece yeni kullanıcılarda eklenmeli, eskilerde bozulmamalı
+  const updatePayload = {
+    uid: user.uid,
+    displayName: user.displayName || existingData.displayName || "",
+    email: user.email || existingData.email || "",
+    photoURL: user.photoURL || existingData.photoURL || "",
+    roles,
+    role: primaryRole,
+    status: currentStatus,
+    lastLoginAt: serverTimestamp() // Tarihi sunucu zamanı yapıyoruz
+  };
+
+  // Eğer kullanıcı yeniyse veya createdAt alanı yoksa ekle
+  if (isNewUser || !existingData.createdAt) {
+      updatePayload.createdAt = serverTimestamp(); 
+  }
+
   try {
-    await setDoc(
-      userRef,
-      {
-        uid: user.uid,
-        displayName: user.displayName || existingData.displayName || "",
-        email: user.email || existingData.email || "",
-        photoURL: user.photoURL || existingData.photoURL || "",
-        roles,
-        role: primaryRole,
-        status: currentStatus, // Belirlenen statüyü kaydet
-        lastLoginAt: new Date() // Son giriş zamanını da tutalım
-      },
-      { merge: true },
-    );
+    await setDoc(userRef, updatePayload, { merge: true });
   } catch (error) {
     if (error?.code === 'permission-denied') {
       console.warn('Profil yazma izni reddedildi, claim profiliyle devam ediliyor.');
@@ -109,6 +109,5 @@ export async function ensureUserDocument(user) {
     });
   }
 
-  // Fonksiyondan statüyü de döndürelim ki auth.js'de kullanabilelim
   return { roles, role: primaryRole, status: currentStatus };
 }
