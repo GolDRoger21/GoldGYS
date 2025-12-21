@@ -1,58 +1,56 @@
-  <div class="sidebar-header">
-    <a href="/" class="sidebar-logo">
-      <span class="brand-highlight">GOLD</span> GYS
+<div class="sidebar-logo">
+    <a href="/pages/dashboard.html" class="brand-mark brand-on-dark brand-compact" aria-label="Gold GYS paneline dön">
+        <span class="brand-highlight">GOLD</span>GYS ⚖️
     </a>
-  </div>
+</div>
+<nav class="sidebar-menu sidebar-nav">
+    <ul>
+        <!-- Tüm Kullanıcılar İçin Standart Menü -->
+        <li>
+            <a href="/pages/dashboard.html" data-page="dashboard">
+                <span class="icon">📊</span> Panelim
+            </a>
+        </li>
+        <li>
+            <a href="/pages/konular.html" data-page="konular">
+                <span class="icon">📚</span> Ders Notları
+            </a>
+        </li>
+        <li>
+            <a href="/pages/testler.html" data-page="testler">
+                <span class="icon">📝</span> Konu Testleri
+            </a>
+        </li>
+        <li>
+            <a href="/pages/denemeler.html" data-page="denemeler">
+                <span class="icon">🏆</span> Denemeler
+            </a>
+        </li>
+        <li>
+            <a href="/pages/yanlislarim.html" data-page="yanlislarim">
+                <span class="icon">⚠️</span> Yanlışlarım
+            </a>
+        </li>
 
-  <nav class="sidebar-nav">
-    <div id="adminMenu" style="display: none;">
-      <a href="/pages/dashboard.html" data-page="dashboard">
-        <span class="icon">📊</span> Yönetim Paneli
-      </a>
-      <a href="/pages/admin.html" data-page="admin">
-        <span class="icon">👥</span> Üyeler & Onay
-      </a>
-      <a href="/pages/konular.html" data-page="konular">
-        <span class="icon">📚</span> Konu Yönetimi
-      </a>
-      <a href="/pages/testler.html" data-page="testler">
-        <span class="icon">📝</span> Test Yönetimi
-      </a>
-      <a href="/pages/denemeler.html" data-page="denemeler">
-        <span class="icon">⏱️</span> Deneme Sınavları
-      </a>
-    </div>
+        <!-- Sadece Editörler İçin Menü -->
+        <li class="editor-only" style="display:none; margin-top:20px; border-top:1px solid rgba(255,255,255,0.1); padding-top:10px;">
+            <a href="/editor/" data-page="editor">
+                <span class="icon">✍️</span> İçerik Yönetimi
+            </a>
+        </li>
 
-    <div id="studentMenu" style="display: none;">
-      <a href="/pages/dashboard.html" data-page="dashboard">
-        <span class="icon">🏠</span> Ana Sayfa
-      </a>
-      <a href="/pages/konular.html" data-page="konular">
-        <span class="icon">📖</span> Konu Çalış
-      </a>
-      <a href="/pages/testler.html" data-page="testler">
-        <span class="icon">✍️</span> Test Çöz
-      </a>
-      <a href="/pages/denemeler.html" data-page="denemeler">
-        <span class="icon">🏆</span> Denemeler
-      </a>
-      <a href="/pages/analiz.html" data-page="analiz">
-        <span class="icon">📈</span> İstatistiklerim
-      </a>
-      <a href="/pages/favoriler.html" data-page="favoriler">
-        <span class="icon">⭐</span> Favorilerim
-      </a>
-      <a href="/pages/yanlislarim.html" data-page="yanlislarim">
-        <span class="icon">⚠️</span> Yanlışlarım
-      </a>
-    </div>
-  </nav>
-
-  <div class="sidebar-footer">
-    <a href="/pages/profil.html" data-page="profil">
-      <span class="icon">👤</span> Profilim
-    </a>
-    <a href="#" id="logoutBtn" style="color: #fca5a5;">
-      <span class="icon">🚪</span> Çıkış Yap
-    </a>
-  </div>
+        <!-- Sadece Yöneticiler İçin Menü -->
+        <li class="admin-only" style="display:none; margin-top:20px; border-top:1px solid rgba(255,255,255,0.1); padding-top:10px;">
+            <a href="/admin/" data-page="admin">
+                <span class="icon">⚙️</span> Yönetici Paneli
+            </a>
+        </li>
+    </ul>
+</nav>
+<div class="sidebar-footer">
+    <a href="/help.html" data-page="help" class="sidebar-footer-link"><span class="icon">❓</span> Yardım</a>
+    <a href="/pages/profil.html" data-page="profile" class="sidebar-footer-link"><span class="icon">👤</span> Profilim</a>
+    <button id="btnLogout" onclick="window.handleLogout()" class="sidebar-footer-btn">
+        <span class="icon">🚪</span> Çıkış Yap
+    </button>
+</div>
