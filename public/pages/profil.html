@@ -252,30 +252,30 @@
                 <h2>Hesap Bilgileri</h2>
               </div>
               
-              <form id="profileForm">
+              <form id="profileForm" aria-describedby="profileFormHelp">
                 <div class="form-grid">
                   <div class="form-group">
-                    <label>Ad Soyad</label>
-                    <input type="text" id="inputName" placeholder="Adınız Soyadınız">
-                  </div>
-                  
-                  <div class="form-group">
-                    <label>E-posta Adresi</label>
-                    <input type="email" id="inputEmail" disabled title="E-posta değiştirilemez">
-                    <small style="color:#94a3b8; font-size:0.75rem;">E-posta adresinizi değiştirmek için yöneticiyle iletişime geçin.</small>
+                    <label for="inputName">Ad Soyad</label>
+                    <input type="text" id="inputName" placeholder="Adınız Soyadınız" name="fullName" aria-required="false">
                   </div>
 
                   <div class="form-group">
-                    <label>Tema Tercihi</label>
-                    <select id="inputTheme">
+                    <label for="inputEmail">E-posta Adresi</label>
+                    <input type="email" id="inputEmail" name="email" disabled title="E-posta değiştirilemez" aria-describedby="emailHelp">
+                    <small id="emailHelp" style="color:#94a3b8; font-size:0.75rem;">E-posta adresinizi değiştirmek için yöneticiyle iletişime geçin.</small>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="inputTheme">Tema Tercihi</label>
+                    <select id="inputTheme" name="theme" aria-label="Tema tercihi seçimi">
                       <option value="light">Aydınlık (Varsayılan)</option>
                       <option value="dark" disabled>Karanlık (Yakında)</option>
                     </select>
                   </div>
 
                   <div class="form-group">
-                    <label>Bildirim İzinleri</label>
-                    <select id="inputNotifications">
+                    <label for="inputNotifications">Bildirim İzinleri</label>
+                    <select id="inputNotifications" name="notifications" aria-label="Bildirim izinlerini seçin">
                       <option value="true">Açık</option>
                       <option value="false">Kapalı</option>
                     </select>
@@ -283,7 +283,8 @@
                 </div>
 
                 <div style="margin-top: 24px; text-align: right;">
-                  <button type="submit" class="btn-navy" id="saveBtn">Değişiklikleri Kaydet</button>
+                  <p id="profileFormHelp" class="sr-only" aria-live="polite">Formdaki alanları düzenleyip kaydet butonuyla değişiklikleri onaylayabilirsiniz.</p>
+                  <button type="submit" class="btn-navy" id="saveBtn" aria-label="Profil değişikliklerini kaydet">Değişiklikleri Kaydet</button>
                 </div>
               </form>
             </div>

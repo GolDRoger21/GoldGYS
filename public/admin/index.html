@@ -14,11 +14,11 @@
       <header id="header-area" class="app-header"></header>
 
       <div class="app-content">
-        <section class="panel-card stack gap-md">
+        <section class="panel-card stack gap-md" role="region" aria-labelledby="adminPanelHeading">
           <div class="section-head">
             <div>
               <p class="eyebrow">Yönetim araçları</p>
-              <h1>Admin Panel</h1>
+              <h1 id="adminPanelHeading">Admin Panel</h1>
               <p class="text-muted">Konu, test ve kullanıcı yönetimi için hızlı bağlantılar.</p>
             </div>
           </div>
@@ -32,29 +32,29 @@
           </ul>
         </section>
 
-        <section id="roleUpdateSection" class="panel-card" style="display: none;">
+        <section id="roleUpdateSection" class="panel-card" style="display: none;" role="region" aria-labelledby="roleUpdateHeading">
           <div class="section-head">
             <div>
               <p class="eyebrow">Yetki yönetimi</p>
-              <h2 style="margin: 0;">Kullanıcı Rolü Güncelle</h2>
+              <h2 id="roleUpdateHeading" style="margin: 0;">Kullanıcı Rolü Güncelle</h2>
             </div>
           </div>
-          <form id="roleUpdateForm" class="stack gap-sm" style="max-width: 420px;">
-            <label class="stack gap-2xs">
+          <form id="roleUpdateForm" class="stack gap-sm" style="max-width: 420px;" aria-describedby="roleUpdateStatus">
+            <label class="stack gap-2xs" for="roleUpdateUid">
               <span class="text-muted">Kullanıcı UID</span>
-              <input id="roleUpdateUid" name="uid" required placeholder="UID girin" />
+              <input id="roleUpdateUid" name="uid" required placeholder="UID girin" aria-required="true" aria-describedby="roleUpdateStatus" />
             </label>
-            <label class="stack gap-2xs">
+            <label class="stack gap-2xs" for="roleUpdateRole">
               <span class="text-muted">Rol</span>
-              <select id="roleUpdateRole" name="role" required>
+              <select id="roleUpdateRole" name="role" required aria-required="true" aria-describedby="roleUpdateStatus">
                 <option value="editor">Editör</option>
                 <option value="admin">Admin</option>
                 <option value="member">Üye</option>
               </select>
             </label>
             <div style="display: flex; gap: 10px;">
-              <button type="submit" class="btn-navy">Rolü Güncelle</button>
-              <p id="roleUpdateStatus" aria-live="polite" style="margin: 0; font-weight: 600;"></p>
+              <button type="submit" class="btn-navy" aria-label="Kullanıcı rolünü güncelle">Rolü Güncelle</button>
+              <p id="roleUpdateStatus" role="status" aria-live="polite" style="margin: 0; font-weight: 600;"></p>
             </div>
           </form>
         </section>
