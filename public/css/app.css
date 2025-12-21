@@ -205,6 +205,24 @@ a:active {
     background: var(--gradient-primary); -webkit-background-clip: text; background-clip: text; color: transparent;
 }
 
+.auth-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-md) var(--space-xl);
+    background: var(--color-layer-strong);
+    color: var(--color-text-contrast);
+    border-bottom: 1px solid var(--color-contrast-soft);
+    position: sticky;
+    top: 0;
+    z-index: 20;
+}
+
+.auth-nav .brand-mark { color: var(--color-text-contrast); }
+.auth-nav-actions { display: flex; align-items: center; gap: var(--space-sm); }
+.auth-back-link { color: var(--color-text-contrast); font-weight: 700; }
+.auth-back-link:hover { color: var(--color-primary); }
+
 /* =========================================
    2. AUTH (LOGIN/REGISTER) SAYFALARI
    ========================================= */
@@ -249,63 +267,27 @@ a:active {
    3. YÖNETİM PANELİ & LAYOUT (SIDEBAR/HEADER)
    ========================================= */
 .app-layout {
-    display: grid;
-    grid-template-columns: var(--sidebar-width) 1fr;
-    min-height: 100vh;
-}
-
-/* Sidebar */
-.app-sidebar {
-    width: var(--sidebar-width);
-    background: var(--color-layer-strong);
-    color: var(--color-text-contrast);
-    position: sticky;
-    top: 0;
-    align-self: start;
-    min-height: 100vh;
-    grid-row: 1 / span 3;
-    grid-column: 1 / 2;
-    border-right: 1px solid rgba(255,255,255,0.05);
     display: flex;
     flex-direction: column;
-    transition: transform 0.3s ease;
-    z-index: 1000;
+    min-height: 100vh;
+    background: var(--color-bg);
 }
 
-.sidebar-header { padding: 24px 20px; border-bottom: 1px solid rgba(255,255,255,0.05); }
-.sidebar-logo { font-family: var(--font-family-serif); font-size: 1.5rem; font-weight: 700; color: var(--color-text-contrast); display: flex; align-items: center; gap: 10px; }
-
-.sidebar-nav { flex: 1; padding: 20px 10px; overflow-y: auto; }
-.sidebar-nav a {
-    display: flex; align-items: center; padding: 12px 16px;
-    color: rgba(255,255,255,0.7); text-decoration: none;
-    border-radius: 12px; font-weight: 500; margin-bottom: 4px;
-    transition: all 0.2s;
-}
-.sidebar-nav a:hover, .sidebar-nav a.active {
-    background: var(--color-contrast-softer); color: var(--color-primary); padding-left: 20px;
-}
-.sidebar-nav .icon { margin-right: 12px; width: 20px; text-align: center; display: inline-flex; justify-content: center; }
-.ui-icon { display: block; color: currentColor; }
-
-.sidebar-footer { padding: 20px; border-top: 1px solid rgba(255,255,255,0.05); }
+/* Sidebar (devre dışı, sadece legacy DOM için saklandı) */
+.app-sidebar { display: none !important; }
 
 /* Main Area */
 .app-main {
-    display: grid;
-    grid-template-columns: repeat(12, minmax(0, 1fr));
-    grid-template-rows: auto 1fr auto;
-    gap: var(--layout-grid-gap);
-    grid-column: 2 / -1;
-    grid-row: 1 / span 3;
+    display: flex;
+    flex-direction: column;
     min-height: 100vh;
+    background: var(--color-bg);
 }
 
 /* Header */
 .app-header {
     height: 70px;
     background: var(--color-surface);
-    grid-column: 1 / -1;
     position: sticky;
     top: 0;
     z-index: 900;
@@ -316,22 +298,24 @@ a:active {
     width: min(var(--layout-max-width), 100%);
     margin-inline: auto;
     padding: 0 var(--layout-gutter);
-    display: grid;
-    grid-template-columns: auto 1fr auto;
+    display: flex;
     align-items: center;
+    justify-content: space-between;
     gap: var(--space-lg);
     height: 70px;
+    position: relative;
 }
 .mobile-menu-toggle {
     display: none;
-    border: none;
-    background: none;
-    font-size: 1.4rem;
-    color: var(--color-layer-strong);
+    border: 1px solid var(--color-border);
+    background: var(--color-surface-alt);
+    padding: 8px;
+    border-radius: var(--radius-md);
+    color: var(--color-text);
 }
 .header-left { display: flex; align-items: center; gap: 16px; }
 .page-title-wrap { display: flex; align-items: center; gap: var(--space-xs); }
-.page-title { font-weight: 700; color: var(--color-layer-strong); font-size: 1.1rem; }
+.page-title { font-weight: 700; color: var(--color-text); font-size: 1.1rem; }
 .header-right, .header-actions { display: flex; align-items: center; gap: 20px; }
 .header-quick-actions { display: flex; align-items: center; gap: var(--space-sm); }
 .icon-button {
@@ -342,7 +326,7 @@ a:active {
     background: var(--color-surface-alt);
     display: grid;
     place-items: center;
-    color: var(--color-layer-strong);
+    color: var(--color-text);
     position: relative;
     transition: all 0.2s ease;
 }
@@ -372,17 +356,23 @@ a:active {
     box-shadow: var(--shadow-soft);
 }
 
-.main-nav { display: flex; align-items: center; gap: 12px; }
+.main-nav { display: flex; align-items: center; gap: 8px; }
 .main-nav a {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
     padding: 10px 12px;
     border-radius: 10px;
     color: var(--color-text-muted);
     font-weight: 600;
 }
 .main-nav a:hover, .main-nav a.active {
-    color: var(--color-layer-strong);
-    background: var(--color-neutral-50);
+    color: var(--color-primary-strong);
+    background: var(--color-surface-alt);
 }
+
+.main-nav .icon { color: currentColor; display: inline-flex; }
+.main-nav .ui-icon { width: 18px; height: 18px; }
 
 /* Profil Dropdown */
 .user-menu-container { position: relative; }
@@ -441,11 +431,11 @@ a:active {
 }
 
 .app-content {
-    grid-column: 1 / -1;
     padding: var(--space-xl) var(--layout-gutter);
     width: 100%;
     max-width: var(--layout-max-width);
     margin: 0 auto;
+    flex: 1;
 }
 
 /* Spinner */
@@ -707,31 +697,30 @@ a:active {
    8. MOBİL UYUM (RESPONSIVE)
    ========================================= */
 @media (max-width: 1200px) {
-    .app-layout { grid-template-columns: var(--sidebar-width) 1fr; }
-    .app-main { grid-template-columns: repeat(12, minmax(0, 1fr)); }
     .header-inner { padding: 0 var(--space-lg); }
 }
 
 @media (max-width: 1024px) {
-    .mobile-menu-toggle { display: block !important; border:none; background:none; font-size:1.5rem; }
+    .mobile-menu-toggle { display: inline-flex !important; }
+    .main-nav {
+        position: absolute;
+        inset: 70px var(--layout-gutter) auto var(--layout-gutter);
+        display: none;
+        flex-direction: column;
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: 14px;
+        padding: var(--space-md);
+        box-shadow: var(--shadow-strong);
+        gap: var(--space-sm);
+        z-index: 905;
+    }
+    .main-nav.open { display: flex; }
+    .main-nav a { width: 100%; }
     .app-content { padding: var(--space-lg) var(--layout-gutter); }
 }
 
 @media (max-width: 900px) {
-    .app-layout { grid-template-columns: 1fr; }
-    .app-sidebar {
-        position: fixed;
-        inset: 0 auto 0 0;
-        height: 100vh;
-        transform: translateX(-100%);
-        box-shadow: var(--shadow-strong);
-    }
-    .app-sidebar.open { transform: translateX(0); }
-    .app-main {
-        grid-column: 1 / -1;
-        grid-template-columns: 1fr;
-        grid-template-rows: auto 1fr auto;
-    }
     .app-content { padding: var(--space-lg) var(--layout-gutter); }
     .footer-static { left: 0; right: 0; flex-wrap: wrap; padding: 10px; }
     .footer-static button { flex: 1; font-size: 0.85rem; padding: 10px; }

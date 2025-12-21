@@ -1,27 +1,25 @@
 <div class="header-inner">
   <div class="header-left">
-    <button class="mobile-menu-toggle" type="button" aria-label="Yan menüyü aç/kapat" data-sidebar-toggle>
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <line x1="3" y1="6" x2="21" y2="6"></line>
-        <line x1="3" y1="12" x2="21" y2="12"></line>
-        <line x1="3" y1="18" x2="21" y2="18"></line>
-      </svg>
+    <a href="/pages/dashboard.html" class="brand-mark header-brand" aria-label="Gold GYS panel ana sayfası">
+      <span class="brand-highlight">GOLD</span>GYS
+    </a>
+    <button class="mobile-menu-toggle" type="button" aria-label="Menüyü aç/kapat" data-mobile-nav-toggle>
+      <span class="icon" data-icon="menu"></span>
     </button>
 
-    <a href="/pages/dashboard.html" class="brand-mark header-brand" aria-label="Gold GYS panel ana sayfası">
-      <span class="brand-highlight">GOLD</span> GYS
-    </a>
-
-    <div class="page-title-wrap">
+    <div class="page-title-wrap" role="status">
       <span id="pageTitle" class="page-title">Panelim</span>
     </div>
   </div>
 
   <div class="header-actions">
     <nav class="main-nav" aria-label="Ana navigasyon">
-      <a href="/pages/dashboard.html" data-page="dashboard">Panel</a>
-      <a href="/pages/testler.html" data-page="testler">Testler</a>
-      <a href="/pages/denemeler.html" data-page="denemeler">Denemeler</a>
+      <a href="/pages/dashboard.html" data-page="dashboard"><span class="icon" data-icon="chart"></span>Panel</a>
+      <a href="/pages/konular.html" data-page="konular"><span class="icon" data-icon="book"></span>Ders Notları</a>
+      <a href="/pages/testler.html" data-page="testler"><span class="icon" data-icon="bolt"></span>Testler</a>
+      <a href="/pages/denemeler.html" data-page="denemeler"><span class="icon" data-icon="spark"></span>Denemeler</a>
+      <a href="/pages/yanlislarim.html" data-page="yanlislarim"><span class="icon" data-icon="shield"></span>Yanlışlarım</a>
+      <a class="admin-only" href="/pages/admin.html" data-page="admin" style="display:none;"><span class="icon" data-icon="bolt"></span>Yönetici</a>
     </nav>
 
     <div class="header-quick-actions" role="group" aria-label="Hızlı işlemler">

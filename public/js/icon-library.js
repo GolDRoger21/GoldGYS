@@ -5,6 +5,7 @@ const ICON_MAP = {
   chart: 'chart',
   shield: 'shield',
   spark: 'spark',
+  menu: 'menu',
   moon: 'moon',
   sun: 'sun',
   bell: 'bell',

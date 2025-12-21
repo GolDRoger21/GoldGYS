@@ -4,47 +4,27 @@ import { initNotificationContext } from "./notifications.js";
 import { hydrateIconPlaceholders, renderIcon } from "./icon-library.js";
 
 const FALLBACK_HTML = {
-    sidebar: `
-        <div class="sidebar-logo">
-            <a href="/pages/dashboard.html" class="brand-mark brand-on-dark brand-compact" aria-label="Gold GYS paneline dön">
-                <span class="brand-highlight">GOLD</span>GYS ⚖️
-            </a>
-        </div>
-        <nav class="sidebar-menu sidebar-nav">
-            <ul>
-                <li><a href="/pages/dashboard.html" data-page="dashboard"><span class="icon" data-icon="chart"></span> Panelim</a></li>
-                <li><a href="/pages/konular.html" data-page="konular"><span class="icon" data-icon="book"></span> Ders Notları</a></li>
-                <li><a href="/pages/testler.html" data-page="testler"><span class="icon" data-icon="bolt"></span> Konu Testleri</a></li>
-                <li><a href="/pages/denemeler.html" data-page="denemeler"><span class="icon" data-icon="spark"></span> Denemeler</a></li>
-                <li><a href="/pages/yanlislarim.html" data-page="yanlislarim"><span class="icon" data-icon="shield"></span> Yanlışlarım</a></li>
-                <li class="editor-only" style="display:none; margin-top:20px; border-top:1px solid rgba(255,255,255,0.1); padding-top:10px;">
-                    <a href="/pages/konular.html" data-page="editor"><span class="icon" data-icon="spark"></span> Editör Araçları</a>
-                </li>
-                <li class="admin-only" style="display:none;"><a href="/pages/admin.html" data-page="admin"><span class="icon" data-icon="bolt"></span> Yönetici Paneli</a></li>
-            </ul>
-        </nav>
-        <div class="sidebar-footer">
-            <button id="btnLogout" onclick="window.handleLogout()">
-                <span class="icon" data-icon="logout"></span> Çıkış Yap
-            </button>
-        </div>
-    `,
     header: `
         <div class="header-inner">
             <div class="header-left">
-                <button class="mobile-menu-toggle" type="button" aria-label="Yan menüyü aç/kapat" data-sidebar-toggle>☰</button>
                 <a href="/pages/dashboard.html" class="brand-mark header-brand" aria-label="Gold GYS panel ana sayfası">
                     <span class="brand-highlight">GOLD</span>GYS
                 </a>
-                <div class="page-title-wrap">
+                <button class="mobile-menu-toggle" type="button" aria-label="Menüyü aç/kapat" data-mobile-nav-toggle>
+                    <span class="icon" data-icon="menu"></span>
+                </button>
+                <div class="page-title-wrap" role="status">
                     <span id="pageTitle" class="page-title">Panelim</span>
                 </div>
             </div>
             <div class="header-actions">
                 <nav class="main-nav" aria-label="Ana navigasyon">
-                    <a href="/pages/dashboard.html" data-page="dashboard">Panel</a>
-                    <a href="/pages/testler.html" data-page="testler">Testler</a>
-                    <a href="/pages/denemeler.html" data-page="denemeler">Denemeler</a>
+                    <a href="/pages/dashboard.html" data-page="dashboard"><span class="icon" data-icon="chart"></span>Panel</a>
+                    <a href="/pages/konular.html" data-page="konular"><span class="icon" data-icon="book"></span>Ders Notları</a>
+                    <a href="/pages/testler.html" data-page="testler"><span class="icon" data-icon="bolt"></span>Testler</a>
+                    <a href="/pages/denemeler.html" data-page="denemeler"><span class="icon" data-icon="spark"></span>Denemeler</a>
+                    <a href="/pages/yanlislarim.html" data-page="yanlislarim"><span class="icon" data-icon="shield"></span>Yanlışlarım</a>
+                    <a class="admin-only" href="/pages/admin.html" data-page="admin" style="display:none;"><span class="icon" data-icon="bolt"></span>Yönetici</a>
                 </nav>
                 <div class="header-quick-actions" role="group" aria-label="Hızlı işlemler">
                     <button class="icon-button" type="button" aria-label="Tema değiştir" data-theme-toggle>
@@ -118,7 +98,7 @@ const FALLBACK_HTML = {
 };
 
 const LAYOUT_COMPONENTS = {
-    app: { header: '/components/header.html', footer: '/components/footer.html', sidebar: '/partials/sidebar.html' },
+    app: { header: '/components/header.html', footer: '/components/footer.html' },
     admin: { header: '/components/layouts/admin-header.html', footer: '/components/layouts/admin-footer.html', sidebar: '/partials/sidebar.html' },
     auth: { header: '/components/layouts/auth-header.html', footer: '/components/layouts/auth-footer.html' },
     public: { header: '/components/layouts/public-header.html', footer: '/components/layouts/public-footer.html' },
@@ -230,12 +210,37 @@ function setupHeader(headerEl) {
         if (pageTitleEl) pageTitleEl.innerText = titleAttr;
     }
 
-    headerEl.querySelector('[data-sidebar-toggle]')?.addEventListener('click', () => toggleSidebar());
+    setupPrimaryNav(headerEl);
     setupThemeToggle(headerEl);
     setupProfileMenu(headerEl);
 
     const logoutBtn = headerEl.querySelector('#headerLogoutBtn');
     if (logoutBtn) logoutBtn.addEventListener('click', () => window.handleLogout());
+}
+
+function setupPrimaryNav(headerEl) {
+    const nav = headerEl.querySelector('.main-nav');
+    const toggle = headerEl.querySelector('[data-mobile-nav-toggle]');
+
+    if (!nav || !toggle) return;
+
+    const closeNav = () => {
+        nav.classList.remove('open');
+        toggle.setAttribute('aria-expanded', 'false');
+    };
+
+    toggle.addEventListener('click', () => {
+        const isOpen = nav.classList.toggle('open');
+        toggle.setAttribute('aria-expanded', isOpen.toString());
+    });
+
+    nav.querySelectorAll('a').forEach((link) => {
+        link.addEventListener('click', closeNav);
+    });
+
+    window.addEventListener('resize', () => {
+        if (window.innerWidth > 1024) closeNav();
+    });
 }
 
 function ensureSidebarOverlay() {
