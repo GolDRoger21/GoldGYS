@@ -1151,22 +1151,30 @@ class ContentSection {
 
     this.emptyState.style.display = "none";
 
+    const labels = this.key === "attempts"
+      ? { title: "Test", status: "Durum", updated: "Tarih", success: "Puan", actions: "İşlem" }
+      : { title: "Başlık", status: "Durum", updated: "Tarih", success: "Başarı", actions: "İşlem" };
+
     rows.forEach((row) => {
       const tr = document.createElement("tr");
       const titleCell = document.createElement("td");
       titleCell.textContent = row.title;
+      titleCell.dataset.label = labels.title;
 
       const statusCell = document.createElement("td");
       const statusBadge = document.createElement("span");
       statusBadge.className = "badge-muted";
       statusBadge.textContent = row.status || "-";
       statusCell.appendChild(statusBadge);
+      statusCell.dataset.label = labels.status;
 
       const updatedCell = document.createElement("td");
       updatedCell.textContent = formatDateValue(row.updatedAt);
+      updatedCell.dataset.label = labels.updated;
 
       const successCell = document.createElement("td");
       successCell.textContent = formatSuccess(row.successRate);
+      successCell.dataset.label = labels.success;
 
       const actionCell = document.createElement("td");
       const actionWrapper = document.createElement("div");
@@ -1206,6 +1214,7 @@ class ContentSection {
 
       actionWrapper.append(viewBtn, editBtn, deleteBtn, toggleBtn);
       actionCell.appendChild(actionWrapper);
+      actionCell.dataset.label = labels.actions;
 
       tr.append(titleCell, statusCell, updatedCell, successCell, actionCell);
       this.tableBody.appendChild(tr);

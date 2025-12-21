@@ -290,12 +290,12 @@ function renderTable() {
   state.filtered.forEach((user) => {
     const row = document.createElement("tr");
     row.innerHTML = `
-      <td>${user.displayName}</td>
-      <td>${user.email}</td>
-      <td><span class="status-chip status-${user.status}">${statusLabel(user.status)}</span></td>
-      <td>${user.role}</td>
-      <td>${formatDate(user.lastLoginAt)}</td>
-      <td>
+      <td data-label="Ad Soyad">${user.displayName}</td>
+      <td data-label="E-posta">${user.email}</td>
+      <td data-label="Durum"><span class="status-chip status-${user.status}">${statusLabel(user.status)}</span></td>
+      <td data-label="Rol">${user.role}</td>
+      <td data-label="Son Giriş">${formatDate(user.lastLoginAt)}</td>
+      <td data-label="İşlem">
         <button class="btn-secondary" data-action="view" data-uid="${user.id}">Detay</button>
       </td>
     `;

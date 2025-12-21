@@ -110,6 +110,66 @@ a:active {
 .btn-approve { background: var(--color-layer); color: var(--color-surface); } .btn-approve:hover { background: var(--color-layer-strong); }
 .btn-reject { background: var(--color-surface); color: var(--color-danger-strong); border: 1px solid var(--color-danger-border); } .btn-reject:hover { background: var(--color-danger-soft); }
 
+/* =========================================
+   GLOBAL LAYOUT UTILITIES
+   ========================================= */
+.stack {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-lg);
+    align-items: stretch;
+}
+
+.cluster {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-md);
+    row-gap: var(--space-sm);
+}
+
+.grid {
+    display: grid;
+    gap: var(--space-lg);
+    align-items: start;
+}
+
+.card-grid,
+.list-grid,
+.grid.cards {
+    display: grid;
+    gap: var(--space-lg);
+    grid-template-columns: 1fr;
+}
+
+@media (min-width: 768px) {
+    .card-grid,
+    .list-grid,
+    .grid.cards {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (min-width: 1024px) {
+    .card-grid,
+    .list-grid,
+    .grid.cards {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 1024px) {
+    .stack { gap: var(--space-md); }
+    .cluster { gap: var(--space-sm) var(--space-md); align-items: flex-start; }
+    .grid { gap: var(--space-md); }
+}
+
+@media (max-width: 768px) {
+    .stack { gap: var(--space-sm); }
+    .cluster { gap: var(--space-sm); }
+    .grid { gap: var(--space-sm); }
+}
+
 /* Marka Logosu */
 .brand-mark {
     display: inline-flex; align-items: center; gap: 8px;
@@ -489,10 +549,95 @@ a:active {
 /* =========================================
    6. DİĞER MODÜLLER (TABLOLAR, MODALLER)
    ========================================= */
-.content-table { width: 100%; border-collapse: collapse; min-width: 600px; }
-.content-table th { background: var(--color-neutral-50); padding: 12px; text-align: left; color: var(--color-layer-strong); border-bottom: 1px solid var(--color-border); }
-.content-table td { padding: 12px; border-bottom: 1px solid var(--color-neutral-100); color: var(--color-neutral-700); }
-.table-wrapper { overflow-x: auto; border: 1px solid var(--color-border); border-radius: 12px; }
+.table-responsive,
+.table-wrapper {
+    overflow-x: auto;
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    -webkit-overflow-scrolling: touch;
+}
+
+.table,
+.content-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 640px;
+}
+
+.table th,
+.content-table th {
+    background: var(--color-neutral-50);
+    padding: 12px;
+    text-align: left;
+    color: var(--color-layer-strong);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.table td,
+.content-table td {
+    padding: 12px;
+    border-bottom: 1px solid var(--color-neutral-100);
+    color: var(--color-neutral-700);
+    vertical-align: top;
+}
+
+.table-actions {
+    display: flex;
+    gap: var(--space-xs);
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+@media (max-width: 768px) {
+    .table,
+    .content-table {
+        display: block;
+        min-width: 100%;
+    }
+
+    .table thead,
+    .content-table thead {
+        display: none;
+    }
+
+    .table tbody tr,
+    .content-table tbody tr {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: var(--space-xs);
+        padding: var(--space-sm);
+        background: var(--color-surface);
+        border-bottom: 1px solid var(--color-neutral-200);
+    }
+
+    .table tbody tr:last-child,
+    .content-table tbody tr:last-child {
+        border-bottom: none;
+    }
+
+    .table td,
+    .content-table td {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        align-items: start;
+        gap: var(--space-sm);
+        padding: 0;
+        border: none;
+    }
+
+    .table td::before,
+    .content-table td::before {
+        content: attr(data-label);
+        font-weight: 700;
+        color: var(--color-text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+    }
+
+    .table-actions {
+        justify-content: flex-start;
+    }
+}
 
 /* Modal */
 .modal-backdrop {
