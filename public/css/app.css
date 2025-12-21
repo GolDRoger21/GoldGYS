@@ -14,6 +14,8 @@
     --color-success: #28a745;
     --color-error: #dc3545;
     --color-warning: #ffc107;
+    --color-error-soft: #f8d7da; 
+    --color-error-strong: #721c24;
 
     --radius-sm: 4px;
     --radius-md: 8px;
@@ -40,6 +42,8 @@
     --color-success: #48BB78;
     --color-error: #F56565;
     --color-warning: #ECC94B;
+    --color-error-soft: #4A2028;
+    --color-error-strong: #FEB2B2;
 }
 
 body {
@@ -51,13 +55,20 @@ body {
     -moz-osx-font-smoothing: grayscale;
 }
 
-h1, h2, h3, h4, p, a, div, span {
+h1, h2, h3, h4, p, a, div, span, button {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
-/* Button Base */
+/* --- General App Layout --- */
+.app-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+/* --- Button Base --- */
 .btn {
     display: inline-flex;
     align-items: center;
@@ -83,8 +94,13 @@ h1, h2, h3, h4, p, a, div, span {
     transform: translateY(-1px);
     box-shadow: var(--shadow-sm);
 }
+.btn-sm {
+    padding: 6px 12px;
+    font-size: 0.9rem;
+}
 
-/* Spinner */
+
+/* --- Spinner --- */
 .spinner {
     width: 24px;
     height: 24px;
@@ -93,14 +109,12 @@ h1, h2, h3, h4, p, a, div, span {
     border-radius: 50%;
     animation: spin 0.8s linear infinite;
 }
+@keyframes spin { to { transform: rotate(360deg); } }
 
-@keyframes spin {
-    to { transform: rotate(360deg); }
-}
-
-/* Alert Box */
+/* --- Alert Box --- */
 .alert {
     padding: 15px 20px;
+    margin-bottom: 20px;
     border-radius: var(--radius-md);
     border: 1px solid;
     font-weight: 500;
@@ -111,12 +125,14 @@ h1, h2, h3, h4, p, a, div, span {
     border-color: var(--color-error);
 }
 
+/* --- Auth Pages --- */
 .auth-wrapper {
     display: flex;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
     padding: 20px;
+    background-color: var(--color-surface-alt);
 }
 
 .auth-card {
@@ -140,5 +156,131 @@ h1, h2, h3, h4, p, a, div, span {
 }
 .btn-google {
     width: 100%;
+    background-color: var(--color-surface-alt);
+    color: var(--color-text);
+    border-color: var(--color-border);
+}
+.btn-google:hover {
+    background-color: var(--color-border);
 }
 
+
+/* --- Authenticated Header --- */
+header[data-layout="admin-header"] .header-inner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 60px;
+    padding: 0 1.5rem;
+    border-bottom: 1px solid var(--color-border);
+    max-width: 100%;
+    margin: 0;
+}
+
+.header-left, .header-right {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.main-nav {
+    display: flex;
+    gap: 1rem;
+}
+.main-nav a {
+    text-decoration: none;
+    color: var(--color-text-secondary);
+    font-weight: 600;
+    padding: 8px 12px;
+    border-radius: var(--radius-md);
+    transition: all 0.2s ease;
+}
+.main-nav a:hover, .main-nav a.active {
+    color: var(--color-text);
+    background-color: var(--color-surface-alt);
+}
+
+/* --- User Menu --- */
+.user-menu-container {
+    position: relative;
+}
+
+.user-menu-toggle {
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.user-avatar-circle {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--color-primary);
+    color: var(--color-text-on-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+}
+
+.profile-dropdown {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    min-width: 240px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: opacity 0.2s, transform 0.2s;
+    z-index: 1100;
+}
+.profile-dropdown.open {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.dropdown-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 1rem;
+}
+.dropdown-header .user-avatar-circle { width: 40px; height: 40px; }
+.dropdown-header .user-name { font-weight: 600; }
+.dropdown-header .user-email { font-size: 0.9rem; color: var(--color-text-secondary); }
+
+.profile-dropdown a, .profile-dropdown button {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 0.75rem 1rem;
+    background: none;
+    border: none;
+    color: var(--color-text);
+    text-decoration: none;
+    font-size: 1rem;
+    cursor: pointer;
+}
+.profile-dropdown a:hover, .profile-dropdown button:hover {
+    background: var(--color-surface-alt);
+}
+
+.dropdown-separator {
+    height: 1px;
+    background: var(--color-border);
+    margin: 0.5rem 0;
+}
+
+/* --- Card --- */
+.card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    box-shadow: var(--shadow-sm);
+}
