@@ -6,339 +6,67 @@
     <title>GOLD GYS | Adalet Bakanlığı Görevde Yükselme Portalı</title>
     <meta name="description" content="Yazı İşleri Müdürü ve diğer ünvanlar için özel hazırlanmış, yapay zeka destekli sınav hazırlık ve deneme portalı.">
     
-    <link rel="stylesheet" href="css/app.css">
+    <link rel="stylesheet" href="/css/app.css">
+    <link rel="stylesheet" href="/css/landing.css">
     
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
-
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230F172A'/><text x='50' y='70' font-family='serif' font-size='60' fill='%23D4AF37' text-anchor='middle' font-weight='bold'>G</text><text x='80' y='35' font-size='30'>⚖️</text></svg>">
-
-    <style>
-        /* --- LANDING PAGE ÖZEL CSS --- */
-        
-        body { 
-            margin: 0; padding: 0; 
-            background-color: var(--bg-body, #F8FAFC); 
-            overflow-x: hidden;
-            font-family: 'Inter', sans-serif;
-        }
-
-        /* 1. NAVİGASYON */
-        .landing-nav {
-            position: fixed; top: 0; width: 100%; z-index: 1000;
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 15px 6%;
-            background: rgba(15, 23, 42, 0.95); /* Deep Navy */
-            backdrop-filter: blur(12px);
-            border-bottom: 1px solid rgba(212, 175, 55, 0.3);
-            box-shadow: 0 4px 30px rgba(0,0,0,0.3);
-        }
-
-        .nav-toggle {
-            display: none;
-            background: rgba(255,255,255,0.08);
-            border: 1px solid rgba(212, 175, 55, 0.35);
-            color: white;
-            padding: 10px 12px;
-            border-radius: 12px;
-            font-weight: 700;
-            cursor: pointer;
-        }
-
-        .nav-links { display: flex; gap: 30px; align-items: center; }
-        .nav-links a {
-            text-decoration: none; color: rgba(255,255,255,0.78);
-            font-weight: 600; font-size: 0.95rem; transition: 0.3s;
-        }
-        .nav-links a:hover,
-        .nav-links a:focus-visible { color: var(--gold-light); text-shadow: 0 0 6px rgba(212, 175, 55, 0.55); outline: none; }
-
-        .btn-nav-login {
-            background: linear-gradient(135deg, #D4AF37 0%, #B5952F 100%);
-            color: #0F172A !important;
-            padding: 10px 24px; border-radius: 50px;
-            font-weight: 700; text-decoration: none;
-            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
-            transition: 0.3s; border: 1px solid rgba(255,255,255,0.1);
-        }
-        .btn-nav-login:hover { 
-            transform: translateY(-2px); 
-            background: white; 
-            box-shadow: 0 6px 20px rgba(255, 255, 255, 0.4);
-        }
-
-        /* 2. HERO BÖLÜMÜ */
-        .hero-section {
-            min-height: 100vh;
-            background: radial-gradient(circle at top right, #1E293B 0%, #0F172A 100%);
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 140px 6% 80px;
-            position: relative; overflow: hidden;
-        }
-
-        .hero-bg-glow {
-            position: absolute; width: 600px; height: 600px;
-            background: radial-gradient(circle, rgba(212, 175, 55, 0.15) 0%, transparent 70%);
-            top: -100px; right: -100px; pointer-events: none;
-        }
-
-        .hero-content { max-width: 600px; z-index: 2; animation: fadeUp 1s ease-out; }
-        
-        .hero-badge {
-            display: inline-block; padding: 8px 16px;
-            background: rgba(212, 175, 55, 0.1); border: 1px solid rgba(212, 175, 55, 0.4);
-            color: #F3E5AB; border-radius: 30px;
-            font-size: 0.85rem; font-weight: 600; margin-bottom: 25px;
-            text-transform: uppercase; letter-spacing: 1px;
-            box-shadow: 0 0 15px rgba(212, 175, 55, 0.1);
-        }
-
-        .hero-title {
-            font-size: 3.8rem; line-height: 1.1; color: white;
-            font-family: 'Playfair Display', serif; margin-bottom: 25px;
-        }
-        .hero-title span { 
-            color: transparent; 
-            background: linear-gradient(to right, #BF953F, #FCF6BA, #B38728); 
-            -webkit-background-clip: text; background-clip: text;
-        }
-
-        .hero-desc { font-size: 1.2rem; color: #94A3B8; margin-bottom: 40px; line-height: 1.6; }
-
-        .hero-buttons { display: flex; gap: 20px; }
-        
-        .btn-hero-primary {
-            background: linear-gradient(135deg, #BF953F 0%, #AA771C 100%);
-            color: #0F172A; padding: 16px 40px; border-radius: 12px;
-            font-weight: 800; text-decoration: none; font-size: 1.1rem;
-            box-shadow: 0 10px 30px rgba(212, 175, 55, 0.3); transition: 0.3s;
-            text-transform: uppercase; letter-spacing: 0.5px;
-        }
-        .btn-hero-primary:hover { transform: translateY(-3px); box-shadow: 0 15px 40px rgba(212, 175, 55, 0.5); background: white; }
-
-        .btn-hero-outline {
-            border: 2px solid rgba(255,255,255,0.2); color: white;
-            padding: 16px 40px; border-radius: 12px; font-weight: 600; text-decoration: none;
-            transition: 0.3s;
-        }
-        .btn-hero-outline:hover { border-color: #D4AF37; color: #D4AF37; }
-
-        /* Hero Visual */
-        .hero-visual {
-            position: relative; width: 520px; height: 520px;
-            display: flex; align-items: center; justify-content: center;
-        }
-        .visual-circle {
-            position: absolute; width: 100%; height: 100%;
-            border-radius: 50%; border: 1px solid rgba(255,255,255,0.05);
-            animation: spin 30s linear infinite;
-        }
-        .visual-ring {
-            width: 100%; height: 100%;
-            border: 1px solid rgba(212, 175, 55, 0.2);
-        }
-        .visual-ring.is-inner {
-            width: 70%; height: 70%;
-            border-style: dashed;
-            border-color: rgba(212, 175, 55, 0.4);
-            animation-direction: reverse;
-        }
-        .hero-visual-content {
-            position: relative; z-index: 2; display: flex; flex-direction: column; gap: 24px; align-items: center;
-        }
-        .visual-icon {
-            width: 140px; height: 140px; display: grid; place-items: center;
-            background: rgba(212, 175, 55, 0.12); border: 1px solid rgba(212, 175, 55, 0.3); border-radius: 28px;
-            filter: drop-shadow(0 0 50px rgba(212, 175, 55, 0.4)); animation: float 6s ease-in-out infinite;
-        }
-        .justice-scale { width: 96px; height: 96px; color: #D4AF37; animation: swing 4s ease-in-out infinite; transform-origin: center 15px; }
-        .scale-chain { stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; fill: none; opacity: 0.9; }
-        .scale-plate { fill: rgba(212, 175, 55, 0.22); stroke: currentColor; stroke-width: 1.2; }
-        .scale-base { fill: currentColor; }
-        .hero-screenshot { width: 100%; max-width: 440px; border-radius: 22px; box-shadow: 0 25px 60px rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.08); background: #0b1221; }
-
-        /* 3. İSTATİSTİK */
-        .stats-bar {
-            background: var(--color-surface); padding: 60px 6%;
-            display: grid; grid-template-columns: repeat(4, 1fr); gap: 30px;
-            border-bottom: 1px solid var(--color-border);
-        }
-        .stat-card { text-align: center; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 16px; padding: 18px 12px; box-shadow: var(--shadow-soft); }
-        .stat-num { font-size: 2.5rem; font-weight: 800; color: var(--color-text); margin-bottom: 5px; }
-        .stat-label { color: var(--color-text-muted); font-weight: 500; font-size: 1rem; }
-
-        /* 4. ÖZELLİKLER */
-        .features-section { padding: 100px 6%; background: var(--color-surface-alt); }
-        .section-header { text-align: center; max-width: 700px; margin: 0 auto 80px; }
-        .section-header h2 {
-            font-size: 2.5rem; color: var(--color-text);
-            font-family: 'Playfair Display', serif; margin-bottom: 15px;
-        }
-        .section-header p { color: var(--color-text-muted); font-size: 1.1rem; }
-
-        .feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 40px; }
-        .feature-card {
-            background: var(--color-surface); padding: 40px; border-radius: 24px;
-            border: 1px solid var(--color-border); transition: 0.3s;
-            position: relative; overflow: hidden;
-        }
-        .feature-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.08);
-            border-color: var(--color-primary);
-        }
-        .icon-box {
-            width: 70px; height: 70px; background: var(--color-primary-soft);
-            color: #D4AF37; border-radius: 20px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 1.8rem; margin-bottom: 25px;
-        }
-        .feature-card h3 { font-size: 1.4rem; color: var(--color-text); margin-bottom: 15px; }
-        .feature-card p { color: var(--color-text-muted); line-height: 1.6; }
-
-        /* 5. FOOTER */
-        footer { background: #0F172A; color: white; padding: 80px 6% 30px; border-top: 4px solid #D4AF37; }
-        .footer-grid { display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 50px; margin-bottom: 60px; }
-        .footer-info p { color: #94A3B8; line-height: 1.6; margin-top: 20px; max-width: 300px; }
-        .footer-links h4 { font-size: 1.1rem; margin-bottom: 25px; color: #D4AF37; }
-        .footer-links ul { list-style: none; padding: 0; }
-        .footer-links li { margin-bottom: 15px; }
-        .footer-links a { text-decoration: none; color: #CBD5E1; transition: 0.2s; }
-        .footer-links a:hover { color: #D4AF37; }
-        
-        .copyright {
-            text-align: center; padding-top: 30px; border-top: 1px solid rgba(255,255,255,0.1);
-            color: #64748B; font-size: 0.9rem;
-        }
-
-        /* Responsive */
-        @media (max-width: 900px) {
-            .hero-section { flex-direction: column; padding-top: 150px; text-align: center; }
-            .hero-buttons { justify-content: center; }
-            .hero-visual { width: 300px; height: 300px; margin-top: 50px; }
-            .stats-bar { grid-template-columns: 1fr 1fr; }
-            .footer-grid { grid-template-columns: 1fr; gap: 30px; text-align: center; }
-            .nav-links { display: none; }
-            .nav-links.open {
-                position: absolute;
-                right: 6%; top: 70px;
-                background: rgba(15, 23, 42, 0.96);
-                border: 1px solid rgba(212, 175, 55, 0.25);
-                box-shadow: 0 20px 40px rgba(0,0,0,0.4);
-                padding: 18px;
-                border-radius: 16px;
-                display: grid;
-                gap: 12px;
-            }
-            .nav-links a { padding: 8px 4px; display: block; text-align: right; }
-            .nav-toggle { display: inline-flex; }
-        }
-
-        @media (max-width: 640px) {
-            .hero-section { padding: 130px 8% 70px; }
-            .hero-title { font-size: 2.8rem; }
-            .hero-desc { font-size: 1.05rem; }
-            .hero-visual { width: 240px; height: 240px; margin-top: 30px; }
-            .stats-bar { grid-template-columns: 1fr; padding: 40px 8%; }
-            .feature-grid { grid-template-columns: 1fr; }
-        }
-
-        /* Animasyonlar */
-        @keyframes fadeUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }
-        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        @keyframes swing { 0%, 100% { transform: rotate(-6deg); } 50% { transform: rotate(6deg); } }
-    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230F172A'/><text x='50' y='70' font-family='serif' font-size='60' fill='%23D4AF37' text-anchor='middle' font-weight='bold'>G</text></svg>">
 </head>
 <body>
+    <script>
+        // Apply theme from localStorage before page load
+        const theme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', theme);
+    </script>
 
-    <header id="public-header" class="site-header"></header>
+    <header id="public-header" class="landing-nav"></header>
 
-    <section class="hero-section">
-        <div class="hero-bg-glow"></div>
-        
-        <div class="hero-content">
-            <span class="hero-badge">ADALET BAKANLIĞI ÖZEL</span>
-            <h1 class="hero-title heading-display">Kariyerinizde <br><span>Altın Çağ</span> Başlıyor.</h1>
-            <p class="hero-desc body-lg text-muted">
-                Yazı İşleri Müdürü ve diğer ünvanlar için tasarlanmış; yapay zeka destekli analizler, 
-                konu odaklı testler ve gerçekçi deneme sınavlarıyla dolu premium hazırlık platformu.
-            </p>
-            <div class="hero-buttons">
-                <a href="login.html" class="btn-hero-primary" id="heroCtaBtn">Hemen Başla</a>
-                <a href="#features" class="btn-hero-outline">Keşfet</a>
-            </div>
-        </div>
-
-        <div class="hero-visual">
-            <div class="visual-circle visual-ring"></div>
-            <div class="visual-circle visual-ring is-inner"></div>
-            <div class="hero-visual-content">
-                <div class="visual-icon" aria-hidden="true">
-                    <svg class="justice-scale" viewBox="0 0 120 120" role="presentation">
-                        <g>
-                            <rect class="scale-base" x="56" y="28" width="8" height="60" rx="4"></rect>
-                            <rect class="scale-base" x="44" y="84" width="32" height="8" rx="4"></rect>
-                            <path class="scale-chain" d="M30 48 60 32 90 48" />
-                            <line class="scale-chain" x1="60" y1="32" x2="60" y2="20" />
-                            <path class="scale-chain" d="M30 48 30 64" />
-                            <path class="scale-chain" d="M90 48 90 64" />
-                            <ellipse class="scale-plate" cx="30" cy="70" rx="16" ry="7"></ellipse>
-                            <ellipse class="scale-plate" cx="90" cy="70" rx="16" ry="7"></ellipse>
-                        </g>
-                    </svg>
+    <main>
+        <section class="hero-section">
+            <div class="hero-content">
+                <span class="hero-badge">Adalet Bakanlığı Özel</span>
+                <h1 class="hero-title">Kariyerinizde <span>Altın Çağ</span> Başlıyor.</h1>
+                <p class="hero-desc">
+                    Yazı İşleri Müdürü ve diğer ünvanlar için tasarlanmış; yapay zeka destekli analizler, 
+                    konu odaklı testler ve gerçekçi deneme sınavlarıyla dolu premium hazırlık platformu.
+                </p>
+                <div class="hero-buttons">
+                    <a href="/login.html" class="btn btn-primary btn-lg" id="heroCtaBtn">Hemen Başla</a>
                 </div>
-                <img class="hero-screenshot" src="/img/dashboard-preview.svg" alt="Gold GYS panel ön izlemesi" loading="lazy" width="560" height="328">
+            </div>
+        </section>
+
+        <div class="stats-bar">
+            <div class="stat-card">
+                <div class="stat-num">3000+</div>
+                <div class="stat-label">Özgün Soru</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-num">%100</div>
+                <div class="stat-label">Müfredat Uyumu</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-num">12+</div>
+                <div class="stat-label">Deneme Sınavı</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-num">24/7</div>
+                <div class="stat-label">Kesintisiz Erişim</div>
             </div>
         </div>
-    </section>
 
-    <div class="stats-bar">
-        <div class="stat-card">
-            <div class="stat-num">3000+</div>
-            <div class="stat-label">Özgün Soru</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-num">%100</div>
-            <div class="stat-label">Müfredat Uyumu</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-num">12+</div>
-            <div class="stat-label">Deneme Sınavı</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-num">24/7</div>
-            <div class="stat-label">Kesintisiz Erişim</div>
-        </div>
-    </div>
-
-    <section id="features" class="features-section">
-        <div class="section-header">
-            <h2>Neden Gold GYS?</h2>
-            <p>Sizi sadece sınava değil, zirveye hazırlıyoruz. İşte fark yaratan özelliklerimiz.</p>
-        </div>
-
-        <div class="feature-grid">
-            <div class="feature-card">
-                <div class="icon-box" data-icon="book" data-icon-size="32"></div>
-                <h3>Konu Odaklı Çalışma</h3>
-                <p>Ek-2D listesindeki her başlık için (Anayasa, CMK, Resmi Yazışma) özel testlerle eksiklerinizi belirleyin.</p>
+        <section id="features" class="features-section">
+            <div class="section-header">
+                <h2>Neden Gold GYS?</h2>
+                <p>Sizi sadece sınava değil, zirveye hazırlıyoruz. İşte fark yaratan özelliklerimiz.</p>
             </div>
-
-            <div class="feature-card">
-                <div class="icon-box" data-icon="bolt" data-icon-size="32"></div>
-                <h3>Dinamik Deneme Motoru</h3>
-                <p>Gerçek sınav süresine (80 Soru / Dakika) uygun, her defasında farklı sorularla oluşturulan simülasyonlar.</p>
+            <div class="feature-grid">
+                 <!-- Features will be loaded via ui-loader.js -->
             </div>
+        </section>
+    </main>
 
-            <div class="feature-card">
-                <div class="icon-box" data-icon="chart" data-icon-size="32"></div>
-                <h3>Akıllı Performans Analizi</h3>
-                <p>Detaylı grafikler, başarı oranları ve "Yanlışlarımı Çöz" modülü ile hata yapmayı unutun.</p>
-            </div>
-        </div>
-    </section>
-
-    <footer id="public-footer"></footer>
+    <footer id="public-footer" class="landing-footer"></footer>
 
     <script type="module">
         import { auth } from "./js/firebase-config.js";
@@ -353,7 +81,7 @@
                 const heroBtn = document.getElementById("heroCtaBtn");
 
                 if (navBtn) {
-                    navBtn.textContent = "Panele Git 🚀";
+                    navBtn.textContent = "Panele Git";
                     navBtn.href = "/pages/dashboard.html";
                 }
                 if (heroBtn) {
