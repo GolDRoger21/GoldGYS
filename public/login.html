@@ -11,12 +11,7 @@
 </head>
 <body class="auth-page">
 
-    <nav class="auth-nav">
-        <a class="brand-mark brand-on-dark brand-compact" href="/" aria-label="Gold GYS anasayfa">
-            <span class="brand-highlight">GOLD</span>GYS
-        </a>
-        <a class="auth-back-link" href="index.html">← Ana Sayfa</a>
-    </nav>
+    <header id="auth-header"></header>
 
     <div class="auth-wrapper">
         <div class="auth-orb"></div>
@@ -41,12 +36,15 @@
 
             <div id="statusBox" class="status-box"></div>
 
-            <div class="auth-footer">
-                &copy; 2025 GOLD GYS. Güvenli Giriş.
-            </div>
         </div>
     </div>
 
+    <footer id="auth-footer"></footer>
+
+    <script type="module">
+      import { initAuthLayout } from "./js/ui-loader.js";
+      initAuthLayout();
+    </script>
     <script type="module" src="./js/auth.js"></script>
 </body>
 </html>

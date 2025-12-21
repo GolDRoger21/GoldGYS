@@ -238,18 +238,7 @@
 </head>
 <body>
 
-    <nav class="landing-nav">
-        <a class="brand-mark brand-large brand-on-dark" href="/" aria-label="Gold GYS anasayfa">
-            <span class="brand-highlight">GOLD</span>GYS
-        </a>
-        <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="landingMenu">☰</button>
-        <div id="landingMenu" class="nav-links">
-            <a href="#features">Özellikler</a>
-            <a href="#curriculum">Müfredat</a>
-            <a href="#pricing">Üyelik</a>
-            <a href="login.html" class="btn-nav-login" id="navLoginBtn">Giriş Yap</a>
-        </div>
-    </nav>
+    <header id="public-header" class="site-header"></header>
 
     <section class="hero-section">
         <div class="hero-bg-glow"></div>
@@ -320,56 +309,14 @@
         </div>
     </section>
 
-    <footer>
-        <div class="footer-grid">
-            <div class="footer-info">
-                <a class="brand-mark brand-on-dark brand-large" href="/" aria-label="Gold GYS anasayfa">
-                    <span class="brand-highlight">GOLD</span>GYS
-                </a>
-                <p>Adalet Bakanlığı personeli için geliştirilmiş, Türkiye'nin en kapsamlı ve prestijli görevde yükselme sınavı hazırlık platformu.</p>
-            </div>
-            <div class="footer-links">
-                <h4>Hızlı Erişim</h4>
-                <ul>
-                    <li><a href="#features">Özellikler</a></li>
-                    <li><a href="login.html">Giriş Yap</a></li>
-                    <li><a href="#">Kullanım Şartları</a></li>
-                </ul>
-            </div>
-            <div class="footer-links">
-                <h4>Destek</h4>
-                <ul>
-                    <li><a href="#">Sıkça Sorulan Sorular</a></li>
-                    <li><a href="#">İletişim</a></li>
-                    <li><a href="#">Teknik Destek</a></li>
-                </ul>
-            </div>
-        </div>
-        <div class="copyright">
-            &copy; 2025 GOLD GYS. Gol D. Roger tarafından gururla tasarlandı.
-        </div>
-    </footer>
+    <footer id="public-footer"></footer>
 
     <script type="module">
         import { auth } from "./js/firebase-config.js";
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { initPublicLayout } from "./js/ui-loader.js";
 
-        const navToggle = document.querySelector('.nav-toggle');
-        const navLinks = document.getElementById('landingMenu');
-
-        if (navToggle && navLinks) {
-            navToggle.addEventListener('click', () => {
-                const isOpen = navLinks.classList.toggle('open');
-                navToggle.setAttribute('aria-expanded', isOpen);
-            });
-
-            navLinks.querySelectorAll('a').forEach(link => {
-                link.addEventListener('click', () => {
-                    navLinks.classList.remove('open');
-                    navToggle.setAttribute('aria-expanded', 'false');
-                });
-            });
-        }
+        initPublicLayout();
 
         onAuthStateChanged(auth, (user) => {
             if (user) {

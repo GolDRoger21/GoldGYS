@@ -79,7 +79,7 @@ const state = {
   orderField: DEFAULT_ORDER_FIELD,
 };
 
-initLayout("users");
+initLayout("users", { layout: "admin" });
 protectPage("admin");
 
 refreshButton?.addEventListener("click", () => loadUsers(true));
