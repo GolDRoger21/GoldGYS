@@ -1,5 +1,6 @@
 import { auth } from "./firebase-config.js";
 import { ensureUserDocument } from "./user-profile.js";
+import { initNotificationContext } from "./notifications.js";
 
 const FALLBACK_HTML = {
     sidebar: `
@@ -107,12 +108,19 @@ const FALLBACK_HTML = {
             </div>
         </div>
     `,
+    adminHeader: `<div class="header-inner"><div class="header-left"><span class="page-title">Yönetim</span></div></div>`,
+    adminFooter: `<div class="footer-shell"><div class="footer-meta"><span class="footer-copy">© 2025 GOLD GYS</span></div></div>`,
+    authHeader: `<nav class="auth-nav"><a class="brand-mark" href="/">GOLDGYS</a></nav>`,
+    authFooter: `<div class="auth-footer">© 2025 GOLD GYS</div>`,
+    publicHeader: `<nav class="landing-nav"><a href="/" class="brand-mark">GOLDGYS</a></nav>`,
+    publicFooter: `<footer><div class="copyright">© 2025 GOLD GYS</div></footer>`
 };
 
-const COMPONENT_PATHS = {
-    header: '/components/header.html',
-    footer: '/components/footer.html',
-    sidebar: '/partials/sidebar.html',
+const LAYOUT_COMPONENTS = {
+    app: { header: '/components/header.html', footer: '/components/footer.html', sidebar: '/partials/sidebar.html' },
+    admin: { header: '/components/layouts/admin-header.html', footer: '/components/layouts/admin-footer.html', sidebar: '/partials/sidebar.html' },
+    auth: { header: '/components/layouts/auth-header.html', footer: '/components/layouts/auth-footer.html' },
+    public: { header: '/components/layouts/public-header.html', footer: '/components/layouts/public-footer.html' },
 };
 
 const THEME_STORAGE_KEY = 'gg-theme';
@@ -144,11 +152,19 @@ function applyStoredTheme() {
     try {
         const stored = localStorage.getItem(THEME_STORAGE_KEY);
         const theme = stored === 'dark' ? 'dark' : 'light';
-        document.documentElement.setAttribute('data-theme', theme);
+        applyTheme(theme);
     } catch (error) {
-        document.documentElement.setAttribute('data-theme', 'light');
+        applyTheme('light');
         console.warn('Tema tercihi okunamadı:', error);
     }
+}
+
+function applyTheme(theme) {
+    const resolved = theme === 'dark' ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', resolved);
+    document.documentElement.dataset.theme = resolved;
+    document.documentElement.style.setProperty('color-scheme', resolved === 'dark' ? 'dark' : 'light');
+    window.dispatchEvent(new CustomEvent('themechange', { detail: { theme: resolved } }));
 }
 
 function setupThemeToggle(headerEl) {
@@ -168,7 +184,7 @@ function setupThemeToggle(headerEl) {
     toggleButton?.addEventListener('click', () => {
         const current = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
         const next = current === 'dark' ? 'light' : 'dark';
-        document.documentElement.setAttribute('data-theme', next);
+        applyTheme(next);
         try {
             localStorage.setItem(THEME_STORAGE_KEY, next);
         } catch (error) {
@@ -176,6 +192,8 @@ function setupThemeToggle(headerEl) {
         }
         setIcon(next);
     });
+
+    window.addEventListener('themechange', ({ detail }) => setIcon(detail?.theme));
 }
 
 function setupProfileMenu(headerEl) {
@@ -239,17 +257,19 @@ function setSidebarState(isOpen) {
 }
 
 export async function initLayout(pageKey, options = {}) {
-    const { requireAuth = true } = options;
+    const { requireAuth = true, layout = 'app' } = options;
+    const componentSet = LAYOUT_COMPONENTS[layout] || LAYOUT_COMPONENTS.app;
+
     applyStoredTheme();
-    ensureSidebarOverlay();
-    // 1. Sidebar ve Header'ı Yükle
+    initNotificationContext();
+    if (componentSet.sidebar) ensureSidebarOverlay();
+
     await Promise.all([
-        loadComponent('sidebar-area', COMPONENT_PATHS.sidebar, 'sidebar'),
-        loadComponent('header-area', COMPONENT_PATHS.header, 'header', (headerEl) => setupHeader(headerEl)),
-        loadComponent('footer-area', COMPONENT_PATHS.footer, 'footer')
+        componentSet.sidebar ? loadComponent('sidebar-area', componentSet.sidebar, 'sidebar') : null,
+        loadComponent('header-area', componentSet.header, layout === 'admin' ? 'adminHeader' : 'header', (headerEl) => setupHeader(headerEl)),
+        loadComponent('footer-area', componentSet.footer, layout === 'admin' ? 'adminFooter' : 'footer')
     ]);
 
-    // 2. Aktif Menüyü İşaretle
     if (pageKey) {
         document.querySelectorAll(`.sidebar-nav a[data-page="${pageKey}"], .sidebar-menu a[data-page="${pageKey}"]`)
             .forEach(link => link.classList.add('active'));
@@ -257,8 +277,6 @@ export async function initLayout(pageKey, options = {}) {
             .forEach(link => link.classList.add('active'));
     }
 
-    // 3. Kullanıcı Bilgisini Getir (Firebase Auth)
-    // Yeni HTML yapısına göre ID'leri seçiyoruz
     const userNameEl = document.getElementById('headerUserName');
     const userEmailEl = document.getElementById('headerUserEmail');
     const userInitialEl = document.getElementById('headerUserInitial');
@@ -266,12 +284,10 @@ export async function initLayout(pageKey, options = {}) {
 
     auth.onAuthStateChanged(async user => {
         if (user) {
-            // İsim yerine "..." koyarak başla
             if (userNameEl) userNameEl.innerText = 'Kullanıcı';
-            
+
             const profile = await ensureUserDocument(user);
-            
-            // İsim Belirleme
+
             let displayName = 'Kullanıcı';
             if (profile && (profile.name || profile.ad)) {
                 displayName = `${profile.name || profile.ad} ${profile.surname || profile.soyad || ''}`.trim();
@@ -281,16 +297,13 @@ export async function initLayout(pageKey, options = {}) {
                 displayName = user.email.split('@')[0];
             }
 
-            // Baş harf
             const initial = displayName.charAt(0).toUpperCase();
 
-            // HTML'e yerleştirme
             if (userNameEl) userNameEl.innerText = displayName;
             if (userEmailEl) userEmailEl.innerText = user.email || '';
             if (userInitialEl) userInitialEl.innerText = initial;
             if (dropdownInitialEl) dropdownInitialEl.innerText = initial;
 
-            // Admin kontrolü (Mevcut kodunuzu koruyoruz)
             try {
                 const idTokenResult = await user.getIdTokenResult();
                 const roleFromClaims = idTokenResult.claims.role;
@@ -320,6 +333,48 @@ export async function initLayout(pageKey, options = {}) {
         }
     });
 
+}
+
+function setupPublicNav(headerEl) {
+    const navToggle = headerEl.querySelector('[data-public-nav-toggle]');
+    const navLinks = headerEl.querySelector('#landingMenu');
+
+    if (navToggle && navLinks) {
+        navToggle.addEventListener('click', () => {
+            const isOpen = navLinks.classList.toggle('open');
+            navToggle.setAttribute('aria-expanded', isOpen.toString());
+        });
+
+        navLinks.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', () => {
+                navLinks.classList.remove('open');
+                navToggle.setAttribute('aria-expanded', 'false');
+            });
+        });
+    }
+}
+
+export async function initPublicLayout() {
+    applyStoredTheme();
+    initNotificationContext();
+
+    await Promise.all([
+        loadComponent('public-header', LAYOUT_COMPONENTS.public.header, 'publicHeader', (headerEl) => {
+            setupThemeToggle(headerEl);
+            setupPublicNav(headerEl);
+        }),
+        loadComponent('public-footer', LAYOUT_COMPONENTS.public.footer, 'publicFooter')
+    ]);
+}
+
+export async function initAuthLayout() {
+    applyStoredTheme();
+    initNotificationContext();
+
+    await Promise.all([
+        loadComponent('auth-header', LAYOUT_COMPONENTS.auth.header, 'authHeader', (headerEl) => setupThemeToggle(headerEl)),
+        loadComponent('auth-footer', LAYOUT_COMPONENTS.auth.footer, 'authFooter')
+    ]);
 }
 
 // Global Fonksiyonlar (HTML onclick için)

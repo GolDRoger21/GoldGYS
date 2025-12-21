@@ -17,6 +17,7 @@ import {
 import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-functions.js";
 import { auth, db } from "/js/firebase-config.js";
 import { initLayout } from "/js/ui-loader.js";
+import { initNotificationContext, showToast } from "/js/notifications.js";
 
 // --- DOM ELEMENTLERİ ---
 const pendingListEl = document.getElementById("pendingList");
@@ -45,7 +46,6 @@ const detailEmail = document.getElementById("detailEmail");
 const detailUid = document.getElementById("detailUid");
 const detailCreatedAt = document.getElementById("detailCreatedAt");
 const detailClaims = document.getElementById("detailClaims");
-const toastContainer = document.getElementById("toastContainer");
 const detailNameInput = document.getElementById("detailNameInput");
 const detailRoleSelect = document.getElementById("detailRoleSelect");
 const detailStatusSelect = document.getElementById("detailStatusSelect");
@@ -116,6 +116,7 @@ const getUserContentSummaryFn = httpsCallable(functions, "getUserContentSummary"
 const pendingCache = new Map();
 const paginationState = { cursor: null, pageSize: 10, reachedEnd: false };
 const filterState = { search: "", status: "pending", role: "all" };
+initNotificationContext();
 let debounceTimer = null;
 let activeRoleTarget = null;
 let activeDetailTarget = null;
@@ -332,7 +333,7 @@ onAuthStateChanged(auth, async (user) => {
   if (!adminContext) return;
 
   if (!layoutInitialized) {
-    initLayout("admin");
+    initLayout("admin", { layout: "admin" });
     layoutInitialized = true;
   }
 
@@ -1706,32 +1707,6 @@ function removeCard(uid) {
     emptyStateEl.style.display = "block";
     toggleLoadMore(false);
   }
-}
-
-function showToast(message, type = "success", duration = 3200) {
-  if (!toastContainer) {
-    showStatus(message, type === "error");
-    return;
-  }
-
-  const toast = document.createElement("div");
-  toast.className = `toast ${type}`;
-
-  const textSpan = document.createElement("span");
-  textSpan.textContent = message;
-
-  const closeBtn = document.createElement("button");
-  closeBtn.type = "button";
-  closeBtn.setAttribute("aria-label", "Kapat");
-  closeBtn.textContent = "×";
-
-  closeBtn.addEventListener("click", () => toast.remove());
-
-  toast.appendChild(textSpan);
-  toast.appendChild(closeBtn);
-  toastContainer.appendChild(toast);
-
-  setTimeout(() => toast.remove(), duration);
 }
 
 function showStatus(message, isError = false) {
