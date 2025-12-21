@@ -1,0 +1,20 @@
+<svg width="520" height="220" viewBox="0 0 520 220" xmlns="http://www.w3.org/2000/svg" font-family="'Inter', Arial, sans-serif">
+  <style>
+    .title { font-size: 14px; font-weight: 700; fill: #0f172a; }
+    .body { font-size: 13px; fill: #475569; }
+  </style>
+  <rect width="520" height="220" fill="#f8fafc" rx="12" />
+  <text x="24" y="32" class="title">Kart varyantları</text>
+
+  <rect x="24" y="52" width="150" height="130" rx="12" fill="#ffffff" stroke="#e2e8f0" />
+  <text x="44" y="86" class="title">Default</text>
+  <text x="44" y="108" class="body">Başlık + içerik</text>
+
+  <rect x="190" y="52" width="150" height="130" rx="12" fill="#fff7ed" stroke="#fb923c" />
+  <text x="210" y="86" class="title">Warning</text>
+  <text x="210" y="108" class="body">Uyarı durumu</text>
+
+  <rect x="356" y="52" width="150" height="130" rx="12" fill="#ecfdf3" stroke="#22c55e" />
+  <text x="376" y="86" class="title">Success</text>
+  <text x="376" y="108" class="body">Onaylı durumu</text>
+</svg>
