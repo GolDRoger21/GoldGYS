@@ -150,47 +150,50 @@
             background: rgba(212, 175, 55, 0.12); border: 1px solid rgba(212, 175, 55, 0.3); border-radius: 28px;
             filter: drop-shadow(0 0 50px rgba(212, 175, 55, 0.4)); animation: float 6s ease-in-out infinite;
         }
-        .visual-icon svg { width: 96px; height: 96px; color: #D4AF37; }
+        .justice-scale { width: 96px; height: 96px; color: #D4AF37; animation: swing 4s ease-in-out infinite; transform-origin: center 15px; }
+        .scale-chain { stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; fill: none; opacity: 0.9; }
+        .scale-plate { fill: rgba(212, 175, 55, 0.22); stroke: currentColor; stroke-width: 1.2; }
+        .scale-base { fill: currentColor; }
         .hero-screenshot { width: 100%; max-width: 440px; border-radius: 22px; box-shadow: 0 25px 60px rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.08); background: #0b1221; }
 
         /* 3. İSTATİSTİK */
         .stats-bar {
-            background: white; padding: 60px 6%;
+            background: var(--color-surface); padding: 60px 6%;
             display: grid; grid-template-columns: repeat(4, 1fr); gap: 30px;
-            border-bottom: 1px solid #E2E8F0;
+            border-bottom: 1px solid var(--color-border);
         }
-        .stat-card { text-align: center; }
-        .stat-num { font-size: 2.5rem; font-weight: 800; color: #0F172A; margin-bottom: 5px; }
-        .stat-label { color: #64748B; font-weight: 500; font-size: 1rem; }
+        .stat-card { text-align: center; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 16px; padding: 18px 12px; box-shadow: var(--shadow-soft); }
+        .stat-num { font-size: 2.5rem; font-weight: 800; color: var(--color-text); margin-bottom: 5px; }
+        .stat-label { color: var(--color-text-muted); font-weight: 500; font-size: 1rem; }
 
         /* 4. ÖZELLİKLER */
-        .features-section { padding: 100px 6%; background: #F8FAFC; }
+        .features-section { padding: 100px 6%; background: var(--color-surface-alt); }
         .section-header { text-align: center; max-width: 700px; margin: 0 auto 80px; }
-        .section-header h2 { 
-            font-size: 2.5rem; color: #0F172A; 
+        .section-header h2 {
+            font-size: 2.5rem; color: var(--color-text);
             font-family: 'Playfair Display', serif; margin-bottom: 15px;
         }
-        .section-header p { color: #64748B; font-size: 1.1rem; }
+        .section-header p { color: var(--color-text-muted); font-size: 1.1rem; }
 
         .feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 40px; }
         .feature-card {
-            background: white; padding: 40px; border-radius: 24px;
-            border: 1px solid rgba(0,0,0,0.05); transition: 0.3s;
+            background: var(--color-surface); padding: 40px; border-radius: 24px;
+            border: 1px solid var(--color-border); transition: 0.3s;
             position: relative; overflow: hidden;
         }
-        .feature-card:hover { 
-            transform: translateY(-10px); 
-            box-shadow: 0 20px 40px rgba(0,0,0,0.08); 
-            border-color: rgba(212, 175, 55, 0.5);
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+            border-color: var(--color-primary);
         }
         .icon-box {
-            width: 70px; height: 70px; background: #FFFBEB;
+            width: 70px; height: 70px; background: var(--color-primary-soft);
             color: #D4AF37; border-radius: 20px;
             display: flex; align-items: center; justify-content: center;
             font-size: 1.8rem; margin-bottom: 25px;
         }
-        .feature-card h3 { font-size: 1.4rem; color: #0F172A; margin-bottom: 15px; }
-        .feature-card p { color: #64748B; line-height: 1.6; }
+        .feature-card h3 { font-size: 1.4rem; color: var(--color-text); margin-bottom: 15px; }
+        .feature-card p { color: var(--color-text-muted); line-height: 1.6; }
 
         /* 5. FOOTER */
         footer { background: #0F172A; color: white; padding: 80px 6% 30px; border-top: 4px solid #D4AF37; }
@@ -243,6 +246,7 @@
         @keyframes fadeUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes swing { 0%, 100% { transform: rotate(-6deg); } 50% { transform: rotate(6deg); } }
     </style>
 </head>
 <body>
@@ -269,7 +273,20 @@
             <div class="visual-circle visual-ring"></div>
             <div class="visual-circle visual-ring is-inner"></div>
             <div class="hero-visual-content">
-                <div class="visual-icon" data-icon="justice" data-icon-size="96"></div>
+                <div class="visual-icon" aria-hidden="true">
+                    <svg class="justice-scale" viewBox="0 0 120 120" role="presentation">
+                        <g>
+                            <rect class="scale-base" x="56" y="28" width="8" height="60" rx="4"></rect>
+                            <rect class="scale-base" x="44" y="84" width="32" height="8" rx="4"></rect>
+                            <path class="scale-chain" d="M30 48 60 32 90 48" />
+                            <line class="scale-chain" x1="60" y1="32" x2="60" y2="20" />
+                            <path class="scale-chain" d="M30 48 30 64" />
+                            <path class="scale-chain" d="M90 48 90 64" />
+                            <ellipse class="scale-plate" cx="30" cy="70" rx="16" ry="7"></ellipse>
+                            <ellipse class="scale-plate" cx="90" cy="70" rx="16" ry="7"></ellipse>
+                        </g>
+                    </svg>
+                </div>
                 <img class="hero-screenshot" src="/img/dashboard-preview.svg" alt="Gold GYS panel ön izlemesi" loading="lazy" width="560" height="328">
             </div>
         </div>
