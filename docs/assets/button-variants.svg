@@ -1,0 +1,20 @@
+<svg width="520" height="180" viewBox="0 0 520 180" xmlns="http://www.w3.org/2000/svg" font-family="'Inter', Arial, sans-serif">
+  <style>
+    .label { font-size: 14px; fill: #1f2937; }
+    .button-text { font-size: 15px; font-weight: 600; fill: white; }
+  </style>
+  <rect width="520" height="180" fill="#f8fafc" rx="12" />
+  <text x="24" y="34" class="label" font-weight="700">Buton varyantları</text>
+
+  <rect x="24" y="60" width="140" height="44" rx="8" fill="#d97706" />
+  <text x="54" y="86" class="button-text">Primary</text>
+  <text x="24" y="116" class="label">Vurgulu aksiyon, yüksek kontrast</text>
+
+  <rect x="192" y="60" width="140" height="44" rx="8" fill="#fff" stroke="#d97706" stroke-width="2" />
+  <text x="222" y="86" class="label" font-weight="600">Secondary</text>
+  <text x="192" y="116" class="label">İkincil aksiyon, boşluklu stil</text>
+
+  <rect x="360" y="60" width="140" height="44" rx="8" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1" />
+  <text x="392" y="86" class="label" font-weight="600">Ghost</text>
+  <text x="360" y="116" class="label">Düşük önem, arka planla uyumlu</text>
+</svg>

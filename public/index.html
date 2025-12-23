@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GOLD GYS | Adalet Bakanlığı Görevde Yükselme Portalı</title>
+    <meta name="description" content="Yazı İşleri Müdürü ve diğer ünvanlar için özel hazırlanmış, yapay zeka destekli sınav hazırlık ve deneme portalı.">
+    <link rel="stylesheet" href="css/app.css">
+<<<<<<< HEAD
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Playfair+Display:wght@900&display=swap" rel="stylesheet">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230F172A'/><text x='50' y='70' font-family='serif' font-size='60' fill='%23D4AF37' text-anchor='middle' font-weight='bold'>G</text></svg>">
+=======
+    
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@700&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%231A1A1A'/><text x='50' y='70' font-family='serif' font-size='60' fill='%23E2B842' text-anchor='middle' font-weight='bold'>G</text></svg>">
+
+    <style>
+        :root {
+            --bg-color: #121212;
+            --primary-gold: #E2B842;
+            --dark-gold: #C89B3F;
+            --light-gold: #F5D76E;
+            --text-color: #E0E0E0;
+            --dark-surface: #1E1E1E;
+            --border-color: rgba(226, 184, 66, 0.2);
+        }
+
+        body { 
+            margin: 0; 
+            padding: 0; 
+            background-color: var(--bg-color); 
+            color: var(--text-color);
+            font-family: 'Poppins', sans-serif;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* --- Navigasyon --- */
+        .landing-nav {
+            position: fixed; top: 0; width: 100%; z-index: 1000;
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 20px 5%;
+            background: rgba(18, 18, 18, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .brand {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-gold);
+            letter-spacing: 1px;
+        }
+
+        .nav-links a { 
+            text-decoration: none; 
+            color: var(--text-color); 
+            margin-left: 30px;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+        .nav-links a:hover { color: var(--primary-gold); }
+
+        .btn-nav-login {
+            background: var(--primary-gold);
+            color: var(--bg-color) !important;
+            padding: 12px 28px;
+            border-radius: 8px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s;
+            border: 1px solid var(--dark-gold);
+        }
+        .btn-nav-login:hover { 
+            background: var(--dark-gold);
+            box-shadow: 0 0 15px rgba(226, 184, 66, 0.4);
+        }
+
+        /* --- Hero Bölümü --- */
+        .hero-section {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            padding: 120px 5% 80px;
+            background: radial-gradient(ellipse at 50% 20%, #1a1a1a 0%, #121212 90%);
+            position: relative;
+        }
+        
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40"><path fill="rgba(226,184,66,0.03)" d="M0 0h20v20H0zM20 20h20v20H20z"/></svg>');
+            opacity: 0.5;
+        }
+
+        .hero-content { 
+            max-width: 55%; 
+            z-index: 2;
+        }
+        
+        .hero-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 4.5rem; 
+            line-height: 1.15; 
+            color: #fff;
+            margin-bottom: 20px;
+            font-weight: 700;
+            text-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        }
+        .hero-title span { 
+            color: var(--primary-gold);
+            font-style: italic;
+        }
+
+        .hero-desc { 
+            font-size: 1.1rem; 
+            color: #BDBDBD; 
+            margin-bottom: 40px; 
+            line-height: 1.7;
+            max-width: 500px;
+        }
+
+        .hero-buttons a {
+            padding: 15px 35px;
+            border-radius: 8px;
+            font-weight: 600;
+            text-decoration: none;
+            font-size: 1.05rem;
+            margin-right: 15px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-hero-primary {
+            background: linear-gradient(145deg, var(--light-gold), var(--primary-gold));
+            color: #121212;
+            box-shadow: 0 8px 25px rgba(226, 184, 66, 0.3);
+        }
+        .btn-hero-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(226, 184, 66, 0.4);
+        }
+
+        .btn-hero-outline {
+            border: 2px solid var(--border-color);
+            color: var(--text-color);
+        }
+        .btn-hero-outline:hover {
+            background: var(--primary-gold);
+            color: var(--bg-color);
+            border-color: var(--primary-gold);
+        }
+        
+        /* --- Özellikler --- */
+        .features-section {
+            padding: 100px 5%;
+            background: var(--dark-surface);
+            border-top: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-color);
+        }
+        .section-header { text-align: center; margin-bottom: 60px; }
+        .section-header h2 { 
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 3rem; 
+            color: #fff;
+            margin-bottom: 10px;
+        }
+        .section-header p { 
+            color: #BDBDBD; 
+            font-size: 1.1rem; 
+            max-width: 600px;
+            margin: auto;
+        }
+
+        .feature-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); 
+            gap: 30px;
+        }
+        .feature-card {
+            background: #1A1A1A;
+            padding: 35px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .feature-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.3);
+            border-color: var(--primary-gold);
+        }
+        
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: -50px; right: -50px;
+            width: 150px; height: 150px;
+            background: radial-gradient(circle, rgba(226, 184, 66, 0.1) 0%, transparent 70%);
+            transition: transform 0.4s;
+            transform: scale(0);
+        }
+        .feature-card:hover::before {
+            transform: scale(1);
+        }
+
+        .icon-box {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            color: var(--primary-gold);
+        }
+        .feature-card h3 { 
+            font-size: 1.5rem; 
+            color: #fff; 
+            margin-bottom: 15px; 
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+        }
+        .feature-card p { 
+            color: #BDBDBD; 
+            line-height: 1.6;
+        }
+
+        /* --- Footer --- */
+        footer { 
+            background: #1A1A1A; 
+            color: #BDBDBD; 
+            padding: 70px 5% 20px;
+            border-top: 2px solid var(--primary-gold);
+        }
+        .footer-grid { 
+            display: grid; 
+            grid-template-columns: 2fr 1fr 1fr 1fr; 
+            gap: 40px; 
+            margin-bottom: 50px;
+        }
+        .footer-info .brand { margin-bottom: 20px; }
+        .footer-info p { line-height: 1.7; max-width: 350px; }
+        
+        .footer-links h4 { 
+            font-size: 1.2rem; 
+            margin-bottom: 20px; 
+            color: #fff; 
+            font-weight: 600;
+        }
+        .footer-links ul { list-style: none; padding: 0; }
+        .footer-links li { margin-bottom: 12px; }
+        .footer-links a { text-decoration: none; color: #BDBDBD; transition: color 0.2s; }
+        .footer-links a:hover { color: var(--primary-gold); padding-left: 5px; }
+        
+        .copyright {
+            text-align: center; 
+            padding-top: 20px; 
+            border-top: 1px solid var(--border-color);
+            font-size: 0.9rem;
+        }
+        .copyright a { color: var(--primary-gold); text-decoration: none; }
+
+
+        @media (max-width: 992px) {
+            .hero-content { max-width: 100%; text-align: center; }
+            .hero-buttons { justify-content: center; display: flex; }
+            .hero-section { flex-direction: column; }
+            .footer-grid { grid-template-columns: 1fr 1fr; }
+        }
+        @media (max-width: 768px) {
+            .nav-links { display: none; }
+            .hero-title { font-size: 3.5rem; }
+            .footer-grid { grid-template-columns: 1fr; text-align: center; }
+            .footer-info p { margin: 20px auto; }
+        }
+
+    </style>
+>>>>>>> ac9c8c8 (geri dönüş)
+</head>
+<body>
+
+    <nav class="landing-nav">
+<<<<<<< HEAD
+        <a href="/" class="brand-logo premium-gold-text" aria-label="Ana Sayfa">
+            GOLD GYS
+        </a>
+        
+        <div class="nav-right">
+            <div class="nav-links" id="navLinks">
+                <a href="#features">Özellikler</a>
+                <a href="login.html" class="btn premium-gold-btn" id="navLoginBtn">Giriş Yap</a>
+            </div>
+            <button class="mobile-nav-toggle" id="navToggle" aria-label="Menüyü aç/kapat">
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+        </div>
+    </nav>
+
+    <main>
+        <section class="hero-section">
+            <div class="hero-content">
+                <span class="hero-badge">Adalet Bakanlığı Görevde Yükselme Sınavı</span>
+                <h1 class="hero-title">
+                    Kariyerinizde <span class="premium-gold-text">Altın Çağ</span> Başlıyor
+                </h1>
+                <p class="hero-desc">
+                    Yazı İşleri Müdürü ve diğer unvanlar için tasarlanmış; yapay zeka destekli analizler, 
+                    konu odaklı testler ve gerçekçi deneme sınavlarıyla dolu premium hazırlık platformu.
+                </p>
+                <div class="hero-buttons">
+                    <a href="login.html" class="btn premium-gold-btn" id="heroCtaBtn">Hemen Başla</a>
+                    <a href="#features" class="btn btn-navy">Daha Fazlasını Keşfet</a>
+                </div>
+            </div>
+            <div class="hero-visual">
+                <div class="visual-icon">⚖️</div>
+            </div>
+        </section>
+        
+        <section id="features" style="padding: clamp(60px, 8vw, 100px) 6%; background: #fff;">
+            <div style="text-align: center; max-width: 700px; margin: 0 auto 60px;">
+                <h2 style="font-size: clamp(2rem, 4vw, 2.5rem); color: var(--navy-deep); font-family: 'Playfair Display', serif; margin-bottom: 12px;">Neden Gold GYS?</h2>
+                <p style="color: #64748B; font-size: 1.1rem;">Sizi sadece sınava değil, zirveye hazırlıyoruz. İşte fark yaratan özelliklerimiz.</p>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 32px;">
+                <!-- Feature Cards -->
+            </div>
+        </section>
+
+    </main>
+
+    <footer style="background: var(--navy-deep); color: var(--text-light); padding: 70px 6% 30px; border-top: 4px solid var(--gold-main);">
+        <!-- Footer Content -->
+    </footer>
+
+    <script>
+        const navToggle = document.getElementById('navToggle');
+        const navLinks = document.getElementById('navLinks');
+        navToggle.addEventListener('click', () => {
+            navToggle.classList.toggle('open');
+            navLinks.classList.toggle('open');
+=======
+        <div class="brand">GOLD GYS</div>
+        <div class="nav-links">
+            <a href="#features">Özellikler</a>
+            <a href="#">Müfredat</a>
+            <a href="#">Üyelik</a>
+            <a href="login.html" class="btn-nav-login" id="navLoginBtn">Giriş Yap</a>
+        </div>
+    </nav>
+
+    <section class="hero-section">
+        <div class="hero-content">
+            <h1 class="hero-title">Adaletin Zirvesine <span>Altın</span> Adımlar</h1>
+            <p class="hero-desc">
+                Yazı İşleri Müdürlüğü ve Görevde Yükselme Sınavı için tasarlanmış, yapay zeka destekli, kişiselleştirilmiş hazırlık platformuyla kariyerinizde parlayın.
+            </p>
+            <div class="hero-buttons">
+                <a href="login.html" class="btn-hero-primary" id="heroCtaBtn">Hemen Başla</a>
+                <a href="#features" class="btn-hero-outline">Detayları Keşfet</a>
+            </div>
+        </div>
+    </section>
+
+    <section id="features" class="features-section">
+        <div class="section-header">
+            <h2>Zirveye Giden Yol</h2>
+            <p>Sınavı şansa bırakmayın. Sizi başarıya ulaştıracak, özenle tasarlanmış premium özellikler.</p>
+        </div>
+
+        <div class="feature-grid">
+            <div class="feature-card">
+                <div class="icon-box">🎯</div>
+                <h3>Kişiselleştirilmiş Sınav Simülasyonu</h3>
+                <p>Gerçek sınav formatında, güncel müfredata %100 uyumlu, her denemede size özel sorularla kendinizi test edin.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="icon-box">🧠</div>
+                <h3>Yapay Zeka Destekli Analiz</h3>
+                <p>Performansınızı anlık olarak takip edin. Yapay zeka, eksiklerinizi belirlesin ve size özel çalışma planı oluştursun.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="icon-box">📚</div>
+                <h3>Zengin ve Odaklı İçerik</h3>
+                <p>Binlerce özgün soru, detaylı konu anlatımları ve "Sadece Yanlışlarım" moduyla zayıf noktalarınızı güçlendirin.</p>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="footer-grid">
+            <div class="footer-info">
+                <div class="brand">GOLD GYS</div>
+                <p>Adalet Bakanlığı personeline özel, görevde yükselme sınavı hazırlık sürecini yeniden tanımlayan modern ve etkili platform.</p>
+            </div>
+            <div class="footer-links">
+                <h4>Menü</h4>
+                <ul>
+                    <li><a href="/pages/dashboard.html">Panel</a></li>
+                    <li><a href="#features">Özellikler</a></li>
+                    <li><a href="#">Müfredat</a></li>
+                    <li><a href="#">Üyelik Paketleri</a></li>
+                </ul>
+            </div>
+            <div class="footer-links">
+                <h4>Destek</h4>
+                <ul>
+                    <li><a href="#">İletişim</a></li>
+                    <li><a href="#">Sıkça Sorulan Sorular</a></li>
+                    <li><a href="#">Teknik Destek</a></li>
+                </ul>
+            </div>
+            <div class="footer-links">
+                <h4>Yasal</h4>
+                <ul>
+                    <li><a href="#">Kullanım Koşulları</a></li>
+                    <li><a href="#">Gizlilik Politikası</a></li>
+                    <li><a href="#">Çerez Politikası</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="copyright">
+            &copy; 2024 <a href="#">GOLD GYS</a>. Tüm Hakları Saklıdır.
+        </div>
+    </footer>
+
+    <script type="module">
+        import { auth } from "./js/firebase-config.js";
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                const navBtn = document.getElementById("navLoginBtn");
+                const heroBtn = document.getElementById("heroCtaBtn");
+
+                if (navBtn) {
+                    navBtn.textContent = "Panele Git";
+                    navBtn.href = "/pages/dashboard.html";
+                }
+                if (heroBtn) {
+                    heroBtn.textContent = "Kaldığın Yerden Devam Et";
+                    heroBtn.href = "/pages/dashboard.html";
+                }
+            }
+>>>>>>> ac9c8c8 (geri dönüş)
+        });
+    </script>
+    <script type="module" src="./js/auth-check.js"></script>
+</body>
+</html>

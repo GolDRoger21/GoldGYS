@@ -1,0 +1,32 @@
+<div class="header-inner">
+    <div class="header-left">
+        <button class="mobile-menu-toggle" onclick="toggleSidebar()" aria-label="Yan menüyü aç/kapat">☰</button>
+        <a href="/pages/dashboard.html" class="brand-mark header-brand" aria-label="Gold GYS panel ana sayfası">
+            <span class="brand-highlight">GOLD</span>GYS
+        </a>
+        <span id="pageTitle" class="page-title">Panelim</span>
+    </div>
+
+    <div class="header-right">
+        <nav class="main-nav" aria-label="Ana navigasyon">
+            <a href="/pages/dashboard.html" data-page="dashboard">Panel</a>
+            <a href="/pages/testler.html" data-page="testler">Testler</a>
+            <a href="/pages/denemeler.html" data-page="denemeler">Denemeler</a>
+        </nav>
+
+        <div class="user-menu" data-profile-menu>
+            <div class="user-profile">
+                <div class="user-avatar" id="headerUserInitial">👤</div>
+                <div class="user-meta">
+                    <span class="user-name" id="headerUserName">Yükleniyor...</span>
+                    <span class="user-subtitle">Aktif</span>
+                </div>
+            </div>
+            <button class="profile-toggle" type="button" aria-haspopup="true" aria-expanded="false" data-profile-toggle>▾</button>
+            <div class="profile-dropdown" id="profileDropdown">
+                <a href="/pages/profil.html">👤 Profilim</a>
+                <button class="logout-btn" type="button" onclick="window.handleLogout()">🚪 Çıkış Yap</button>
+            </div>
+        </div>
+    </div>
+</div>

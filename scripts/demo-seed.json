@@ -1,0 +1,27 @@
+{
+  "topics": [
+    {
+      "id": "anayasa",
+      "title": "Türkiye Cumhuriyeti Anayasası",
+      "category": "ortak",
+      "order": 1,
+      "isActive": true
+    },
+    {
+      "id": "cmk",
+      "title": "Ceza Muhakemesi Kanunu",
+      "category": "alan",
+      "order": 2,
+      "isActive": true
+    }
+  ],
+  "tests": [
+    {
+      "id": "cmk-test-1",
+      "topicId": "cmk",
+      "title": "CMK Test 1",
+      "questionCount": 15,
+      "isActive": true
+    }
+  ]
+}

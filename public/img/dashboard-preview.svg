@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="420" viewBox="0 0 720 420" role="img" aria-label="Gold GYS panel ön izlemesi">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#111827" />
+      <stop offset="1" stop-color="#0f172a" />
+    </linearGradient>
+  </defs>
+  <rect width="720" height="420" rx="28" fill="url(#g)" />
+  <rect x="28" y="28" width="140" height="364" rx="18" fill="#0b1221" stroke="#1f2937" />
+  <rect x="188" y="28" width="504" height="364" rx="18" fill="#0b1221" stroke="#1f2937" />
+  <rect x="44" y="64" width="108" height="18" rx="9" fill="#22c55e" opacity=".6" />
+  <rect x="44" y="98" width="94" height="14" rx="7" fill="#475569" />
+  <rect x="44" y="124" width="94" height="14" rx="7" fill="#475569" />
+  <rect x="44" y="150" width="72" height="14" rx="7" fill="#475569" />
+  <rect x="44" y="190" width="108" height="72" rx="12" fill="#111827" stroke="#1f2937" />
+  <rect x="44" y="282" width="108" height="92" rx="12" fill="#0ea5e9" opacity=".25" />
+  <rect x="212" y="64" width="180" height="110" rx="14" fill="#111827" stroke="#1f2937" />
+  <rect x="408" y="64" width="260" height="110" rx="14" fill="#111827" stroke="#1f2937" />
+  <rect x="212" y="198" width="456" height="26" rx="10" fill="#0ea5e9" opacity=".3" />
+  <rect x="212" y="238" width="456" height="26" rx="10" fill="#22c55e" opacity=".35" />
+  <rect x="212" y="278" width="456" height="26" rx="10" fill="#d4af37" opacity=".45" />
+  <rect x="212" y="318" width="456" height="26" rx="10" fill="#c084fc" opacity=".35" />
+  <circle cx="260" cy="120" r="20" fill="#d4af37" />
+  <circle cx="456" cy="120" r="20" fill="#0ea5e9" />
+  <rect x="300" y="110" width="72" height="12" rx="6" fill="#e5e7eb" opacity=".65" />
+  <rect x="496" y="110" width="140" height="12" rx="6" fill="#e5e7eb" opacity=".65" />
+  <rect x="300" y="130" width="98" height="10" rx="5" fill="#475569" />
+  <rect x="496" y="130" width="182" height="10" rx="5" fill="#475569" />
+</svg>

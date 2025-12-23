@@ -1,0 +1,10 @@
+{
+  "name": "goldgys",
+  "version": "1.0.0",
+  "scripts": {
+    "build": "node scripts/analyze-assets.cjs"
+  },
+  "devDependencies": {
+    "firebase-admin": "^13.6.0"
+  }
+}

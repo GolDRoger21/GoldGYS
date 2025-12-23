@@ -1,0 +1,72 @@
+/* --- ANA TEMA DEĞİŞKENLERİ --- */
+:root {
+    --navy-deep: #0B1120;
+    --navy-light: #1E293B;
+    --gold-main: #D4AF37;
+    --text-light: #E2E8F0;
+    --text-muted: #94A3B8;
+}
+
+/* --- HAREKETLİ ALTIN ANİMASYONU --- */
+@keyframes shimmer {
+    0% { background-position: -200% center; }
+    100% { background-position: 200% center; }
+}
+
+.premium-gold-text, .premium-gold-btn {
+    background: linear-gradient(110deg, #A8853A 0%, #F7E8A9 45%, #F7E8A9 55%, #A8853A 100%);
+    background-size: 200% auto;
+    animation: shimmer 5s linear infinite;
+}
+
+.premium-gold-text { -webkit-background-clip: text; background-clip: text; color: transparent; }
+.premium-gold-btn { -webkit-background-clip: initial; background-clip: initial; color: var(--navy-deep); }
+
+/* --- TEMEL SAYFA YAPISI --- */
+body { font-family: 'Inter', sans-serif; background-color: #F8FAFC; }
+
+/* --- ÜST NAVİGASYON (LANDING) --- */
+.landing-nav {
+    position: fixed; top: 0; width: 100%; z-index: 1000;
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 15px 6%;
+    background: rgba(11, 17, 32, 0.85);
+    backdrop-filter: blur(15px);
+    border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+}
+
+.brand-logo { font-family: 'Playfair Display', serif; font-size: 1.8rem; font-weight: 900; text-decoration: none; }
+
+.nav-right { display: flex; align-items: center; gap: 30px; }
+.nav-links { display: flex; gap: 30px; align-items: center; }
+.nav-links a { color: rgba(255,255,255,0.8); font-weight: 500; transition: color 0.3s; text-decoration: none; }
+.nav-links a:hover { color: white; }
+
+.btn { padding: 12px 28px; border-radius: 50px; font-weight: 600; text-decoration: none; display: inline-block; transition: all 0.3s ease; cursor: pointer; border: none; text-align: center; }
+
+.mobile-nav-toggle { display: none; } /* Mobil için sakla */
+
+/* --- MOBİL NAVİGASYON --- */
+@media (max-width: 768px) {
+    .nav-links { display: none; } /* Masaüstü linklerini sakla */
+    .mobile-nav-toggle {
+        display: block; background: none; border: none; padding: 8px; z-index: 1001; cursor: pointer;
+    }
+    .mobile-nav-toggle .icon-bar { display: block; width: 24px; height: 3px; background: white; border-radius: 2px; transition: all 0.3s; }
+    .mobile-nav-toggle .icon-bar:not(:last-child) { margin-bottom: 5px; }
+    
+    /* Açık menü stilleri */
+    .nav-links.open { 
+        display: flex; flex-direction: column; 
+        position: fixed; top: 70px; right: 6%; 
+        background: var(--navy-light); 
+        padding: 20px; border-radius: 10px; 
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        width: 200px;
+    }
+    .mobile-nav-toggle.open .icon-bar:nth-child(1) { transform: translateY(8px) rotate(45deg); }
+    .mobile-nav-toggle.open .icon-bar:nth-child(2) { opacity: 0; }
+    .mobile-nav-toggle.open .icon-bar:nth-child(3) { transform: translateY(-8px) rotate(-45deg); }
+}
+
+/* Diğer tüm stiller (Hero, Auth, Footer vb.) olduğu gibi kalır */

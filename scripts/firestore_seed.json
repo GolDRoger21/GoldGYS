@@ -1,0 +1,420 @@
+{
+  "structureVersion": "2.0",
+  "description": "Adalet Bakanlığı GYS - Yazı İşleri Müdürü Hiyerarşik Müfredat Yapısı",
+  "topics": [
+    {
+      "id": "topic_anayasa",
+      "title": "Türkiye Cumhuriyeti Anayasası",
+      "category": "ortak",
+      "order": 1,
+      "totalQuestionTarget": 6,
+      "subTopics": [
+        {
+          "id": "sub_anayasa_genel",
+          "title": "Genel Esaslar",
+          "description": "Anayasa Madde 1-11"
+        },
+        {
+          "id": "sub_anayasa_haklar",
+          "title": "Temel Hak ve Ödevler",
+          "description": "Anayasa İkinci Kısım"
+        },
+        {
+          "id": "sub_anayasa_organlar",
+          "title": "Cumhuriyetin Temel Organları",
+          "description": "Yasama, Yürütme, Yargı"
+        }
+      ]
+    },
+    {
+      "id": "topic_ataturk_inkilap",
+      "title": "Atatürk İlkeleri ve İnkılap Tarihi",
+      "category": "ortak",
+      "order": 2,
+      "totalQuestionTarget": 2,
+      "subTopics": [
+        {
+          "id": "sub_inkilap",
+          "title": "Atatürk İlkeleri ve İnkılap Tarihi",
+          "description": "Genel tarih ve ilkeler"
+        },
+        {
+          "id": "sub_ulusal_guvenlik",
+          "title": "Ulusal Güvenlik",
+          "description": "Ulusal güvenlik kavramı ve mevzuatı"
+        }
+      ]
+    },
+    {
+      "id": "topic_devlet_teskilati",
+      "title": "Devlet Teşkilatı ile İlgili Mevzuat",
+      "category": "ortak",
+      "order": 3,
+      "totalQuestionTarget": 9,
+      "subTopics": [
+        {
+          "id": "sub_5302",
+          "title": "5302 Sayılı İl Özel İdaresi Kanunu",
+          "description": "Tamamı"
+        },
+        {
+          "id": "sub_5393",
+          "title": "5393 Sayılı Belediye Kanunu",
+          "description": "Tamamı"
+        },
+        {
+          "id": "sub_5442",
+          "title": "5442 Sayılı İl İdaresi Kanunu",
+          "description": "Tamamı"
+        },
+        {
+          "id": "sub_cb_kararnamesi_1",
+          "title": "1 Sayılı CB Kararnamesi (Genel)",
+          "description": "Cumhurbaşkanlığı Teşkilatı Hakkında Kararname"
+        }
+      ]
+    },
+    {
+      "id": "topic_dmk_657",
+      "title": "657 Sayılı Devlet Memurları Kanunu ve Mevzuatı",
+      "category": "ortak",
+      "order": 4,
+      "totalQuestionTarget": 6,
+      "subTopics": [
+        {
+          "id": "sub_657",
+          "title": "657 Sayılı Devlet Memurları Kanunu",
+          "description": "Kanunun tamamı"
+        }
+      ]
+    },
+    {
+      "id": "topic_dil_iletisim_etik",
+      "title": "Dil Bilgisi, İletişim ve Etik",
+      "category": "ortak",
+      "order": 5,
+      "totalQuestionTarget": 4,
+      "subTopics": [
+        {
+          "id": "sub_turkce",
+          "title": "Türkçe Dil Bilgisi ve Yazışma Kuralları",
+          "description": "2 Soru"
+        },
+        {
+          "id": "sub_halkla_iliskiler",
+          "title": "Halkla İlişkiler",
+          "description": "1 Soru"
+        },
+        {
+          "id": "sub_etik",
+          "title": "Etik Davranış İlkeleri",
+          "description": "1 Soru"
+        }
+      ]
+    },
+    {
+      "id": "topic_bakanlik_merkez",
+      "title": "Bakanlık Merkez Teşkilatı",
+      "category": "ortak",
+      "order": 6,
+      "totalQuestionTarget": 1,
+      "subTopics": [
+        {
+          "id": "sub_cb_1_38_56",
+          "title": "1 Sayılı CB Kararnamesi (Md. 38-56)",
+          "description": "Adalet Bakanlığı Teşkilatı Bölümü"
+        }
+      ]
+    },
+    {
+      "id": "topic_yargi_orgutu_ortak",
+      "title": "Yargı Örgütü ve Komisyonlar (Ortak)",
+      "category": "ortak",
+      "order": 7,
+      "totalQuestionTarget": 2,
+      "subTopics": [
+        {
+          "id": "sub_anayasa_yargi",
+          "title": "Anayasa (Yargı Bölümü)",
+          "description": "Üçüncü Kısım Üçüncü Bölüm"
+        },
+        {
+          "id": "sub_5235_ortak",
+          "title": "5235 Sayılı Kanun (Adli Yargı)",
+          "description": "Kuruluş, Görev ve Yetkiler"
+        },
+        {
+          "id": "sub_2576_ortak",
+          "title": "2576 Sayılı Kanun (İdari Yargı)",
+          "description": "Bölge İdare, İdare ve Vergi Mahkemeleri"
+        },
+        {
+          "id": "sub_yonetmelik_yazi_isleri_ortak",
+          "title": "Yazı İşleri Yönetmelikleri (İlgili Maddeler)",
+          "description": "Adli ve İdari Yargı Yönetmeliklerinin ilgili kısımları"
+        }
+      ]
+    },
+    {
+      "id": "topic_uyap",
+      "title": "UYAP Bilişim Sistemi",
+      "category": "ortak",
+      "order": 8,
+      "totalQuestionTarget": 1,
+      "subTopics": [
+        {
+          "id": "sub_uyap_mevzuat",
+          "title": "UYAP Mevzuatı",
+          "description": "HMK Md. 445, CMK Md. 38/A ve Yönetmelik Md. 5"
+        }
+      ]
+    },
+    {
+      "id": "topic_mali_yonetim",
+      "title": "Mali Yönetim",
+      "category": "ortak",
+      "order": 9,
+      "totalQuestionTarget": 1,
+      "subTopics": [
+        {
+          "id": "sub_5018",
+          "title": "5018 Sayılı Kamu Mali Yönetimi Kanunu",
+          "description": "Genel esaslar"
+        }
+      ]
+    },
+    {
+      "id": "topic_bakanlik_teskilati_alan",
+      "title": "Bakanlık Teşkilatı (Alan)",
+      "category": "alan",
+      "order": 10,
+      "totalQuestionTarget": 3,
+      "subTopics": [
+        {
+          "id": "sub_cb_1_kisim6",
+          "title": "1 Sayılı CB Kararnamesi (6. Kısım 1. Bölüm)",
+          "description": "Bakanlık Teşkilatı detayları"
+        }
+      ]
+    },
+    {
+      "id": "topic_komisyonlar_alan",
+      "title": "Adalet Komisyonları (Alan)",
+      "category": "alan",
+      "order": 11,
+      "totalQuestionTarget": 1,
+      "subTopics": [
+        {
+          "id": "sub_yonetmelik_komisyon_adli",
+          "title": "Adli Yargı Yazı İşleri Yönetmeliği (Komisyonlar)",
+          "description": "İkinci Kısım Altıncı Bölüm, Beşinci Kısım Birinci Bölüm"
+        },
+        {
+          "id": "sub_yonetmelik_komisyon_idari",
+          "title": "İdari Yargı Yazı İşleri Yönetmeliği (Komisyonlar)",
+          "description": "Üçüncü Kısım Birinci Bölüm"
+        }
+      ]
+    },
+    {
+      "id": "topic_yargi_orgutu_alan",
+      "title": "Yargı Örgütü (Alan)",
+      "category": "alan",
+      "order": 12,
+      "totalQuestionTarget": 4,
+      "subTopics": [
+        {
+          "id": "sub_5235_alan",
+          "title": "5235 Sayılı Adli Yargı Kanunu",
+          "description": "Detaylı inceleme"
+        },
+        {
+          "id": "sub_2576_alan",
+          "title": "2576 Sayılı İdari Yargı Kanunu",
+          "description": "Detaylı inceleme"
+        }
+      ]
+    },
+    {
+      "id": "topic_elektronik_islemler",
+      "title": "Elektronik İmza ve SEGBİS",
+      "category": "alan",
+      "order": 13,
+      "totalQuestionTarget": 3,
+      "subTopics": [
+        {
+          "id": "sub_5070",
+          "title": "5070 Sayılı Elektronik İmza Kanunu",
+          "description": "E-İmza hukuki yapısı"
+        },
+        {
+          "id": "sub_segbis_yonetmelik",
+          "title": "SEGBİS Yönetmeliği",
+          "description": "Ceza Muhakemesinde SEGBİS kullanımı"
+        },
+        {
+          "id": "sub_hmk_goruntu",
+          "title": "HMK Görüntü Nakli Yönetmeliği",
+          "description": "Hukuk Muhakemelerinde ses ve görüntü nakli"
+        }
+      ]
+    },
+    {
+      "id": "topic_resmi_yazisma",
+      "title": "Resmi Yazışma Kuralları",
+      "category": "alan",
+      "order": 14,
+      "totalQuestionTarget": 6,
+      "subTopics": [
+        {
+          "id": "sub_resmi_yazisma_yonetmelik",
+          "title": "Resmi Yazışma Yönetmeliği",
+          "description": "Usul ve Esaslar Hakkında Yönetmelik"
+        },
+        {
+          "id": "sub_resmi_yazisma_kilavuz",
+          "title": "Resmi Yazışma Kılavuzu",
+          "description": "Cumhurbaşkanlığı Kılavuzu"
+        }
+      ]
+    },
+    {
+      "id": "topic_tebligat",
+      "title": "Tebligat Hukuku",
+      "category": "alan",
+      "order": 15,
+      "totalQuestionTarget": 5,
+      "subTopics": [
+        {
+          "id": "sub_7201",
+          "title": "7201 Sayılı Tebligat Kanunu",
+          "description": "Kanun metni"
+        },
+        {
+          "id": "sub_tebligat_yonetmelik",
+          "title": "Tebligat Kanununun Uygulanmasına Dair Yönetmelik",
+          "description": "Uygulama esasları"
+        },
+        {
+          "id": "sub_e_tebligat",
+          "title": "Elektronik Tebligat Yönetmeliği",
+          "description": "UETS ve elektronik tebligat"
+        }
+      ]
+    },
+    {
+      "id": "topic_memur_mevzuati_diger",
+      "title": "Devlet Memurları ile İlgili Diğer Mevzuat",
+      "category": "alan",
+      "order": 16,
+      "totalQuestionTarget": 7,
+      "subTopics": [
+        {
+          "id": "sub_4982",
+          "title": "4982 Sayılı Bilgi Edinme Hakkı Kanunu",
+          "description": "Bilgi edinme usulleri"
+        },
+        {
+          "id": "sub_3071",
+          "title": "3071 Sayılı Dilekçe Hakkı Kanunu",
+          "description": "Dilekçe hakkının kullanımı"
+        },
+        {
+          "id": "sub_disiplin_yonetmelik",
+          "title": "Adalet Bakanlığı Disiplin Yönetmeliği",
+          "description": "Disiplin cezaları ve soruşturma"
+        },
+        {
+          "id": "sub_gorevde_yukselme",
+          "title": "Görevde Yükselme ve Unvan Değişikliği Yönetmeliği",
+          "description": "Sınav ve atama esasları"
+        },
+        {
+          "id": "sub_atama_nakil",
+          "title": "Memur Sınav, Atama ve Nakil Yönetmeliği",
+          "description": "Atama ve nakil şartları"
+        }
+      ]
+    },
+    {
+      "id": "topic_yazi_isleri_harclar",
+      "title": "Yazı İşleri Hizmetleri ve Harçlar",
+      "category": "alan",
+      "order": 17,
+      "totalQuestionTarget": 9,
+      "subTopics": [
+        {
+          "id": "sub_492_harclar",
+          "title": "492 Sayılı Harçlar Kanunu",
+          "description": "Birinci Kısım (Yargı Harçları) ve Üçüncü Kısım"
+        },
+        {
+          "id": "sub_yonetmelik_adli_yazi",
+          "title": "Bölge Adliye ve Adli Yargı Yazı İşleri Yönetmeliği",
+          "description": "Hizmetlerin yürütülmesi"
+        },
+        {
+          "id": "sub_yonetmelik_idari_yazi",
+          "title": "Bölge İdare ve İdare Mahkemeleri Yazı İşleri Yönetmeliği",
+          "description": "Hizmetlerin yürütülmesi"
+        }
+      ]
+    },
+    {
+      "id": "topic_cmk",
+      "title": "5271 Sayılı Ceza Muhakemesi Kanunu (CMK)",
+      "category": "alan",
+      "order": 18,
+      "totalQuestionTarget": 3,
+      "subTopics": [
+        {
+          "id": "sub_cmk_genel",
+          "title": "CMK İlgili Maddeler",
+          "description": "1, 2, 3, 4, 5, 6 ve 7. Kitapların sorumlu olunan bölümleri"
+        }
+      ]
+    },
+    {
+      "id": "topic_hmk",
+      "title": "6100 Sayılı Hukuk Muhakemeleri Kanunu (HMK)",
+      "category": "alan",
+      "order": 19,
+      "totalQuestionTarget": 3,
+      "subTopics": [
+        {
+          "id": "sub_hmk_genel",
+          "title": "HMK İlgili Maddeler",
+          "description": "1. Kısımdan 10. Kısma kadar sorumlu olunan bölümler"
+        }
+      ]
+    },
+    {
+      "id": "topic_iyuk",
+      "title": "2577 Sayılı İdari Yargılama Usulü Kanunu",
+      "category": "alan",
+      "order": 20,
+      "totalQuestionTarget": 2,
+      "subTopics": [
+        {
+          "id": "sub_iyuk_bolumler",
+          "title": "İYUK 1, 2 ve 3. Bölümler",
+          "description": "İdari dava açma ve yargılama usulleri"
+        }
+      ]
+    },
+    {
+      "id": "topic_infaz",
+      "title": "5275 Sayılı İnfaz Kanunu",
+      "category": "alan",
+      "order": 21,
+      "totalQuestionTarget": 2,
+      "subTopics": [
+        {
+          "id": "sub_infaz_genel",
+          "title": "İnfaz Kanunu İlgili Bölümler",
+          "description": "1. Kitap ve 4. Kısım ilgili bölümleri"
+        }
+      ]
+    }
+  ]
+}

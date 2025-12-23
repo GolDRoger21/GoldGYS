@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>UI Bileşenleri</title>
+  <link rel="stylesheet" href="./ui.css" />
+</head>
+<body>
+  <main class="ui-page">
+    <section class="section">
+      <h2>Butonlar</h2>
+      <p>Varsayılan sm / md / lg boyutları, ikon konumları ve loading durumları.</p>
+      <div class="ui-grid">
+        <div>
+          <button class="ui-button sm" aria-label="Küçük birincil buton">Button sm</button>
+          <button class="ui-button" aria-label="Orta boy buton">Button md</button>
+          <button class="ui-button lg" aria-label="Büyük buton">Button lg</button>
+        </div>
+        <div>
+          <button class="ui-button" aria-label="Sol ikonlu buton">
+            <span class="ui-icon" aria-hidden="true">★</span>
+            Sol İkon
+          </button>
+          <button class="ui-button icon-right" aria-label="Sağ ikonlu buton">
+            Sağ İkon
+            <span class="ui-icon" aria-hidden="true">→</span>
+          </button>
+          <button class="ui-button secondary is-loading" aria-label="Yükleniyor">Yükleniyor</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Form Elemanları</h2>
+      <p>Hata / uyarı / başarı durumları token renkleriyle ve aria etiketleriyle.</p>
+      <div class="ui-grid">
+        <div class="ui-field state-error">
+          <label class="ui-label" for="name" aria-label="İsim alanı">İsim</label>
+          <input id="name" class="ui-control" type="text" aria-label="İsim" placeholder="Adınızı girin" />
+          <span class="helper">Bu alan zorunludur.</span>
+        </div>
+        <div class="ui-field state-warning">
+          <label class="ui-label" for="email" aria-label="E-posta alanı">E-posta</label>
+          <input id="email" class="ui-control sm" type="email" aria-label="E-posta" placeholder="mail@example.com" />
+          <span class="helper">Formatı kontrol edin.</span>
+        </div>
+        <div class="ui-field state-success">
+          <label class="ui-label" for="phone" aria-label="Telefon alanı">Telefon</label>
+          <input id="phone" class="ui-control lg" type="tel" aria-label="Telefon" placeholder="05xx xxx xx xx" />
+          <span class="helper">Doğrulandı.</span>
+        </div>
+        <div class="ui-field">
+          <label class="ui-label" for="select" aria-label="Sınıf seçimi">Sınıf</label>
+          <select id="select" class="ui-control" aria-label="Sınıf seçimi">
+            <option>9. Sınıf</option>
+            <option>10. Sınıf</option>
+            <option>11. Sınıf</option>
+          </select>
+          <span class="helper">Varsayılan durum.</span>
+        </div>
+        <div>
+          <div class="ui-choice">
+            <input type="checkbox" id="terms" aria-label="Şartları kabul et" />
+            <label for="terms">Şartları kabul ediyorum</label>
+          </div>
+          <div class="ui-choice">
+            <input type="radio" name="plan" id="plan-basic" aria-label="Basic plan" />
+            <label for="plan-basic">Basic</label>
+          </div>
+          <div class="ui-choice">
+            <input type="radio" name="plan" id="plan-pro" aria-label="Pro plan" />
+            <label for="plan-pro">Pro</label>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Chip & Badge</h2>
+      <p>Etiketleme ve durum bildirimi için küçük bileşenler.</p>
+      <div class="ui-grid">
+        <div>
+          <span class="ui-chip" aria-label="Silinebilir chip">
+            Matematik
+            <span class="close" aria-hidden="true">×</span>
+          </span>
+          <span class="ui-chip" aria-label="Avatar chip">
+            <span class="ui-icon" aria-hidden="true">👤</span>
+            Öğrenci
+          </span>
+        </div>
+        <div>
+          <span class="ui-badge primary" aria-label="Birincil rozet">Yeni</span>
+          <span class="ui-badge success" aria-label="Başarı rozeti">Başarılı</span>
+          <span class="ui-badge warning" aria-label="Uyarı rozeti">Uyarı</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Kartlar</h2>
+      <p>Kartlar aksiyon butonlarıyla birlikte.</p>
+      <div class="ui-grid">
+        <article class="ui-card" aria-label="Ders kartı">
+          <header>
+            <div>
+              <h3>Geometri</h3>
+              <div class="meta">Haftalık ilerleme</div>
+            </div>
+            <span class="ui-badge success" aria-label="%80 tamamlandı">%80</span>
+          </header>
+          <p>Yeni konu anlatımları ve testler eklendi.</p>
+          <div>
+            <button class="ui-button secondary sm" aria-label="Önizleme">Önizle</button>
+            <button class="ui-button sm" aria-label="Devam et">Devam</button>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Modal & Drawer</h2>
+      <p>Overlay, kapatma butonu ve geçişli durumlar.</p>
+      <div class="ui-grid">
+        <div>
+          <button class="ui-button" data-action="open-modal" aria-label="Modal aç">Modal Aç</button>
+        </div>
+        <div>
+          <button class="ui-button secondary" data-action="open-drawer" aria-label="Drawer aç">Drawer Aç</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Tabs & Sayfalama</h2>
+      <p>Metin içerikleri arasında geçiş ve sayfa kontrolü.</p>
+      <div class="ui-grid">
+        <div class="ui-tabs" aria-label="Sekmeler">
+          <div class="ui-tab-list" role="tablist">
+            <button class="ui-tab active" data-tab="tab-1" role="tab" aria-controls="tab-1">Genel</button>
+            <button class="ui-tab" data-tab="tab-2" role="tab" aria-controls="tab-2">Detay</button>
+            <button class="ui-tab" data-tab="tab-3" role="tab" aria-controls="tab-3">Geçmiş</button>
+          </div>
+          <div class="ui-tab-panels">
+            <div id="tab-1" class="active" role="tabpanel">Genel bilgiler burada.</div>
+            <div id="tab-2" role="tabpanel">Detaylı içerik açıklaması.</div>
+            <div id="tab-3" role="tabpanel">Geçmiş aktiviteler listesi.</div>
+          </div>
+        </div>
+        <div>
+          <div class="ui-pagination" role="navigation" aria-label="Sayfalandırma">
+            <button class="ui-page-btn" data-page="prev" aria-label="Önceki sayfa">‹</button>
+            <button class="ui-page-btn active" data-page="1" aria-label="1. sayfa">1</button>
+            <button class="ui-page-btn" data-page="2" aria-label="2. sayfa">2</button>
+            <button class="ui-page-btn" data-page="3" aria-label="3. sayfa">3</button>
+            <button class="ui-page-btn" data-page="next" aria-label="Sonraki sayfa">›</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Sayfa Layoutları</h2>
+      <p>Hero, liste, detay ve dashboard şablonları yeniden kullanılabilir bloklar olarak hazırlandı.</p>
+
+      <div class="layout-grid">
+        <article class="layout-card layout-hero" aria-label="Hero layout">
+          <div class="hero-content">
+            <div>
+              <p class="eyebrow">Eğitim Programı</p>
+              <h3>Yeni döneme hızlı başlangıç için önerilen yol haritası</h3>
+              <p class="subtitle">Görev listeleri, canlı ders hatırlatmaları ve kişiselleştirilmiş hedefler tek yerde.</p>
+              <div class="hero-actions">
+                <button class="ui-button" aria-label="Programı başlat">Programı başlat</button>
+                <button class="ui-button ghost" aria-label="Planı incele">Planı incele</button>
+              </div>
+              <div class="hero-metrics">
+                <div>
+                  <div class="metric">12</div>
+                  <span>Aktif görev</span>
+                </div>
+                <div>
+                  <div class="metric">4</div>
+                  <span>Canlı ders</span>
+                </div>
+                <div>
+                  <div class="metric">86%</div>
+                  <span>Tamamlama</span>
+                </div>
+              </div>
+            </div>
+            <div class="hero-visual" aria-hidden="true">
+              <div class="hero-chart">
+                <div class="bar" style="height: 68%"></div>
+                <div class="bar" style="height: 82%"></div>
+                <div class="bar" style="height: 54%"></div>
+                <div class="bar" style="height: 90%"></div>
+              </div>
+              <div class="hero-pill">Haftalık odaklar güncellendi</div>
+            </div>
+          </div>
+        </article>
+
+        <article class="layout-card layout-list" aria-label="Liste layoutu">
+          <header class="layout-list__header">
+            <div>
+              <p class="eyebrow">Dersler</p>
+              <h3>Listeler sekmeli ve segment kontrollü filtrelerle yönetilir.</h3>
+            </div>
+            <button class="ui-button ghost mobile-only" data-action="open-filters" aria-label="Filtre sheet aç">Filtreler</button>
+          </header>
+
+          <div class="filter-bar" data-segment-group>
+            <div class="segment-control" role="tablist" aria-label="Ders sekmeleri">
+              <button class="segment-btn active" data-segment-target="segment-all" role="tab" aria-controls="segment-all">Tümü</button>
+              <button class="segment-btn" data-segment-target="segment-live" role="tab" aria-controls="segment-live">Canlı</button>
+              <button class="segment-btn" data-segment-target="segment-record" role="tab" aria-controls="segment-record">Kayıt</button>
+            </div>
+
+            <div class="filter-actions">
+              <div class="search-field" role="search">
+                <span class="ui-icon" aria-hidden="true">🔍</span>
+                <input type="search" placeholder="Ders ara" aria-label="Ders ara" />
+              </div>
+              <div class="desktop-filter-actions">
+                <button class="chip ghost">Hafta içi</button>
+                <button class="chip ghost">9. sınıf</button>
+                <button class="chip ghost">STEM</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="segment-panels">
+            <div class="segment-panel active" id="segment-all" role="tabpanel">
+              <div class="list-grid">
+                <article class="list-card">
+                  <div>
+                    <p class="eyebrow">Matematik</p>
+                    <h4>Limit & Süreklilik</h4>
+                    <p class="meta">Bu hafta 2 ödev, 1 canlı ders.</p>
+                  </div>
+                  <div class="list-actions">
+                    <button class="ui-button secondary sm" aria-label="Önizleme">Önizle</button>
+                    <button class="ui-button sm" aria-label="Devam">Devam</button>
+                  </div>
+                </article>
+                <article class="list-card">
+                  <div>
+                    <p class="eyebrow">Fizik</p>
+                    <h4>Newton Hareket Yasaları</h4>
+                    <p class="meta">Problem seti güncellendi.</p>
+                  </div>
+                  <div class="list-actions">
+                    <button class="ui-button secondary sm" aria-label="Önizleme">Önizle</button>
+                    <button class="ui-button sm" aria-label="Devam">Devam</button>
+                  </div>
+                </article>
+              </div>
+            </div>
+
+            <div class="segment-panel" id="segment-live" role="tabpanel">
+              <div class="empty-state" role="status">
+                <div class="icon">📺</div>
+                <div>
+                  <h4>Yakında canlı ders yok</h4>
+                  <p>Takvimde yer açıldıkça burada belirecek.</p>
+                </div>
+                <button class="ui-button ghost" aria-label="Hatırlatıcı oluştur">Hatırlatıcı oluştur</button>
+              </div>
+            </div>
+
+            <div class="segment-panel" id="segment-record" role="tabpanel">
+              <div class="skeleton-list" aria-hidden="true">
+                <div class="skeleton-card"></div>
+                <div class="skeleton-card"></div>
+              </div>
+              <div class="error-state" role="alert">
+                <div>
+                  <h4>Listeler yüklenirken hata oluştu</h4>
+                  <p>Lütfen bağlantınızı kontrol edip tekrar deneyin.</p>
+                </div>
+                <button class="ui-button secondary" data-action="retry-load" aria-label="Tekrar dene">Tekrar dene</button>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <article class="layout-card layout-detail" aria-label="Detay layoutu">
+          <header>
+            <div>
+              <p class="eyebrow">Detay</p>
+              <h3>Başarı kartı detayları</h3>
+              <p class="subtitle">Öğrenci ilerlemesi ve aksiyon butonlarıyla iki kolonlu düzen.</p>
+            </div>
+            <div class="hero-actions">
+              <button class="ui-button secondary" aria-label="PDF indir">PDF indir</button>
+              <button class="ui-button" aria-label="Paylaş">Paylaş</button>
+            </div>
+          </header>
+          <div class="detail-body">
+            <div class="detail-main">
+              <div class="stat-row">
+                <div>
+                  <p class="meta">Son güncelleme</p>
+                  <h4>3 saat önce</h4>
+                </div>
+                <div>
+                  <p class="meta">Tamamlama</p>
+                  <h4>%86</h4>
+                </div>
+              </div>
+              <p>Planlanan öğrenme hedeflerinin çoğu tamamlandı. Eksik kalan konu başlıkları ve soru çözümleri listelendi.</p>
+              <div class="detail-tags">
+                <span class="ui-badge primary">Matematik</span>
+                <span class="ui-badge success">Streak 12</span>
+                <span class="ui-badge warning">Revizyon</span>
+              </div>
+            </div>
+            <aside class="detail-side" aria-label="Hızlı aksiyonlar">
+              <div class="side-card">
+                <h5>Hızlı Aksiyon</h5>
+                <button class="ui-button ghost" aria-label="Hatırlatıcı ekle">Hatırlatıcı ekle</button>
+                <button class="ui-button ghost" aria-label="Danışman ata">Danışman ata</button>
+                <button class="ui-button ghost" aria-label="Görüşme başlat">Görüşme başlat</button>
+              </div>
+              <div class="side-card muted">
+                <h5>Boş durum</h5>
+                <p>Henüz yorum veya değerlendirme eklenmedi.</p>
+                <button class="ui-button secondary sm" aria-label="Not ekle">Not ekle</button>
+              </div>
+            </aside>
+          </div>
+        </article>
+
+        <article class="layout-card layout-dashboard" aria-label="Dashboard layoutu">
+          <header>
+            <div>
+              <p class="eyebrow">Dashboard</p>
+              <h3>Özet kartlar, tablo ve timeline ile panel görünümü.</h3>
+            </div>
+            <div class="hero-actions">
+              <button class="ui-button ghost" aria-label="Güncelle">Güncelle</button>
+              <button class="ui-button" aria-label="Paneli aç">Paneli aç</button>
+            </div>
+          </header>
+          <div class="dashboard-grid">
+            <div class="kpi-card">
+              <p class="meta">Aktif öğrenciler</p>
+              <h3>248</h3>
+              <span class="trend up">+18 bugün</span>
+            </div>
+            <div class="kpi-card">
+              <p class="meta">Tamamlanan görev</p>
+              <h3>1.024</h3>
+              <span class="trend">%6 daha az</span>
+            </div>
+            <div class="kpi-card">
+              <p class="meta">Destek biletleri</p>
+              <h3>12</h3>
+              <span class="trend up">3 yeni</span>
+            </div>
+            <div class="chart-card">
+              <h4>Haftalık ilerleme</h4>
+              <div class="chart-placeholder" aria-hidden="true"></div>
+            </div>
+            <div class="table-card">
+              <h4>Son hareketler</h4>
+              <ul>
+                <li><span>Ödev kontrolü</span><span>08:30</span></li>
+                <li><span>Canlı ders</span><span>11:00</span></li>
+                <li><span>Proje teslimi</span><span>16:45</span></li>
+              </ul>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Toast</h2>
+      <p>İşlem bilgilendirme bildirimi.</p>
+      <button class="ui-button" data-action="show-toast" aria-label="Toast göster">Toast Göster</button>
+    </section>
+  </main>
+
+  <div class="ui-overlay" data-overlay="modal" role="dialog" aria-modal="true">
+    <div class="ui-modal">
+      <header style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
+        <h3>Modal Başlık</h3>
+        <button class="close-btn" data-action="close-modal" aria-label="Modal kapat">×</button>
+      </header>
+      <p>Modal içerisindeki bilgilendirme alanı.</p>
+      <div style="margin-top:16px; display:flex; gap:8px; justify-content:flex-end;">
+        <button class="ui-button secondary" data-action="close-modal" aria-label="İptal">Kapat</button>
+        <button class="ui-button" aria-label="Onayla">Onayla</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="ui-overlay drawer-overlay" data-overlay="drawer" aria-modal="true">
+    <aside class="ui-drawer" role="dialog" aria-label="Filtre drawer">
+      <header class="drawer-header">
+        <div>
+          <p class="eyebrow">Filtreler</p>
+          <h3>Mobilde sheet olarak açılır, masaüstünde panel gibi davranır.</h3>
+        </div>
+        <button class="close-btn" data-action="close-drawer" aria-label="Drawer kapat">×</button>
+      </header>
+      <div class="drawer-content">
+        <div class="ui-field">
+          <label class="ui-label" for="drawer-search">Ara</label>
+          <input id="drawer-search" class="ui-control" type="search" placeholder="Ders veya eğitmen ara" aria-label="Drawer arama" />
+        </div>
+        <div class="drawer-filters">
+          <div class="chip ghost" role="checkbox" aria-checked="true">Hafta içi</div>
+          <div class="chip ghost" role="checkbox" aria-checked="false">Hafta sonu</div>
+          <div class="chip ghost" role="checkbox" aria-checked="false">STEM</div>
+          <div class="chip ghost" role="checkbox" aria-checked="true">9. sınıf</div>
+        </div>
+      </div>
+      <div class="drawer-actions">
+        <button class="ui-button secondary" data-action="close-drawer" aria-label="Temizle">Temizle</button>
+        <button class="ui-button" data-action="close-drawer" aria-label="Uygula">Uygula</button>
+      </div>
+    </aside>
+  </div>
+
+  <div class="ui-toast" role="status" aria-live="polite">
+    <div class="title">Başarılı!</div>
+    <div class="message">İşleminiz başarıyla gerçekleştirildi.</div>
+  </div>
+
+  <script src="./ui.js"></script>
+</body>
+</html>

@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin | GOLD GYS</title>
+  <link rel="stylesheet" href="/css/app.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+  <style>
+    body { background-color: #f1f5f9; }
+    .panel-card { background: white; padding: 24px; border-radius: 16px; box-shadow: var(--shadow-soft); margin-bottom: 24px; }
+    .section-head { margin-bottom: 20px; }
+    .section-head h2 { font-family: 'Playfair Display', serif; color: var(--navy-deep); font-size: 1.5rem; }
+    .section-head p { color: var(--text-muted); }
+    .inline-filters { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 20px; }
+    .inline-filters input, .inline-filters select { padding: 10px 14px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 0.9rem; }
+    .user-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
+    .user-card { background: white; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; }
+    .user-card-header { background: #f8fafc; padding: 12px 16px; border-bottom: 1px solid #e2e8f0; }
+    .user-card-body { padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+    .user-card-footer { padding: 12px 16px; background: #f8fafc; border-top: 1px solid #e2e8f0; display: flex; justify-content: flex-end; gap: 8px; }
+    .btn-sm { padding: 6px 12px; font-size: 0.85rem; border-radius: 6px; }
+    .alert { padding: 14px; border-radius: 8px; margin-bottom: 20px; font-weight: 500; display: none; }
+    .alert.success { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
+    .alert.error { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+    .modal-backdrop { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 100; opacity: 0; transition: opacity 0.2s; }
+    .modal-backdrop.open { display: flex; opacity: 1; }
+    .modal-card { background: white; border-radius: 16px; padding: 24px; width: min(500px, 92vw); transform: scale(0.95); transition: transform 0.2s; }
+    .modal-backdrop.open .modal-card { transform: scale(1); }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  </style>
+</head>
+<body>
+  <div class="app-layout">
+    <main class="app-main">
+      <header id="header-area"></header>
+
+      <div class="app-content">
+        <div class="section-head">
+          <h2>Yönetim Paneli</h2>
+          <p>Kullanıcıları yönetin, istatistikleri görüntüleyin ve içerikleri düzenleyin.</p>
+        </div>
+
+        <!-- User Management -->
+        <section class="panel-card">
+          <div class="section-head">
+            <h3>Kullanıcı Yönetimi</h3>
+          </div>
+          <div class="inline-filters">
+            <input type="search" id="pendingSearch" placeholder="İsim veya e-posta ile ara...">
+            <select id="statusFilter">
+              <option value="pending">Bekleyenler</option>
+              <option value="active">Aktif</option>
+              <option value="all">Tümü</option>
+            </select>
+            <button class="btn-gold" id="refreshPending">Yenile</button>
+          </div>
+          <div id="adminStatus" class="alert"></div>
+          <div id="pendingList" class="user-grid"></div>
+          <div id="emptyState" class="alert" style="display: none; text-align: center;">Filtreye uygun kullanıcı bulunamadı.</div>
+        </section>
+
+        <!-- Topic Management -->
+        <section class="panel-card">
+            <h3>Konu Yönetimi</h3>
+            <div class="inline-filters">
+                <input id="title" placeholder="Yeni konu başlığı">
+                <select id="category">
+                    <option value="ortak">Ortak</option>
+                    <option value="alan">Alan</option>
+                </select>
+                <button id="addTopicBtn" class="btn-gold">Ekle</button>
+            </div>
+            <p id="topicStatus" class="alert"></p>
+            <ul id="list" class="user-grid" style="grid-template-columns: 1fr;"></ul>
+        </section>
+
+        <!-- Error Reports -->
+        <section class="panel-card">
+            <h3>Hatalı Soru Raporları</h3>
+            <p id="reportsStatus" class="alert"></p>
+            <ul id="reports" class="user-grid" style="grid-template-columns: 1fr;"></ul>
+        </section>
+      </div>
+
+      <footer id="footer-area"></footer>
+    </main>
+  </div>
+
+  <!-- User Detail Modal -->
+  <div id="detailModal" class="modal-backdrop">
+    <div class="modal-card">
+        <h3 id="detailModalTitle">Kullanıcı Detayları</h3>
+        <div id="detailModalStatus" class="alert"></div>
+        <div id="detailContent" class="form-grid">
+            <div class="form-control">
+                <label>Ad Soyad</label>
+                <input type="text" id="detailNameInput">
+            </div>
+             <div class="form-control">
+                <label>E-posta</label>
+                <input type="text" id="detailEmail" disabled>
+            </div>
+            <div class="form-control">
+                <label>Rol</label>
+                <select id="detailRoleSelect">
+                    <option value="student">Öğrenci</option>
+                    <option value="editor">Editör</option>
+                    <option value="admin">Yönetici</option>
+                </select>
+            </div>
+            <div class="form-control">
+                <label>Durum</label>
+                <select id="detailStatusSelect">
+                    <option value="pending">Beklemede</option>
+                    <option value="active">Aktif</option>
+                    <option value="rejected">Reddedildi</option>
+                </select>
+            </div>
+        </div>
+        <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:16px;">
+            <button class="btn-sm" data-detail-modal-close>İptal</button>
+            <button class="btn-gold btn-sm" id="detailUpdateBtn">Kaydet</button>
+        </div>
+    </div>
+  </div>
+
+  <script type="module" src="/js/admin-page.js"></script>
+</body>
+</html>

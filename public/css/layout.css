@@ -1,0 +1,60 @@
+:root {
+    --layout-max-width: 1280px;
+    --layout-gutter: clamp(var(--space-md), 3vw, var(--space-xl));
+    --layout-grid-gap: clamp(var(--space-md), 2vw, var(--space-xl));
+}
+
+/* Container & Grid System */
+.container {
+    width: min(var(--layout-max-width), 100%);
+    margin-inline: auto;
+    padding-inline: var(--layout-gutter);
+}
+
+.grid-12 {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: var(--layout-grid-gap);
+    align-items: start;
+}
+
+/* Column Spans */
+.col-span-1 { grid-column: span 1; }
+.col-span-2 { grid-column: span 2; }
+.col-span-3 { grid-column: span 3; }
+.col-span-4 { grid-column: span 4; }
+.col-span-5 { grid-column: span 5; }
+.col-span-6 { grid-column: span 6; }
+.col-span-7 { grid-column: span 7; }
+.col-span-8 { grid-column: span 8; }
+.col-span-9 { grid-column: span 9; }
+.col-span-10 { grid-column: span 10; }
+.col-span-11 { grid-column: span 11; }
+.col-span-12 { grid-column: span 12; }
+
+/* Breakpoint Utilities */
+@media (max-width: 1200px) {
+    .lg-col-span-12 { grid-column: span 12; }
+    .lg-col-span-8 { grid-column: span 8; }
+    .lg-col-span-6 { grid-column: span 6; }
+    .lg-col-span-4 { grid-column: span 4; }
+    .stack-lg { grid-template-columns: 1fr !important; }
+}
+
+@media (max-width: 1024px) {
+    .md-col-span-12 { grid-column: span 12; }
+    .md-col-span-8 { grid-column: span 8; }
+    .md-col-span-6 { grid-column: span 6; }
+    .md-col-span-4 { grid-column: span 4; }
+    .stack-md { grid-template-columns: 1fr !important; }
+    .hide-below-md { display: none !important; }
+}
+
+@media (max-width: 768px) {
+    .sm-col-span-12 { grid-column: span 12; }
+    .sm-col-span-8 { grid-column: span 8; }
+    .sm-col-span-6 { grid-column: span 6; }
+    .sm-col-span-4 { grid-column: span 4; }
+    .stack-sm { grid-template-columns: 1fr !important; }
+    .hide-below-sm { display: none !important; }
+}

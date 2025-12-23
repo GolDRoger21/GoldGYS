@@ -1,0 +1,72 @@
+{
+  "project": "GOLD GYS Portal",
+  "created_at": "2025-12-18T17:37:47.373169Z",
+  "timezone": "Europe/Istanbul",
+  "stages": [
+    {
+      "id": 0,
+      "name": "Project Frame",
+      "status": "ready"
+    },
+    {
+      "id": 1,
+      "name": "Templates + Partials",
+      "status": "planned"
+    },
+    {
+      "id": 2,
+      "name": "CSS + Shell JS",
+      "status": "planned"
+    },
+    {
+      "id": 3,
+      "name": "Firebase Hosting Config",
+      "status": "planned"
+    },
+    {
+      "id": 4,
+      "name": "Auth + Guards + Roles",
+      "status": "planned"
+    },
+    {
+      "id": 5,
+      "name": "Firestore Model + Demo Seed",
+      "status": "planned"
+    },
+    {
+      "id": 6,
+      "name": "Test Engine + Progress",
+      "status": "planned"
+    },
+    {
+      "id": 7,
+      "name": "Exam Engine",
+      "status": "planned"
+    },
+    {
+      "id": 8,
+      "name": "Wrongs/Favorites/Reports",
+      "status": "planned"
+    },
+    {
+      "id": 9,
+      "name": "Admin Panel",
+      "status": "planned"
+    },
+    {
+      "id": 10,
+      "name": "Security Rules + Scaling",
+      "status": "planned"
+    }
+  ],
+  "conventions": {
+    "hosting_public_dir": "public",
+    "pages_dir": "public/pages",
+    "partials_dir": "public/partials",
+    "css_dir": "public/css",
+    "js_dir": "public/js",
+    "admin_dir": "public/admin",
+    "docs_dir": "docs",
+    "scripts_dir": "scripts"
+  }
+}

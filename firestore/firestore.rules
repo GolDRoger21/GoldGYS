@@ -1,0 +1,74 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // --- Yardımcı Fonksiyonlar ---
+    function signedIn() {
+      return request.auth != null;
+    }
+    
+    function isAdmin() {
+      return signedIn() && (request.auth.token.admin == true || request.auth.token.role == 'admin');
+    }
+
+    function isEditor() {
+      return isAdmin() || (signedIn() && (request.auth.token.editor == true || request.auth.token.role == 'editor'));
+    }
+
+    function isSelf(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+
+    // --- KULLANICILAR (users) ---
+    match /users/{uid} {
+      allow read: if isSelf(uid) || isAdmin();
+      allow create: if isSelf(uid);
+      allow update: if (isSelf(uid) &&
+                       request.resource.data.diff(resource.data)
+                       .affectedKeys().hasOnly(['displayName', 'photoURL', 'email']))
+                       || isAdmin();
+      allow delete: if isAdmin();
+      
+      // Kullanıcının alt koleksiyonları (progress, examResults vb.)
+      match /{subcollection=**}/{docId} {
+         allow read, write: if isSelf(uid) || isAdmin();
+      }
+    }
+
+    // --- SİSTEM & AYARLAR ---
+    match /system/{docId} {
+      allow read: if signedIn();
+      allow write: if isAdmin();
+    }
+
+    // --- KONULAR (topics) ---
+    match /topics/{topicId} {
+      allow read: if signedIn();
+      allow write: if isEditor();
+    }
+
+    // --- SINAVLAR (exams) --- 
+    match /exams/{examId} {
+      allow read: if signedIn();
+      allow write: if isEditor();
+    }
+    
+    // --- SORULAR (questions) - (Eğer subcollection değilse) ---
+    match /questions/{questionId} {
+      allow read: if signedIn();
+      allow write: if isEditor();
+    }
+
+    // --- RAPORLAR (reports) ---
+    match /reports/{reportId} {
+      allow create: if signedIn();
+      allow read, update, delete: if isEditor();
+    }
+
+    // --- DİĞER HER ŞEY (Fallback) ---
+    match /{document=**} {
+      allow read: if signedIn();
+      allow write: if isAdmin();
+    }
+  }
+}

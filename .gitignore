@@ -1,0 +1,33 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Firebase
+.firebase/
+*.log
+
+# Env
+.env
+.env.*
+public/js/env.js
+
+# Build artifacts
+dist/
+build/
+
+# Firebase Admin / Service Account keys (NEVER COMMIT)
+**/*adminsdk*.json
+**/*service-account*.json
+**/serviceAccount*.json
+**/firebase-adminsdk-*.json
+**/goldgys-firebase-adminsdk-*.json
+
+# Optional: a dedicated folder for secrets
+firebase-keys/
+secrets/

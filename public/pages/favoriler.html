@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Favoriler | GOLD GYS</title>
+  <link rel="stylesheet" href="/css/app.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230F172A'/><text x='50' y='70' font-family='serif' font-size='60' fill='%23D4AF37' text-anchor='middle' font-weight='bold'>G</text><text x='80' y='35' font-size='30'>⚖️</text></svg>">
+</head>
+<body>
+  <div class="app-layout">
+    <aside id="sidebar-area" class="app-sidebar"></aside>
+
+    <main class="app-main">
+      <header id="header-area" class="app-header"></header>
+
+      <div class="app-content">
+        <section class="panel-card">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Kaydedilen içerikler</p>
+              <h1 class="page-heading heading-1">Favorilerim</h1>
+              <p class="text-muted">Öne çıkardığınız soru ve konulara hızlıca geri dönün.</p>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <footer id="footer-area" class="app-footer"></footer>
+    </main>
+  </div>
+
+  <script type="module">
+    import { protectPage } from '/js/role-guard.js';
+    import { initLayout } from '/js/ui-loader.js';
+
+    protectPage();
+    initLayout('favoriler');
+  </script>
+</body>
+</html>
