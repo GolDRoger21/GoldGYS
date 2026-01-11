@@ -11,54 +11,84 @@
     
     <link rel="stylesheet" href="../css/dashboard.css">
     
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230F172A'/><text x='50' y='70' font-family='serif' font-size='60' fill='%23D4AF37' text-anchor='middle' font-weight='bold'>G</text></svg>">
+    <style>
+        /* Başlangıçta tüm ana içeriği gizle */
+        #mainWrapper { display: none; opacity: 0; transition: opacity 0.4s ease; }
+        
+        /* Loader Stilleri */
+        #pageLoader {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #0f172a; z-index: 9999;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .spinner {
+            width: 48px; height: 48px;
+            border: 4px solid rgba(212, 175, 55, 0.2);
+            border-top: 4px solid #d4af37;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        .loader-text { color: #94a3b8; margin-top: 16px; font-family: 'Inter', sans-serif; font-size: 0.9rem; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
 </head>
 <body>
 
-    <div id="pageLoader" class="page-loader">
-        <div class="loader-spinner"></div>
-        <div class="loader-text">Güvenli Giriş Yapılıyor...</div>
+    <div id="pageLoader">
+        <div class="spinner"></div>
+        <div class="loader-text">Sistem kontrol ediliyor...</div>
     </div>
 
-    <div id="appContent" style="display: none;">
+    <div id="mainWrapper">
         
         <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <a href="/pages/dashboard.html" class="brand-logo">GOLD <span>GYS</span></a>
-                <button class="close-sidebar-btn" id="closeSidebar" aria-label="Menüyü Kapat">✕</button>
+                <button class="close-sidebar-btn" id="closeSidebar">✕</button>
             </div>
 
             <nav class="sidebar-nav">
+                <div class="nav-label">GENEL</div>
                 <a href="/pages/dashboard.html" class="nav-item active">
                     <span class="icon">🏠</span> Genel Bakış
                 </a>
+                <a href="/pages/profil.html" class="nav-item">
+                    <span class="icon">👤</span> Profilim
+                </a>
+
+                <div class="nav-label">ÇALIŞMA ALANI</div>
                 <a href="/pages/konular.html" class="nav-item">
-                    <span class="icon">📚</span> Konular & Dersler
+                    <span class="icon">📚</span> Dersler & Konular
                 </a>
                 <a href="/pages/testler.html" class="nav-item">
-                    <span class="icon">📝</span> Çözümlü Testler
+                    <span class="icon">📝</span> Konu Testleri
                 </a>
                 <a href="/pages/denemeler.html" class="nav-item">
                     <span class="icon">⚖️</span> Deneme Sınavları
                 </a>
-                <div class="nav-divider"></div>
-                <a href="/pages/profil.html" class="nav-item">
-                    <span class="icon">👤</span> Profilim
-                </a>
+
+                <div class="nav-label">PERFORMANS</div>
                 <a href="/pages/yanlislarim.html" class="nav-item">
                     <span class="icon">⚠️</span> Yanlışlarım
                 </a>
-                <a href="/pages/analiz.html" class="nav-item">
-                    <span class="icon">📊</span> İstatistikler
+                <a href="/pages/favoriler.html" class="nav-item">
+                    <span class="icon">⭐</span> Favori Sorular
                 </a>
+                <a href="/pages/analiz.html" class="nav-item">
+                    <span class="icon">📊</span> Analiz Raporu
+                </a>
+
+                <div id="adminMenuWrapper" style="display: none;">
+                    <div class="nav-divider"></div>
+                    <a href="/admin/index.html" class="nav-item admin-link">
+                        <span class="icon">⚡</span> Yönetici Paneli
+                    </a>
+                </div>
             </nav>
 
             <div class="sidebar-footer">
-                <a href="/admin/index.html" id="adminPanelBtn" class="nav-item admin-link" style="display: none;">
-                    <span class="icon">⚡</span> Yönetici Paneli
-                </a>
                 <button id="logoutBtn" class="nav-item logout">
                     <span class="icon">🚪</span> Çıkış Yap
                 </button>
@@ -66,28 +96,30 @@
         </aside>
 
         <main class="main-content">
+            
             <header class="top-bar">
-                <button class="menu-toggle" id="menuToggle" aria-label="Menüyü Aç">
-                    <span class="bar"></span>
-                    <span class="bar"></span>
-                    <span class="bar"></span>
-                </button>
-                <div class="page-title">Panel</div>
-                <div class="user-profile-icon">
-                    <a href="/pages/profil.html">
-                        <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="Profil" id="userAvatar">
-                    </a>
+                <div class="top-left">
+                    <button class="menu-toggle" id="menuToggle">
+                        <span class="bar"></span><span class="bar"></span><span class="bar"></span>
+                    </button>
+                    <div class="page-title">Panel</div>
                 </div>
+                
+                <a href="/pages/profil.html" class="user-profile-widget" title="Profile Git">
+                    <span class="user-name" id="headerUserName">Öğrenci</span>
+                    <img src="https://ui-avatars.com/api/?name=O&background=D4AF37&color=0F172A" alt="Profil" id="userAvatar">
+                </a>
             </header>
 
             <div class="dashboard-container">
+                
                 <section class="welcome-section">
                     <div class="welcome-text">
                         <h1 id="welcomeMsg">Hoş geldin...</h1>
-                        <p>Bugünkü hedeflerine ulaşmak için hazırsın.</p>
+                        <p>Adalet Bakanlığı sınav yolculuğunda bugünkü hedefin ne?</p>
                     </div>
                     <div class="exam-countdown">
-                        <span class="days" id="countdownValue">--</span>
+                        <span class="days" id="countdownDays">--</span>
                         <span class="label">Gün Kaldı</span>
                     </div>
                 </section>
@@ -98,24 +130,39 @@
                         <div class="stat-info">
                             <h3>Genel Başarı</h3>
                             <div class="progress-bar-container">
-                                <div class="progress-bar" style="width: 0%" id="statSuccessBar"></div>
+                                <div class="progress-bar" id="successRateBar" style="width: 0%"></div>
                             </div>
-                            <span class="stat-value" id="statSuccessText">%0</span>
+                            <span class="stat-value" id="successRateText">%0</span>
                         </div>
                     </div>
+
                     <div class="stat-card">
                         <div class="stat-icon blue">📝</div>
                         <div class="stat-info">
                             <h3>Çözülen Soru</h3>
-                            <span class="stat-value" id="statQuestionCount">0</span>
+                            <span class="stat-value">0</span>
                         </div>
                     </div>
+
                     <div class="stat-card">
                         <div class="stat-icon red">⚠️</div>
                         <div class="stat-info">
                             <h3>Yanlış Sayısı</h3>
-                            <span class="stat-value" id="statWrongCount">0</span>
+                            <span class="stat-value">0</span>
+                            <small class="link-small"><a href="/pages/yanlislarim.html">Tekrar Et →</a></small>
                         </div>
+                    </div>
+                </section>
+
+                <section class="resume-section">
+                    <h2 class="section-title">Son Çalışman</h2>
+                    <div class="resume-card">
+                        <div class="resume-info">
+                            <span class="badge">Anayasa Hukuku</span>
+                            <h3>Temel Hak ve Hürriyetler</h3>
+                            <p>Test 3 • %45 Tamamlandı</p>
+                        </div>
+                        <button class="btn-resume" onclick="window.location.href='/pages/testler.html'">Devam Et →</button>
                     </div>
                 </section>
 
@@ -123,19 +170,24 @@
                     <h2 class="section-title">Hızlı İşlemler</h2>
                     <div class="quick-grid">
                         <a href="/pages/testler.html" class="quick-card">
-                            <span class="q-icon">⚡</span> <span>Hızlı Test</span>
+                            <span class="q-icon">⚡</span>
+                            <span>Test Çöz</span>
                         </a>
                         <a href="/pages/denemeler.html" class="quick-card">
-                            <span class="q-icon">⚖️</span> <span>Deneme Sınavı</span>
-                        </a>
-                        <a href="/pages/yanlislarim.html" class="quick-card">
-                            <span class="q-icon">🔄</span> <span>Yanlışlarım</span>
+                            <span class="q-icon">🏆</span>
+                            <span>Deneme Başlat</span>
                         </a>
                         <a href="/pages/konular.html" class="quick-card">
-                            <span class="q-icon">📖</span> <span>Konu Çalış</span>
+                            <span class="q-icon">📖</span>
+                            <span>Konu Çalış</span>
+                        </a>
+                        <a href="/pages/analiz.html" class="quick-card">
+                            <span class="q-icon">📈</span>
+                            <span>Durumumu Gör</span>
                         </a>
                     </div>
                 </section>
+
             </div>
         </main>
     </div>
