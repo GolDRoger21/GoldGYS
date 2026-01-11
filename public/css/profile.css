@@ -1,0 +1,159 @@
+/* public/css/profile.css */
+
+.profile-layout {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 2rem;
+    align-items: start;
+}
+
+/* --- SOL KART (ÖZET) --- */
+.profile-card {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    overflow: hidden;
+    text-align: center;
+    position: relative;
+}
+
+.profile-header-bg {
+    height: 100px;
+    background: linear-gradient(135deg, var(--gold-dim), var(--gold-primary));
+}
+
+.profile-avatar-wrapper {
+    width: 100px; height: 100px;
+    margin: -50px auto 1rem;
+    position: relative;
+}
+
+.profile-avatar-wrapper img {
+    width: 100%; height: 100%;
+    border-radius: 50%;
+    border: 4px solid var(--bg-panel);
+    background: var(--bg-dark);
+    object-fit: cover;
+}
+
+.btn-edit-avatar {
+    position: absolute;
+    bottom: 0; right: 0;
+    background: var(--gold-primary);
+    border: none;
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    font-size: 0.9rem;
+    display: flex; align-items: center; justify-content: center;
+}
+
+.profile-name { font-family: 'Playfair Display', serif; font-size: 1.5rem; color: var(--text-white); margin-bottom: 5px; }
+.profile-role { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem; }
+
+.profile-stats {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    padding: 1rem 0;
+    border-top: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.p-stat { display: flex; flex-direction: column; }
+.p-stat .val { font-size: 1.1rem; font-weight: 700; color: var(--text-white); }
+.p-stat .lbl { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; }
+
+.membership-badge {
+    padding: 1.5rem;
+    font-size: 0.9rem;
+    color: var(--gold-primary);
+}
+
+/* --- SAĞ TARAF (AYARLAR) --- */
+.settings-container {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 2rem;
+}
+
+.settings-tabs {
+    display: flex;
+    gap: 1rem;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 2rem;
+}
+
+.tab-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    padding: 0.75rem 0;
+    font-size: 1rem;
+    cursor: pointer;
+    position: relative;
+    font-weight: 500;
+}
+
+.tab-btn.active { color: var(--gold-primary); }
+.tab-btn.active::after {
+    content: ''; position: absolute; bottom: -1px; left: 0; width: 100%; height: 2px; background: var(--gold-primary);
+}
+
+.tab-content { display: none; }
+.tab-content.active { display: block; animation: fadeIn 0.3s; }
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+/* FORM STYLES */
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
+
+.form-group { display: flex; flex-direction: column; gap: 0.5rem; }
+.form-group label { color: var(--text-muted); font-size: 0.9rem; }
+
+.form-group input, .form-group select {
+    background: var(--bg-dark);
+    border: 1px solid var(--border-color);
+    color: var(--text-white);
+    padding: 0.75rem;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: border-color 0.2s;
+}
+
+.form-group input:focus, .form-group select:focus {
+    outline: none; border-color: var(--gold-primary);
+}
+
+.disabled-input { opacity: 0.6; cursor: not-allowed; }
+
+.form-actions {
+    display: flex; justify-content: flex-end; align-items: center; gap: 1rem; margin-top: 1rem;
+}
+
+.btn-save {
+    background: var(--gold-primary); color: #0f172a; border: none; padding: 10px 25px; border-radius: 8px; font-weight: 600; cursor: pointer;
+    transition: 0.2s;
+}
+.btn-save:hover { background: #b5952f; transform: translateY(-2px); }
+
+.btn-outline-gold {
+    background: transparent; border: 1px solid var(--gold-primary); color: var(--gold-primary); padding: 10px 20px; border-radius: 8px; cursor: pointer;
+}
+.btn-outline-gold:hover { background: rgba(212, 175, 55, 0.1); }
+
+.save-msg { font-size: 0.9rem; }
+.save-msg.success { color: #22c55e; }
+.save-msg.error { color: #ef4444; }
+
+/* RESPONSIVE */
+@media (max-width: 900px) {
+    .profile-layout { grid-template-columns: 1fr; }
+    .profile-card { margin-bottom: 2rem; }
+}
+
+@media (max-width: 600px) {
+    .form-row { grid-template-columns: 1fr; }
+}
