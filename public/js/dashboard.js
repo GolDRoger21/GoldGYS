@@ -5,6 +5,11 @@ import { getUserProfile } from "./user-profile.js";
 // UI Elementleri
 const ui = {
     loader: document.getElementById("pageLoader"),
+    loaderSpinner: document.getElementById("loaderSpinner"),
+    loaderText: document.getElementById("loaderText"),
+    loaderSubText: document.getElementById("loaderSubText"),
+    authIcon: document.getElementById("authIcon"),
+    
     mainWrapper: document.getElementById("mainWrapper"),
     welcomeMsg: document.getElementById("welcomeMsg"),
     headerUserName: document.getElementById("headerUserName"),
@@ -18,66 +23,74 @@ const ui = {
     closeSidebar: document.getElementById("closeSidebar")
 };
 
-// Sayfa Yüklenince
 document.addEventListener("DOMContentLoaded", () => {
     initMobileMenu();
 });
 
-// 1. OTURUM VE YETKİ KONTROLÜ
+// 1. OTURUM KONTROLÜ
 onAuthStateChanged(auth, async (user) => {
     if (user) {
+        // --- KULLANICI GİRİŞ YAPMIŞSA ---
         console.log("Kullanıcı aktif:", user.uid);
         
+        // Loader'da "Veriler alınıyor..." diyebiliriz anlık geçiş için
+        if(ui.loaderText) ui.loaderText.textContent = "Verileriniz yükleniyor...";
+
         try {
-            // A. Profil Bilgilerini Çek
             const profile = await getUserProfile(user.uid);
             updateDashboardUI(user, profile);
 
-            // B. Admin/Editör Yetki Kontrolü
-            // Token'ı yenileyerek en güncel yetkileri al
             const tokenResult = await user.getIdTokenResult(true); 
             const claims = tokenResult.claims;
 
             if (claims.admin || claims.editor) {
-                console.log("Yönetici yetkisi algılandı.");
-                if (ui.adminMenuWrapper) {
-                    ui.adminMenuWrapper.style.display = "block";
-                }
+                if (ui.adminMenuWrapper) ui.adminMenuWrapper.style.display = "block";
             }
 
-            // C. Sayaç Başlat
             startCountdown();
-
-            // D. Yükleme Ekranını Kaldır, İçeriği Göster
             hideLoader();
 
         } catch (error) {
             console.error("Dashboard yükleme hatası:", error);
-            // Hata olsa bile kullanıcıyı içeride tut ama loader'ı kapat
             hideLoader();
         }
 
     } else {
-        // Kullanıcı giriş yapmamışsa Login'e at
-        console.warn("Oturum kapalı. Yönlendiriliyor...");
-        window.location.replace("/login.html");
+        // --- KULLANICI YOKSA (GELİŞMİŞ UYARI) ---
+        console.warn("Oturum kapalı. Yönlendirme süreci başlatıldı.");
+        
+        // 1. Spinner'ı gizle
+        if(ui.loaderSpinner) ui.loaderSpinner.style.display = "none";
+        
+        // 2. Kilit ikonunu göster
+        if(ui.authIcon) ui.authIcon.style.display = "block";
+
+        // 3. Mesajı güncelle
+        if(ui.loaderText) {
+            ui.loaderText.innerHTML = "Bu sayfayı görüntülemek için <br><strong>Üye Girişi</strong> yapmalısınız.";
+            ui.loaderText.style.color = "#ef4444"; // Kırmızımsı uyarı rengi
+        }
+        
+        if(ui.loaderSubText) {
+            ui.loaderSubText.style.display = "block"; // "Yönlendiriliyorsunuz" yazısını aç
+        }
+
+        // 4. Kısa bir süre mesajı okumasına izin verip yönlendir
+        setTimeout(() => {
+            window.location.replace("/login.html");
+        }, 2000); // 2 saniye bekle
     }
 });
 
-// Yardımcı: UI Güncelleme
 function updateDashboardUI(user, profile) {
-    // İsim Belirleme (Önce Profil, Sonra Google, Sonra Varsayılan)
     const name = profile?.ad || user.displayName || "Öğrenci";
     
-    // Header ve Karşılama Güncelle
     if(ui.welcomeMsg) ui.welcomeMsg.textContent = `Hoş geldin, ${name}`;
     if(ui.headerUserName) ui.headerUserName.textContent = name;
 
-    // Avatar Belirleme
-    let avatarUrl = user.photoURL; // Google fotosu
-    if (profile?.photoURL) avatarUrl = profile.photoURL; // Özel yüklenen foto
+    let avatarUrl = user.photoURL;
+    if (profile?.photoURL) avatarUrl = profile.photoURL;
     
-    // Avatar yoksa baş harflerden oluştur
     if (!avatarUrl) {
         avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=D4AF37&color=0F172A&bold=true`;
     }
@@ -85,38 +98,45 @@ function updateDashboardUI(user, profile) {
     if(ui.userAvatar) ui.userAvatar.src = avatarUrl;
 }
 
-// Yardımcı: Loader Gizle
 function hideLoader() {
-    if(ui.loader) ui.loader.style.display = "none";
-    if(ui.mainWrapper) {
-        ui.mainWrapper.style.display = "block";
+    if(ui.loader) {
+        ui.loader.style.opacity = "0";
         setTimeout(() => {
-            ui.mainWrapper.style.opacity = "1";
-        }, 50); // Fade-in efekti için minik gecikme
+            ui.loader.style.display = "none";
+            if(ui.mainWrapper) {
+                ui.mainWrapper.style.display = "block";
+                setTimeout(() => ui.mainWrapper.style.opacity = "1", 50);
+            }
+        }, 400); // CSS transition süresi kadar bekle
     }
 }
 
-// 2. ÇIKIŞ İŞLEMİ
+// 2. ÇIKIŞ YAPMA
 if (ui.logoutBtn) {
     ui.logoutBtn.addEventListener("click", async () => {
         if (confirm("Çıkış yapmak istediğinize emin misiniz?")) {
             try {
-                // Loader'ı tekrar aç (kullanıcı beklesin)
-                if(ui.loader) ui.loader.style.display = "flex";
+                // Loader'ı tekrar aç, mesaj ver
+                if(ui.loader) {
+                    ui.loader.style.display = "flex";
+                    ui.loader.style.opacity = "1";
+                    if(ui.loaderText) ui.loaderText.textContent = "Çıkış yapılıyor...";
+                    if(ui.loaderSpinner) ui.loaderSpinner.style.display = "block";
+                    if(ui.authIcon) ui.authIcon.style.display = "none";
+                    if(ui.loaderSubText) ui.loaderSubText.style.display = "none";
+                }
                 if(ui.mainWrapper) ui.mainWrapper.style.opacity = "0";
 
                 await signOut(auth);
                 window.location.replace("/login.html");
             } catch (error) {
                 console.error("Çıkış hatası:", error);
-                alert("Çıkış yapılırken bir hata oluştu.");
-                hideLoader(); // Hata olursa geri dön
+                hideLoader();
             }
         }
     });
 }
 
-// 3. MOBİL MENÜ MANTIĞI
 function initMobileMenu() {
     const toggleMenu = () => {
         if(ui.sidebar) ui.sidebar.classList.toggle("active");
@@ -128,23 +148,21 @@ function initMobileMenu() {
     if (ui.sidebarOverlay) ui.sidebarOverlay.addEventListener("click", toggleMenu);
 }
 
-// 4. SINAV GERİ SAYIM (Sabit Tarih: 1 Haziran 2026 - Örnek)
 function startCountdown() {
     if (!ui.countdown) return;
-    
     const examDate = new Date("2026-06-01T09:00:00").getTime();
     
-    const timer = setInterval(() => {
+    const updateTimer = () => {
         const now = new Date().getTime();
         const distance = examDate - now;
-
         if (distance < 0) {
-            clearInterval(timer);
             ui.countdown.textContent = "0";
             return;
         }
-
         const days = Math.floor(distance / (1000 * 60 * 60 * 24));
         ui.countdown.textContent = days;
-    }, 1000);
+    };
+    
+    updateTimer();
+    setInterval(updateTimer, 60000); // Dakikada bir güncelle
 }

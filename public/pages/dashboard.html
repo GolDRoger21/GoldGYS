@@ -12,35 +12,51 @@
     <link rel="stylesheet" href="../css/dashboard.css">
     
     <style>
-        /* Başlangıçta tüm ana içeriği gizle */
         #mainWrapper { display: none; opacity: 0; transition: opacity 0.4s ease; }
         
-        /* Loader Stilleri */
         #pageLoader {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #0f172a; z-index: 9999;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
+            text-align: center; padding: 20px;
         }
         .spinner {
-            width: 48px; height: 48px;
+            width: 50px; height: 50px;
             border: 4px solid rgba(212, 175, 55, 0.2);
             border-top: 4px solid #d4af37;
             border-radius: 50%;
             animation: spin 1s linear infinite;
+            margin-bottom: 20px;
         }
-        .loader-text { color: #94a3b8; margin-top: 16px; font-family: 'Inter', sans-serif; font-size: 0.9rem; }
+        /* Yeni: Yetkisiz giriş ikonu için stil */
+        .auth-warning-icon {
+            font-size: 3rem; margin-bottom: 15px; display: none;
+            animation: bounceIn 0.5s ease;
+        }
+        .loader-text { 
+            color: #e2e8f0; font-family: 'Inter', sans-serif; font-size: 1.1rem; 
+            max-width: 400px; line-height: 1.5;
+        }
+        .loader-subtext {
+            color: #94a3b8; font-size: 0.9rem; margin-top: 10px; display: none;
+        }
+        
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes bounceIn { 0% { transform: scale(0.3); opacity: 0; } 50% { transform: scale(1.05); } 70% { transform: scale(0.9); } 100% { transform: scale(1); opacity: 1; } }
     </style>
 </head>
 <body>
 
     <div id="pageLoader">
-        <div class="spinner"></div>
-        <div class="loader-text">Sistem kontrol ediliyor...</div>
+        <div class="spinner" id="loaderSpinner"></div>
+        
+        <div class="auth-warning-icon" id="authIcon">🔒</div>
+
+        <div class="loader-text" id="loaderText">GoldGYS Paneli Hazırlanıyor...</div>
+        <div class="loader-subtext" id="loaderSubText">Giriş sayfasına yönlendiriliyorsunuz...</div>
     </div>
 
     <div id="mainWrapper">
-        
         <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
         <aside class="sidebar" id="sidebar">
@@ -96,7 +112,6 @@
         </aside>
 
         <main class="main-content">
-            
             <header class="top-bar">
                 <div class="top-left">
                     <button class="menu-toggle" id="menuToggle">
@@ -104,15 +119,13 @@
                     </button>
                     <div class="page-title">Panel</div>
                 </div>
-                
-                <a href="/pages/profil.html" class="user-profile-widget" title="Profile Git">
-                    <span class="user-name" id="headerUserName">Öğrenci</span>
-                    <img src="https://ui-avatars.com/api/?name=O&background=D4AF37&color=0F172A" alt="Profil" id="userAvatar">
+                <a href="/pages/profil.html" class="user-profile-widget">
+                    <span class="user-name" id="headerUserName">...</span>
+                    <img src="https://ui-avatars.com/api/?name=User&background=D4AF37&color=0F172A" alt="Profil" id="userAvatar">
                 </a>
             </header>
 
             <div class="dashboard-container">
-                
                 <section class="welcome-section">
                     <div class="welcome-text">
                         <h1 id="welcomeMsg">Hoş geldin...</h1>
@@ -135,7 +148,6 @@
                             <span class="stat-value" id="successRateText">%0</span>
                         </div>
                     </div>
-
                     <div class="stat-card">
                         <div class="stat-icon blue">📝</div>
                         <div class="stat-info">
@@ -153,19 +165,7 @@
                         </div>
                     </div>
                 </section>
-
-                <section class="resume-section">
-                    <h2 class="section-title">Son Çalışman</h2>
-                    <div class="resume-card">
-                        <div class="resume-info">
-                            <span class="badge">Anayasa Hukuku</span>
-                            <h3>Temel Hak ve Hürriyetler</h3>
-                            <p>Test 3 • %45 Tamamlandı</p>
-                        </div>
-                        <button class="btn-resume" onclick="window.location.href='/pages/testler.html'">Devam Et →</button>
-                    </div>
-                </section>
-
+                
                 <section class="quick-access">
                     <h2 class="section-title">Hızlı İşlemler</h2>
                     <div class="quick-grid">
