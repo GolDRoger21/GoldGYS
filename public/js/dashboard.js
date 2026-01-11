@@ -1,4 +1,3 @@
-// public/js/dashboard.js
 import { auth } from "./firebase-config.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getUserProfile } from "./user-profile.js";
@@ -13,7 +12,9 @@ const ui = {
     menuToggle: document.getElementById("menuToggle"),
     closeSidebar: document.getElementById("closeSidebar"),
     examCountdown: document.querySelector(".exam-countdown .days"),
-    progressBars: document.querySelectorAll(".progress-bar")
+    progressBars: document.querySelectorAll(".progress-bar"),
+    // YENİ: Admin butonu
+    adminPanelBtn: document.getElementById("adminPanelBtn")
 };
 
 // Sayfa Yüklendiğinde
@@ -28,22 +29,37 @@ onAuthStateChanged(auth, async (user) => {
     if (user) {
         console.log("Kullanıcı giriş yaptı:", user.uid);
         
-        // Kullanıcı arayüzünü güncelle
+        // Arayüzü güncelle
         updateDashboardUI(user);
 
-        // Firestore'dan detaylı profil verisi çek (Opsiyonel, user-profile.js varsa)
+        // --- YENİ: Admin Yetki Kontrolü ---
+        try {
+            // Kullanıcının token bilgilerini (claims) zorla yenileyerek al
+            const tokenResult = await user.getIdTokenResult(true);
+            const claims = tokenResult.claims;
+
+            // Eğer admin veya editor ise butonu göster
+            if (claims.admin || claims.editor) {
+                if (ui.adminPanelBtn) {
+                    ui.adminPanelBtn.style.display = "flex";
+                }
+            }
+        } catch (err) {
+            console.error("Yetki kontrolü hatası:", err);
+        }
+        // ----------------------------------
+
+        // Firestore profil verisi (isim vs.)
         try {
             const profile = await getUserProfile(user.uid);
             if (profile && profile.ad) {
                 ui.welcomeMsg.textContent = `Hoş geldin, ${profile.ad}`;
             }
         } catch (error) {
-            console.log("Profil detayı çekilemedi, varsayılan kullanılıyor.");
+            console.log("Profil detayı çekilemedi.");
         }
 
     } else {
-        // Giriş yapmamışsa login sayfasına at
-        console.log("Kullanıcı oturumu kapalı, yönlendiriliyor...");
         window.location.href = "/login.html";
     }
 });
@@ -53,7 +69,6 @@ function updateDashboardUI(user) {
     const displayName = user.displayName || user.email?.split('@')[0] || "Öğrenci";
     ui.welcomeMsg.textContent = `Hoş geldin, ${displayName}`;
     
-    // Avatarı güncelle (Varsa Google fotosu, yoksa baş harfler)
     const avatarUrl = user.photoURL || `https://ui-avatars.com/api/?name=${displayName}&background=D4AF37&color=0F172A&bold=true`;
     if (ui.userAvatar) ui.userAvatar.src = avatarUrl;
 }
@@ -67,7 +82,6 @@ if (ui.logoutBtn) {
                 window.location.href = "/login.html";
             } catch (error) {
                 console.error("Çıkış hatası:", error);
-                alert("Çıkış yapılırken bir hata oluştu.");
             }
         }
     });
@@ -76,8 +90,8 @@ if (ui.logoutBtn) {
 // 4. Mobil Menü Mantığı
 function initMobileMenu() {
     const toggleMenu = () => {
-        ui.sidebar.classList.toggle("active");
-        ui.sidebarOverlay.classList.toggle("active");
+        if(ui.sidebar) ui.sidebar.classList.toggle("active");
+        if(ui.sidebarOverlay) ui.sidebarOverlay.classList.toggle("active");
     };
 
     if (ui.menuToggle) ui.menuToggle.addEventListener("click", toggleMenu);
@@ -85,22 +99,23 @@ function initMobileMenu() {
     if (ui.sidebarOverlay) ui.sidebarOverlay.addEventListener("click", toggleMenu);
 }
 
-// 5. Basit Animasyonlar (Progress Bar Dolumu)
+// 5. Animasyonlar
 function animateProgressBars() {
+    if(!ui.progressBars) return;
     ui.progressBars.forEach(bar => {
         const width = bar.style.width;
-        bar.style.width = "0"; // Önce sıfırla
+        bar.style.width = "0";
         setTimeout(() => {
             bar.style.transition = "width 1s ease-out";
-            bar.style.width = width; // Sonra hedef değere animasyonla git
+            bar.style.width = width;
         }, 300);
     });
 }
 
-// 6. Sınav Geri Sayım Sayacı (Örnek Tarih: 1 Haziran 2026)
+// 6. Geri Sayım
 function startCountdown() {
     if (!ui.examCountdown) return;
-    
+    // Hedef tarih
     const examDate = new Date("2026-06-01T09:00:00").getTime();
     
     const updateTimer = () => {
@@ -116,6 +131,5 @@ function startCountdown() {
         ui.examCountdown.textContent = days;
     };
 
-    updateTimer(); // İlk açılışta çalıştır
-    // setInterval(updateTimer, 86400000); // Her gün güncelle (Gerekirse)
+    updateTimer();
 }

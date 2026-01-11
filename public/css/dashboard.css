@@ -343,3 +343,23 @@ body {
     
     .stats-grid { grid-template-columns: 1fr; } /* Kartları alt alta diz */
 }
+
+/* --- Admin Butonu Özel Stili --- */
+.nav-item.admin-link {
+    background: linear-gradient(90deg, rgba(212, 175, 55, 0.1) 0%, transparent 100%);
+    border-left: 3px solid var(--gold-primary);
+    color: var(--gold-primary) !important;
+    margin-bottom: 1rem; /* Çıkış butonu ile arasına boşluk */
+    animation: pulse-gold 3s infinite;
+}
+
+.nav-item.admin-link:hover {
+    background: linear-gradient(90deg, rgba(212, 175, 55, 0.2) 0%, transparent 100%);
+    box-shadow: 0 0 15px rgba(212, 175, 55, 0.1);
+}
+
+@keyframes pulse-gold {
+    0% { text-shadow: 0 0 0 rgba(212, 175, 55, 0); }
+    50% { text-shadow: 0 0 10px rgba(212, 175, 55, 0.3); }
+    100% { text-shadow: 0 0 0 rgba(212, 175, 55, 0); }
+}
