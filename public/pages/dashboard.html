@@ -2,134 +2,152 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kontrol Paneli | GOLD GYS</title>
-    <!-- Doğru CSS yolu -->
-    <link rel="stylesheet" href="../css/app.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@900&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Panel | GOLD GYS</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="../css/dashboard.css">
+    
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230F172A'/><text x='50' y='70' font-family='serif' font-size='60' fill='%23D4AF37' text-anchor='middle' font-weight='bold'>G</text></svg>">
-
-    <style>
-        :root {
-            --sidebar-width: 260px;
-        }
-        .dashboard-layout {
-            display: flex;
-            min-height: 100vh;
-        }
-        .sidebar {
-            width: var(--sidebar-width);
-            background: var(--navy-deep);
-            color: var(--text-light);
-            padding: 24px;
-            display: flex;
-            flex-direction: column;
-        }
-        .sidebar .brand-logo {
-            font-family: 'Playfair Display', serif;
-            font-size: 1.8rem;
-            font-weight: 900;
-            text-align: center;
-            margin-bottom: 40px;
-        }
-        .sidebar-nav ul {
-            list-style: none; padding: 0; margin: 0; flex-grow: 1;}
-        .sidebar-nav a {
-            display: block; padding: 12px 16px; margin-bottom: 8px;
-            color: var(--text-muted);
-            text-decoration: none; border-radius: 8px; transition: all 0.3s ease;
-            font-weight: 500;
-        }
-        .sidebar-nav a:hover, .sidebar-nav a.active {
-            background-color: rgba(212, 175, 55, 0.1);
-            color: #F0D78D;
-        }
-
-        .main-content {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-        }
-        .dashboard-header {
-            display: flex; justify-content: flex-end; align-items: center;
-            padding: 16px 32px;
-            background: white;
-            border-bottom: 1px solid #E2E8F0;
-        }
-        .user-profile {
-            display: flex; align-items: center; gap: 12px;
-        }
-        .user-profile img {
-            width: 40px; height: 40px; border-radius: 50%;
-        }
-        #signOutBtn { cursor: pointer; background: var(--navy-light); color: white; border: none; padding: 8px 16px; border-radius: 6px; }
-
-        .dashboard-body {
-            padding: 32px;
-            background-color: #F8FAFC;
-            flex-grow: 1;
-        }
-    </style>
 </head>
-<body class="dashboard-layout">
+<body>
 
-    <aside class="sidebar">
-        <a href="/" class="brand-logo premium-gold-text">GOLD GYS</a>
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <a href="/pages/dashboard.html" class="brand-logo">GOLD <span>GYS</span></a>
+            <button class="close-sidebar-btn" id="closeSidebar">✕</button>
+        </div>
+
         <nav class="sidebar-nav">
-            <ul>
-                <li><a href="#" class="active">Ana Panel</a></li>
-                <li><a href="#">Deneme Sınavları</a></li>
-                <li><a href="#">Konu Testleri</a></li>
-                <li><a href="#">Performans Analizi</a></li>
-                <li><a href="#">Profilim</a></li>
-            </ul>
+            <a href="/pages/dashboard.html" class="nav-item active">
+                <span class="icon">🏠</span> Genel Bakış
+            </a>
+            <a href="/pages/konular.html" class="nav-item">
+                <span class="icon">📚</span> Konular & Dersler
+            </a>
+            <a href="/pages/testler.html" class="nav-item">
+                <span class="icon">📝</span> Çözümlü Testler
+            </a>
+            <a href="/pages/denemeler.html" class="nav-item">
+                <span class="icon">⚖️</span> Deneme Sınavları
+            </a>
+            <div class="nav-divider"></div>
+            <a href="/pages/yanlislarim.html" class="nav-item">
+                <span class="icon">⚠️</span> Yanlışlarım
+            </a>
+            <a href="/pages/favoriler.html" class="nav-item">
+                <span class="icon">⭐</span> Favori Sorular
+            </a>
+            <a href="/pages/analiz.html" class="nav-item">
+                <span class="icon">📊</span> Performans Analizi
+            </a>
         </nav>
-        <div>
-            <a href="/" style="color: var(--text-muted); font-size: 0.9rem; text-decoration:none;">← Ana Sayfaya Dön</a>
+
+        <div class="sidebar-footer">
+            <button id="logoutBtn" class="nav-item logout">
+                <span class="icon">🚪</span> Çıkış Yap
+            </button>
         </div>
     </aside>
 
-    <div class="main-content">
-        <header class="dashboard-header">
-            <div id="user-info" class="user-profile">
-                <!-- Kullanıcı bilgileri buraya gelecek -->
-                <button id="signOutBtn">Çıkış Yap</button>
+    <main class="main-content">
+        
+        <header class="top-bar">
+            <button class="menu-toggle" id="menuToggle">
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+            </button>
+            <div class="page-title">Panel</div>
+            <div class="user-profile-icon">
+                <img src="https://ui-avatars.com/api/?name=User&background=D4AF37&color=0F172A" alt="Profil" id="userAvatar">
             </div>
         </header>
-        <main class="dashboard-body">
-            <h1>Ana Panel</h1>
-            <p>Hoşgeldiniz! Burası sizin Gold GYS kontrol merkeziniz.</p>
-            <!-- İçerik buraya gelecek -->
-        </main>
-    </div>
 
-    <script type="module">
-        import { auth } from '../js/firebase-config.js';
-        import { onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        <div class="dashboard-container">
+            
+            <section class="welcome-section">
+                <div class="welcome-text">
+                    <h1 id="welcomeMsg">Hoş geldin, Öğrenci</h1>
+                    <p>Bugün hedeflerine bir adım daha yaklaşmaya hazır mısın?</p>
+                </div>
+                <div class="exam-countdown">
+                    <span class="days">142</span>
+                    <span class="label">Gün Kaldı</span>
+                </div>
+            </section>
 
-        const userInfo = document.getElementById('user-info');
-        const signOutBtn = document.getElementById('signOutBtn');
+            <section class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon gold">🎯</div>
+                    <div class="stat-info">
+                        <h3>Genel Başarı</h3>
+                        <div class="progress-bar-container">
+                            <div class="progress-bar" style="width: 65%"></div>
+                        </div>
+                        <span class="stat-value">%65</span>
+                    </div>
+                </div>
 
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                // Kullanıcı giriş yapmışsa
-                userInfo.innerHTML = `
-                    <img src="${user.photoURL || '../assets/default-avatar.png'}" alt="Profil Resmi">
-                    <span>${user.displayName || 'Kullanıcı'}</span>
-                    <button id="signOutBtn" class="btn btn-navy" style="padding: 8px 16px; border-radius: 8px;">Çıkış Yap</button>
-                `;
-                // Buton eventi yeniden atanmalı, çünkü innerHTML ile üzerine yazıldı
-                document.getElementById('signOutBtn').addEventListener('click', () => {
-                    signOut(auth).then(() => {
-                        window.location.href = '/';
-                    });
-                });
-            } else {
-                // Kullanıcı giriş yapmamışsa, login sayfasına yönlendir
-                window.location.href = '../login.html';
-            }
-        });
-    </script>
+                <div class="stat-card">
+                    <div class="stat-icon blue">📝</div>
+                    <div class="stat-info">
+                        <h3>Çözülen Soru</h3>
+                        <span class="stat-value">1,240</span>
+                    </div>
+                </div>
 
+                <div class="stat-card">
+                    <div class="stat-icon red">⚠️</div>
+                    <div class="stat-info">
+                        <h3>Yanlış Sayısı</h3>
+                        <span class="stat-value">142</span>
+                        <small>Tekrar etmelisin</small>
+                    </div>
+                </div>
+            </section>
+
+            <section class="resume-section">
+                <h2 class="section-title">Kaldığın Yerden Devam Et</h2>
+                <div class="resume-card">
+                    <div class="resume-info">
+                        <span class="badge">Anayasa Hukuku</span>
+                        <h3>Temel Hak ve Hürriyetler - Test 3</h3>
+                        <p>12/20 Soru çözüldü</p>
+                    </div>
+                    <button class="btn-resume">Devam Et →</button>
+                </div>
+            </section>
+
+            <section class="quick-access">
+                <h2 class="section-title">Hızlı Çalışma</h2>
+                <div class="quick-grid">
+                    <a href="/pages/testler.html" class="quick-card">
+                        <span class="q-icon">⚡</span>
+                        <span>Hızlı Test Oluştur</span>
+                    </a>
+                    <a href="/pages/deneme.html" class="quick-card">
+                        <span class="q-icon">⚖️</span>
+                        <span>Genel Deneme Başlat</span>
+                    </a>
+                    <a href="/pages/yanlislarim.html" class="quick-card">
+                        <span class="q-icon">🔄</span>
+                        <span>Yanlışlarımı Çöz</span>
+                    </a>
+                    <a href="/pages/konular.html" class="quick-card">
+                        <span class="q-icon">📖</span>
+                        <span>Konu Tekrarı</span>
+                    </a>
+                </div>
+            </section>
+
+        </div>
+    </main>
+    <script type="module" src="../js/dashboard.js"></script>
 </body>
 </html>
