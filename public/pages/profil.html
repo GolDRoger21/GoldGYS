@@ -10,22 +10,37 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
     
     <!-- Merkezi stiller yüklenecek -->
+    <link rel="stylesheet" href="/styles/tokens.css">
+    <link rel="stylesheet" href="/css/layout.css">
+    <link rel="stylesheet" href="/css/typography.css">
+    <link rel="stylesheet" href="/css/footer.css">
     <link rel="stylesheet" href="/css/app.css">
     <link rel="stylesheet" href="/css/profile.css">
     
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230F172A'/><text x='50' y='70' font-family='serif' font-size='60' fill='%23D4AF37' text-anchor='middle' font-weight='bold'>G</text></svg>">
 </head>
-<body>
+<body class="profile-page">
     <!-- Header, ui-loader.js tarafından bu alana yüklenecek -->
-    <div id="header-area"></div>
+    <div id="header-area" class="app-header"></div>
     
-    <div id="mainWrapper" class="main-content" style="display: block; opacity: 1;">
+    <main id="mainWrapper" class="main-content profile-main" style="display: block; opacity: 1;">
 
         <div class="dashboard-container">
+
+            <section class="profile-hero">
+                <div>
+                    <p class="eyebrow">Profil merkezi</p>
+                    <h1 class="heading-1">Profilim</h1>
+                    <p class="text-muted">Kişisel bilgilerinizi güncelleyin, hesabınızın durumunu takip edin ve güvenlik ayarlarınızı yönetin.</p>
+                </div>
+                <div class="hero-actions">
+                    <a class="btn-outline-gold" href="/pages/yardim.html">Destek Merkezi</a>
+                </div>
+            </section>
             
             <div class="profile-layout">
                 
-                <div class="profile-card">
+                <aside class="profile-card">
                     <div class="profile-header-bg"></div>
                     <div class="profile-avatar-wrapper">
                         <img src="" alt="Avatar" id="profileAvatarMain">
@@ -33,17 +48,23 @@
                     </div>
                     <h2 id="profileNameMain" class="profile-name">Yükleniyor...</h2>
                     <p id="profileRoleMain" class="profile-role">Kullanıcı</p>
-                    
+
                     <div class="profile-stats">
-                        <div class="p-stat"><span class="val">--</span><span class="lbl">Test</span></div>
-                        <div class="p-stat"><span class="val">--</span><span class="lbl">Deneme</span></div>
-                        <div class="p-stat"><span class="val">--</span><span class="lbl">Puan</span></div>
+                        <div class="p-stat"><span class="val">--</span><span class="lbl">Çalışma Saati</span></div>
+                        <div class="p-stat"><span class="val">--</span><span class="lbl">Tamamlanan</span></div>
+                        <div class="p-stat"><span class="val">--</span><span class="lbl">Ortalama</span></div>
                     </div>
 
                     <div class="membership-badge" id="membershipBadge">
                         <span>Paket:</span> <strong>Standart Üyelik</strong>
                     </div>
-                </div>
+
+                    <ul class="profile-meta">
+                        <li><span>Üyelik Durumu</span><strong>Aktif</strong></li>
+                        <li><span>Son Güncelleme</span><strong>--</strong></li>
+                        <li><span>Kayıt Tarihi</span><strong>--</strong></li>
+                    </ul>
+                </aside>
 
                 <div class="settings-container">
                     <div class="settings-tabs">
@@ -53,44 +74,88 @@
 
                     <div id="tab-personal" class="tab-content active">
                         <form id="profileForm" class="settings-form">
-                            <!-- Form içeriği aynı kalıyor -->
-                             <div class="form-row">
-                                <div class="form-group">
-                                    <label>Adınız</label>
-                                    <input type="text" id="inpAd" placeholder="Adınız">
+                            <div class="form-section">
+                                <div>
+                                    <h3>Kişisel Bilgiler</h3>
+                                    <p class="section-hint">Profilinizde görünmesini istediğiniz bilgileri güncel tutun.</p>
                                 </div>
-                                <div class="form-group">
-                                    <label>Soyadınız</label>
-                                    <input type="text" id="inpSoyad" placeholder="Soyadınız">
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label>Adınız</label>
+                                        <input type="text" id="inpAd" placeholder="Adınız">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Soyadınız</label>
+                                        <input type="text" id="inpSoyad" placeholder="Soyadınız">
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label>Ünvan / Rol</label>
+                                        <input type="text" id="inpTitle" placeholder="Örn: Öğrenci, Mezun, Eğitmen">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Hedef Sınav</label>
+                                        <input type="text" id="inpExam" list="examOptions" placeholder="YKS, LGS, KPSS...">
+                                        <datalist id="examOptions">
+                                            <option value="YKS">
+                                            <option value="LGS">
+                                            <option value="KPSS">
+                                            <option value="ALES">
+                                            <option value="DGS">
+                                        </datalist>
+                                    </div>
                                 </div>
                             </div>
 
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label>E-Posta (Değiştirilemez)</label>
-                                    <input type="email" id="inpEmail" disabled class="disabled-input">
+                            <div class="form-section">
+                                <div>
+                                    <h3>İletişim Bilgileri</h3>
+                                    <p class="section-hint">Hesabınızla ilgili bildirimler bu bilgiler üzerinden paylaşılır.</p>
                                 </div>
-                                <div class="form-group">
-                                    <label>Telefon</label>
-                                    <input type="tel" id="inpPhone" placeholder="0555...">
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label>E-Posta (Değiştirilemez)</label>
+                                        <input type="email" id="inpEmail" disabled class="disabled-input">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Telefon</label>
+                                        <input type="tel" id="inpPhone" placeholder="0555...">
+                                    </div>
                                 </div>
+                            </div>
+
+                            <div class="form-actions">
+                                <span id="saveMessage" class="save-msg" role="status" aria-live="polite"></span>
+                                <button type="submit" class="btn-save">Değişiklikleri Kaydet</button>
                             </div>
                         </form>
                     </div>
 
                     <div id="tab-security" class="tab-content">
-                        <div class="security-box">
-                            <h3>Şifre Yenileme</h3>
-                            <p>Güvenliğiniz için şifrenizi düzenli aralıklarla değiştirin. Şifre sıfırlama bağlantısı e-posta adresinize gönderilecektir.</p>
-                            <button id="btnResetPassword" class="btn-outline-gold">Şifre Sıfırlama E-postası Gönder</button>
+                        <div class="security-grid">
+                            <div class="security-box">
+                                <h3>Şifre Yenileme</h3>
+                                <p>Güvenliğiniz için şifrenizi düzenli aralıklarla değiştirin. Şifre sıfırlama bağlantısı e-posta adresinize gönderilecektir.</p>
+                                <button id="btnResetPassword" class="btn-outline-gold">Şifre Sıfırlama E-postası Gönder</button>
+                            </div>
+                            <div class="security-box subtle">
+                                <h3>Hesap Güvenliği</h3>
+                                <ul>
+                                    <li>Şifreniz en az 8 karakter olmalı.</li>
+                                    <li>Harici hesap paylaşımı güvenli değildir.</li>
+                                    <li>Şüpheli durumlarda destek ekibimizle iletişime geçin.</li>
+                                </ul>
+                                <a class="btn-link" href="/pages/yardim.html">Güvenlik rehberine git</a>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
+    </main>
     
-    <div id="footer-area"></div>
+    <div id="footer-area" class="app-footer"></div>
 
     <script type="module">
         import { initLayout } from '../js/ui-loader.js';
