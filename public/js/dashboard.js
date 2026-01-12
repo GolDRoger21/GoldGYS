@@ -20,52 +20,53 @@ const ui = {
     closeSidebar: document.getElementById("closeSidebar")
 };
 
-document.addEventListener("DOMContentLoaded", async () => {
-    // Layout (header/footer) ve global etkileşimler ui-loader tarafından yönetilecek.
-    // Bu fonksiyon header, auth durumu, profil bilgileri gibi her sayfada olan
-    // temel yapıyı kurar.
-    await initLayout('dashboard');
+document.addEventListener("DOMContentLoaded", () => {
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            // KULLANICI GİRİŞ YAPMIŞ
+            try {
+                // 1. Layout'u (header, sidebar) güvenle yükle
+                await initLayout('dashboard');
 
-    // initLayout'un header'ı yüklemesini bekledikten sonra, sayfaya özel
-    // mobil menü etkileşimini başlatabiliriz.
-    initMobileMenu();
-});
+                // 2. Sayfaya özel içeriği yükle
+                if(ui.loaderText) ui.loaderText.textContent = "Verileriniz yükleniyor...";
+                
+                const profile = await getUserProfile(user.uid);
+                
+                // Gövdeyi (Hoşgeldin mesajı) güncelle
+                if(ui.welcomeMsg) {
+                    const name = profile?.ad || user.displayName || "Kullanıcı";
+                    ui.welcomeMsg.textContent = `Hoş geldin, ${name}!`;
+                }
 
-onAuthStateChanged(auth, async (user) => {
-    if (user) {
-        // --- KULLANICI GİRİŞ YAPMIŞSA ---
-        // Header'daki kullanıcı bilgileri ui-loader.js tarafından güncelleniyor.
-        // Bu kısımda sadece Dashboard'un GÖVDESİ ile ilgili mantık kalmalı.
+                // Sayfaya özel diğer fonksiyonlar
+                startCountdown();
+                initMobileMenu(); // initLayout'tan sonra çalışmalı
 
-        if(ui.loaderText) ui.loaderText.textContent = "Verileriniz yükleniyor...";
+                // 3. Her şey hazır, yükleyiciyi gizle
+                hideLoader();
 
-        const profile = await getUserProfile(user.uid);
+            } catch (error) {
+                console.error("Dashboard yüklenirken bir hata oluştu:", error);
+                if(ui.loaderText) ui.loaderText.textContent = "Bir hata oluştu. Lütfen sayfayı yenileyin.";
+            }
 
-        // SADECE GÖVDE (Hoşgeldin mesajı) güncellemesi
-        if(ui.welcomeMsg) {
-             const name = profile?.ad || user.displayName || "Öğrenci";
-             ui.welcomeMsg.textContent = `Hoş geldin, ${name}`;
+        } else {
+            // KULLANICI GİRİŞ YAPMAMIŞ
+            console.warn("Oturum kapalı. Yönlendirme süreci başlatıldı.");
+            if(ui.loaderSpinner) ui.loaderSpinner.style.display = "none";
+            if(ui.authIcon) ui.authIcon.style.display = "block";
+            if(ui.loaderText) {
+                ui.loaderText.innerHTML = "Bu sayfayı görüntülemek için <br><strong>Üye Girişi</strong> yapmalısınız.";
+                ui.loaderText.style.color = "#ef4444";
+            }
+            if(ui.loaderSubText) ui.loaderSubText.style.display = "block";
+            
+            setTimeout(() => {
+                window.location.replace("/login.html");
+            }, 2500);
         }
-
-        // Dashboard'a özel sayaç ve yükleyiciyi gizleme işlemleri
-        startCountdown();
-        hideLoader();
-
-    } else {
-        // --- KULLANICI GİRİŞ YAPMAMIŞSA YÖNLENDİRME ---
-        // Bu mantık, ana içerik yüklenmeden kullanıcıya durumu bildirir.
-        console.warn("Oturum kapalı. Yönlendirme süreci başlatıldı.");
-        if(ui.loaderSpinner) ui.loaderSpinner.style.display = "none";
-        if(ui.authIcon) ui.authIcon.style.display = "block";
-        if(ui.loaderText) {
-            ui.loaderText.innerHTML = "Bu sayfayı görüntülemek için <br><strong>Üye Girişi</strong> yapmalısınız.";
-            ui.loaderText.style.color = "#ef4444";
-        }
-        if(ui.loaderSubText) ui.loaderSubText.style.display = "block";
-        setTimeout(() => {
-            window.location.replace("/login.html");
-        }, 2000);
-    }
+    });
 });
 
 function hideLoader() {
@@ -81,9 +82,7 @@ function hideLoader() {
     }
 }
 
-// Mobil menü (sidebar) dashboard'a özel olduğu için burada kalıyor.
 function initMobileMenu() {
-    // Header içindeki yeni toggle butonu
     const menuToggle = document.querySelector('[data-mobile-nav-toggle]');
 
     const toggleMenu = () => {
