@@ -19,9 +19,13 @@ export async function ensureUserDocument(user) {
             // Kullanıcı zaten var, son giriş tarihini güncelle
             const userData = userSnap.data();
             try {
-                await updateDoc(userRef, {
+                const updatePayload = {
                     lastLoginAt: serverTimestamp()
-                });
+                };
+                if (user.photoURL && user.photoURL !== userData.photoURL) {
+                    updatePayload.photoURL = user.photoURL;
+                }
+                await updateDoc(userRef, updatePayload);
             } catch (e) {
                 console.warn("Son giriş tarihi güncellenemedi, önemsiz.", e);
             }

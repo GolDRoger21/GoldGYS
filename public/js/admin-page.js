@@ -27,19 +27,33 @@ document.addEventListener("DOMContentLoaded", async () => {
         // 3. Header Profil Bilgilerini Güncelle
         if (user) {
             const displayName = user.displayName || user.email?.split('@')[0] || 'Kullanıcı';
-            const initial = displayName.charAt(0).toUpperCase();
+            const initials = getInitials(displayName, user.email);
+            const photoUrl = user.photoURL || null;
 
             const headerName = document.getElementById('headerUserName');
             const dropdownName = document.getElementById('dropdownUserName');
             const dropdownEmail = document.getElementById('dropdownUserEmail');
             const headerAvatarInitial = document.getElementById('headerAvatarInitial');
             const dropdownAvatarInitial = document.getElementById('dropdownAvatarInitial');
+            const avatarCircles = document.querySelectorAll('.user-avatar-circle');
 
-            if (headerName) headerName.textContent = displayName;
-            if (dropdownName) dropdownName.textContent = displayName;
+            if (headerName) headerName.textContent = initials;
+            if (dropdownName) dropdownName.textContent = initials;
             if (dropdownEmail) dropdownEmail.textContent = user.email || '';
-            if (headerAvatarInitial) headerAvatarInitial.textContent = initial;
-            if (dropdownAvatarInitial) dropdownAvatarInitial.textContent = initial;
+            if (headerAvatarInitial) headerAvatarInitial.textContent = initials;
+            if (dropdownAvatarInitial) dropdownAvatarInitial.textContent = initials;
+
+            avatarCircles.forEach(circle => {
+                const img = circle.querySelector('.user-avatar-image');
+                if (img && photoUrl) {
+                    img.src = photoUrl;
+                    img.alt = `${displayName} profil fotoğrafı`;
+                    circle.classList.add('has-photo');
+                } else if (img) {
+                    img.removeAttribute('src');
+                    circle.classList.remove('has-photo');
+                }
+            });
         }
 
         // 4. Sekme Sistemi ve Global Fonksiyonlar
@@ -133,4 +147,16 @@ function initAdminMenu() {
             }
         }
     });
+}
+
+function getInitials(name, emailFallback) {
+    const base = name?.trim() || emailFallback?.split('@')[0] || '';
+    const parts = base.split(/\s+/).filter(Boolean);
+    if (parts.length >= 2) {
+        return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+    }
+    if (parts.length === 1) {
+        return parts[0][0]?.toUpperCase() || '?';
+    }
+    return '?';
 }
