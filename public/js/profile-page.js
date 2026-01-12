@@ -2,7 +2,7 @@
 import { auth, db } from "./firebase-config.js";
 import { sendPasswordResetEmail, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { doc, updateDoc, collection, getDocs, query } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { getUserProfile, updateUserCache } from "./user-profile.js"; // YENİ IMPORT
+import { getUserProfile, updateUserCache } from "./user-profile.js";
 
 const dom = {
     avatarImg: document.getElementById("profileAvatarMain"),
@@ -30,7 +30,6 @@ const dom = {
 export function initProfilePage() {
     onAuthStateChanged(auth, async (user) => {
         if (user) {
-            console.log("Profil sayfası: Oturum doğrulandı.", user.uid);
             initTabs();
             await loadFullProfile(user);
             if(dom.form) {
@@ -43,7 +42,6 @@ export function initProfilePage() {
                 dom.btnReset.addEventListener("click", () => handlePasswordReset(user.email));
             }
         } else {
-            console.warn("Profil sayfası: Oturum bulunamadı, yönlendiriliyor...");
             window.location.href = "/login.html";
         }
     });
@@ -52,9 +50,6 @@ export function initProfilePage() {
 async function loadFullProfile(user) {
     if(dom.inpEmail) dom.inpEmail.value = user.email;
     
-    const defaultAvatar = user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.email)}&background=D4AF37&color=000&bold=true`;
-    if(dom.avatarImg) dom.avatarImg.src = defaultAvatar;
-
     try {
         const userData = await getUserProfile(user.uid);
         if (userData) {
@@ -64,7 +59,8 @@ async function loadFullProfile(user) {
             if(dom.inpTitle) dom.inpTitle.value = userData.title || "";
             if(dom.inpExam) dom.inpExam.value = userData.targetExam || "";
             
-            updateInfoCard(userData);
+            // Bilgi kartını hem Firestore verisi hem de Auth verisi ile güncelle
+            updateInfoCard(userData, user);
         }
 
         await calculateUserStats(user.uid);
@@ -102,11 +98,36 @@ async function calculateUserStats(uid) {
     }
 }
 
-function updateInfoCard(data) {
+function updateInfoCard(data, user) {
+    // İsim Soyisim: Önce Firestore, yoksa Auth verisi (Google Adı), o da yoksa varsayılan.
     const fullName = `${data.ad || ''} ${data.soyad || ''}`.trim();
-    if(dom.nameText) dom.nameText.textContent = fullName || "İsimsiz Kullanıcı";
-    if(dom.roleText) dom.roleText.textContent = data.title || "Üye";
+    if(dom.nameText) dom.nameText.textContent = fullName || user.displayName || "İsimsiz Kullanıcı";
+
+    // Rol: Firestore'daki 'role' alanını Türkçe'ye çevirerek göster.
+    let roleDisplay = "Öğrenci"; // Varsayılan
+    if (data.role) {
+        switch (data.role) {
+            case 'admin':
+                roleDisplay = "Yönetici";
+                break;
+            case 'editor':
+                roleDisplay = "Editör";
+                break;
+            case 'user':
+                roleDisplay = "Öğrenci";
+                break;
+            default:
+                roleDisplay = "Üye"; // Beklenmedik bir role karşı
+        }
+    }
+    if(dom.roleText) dom.roleText.textContent = roleDisplay;
+    
+    // Hedef Sınav
     if(dom.displayTarget) dom.displayTarget.textContent = data.targetExam || "Belirtilmedi";
+    
+    // Avatar: Önce Firestore, yoksa Auth verisi (Google Resmi), o da yoksa varsayılan.
+    const avatarUrl = data.photoURL || user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName || user.displayName)}&background=D4AF37&color=000&bold=true`;
+    if(dom.avatarImg) dom.avatarImg.src = avatarUrl;
 }
 
 async function saveProfile(uid) {
@@ -126,16 +147,18 @@ async function saveProfile(uid) {
             updatedAt: new Date() // Firestore bunu Timestamp yapar
         };
 
-        // 1. Veritabanını Güncelle
         await updateDoc(doc(db, "users", uid), updatePayload);
         
-        // 2. Önbelleği (Cache) Güncelle - KRİTİK ADIM
         updateUserCache(uid, {
             ...updatePayload,
             updatedAt: new Date().toISOString() // Cache için string formatı
         });
         
-        updateInfoCard(updatePayload);
+        // Kartı en yeni bilgilerle tekrar güncelle
+        const user = auth.currentUser;
+        const updatedDataFromCache = await getUserProfile(user.uid);
+        updateInfoCard(updatedDataFromCache, user);
+
         if(dom.saveMessage) {
             dom.saveMessage.textContent = "✓ Başarıyla kaydedildi";
             dom.saveMessage.style.color = "var(--color-success)";
