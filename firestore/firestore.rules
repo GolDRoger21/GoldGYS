@@ -40,11 +40,14 @@ service cloud.firestore {
       
       // Güncelleme: 
       // Admin her şeyi güncelleyebilir.
-      // Kullanıcı sadece profil resmi ve adını güncelleyebilir (statüsünü veya rolünü DEĞİŞTİREMEZ).
-      allow update: if isAdmin() || (
-                      isSelf(uid) && 
-                      request.resource.data.diff(resource.data).affectedKeys().hasOnly(['displayName', 'photoURL', 'email', 'lastLoginAt'])
-                    );
+      // Kullanıcı sadece profil resmi ve adını güncelleyebilir.
+      // updatedAt alanına da izin veriyoruz ki timestamp güncellemeleri patlamasın.
+      allow update: if isAdmin() ||
+        (
+          isSelf(uid) && 
+          request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly(['displayName', 'photoURL', 'email', 'lastLoginAt', 'updatedAt'])
+        );
       
       allow delete: if isAdmin();
       

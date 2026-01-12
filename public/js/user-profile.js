@@ -1,7 +1,50 @@
 import { db } from "./firebase-config.js";
 import { doc, getDoc, setDoc, serverTimestamp, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// ... (ensureUserDocument fonksiyonu aynen kalabilir)
+/**
+ * Kullanıcı veritabanında var mı kontrol eder, yoksa oluşturur.
+ * Varsa son giriş zamanını ve Google bilgilerini günceller.
+ */
+export async function ensureUserDocument(user) {
+    if (!user) throw new Error("Kullanıcı bilgisi bulunamadı");
+
+    const userRef = doc(db, "users", user.uid);
+    
+    try {
+        const userSnap = await getDoc(userRef);
+
+        if (userSnap.exists()) {
+            // Kullanıcı varsa: Sadece izin verilen alanları güncelle
+            // Firestore kuralları: displayName, photoURL, email, lastLoginAt
+            await updateDoc(userRef, {
+                lastLoginAt: serverTimestamp(),
+                displayName: user.displayName || null,
+                photoURL: user.photoURL || null,
+                email: user.email || null
+            });
+            return userSnap.data();
+        } else {
+            // Kullanıcı yoksa: Yeni kayıt oluştur (Varsayılan: role='user', status='pending')
+            const newUserData = {
+                uid: user.uid,
+                email: user.email || null,
+                displayName: user.displayName || null,
+                photoURL: user.photoURL || null,
+                role: 'user',        // Zorunlu (Rules)
+                status: 'pending',   // Zorunlu (Rules)
+                createdAt: serverTimestamp(),
+                lastLoginAt: serverTimestamp(),
+                updatedAt: serverTimestamp()
+            };
+            
+            await setDoc(userRef, newUserData);
+            return newUserData;
+        }
+    } catch (error) {
+        console.error("ensureUserDocument hatası:", error);
+        throw error;
+    }
+}
 
 /**
  * Kullanıcı profilini getirir.
