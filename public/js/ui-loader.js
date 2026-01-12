@@ -6,10 +6,11 @@ const dom = {};
 
 export async function initLayout(activePageId, pageTitle = 'Genel Bakış') {
     try {
+        // DÜZELTİLMİŞ YÜKLEME MANTIĞI
         await Promise.all([
-            // Sidebar'ı mainWrapper içine ekle (önceden sidebar overlay ile birlikte)
-            loadHTML('/partials/sidebar.html', 'mainWrapper', 'prepend'),
-            // Header'ı main-content içine başa ekle
+            // Sidebar içeriğini, HTML'deki mevcut #sidebar elementinin içine yükle.
+            loadHTML('/partials/sidebar.html', 'sidebar', 'innerHTML'),
+            // Header'ı main-content'in başına ekle.
             loadHTML('/partials/app-header.html', 'main-content', 'prepend')
         ]);
 
@@ -54,7 +55,6 @@ function cacheDomElements() {
     dom.userMenuToggle = document.getElementById('userMenuToggle');
     dom.profileDropdown = document.getElementById('profileDropdown');
     dom.logoutButton = document.getElementById('logoutButton');
-    // Sidebar içindeki logout butonu (partial'dan geliyor olabilir)
     dom.sidebarLogoutBtn = document.querySelector('.sidebar .btn-logout');
 }
 
@@ -67,7 +67,6 @@ function setActiveMenuItem(activePageId) {
 function setupEventListeners() {
     // Mobile Menu
     if (dom.mobileMenuToggle && dom.sidebarOverlay) {
-        // Event listener duplication önlemek için
         const newBtn = dom.mobileMenuToggle.cloneNode(true);
         dom.mobileMenuToggle.parentNode.replaceChild(newBtn, dom.mobileMenuToggle);
         dom.mobileMenuToggle = newBtn;
@@ -115,9 +114,7 @@ async function checkUserAuthState() {
         if (user) {
             try {
                 const profile = await getUserProfile(user.uid);
-                // UI güncellemesi
                 updateUIAfterLogin(user, profile || {});
-                // Rol kontrolü
                 checkUserRole(profile?.role || 'student');
             } catch (e) {
                 console.error("User profile error:", e);
@@ -131,25 +128,19 @@ async function checkUserAuthState() {
 }
 
 function updateUIAfterLogin(user, profile) {
-    // İsim: DB > Auth > Varsayılan
     const name = (profile.ad ? `${profile.ad} ${profile.soyad}` : user.displayName) || "Kullanıcı";
     const role = translateRole(profile.role);
     const photo = profile.photoURL || user.photoURL;
     const init = name.charAt(0).toUpperCase();
 
-    // DOM Elementlerini Anlık Seç (Cache'e güvenme, dinamik yükleniyor)
     const els = {
         name: document.getElementById('userNameLabel'),
         role: document.getElementById('userRoleLabel'),
         dropName: document.getElementById('dropdownUserName'),
         dropEmail: document.getElementById('dropdownUserEmail'),
-        
-        // Avatar Header
         avCirc: document.getElementById('userAvatarCircle'),
         avImg: document.getElementById('userAvatarImage'),
         avInit: document.getElementById('userAvatarInitial'),
-        
-        // Avatar Dropdown
         dropCirc: document.getElementById('dropdownAvatarCircle'),
         dropImg: document.getElementById('dropdownAvatarImage'),
         dropInit: document.getElementById('dropdownAvatarInitial')
@@ -160,7 +151,6 @@ function updateUIAfterLogin(user, profile) {
     if(els.dropName) els.dropName.textContent = name;
     if(els.dropEmail) els.dropEmail.textContent = user.email;
 
-    // Avatar Helper
     const setAv = (circ, img, txt) => {
         if(!circ || !img || !txt) return;
         if(photo) {
@@ -183,7 +173,7 @@ function updateUIAfterLogin(user, profile) {
 function checkUserRole(role) {
     if(role === 'admin' || role === 'editor') {
         document.querySelectorAll('.admin-only').forEach(el => {
-            el.style.display = 'flex'; // 'block' yerine 'flex' genelde menüler için daha iyidir
+            el.style.display = 'flex'; 
             el.classList.remove('hidden');
         });
     }
