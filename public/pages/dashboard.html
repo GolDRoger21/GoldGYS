@@ -9,6 +9,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
     
+    <link rel="stylesheet" href="../css/layout.css">
     <link rel="stylesheet" href="../css/dashboard.css">
     
     <style>
@@ -119,10 +120,40 @@
                     </button>
                     <div class="page-title">Panel</div>
                 </div>
-                <a href="/pages/profil.html" class="user-profile-widget">
-                    <span class="user-name" id="headerUserName">...</span>
-                    <img src="https://ui-avatars.com/api/?name=User&background=D4AF37&color=0F172A" alt="Profil" id="userAvatar">
-                </a>
+                <div class="user-menu-container">
+                    <button class="user-menu-toggle icon-button user-avatar-btn" aria-label="Profil Menüsü">
+                        <span class="user-menu-label">
+                            <span class="user-name" id="headerUserName">...</span>
+                            <span class="user-menu-subtitle">Hesabım</span>
+                        </span>
+                        <div class="user-avatar-circle">
+                            <span class="user-avatar-initial">?</span>
+                        </div>
+                    </button>
+                    <div class="profile-dropdown">
+                        <div class="dropdown-header">
+                            <div class="user-avatar-circle large">
+                                <span class="user-avatar-initial">?</span>
+                            </div>
+                            <div class="user-info">
+                                <span class="user-name">Yükleniyor...</span>
+                                <span class="user-email">...</span>
+                            </div>
+                        </div>
+                        <div class="dropdown-content">
+                            <a href="/pages/profil.html" class="dropdown-item">
+                                <span>👤</span> Profilim
+                            </a>
+                            <a href="/pages/yardim.html" class="dropdown-item">
+                                <span>❓</span> Yardım
+                            </a>
+                            <div class="dropdown-separator"></div>
+                            <button id="logout-btn" class="dropdown-item text-danger">
+                                <span>🚪</span> Çıkış Yap
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </header>
 
             <div class="dashboard-container">

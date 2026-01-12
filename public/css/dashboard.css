@@ -110,6 +110,52 @@ body {
     padding: 0 1.5rem; position: sticky; top: 0; z-index: 900;
 }
 
+.top-bar .user-menu-toggle {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.top-bar .user-menu-label .user-name {
+    color: var(--text-white);
+}
+
+.top-bar .user-menu-subtitle {
+    color: var(--text-muted);
+}
+
+.top-bar .profile-dropdown {
+    background: var(--bg-panel);
+    border-color: var(--border-color);
+}
+
+.top-bar .dropdown-header {
+    background: rgba(15, 23, 42, 0.9);
+}
+
+.top-bar .dropdown-header .user-name {
+    color: var(--text-white);
+}
+
+.top-bar .dropdown-header .user-email {
+    color: var(--text-muted);
+}
+
+.top-bar .dropdown-item {
+    color: var(--text-white);
+}
+
+.top-bar .dropdown-item:hover {
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.top-bar .dropdown-separator {
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.top-bar .dropdown-item.text-danger:hover {
+    background: rgba(239, 68, 68, 0.12);
+}
+
 .menu-toggle {
     display: none; background: none; border: none; cursor: pointer; flex-direction: column; gap: 5px; padding: 5px;
 }
