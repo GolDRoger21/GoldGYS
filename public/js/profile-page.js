@@ -1,10 +1,10 @@
+
 import { auth, db } from "./firebase-config.js";
-import { sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { sendPasswordResetEmail, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js"; // onAuthStateChanged eklendi
 import { doc, updateDoc, collection, getDocs, query } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { getUserProfile } from "./user-profile.js";
 
 const dom = {
-    // Yeni HTML yapısına uygun ID'ler
     avatarImg: document.getElementById("profileAvatarMain"),
     nameText: document.getElementById("profileNameMain"),
     roleText: document.getElementById("profileRoleMain"),
@@ -12,7 +12,6 @@ const dom = {
     statScore: document.getElementById("statScore"),
     displayTarget: document.getElementById("displayTarget"),
     
-    // Form elemanları
     inpAd: document.getElementById("inpAd"),
     inpSoyad: document.getElementById("inpSoyad"),
     inpEmail: document.getElementById("inpEmail"),
@@ -28,55 +27,59 @@ const dom = {
     tabBodies: document.querySelectorAll(".tab-body")
 };
 
-export async function initProfilePage() {
-    const user = auth.currentUser;
-    if (!user) {
-        // Oturum yoksa dashboard login check zaten yönlendirir ama güvenlik önlemi
-        window.location.href = "/login.html";
-        return;
-    }
+// ========== DEĞİŞİKLİK BURADA BAŞLIYOR ==========
+export function initProfilePage() {
+    // onAuthStateChanged ile oturum durumunu dinliyoruz (Bekleme yapısı)
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            // Kullanıcı giriş yapmış ve oturum yüklenmiş
+            console.log("Profil sayfası: Oturum doğrulandı.", user.uid);
+            
+            // Tab Eventlerini Başlat
+            initTabs();
 
-    // Tab Eventlerini Başlat
-    initTabs();
+            // Verileri Yükle
+            await loadFullProfile(user);
+            
+            // Form Dinleyicisi
+            if(dom.form) {
+                dom.form.addEventListener("submit", (e) => {
+                    e.preventDefault();
+                    saveProfile(user.uid);
+                });
+            }
 
-    // Verileri Yükle
-    await loadFullProfile(user);
-    
-    // Form Dinleyicisi
-    if(dom.form) {
-        dom.form.addEventListener("submit", (e) => {
-            e.preventDefault();
-            saveProfile(user.uid);
-        });
-    }
-
-    // Şifre Sıfırlama Dinleyicisi
-    if(dom.btnReset) {
-        dom.btnReset.addEventListener("click", () => handlePasswordReset(user.email));
-    }
+            // Şifre Sıfırlama Dinleyicisi
+            if(dom.btnReset) {
+                dom.btnReset.addEventListener("click", () => handlePasswordReset(user.email));
+            }
+        } else {
+            // Oturum yok, doğru login sayfasına yönlendir
+            console.warn("Profil sayfası: Oturum bulunamadı, yönlendiriliyor...");
+            window.location.href = "/login.html"; // [DÜZELTME: /public/login.html -> /login.html]
+        }
+    });
 }
+// ========== DEĞİŞİKLİK SONA ERDİ ==========
 
 async function loadFullProfile(user) {
-    // 1. Auth verileri
-    dom.inpEmail.value = user.email;
+    if(dom.inpEmail) dom.inpEmail.value = user.email;
+    
     const defaultAvatar = user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.email)}&background=D4AF37&color=000&bold=true`;
     if(dom.avatarImg) dom.avatarImg.src = defaultAvatar;
 
-    // 2. Firestore Kullanıcı Dokümanı
     try {
         const userData = await getUserProfile(user.uid);
         if (userData) {
-            dom.inpAd.value = userData.ad || "";
-            dom.inpSoyad.value = userData.soyad || "";
-            dom.inpPhone.value = userData.phone || "";
-            dom.inpTitle.value = userData.title || "";
-            dom.inpExam.value = userData.targetExam || "";
+            if(dom.inpAd) dom.inpAd.value = userData.ad || "";
+            if(dom.inpSoyad) dom.inpSoyad.value = userData.soyad || "";
+            if(dom.inpPhone) dom.inpPhone.value = userData.phone || "";
+            if(dom.inpTitle) dom.inpTitle.value = userData.title || "";
+            if(dom.inpExam) dom.inpExam.value = userData.targetExam || "";
             
-            // Kart Bilgileri Güncelle
             updateInfoCard(userData);
         }
 
-        // 3. İstatistikleri Hesapla (users/{uid}/progress koleksiyonundan)
         await calculateUserStats(user.uid);
 
     } catch (error) {
@@ -86,7 +89,6 @@ async function loadFullProfile(user) {
 
 async function calculateUserStats(uid) {
     try {
-        // Data model: users/{uid}/progress -> { completedTests: number, scoreAvg: number }
         const q = query(collection(db, `users/${uid}/progress`));
         const querySnapshot = await getDocs(q);
         
@@ -96,10 +98,12 @@ async function calculateUserStats(uid) {
 
         querySnapshot.forEach((doc) => {
             const data = doc.data();
-            if (data.completedTests) totalTests += 1; // veya data.completedTests sayısını topla
-            if (data.scoreAvg) {
-                totalScoreSum += data.scoreAvg;
+            // Test yapısına göre data.completedTests veya doküman sayısı
+            // Burada basitçe her dokümanı bir kayıt sayıyoruz veya içerideki sayacı alıyoruz
+            if (data.scoreAvg !== undefined) {
+                totalScoreSum += Number(data.scoreAvg);
                 scoreCount++;
+                totalTests++; 
             }
         });
 
@@ -109,7 +113,7 @@ async function calculateUserStats(uid) {
         if(dom.statScore) dom.statScore.textContent = avg;
 
     } catch (error) {
-        console.warn("İstatistikler hesaplanamadı:", error);
+        console.warn("İstatistikler hesaplanamadı (koleksiyon boş olabilir):", error);
     }
 }
 
@@ -125,7 +129,7 @@ async function saveProfile(uid) {
     const originalText = btn.textContent;
     btn.disabled = true;
     btn.textContent = "Kaydediliyor...";
-    dom.saveMessage.textContent = "";
+    if(dom.saveMessage) dom.saveMessage.textContent = "";
 
     try {
         const updatePayload = {
@@ -139,15 +143,18 @@ async function saveProfile(uid) {
 
         await updateDoc(doc(db, "users", uid), updatePayload);
         
-        // UI Güncelle
         updateInfoCard(updatePayload);
-        dom.saveMessage.textContent = "✓ Başarıyla kaydedildi";
-        dom.saveMessage.style.color = "var(--color-success)";
+        if(dom.saveMessage) {
+            dom.saveMessage.textContent = "✓ Başarıyla kaydedildi";
+            dom.saveMessage.style.color = "var(--color-success)";
+        }
 
     } catch (error) {
         console.error(error);
-        dom.saveMessage.textContent = "Hata: " + error.message;
-        dom.saveMessage.style.color = "var(--color-danger)";
+        if(dom.saveMessage) {
+            dom.saveMessage.textContent = "Hata: " + error.message;
+            dom.saveMessage.style.color = "var(--color-danger)";
+        }
     } finally {
         btn.disabled = false;
         btn.textContent = originalText;
@@ -164,13 +171,12 @@ function handlePasswordReset(email) {
 }
 
 function initTabs() {
+    if(!dom.tabs) return;
     dom.tabs.forEach(btn => {
         btn.addEventListener("click", () => {
-            // Aktif tab butonunu değiştir
             dom.tabs.forEach(t => t.classList.remove("active"));
             btn.classList.add("active");
             
-            // İçeriği değiştir
             const target = btn.dataset.tab;
             dom.tabBodies.forEach(body => {
                 body.classList.remove("active");
