@@ -235,6 +235,52 @@ body {
     z-index: 100;
 }
 
+.top-header .user-menu-toggle {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.top-header .user-menu-label .user-name {
+    color: var(--text-white);
+}
+
+.top-header .user-menu-subtitle {
+    color: var(--text-muted);
+}
+
+.top-header .profile-dropdown {
+    background: var(--bg-panel);
+    border-color: var(--border-color);
+}
+
+.top-header .dropdown-header {
+    background: rgba(15, 23, 42, 0.9);
+}
+
+.top-header .dropdown-header .user-name {
+    color: var(--text-white);
+}
+
+.top-header .dropdown-header .user-email {
+    color: var(--text-muted);
+}
+
+.top-header .dropdown-item {
+    color: var(--text-white);
+}
+
+.top-header .dropdown-item:hover {
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.top-header .dropdown-separator {
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.top-header .dropdown-item.text-danger:hover {
+    background: rgba(239, 68, 68, 0.12);
+}
+
 .user-info {
     display: flex;
     align-items: center;

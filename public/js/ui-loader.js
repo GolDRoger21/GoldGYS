@@ -78,13 +78,41 @@ export async function initLayout(pageKey) {
 }
 
 function updateUserInfo(profile, user) {
-    const displayName = profile?.ad || profile?.displayName || user.email?.split('@')[0] || 'Kullanıcı';
-    const initial = displayName.charAt(0).toUpperCase();
+    const fullName = [profile?.ad, profile?.soyad].filter(Boolean).join(' ').trim()
+        || profile?.displayName
+        || user.displayName
+        || user.email?.split('@')[0]
+        || 'Kullanıcı';
+    const initials = getInitials(fullName, user.email);
     const email = user.email;
+    const photoUrl = profile?.photoURL || user.photoURL || null;
 
-    document.querySelectorAll('.user-name').forEach(el => el.textContent = displayName);
-    document.querySelectorAll('.user-email').forEach(el => el.textContent = email);
-    document.querySelectorAll('.user-avatar-initial').forEach(el => el.textContent = initial);
+    document.querySelectorAll('.user-name').forEach(el => el.textContent = initials);
+    document.querySelectorAll('.user-email').forEach(el => el.textContent = email || '');
+    document.querySelectorAll('.user-avatar-initial').forEach(el => el.textContent = initials);
+    document.querySelectorAll('.user-avatar-circle').forEach(circle => {
+        const img = circle.querySelector('.user-avatar-image');
+        if (img && photoUrl) {
+            img.src = photoUrl;
+            img.alt = `${fullName} profil fotoğrafı`;
+            circle.classList.add('has-photo');
+        } else if (img) {
+            img.removeAttribute('src');
+            circle.classList.remove('has-photo');
+        }
+    });
+}
+
+function getInitials(name, emailFallback) {
+    const base = name?.trim() || emailFallback?.split('@')[0] || '';
+    const parts = base.split(/\s+/).filter(Boolean);
+    if (parts.length >= 2) {
+        return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+    }
+    if (parts.length === 1) {
+        return parts[0][0]?.toUpperCase() || '?';
+    }
+    return '?';
 }
 
 function setupAppInteractions() {
