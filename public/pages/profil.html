@@ -153,9 +153,38 @@
         </main>
     </div>
 
-    <script type="module" src="/js/dashboard.js"></script> <script type="module">
-        import { initProfilePage } from '/js/profile-page.js';
-        document.addEventListener('DOMContentLoaded', initProfilePage);
+    <script type="module">
+        import { initLayout } from '../js/ui-loader.js';
+        import { initProfilePage } from '../js/profile-page.js';
+        import { auth } from '../js/firebase-config.js'; // Auth ve Gözlemciyi ekliyoruz
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            // Firebase'in "Oturum açıldı mı?" cevabını BEKLEYEN özel kilit
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    // Kullanıcı KESİN var, artık layout'u güvenle yükleyebiliriz
+                    console.log("Profil: Kullanıcı doğrulandı, sayfa yükleniyor...");
+                    
+                    try {
+                        // initLayout içindeki olası senkron kontrolleri artık "true" dönecektir
+                        await initLayout('profil'); 
+                        
+                        // Şimdi profil verilerini çekelim
+                        initProfilePage();
+                    } catch (err) {
+                        console.error("Sayfa yükleme hatası:", err);
+                    }
+
+                } else {
+                    // Kullanıcı gerçekten yoksa login'e at
+                    console.warn("Profil: Oturum yok, yönlendiriliyor.");
+                    window.location.href = "/login.html";
+                }
+            });
+
+        });
     </script>
 </body>
 </html>

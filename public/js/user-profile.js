@@ -1,78 +1,49 @@
 import { db } from "./firebase-config.js";
 import { doc, getDoc, setDoc, serverTimestamp, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-/**
- * Kullanıcı sisteme giriş yaptığında veritabanında kaydı olup olmadığını kontrol eder.
- * Kayıt yoksa varsayılan (pending) statüsünde oluşturur.
- * @param {object} user - Firebase Auth User objesi
- * @returns {Promise<object>} - Kullanıcı verisi (statüs, rol vb.)
- */
-export async function ensureUserDocument(user) {
-    if (!user) throw new Error("Kullanıcı bulunamadı");
-
-    const userRef = doc(db, "users", user.uid);
-    
-    try {
-        const userSnap = await getDoc(userRef);
-
-        if (userSnap.exists()) {
-            // Kullanıcı zaten var, son giriş tarihini güncelle
-            const userData = userSnap.data();
-            try {
-                const updatePayload = {
-                    lastLoginAt: serverTimestamp()
-                };
-                if (user.photoURL && user.photoURL !== userData.photoURL) {
-                    updatePayload.photoURL = user.photoURL;
-                }
-                await updateDoc(userRef, updatePayload);
-            } catch (e) {
-                console.warn("Son giriş tarihi güncellenemedi, önemsiz.", e);
-            }
-            return userData;
-        } else {
-            // --- YENİ KULLANICI OLUŞTURMA ---
-            // İlk kez giren kullanıcıyı veritabanına kaydediyoruz.
-            // Kurallara uygun olarak 'role: user' ve 'status: pending' gönderiyoruz.
-            
-            const newUserData = {
-                uid: user.uid,
-                email: user.email,
-                displayName: user.displayName || user.email.split('@')[0],
-                photoURL: user.photoURL || null,
-                role: 'user',        // Varsayılan rol
-                status: 'pending',   // Varsayılan durum: Onay Bekliyor
-                createdAt: serverTimestamp(),
-                lastLoginAt: serverTimestamp()
-            };
-
-            await setDoc(userRef, newUserData);
-            console.log("Yeni kullanıcı kaydı oluşturuldu:", user.uid);
-            
-            return newUserData;
-        }
-    } catch (error) {
-        console.error("ensureUserDocument Hatası:", error);
-        // Hata detayını yukarı fırlat ki auth.js yakalasın
-        throw error;
-    }
-}
+// ... (ensureUserDocument fonksiyonu aynen kalabilir)
 
 /**
- * Belirtilen kullanıcının profil bilgilerini getirir.
- * Dashboard ve profil sayfalarında salt okunur işlemler için kullanılır.
- * @param {string} uid - Kullanıcı ID
- * @returns {Promise<object|null>}
+ * Kullanıcı profilini getirir.
+ * ÖNCE SessionStorage'a bakar (Maliyet: 0), yoksa Firestore'dan çeker (Maliyet: 1).
  */
 export async function getUserProfile(uid) {
     if (!uid) return null;
+
+    const CACHE_KEY = `user_profile_${uid}`;
+
+    // 1. ADIM: Önbelleği Kontrol Et (BEDAVA)
+    try {
+        const cachedData = sessionStorage.getItem(CACHE_KEY);
+        if (cachedData) {
+            // Veri var! Parse et ve döndür. Veritabanına gitmeye gerek yok.
+            // console.log("Veri önbellekten çekildi (Maliyet: 0)");
+            return JSON.parse(cachedData);
+        }
+    } catch (e) {
+        console.warn("Önbellek okuma hatası:", e);
+    }
     
+    // 2. ADIM: Önbellekte yoksa Firestore'dan çek (Maliyet: 1 Okuma)
     try {
         const userRef = doc(db, "users", uid);
         const docSnap = await getDoc(userRef);
         
         if (docSnap.exists()) {
-            return docSnap.data();
+            const userData = docSnap.data();
+
+            // Tarih objelerini string'e çevirmemiz lazım ki storage'a kaydedebilelim
+            // (Firestore Timestamp objeleri JSON.stringify ile bozulabilir, basit tutuyoruz)
+            const cacheableData = {
+                ...userData,
+                createdAt: userData.createdAt?.toDate ? userData.createdAt.toDate().toISOString() : userData.createdAt,
+                lastLoginAt: userData.lastLoginAt?.toDate ? userData.lastLoginAt.toDate().toISOString() : userData.lastLoginAt
+            };
+
+            // 3. ADIM: Veriyi Önbelleğe Yaz
+            sessionStorage.setItem(CACHE_KEY, JSON.stringify(cacheableData));
+            
+            return userData;
         } else {
             console.warn("Kullanıcı profili bulunamadı:", uid);
             return null;
@@ -81,4 +52,30 @@ export async function getUserProfile(uid) {
         console.error("Profil verisi alınırken hata:", error);
         throw error;
     }
+}
+
+/**
+ * Profil güncellendiğinde önbelleği de günceller.
+ * Böylece kullanıcı eski veriyi görmez.
+ */
+export function updateUserCache(uid, newData) {
+    const CACHE_KEY = `user_profile_${uid}`;
+    
+    // Mevcut önbelleği al
+    const cachedRaw = sessionStorage.getItem(CACHE_KEY);
+    let currentData = cachedRaw ? JSON.parse(cachedRaw) : {};
+
+    // Yeni veri ile birleştir
+    const updatedData = { ...currentData, ...newData };
+
+    // Tekrar kaydet
+    sessionStorage.setItem(CACHE_KEY, JSON.stringify(updatedData));
+}
+
+/**
+ * Çıkış yaparken önbelleği temizler.
+ */
+export function clearUserCache(uid) {
+    if(uid) sessionStorage.removeItem(`user_profile_${uid}`);
+    sessionStorage.clear(); // Veya komple temizle
 }

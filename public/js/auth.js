@@ -1,12 +1,13 @@
 import { auth } from "./firebase-config.js";
-import { ensureUserDocument } from "./user-profile.js";
+import { ensureUserDocument, clearUserCache } from "./user-profile.js";
 import {
     GoogleAuthProvider,
     browserLocalPersistence,
     getRedirectResult,
     setPersistence,
     signInWithPopup,
-    signInWithRedirect
+    signInWithRedirect,
+    signOut
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 const googleLoginButton = document.getElementById("googleLogin");
@@ -57,13 +58,13 @@ const handleLoginSuccess = async (user) => {
         
         if (userProfile.status === "rejected") {
             showStatus("error", "❌ Üyelik başvurunuz reddedilmiştir. <br><a href='/pages/yardim.html'>Destek için tıklayın.</a>");
-            await auth.signOut(); // Oturumu kapat
+            await signOut(auth); // Oturumu kapat
             return;
         }
         
         if (userProfile.status === "suspended") {
             showStatus("error", "⚠️ Hesabınız askıya alınmıştır.");
-            await auth.signOut();
+            await signOut(auth);
             return;
         }
 
@@ -83,7 +84,7 @@ const handleLoginSuccess = async (user) => {
         
         toggleLoading(false);
         // Hata durumunda çıkış yapalım ki temiz kalsın
-        await auth.signOut(); 
+        await signOut(auth); 
     }
 };
 
@@ -117,6 +118,13 @@ const handleAuthError = (error) => {
     }
     showStatus("error", msg);
 };
+
+export const logout = async () => {
+    const user = auth.currentUser;
+    clearUserCache(user?.uid);
+    await signOut(auth);
+    window.location.href = "/login.html";
+  };
 
 // Event Listeners
 if (googleLoginButton) {

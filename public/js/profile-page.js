@@ -1,8 +1,8 @@
 
 import { auth, db } from "./firebase-config.js";
-import { sendPasswordResetEmail, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js"; // onAuthStateChanged eklendi
+import { sendPasswordResetEmail, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { doc, updateDoc, collection, getDocs, query } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { getUserProfile } from "./user-profile.js";
+import { getUserProfile, updateUserCache } from "./user-profile.js"; // YENİ IMPORT
 
 const dom = {
     avatarImg: document.getElementById("profileAvatarMain"),
@@ -27,40 +27,27 @@ const dom = {
     tabBodies: document.querySelectorAll(".tab-body")
 };
 
-// ========== DEĞİŞİKLİK BURADA BAŞLIYOR ==========
 export function initProfilePage() {
-    // onAuthStateChanged ile oturum durumunu dinliyoruz (Bekleme yapısı)
     onAuthStateChanged(auth, async (user) => {
         if (user) {
-            // Kullanıcı giriş yapmış ve oturum yüklenmiş
             console.log("Profil sayfası: Oturum doğrulandı.", user.uid);
-            
-            // Tab Eventlerini Başlat
             initTabs();
-
-            // Verileri Yükle
             await loadFullProfile(user);
-            
-            // Form Dinleyicisi
             if(dom.form) {
                 dom.form.addEventListener("submit", (e) => {
                     e.preventDefault();
                     saveProfile(user.uid);
                 });
             }
-
-            // Şifre Sıfırlama Dinleyicisi
             if(dom.btnReset) {
                 dom.btnReset.addEventListener("click", () => handlePasswordReset(user.email));
             }
         } else {
-            // Oturum yok, doğru login sayfasına yönlendir
             console.warn("Profil sayfası: Oturum bulunamadı, yönlendiriliyor...");
-            window.location.href = "/login.html"; // [DÜZELTME: /public/login.html -> /login.html]
+            window.location.href = "/login.html";
         }
     });
 }
-// ========== DEĞİŞİKLİK SONA ERDİ ==========
 
 async function loadFullProfile(user) {
     if(dom.inpEmail) dom.inpEmail.value = user.email;
@@ -98,8 +85,6 @@ async function calculateUserStats(uid) {
 
         querySnapshot.forEach((doc) => {
             const data = doc.data();
-            // Test yapısına göre data.completedTests veya doküman sayısı
-            // Burada basitçe her dokümanı bir kayıt sayıyoruz veya içerideki sayacı alıyoruz
             if (data.scoreAvg !== undefined) {
                 totalScoreSum += Number(data.scoreAvg);
                 scoreCount++;
@@ -138,10 +123,17 @@ async function saveProfile(uid) {
             phone: dom.inpPhone.value.trim(),
             title: dom.inpTitle.value.trim(),
             targetExam: dom.inpExam.value,
-            updatedAt: new Date()
+            updatedAt: new Date() // Firestore bunu Timestamp yapar
         };
 
+        // 1. Veritabanını Güncelle
         await updateDoc(doc(db, "users", uid), updatePayload);
+        
+        // 2. Önbelleği (Cache) Güncelle - KRİTİK ADIM
+        updateUserCache(uid, {
+            ...updatePayload,
+            updatedAt: new Date().toISOString() // Cache için string formatı
+        });
         
         updateInfoCard(updatePayload);
         if(dom.saveMessage) {
