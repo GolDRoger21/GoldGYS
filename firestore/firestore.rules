@@ -7,65 +7,78 @@ service cloud.firestore {
       return request.auth != null;
     }
     
-    function isAdmin() {
-      return signedIn() && (request.auth.token.admin == true || request.auth.token.role == 'admin');
-    }
-
-    function isEditor() {
-      return isAdmin() || (signedIn() && (request.auth.token.editor == true || request.auth.token.role == 'editor'));
-    }
-
     function isSelf(uid) {
       return signedIn() && request.auth.uid == uid;
     }
 
+    function isAdmin() {
+      return signedIn() && (
+        (request.auth.token.keys().hasAny(['admin']) && request.auth.token.admin == true) || 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
+      );
+    }
+    
+    function isEditor() {
+      return isAdmin() || (
+        signedIn() && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'editor'
+      );
+    }
+
     // --- KULLANICILAR (users) ---
     match /users/{uid} {
+      // Okuma: Kişi kendisi ise veya Admin ise okuyabilir
       allow read: if isSelf(uid) || isAdmin();
-      allow create: if isSelf(uid);
-      allow update: if (isSelf(uid) &&
-                       request.resource.data.diff(resource.data)
-                       .affectedKeys().hasOnly(['displayName', 'photoURL', 'email']))
-                       || isAdmin();
+      
+      // Oluşturma (Yeni Üyelik):
+      // 1. Kişi kendisi olmalı
+      // 2. Rolü 'user' olarak gelmeli
+      // 3. Statüsü 'pending' (onay bekliyor) olarak gelmeli
+      allow create: if isSelf(uid) 
+                    && request.resource.data.role == 'user'
+                    && request.resource.data.status == 'pending';
+      
+      // Güncelleme: 
+      // Admin her şeyi güncelleyebilir.
+      // Kullanıcı sadece profil resmi ve adını güncelleyebilir (statüsünü veya rolünü DEĞİŞTİREMEZ).
+      allow update: if isAdmin() || (
+                      isSelf(uid) && 
+                      request.resource.data.diff(resource.data).affectedKeys().hasOnly(['displayName', 'photoURL', 'email', 'lastLoginAt'])
+                    );
+      
       allow delete: if isAdmin();
       
-      // Kullanıcının alt koleksiyonları (progress, examResults vb.)
-      match /{subcollection=**}/{docId} {
+      match /{subcollection=**} {
          allow read, write: if isSelf(uid) || isAdmin();
       }
     }
 
-    // --- SİSTEM & AYARLAR ---
+    // --- SİSTEM & DİĞER KOLEKSİYONLAR ---
     match /system/{docId} {
       allow read: if signedIn();
       allow write: if isAdmin();
     }
 
-    // --- KONULAR (topics) ---
     match /topics/{topicId} {
       allow read: if signedIn();
       allow write: if isEditor();
     }
 
-    // --- SINAVLAR (exams) --- 
     match /exams/{examId} {
       allow read: if signedIn();
       allow write: if isEditor();
     }
     
-    // --- SORULAR (questions) - (Eğer subcollection değilse) ---
     match /questions/{questionId} {
       allow read: if signedIn();
       allow write: if isEditor();
     }
 
-    // --- RAPORLAR (reports) ---
     match /reports/{reportId} {
       allow create: if signedIn();
       allow read, update, delete: if isEditor();
     }
 
-    // --- DİĞER HER ŞEY (Fallback) ---
     match /{document=**} {
       allow read: if signedIn();
       allow write: if isAdmin();
