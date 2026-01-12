@@ -58,3 +58,64 @@
     .stack-sm { grid-template-columns: 1fr !important; }
     .hide-below-sm { display: none !important; }
 }
+
+/* ========== GÜNCELLENEN KISIM ========== */
+
+/* Admin Header Özel Stilleri */
+.badge-admin {
+    background: #ff4757;
+    color: white;
+    font-size: 0.7rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-left: 8px;
+    vertical-align: middle;
+}
+
+.nav-link-back {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-weight: 500;
+    transition: all 0.2s;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+.nav-link-back:hover {
+    background: rgba(255, 255, 255, 0.2);
+    text-decoration: none;
+}
+
+.nav-divider {
+    width: 1px;
+    height: 24px;
+    background: rgba(255, 255, 255, 0.2);
+    margin: 0 10px;
+}
+
+/* Ortak Profil Dropdown Düzeltmeleri */
+.user-menu-container {
+    position: relative;
+}
+
+.profile-dropdown {
+    display: none; /* JS ile toggle edilecek */
+    position: absolute;
+    top: 100%;
+    right: 0;
+    width: 240px;
+    background: var(--bg-surface, #fff); /* CSS variable fallback */
+    border: 1px solid var(--border-color, #eee);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    border-radius: 12px;
+    margin-top: 10px;
+    z-index: 1000;
+    flex-direction: column;
+}
+
+.profile-dropdown.active {
+    display: flex;
+}
