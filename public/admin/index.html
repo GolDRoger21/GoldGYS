@@ -50,8 +50,7 @@
     
         <section id="section-dashboard" class="admin-section">
             <h2>Genel Bakış</h2>
-            <div class="stats-grid">
-                </div>
+            <div class="stats-grid"></div>
         </section>
     
         <section id="section-users" class="admin-section" style="display: none;">
@@ -73,8 +72,7 @@
                             <th>İşlemler</th>
                         </tr>
                     </thead>
-                    <tbody id="usersTableBody">
-                        </tbody>
+                    <tbody id="usersTableBody"></tbody>
                 </table>
             </div>
         </section>
@@ -108,7 +106,49 @@
                     <h3>Mevcut Konular</h3>
                     <div id="topicsList"></div>
                 </div>
+
+                <div class="card mt-4">
+                    <h3>Toplu Soru Ekle (JSON)</h3>
+                    <p class="text-sm text-muted">Hazırladığınız JSON formatındaki soru listesini buraya yapıştırın.</p>
+                    <textarea id="bulkJsonInput" class="form-control" rows="5" placeholder='[{"text": "Soru...", "correctOption": "A", ...}]'></textarea>
+                    <button id="btnBulkUpload" class="btn btn-warning mt-2">Toplu Yükle</button>
+                </div>
+                
+                <div id="questionEditor" class="card" style="display:none; border: 2px solid var(--gold);">
+                    <h3>Soru Düzenle / Ekle</h3>
+                    <input type="hidden" id="editQuestionId">
+                    
+                    <div class="form-group">
+                        <label>Soru Metni (HTML)</label>
+                        <div class="editor-toolbar">
+                            <button type="button" onclick="insertTag('<strong class=\'vurgu-negatif\'>...</strong>')">Negatif Vurgu</button>
+                        </div>
+                        <textarea id="qText" class="form-control" rows="3"></textarea>
+                    </div>
+                
+                    <div class="row">
+                        <div class="col-md-6"><input id="optA" class="form-control mb-2" placeholder="A Şıkkı"></div>
+                        <div class="col-md-6"><input id="optB" class="form-control mb-2" placeholder="B Şıkkı"></div>
+                    </div>
+                
+                    <div class="form-group bg-light p-3">
+                        <label>Çözüm Detayları</label>
+                        <input id="solDayanak" class="form-control mb-2" placeholder="Mevzuat Dayanağı">
+                        <textarea id="solAnaliz" class="form-control mb-2" placeholder="Analiz"></textarea>
+                        <input id="solTuzak" class="form-control mb-2" placeholder="Sınav Tuzağı (Varsa)">
+                        <input id="solHap" class="form-control" placeholder="Hap Bilgi">
+                    </div>
+                
+                    <button id="btnSaveQuestion" class="btn btn-success">Kaydet</button>
+                    <button onclick="document.getElementById('questionEditor').style.display='none'" class="btn btn-secondary">İptal</button>
+                </div>
+
             </div>
+        </section>
+
+        <section id="section-reports" class="admin-section" style="display: none;">
+            <h2>Hata Bildirimleri</h2>
+            <div id="reportsList"></div>
         </section>
     
     </main>
