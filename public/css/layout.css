@@ -359,3 +359,8 @@
         display: none;
     }
 }
+
+/* Güvenlik: Admin öğeleri varsayılan olarak gizlidir */
+.admin-only {
+    display: none !important; /* JS ile override edilecek */
+}

@@ -1,56 +1,47 @@
-<div class="sidebar-logo">
-    <a href="/pages/dashboard.html" class="brand-mark brand-on-dark brand-compact" aria-label="Gold GYS paneline dön">
-        <span class="brand-highlight">GOLD</span>GYS ⚖️
-    </a>
+<div class="sidebar-header">
+    <a href="/pages/dashboard.html" class="brand-logo">GOLD <span>GYS</span></a>
+    <button class="close-sidebar-btn" id="closeSidebar">✕</button>
 </div>
-<nav class="sidebar-menu sidebar-nav">
-    <ul>
-        <!-- Tüm Kullanıcılar İçin Standart Menü -->
-        <li>
-            <a href="/pages/dashboard.html" data-page="dashboard">
-                <span class="icon">📊</span> Panelim
-            </a>
-        </li>
-        <li>
-            <a href="/pages/konular.html" data-page="konular">
-                <span class="icon">📚</span> Ders Notları
-            </a>
-        </li>
-        <li>
-            <a href="/pages/testler.html" data-page="testler">
-                <span class="icon">📝</span> Konu Testleri
-            </a>
-        </li>
-        <li>
-            <a href="/pages/denemeler.html" data-page="denemeler">
-                <span class="icon">🏆</span> Denemeler
-            </a>
-        </li>
-        <li>
-            <a href="/pages/yanlislarim.html" data-page="yanlislarim">
-                <span class="icon">⚠️</span> Yanlışlarım
-            </a>
-        </li>
 
-        <!-- Sadece Editörler İçin Menü -->
-        <li class="editor-only" style="display:none; margin-top:20px; border-top:1px solid rgba(255,255,255,0.1); padding-top:10px;">
-            <a href="/editor/" data-page="editor">
-                <span class="icon">✍️</span> İçerik Yönetimi
-            </a>
-        </li>
+<nav class="sidebar-nav">
+    <div class="nav-label">GENEL</div>
+    <a href="/pages/dashboard.html" class="nav-item" data-page="dashboard">
+        <span class="icon">🏠</span> Genel Bakış
+    </a>
+    <a href="/pages/profil.html" class="nav-item" data-page="profil">
+        <span class="icon">👤</span> Profilim
+    </a>
 
-        <!-- Sadece Yöneticiler İçin Menü -->
-        <li class="admin-only" style="display:none; margin-top:20px; border-top:1px solid rgba(255,255,255,0.1); padding-top:10px;">
-            <a href="/admin/" data-page="admin">
-                <span class="icon">⚙️</span> Yönetici Paneli
-            </a>
-        </li>
-    </ul>
+    <div class="nav-label">ÇALIŞMA ALANI</div>
+    <a href="/pages/konular.html" class="nav-item" data-page="konular">
+        <span class="icon">📚</span> Dersler & Konular
+    </a>
+    <a href="/pages/testler.html" class="nav-item" data-page="testler">
+        <span class="icon">📝</span> Konu Testleri
+    </a>
+    <a href="/pages/denemeler.html" class="nav-item" data-page="denemeler">
+        <span class="icon">⚖️</span> Deneme Sınavları
+    </a>
+
+    <div class="nav-label">PERFORMANS</div>
+    <a href="/pages/yanlislarim.html" class="nav-item" data-page="yanlislarim">
+        <span class="icon">⚠️</span> Yanlışlarım
+    </a>
+    <a href="/pages/favoriler.html" class="nav-item" data-page="favoriler">
+        <span class="icon">⭐</span> Favori Sorular
+    </a>
+    <a href="/pages/analiz.html" class="nav-item" data-page="analiz">
+        <span class="icon">📊</span> Analiz Raporu
+    </a>
+
+    <div class="nav-label admin-only" style="display: none;">YÖNETİM</div>
+    <a href="/admin/index.html" class="nav-item admin-only" style="display: none;">
+        <span class="icon">⚡</span> Yönetici Paneli
+    </a>
 </nav>
+
 <div class="sidebar-footer">
-    <a href="/help.html" data-page="help" class="sidebar-footer-link"><span class="icon">❓</span> Yardım</a>
-    <a href="/pages/profil.html" data-page="profile" class="sidebar-footer-link"><span class="icon">👤</span> Profilim</a>
-    <button id="btnLogout" onclick="window.handleLogout()" class="sidebar-footer-btn">
+    <button id="logoutBtn" class="nav-item logout">
         <span class="icon">🚪</span> Çıkış Yap
     </button>
 </div>
