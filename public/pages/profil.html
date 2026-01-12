@@ -2,107 +2,160 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Profilim | GOLD GYS</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profil Ayarları | GOLD GYS</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
     
-    <!-- Merkezi stiller yüklenecek -->
-    <link rel="stylesheet" href="/css/app.css">
-    <link rel="stylesheet" href="/css/profile.css">
-    
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230F172A'/><text x='50' y='70' font-family='serif' font-size='60' fill='%23D4AF37' text-anchor='middle' font-weight='bold'>G</text></svg>">
+    <link rel="stylesheet" href="/styles/tokens.css">
+    <link rel="stylesheet" href="/css/layout.css">
+    <link rel="stylesheet" href="/css/dashboard.css"> <link rel="stylesheet" href="/css/profile.css">   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230F172A'/><text x='50' y='70' font-family='serif' font-size='60' fill='%23D4AF37' text-anchor='middle' font-weight='bold'>G</text></svg>">
 </head>
 <body>
-    <!-- Header, ui-loader.js tarafından bu alana yüklenecek -->
-    <div id="header-area"></div>
-    
-    <div id="mainWrapper" class="main-content" style="display: block; opacity: 1;">
 
-        <div class="dashboard-container">
-            
-            <div class="profile-layout">
-                
-                <div class="profile-card">
-                    <div class="profile-header-bg"></div>
-                    <div class="profile-avatar-wrapper">
-                        <img src="" alt="Avatar" id="profileAvatarMain">
-                        <button class="btn-edit-avatar" title="Fotoğrafı Değiştir">✏️</button>
-                    </div>
-                    <h2 id="profileNameMain" class="profile-name">Yükleniyor...</h2>
-                    <p id="profileRoleMain" class="profile-role">Kullanıcı</p>
-                    
-                    <div class="profile-stats">
-                        <div class="p-stat"><span class="val">--</span><span class="lbl">Test</span></div>
-                        <div class="p-stat"><span class="val">--</span><span class="lbl">Deneme</span></div>
-                        <div class="p-stat"><span class="val">--</span><span class="lbl">Puan</span></div>
-                    </div>
+    <div id="mainWrapper">
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
-                    <div class="membership-badge" id="membershipBadge">
-                        <span>Paket:</span> <strong>Standart Üyelik</strong>
-                    </div>
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <a href="/pages/dashboard.html" class="brand-logo">GOLD <span>GYS</span></a>
+                <button class="close-sidebar-btn" id="closeSidebar">✕</button>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-label">GENEL</div>
+                <a href="/pages/dashboard.html" class="nav-item">
+                    <span class="icon">🏠</span> Genel Bakış
+                </a>
+                <a href="/pages/profil.html" class="nav-item active">
+                    <span class="icon">👤</span> Profilim
+                </a>
+                <div class="nav-label">ÇALIŞMA ALANI</div>
+                <a href="/pages/konular.html" class="nav-item"><span class="icon">📚</span> Dersler & Konular</a>
+                <a href="/pages/testler.html" class="nav-item"><span class="icon">📝</span> Konu Testleri</a>
+                <a href="/pages/denemeler.html" class="nav-item"><span class="icon">⚖️</span> Deneme Sınavları</a>
+                <div class="nav-label">PERFORMANS</div>
+                <a href="/pages/yanlislarim.html" class="nav-item"><span class="icon">⚠️</span> Yanlışlarım</a>
+                <a href="/pages/favoriler.html" class="nav-item"><span class="icon">⭐</span> Favori Sorular</a>
+                <a href="/pages/analiz.html" class="nav-item"><span class="icon">📊</span> Analiz Raporu</a>
+            </nav>
+            <div class="sidebar-footer">
+                <button id="logoutBtn" class="nav-item logout">
+                    <span class="icon">🚪</span> Çıkış Yap
+                </button>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="top-bar">
+                <div class="top-left">
+                    <button class="menu-toggle" id="menuToggle">
+                        <span class="bar"></span><span class="bar"></span><span class="bar"></span>
+                    </button>
+                    <div class="page-title">Profil Ayarları</div>
                 </div>
+            </header>
 
-                <div class="settings-container">
-                    <div class="settings-tabs">
-                        <button class="tab-btn active" data-tab="personal">Kişisel Bilgiler</button>
-                        <button class="tab-btn" data-tab="security">Güvenlik</button>
-                    </div>
-
-                    <div id="tab-personal" class="tab-content active">
-                        <form id="profileForm" class="settings-form">
-                            <!-- Form içeriği aynı kalıyor -->
-                             <div class="form-row">
-                                <div class="form-group">
-                                    <label>Adınız</label>
-                                    <input type="text" id="inpAd" placeholder="Adınız">
-                                </div>
-                                <div class="form-group">
-                                    <label>Soyadınız</label>
-                                    <input type="text" id="inpSoyad" placeholder="Soyadınız">
-                                </div>
+            <div class="dashboard-container profile-container-fix">
+                
+                <div class="profile-sidebar-col">
+                    <div class="profile-card">
+                        <div class="profile-cover"></div>
+                        <div class="profile-avatar-container">
+                            <img src="" alt="Avatar" id="profileAvatarMain" class="avatar-img">
+                            <label for="avatarInput" class="avatar-edit-btn" title="Fotoğrafı Değiştir">
+                                📷
+                            </label>
+                            <input type="file" id="avatarInput" accept="image/*" style="display: none;">
+                        </div>
+                        
+                        <h2 id="profileNameMain" class="p-name">Yükleniyor...</h2>
+                        <p id="profileRoleMain" class="p-role">Kullanıcı</p>
+                        
+                        <div class="p-stats-row">
+                            <div class="stat-item">
+                                <span class="val" id="statCompleted">0</span>
+                                <span class="lbl">Test</span>
                             </div>
-
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label>E-Posta (Değiştirilemez)</label>
-                                    <input type="email" id="inpEmail" disabled class="disabled-input">
-                                </div>
-                                <div class="form-group">
-                                    <label>Telefon</label>
-                                    <input type="tel" id="inpPhone" placeholder="0555...">
-                                </div>
+                            <div class="stat-item">
+                                <span class="val" id="statScore">--</span>
+                                <span class="lbl">Ort. Puan</span>
                             </div>
-                        </form>
-                    </div>
-
-                    <div id="tab-security" class="tab-content">
-                        <div class="security-box">
-                            <h3>Şifre Yenileme</h3>
-                            <p>Güvenliğiniz için şifrenizi düzenli aralıklarla değiştirin. Şifre sıfırlama bağlantısı e-posta adresinize gönderilecektir.</p>
-                            <button id="btnResetPassword" class="btn-outline-gold">Şifre Sıfırlama E-postası Gönder</button>
+                        </div>
+                        
+                        <div class="p-badge">
+                             <span class="badge-label">Hedef:</span>
+                             <span class="badge-val" id="displayTarget">Belirtilmedi</span>
                         </div>
                     </div>
                 </div>
+
+                <div class="profile-content-col">
+                    <div class="settings-card">
+                        <div class="tabs-header">
+                            <button class="tab-link active" data-tab="personal">Kişisel Bilgiler</button>
+                            <button class="tab-link" data-tab="security">Güvenlik</button>
+                        </div>
+
+                        <div id="tab-personal" class="tab-body active">
+                            <form id="profileForm">
+                                <div class="form-grid">
+                                    <div class="form-group">
+                                        <label>Ad</label>
+                                        <input type="text" id="inpAd" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Soyad</label>
+                                        <input type="text" id="inpSoyad" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>E-Posta (Değiştirilemez)</label>
+                                        <input type="email" id="inpEmail" disabled class="input-disabled">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Telefon</label>
+                                        <input type="tel" id="inpPhone" placeholder="0555...">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Ünvan / Meslek</label>
+                                        <input type="text" id="inpTitle" placeholder="Örn: Zabıt Katibi">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Hedef Sınav</label>
+                                        <select id="inpExam">
+                                            <option value="">Seçiniz</option>
+                                            <option value="Yazı İşleri Müdürlüğü">Yazı İşleri Müdürlüğü</option>
+                                            <option value="İcra Müdürlüğü">İcra Müdürlüğü</option>
+                                            <option value="Görevde Yükselme">Görevde Yükselme</option>
+                                            <option value="Unvan Değişikliği">Unvan Değişikliği</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-footer">
+                                    <button type="submit" class="btn-primary">Değişiklikleri Kaydet</button>
+                                    <span id="saveMessage" class="status-msg"></span>
+                                </div>
+                            </form>
+                        </div>
+
+                        <div id="tab-security" class="tab-body">
+                            <div class="security-section">
+                                <h3>Şifre İşlemleri</h3>
+                                <p>Şifrenizi unuttuysanız veya değiştirmek istiyorsanız sıfırlama bağlantısı gönderebilirsiniz.</p>
+                                <button id="btnResetPassword" class="btn-outline">Şifre Sıfırlama E-postası Gönder</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
-        </div>
+        </main>
     </div>
-    
-    <div id="footer-area"></div>
 
-    <script type="module">
-        import { initLayout } from '../js/ui-loader.js';
-        import { initProfilePage } from '../js/profile-page.js';
-
-        document.addEventListener('DOMContentLoaded', async () => {
-            // Önce layout'u (header/footer) yükle ve auth kontrolü yap
-            await initLayout('profil');
-            
-            // Sonra profil sayfasına özel fonksiyonları çalıştır
-            initProfilePage();
-        });
+    <script type="module" src="/js/dashboard.js"></script> <script type="module">
+        import { initProfilePage } from '/js/profile-page.js';
+        document.addEventListener('DOMContentLoaded', initProfilePage);
     </script>
 </body>
 </html>
