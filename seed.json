@@ -1,0 +1,34 @@
+[
+  {
+    "category": "Ceza Muhakemesi Hukuku",
+    "type": "oncullu",
+    "text": "CMK'ya göre HAGB kararı ile ilgili;",
+    "questionRoot": "Aşağıdaki ifadelerden hangileri doğrudur?",
+    "onculler": [
+      "I. Sanık 5 yıl denetime tabi tutulur.",
+      "II. Denetim süresinde kasıtlı bir suç işlenmez ve yükümlülüklere uygun davranılırsa, açıklanması geri bırakılan hüküm ortadan kaldırılarak davanın düşmesi kararı verilir."
+    ],
+    "options": [
+      { "id": "A", "text": "Yalnız I" },
+      { "id": "B", "text": "Yalnız II" },
+      { "id": "C", "text": "I ve II" },
+      { "id": "D", "text": "Hiçbiri" }
+    ],
+    "correctOption": "C",
+    "difficulty": 3,
+    "isActive": true,
+    "isFlaggedForReview": false,
+    "legislationRef": {
+      "code": "5271",
+      "name": "Ceza Muhakemesi Kanunu",
+      "article": "231",
+      "tags": ["hagb", "hükmün açıklanmasının geri bırakılması", "denetim"]
+    },
+    "solution": {
+      "analiz": "Hükmün açıklanmasının geri bırakılması (HAGB) kararı verildiğinde, sanık beş yıl süreyle denetim altına alınır. Bu süre içinde kasıtlı yeni bir suç işlemez ve mahkemenin belirlediği diğer yükümlülüklere uyarsa, hakkındaki hüküm tüm sonuçlarıyla ortadan kalkar ve dava düşer. Her iki öncül de CMK m. 231'deki düzenlemeye uygundur.",
+      "dayanakText": "5271 sayılı CMK m. 231/5, 231/8, 231/10",
+      "tuzak": "Denetim süresinin 3 yıl olduğu veya denetim sonunda davanın düşmesi yerine beraat kararı verileceği gibi yanılgılara düşülmemelidir.",
+      "hap": "HAGB = 5 yıl denetim. Süre sonunda suç yoksa dava düşer."
+    }
+  }
+]
