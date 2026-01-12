@@ -53,3 +53,28 @@ export async function ensureUserDocument(user) {
         throw error;
     }
 }
+
+/**
+ * Belirtilen kullanıcının profil bilgilerini getirir.
+ * Dashboard ve profil sayfalarında salt okunur işlemler için kullanılır.
+ * @param {string} uid - Kullanıcı ID
+ * @returns {Promise<object|null>}
+ */
+export async function getUserProfile(uid) {
+    if (!uid) return null;
+    
+    try {
+        const userRef = doc(db, "users", uid);
+        const docSnap = await getDoc(userRef);
+        
+        if (docSnap.exists()) {
+            return docSnap.data();
+        } else {
+            console.warn("Kullanıcı profili bulunamadı:", uid);
+            return null;
+        }
+    } catch (error) {
+        console.error("Profil verisi alınırken hata:", error);
+        throw error;
+    }
+}

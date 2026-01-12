@@ -38,7 +38,14 @@ onAuthStateChanged(auth, async (user) => {
 
         try {
             const profile = await getUserProfile(user.uid);
-            updateDashboardUI(user, profile);
+            
+            // Profil null gelse bile dashboard'un açılmasını sağla
+            if (profile) {
+                updateDashboardUI(user, profile);
+            } else {
+                console.warn("Profil verisi boş, varsayılan arayüz yükleniyor.");
+                // Varsayılan UI güncellemesi veya kullanıcıyı profil oluşturmaya yönlendirme
+            }
 
             const tokenResult = await user.getIdTokenResult(true); 
             const claims = tokenResult.claims;
