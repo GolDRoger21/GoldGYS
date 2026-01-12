@@ -1,42 +1,104 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Test Çöz | GOLD GYS</title>
-  <link rel="stylesheet" href="/css/app.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Çöz | GOLD GYS</title>
+    <link rel="stylesheet" href="../css/app.css"> 
+    <link rel="stylesheet" href="../components/ui/ui.css">
+    
+    <style>
+        /* Tuzak ve Hap Kutuları için Kritik Stiller */
+        .tuzak-kutu {
+            background-color: #fff3cd; border-left: 4px solid #ffc107;
+            padding: 10px; margin: 10px 0; font-size: 0.9rem; color: #856404;
+        }
+        .hap-kutu {
+            background-color: #d1ecf1; border-left: 4px solid #17a2b8;
+            padding: 10px; margin: 10px 0; font-size: 0.9rem; color: #0c5460;
+        }
+        .vurgu-negatif { color: #D32F2F; font-weight: 700; text-transform: uppercase; }
+        .sik-btn.correct { background-color: #d4edda; border-color: #28a745; color: #155724; }
+        .sik-btn.wrong { background-color: #f8d7da; border-color: #dc3545; color: #721c24; }
+        .cozum-container { background-color: #f8f9fa; border-top: 1px solid #ddd; padding: 20px; margin-top: 15px; border-radius: 0 0 8px 8px;}
+    </style>
 </head>
 <body>
+    
+    <header class="header-sticky" style="position: sticky; top: 0; background: white; z-index: 100; padding: 15px; border-bottom: 3px solid #27ae60; display: flex; justify-content: space-between; align-items: center;">
+        <div class="test-title" id="testTitle">Yükleniyor...</div>
+        <div class="score-board" style="display: flex; gap: 15px; font-weight: bold;">
+            <div class="score-item" style="color:#27ae60">D: <span id="trueVal">0</span></div>
+            <div class="score-item" style="color:#c0392b">Y: <span id="falseVal">0</span></div>
+            <div class="score-item" style="color:#34495e">K: <span id="remainVal">--</span></div>
+        </div>
+    </header>
 
-<header class="header-sticky">
-    <div class="test-title" id="testTitle">Test Yükleniyor...</div>
-    <div class="score-board">
-        <div class="score-item">D: <span id="trueVal">0</span></div>
-        <div class="score-item">Y: <span id="falseVal">0</span></div>
-        <div class="score-item">K: <span id="remainVal">--</span></div>
+    <main class="quiz-container" id="quizContainer" style="max-width: 800px; margin: 20px auto; padding: 0 15px;">
+        <div style="text-align:center; padding:50px;">Sorular yükleniyor...</div>
+    </main>
+
+    <div class="footer-static" style="display: flex; justify-content: center; gap: 10px; padding: 20px 0; margin-top: 40px; border-top: 1px solid #ddd; background-color: #f8f9fa;">
+        <button id="btnFinish" class="btn-action" style="padding: 10px 20px; background-color: #27ae60; color: white; border: none; border-radius: 6px; cursor: pointer;">Testi Bitir</button>
     </div>
-</header>
 
-<div class="quiz-container" id="quizContainer">
-    <div style="text-align:center; padding: 50px;">Sorular Getiriliyor...</div>
-</div>
-
-<div class="footer-static">
-    <button id="btnReset" class="btn-action">Sıfırla</button>
-    <button id="btnWrong" class="btn-action">Yanlışları Çöz</button>
-    <button id="btnFinish" class="btn-action">Testi Bitir</button>
-</div>
-
-<div id="resultModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:2000; align-items:center; justify-content:center;">
-    <div style="background:white; padding:30px; border-radius:12px; text-align:center; max-width:400px; width:90%;">
-        <h2>Test Sonucu</h2>
-        <div id="scoreDisplay" style="font-size:3rem; font-weight:800; color:var(--accent); margin:15px 0;">%0</div>
-        <p id="resultText">...</p>
-        <button onclick="document.getElementById('resultModal').style.display='none'" class="btn-action" style="background:var(--primary); margin-top:20px; width:100%;">Kapat</button>
+    <div class="modal-overlay" id="resultModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; justify-content: center; align-items: center;">
+        <div class="modal-content" style="background: white; padding: 30px; border-radius: 12px; text-align: center; max-width: 400px; width: 90%;">
+            <h2>Test Sonucu</h2>
+            <div id="scoreDisplay" style="font-size: 3rem; font-weight: 800; color: #27ae60; margin: 15px 0;">0 / 100</div>
+            <p id="resultText">Test tamamlandı.</p>
+            <button onclick="document.getElementById('resultModal').style.display='none'" style="margin-top: 20px; padding: 8px 25px; background: #2c3e50; color: white; border: none; border-radius: 5px; cursor: pointer;">Kapat</button>
+        </div>
     </div>
-</div>
 
-<script type="module" src="/js/firebase-config.js"></script>
-<script type="module" src="/js/test-engine.js"></script>
+    <script type="module">
+        import { TestEngine } from "../js/test-engine.js";
+        import { db } from "../js/firebase-config.js";
+        import { collection, getDocs, query, where, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // Sayfa yüklendiğinde çalış
+        document.addEventListener('DOMContentLoaded', async () => {
+            
+            // URL'den test ID'sini al (örn: test.html?id=deneme_1)
+            const urlParams = new URLSearchParams(window.location.search);
+            const testId = urlParams.get('id'); 
+            
+            // Eğer test ID yoksa, demo amaçlı rastgele sorular çekelim veya hata verelim
+            // Burada şimdilik 'questions' koleksiyonundan ilk 10 soruyu çekiyoruz
+            try {
+                const qRef = collection(db, "questions");
+                // Gerçek senaryoda: where('examId', '==', testId) gibi bir filtre olur
+                const qQuery = query(qRef, limit(20)); 
+                
+                const snapshot = await getDocs(qQuery);
+                const questions = [];
+                
+                snapshot.forEach(doc => {
+                    questions.push({ id: doc.id, ...doc.data() });
+                });
+
+                if (questions.length === 0) {
+                    document.getElementById('quizContainer').innerHTML = "<p style='text-align:center'>Bu testte henüz soru yok.</p>";
+                    return;
+                }
+
+                document.getElementById('testTitle').innerText = "Genel Tarama Testi"; // Dinamik yapılabilir
+                
+                // MOTORU BAŞLAT
+                const engine = new TestEngine('quizContainer', questions);
+                
+                // Bitir butonu olayını bağla
+                document.getElementById('btnFinish').addEventListener('click', () => {
+                    if(confirm("Testi bitirmek istediğinize emin misiniz?")) {
+                        engine.finishTest();
+                    }
+                });
+
+            } catch (error) {
+                console.error("Test yüklenirken hata:", error);
+                document.getElementById('quizContainer').innerHTML = "<p style='text-align:center; color:red'>Sorular yüklenemedi. Bağlantınızı kontrol edin.</p>";
+            }
+        });
+    </script>
 </body>
 </html>
