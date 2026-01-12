@@ -1,6 +1,6 @@
 
-import { auth } from "../firebase-config.js";
-import { requireAdminOrEditor } from "../role-guard.js";
+import { auth } from "./firebase-config.js";
+import { requireAdminOrEditor } from "./role-guard.js";
 // Modülleri import et
 import * as DashboardModule from "./modules/admin/dashboard.js";
 import * as UserModule from "./modules/admin/users.js";
@@ -36,15 +36,21 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         // 4. Sekme Sistemi ve Global Fonksiyonlar
         window.openQuestionEditor = ContentModule.openQuestionEditor;
-        if(window.AdminReports) window.AdminReports = ReportsModule.AdminReports;
+        window.AdminReports = ReportsModule.AdminReports;
 
         initTabs(role);
         
-        // Varsayılan olarak Dashboard'u aç
-        handleTabChange('dashboard', role);
+        const initialTab = window.location.hash.substring(1) || 'dashboard';
+        handleTabChange(initialTab, role);
+        
+        const activeTabEl = document.querySelector(`.nav-item[data-tab="${initialTab}"]`);
+        if(activeTabEl) activeTabEl.classList.add('active');
+
 
     } catch (error) {
         console.error("Panel Hatası:", error);
+        // Hata durumunda kullanıcıyı bilgilendir veya login'e yönlendir.
+        // Örneğin: document.body.innerHTML = "Yetkilendirme hatası. Lütfen tekrar giriş yapın.";
     }
 });
 
@@ -68,13 +74,17 @@ function handleTabChange(target, role) {
 }
 
 function initTabs(role) {
-    const tabs = document.querySelectorAll('.sidebar-nav .nav-item');
+    const tabs = document.querySelectorAll('.sidebar-nav .nav-item[data-tab]');
     tabs.forEach(tab => {
         tab.addEventListener('click', (e) => {
             e.preventDefault();
+            const target = tab.dataset.tab;
+
             tabs.forEach(t => t.classList.remove('active'));
             tab.classList.add('active');
-            handleTabChange(tab.dataset.tab, role);
+
+            window.location.hash = target; // URL'i güncelle
+            handleTabChange(target, role);
         });
     });
 }
@@ -83,3 +93,4 @@ function initTabs(role) {
 document.getElementById('logoutBtn')?.addEventListener('click', () => {
     auth.signOut().then(() => window.location.href = '/login.html');
 });
+
