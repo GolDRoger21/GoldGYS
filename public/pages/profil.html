@@ -11,7 +11,9 @@
     
     <link rel="stylesheet" href="/styles/tokens.css">
     <link rel="stylesheet" href="/css/layout.css">
-    <link rel="stylesheet" href="/css/dashboard.css"> <link rel="stylesheet" href="/css/profile.css">   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230F172A'/><text x='50' y='70' font-family='serif' font-size='60' fill='%23D4AF37' text-anchor='middle' font-weight='bold'>G</text></svg>">
+    <link rel="stylesheet" href="/css/dashboard.css">
+    <link rel="stylesheet" href="/css/profile.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230F172A'/><text x='50' y='70' font-family='serif' font-size='60' fill='%23D4AF37' text-anchor='middle' font-weight='bold'>G</text></svg>">
 </head>
 <body>
 
@@ -92,22 +94,55 @@
                 </div>
 
                 <div class="profile-content-col">
+                    
+                    <div class="stats-overview">
+                        <div class="stat-card-advanced" style="grid-column: span 2;">
+                            <div class="stat-icon-box" style="background: rgba(59, 130, 246, 0.1); color: #3b82f6;">📚</div>
+                            <div class="stat-info" style="flex: 1;">
+                                <h4>Konu Tamamlama Oranı</h4>
+                                <div class="stat-value" id="statTopicRatio">0 / 0</div>
+                                <div class="progress-section">
+                                    <div class="progress-track">
+                                        <div class="progress-fill" id="statTopicProgress" style="width: 0%"></div>
+                                    </div>
+                                    <small style="color: var(--color-text-muted); font-size: 0.75rem;">Müfredat ilerleme durumunuz</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="stat-card-advanced">
+                            <div class="stat-icon-box" style="background: rgba(16, 185, 129, 0.1); color: #10b981;">📝</div>
+                            <div class="stat-info">
+                                <h4>Tamamlanan Test</h4>
+                                <div class="stat-value" id="statTestsCompleted">0</div>
+                            </div>
+                        </div>
+
+                        <div class="stat-card-advanced">
+                            <div class="stat-icon-box" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b;">🏆</div>
+                            <div class="stat-info">
+                                <h4>Genel Başarı</h4>
+                                <div class="stat-value" id="statGlobalScore">%0</div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="settings-card">
                         <div class="tabs-header">
                             <button class="tab-link active" data-tab="personal">Kişisel Bilgiler</button>
-                            <button class="tab-link" data-tab="security">Güvenlik</button>
+                            <button class="tab-link" data-tab="security">Güvenlik & Erişim</button>
                         </div>
 
                         <div id="tab-personal" class="tab-body active">
-                            <form id="profileForm">
+                             <form id="profileForm">
                                 <div class="form-grid">
                                     <div class="form-group">
                                         <label>Ad</label>
-                                        <input type="text" id="inpAd" required>
+                                        <input type="text" id="inpAd" required placeholder="Adınız">
                                     </div>
                                     <div class="form-group">
                                         <label>Soyad</label>
-                                        <input type="text" id="inpSoyad" required>
+                                        <input type="text" id="inpSoyad" required placeholder="Soyadınız">
                                     </div>
                                     <div class="form-group">
                                         <label>E-Posta (Değiştirilemez)</label>
@@ -140,10 +175,15 @@
                         </div>
 
                         <div id="tab-security" class="tab-body">
-                            <div class="security-section">
-                                <h3>Şifre İşlemleri</h3>
-                                <p>Şifrenizi unuttuysanız veya değiştirmek istiyorsanız sıfırlama bağlantısı gönderebilirsiniz.</p>
-                                <button id="btnResetPassword" class="btn-outline">Şifre Sıfırlama E-postası Gönder</button>
+                            <div class="security-alert-box">
+                                <div class="security-icon">🔒</div>
+                                <div class="security-content">
+                                    <h4>Şifre Yenileme</h4>
+                                    <p>Hesabınızın güvenliği için şifrenizi periyodik olarak değiştirmeniz önerilir. Aşağıdaki butona tıkladığınızda kayıtlı e-posta adresinize bir sıfırlama bağlantısı gönderilecektir.</p>
+                                    <button id="btnResetPassword" class="btn-primary">
+                                        📧 Sıfırlama Bağlantısı Gönder
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -156,34 +196,18 @@
     <script type="module">
         import { initLayout } from '../js/ui-loader.js';
         import { initProfilePage } from '../js/profile-page.js';
-        import { auth } from '../js/firebase-config.js'; // Auth ve Gözlemciyi ekliyoruz
+        import { auth } from '../js/firebase-config.js'; 
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         document.addEventListener('DOMContentLoaded', () => {
-            
-            // Firebase'in "Oturum açıldı mı?" cevabını BEKLEYEN özel kilit
             onAuthStateChanged(auth, async (user) => {
                 if (user) {
-                    // Kullanıcı KESİN var, artık layout'u güvenle yükleyebiliriz
-                    console.log("Profil: Kullanıcı doğrulandı, sayfa yükleniyor...");
-                    
-                    try {
-                        // initLayout içindeki olası senkron kontrolleri artık "true" dönecektir
-                        await initLayout('profil'); 
-                        
-                        // Şimdi profil verilerini çekelim
-                        initProfilePage();
-                    } catch (err) {
-                        console.error("Sayfa yükleme hatası:", err);
-                    }
-
+                    await initLayout(); 
+                    initProfilePage();
                 } else {
-                    // Kullanıcı gerçekten yoksa login'e at
-                    console.warn("Profil: Oturum yok, yönlendiriliyor.");
                     window.location.href = "/login.html";
                 }
             });
-
         });
     </script>
 </body>

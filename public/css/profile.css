@@ -1,4 +1,4 @@
-/* ========== GÜNCELLENEN KISIM ========== */
+/* ========== DEĞİŞİKLİK ÖNCESİ (REFERANS) ========== */
 @import url("/styles/tokens.css");
 
 .profile-container-fix {
@@ -219,6 +219,103 @@
 }
 
 @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ========== GÜNCELLENEN KISIM ========== */
+/* İstatistik Kartları (Yeni) */
+.stats-overview {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.stat-card-advanced {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.stat-card-advanced:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.stat-icon-box {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    background: var(--color-surface-alt);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+.stat-info h4 {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+    font-weight: 500;
+}
+
+.stat-info .stat-value {
+    margin: 4px 0 0;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--color-text);
+}
+
+/* Progress Bar (Konu İlerlemesi) */
+.progress-section {
+    margin-top: 8px;
+}
+
+.progress-track {
+    width: 100%;
+    height: 8px;
+    background: var(--color-border);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-top: 8px;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--color-primary), #f5d666);
+    width: 0%;
+    transition: width 1s ease-in-out;
+}
+
+/* Güvenlik Kartı (Revize) */
+.security-alert-box {
+    background: rgba(212, 175, 55, 0.1); /* Gold tint */
+    border: 1px solid var(--color-primary);
+    border-radius: 8px;
+    padding: 20px;
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+}
+
+.security-icon {
+    font-size: 24px;
+}
+
+.security-content h4 {
+    margin: 0 0 8px 0;
+    color: var(--color-text);
+}
+
+.security-content p {
+    margin: 0 0 16px 0;
+    font-size: 0.9rem;
+    color: var(--color-text-secondary);
+}
 
 @media (max-width: 900px) {
     .profile-container-fix {
