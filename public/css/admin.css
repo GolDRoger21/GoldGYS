@@ -39,18 +39,6 @@ body {
 .logo { font-family: 'Playfair Display', serif; font-size: 1.4rem; font-weight: 700; color: var(--text-white); }
 .logo span { color: var(--gold-primary); }
 
-.role-badge {
-    display: inline-block;
-    font-size: 0.75rem;
-    padding: 2px 8px;
-    border-radius: 4px;
-    background: rgba(212, 175, 55, 0.2);
-    color: var(--gold-primary);
-    margin-top: 5px;
-    text-transform: uppercase;
-    font-weight: 600;
-}
-
 .sidebar-nav { flex: 1; padding: 1.5rem 1rem; overflow-y: auto; }
 
 .menu-label {
@@ -118,20 +106,6 @@ body {
     flex-direction: column;
     min-height: 100vh;
     background-color: var(--bg-dark);
-}
-
-.top-header {
-    /* Mevcut stil varsa korunacak, yoksa eklenecek */
-    height: 70px;
-    background: var(--bg-panel);
-    border-bottom: 1px solid var(--border-color);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 2rem;
-    position: sticky;
-    top: 0;
-    z-index: 100;
 }
 
 .content-wrapper {
@@ -245,3 +219,57 @@ body {
 
 /* Utility */
 .hidden { display: none !important; }
+
+
+/* --- HEADER & PROFILE FIXES --- */
+.top-header {
+    height: 70px;
+    background: var(--bg-panel);
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 2rem;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 15px; /* İsim ve avatar arası boşluk */
+}
+
+.user-info span {
+    font-size: 0.9rem;
+    color: var(--text-white);
+}
+
+/* Yuvarlak Avatar Stili */
+.avatar-circle {
+    width: 40px;
+    height: 40px;
+    background-color: var(--gold-primary);
+    color: #000; /* Yazı rengi siyah */
+    border-radius: 50%; /* Tam yuvarlak */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1.2rem;
+    text-transform: uppercase;
+    box-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
+}
+
+/* Rol Rozeti Stili */
+.role-badge {
+    display: inline-block;
+    font-size: 0.75rem;
+    padding: 4px 8px;
+    border-radius: 4px;
+    background: rgba(212, 175, 55, 0.1);
+    color: var(--gold-primary);
+    margin-top: 5px;
+    border: 1px solid rgba(212, 175, 55, 0.2);
+}

@@ -1,105 +1,85 @@
 
-import { auth } from "./firebase-config.js"; // Düzeltildi: ../ yerine ./
-import { requireAdminOrEditor } from "./role-guard.js"; // Düzeltildi: ../ yerine ./
+import { auth } from "../firebase-config.js";
+import { requireAdminOrEditor } from "../role-guard.js";
+// Modülleri import et
+import * as DashboardModule from "./modules/admin/dashboard.js";
 import * as UserModule from "./modules/admin/users.js";
 import * as ContentModule from "./modules/admin/content.js";
 import * as LegislationModule from "./modules/admin/legislation.js";
-// Yeni modülleri import ediyoruz (aşağıda oluşturacağız)
-import * as DashboardModule from "./modules/admin/dashboard.js";
-import * as ReportsModule from "./modules/admin/reports.js"; 
+import * as ReportsModule from "./modules/admin/reports.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
     try {
-        const { role } = await requireAdminOrEditor();
-        console.log(`Admin Paneli Başlatıldı. Rol: ${role}`);
+        // 1. Yetki ve Kullanıcı Bilgisini Al
+        const { role, user } = await requireAdminOrEditor();
+        console.log(`Panel Başlatıldı: ${role}`);
+
+        // 2. Rol Rozetini Güncelle ("Yükleniyor..." yazısını kaldır)
+        const roleBadge = document.getElementById('userRoleBadge');
+        if (roleBadge) {
+            roleBadge.textContent = role === 'admin' ? 'YÖNETİCİ' : 'İÇERİK EDİTÖRÜ';
+            // Admin değilse bazı menüleri gizle
+            if (role !== 'admin') {
+                document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'none');
+            }
+        }
+
+        // 3. Header Profil Bilgilerini Güncelle
+        const headerEmail = document.getElementById('headerUserEmail');
+        const headerAvatar = document.querySelector('.avatar-circle');
         
-        if (role !== 'admin') {
-            document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'none');
+        if (user) {
+            if (headerEmail) headerEmail.textContent = user.email;
+            // E-postanın baş harfini avatar içine yaz (Örn: E)
+            if (headerAvatar) headerAvatar.textContent = user.email.charAt(0).toUpperCase();
         }
 
-        // Header User Info güncelle
-        const userEmailEl = document.getElementById('headerUserEmail');
-        if (userEmailEl && auth.currentUser) {
-            userEmailEl.textContent = auth.currentUser.email;
-        }
-
+        // 4. Sekme Sistemi ve Global Fonksiyonlar
         window.openQuestionEditor = ContentModule.openQuestionEditor;
-        // Global Reports objesini de pencereye ekleyelim (Silme/Arşivleme işlemleri için)
-        window.AdminReports = ReportsModule.AdminReports; 
+        if(window.AdminReports) window.AdminReports = ReportsModule.AdminReports;
 
         initTabs(role);
         
-        // URL hash kontrolü (örn: #users direkt o sekmeyi açar) veya varsayılan dashboard
-        const initialTab = window.location.hash.substring(1) || 'dashboard';
-        handleTabChange(initialTab, role);
-        // Sayfa yüklendiğinde doğru menü öğesini aktif hale getir
-        const activeTabEl = document.querySelector(`.nav-item[data-tab="${initialTab}"]`);
-        if(activeTabEl) activeTabEl.classList.add('active');
-
+        // Varsayılan olarak Dashboard'u aç
+        handleTabChange('dashboard', role);
 
     } catch (error) {
-        console.error("Başlatma hatası:", error);
+        console.error("Panel Hatası:", error);
     }
 });
 
+// Sekme Değiştirme Mantığı
+function handleTabChange(target, role) {
+    document.querySelectorAll('.admin-section').forEach(el => el.style.display = 'none');
+    
+    const targetSection = document.getElementById(`section-${target}`);
+    if (targetSection) {
+        targetSection.style.display = 'block';
+        
+        // İlgili modülü yükle
+        switch(target) {
+            case 'dashboard': DashboardModule.initDashboard(); break;
+            case 'users': if(role === 'admin') UserModule.initUsersPage(); break;
+            case 'content': ContentModule.initContentPage(); break;
+            case 'legislation': LegislationModule.initLegislationPage(); break;
+            case 'reports': ReportsModule.initReportsPage(); break;
+        }
+    }
+}
+
 function initTabs(role) {
-    const tabs = document.querySelectorAll('.sidebar-nav .nav-item[data-tab]');
+    const tabs = document.querySelectorAll('.sidebar-nav .nav-item');
     tabs.forEach(tab => {
         tab.addEventListener('click', (e) => {
             e.preventDefault();
-            const target = tab.dataset.tab;
-            
-            // Aktif tab görselini güncelle
             tabs.forEach(t => t.classList.remove('active'));
             tab.classList.add('active');
-
-            // URL hash'ini güncelle
-            window.location.hash = target;
-
-            handleTabChange(target, role);
+            handleTabChange(tab.dataset.tab, role);
         });
     });
 }
 
-function handleTabChange(target, role) {
-    // Tüm bölümleri gizle
-    document.querySelectorAll('.admin-section').forEach(el => el.style.display = 'none');
-    
-    // Hedef bölümü göster
-    const targetSection = document.getElementById(`section-${target}`);
-    if(targetSection) {
-        targetSection.style.display = 'block';
-    } else {
-        console.warn(`Bölüm bulunamadı: section-${target}`);
-        return;
-    }
-
-    // İlgili modülü çalıştır
-    switch(target) {
-        case 'dashboard':
-            DashboardModule.initDashboard();
-            break;
-        case 'users':
-            if(role === 'admin') UserModule.initUsersPage();
-            break;
-        case 'content':
-            ContentModule.initContentPage();
-            break;
-        case 'legislation':
-            LegislationModule.initLegislationPage();
-            break;
-        case 'reports':
-            ReportsModule.initReportsPage();
-            break;
-        default:
-            console.log(`${target} modülü henüz aktif değil.`);
-    }
-}
-
-// Logout
-const logoutBtn = document.getElementById('logoutBtn');
-if(logoutBtn) {
-    logoutBtn.addEventListener('click', () => {
-        auth.signOut().then(() => window.location.href = '/login.html');
-    });
-}
+// Çıkış Yap Butonu
+document.getElementById('logoutBtn')?.addEventListener('click', () => {
+    auth.signOut().then(() => window.location.href = '/login.html');
+});
