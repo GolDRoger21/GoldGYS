@@ -32,7 +32,7 @@ export async function initProfilePage() {
     const user = auth.currentUser;
     if (!user) {
         // Oturum yoksa dashboard login check zaten yönlendirir ama güvenlik önlemi
-        window.location.href = "/public/login.html";
+        window.location.href = "/login.html";
         return;
     }
 
