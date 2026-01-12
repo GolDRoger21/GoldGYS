@@ -1,118 +1,70 @@
-// public/js/admin-page.js
-import { auth } from "./firebase-config.js";
-import { signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { requireAdminOrEditor } from "./role-guard.js";
 
-// DOM Elementleri
-const dom = {
-    roleBadge: document.getElementById("userRoleBadge"),
-    adminName: document.getElementById("adminName"),
-    adminAvatar: document.getElementById("adminAvatar"),
-    logoutBtn: document.getElementById("logoutBtn"),
-    menuItems: document.querySelectorAll(".menu-item"),
-    adminOnlyElements: document.querySelectorAll(".admin-only"),
-    pageTitle: document.getElementById("pageTitle"),
-    contentArea: document.getElementById("contentArea")
-};
+import { auth } from "../firebase-config.js";
+import { requireAdminOrEditor } from "../role-guard.js";
+import * as UserModule from "./modules/admin/users.js";
+import * as ContentModule from "./modules/admin/content.js";
+import * as StatsModule from "./modules/admin/utils.js"; // İstatistikler utils içinde olabilir
 
-// Sayfa Başlatma
+// Sayfa yüklendiğinde yetki kontrolü yap ve paneli başlat
 document.addEventListener("DOMContentLoaded", async () => {
     try {
-        // 1. Güvenlik Kontrolü
-        const { role, user } = await requireAdminOrEditor();
-        console.log(`Admin paneline erişim sağlandı. Rol: ${role}`);
+        const { role } = await requireAdminOrEditor();
+        console.log(`Admin Paneli Başlatıldı. Rol: ${role}`);
+        
+        // Rol tabanlı UI düzenlemesi (Editör ise Üye Yönetimini gizle)
+        if (role === 'editor') {
+            document.querySelector('[data-tab="users"]').style.display = 'none';
+        }
 
-        // 2. Arayüzü Rol'e Göre Düzenle
-        setupUI(role, user);
-
-        // 3. Olay Dinleyicileri
-        setupEventListeners();
+        initTabs(role);
+        // Varsayılan olarak Dashboard (İstatistikler) açılsın
+        loadDashboardStats(); 
 
     } catch (error) {
-        console.error("Erişim reddedildi:", error);
-        // requireAdminOrEditor zaten yönlendirme yapıyor
+        console.error("Yetki hatası:", error);
     }
 });
 
-function setupUI(role, user) {
-    // Profil Bilgileri
-    const name = user.displayName || user.email.split('@')[0];
-    dom.adminName.textContent = name;
-    dom.roleBadge.textContent = role === "admin" ? "YÖNETİCİ" : "EDİTÖR";
+function initTabs(role) {
+    const tabs = document.querySelectorAll('.sidebar-nav .nav-item[data-tab]');
     
-    // Avatar
-    if (user.photoURL) {
-        dom.adminAvatar.src = user.photoURL;
-    }
-
-    // Rol Kısıtlamaları
-    if (role !== "admin") {
-        // Editör ise, 'admin-only' sınıfına sahip elementleri gizle
-        dom.adminOnlyElements.forEach(el => el.classList.add("hidden"));
-    }
-}
-
-function setupEventListeners() {
-    // Çıkış Yap
-    dom.logoutBtn.addEventListener("click", async () => {
-        if(confirm("Yönetim panelinden çıkmak istiyor musunuz?")) {
-            await signOut(auth);
-            window.location.href = "/login.html";
-        }
-    });
-
-    // Menü Geçişleri (SPA Mantığı)
-    dom.menuItems.forEach(item => {
-        item.addEventListener("click", (e) => {
+    tabs.forEach(tab => {
+        tab.addEventListener('click', (e) => {
             e.preventDefault();
             
-            // Aktif sınıfını güncelle
-            dom.menuItems.forEach(i => i.classList.remove("active"));
-            item.classList.add("active");
+            // Aktif class yönetimi
+            tabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
 
-            // Başlığı güncelle
-            const target = item.getAttribute("data-target");
-            const title = item.innerText;
-            dom.pageTitle.textContent = title;
-
-            // İçeriği Yükle
-            loadContent(target);
+            const target = tab.dataset.tab;
+            handleTabChange(target, role);
         });
     });
 }
 
-// Basit İçerik Yükleyici (İleride modüllerden import edilecek)
-function loadContent(target) {
-    // Burası ileride `modules/admin/users.js` gibi dosyalardan render fonksiyonlarını çağıracak.
-    // Şimdilik sadece demo amaçlı basit HTML değiştiriyoruz.
+function handleTabChange(target, role) {
+    // Tüm içerik alanlarını gizle
+    document.querySelectorAll('.admin-section').forEach(el => el.style.display = 'none');
+    
+    // Hedef alanı göster
+    const targetSection = document.getElementById(`section-${target}`);
+    if(targetSection) targetSection.style.display = 'block';
 
-    if (target === "dashboard") {
-        // Mevcut dashboard yapısını geri yükle (veya sayfayı yenilemeden göster)
-        window.location.reload(); 
-        return;
+    // Modülü yükle
+    switch(target) {
+        case 'users':
+            if(role === 'admin') UserModule.initUsersPage();
+            break;
+        case 'content':
+            ContentModule.initContentPage();
+            break;
+        case 'dashboard':
+            loadDashboardStats();
+            break;
     }
+}
 
-    let html = "";
-    if (target === "users") {
-        html = `
-            <div class="recent-activity">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-                    <h3>Kullanıcı Listesi</h3>
-                    <button class="badge success" style="border:none; cursor:pointer; font-size:14px; padding:8px 16px;">+ Yeni Kullanıcı</button>
-                </div>
-                <p style=\"color:#94a3b8;\">Kullanıcı yönetimi modülü hazırlanıyor...</p>
-            </div>
-        `;
-    } else if (target === "tests") {
-        html = `
-            <div class="recent-activity">
-                <h3>Test Yönetimi</h3>
-                <p style=\"color:#94a3b8;\">Soru bankası ve test oluşturma araçları buraya gelecek.</p>
-            </div>
-        `;
-    } else {
-        html = `<div class="stat-card"><h3>${target}</h3><p>Bu modül yapım aşamasında.</p></div>`;
-    }
-
-    dom.contentArea.innerHTML = html;
+async function loadDashboardStats() {
+    // Burada basit sayaçları güncelleyeceğiz
+    // StatsModule.getSummary()...
 }

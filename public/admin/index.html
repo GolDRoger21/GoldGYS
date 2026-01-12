@@ -19,27 +19,24 @@
             <div class="role-badge" id="userRoleBadge">Yükleniyor...</div>
         </div>
 
-        <nav class="sidebar-menu">
-            <a href="#" class="menu-item active" data-target="dashboard">
+        <nav class="sidebar-nav">
+            <a href="#" class="nav-item active" data-tab="dashboard">
                 <span class="icon">📊</span> Genel Bakış
             </a>
             
             <div class="menu-label">İÇERİK YÖNETİMİ</div>
-            <a href="#" class="menu-item" data-target="tests">
-                <span class="icon">📝</span> Testler & Sorular
+            <a href="#" class="nav-item" data-tab="content">
+                <span class="icon">📝</span> İçerik Yönetimi
             </a>
-            <a href="#" class="menu-item" data-target="subjects">
-                <span class="icon">📚</span> Konular
-            </a>
-            <a href="#" class="menu-item" data-target="reports">
+            <a href="#" class="nav-item" data-tab="reports">
                 <span class="icon">🚩</span> Hata Bildirimleri
             </a>
 
             <div class="menu-label admin-only">SİSTEM</div>
-            <a href="#" class="menu-item admin-only" data-target="users">
+            <a href="#" class="nav-item admin-only" data-tab="users">
                 <span class="icon">👥</span> Kullanıcılar
             </a>
-            <a href="#" class="menu-item admin-only" data-target="settings">
+            <a href="#" class="nav-item admin-only" data-tab="settings">
                 <span class="icon">⚙️</span> Ayarlar
             </a>
         </nav>
@@ -49,67 +46,71 @@
         </div>
     </aside>
 
-    <main class="admin-main">
-        <header class="top-header">
-            <h2 id="pageTitle">Genel Bakış</h2>
-            <div class="user-info">
-                <span id="adminName">Yönetici</span>
-                <img src="https://ui-avatars.com/api/?name=Admin&background=D4AF37&color=0F172A" alt="Admin" id="adminAvatar">
-            </div>
-        </header>
-
-        <div id="contentArea" class="content-wrapper">
-            <div class="dashboard-grid">
-                <div class="stat-card">
-                    <h3>Toplam Kullanıcı</h3>
-                    <div class="value">1,204</div>
-                    <div class="trend up">+%12 bu hafta</div>
+    <main class="main-content">
+    
+        <section id="section-dashboard" class="admin-section">
+            <h2>Genel Bakış</h2>
+            <div class="stats-grid">
                 </div>
-                <div class="stat-card">
-                    <h3>Aktif Testler</h3>
-                    <div class="value">42</div>
-                    <div class="trend">Güncel</div>
-                </div>
-                <div class="stat-card">
-                    <h3>Çözülen Soru</h3>
-                    <div class="value">15.4K</div>
-                    <div class="trend up">+%5 bugün</div>
-                </div>
-                <div class="stat-card alert">
-                    <h3>Bekleyen Bildirim</h3>
-                    <div class="value">8</div>
-                    <div class="trend down">İnceleme gerekli</div>
+        </section>
+    
+        <section id="section-users" class="admin-section" style="display: none;">
+            <div class="section-header">
+                <h2>Üye Yönetimi</h2>
+                <div class="actions">
+                    <button id="btnShowPending" class="btn btn-primary">Onay Bekleyenler</button>
+                    <button id="btnShowAll" class="btn btn-secondary">Tüm Üyeler</button>
                 </div>
             </div>
-
-            <div class="recent-activity">
-                <h3>Son Kayıtlar</h3>
+            <div class="table-responsive">
                 <table class="admin-table">
                     <thead>
                         <tr>
                             <th>Kullanıcı</th>
-                            <th>Email</th>
+                            <th>Rol</th>
                             <th>Durum</th>
-                            <th>Tarih</th>
+                            <th>Kayıt Tarihi</th>
+                            <th>İşlemler</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <tr>
-                            <td>Ahmet Yılmaz</td>
-                            <td>ahmet@adalet.gov.tr</td>
-                            <td><span class="badge success">Aktif</span></td>
-                            <td>Bugün 10:30</td>
-                        </tr>
-                        <tr>
-                            <td>Ayşe Demir</td>
-                            <td>ayse@adalet.gov.tr</td>
-                            <td><span class="badge warning">Onay Bekliyor</span></td>
-                            <td>Dün 14:20</td>
-                        </tr>
-                    </tbody>
+                    <tbody id="usersTableBody">
+                        </tbody>
                 </table>
             </div>
-        </div>
+        </section>
+    
+        <section id="section-content" class="admin-section" style="display: none;">
+            <h2>İçerik Yönetimi</h2>
+            
+            <div class="content-forms">
+                <div class="card">
+                    <h3>Yeni Konu Ekle</h3>
+                    <div class="form-group">
+                        <label>Kategori</label>
+                        <select id="topicCategory" class="form-control">
+                            <option value="genel">Genel</option>
+                            <option value="anayasa">Anayasa</option>
+                            <option value="idare">İdare Hukuku</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Konu Başlığı</label>
+                        <input type="text" id="topicTitle" class="form-control" placeholder="Örn: Yasama Dokunulmazlığı">
+                    </div>
+                    <div class="form-group">
+                        <label>Açıklama</label>
+                        <textarea id="topicDesc" class="form-control"></textarea>
+                    </div>
+                    <button id="btnSaveTopic" class="btn btn-success">Kaydet</button>
+                </div>
+    
+                <div class="card">
+                    <h3>Mevcut Konular</h3>
+                    <div id="topicsList"></div>
+                </div>
+            </div>
+        </section>
+    
     </main>
 
     <script type="module" src="../js/admin-page.js"></script>
