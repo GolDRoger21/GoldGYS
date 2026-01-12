@@ -16,50 +16,12 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230F172A'/><text x='50' y='70' font-family='serif' font-size='60' fill='%23D4AF37' text-anchor='middle' font-weight='bold'>G</text></svg>">
 </head>
 <body>
-
     <div id="mainWrapper">
         <div class="sidebar-overlay" id="sidebarOverlay"></div>
+        <aside class="sidebar" id="sidebar"></aside>
 
-        <aside class="sidebar" id="sidebar">
-            <div class="sidebar-header">
-                <a href="/pages/dashboard.html" class="brand-logo">GOLD <span>GYS</span></a>
-                <button class="close-sidebar-btn" id="closeSidebar">✕</button>
-            </div>
-            <nav class="sidebar-nav">
-                <div class="nav-label">GENEL</div>
-                <a href="/pages/dashboard.html" class="nav-item">
-                    <span class="icon">🏠</span> Genel Bakış
-                </a>
-                <a href="/pages/profil.html" class="nav-item active">
-                    <span class="icon">👤</span> Profilim
-                </a>
-                <div class="nav-label">ÇALIŞMA ALANI</div>
-                <a href="/pages/konular.html" class="nav-item"><span class="icon">📚</span> Dersler & Konular</a>
-                <a href="/pages/testler.html" class="nav-item"><span class="icon">📝</span> Konu Testleri</a>
-                <a href="/pages/denemeler.html" class="nav-item"><span class="icon">⚖️</span> Deneme Sınavları</a>
-                <div class="nav-label">PERFORMANS</div>
-                <a href="/pages/yanlislarim.html" class="nav-item"><span class="icon">⚠️</span> Yanlışlarım</a>
-                <a href="/pages/favoriler.html" class="nav-item"><span class="icon">⭐</span> Favori Sorular</a>
-                <a href="/pages/analiz.html" class="nav-item"><span class="icon">📊</span> Analiz Raporu</a>
-            </nav>
-            <div class="sidebar-footer">
-                <button id="logoutBtn" class="nav-item logout">
-                    <span class="icon">🚪</span> Çıkış Yap
-                </button>
-            </div>
-        </aside>
-
-        <main class="main-content">
-            <header class="top-bar">
-                <div class="top-left">
-                    <button class="menu-toggle" id="menuToggle">
-                        <span class="bar"></span><span class="bar"></span><span class="bar"></span>
-                    </button>
-                    <div class="page-title">Profil Ayarları</div>
-                </div>
-            </header>
-
-            <div class="dashboard-container profile-container-fix">
+        <main class="main-content" id="main-content">
+             <div class="dashboard-container profile-container-fix">
                 
                 <div class="profile-sidebar-col">
                     <div class="profile-card">
@@ -188,7 +150,6 @@
                         </div>
                     </div>
                 </div>
-
             </div>
         </main>
     </div>
@@ -196,18 +157,10 @@
     <script type="module">
         import { initLayout } from '../js/ui-loader.js';
         import { initProfilePage } from '../js/profile-page.js';
-        import { auth } from '../js/firebase-config.js'; 
-        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-        document.addEventListener('DOMContentLoaded', () => {
-            onAuthStateChanged(auth, async (user) => {
-                if (user) {
-                    await initLayout(); 
-                    initProfilePage();
-                } else {
-                    window.location.href = "/login.html";
-                }
-            });
+        document.addEventListener('DOMContentLoaded', async () => {
+            await initLayout('profil', 'Profil Ayarları');
+            initProfilePage();
         });
     </script>
 </body>

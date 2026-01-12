@@ -1,90 +1,127 @@
-
 import { auth, db } from "./firebase-config.js";
-import { sendPasswordResetEmail, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { doc, updateDoc, collection, getDocs, query } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { getUserProfile, updateUserCache } from "./user-profile.js";
 
 const dom = {
-    avatarImg: document.getElementById("profileAvatarMain"),
-    nameText: document.getElementById("profileNameMain"),
-    roleText: document.getElementById("profileRoleMain"),
+    // Sol Profil Kartı
+    profileAvatarMain: document.getElementById("profileAvatarMain"),
+    profileNameMain: document.getElementById("profileNameMain"),
+    profileRoleMain: document.getElementById("profileRoleMain"),
     statCompleted: document.getElementById("statCompleted"),
     statScore: document.getElementById("statScore"),
     displayTarget: document.getElementById("displayTarget"),
     
+    // Form Alanları
     inpAd: document.getElementById("inpAd"),
     inpSoyad: document.getElementById("inpSoyad"),
     inpEmail: document.getElementById("inpEmail"),
     inpPhone: document.getElementById("inpPhone"),
     inpTitle: document.getElementById("inpTitle"),
     inpExam: document.getElementById("inpExam"),
-    
-    form: document.getElementById("profileForm"),
+    profileForm: document.getElementById("profileForm"),
     saveMessage: document.getElementById("saveMessage"),
-    btnReset: document.getElementById("btnResetPassword"),
     
+    // Güvenlik
+    btnResetPassword: document.getElementById("btnResetPassword"),
+    
+    // Tablar
     tabs: document.querySelectorAll(".tab-link"),
     tabBodies: document.querySelectorAll(".tab-body"),
 
-    // Yeni DOM elementleri
+    // Sağ İstatistik Kartları
     statTopicRatio: document.getElementById("statTopicRatio"),
     statTopicProgress: document.getElementById("statTopicProgress"),
     statTestsCompleted: document.getElementById("statTestsCompleted"),
     statGlobalScore: document.getElementById("statGlobalScore"),
 };
 
+/**
+ * Profil sayfasını başlatan ana fonksiyon.
+ */
 export function initProfilePage() {
-    onAuthStateChanged(auth, async (user) => {
-        if (user) {
-            initTabs();
-            await loadFullProfile(user);
-            if(dom.form) {
-                dom.form.addEventListener("submit", (e) => {
-                    e.preventDefault();
-                    saveProfile(user.uid);
-                });
-            }
-            if(dom.btnReset) {
-                dom.btnReset.addEventListener("click", () => handlePasswordReset(user.email));
-            }
-        } else {
-            window.location.href = "/login.html";
+    const user = auth.currentUser;
+    if (user) {
+        initTabs();
+        loadFullProfile(user);
+        
+        if (dom.profileForm) {
+            dom.profileForm.addEventListener("submit", (e) => {
+                e.preventDefault();
+                saveProfile(user.uid);
+            });
         }
-    });
+        
+        if (dom.btnResetPassword) {
+            dom.btnResetPassword.addEventListener("click", () => handlePasswordReset(user.email));
+        }
+    } else {
+        console.error("Kullanıcı oturumu bulunamadı. Bu sayfaya erişim yetkiniz olmayabilir.");
+        // initLayout zaten yönlendirmeyi yapacaktır.
+    }
 }
 
+/**
+ * Kullanıcının tüm profil verilerini ve istatistiklerini yükler.
+ * @param {object} user - Firebase Auth kullanıcı nesnesi.
+ */
 async function loadFullProfile(user) {
-    if(dom.inpEmail) dom.inpEmail.value = user.email;
+    if (dom.inpEmail) dom.inpEmail.value = user.email;
     
     try {
         const userData = await getUserProfile(user.uid);
         if (userData) {
-            let ad = userData.ad;
-            let soyad = userData.soyad;
-
-            // DB boşsa ve Auth'ta isim varsa (örn: Google Auth), onu kullan
-            if (!ad && !soyad && user.displayName) {
-                const nameParts = user.displayName.split(' ');
-                ad = nameParts[0] || '';
-                soyad = nameParts.slice(1).join(' ') || '';
-            }
-
-            if(dom.inpAd) dom.inpAd.value = ad || "";
-            if(dom.inpSoyad) dom.inpSoyad.value = soyad || "";
-            if(dom.inpPhone) dom.inpPhone.value = userData.phone || "";
-            if(dom.inpTitle) dom.inpTitle.value = userData.title || "";
-            if(dom.inpExam) dom.inpExam.value = userData.targetExam || "";
-            
+            populateForm(userData, user);
             updateInfoCard(userData, user);
         }
-
         await calculateUserStats(user.uid);
-
     } catch (error) {
-        console.error("Profil verisi çekilemedi:", error);
+        console.error("Profil verileri yüklenirken bir hata oluştu:", error);
     }
 }
 
+/**
+ * Form alanlarını kullanıcı verileriyle doldurur.
+ * @param {object} userData - Firestore'dan gelen profil verisi.
+ * @param {object} user - Firebase Auth kullanıcı nesnesi.
+ */
+function populateForm(userData, user) {
+    let ad = userData.ad;
+    let soyad = userData.soyad;
+
+    // Eğer DB'de isim yoksa ama Auth profilinde (örn. Google) varsa, onu kullan
+    if (!ad && !soyad && user.displayName) {
+        const nameParts = user.displayName.split(' ');
+        ad = nameParts[0] || '';
+        soyad = nameParts.slice(1).join(' ') || '';
+    }
+
+    if (dom.inpAd) dom.inpAd.value = ad || "";
+    if (dom.inpSoyad) dom.inpSoyad.value = soyad || "";
+    if (dom.inpPhone) dom.inpPhone.value = userData.phone || "";
+    if (dom.inpTitle) dom.inpTitle.value = userData.title || "";
+    if (dom.inpExam) dom.inpExam.value = userData.targetExam || "";
+}
+
+/**
+ * Soldaki profil kartını günceller.
+ * @param {object} data - Firestore'dan gelen profil verisi.
+ * @param {object} user - Firebase Auth kullanıcı nesnesi.
+ */
+function updateInfoCard(data, user) {
+    const fullName = `${data.ad || ''} ${data.soyad || ''}`.trim() || user.displayName || "İsimsiz Kullanıcı";
+    const avatarUrl = data.photoURL || user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=D4AF37&color=000&bold=true`;
+
+    if (dom.profileNameMain) dom.profileNameMain.textContent = fullName;
+    if (dom.profileAvatarMain) dom.profileAvatarMain.src = avatarUrl;
+    if (dom.profileRoleMain) dom.profileRoleMain.textContent = translateRole(data.role);
+    if (dom.displayTarget) dom.displayTarget.textContent = data.targetExam || "Belirtilmedi";
+}
+
+/**
+ * Kullanıcının istatistiklerini hesaplar ve UI'da gösterir.
+ * @param {string} uid - Kullanıcı ID'si.
+ */
 async function calculateUserStats(uid) {
     try {
         const progressRef = collection(db, `users/${uid}/progress`);
@@ -93,78 +130,63 @@ async function calculateUserStats(uid) {
         let totalTestsFinished = 0;
         let totalScoreSum = 0;
         let scoreCount = 0;
-        let workedTopicsCount = progressSnapshot.size; 
+        let workedTopicsCount = progressSnapshot.size;
 
         progressSnapshot.forEach((doc) => {
             const data = doc.data();
-            if (data.completedTests) {
-                totalTestsFinished += Number(data.completedTests);
-            }
+            totalTestsFinished += Number(data.completedTests || 0);
             if (data.scoreAvg !== undefined && data.scoreAvg !== null) {
                 totalScoreSum += Number(data.scoreAvg);
                 scoreCount++;
             }
         });
 
-        let totalTopicsCount = 0;
-        const cachedTopicsCount = sessionStorage.getItem('total_topics_count');
-        
-        if (cachedTopicsCount) {
-            totalTopicsCount = Number(cachedTopicsCount);
-        } else {
-            const topicsQuery = query(collection(db, "topics")); 
-            const topicsSnap = await getDocs(topicsQuery);
-            totalTopicsCount = topicsSnap.size;
-            sessionStorage.setItem('total_topics_count', totalTopicsCount);
-        }
-
+        const totalTopicsCount = await getTotalTopicsCount();
         const globalAvg = scoreCount > 0 ? (totalScoreSum / scoreCount).toFixed(1) : "0";
-        
-        if(dom.statCompleted) dom.statCompleted.textContent = totalTestsFinished;
-        if(dom.statScore) dom.statScore.textContent = globalAvg;
+        const progressPercent = totalTopicsCount > 0 ? Math.min(100, Math.round((workedTopicsCount / totalTopicsCount) * 100)) : 0;
 
-        if(dom.statTestsCompleted) dom.statTestsCompleted.textContent = totalTestsFinished;
-        if(dom.statGlobalScore) dom.statGlobalScore.textContent = `%${globalAvg}`;
-        
-        const progressPercent = totalTopicsCount > 0 
-            ? Math.min(100, Math.round((workedTopicsCount / totalTopicsCount) * 100)) 
-            : 0;
-            
-        if(dom.statTopicRatio) dom.statTopicRatio.textContent = `${workedTopicsCount} / ${totalTopicsCount} Konu`;
-        if(dom.statTopicProgress) dom.statTopicProgress.style.width = `${progressPercent}%`;
+        // Sol Kart
+        if (dom.statCompleted) dom.statCompleted.textContent = totalTestsFinished;
+        if (dom.statScore) dom.statScore.textContent = globalAvg;
+        // Sağ Kartlar
+        if (dom.statTestsCompleted) dom.statTestsCompleted.textContent = totalTestsFinished;
+        if (dom.statGlobalScore) dom.statGlobalScore.textContent = `%${globalAvg}`;
+        if (dom.statTopicRatio) dom.statTopicRatio.textContent = `${workedTopicsCount} / ${totalTopicsCount} Konu`;
+        if (dom.statTopicProgress) dom.statTopicProgress.style.width = `${progressPercent}%`;
 
     } catch (error) {
         console.warn("İstatistik hesaplama hatası:", error);
     }
 }
 
-function updateInfoCard(data, user) {
-    const fullName = `${data.ad || ''} ${data.soyad || ''}`.trim();
-    if(dom.nameText) dom.nameText.textContent = fullName || user.displayName || "İsimsiz Kullanıcı";
+/**
+ * Toplam konu sayısını (cache'li) getirir.
+ * @returns {Promise<number>}
+ */
+async function getTotalTopicsCount() {
+    const cachedCount = sessionStorage.getItem('total_topics_count');
+    if (cachedCount) return Number(cachedCount);
 
-    let roleDisplay = "Öğrenci";
-    if (data.role) {
-        switch (data.role) {
-            case 'admin': roleDisplay = "Yönetici"; break;
-            case 'editor': roleDisplay = "Editör"; break;
-            case 'user': roleDisplay = "Öğrenci"; break;
-            default: roleDisplay = "Üye";
-        }
+    try {
+        const topicsSnap = await getDocs(collection(db, "topics"));
+        const count = topicsSnap.size;
+        sessionStorage.setItem('total_topics_count', count);
+        return count;
+    } catch (error) {
+        console.error("Toplam konu sayısı alınamadı:", error);
+        return 0; // Hata durumunda 0 dön
     }
-    if(dom.roleText) dom.roleText.textContent = roleDisplay;
-    
-    if(dom.displayTarget) dom.displayTarget.textContent = data.targetExam || "Belirtilmedi";
-    
-    const avatarUrl = data.photoURL || user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName || user.displayName)}&background=D4AF37&color=000&bold=true`;
-    if(dom.avatarImg) dom.avatarImg.src = avatarUrl;
 }
 
+/**
+ * Profil bilgilerini Firestore'a kaydeder.
+ * @param {string} uid - Kullanıcı ID'si.
+ */
 async function saveProfile(uid) {
-    const btn = dom.form.querySelector("button[type='submit']");
-    const originalText = btn.textContent;
+    const btn = dom.profileForm.querySelector("button[type='submit']");
     btn.disabled = true;
     btn.textContent = "Kaydediliyor...";
-    if(dom.saveMessage) dom.saveMessage.textContent = "";
+    dom.saveMessage.textContent = "";
 
     try {
         const updatePayload = {
@@ -177,54 +199,53 @@ async function saveProfile(uid) {
         };
 
         await updateDoc(doc(db, "users", uid), updatePayload);
-        
-        updateUserCache(uid, {
-            ...updatePayload,
-            updatedAt: new Date().toISOString()
-        });
-        
-        const user = auth.currentUser;
-        const updatedDataFromCache = await getUserProfile(user.uid);
-        updateInfoCard(updatedDataFromCache, user);
+        await updateUserCache(uid, updatePayload); // Cache'i de güncelle
 
-        if(dom.saveMessage) {
-            dom.saveMessage.textContent = "✓ Başarıyla kaydedildi";
-            dom.saveMessage.style.color = "var(--color-success)";
-        }
+        // UI'ı anında güncelle
+        const user = auth.currentUser;
+        const updatedData = await getUserProfile(user.uid, { force: true }); // Cache'i atlayıp yeniden çek
+        updateInfoCard(updatedData, user);
+
+        dom.saveMessage.textContent = "✓ Başarıyla kaydedildi";
+        dom.saveMessage.style.color = "var(--color-success)";
 
     } catch (error) {
-        console.error(error);
-        if(dom.saveMessage) {
-            dom.saveMessage.textContent = "Hata: " + error.message;
-            dom.saveMessage.style.color = "var(--color-danger)";
-        }
+        console.error("Profil kaydedilemedi:", error);
+        dom.saveMessage.textContent = "Hata: " + error.message;
+        dom.saveMessage.style.color = "var(--color-danger)";
     } finally {
         btn.disabled = false;
-        btn.textContent = originalText;
+        btn.textContent = "Değişiklikleri Kaydet";
     }
 }
 
 function handlePasswordReset(email) {
-    if(!email) return;
-    if(confirm("Şifre sıfırlama bağlantısı gönderilsin mi?")) {
+    if (!email) return;
+    if (confirm("Şifre sıfırlama bağlantısı e-posta adresinize gönderilsin mi?")) {
         sendPasswordResetEmail(auth, email)
-            .then(() => alert("E-posta gönderildi."))
+            .then(() => alert("Sıfırlama e-postası başarıyla gönderildi."))
             .catch(e => alert("Hata: " + e.message));
     }
 }
 
 function initTabs() {
-    if(!dom.tabs) return;
     dom.tabs.forEach(btn => {
         btn.addEventListener("click", () => {
             dom.tabs.forEach(t => t.classList.remove("active"));
             btn.classList.add("active");
             
-            const target = btn.dataset.tab;
+            const targetId = `tab-${btn.dataset.tab}`;
             dom.tabBodies.forEach(body => {
-                body.classList.remove("active");
-                if(body.id === `tab-${target}`) body.classList.add("active");
+                body.classList.toggle("active", body.id === targetId);
             });
         });
     });
+}
+
+function translateRole(role) {
+    switch (role) {
+        case 'admin': return 'Yönetici';
+        case 'editor': return 'Editör';
+        default: return 'Öğrenci';
+    }
 }
