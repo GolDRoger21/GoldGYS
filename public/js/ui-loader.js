@@ -1,4 +1,4 @@
-import { auth } from './firebase-config.js';
+import { auth, db } from './firebase-config.js';
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getUserProfile } from './user-profile.js';
 
@@ -6,10 +6,10 @@ const dom = {};
 
 export async function initLayout(activePageId, pageTitle = 'Genel Bakış') {
     try {
-        // 1. Önce Header ve Sidebar içeriğini yükle
-        // Sidebar için 'sidebar' ID'li mevcut konteyneri kullanıyoruz (Duplicate önlemek için)
         await Promise.all([
-            loadHTML('/partials/sidebar.html', 'sidebar', 'innerHTML'),
+            // Sidebar'ı mainWrapper içine ekle (önceden sidebar overlay ile birlikte)
+            loadHTML('/partials/sidebar.html', 'mainWrapper', 'prepend'),
+            // Header'ı main-content içine başa ekle
             loadHTML('/partials/app-header.html', 'main-content', 'prepend')
         ]);
 
@@ -19,139 +19,95 @@ export async function initLayout(activePageId, pageTitle = 'Genel Bakış') {
         setActiveMenuItem(activePageId);
         setupEventListeners();
 
-        // Auth durumunu bekle ve UI güncelle
+        // Auth durumunu bekle
         await checkUserAuthState();
 
         return true;
     } catch (error) {
-        console.error('Layout init error:', error);
+        console.error('Layout Init Error:', error);
         return false;
     }
 }
 
 async function loadHTML(url, targetId, position = 'append') {
     const target = document.getElementById(targetId);
-    if (!target) {
-        console.warn(`${targetId} element not found for loading ${url}`);
-        return;
-    }
+    if (!target) return;
 
     try {
         const response = await fetch(url);
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        if(!response.ok) throw new Error(response.statusText);
         const html = await response.text();
-
-        if (position === 'innerHTML') {
-            target.innerHTML = html;
-        } else if (position === 'prepend') {
-            target.insertAdjacentHTML('afterbegin', html);
-        } else {
-            target.insertAdjacentHTML('beforeend', html);
-        }
+        
+        if (position === 'innerHTML') target.innerHTML = html;
+        else if (position === 'prepend') target.insertAdjacentHTML('afterbegin', html);
+        else target.insertAdjacentHTML('beforeend', html);
     } catch (e) {
-        console.error(`Error loading HTML from ${url}:`, e);
+        console.error(`Error loading ${url}:`, e);
     }
 }
 
 function cacheDomElements() {
-    // DOM referanslarını güncelle
-    Object.assign(dom, {
-        sidebar: document.getElementById('sidebar'),
-        mobileMenuToggle: document.getElementById('mobileMenuToggle'),
-        sidebarOverlay: document.getElementById('sidebarOverlay'),
-        closeSidebarBtn: document.getElementById('closeSidebar'), // Sidebar partial içinde olmalı
-        
-        // Header ve User Menu
-        userMenuToggle: document.getElementById('userMenuToggle'),
-        profileDropdown: document.getElementById('profileDropdown'),
-        logoutButton: document.getElementById('logoutButton'),
-        
-        // Profil Bilgileri
-        userNameLabel: document.getElementById('userNameLabel'),
-        userRoleLabel: document.getElementById('userRoleLabel'),
-        userAvatarCircle: document.getElementById('userAvatarCircle'),
-        userAvatarImage: document.getElementById('userAvatarImage'),
-        userAvatarInitial: document.getElementById('userAvatarInitial'),
-        
-        // Dropdown Profil Bilgileri
-        dropdownUserName: document.getElementById('dropdownUserName'),
-        dropdownUserEmail: document.getElementById('dropdownUserEmail'),
-        dropdownAvatarCircle: document.getElementById('dropdownAvatarCircle'),
-        dropdownAvatarImage: document.getElementById('dropdownAvatarImage'),
-        dropdownAvatarInitial: document.getElementById('dropdownAvatarInitial'),
-        
-        pageTitle: document.getElementById('pageTitle')
-    });
+    dom.sidebar = document.getElementById('sidebar');
+    dom.pageTitle = document.getElementById('pageTitle');
+    dom.mobileMenuToggle = document.getElementById('mobileMenuToggle');
+    dom.sidebarOverlay = document.getElementById('sidebarOverlay');
+    dom.userMenuToggle = document.getElementById('userMenuToggle');
+    dom.profileDropdown = document.getElementById('profileDropdown');
+    dom.logoutButton = document.getElementById('logoutButton');
+    // Sidebar içindeki logout butonu (partial'dan geliyor olabilir)
+    dom.sidebarLogoutBtn = document.querySelector('.sidebar .btn-logout');
 }
 
 function setActiveMenuItem(activePageId) {
     if (!dom.sidebar) return;
-    const navItems = dom.sidebar.querySelectorAll('.nav-item, .nav-link'); // Genişletilmiş seçici
-    navItems.forEach(item => {
-        // data-page attribute'unu kontrol et
-        if (item.dataset.page === activePageId) {
-            item.classList.add('active');
-            // Eğer bir submenu içindeyse, parent'ı da aç (opsiyonel)
-        }
-    });
+    const items = dom.sidebar.querySelectorAll(`[data-page="${activePageId}"]`);
+    items.forEach(item => item.classList.add('active'));
 }
 
 function setupEventListeners() {
-    // Mobile Menu Toggle - Güvenli Kontrol
-    if (dom.mobileMenuToggle && dom.sidebar && dom.sidebarOverlay) {
-        // Event listener'ları temizle (tekrar yüklemelerde duplicate olmasın)
-        dom.mobileMenuToggle.replaceWith(dom.mobileMenuToggle.cloneNode(true));
-        dom.sidebarOverlay.replaceWith(dom.sidebarOverlay.cloneNode(true));
-        
-        // Elementleri tekrar al (replaceWith referansı bozar)
-        dom.mobileMenuToggle = document.getElementById('mobileMenuToggle');
-        dom.sidebarOverlay = document.getElementById('sidebarOverlay');
+    // Mobile Menu
+    if (dom.mobileMenuToggle && dom.sidebarOverlay) {
+        // Event listener duplication önlemek için
+        const newBtn = dom.mobileMenuToggle.cloneNode(true);
+        dom.mobileMenuToggle.parentNode.replaceChild(newBtn, dom.mobileMenuToggle);
+        dom.mobileMenuToggle = newBtn;
 
         const toggleMenu = (e) => {
-            e?.stopPropagation(); // Tıklamanın yayılmasını engelle
-            dom.sidebar.classList.toggle('active');
-            dom.sidebarOverlay.classList.toggle('active');
+            e?.stopPropagation();
+            const sb = document.getElementById('sidebar');
+            const ov = document.getElementById('sidebarOverlay');
+            if(sb) sb.classList.toggle('active');
+            if(ov) ov.classList.toggle('active');
         };
 
         dom.mobileMenuToggle.addEventListener('click', toggleMenu);
         dom.sidebarOverlay.addEventListener('click', toggleMenu);
-        
-        // Sidebar içindeki kapatma butonu (eğer varsa)
-        const closeBtn = dom.sidebar.querySelector('#closeSidebar');
-        if (closeBtn) {
-            closeBtn.addEventListener('click', toggleMenu);
-        }
     }
 
-    // User Dropdown Toggle
+    // Dropdown
     if (dom.userMenuToggle && dom.profileDropdown) {
-        dom.userMenuToggle.addEventListener('click', (e) => {
+        dom.userMenuToggle.onclick = (e) => {
             e.stopPropagation();
             dom.profileDropdown.classList.toggle('active');
-        });
-
+        };
+        
         document.addEventListener('click', (e) => {
-            if (!dom.userMenuToggle.contains(e.target) && !dom.profileDropdown.contains(e.target)) {
+            if(!dom.userMenuToggle.contains(e.target) && !dom.profileDropdown.contains(e.target)) {
                 dom.profileDropdown.classList.remove('active');
             }
         });
     }
 
-    // Logout
-    if (dom.logoutButton) {
-        dom.logoutButton.onclick = handleLogout;
-    }
-}
-
-async function handleLogout() {
-    if (confirm("Çıkış yapmak istediğinize emin misiniz?")) {
-        try {
+    // Logout Handler
+    const handleLogout = async () => {
+        if(confirm("Çıkış yapmak istiyor musunuz?")) {
             await signOut(auth);
             window.location.href = '/login.html';
-        } catch (error) {
-            console.error('Logout error:', error);
         }
-    }
+    };
+
+    if(dom.logoutButton) dom.logoutButton.onclick = handleLogout;
+    if(dom.sidebarLogoutBtn) dom.sidebarLogoutBtn.onclick = handleLogout;
 }
 
 async function checkUserAuthState() {
@@ -159,80 +115,81 @@ async function checkUserAuthState() {
         if (user) {
             try {
                 const profile = await getUserProfile(user.uid);
-                if (profile) {
-                    updateUI(user, profile);
-                    applyRolePermissions(profile.role);
-                }
-            } catch (err) {
-                console.error("Profil alınamadı:", err);
+                // UI güncellemesi
+                updateUIAfterLogin(user, profile || {});
+                // Rol kontrolü
+                checkUserRole(profile?.role || 'student');
+            } catch (e) {
+                console.error("User profile error:", e);
             }
         } else {
-            // Login sayfasında değilse yönlendir
-            if (!window.location.pathname.includes('/login.html') && 
-                !window.location.pathname.includes('/public/index.html') && // Landing page istisnası
-                window.location.pathname !== '/') {
+            if(!location.pathname.includes('login') && location.pathname !== '/') {
                 window.location.href = '/login.html';
             }
         }
     });
 }
 
-function updateUI(user, profile) {
-    const fullName = profile.ad ? `${profile.ad} ${profile.soyad}` : (user.displayName || 'Kullanıcı');
-    const roleText = translateRole(profile.role);
-    const initial = fullName.charAt(0).toUpperCase();
-    const photoURL = profile.photoURL || user.photoURL;
+function updateUIAfterLogin(user, profile) {
+    // İsim: DB > Auth > Varsayılan
+    const name = (profile.ad ? `${profile.ad} ${profile.soyad}` : user.displayName) || "Kullanıcı";
+    const role = translateRole(profile.role);
+    const photo = profile.photoURL || user.photoURL;
+    const init = name.charAt(0).toUpperCase();
 
-    // Helper update function
-    const setText = (el, txt) => { if(el) el.textContent = txt; };
-    
-    setText(dom.userNameLabel, fullName);
-    setText(dom.userRoleLabel, roleText);
-    setText(dom.dropdownUserName, fullName);
-    setText(dom.dropdownUserEmail, user.email);
-    setText(dom.userAvatarInitial, initial);
-    setText(dom.dropdownAvatarInitial, initial);
+    // DOM Elementlerini Anlık Seç (Cache'e güvenme, dinamik yükleniyor)
+    const els = {
+        name: document.getElementById('userNameLabel'),
+        role: document.getElementById('userRoleLabel'),
+        dropName: document.getElementById('dropdownUserName'),
+        dropEmail: document.getElementById('dropdownUserEmail'),
+        
+        // Avatar Header
+        avCirc: document.getElementById('userAvatarCircle'),
+        avImg: document.getElementById('userAvatarImage'),
+        avInit: document.getElementById('userAvatarInitial'),
+        
+        // Avatar Dropdown
+        dropCirc: document.getElementById('dropdownAvatarCircle'),
+        dropImg: document.getElementById('dropdownAvatarImage'),
+        dropInit: document.getElementById('dropdownAvatarInitial')
+    };
 
-    // Avatar Image Handling
-    const updateAvatarImg = (circleEl, imgEl, url) => {
-        if (circleEl && imgEl) {
-            if (url) {
-                circleEl.classList.add('has-photo');
-                imgEl.src = url;
-                imgEl.style.display = 'block';
-            } else {
-                circleEl.classList.remove('has-photo');
-                imgEl.style.display = 'none';
-            }
+    if(els.name) els.name.textContent = name;
+    if(els.role) els.role.textContent = role;
+    if(els.dropName) els.dropName.textContent = name;
+    if(els.dropEmail) els.dropEmail.textContent = user.email;
+
+    // Avatar Helper
+    const setAv = (circ, img, txt) => {
+        if(!circ || !img || !txt) return;
+        if(photo) {
+            circ.classList.add('has-photo');
+            img.src = photo;
+            img.style.display = 'block';
+            txt.style.display = 'none';
+        } else {
+            circ.classList.remove('has-photo');
+            img.style.display = 'none';
+            txt.style.display = 'block';
+            txt.textContent = init;
         }
     };
 
-    updateAvatarImg(dom.userAvatarCircle, dom.userAvatarImage, photoURL);
-    updateAvatarImg(dom.dropdownAvatarCircle, dom.dropdownAvatarImage, photoURL);
+    setAv(els.avCirc, els.avImg, els.avInit);
+    setAv(els.dropCirc, els.dropImg, els.dropInit);
 }
 
-function applyRolePermissions(role) {
-    // Varsayılan olarak admin elementlerini gizle
-    const adminElements = document.querySelectorAll('.admin-only');
-    
-    if (role === 'admin' || role === 'editor') {
-        adminElements.forEach(el => {
-            el.style.display = 'flex'; // veya 'block', yapısına göre
+function checkUserRole(role) {
+    if(role === 'admin' || role === 'editor') {
+        document.querySelectorAll('.admin-only').forEach(el => {
+            el.style.display = 'flex'; // 'block' yerine 'flex' genelde menüler için daha iyidir
             el.classList.remove('hidden');
-        });
-    } else {
-        adminElements.forEach(el => {
-            el.style.display = 'none';
-            el.classList.add('hidden');
         });
     }
 }
 
 function translateRole(role) {
-    const roles = {
-        'admin': 'Yönetici',
-        'editor': 'Editör',
-        'student': 'Öğrenci'
-    };
-    return roles[role] || 'Kullanıcı';
+    const r = { admin: 'Yönetici', editor: 'Editör', student: 'Öğrenci' };
+    return r[role] || 'Kullanıcı';
 }
