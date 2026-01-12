@@ -49,168 +49,176 @@
         </div>
     </aside>
 
-    <main class="main-content">
-    
-        <section id="section-dashboard" class="admin-section">
-            <h2>Genel Bakış</h2>
-            <div class="stats-grid"></div>
-        </section>
-    
-        <section id="section-users" class="admin-section" style="display: none;">
-            <div class="section-header">
-                <h2>Üye Yönetimi</h2>
-                <div class="actions">
-                    <button id="btnShowPending" class="btn btn-primary">Onay Bekleyenler</button>
-                    <button id="btnShowAll" class="btn btn-secondary">Tüm Üyeler</button>
-                </div>
+    <main class="admin-main">
+        <header class="top-header">
+            <div class="page-title">Yönetim Paneli</div>
+            <div class="user-info">
+                <span id="headerUserEmail" class="text-sm">Yükleniyor...</span>
+                <div class="avatar-circle">A</div>
             </div>
-            <div class="table-responsive">
-                <table class="admin-table">
-                    <thead>
-                        <tr>
-                            <th>Kullanıcı</th>
-                            <th>Rol</th>
-                            <th>Durum</th>
-                            <th>Kayıt Tarihi</th>
-                            <th>İşlemler</th>
-                        </tr>
-                    </thead>
-                    <tbody id="usersTableBody"></tbody>
-                </table>
-            </div>
-        </section>
-    
-        <section id="section-content" class="admin-section" style="display: none;">
-            <h2>İçerik Yönetimi</h2>
-            
-            <div class="content-forms">
-                <div class="card">
-                    <h3>Yeni Konu Ekle</h3>
-                    <div class="form-group">
-                        <label>Kategori</label>
-                        <select id="topicCategory" class="form-control">
-                            <option value="genel">Genel</option>
-                            <option value="anayasa">Anayasa</option>
-                            <option value="idare">İdare Hukuku</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Konu Başlığı</label>
-                        <input type="text" id="topicTitle" class="form-control" placeholder="Örn: Yasama Dokunulmazlığı">
-                    </div>
-                    <div class="form-group">
-                        <label>Açıklama</label>
-                        <textarea id="topicDesc" class="form-control"></textarea>
-                    </div>
-                    <button id="btnSaveTopic" class="btn btn-success">Kaydet</button>
-                </div>
-    
-                <div class="card">
-                    <h3>Mevcut Konular</h3>
-                    <div id="topicsList"></div>
-                </div>
+        </header>
 
-                <div class="card mt-4">
-                    <h3>Toplu Soru Ekle (JSON)</h3>
-                    <p class="text-sm text-muted">Hazırladığınız JSON formatındaki soru listesini buraya yapıştırın.</p>
-                    <textarea id="bulkJsonInput" class="form-control" rows="5" placeholder='[{"text": "Soru...", "correctOption": "A", ...}]'></textarea>
-                    <button id="btnBulkUpload" class="btn btn-warning mt-2">Toplu Yükle</button>
-                </div>
-                
-                <div id="questionEditor" class="card" style="display:none; border: 2px solid var(--gold);">
-                    <h3>Soru Düzenle / Ekle</h3>
-                    <input type="hidden" id="editQuestionId">
-                    
-                    <div class="form-group">
-                        <label>Soru Metni (HTML)</label>
-                        <div class="editor-toolbar">
-                            <button type="button" onclick="insertTag('<strong class='vurgu-negatif'>...</strong>')">Negatif Vurgu</button>
-                        </div>
-                        <textarea id="qText" class="form-control" rows="3"></textarea>
-                    </div>
-                
-                    <div class="row">
-                        <div class="col-md-6"><input id="optA" class="form-control mb-2" placeholder="A Şıkkı"></div>
-                        <div class="col-md-6"><input id="optB" class="form-control mb-2" placeholder="B Şıkkı"></div>
-                    </div>
-                
-                    <div class="form-group bg-light p-3">
-                        <label>Çözüm Detayları</label>
-                        <input id="solDayanak" class="form-control mb-2" placeholder="Mevzuat Dayanağı">
-                        <textarea id="solAnaliz" class="form-control mb-2" placeholder="Analiz"></textarea>
-                        <input id="solTuzak" class="form-control mb-2" placeholder="Sınav Tuzağı (Varsa)">
-                        <input id="solHap" class="form-control" placeholder="Hap Bilgi">
-                    </div>
-                
-                    <button id="btnSaveQuestion" class="btn btn-success">Kaydet</button>
-                    <button onclick="document.getElementById('questionEditor').style.display='none'" class="btn btn-secondary">İptal</button>
-                </div>
-
-            </div>
-        </section>
-
-        <section id="section-reports" class="admin-section" style="display: none;">
-            <h2>Hata Bildirimleri</h2>
-            <div id="reportsList"></div>
-        </section>
-
-        <section id="section-legislation" class="admin-section" style="display: none;">
-            <div class="section-header">
-                <h2>⚖️ Mevzuat Değişiklik Yönetimi</h2>
-                <p class="text-muted">Bir kanun maddesi değiştiğinde, ilgili tüm soruları buradan tespit edip işaretleyebilirsiniz.</p>
-            </div>
+        <div class="content-wrapper">
+            <section id="section-dashboard" class="admin-section">
+                <h2>Genel Bakış</h2>
+                <div class="stats-grid"></div>
+            </section>
         
-            <div class="row" style="display: flex; gap: 20px; margin-top: 20px;">
-                <div class="card" style="flex: 1; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
-                    <h3>Değişiklik Bildir</h3>
-                    <div class="form-group">
-                        <label>Kanun Seçin</label>
-                        <select id="legCode" class="form-control">
-                            <option value="5271">5271 - Ceza Muhakemesi Kanunu</option>
-                            <option value="5237">5237 - Türk Ceza Kanunu</option>
-                            <option value="2709">2709 - T.C. Anayasası</option>
-                        </select>
+            <section id="section-users" class="admin-section" style="display: none;">
+                <div class="section-header">
+                    <h2>Üye Yönetimi</h2>
+                    <div class="actions">
+                        <button id="btnShowPending" class="btn btn-primary">Onay Bekleyenler</button>
+                        <button id="btnShowAll" class="btn btn-secondary">Tüm Üyeler</button>
                     </div>
-                    <div class="form-group">
-                        <label>Madde Numarası</label>
-                        <input type="text" id="legArticle" class="form-control" placeholder="Örn: 100">
-                    </div>
-                    <button id="btnFindAffected" class="btn btn-primary" style="width: 100%; margin-top: 10px;">
-                        🔍 Etkilenen Soruları Bul
-                    </button>
-                </div>
-        
-                <div class="card" style="flex: 1; padding: 20px; background: #fff3cd; border: 1px solid #ffeeba; border-radius: 8px;">
-                    <h3 style="color: #856404;">⚠️ İnceleme Bekleyenler</h3>
-                    <div style="font-size: 3rem; font-weight: bold; color: #856404;" id="flaggedCount">0</div>
-                    <p>Adet soru mevzuat değişikliği nedeniyle işaretlenmiş.</p>
-                    <button id="btnShowFlagged" class="btn btn-warning">Listeyi Göster</button>
-                </div>
-            </div>
-        
-            <div id="affectedQuestionsArea" style="margin-top: 30px; display: none;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                    <h3>Etkilenen Sorular</h3>
-                    <button id="btnMarkAllReview" class="btn btn-danger">Hepsini "İncelenecek" İşaretle</button>
                 </div>
                 <div class="table-responsive">
                     <table class="admin-table">
                         <thead>
                             <tr>
-                                <th>Soru ID</th>
-                                <th>Kategori</th>
-                                <th>Mevzuat Ref.</th>
+                                <th>Kullanıcı</th>
+                                <th>Rol</th>
                                 <th>Durum</th>
-                                <th>İşlem</th>
+                                <th>Kayıt Tarihi</th>
+                                <th>İşlemler</th>
                             </tr>
                         </thead>
-                        <tbody id="legislationTableBody">
-                            </tbody>
+                        <tbody id="usersTableBody"></tbody>
                     </table>
                 </div>
-            </div>
-        </section>
-    
+            </section>
+        
+            <section id="section-content" class="admin-section" style="display: none;">
+                <h2>İçerik Yönetimi</h2>
+                
+                <div class="content-forms">
+                    <div class="card">
+                        <h3>Yeni Konu Ekle</h3>
+                        <div class="form-group">
+                            <label>Kategori</label>
+                            <select id="topicCategory" class="form-control">
+                                <option value="genel">Genel</option>
+                                <option value="anayasa">Anayasa</option>
+                                <option value="idare">İdare Hukuku</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Konu Başlığı</label>
+                            <input type="text" id="topicTitle" class="form-control" placeholder="Örn: Yasama Dokunulmazlığı">
+                        </div>
+                        <div class="form-group">
+                            <label>Açıklama</label>
+                            <textarea id="topicDesc" class="form-control"></textarea>
+                        </div>
+                        <button id="btnSaveTopic" class="btn btn-success">Kaydet</button>
+                    </div>
+        
+                    <div class="card">
+                        <h3>Mevcut Konular</h3>
+                        <div id="topicsList"></div>
+                    </div>
+
+                    <div class="card mt-4">
+                        <h3>Toplu Soru Ekle (JSON)</h3>
+                        <p class="text-sm text-muted">Hazırladığınız JSON formatındaki soru listesini buraya yapıştırın.</p>
+                        <textarea id="bulkJsonInput" class="form-control" rows="5" placeholder='[{"text": "Soru...", "correctOption": "A", ...}]'></textarea>
+                        <button id="btnBulkUpload" class="btn btn-warning mt-2">Toplu Yükle</button>
+                    </div>
+                    
+                    <div id="questionEditor" class="card" style="display:none; border: 2px solid var(--gold);">
+                        <h3>Soru Düzenle / Ekle</h3>
+                        <input type="hidden" id="editQuestionId">
+                        
+                        <div class="form-group">
+                            <label>Soru Metni (HTML)</label>
+                            <div class="editor-toolbar">
+                                <button type="button" onclick="insertTag('<strong class='vurgu-negatif'>...</strong>')">Negatif Vurgu</button>
+                            </div>
+                            <textarea id="qText" class="form-control" rows="3"></textarea>
+                        </div>
+                    
+                        <div class="row">
+                            <div class="col-md-6"><input id="optA" class="form-control mb-2" placeholder="A Şıkkı"></div>
+                            <div class="col-md-6"><input id="optB" class="form-control mb-2" placeholder="B Şıkkı"></div>
+                        </div>
+                    
+                        <div class="form-group bg-light p-3">
+                            <label>Çözüm Detayları</label>
+                            <input id="solDayanak" class="form-control mb-2" placeholder="Mevzuat Dayanağı">
+                            <textarea id="solAnaliz" class="form-control mb-2" placeholder="Analiz"></textarea>
+                            <input id="solTuzak" class="form-control mb-2" placeholder="Sınav Tuzağı (Varsa)">
+                            <input id="solHap" class="form-control" placeholder="Hap Bilgi">
+                        </div>
+                    
+                        <button id="btnSaveQuestion" class="btn btn-success">Kaydet</button>
+                        <button onclick="document.getElementById('questionEditor').style.display='none'" class="btn btn-secondary">İptal</button>
+                    </div>
+
+                </div>
+            </section>
+
+            <section id="section-reports" class="admin-section" style="display: none;">
+                <h2>Hata Bildirimleri</h2>
+                <div id="reportsList"></div>
+            </section>
+
+            <section id="section-legislation" class="admin-section" style="display: none;">
+                <div class="section-header">
+                    <h2>⚖️ Mevzuat Değişiklik Yönetimi</h2>
+                    <p class="text-muted">Bir kanun maddesi değiştiğinde, ilgili tüm soruları buradan tespit edip işaretleyebilirsiniz.</p>
+                </div>
+            
+                <div class="row" style="display: flex; gap: 20px; margin-top: 20px;">
+                    <div class="card" style="flex: 1; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
+                        <h3>Değişiklik Bildir</h3>
+                        <div class="form-group">
+                            <label>Kanun Seçin</label>
+                            <select id="legCode" class="form-control">
+                                <option value="5271">5271 - Ceza Muhakemesi Kanunu</option>
+                                <option value="5237">5237 - Türk Ceza Kanunu</option>
+                                <option value="2709">2709 - T.C. Anayasası</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Madde Numarası</label>
+                            <input type="text" id="legArticle" class="form-control" placeholder="Örn: 100">
+                        </div>
+                        <button id="btnFindAffected" class="btn btn-primary" style="width: 100%; margin-top: 10px;">
+                            🔍 Etkilenen Soruları Bul
+                        </button>
+                    </div>
+            
+                    <div class="card" style="flex: 1; padding: 20px; background: #fff3cd; border: 1px solid #ffeeba; border-radius: 8px;">
+                        <h3 style="color: #856404;">⚠️ İnceleme Bekleyenler</h3>
+                        <div style="font-size: 3rem; font-weight: bold; color: #856404;" id="flaggedCount">0</div>
+                        <p>Adet soru mevzuat değişikliği nedeniyle işaretlenmiş.</p>
+                        <button id="btnShowFlagged" class="btn btn-warning">Listeyi Göster</button>
+                    </div>
+                </div>
+            
+                <div id="affectedQuestionsArea" style="margin-top: 30px; display: none;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <h3>Etkilenen Sorular</h3>
+                        <button id="btnMarkAllReview" class="btn btn-danger">Hepsini "İncelenecek" İşaretle</button>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Soru ID</th>
+                                    <th>Kategori</th>
+                                    <th>Mevzuat Ref.</th>
+                                    <th>Durum</th>
+                                    <th>İşlem</th>
+                                </tr>
+                            </thead>
+                            <tbody id="legislationTableBody">
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </div>
     </main>
 
     <script type="module" src="../js/admin-page.js"></script>

@@ -21,6 +21,13 @@ document.addEventListener("DOMContentLoaded", async () => {
         window.openQuestionEditor = ContentModule.openQuestionEditor;
 
         initTabs(role);
+
+        // Header User Info güncelle
+        const userEmailEl = document.getElementById('headerUserEmail');
+        if (userEmailEl && auth.currentUser) {
+            userEmailEl.textContent = auth.currentUser.email;
+        }
+
         // Varsayılan olarak Dashboard açılsın
         handleTabChange('dashboard', role);
 
