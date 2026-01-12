@@ -1,158 +1,113 @@
-/**
- * @file UI Loader & Interaction Manager
- * @description Handles dynamic loading of UI components (headers, footers), 
- *              theme management (dark/light mode), and core UI interactions 
- *              like mobile menus and user dropdowns.
- */
+// ========== DEĞİŞİKLİK ÖNCESİ (REFERANS) ==========
+// const COMPONENTS_PATH = '../components/layouts';
+// async function loadComponent(elementId, filePath) { ... }
+
+// ========== GÜNCELLENEN KISIM ==========
+
+// 1. Mutlak yol kullanımı (Her sayfadan çalışması için)
+const COMPONENTS_PATH = '/components/layouts'; // Başındaki "/" işareti kök dizini ifade eder.
+const COMPONENTS_COMMON_PATH = '/components';  // Ortak bileşenler için
 
 import { auth } from './firebase-config.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { ensureUserDocument } from './user-profile.js';
 
-const COMPONENTS_PATH = '../components/layouts';
-
-/**
- * Fetches and injects HTML content for a component.
- * @param {string} elementId - The ID of the element to inject HTML into.
- * @param {string} filePath - The path to the component's HTML file.
- */
 async function loadComponent(elementId, filePath) {
   const element = document.getElementById(elementId);
-  if (!element) return;
+  if (!element) return; // Element sayfada yoksa hata verme, çık.
 
   try {
     const response = await fetch(filePath);
-    if (!response.ok) throw new Error(`Failed to load: ${filePath}`);
+    if (!response.ok) throw new Error(`HTTP ${response.status} - ${filePath}`);
     element.innerHTML = await response.text();
   } catch (error) {
-    console.error(`Error loading component ${filePath}:`, error);
-    // Optional: Inject fallback HTML here if needed
+    console.error(`Bileşen yüklenemedi: ${filePath}`, error);
   }
 }
 
-/**
- * Manages the color theme (dark/light mode).
- */
-function initTheme() {
-  const themeToggle = document.querySelector('[data-theme-toggle]');
-  const storedTheme = localStorage.getItem('theme') || 'light';
-  document.documentElement.setAttribute('data-theme', storedTheme);
+// ... initTheme fonksiyonu aynen kalabilir ...
 
-  if (themeToggle) {
-    themeToggle.addEventListener('click', () => {
-      const currentTheme = document.documentElement.getAttribute('data-theme');
-      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-      document.documentElement.setAttribute('data-theme', newTheme);
-      localStorage.setItem('theme', newTheme);
-    });
-  }
-}
-
-/**
- * Sets up the mobile navigation toggle for the public-facing site.
- */
-function setupPublicNav() {
-  const navToggle = document.querySelector('.nav-toggle');
-  const navLinks = document.querySelector('.nav-links');
-
-  if (navToggle && navLinks) {
-    navToggle.addEventListener('click', () => {
-      navLinks.classList.toggle('open');
-    });
-  }
-}
-
-/**
- * Initializes the layout for public-facing pages (e.g., landing page).
- */
-export async function initPublicLayout() {
-  await loadComponent('public-header', `${COMPONENTS_PATH}/public-header.html`);
-  await loadComponent('public-footer', `${COMPONENTS_PATH}/public-footer.html`);
-  initTheme();
-  setupPublicNav();
-}
-
-/**
- * Initializes the layout for authentication pages (login/register).
- */
-export async function initAuthLayout() {
-  // No dynamic header/footer needed for the new login page design
-  initTheme(); 
-}
-
-/**
- * Initializes the main application layout for authenticated users.
- */
 export async function initLayout(pageKey) {
+  // Önce bileşenlerin yüklenmesini BEKLE (await Promise.all)
   await Promise.all([
-    loadComponent('header-area', `../components/layouts/admin-header.html`),
-    // loadComponent('sidebar-area', `../partials/sidebar.html`), // Removed sidebar
-    loadComponent('footer-area', `../components/layouts/admin-footer.html`)
+     // Dosya yollarını düzelttik ve dashboard header'ı admin ile ayırdık veya birleştirdik
+     // Eğer dashboard için "header.html" kullanıyorsanız:
+    loadComponent('header-area', `/components/header.html`), 
+    // Admin sayfaları için ayrı bir initAdminLayout fonksiyonu yazabilir veya buraya if/else koyabilirsiniz.
+    // Şimdilik dashboard odaklı gidiyoruz.
+    loadComponent('footer-area', `/components/footer.html`)
   ]);
+
   initTheme();
-  setupAppInteractions();
   
-  // Handle auth state and user data
+  // Header HTML'i yüklendikten SONRA eventleri bağla
+  setupAppInteractions(); 
+  
   onAuthStateChanged(auth, async (user) => {
     if (user) {
+      // Veriyi çek
       const profile = await ensureUserDocument(user);
+      // Header elementleri artık sahnede olduğu için güncelleyebiliriz
       updateUserInfo(profile, user);
-      // Activate the current page link in the header
+      
+      // Aktif linki işaretle
       const header = document.getElementById('header-area');
       if (header && pageKey) {
-        // Updated to find the link in the header instead of the sidebar.
-        // This assumes the links are in the header now.
-        const link = header.querySelector(`a[href*="/${pageKey}.html"]`);
-        if (link) {
-          link.classList.add('active');
-        }
+        const link = header.querySelector(`a[data-page="${pageKey}"]`);
+        if (link) link.classList.add('active');
       }
     } else {
-      // If auth is required, redirect to login
-      window.location.href = '/';
+      window.location.href = '/login.html';
     }
   });
 }
 
-/**
- * Updates user-specific information in the UI.
- */
 function updateUserInfo(profile, user) {
-    const displayName = profile?.displayName || user.email?.split('@')[0] || 'User';
+    const displayName = profile?.ad || profile?.displayName || user.email?.split('@')[0] || 'Kullanıcı';
     const initial = displayName.charAt(0).toUpperCase();
+    const email = user.email;
 
+    // Class selector kullanarak hem dashboard hem admin panelini günceller
     document.querySelectorAll('.user-name').forEach(el => el.textContent = displayName);
-    document.querySelectorAll('.user-email').forEach(el => el.textContent = user.email);
+    document.querySelectorAll('.user-email').forEach(el => el.textContent = email);
     document.querySelectorAll('.user-avatar-initial').forEach(el => el.textContent = initial);
 }
 
-/**
- * Sets up interactions for the main app (profile dropdown, logout).
- */
 function setupAppInteractions() {
-    const header = document.getElementById('header-area');
-    if (!header) return;
+    // Event Delegation kullanarak tüm sayfadaki tıklamaları yakalar
+    // Bu sayede dinamik yüklenen elementler için tekrar listener eklemeye gerek kalmaz.
+    document.body.addEventListener('click', (e) => {
+        
+        // 1. Profil Menüsü Açma/Kapama
+        const toggleBtn = e.target.closest('.user-menu-toggle');
+        if (toggleBtn) {
+            const container = toggleBtn.closest('.user-menu-container');
+            const dropdown = container.querySelector('.profile-dropdown');
+            
+            // Diğer açık menüleri kapat
+            document.querySelectorAll('.profile-dropdown.active').forEach(d => {
+                if(d !== dropdown) d.classList.remove('active');
+            });
 
-    header.addEventListener('click', (e) => {
-        // Profile dropdown toggle
-        if (e.target.closest('.user-menu-toggle')) {
-            const dropdown = document.querySelector('.profile-dropdown');
-            if (dropdown) dropdown.classList.toggle('open');
+            if (dropdown) dropdown.classList.toggle('active');
+            e.stopPropagation(); // Event'in yukarı çıkmasını engelle
+            return;
         }
 
-        // Logout button
+        // 2. Dışarı tıklayınca kapatma
+        if (!e.target.closest('.profile-dropdown') && !e.target.closest('.user-menu-toggle')) {
+            document.querySelectorAll('.profile-dropdown.active').forEach(d => {
+                d.classList.remove('active');
+            });
+        }
+
+        // 3. Çıkış Butonu
         if (e.target.closest('#logout-btn')) {
-            auth.signOut().then(() => {
-                window.location.href = '/';
-            }).catch(console.error);
-        }
-    });
-
-    // Close dropdown when clicking outside
-    document.addEventListener('click', (e) => {
-        const dropdown = document.querySelector('.profile-dropdown.open');
-        if (dropdown && !e.target.closest('.user-menu-container')) {
-            dropdown.classList.remove('open');
+            if(confirm('Çıkış yapmak istiyor musunuz?')) {
+                auth.signOut().then(() => {
+                    window.location.href = '/login.html';
+                });
+            }
         }
     });
 }
