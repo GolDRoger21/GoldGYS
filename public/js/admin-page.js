@@ -3,7 +3,8 @@ import { auth } from "../firebase-config.js";
 import { requireAdminOrEditor } from "../role-guard.js";
 import * as UserModule from "./modules/admin/users.js";
 import * as ContentModule from "./modules/admin/content.js";
-import * as StatsModule from "./modules/admin/utils.js"; // İstatistikler utils içinde olabilir
+import * as StatsModule from "./modules/admin/utils.js";
+import * as LegislationModule from "./modules/admin/legislation.js";
 
 // Sayfa yüklendiğinde yetki kontrolü yap ve paneli başlat
 document.addEventListener("DOMContentLoaded", async () => {
@@ -11,17 +12,22 @@ document.addEventListener("DOMContentLoaded", async () => {
         const { role } = await requireAdminOrEditor();
         console.log(`Admin Paneli Başlatıldı. Rol: ${role}`);
         
-        // Rol tabanlı UI düzenlemesi (Editör ise Üye Yönetimini gizle)
-        if (role === 'editor') {
-            document.querySelector('[data-tab="users"]').style.display = 'none';
+        // Rol tabanlı UI düzenlemesi
+        if (role !== 'admin') {
+            document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'none');
         }
 
+        // Modüller arası iletişim için global fonksiyonu ata
+        window.openQuestionEditor = ContentModule.openQuestionEditor;
+
         initTabs(role);
-        // Varsayılan olarak Dashboard (İstatistikler) açılsın
-        loadDashboardStats(); 
+        // Varsayılan olarak Dashboard açılsın
+        handleTabChange('dashboard', role);
 
     } catch (error) {
-        console.error("Yetki hatası:", error);
+        console.error("Yetki veya başlatma hatası:", error);
+        // Kullanıcıyı login sayfasına yönlendir veya hata göster
+        // window.location.href = '/login.html';
     }
 });
 
@@ -32,7 +38,6 @@ function initTabs(role) {
         tab.addEventListener('click', (e) => {
             e.preventDefault();
             
-            // Aktif class yönetimi
             tabs.forEach(t => t.classList.remove('active'));
             tab.classList.add('active');
 
@@ -43,14 +48,12 @@ function initTabs(role) {
 }
 
 function handleTabChange(target, role) {
-    // Tüm içerik alanlarını gizle
     document.querySelectorAll('.admin-section').forEach(el => el.style.display = 'none');
     
-    // Hedef alanı göster
     const targetSection = document.getElementById(`section-${target}`);
     if(targetSection) targetSection.style.display = 'block';
 
-    // Modülü yükle
+    // İlgili modülün başlatma fonksiyonunu çağır
     switch(target) {
         case 'users':
             if(role === 'admin') UserModule.initUsersPage();
@@ -59,12 +62,20 @@ function handleTabChange(target, role) {
             ContentModule.initContentPage();
             break;
         case 'dashboard':
-            loadDashboardStats();
+            // StatsModule.loadDashboardStats(); // Gerekirse
             break;
+        case 'legislation':
+            LegislationModule.initLegislationPage();
+            break;
+        // case 'reports':
+        //     ReportsModule.initReportsPage();
+        //     break;
     }
 }
 
-async function loadDashboardStats() {
-    // Burada basit sayaçları güncelleyeceğiz
-    // StatsModule.getSummary()...
-}
+// Logout butonu
+document.getElementById('logoutBtn').addEventListener('click', () => {
+    auth.signOut().then(() => {
+        window.location.href = '/login.html';
+    });
+});

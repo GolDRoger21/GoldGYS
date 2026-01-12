@@ -31,6 +31,9 @@
             <a href="#" class="nav-item" data-tab="reports">
                 <span class="icon">🚩</span> Hata Bildirimleri
             </a>
+            <a href="#" class="nav-item" data-tab="legislation">
+                <span class="icon">⚖️</span> Mevzuat Takibi
+            </a>
 
             <div class="menu-label admin-only">SİSTEM</div>
             <a href="#" class="nav-item admin-only" data-tab="users">
@@ -121,7 +124,7 @@
                     <div class="form-group">
                         <label>Soru Metni (HTML)</label>
                         <div class="editor-toolbar">
-                            <button type="button" onclick="insertTag('<strong class=\'vurgu-negatif\'>...</strong>')">Negatif Vurgu</button>
+                            <button type="button" onclick="insertTag('<strong class='vurgu-negatif'>...</strong>')">Negatif Vurgu</button>
                         </div>
                         <textarea id="qText" class="form-control" rows="3"></textarea>
                     </div>
@@ -149,6 +152,63 @@
         <section id="section-reports" class="admin-section" style="display: none;">
             <h2>Hata Bildirimleri</h2>
             <div id="reportsList"></div>
+        </section>
+
+        <section id="section-legislation" class="admin-section" style="display: none;">
+            <div class="section-header">
+                <h2>⚖️ Mevzuat Değişiklik Yönetimi</h2>
+                <p class="text-muted">Bir kanun maddesi değiştiğinde, ilgili tüm soruları buradan tespit edip işaretleyebilirsiniz.</p>
+            </div>
+        
+            <div class="row" style="display: flex; gap: 20px; margin-top: 20px;">
+                <div class="card" style="flex: 1; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
+                    <h3>Değişiklik Bildir</h3>
+                    <div class="form-group">
+                        <label>Kanun Seçin</label>
+                        <select id="legCode" class="form-control">
+                            <option value="5271">5271 - Ceza Muhakemesi Kanunu</option>
+                            <option value="5237">5237 - Türk Ceza Kanunu</option>
+                            <option value="2709">2709 - T.C. Anayasası</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Madde Numarası</label>
+                        <input type="text" id="legArticle" class="form-control" placeholder="Örn: 100">
+                    </div>
+                    <button id="btnFindAffected" class="btn btn-primary" style="width: 100%; margin-top: 10px;">
+                        🔍 Etkilenen Soruları Bul
+                    </button>
+                </div>
+        
+                <div class="card" style="flex: 1; padding: 20px; background: #fff3cd; border: 1px solid #ffeeba; border-radius: 8px;">
+                    <h3 style="color: #856404;">⚠️ İnceleme Bekleyenler</h3>
+                    <div style="font-size: 3rem; font-weight: bold; color: #856404;" id="flaggedCount">0</div>
+                    <p>Adet soru mevzuat değişikliği nedeniyle işaretlenmiş.</p>
+                    <button id="btnShowFlagged" class="btn btn-warning">Listeyi Göster</button>
+                </div>
+            </div>
+        
+            <div id="affectedQuestionsArea" style="margin-top: 30px; display: none;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h3>Etkilenen Sorular</h3>
+                    <button id="btnMarkAllReview" class="btn btn-danger">Hepsini "İncelenecek" İşaretle</button>
+                </div>
+                <div class="table-responsive">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Soru ID</th>
+                                <th>Kategori</th>
+                                <th>Mevzuat Ref.</th>
+                                <th>Durum</th>
+                                <th>İşlem</th>
+                            </tr>
+                        </thead>
+                        <tbody id="legislationTableBody">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
         </section>
     
     </main>
