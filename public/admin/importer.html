@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firestore Veri Aktarım Aracı</title>
+    <link rel="stylesheet" href="../css/admin.css">
+    <style>
+        body { display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f4f7f6; }
+        .importer-card { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; max-width: 500px; width: 100%; }
+        #status { margin-top: 20px; font-weight: 500; font-family: monospace; text-align: left; background: #2c3e50; color: white; padding: 15px; border-radius: 6px; max-height: 200px; overflow-y: auto; }
+        #status.error { color: #e74c3c; }
+        #status.success { color: #2ecc71; }
+    </style>
+</head>
+<body>
+
+    <div class="importer-card">
+        <h2>🚀 Tek Tıkla Veri Aktarımı</h2>
+        <p class="text-muted">`seed.json` dosyasındaki verileri Firestore'daki `questions` koleksiyonuna aktarmak için butona tıklayın.</p>
+        <button id="importBtn" class="btn btn-primary btn-lg">Soruları Veritabanına Aktar</button>
+        <div id="status" style="display:none;"></div>
+    </div>
+
+    <script type="module">
+        import { db, auth } from '../js/firebase-config.js';
+        import { collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+        const importBtn = document.getElementById('importBtn');
+        const statusDiv = document.getElementById('status');
+
+        let isRunning = false;
+
+        onAuthStateChanged(auth, user => {
+            if (!user) {
+                statusDiv.style.display = 'block';
+                statusDiv.className = 'error';
+                statusDiv.innerHTML = "HATA: Lütfen önce admin hesabınızla giriş yapın.";
+                importBtn.disabled = true;
+            }
+        });
+
+        importBtn.addEventListener('click', async () => {
+            if (isRunning) return;
+            if (!auth.currentUser) {
+                alert("Lütfen önce giriş yapın.");
+                return;
+            }
+
+            if (!confirm("Bu işlem `seed.json` dosyasındaki verileri `questions` koleksiyonuna ekleyecektir. Onaylıyor musunuz?")) {
+                return;
+            }
+
+            isRunning = true;
+            importBtn.disabled = true;
+            importBtn.innerText = "İşlem Yürütülüyor...";
+            statusDiv.style.display = 'block';
+            statusDiv.className = '';
+            statusDiv.innerHTML = 'İşlem başlatıldı...<br>';
+
+            try {
+                // 1. seed.json dosyasını çek
+                statusDiv.innerHTML += '-> `seed.json` dosyası okunuyor...<br>';
+                const response = await fetch('../seed.json');
+                if (!response.ok) throw new Error(`seed.json dosyası bulunamadı (HTTP ${response.status})`);
+                const questions = await response.json();
+
+                if (!Array.isArray(questions)) throw new Error('JSON verisi bir dizi (array) formatında olmalı.');
+                
+                statusDiv.innerHTML += `-> ${questions.length} adet soru bulundu. Firestore'a yazılıyor...<br>`;
+
+                // 2. Her bir soruyu Firestore'a ekle
+                const questionsCollection = collection(db, 'questions');
+                for (const question of questions) {
+                    // Güvenlik için, mevcut veriye ek olarak sunucu zaman damgası ekleyelim
+                    const dataToSave = {
+                        ...question,
+                        createdAt: serverTimestamp(),
+                        isFlaggedForReview: question.isFlaggedForReview || false
+                    };
+                    await addDoc(questionsCollection, dataToSave);
+                    statusDiv.innerHTML += `<span class="success">- Soru eklendi: ${question.text.substring(0, 30)}...</span><br>`;
+                }
+                
+                statusDiv.innerHTML += '<br><strong class="success">BAŞARILI!</strong> Tüm veriler başarıyla aktarıldı.';
+                importBtn.className = 'btn btn-success btn-lg';
+                importBtn.innerText = "İşlem Tamamlandı";
+
+            } catch (error) {
+                console.error("Aktarım Hatası:", error);
+                statusDiv.innerHTML += `<br><strong class="error">HATA: ${error.message}</strong><br>Lütfen konsolu kontrol edin ve yönetici yetkilerinizle giriş yaptığınızdan emin olun.`;
+                importBtn.innerText = "Hata Oluştu";
+                 importBtn.className = 'btn btn-danger btn-lg';
+            } finally {
+                isRunning = false;
+                // Butonu tekrar aktif etme, işlem tek seferlik
+            }
+        });
+    </script>
+
+</body>
+</html>
