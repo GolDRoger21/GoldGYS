@@ -59,8 +59,18 @@ async function loadFullProfile(user) {
     try {
         const userData = await getUserProfile(user.uid);
         if (userData) {
-            if(dom.inpAd) dom.inpAd.value = userData.ad || "";
-            if(dom.inpSoyad) dom.inpSoyad.value = userData.soyad || "";
+            let ad = userData.ad;
+            let soyad = userData.soyad;
+
+            // DB boşsa ve Auth'ta isim varsa (örn: Google Auth), onu kullan
+            if (!ad && !soyad && user.displayName) {
+                const nameParts = user.displayName.split(' ');
+                ad = nameParts[0] || '';
+                soyad = nameParts.slice(1).join(' ') || '';
+            }
+
+            if(dom.inpAd) dom.inpAd.value = ad || "";
+            if(dom.inpSoyad) dom.inpSoyad.value = soyad || "";
             if(dom.inpPhone) dom.inpPhone.value = userData.phone || "";
             if(dom.inpTitle) dom.inpTitle.value = userData.title || "";
             if(dom.inpExam) dom.inpExam.value = userData.targetExam || "";
@@ -77,31 +87,25 @@ async function loadFullProfile(user) {
 
 async function calculateUserStats(uid) {
     try {
-        // 1. Kullanıcının İlerlemesini Çek
         const progressRef = collection(db, `users/${uid}/progress`);
         const progressSnapshot = await getDocs(progressRef);
         
         let totalTestsFinished = 0;
         let totalScoreSum = 0;
         let scoreCount = 0;
-        let workedTopicsCount = progressSnapshot.size; // Kaç farklı konuda işlem yapılmış
+        let workedTopicsCount = progressSnapshot.size; 
 
         progressSnapshot.forEach((doc) => {
             const data = doc.data();
-            
-            // Tamamlanan test sayısı
             if (data.completedTests) {
                 totalTestsFinished += Number(data.completedTests);
             }
-
-            // Ortalama Puan Hesabı
             if (data.scoreAvg !== undefined && data.scoreAvg !== null) {
                 totalScoreSum += Number(data.scoreAvg);
                 scoreCount++;
             }
         });
 
-        // 2. Toplam Konu Sayısını Çek (İlerleme Çubuğu İçin)
         let totalTopicsCount = 0;
         const cachedTopicsCount = sessionStorage.getItem('total_topics_count');
         
@@ -114,14 +118,11 @@ async function calculateUserStats(uid) {
             sessionStorage.setItem('total_topics_count', totalTopicsCount);
         }
 
-        // 3. Hesaplamaları UI'a Bas
         const globalAvg = scoreCount > 0 ? (totalScoreSum / scoreCount).toFixed(1) : "0";
         
-        // Yan Panel (Sol)
         if(dom.statCompleted) dom.statCompleted.textContent = totalTestsFinished;
         if(dom.statScore) dom.statScore.textContent = globalAvg;
 
-        // Ana Panel (Sağ - Yeni İstatistikler)
         if(dom.statTestsCompleted) dom.statTestsCompleted.textContent = totalTestsFinished;
         if(dom.statGlobalScore) dom.statGlobalScore.textContent = `%${globalAvg}`;
         
