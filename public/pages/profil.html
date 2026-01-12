@@ -8,34 +8,32 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
-    
     <link rel="stylesheet" href="/styles/tokens.css">
+    
     <link rel="stylesheet" href="/css/layout.css">
     <link rel="stylesheet" href="/css/dashboard.css">
     <link rel="stylesheet" href="/css/profile.css">
+    
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230F172A'/><text x='50' y='70' font-family='serif' font-size='60' fill='%23D4AF37' text-anchor='middle' font-weight='bold'>G</text></svg>">
 </head>
 <body>
     <div id="mainWrapper">
         <div class="sidebar-overlay" id="sidebarOverlay"></div>
-        <aside class="sidebar" id="sidebar"></aside>
+        <aside class="sidebar" id="sidebar">
+            </aside>
 
         <main class="main-content" id="main-content">
              <div class="dashboard-container profile-container-fix">
-                
                 <div class="profile-sidebar-col">
                     <div class="profile-card">
                         <div class="profile-cover"></div>
                         <div class="profile-avatar-container">
-                            <img src="" alt="Avatar" id="profileAvatarMain" class="avatar-img">
-                            <label for="avatarInput" class="avatar-edit-btn" title="Fotoğrafı Değiştir">
-                                📷
-                            </label>
-                            <input type="file" id="avatarInput" accept="image/*" style="display: none;">
-                        </div>
+                            <img src="" alt="Avatar" id="profileAvatarMain" class="avatar-img" style="display: none;">
+                            <div class="avatar-placeholder" id="profileAvatarPlaceholder">?</div>
+                            </div>
                         
                         <h2 id="profileNameMain" class="p-name">Yükleniyor...</h2>
-                        <p id="profileRoleMain" class="p-role">Kullanıcı</p>
+                        <p id="profileRoleMain" class="p-role">...</p>
                         
                         <div class="p-stats-row">
                             <div class="stat-item">
@@ -44,13 +42,13 @@
                             </div>
                             <div class="stat-item">
                                 <span class="val" id="statScore">--</span>
-                                <span class="lbl">Ort. Puan</span>
+                                <span class="lbl">Ort.</span>
                             </div>
                         </div>
                         
                         <div class="p-badge">
                              <span class="badge-label">Hedef:</span>
-                             <span class="badge-val" id="displayTarget">Belirtilmedi</span>
+                             <span class="badge-val" id="displayTarget">...</span>
                         </div>
                     </div>
                 </div>
@@ -61,13 +59,12 @@
                         <div class="stat-card-advanced" style="grid-column: span 2;">
                             <div class="stat-icon-box" style="background: rgba(59, 130, 246, 0.1); color: #3b82f6;">📚</div>
                             <div class="stat-info" style="flex: 1;">
-                                <h4>Konu Tamamlama Oranı</h4>
+                                <h4>Konu İlerleme</h4>
                                 <div class="stat-value" id="statTopicRatio">0 / 0</div>
                                 <div class="progress-section">
                                     <div class="progress-track">
                                         <div class="progress-fill" id="statTopicProgress" style="width: 0%"></div>
                                     </div>
-                                    <small style="color: var(--color-text-muted); font-size: 0.75rem;">Müfredat ilerleme durumunuz</small>
                                 </div>
                             </div>
                         </div>
@@ -75,16 +72,8 @@
                         <div class="stat-card-advanced">
                             <div class="stat-icon-box" style="background: rgba(16, 185, 129, 0.1); color: #10b981;">📝</div>
                             <div class="stat-info">
-                                <h4>Tamamlanan Test</h4>
+                                <h4>Testler</h4>
                                 <div class="stat-value" id="statTestsCompleted">0</div>
-                            </div>
-                        </div>
-
-                        <div class="stat-card-advanced">
-                            <div class="stat-icon-box" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b;">🏆</div>
-                            <div class="stat-info">
-                                <h4>Genel Başarı</h4>
-                                <div class="stat-value" id="statGlobalScore">%0</div>
                             </div>
                         </div>
                     </div>
@@ -92,7 +81,7 @@
                     <div class="settings-card">
                         <div class="tabs-header">
                             <button class="tab-link active" data-tab="personal">Kişisel Bilgiler</button>
-                            <button class="tab-link" data-tab="security">Güvenlik & Erişim</button>
+                            <button class="tab-link" data-tab="security">Güvenlik</button>
                         </div>
 
                         <div id="tab-personal" class="tab-body active">
@@ -100,23 +89,23 @@
                                 <div class="form-grid">
                                     <div class="form-group">
                                         <label>Ad</label>
-                                        <input type="text" id="inpAd" required placeholder="Adınız">
+                                        <input type="text" id="inpAd" required>
                                     </div>
                                     <div class="form-group">
                                         <label>Soyad</label>
-                                        <input type="text" id="inpSoyad" required placeholder="Soyadınız">
+                                        <input type="text" id="inpSoyad" required>
                                     </div>
                                     <div class="form-group">
-                                        <label>E-Posta (Değiştirilemez)</label>
+                                        <label>E-Posta</label>
                                         <input type="email" id="inpEmail" disabled class="input-disabled">
                                     </div>
                                     <div class="form-group">
                                         <label>Telefon</label>
-                                        <input type="tel" id="inpPhone" placeholder="0555...">
+                                        <input type="tel" id="inpPhone">
                                     </div>
                                     <div class="form-group">
-                                        <label>Ünvan / Meslek</label>
-                                        <input type="text" id="inpTitle" placeholder="Örn: Zabıt Katibi">
+                                        <label>Ünvan</label>
+                                        <input type="text" id="inpTitle">
                                     </div>
                                     <div class="form-group">
                                         <label>Hedef Sınav</label>
@@ -141,9 +130,9 @@
                                 <div class="security-icon">🔒</div>
                                 <div class="security-content">
                                     <h4>Şifre Yenileme</h4>
-                                    <p>Hesabınızın güvenliği için şifrenizi periyodik olarak değiştirmeniz önerilir. Aşağıdaki butona tıkladığınızda kayıtlı e-posta adresinize bir sıfırlama bağlantısı gönderilecektir.</p>
+                                    <p>Güvenliğiniz için şifrenizi periyodik olarak değiştirin.</p>
                                     <button id="btnResetPassword" class="btn-primary">
-                                        📧 Sıfırlama Bağlantısı Gönder
+                                        Şifre Sıfırlama E-postası Gönder
                                     </button>
                                 </div>
                             </div>
@@ -159,8 +148,11 @@
         import { initProfilePage } from '../js/profile-page.js';
 
         document.addEventListener('DOMContentLoaded', async () => {
-            await initLayout('profil', 'Profil Ayarları');
-            initProfilePage();
+            // 'profil' ID'si sidebar'da aktif edilecek sayfa ID'sidir
+            const loaded = await initLayout('profil', 'Profil Ayarları');
+            if(loaded) {
+                initProfilePage();
+            }
         });
     </script>
 </body>
