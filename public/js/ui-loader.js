@@ -2,7 +2,7 @@ import { auth } from './firebase-config.js';
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getUserProfile } from './user-profile.js';
 
-// Sayfa yollarına karşılık gelen başlık ve menü ID'lerini tanımlayan harita
+// Sayfa Konfigürasyonları
 const PAGE_CONFIG = {
     '/pages/dashboard.html': { id: 'dashboard', title: 'Genel Bakış' },
     '/admin/index.html': { id: 'admin', title: 'Yönetim Paneli' },
@@ -10,52 +10,57 @@ const PAGE_CONFIG = {
     '/pages/konular.html': { id: 'lessons', title: 'Dersler & Konular' },
     '/pages/testler.html': { id: 'tests', title: 'Testler' },
     '/pages/denemeler.html': { id: 'trials', title: 'Denemeler' },
-    // Diğer sayfaları buraya ekleyebilirsiniz
 };
 
-// DOM Elemanları için merkezi nesne
 const dom = {};
-
 let layoutInitPromise = null;
 
 /**
  * Arayüzü başlatan ana fonksiyon.
- * Sayfa bilgisini URL'den otomatik olarak alacak.
+ * Admin sayfasında sadece HTML yükler, diğer sayfalarda Auth ve Eventleri de yönetir.
  */
 export async function initLayout() {
     if (layoutInitPromise) return layoutInitPromise;
 
     layoutInitPromise = (async () => {
-        // URL'i al ve uygun konfigürasyonu bul
         const path = window.location.pathname;
+        // Admin sayfasında mıyız kontrolü
+        const isAdminPage = path.includes('/admin'); 
         const config = PAGE_CONFIG[path] || { id: 'unknown', title: 'Sayfa' };
 
         try {
-            await loadRequiredHTML();
+            // 1. HTML Parçalarını Yükle (Header, Sidebar)
+            await loadRequiredHTML(isAdminPage);
+            
+            // 2. Elementleri Seç
             cacheDomElements();
 
+            // 3. Başlığı Ayarla (Varsa)
             if (dom.pageTitle) dom.pageTitle.textContent = config.title;
-            setActiveMenuItem(config.id);
 
-            // Auth durumunu kontrol et ve UI'ı güncelle
-            await checkUserAuthState();
-            setupEventListeners();
-            
-            // Her şey yüklendikten sonra sayfayı görünür yap
+            // 4. SAYFA TÜRÜNE GÖRE AYRIŞTIRMA (KRİTİK BÖLÜM)
+            if (isAdminPage) {
+                // ADMIN SAYFASI:
+                // Sadece HTML'i yükledik ve duruyoruz. 
+                // Yetki kontrolü, menü olayları ve diğer her şey 'admin-page.js' tarafından yapılacak.
+                // Bu sayede çakışma önlenir.
+                console.log("🚀 Admin arayüzü yüklendi (Kontrol admin-page.js'de)");
+            } else {
+                // NORMAL KULLANICI SAYFASI:
+                // Menüleri aktifleştir, oturum kontrolü yap, eventleri ekle.
+                setActiveMenuItem(config.id);
+                await checkUserAuthState();
+                setupEventListeners(); // Normal sayfaların tıklama olayları
+                console.log("👤 Kullanıcı arayüzü yüklendi");
+            }
+
+            // Sayfayı görünür yap
             document.body.style.visibility = 'visible';
-            console.log(`Arayüz '${config.id}' sayfası için başarıyla yüklendi.`);
-
             return true;
+
         } catch (error) {
-            console.error('KRİTİK HATA: Arayüz başlatılamadı.', error);
-            // Hata durumunda bile içeriği göstermeye çalış, sonsuz yüklemede kalmasın
-            document.body.style.visibility = 'visible';
-            document.body.innerHTML = `
-                <div style="padding: 20px; text-align: center; color: #721c24; background-color: #f8d7da; border: 1px solid #f5c6cb; margin: 20px; border-radius: 5px;">
-                    <h3>Arayüz Yüklenemedi</h3>
-                    <p>Lütfen sayfayı yenileyin. Hata: ${error.message}</p>
-                </div>
-            `;
+            console.error('Arayüz Yükleme Hatası:', error);
+            document.body.style.visibility = 'visible'; // Hata olsa da göster
             throw error;
         }
     })();
@@ -63,121 +68,102 @@ export async function initLayout() {
     return layoutInitPromise;
 }
 
-async function loadRequiredHTML() {
-    const isAdminPage = window.location.pathname.startsWith('/admin') || window.location.pathname.includes('/admin/');
+async function loadRequiredHTML(isAdminPage) {
+    // Admin ve Normal sayfalar için farklı dosyalar ve ID'ler
+    const headerUrl = isAdminPage ? '/public/components/layouts/admin-header.html' : '/public/components/header.html';
+    const sidebarUrl = isAdminPage ? '/public/partials/admin-sidebar.html' : '/public/partials/sidebar.html';
     
-    // Header seçimi
-    const headerUrl = isAdminPage ? '/components/layouts/admin-header.html' : '/components/header.html';
-    
-    // DÜZELTME BURADA: Admin sayfasındaysak admin-sidebar.html, değilse normal sidebar.html yükle
-    const sidebarUrl = isAdminPage ? '/partials/admin-sidebar.html' : '/partials/sidebar.html';
-    
-    // Hedef elemanları belirle
-    const headerTargetId = document.getElementById('main-content') ? 'main-content' : 'header-area';
+    // Hedef ID'ler (HTML dosyasındaki <div id="..."> ile eşleşmeli)
+    // admin/index.html'de header için 'header-area' veya 'main-content' olabilir, kontrol edin.
+    // Eğer admin-page.js'de header-area yoksa header yüklenmez.
+    const headerTargetId = document.getElementById('header-area') ? 'header-area' : (document.getElementById('main-content') ? 'main-content' : 'header-placeholder');
     const headerPosition = headerTargetId === 'main-content' ? 'prepend' : 'innerHTML';
-    const sidebarTargetId = document.getElementById('sidebar') ? 'sidebar' : 'sidebar-area';
+    
+    const sidebarTargetId = document.getElementById('sidebar') ? 'sidebar' : 'sidebar-placeholder';
 
-    const partsToLoad = [
-        { url: headerUrl, targetId: headerTargetId, position: headerPosition },
-        { url: sidebarUrl, targetId: sidebarTargetId, position: 'innerHTML' }
-    ];
-
-    await Promise.all(partsToLoad.map(part => loadHTML(part.url, part.targetId, part.position)));
+    // Paralel Yükleme
+    await Promise.all([
+        loadHTML(headerUrl, headerTargetId, headerPosition),
+        loadHTML(sidebarUrl, sidebarTargetId, 'innerHTML')
+    ]);
 }
 
 async function loadHTML(url, targetId, position) {
     const target = document.getElementById(targetId);
-    if (!target) {
-        console.warn(`Uyarı: Hedef eleman #${targetId} bulunamadı, ${url} yüklenemedi.`);
-        return; // Kritik hata fırlatmak yerine logla ve devam et (sayfanın geri kalanı çalışsın)
-    }
+    if (!target) return; // Hedef yoksa hata verme, sessizce geç
     
     try {
         const response = await fetch(url);
-        if (!response.ok) throw new Error(`HTTP ${response.status} - ${url} yüklenemedi.`);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const html = await response.text();
+        
         if (position === 'innerHTML') target.innerHTML = html;
-        else target.insertAdjacentHTML('afterbegin', html);
+        else target.insertAdjacentHTML(position === 'prepend' ? 'afterbegin' : 'beforeend', html);
+
+        // Scriptleri manuel çalıştır (HTML import ile gelen scriptler için)
+        target.querySelectorAll('script').forEach(oldScript => {
+            const newScript = document.createElement('script');
+            Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+            newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+            oldScript.parentNode.replaceChild(newScript, oldScript);
+        });
     } catch (e) {
-        console.error(`${url} yüklenirken hata:`, e);
-        throw e;
+        console.error(`${url} yüklenemedi:`, e);
     }
 }
 
 function cacheDomElements() {
     const ids = [
-        // Header ve Genel UI Elementleri
         'pageTitle', 'userMenuToggle', 'profileDropdown', 'logoutButton', 
         'sidebar', 'sidebarOverlay', 'closeSidebar', 'mobileMenuToggle',
-        
-        // Sidebar Profil Elementleri (Varsa)
         'userNameLabel', 'userRoleLabel', 
-        
-        // Header Avatar Elementleri (header.html ile uyumlu)
         'userAvatarCircle', 'userAvatarImage', 'userAvatarInitial',
-        
-        // Dropdown Profil Elementleri (header.html ile uyumlu)
         'dropdownUserName', 'dropdownUserEmail', 'dropdownAvatarCircle', 'dropdownAvatarImage', 'dropdownAvatarInitial'
     ];
-    
     ids.forEach(id => dom[id] = document.getElementById(id));
-    dom.sidebarLogoutBtn = document.querySelector('.sidebar .btn-logout');
 }
 
+// Sadece Kullanıcı Sayfaları İçin Event Listener'lar
 function setupEventListeners() {
     document.body.addEventListener('click', e => {
         const target = e.target;
         
-        // Profil Menüsü Toggle
+        // Profil Dropdown
         if (target.closest('#userMenuToggle')) {
             e.stopPropagation();
             dom.profileDropdown?.classList.toggle('active');
         }
-        // Profil Menüsü Dışına Tıklama
         else if (dom.profileDropdown?.classList.contains('active') && !target.closest('#profileDropdown')) {
             dom.profileDropdown.classList.remove('active');
         }
-        // Mobil Menü ve Sidebar Toggle
+        // Mobil Menü (Sadece kullanıcı sayfalarında, admin'de admin-page.js yönetir)
         else if (target.closest('#mobileMenuToggle') || target.closest('#closeSidebar') || target.closest('#sidebarOverlay')) {
             dom.sidebar?.classList.toggle('active');
             dom.sidebarOverlay?.classList.toggle('active');
         }
-        // Çıkış İşlemleri (Hem header hem sidebar hem dropdown)
-        else if (target.closest('#logoutButton') || target.closest('.btn-logout')) {
+        // Çıkış
+        else if (target.closest('#logoutButton')) {
             handleLogout();
         }
     });
 }
 
+// --- Auth ve UI Helper Fonksiyonları ---
+
 async function checkUserAuthState() {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 try {
                     const profile = await getUserProfile(user.uid);
-                    const tokenResult = await user.getIdTokenResult();
-                    const claims = tokenResult?.claims || {};
-                    // Admin/Editor yetkisini claim veya profilden al
-                    const resolvedRole = profile?.role || (claims.admin ? 'admin' : claims.editor ? 'editor' : 'student');
-                    
-                    updateUIAfterLogin(user, { ...(profile || {}), role: resolvedRole });
-                    checkUserRole(resolvedRole);
-                    resolve();
-                } catch (error) {
-                    console.error("Oturum profili hatası:", error);
-                    // Profil yüklenemese bile kullanıcı adını göster
-                    updateUIAfterLogin(user, { role: 'student' });
-                    checkUserRole('student');
-                    resolve(); // Hata olsa bile resolve et ki sayfa açılsın
-                }
+                    updateUIAfterLogin(user, profile || {});
+                } catch (e) { console.error(e); }
             } else {
-                // Giriş yapmamış kullanıcıyı yönlendir
-                const isPublicPage = window.location.pathname.includes('/login.html') || window.location.pathname === '/';
-                if (!isPublicPage) {
-                    window.location.href = '/login.html';
-                }
-                resolve();
+               // Login değilse ve public sayfa değilse yönlendir
+               const isPublic = window.location.pathname.includes('login') || window.location.pathname === '/' || window.location.pathname.includes('404');
+               if(!isPublic) window.location.href = '/login.html';
             }
+            resolve();
         });
     });
 }
@@ -185,79 +171,43 @@ async function checkUserAuthState() {
 function updateUIAfterLogin(user, profile) {
     const name = (profile.ad && profile.soyad) ? `${profile.ad} ${profile.soyad}` : (user.displayName || "Kullanıcı");
     const email = user.email || "";
-    const roleName = translateRole(profile.role);
-    const photoURL = profile.photoURL || user.photoURL;
     const initial = name.charAt(0).toUpperCase();
+    const photoURL = profile.photoURL || user.photoURL;
 
-    // 1. Sidebar (Varsa) Güncelle
+    // UI Güncelle
     if(dom.userNameLabel) dom.userNameLabel.textContent = name;
-    if(dom.userRoleLabel) dom.userRoleLabel.textContent = roleName;
-
-    // 2. Header Avatar Güncelle
-    setAvatar(dom.userAvatarCircle, dom.userAvatarImage, dom.userAvatarInitial, photoURL, initial);
-
-    // 3. Dropdown Menü Güncelle
     if(dom.dropdownUserName) dom.dropdownUserName.textContent = name;
     if(dom.dropdownUserEmail) dom.dropdownUserEmail.textContent = email;
-    setAvatar(dom.dropdownAvatarCircle, dom.dropdownAvatarImage, dom.dropdownAvatarInitial, photoURL, initial);
-}
 
-function setAvatar(circle, image, initialEl, photoURL, initial) {
-    if (!circle || !image || !initialEl) return;
-    
-    if (photoURL) {
-        circle.classList.add('has-photo');
-        image.src = photoURL;
-        image.style.display = 'block';
-        if(initialEl) initialEl.style.display = 'none';
-    } else {
-        circle.classList.remove('has-photo');
-        image.style.display = 'none';
-        if(initialEl) {
-            initialEl.style.display = 'flex'; // 'block' yerine 'flex' daha iyi ortalar
-            initialEl.textContent = initial;
+    // Avatar
+    const updateAvatar = (circle, img, initEl) => {
+        if(!circle) return;
+        if (photoURL) {
+            if(img) { img.src = photoURL; img.style.display = 'block'; }
+            if(initEl) initEl.style.display = 'none';
+        } else {
+            if(img) img.style.display = 'none';
+            if(initEl) { initEl.textContent = initial; initEl.style.display = 'flex'; }
         }
-    }
-}
+    };
 
-function checkUserRole(role) {
-    const adminElements = document.querySelectorAll('.admin-only');
-    const shouldBeVisible = (role === 'admin' || role === 'editor');
-    adminElements.forEach(el => {
-        el.style.display = shouldBeVisible ? '' : 'none'; // 'flex' veya 'block' yerine boş bırakmak orijinal display'i korur
-    });
+    updateAvatar(dom.userAvatarCircle, dom.userAvatarImage, dom.userAvatarInitial);
+    updateAvatar(dom.dropdownAvatarCircle, dom.dropdownAvatarImage, dom.dropdownAvatarInitial);
 }
 
 function setActiveMenuItem(activePageId) {
     if (!dom.sidebar || !activePageId) return;
-    
-    // Önceki aktifleri temizle
     dom.sidebar.querySelectorAll('.active').forEach(item => item.classList.remove('active'));
-    
-    // Yeni aktifi seç (Hem 'a' hem 'li' desteği)
     const activeItem = dom.sidebar.querySelector(`[data-page="${activePageId}"]`);
-    if (activeItem) {
-        activeItem.classList.add('active');
-        // Eğer bir submenu içindeyse parent'ı da açabiliriz (opsiyonel)
-    }
+    if (activeItem) activeItem.classList.add('active');
 }
 
 async function handleLogout() {
     if (confirm("Çıkış yapmak istiyor musunuz?")) {
-        try {
-            await signOut(auth);
-            window.location.href = '/login.html';
-        } catch (error) {
-            console.error('Çıkış hatası:', error);
-            alert("Çıkış yapılırken bir hata oluştu.");
-        }
+        await signOut(auth);
+        window.location.href = '/login.html';
     }
 }
 
-function translateRole(role) {
-    const roles = { admin: 'Yönetici', editor: 'Editör', student: 'Öğrenci' };
-    return roles[role] || 'Kullanıcı';
-}
-
-// --- OTOMATİK BAŞLATMA ---
-document.addEventListener('DOMContentLoaded', initLayout);
+// Otomatik Başlatma Kaldırıldı!
+// Artık admin-page.js veya dashboard.js kendisi initLayout() çağıracak.

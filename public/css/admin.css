@@ -409,3 +409,16 @@ body.light-mode {
 body.light-mode .sidebar { background-color: #FFFFFF; border-right: 1px solid #E2E8F0; }
 body.light-mode .nav-item:hover { background: rgba(0,0,0,0.05); }
 body.light-mode .section-header h2 { color: #0F172A; }
+
+/* --- EKSİK OLAN LOGO GİZLEME KURALI --- */
+@media (min-width: 1025px) {
+    /* Sidebar açıkken Header'daki logoyu gizle */
+    .header-left .brand-logo {
+        display: none !important;
+    }
+    
+    /* Masaüstünde mobil menü butonunu gizle */
+    .mobile-menu-toggle {
+        display: none !important;
+    }
+}
