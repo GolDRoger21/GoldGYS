@@ -6,19 +6,18 @@ import * as UserModule from "./modules/admin/users.js";
 import * as ContentModule from "./modules/admin/content.js";
 import * as LegislationModule from "./modules/admin/legislation.js";
 import * as ReportsModule from "./modules/admin/reports.js";
-import * as ExamsModule from "./modules/admin/exams.js";      // Yeni: Sınav Modülü
-import * as ImporterModule from "./modules/admin/importer.js";  // Yeni: Toplu Yükleme
+import * as ExamsModule from "./modules/admin/exams.js";      // Sınav Modülü
+import * as ImporterModule from "./modules/admin/importer.js";  // Toplu Yükleme
 
 // --- SAYFA BAŞLANGICI ---
 document.addEventListener("DOMContentLoaded", async () => {
     try {
         // 1. GÜVENLİK VE ROL KONTROLÜ
-        // Kullanıcı giriş yapmamışsa login'e atar. Yetkisi yoksa 403 verir.
         const { role, user } = await requireAdminOrEditor();
         console.log(`✅ Panel Başlatıldı. Rol: ${role}, Kullanıcı: ${user.email}`);
 
         // 2. ARAYÜZÜ ROL GÖRE DÜZENLE
-        const roleBadge = document.getElementById('userRoleBadge');
+        const roleBadge = document.getElementById('userRoleBadge'); // Eğer varsa
         const sidebarRole = document.getElementById('sidebarUserRole');
         const sidebarName = document.getElementById('sidebarUserName');
 
@@ -37,12 +36,11 @@ document.addEventListener("DOMContentLoaded", async () => {
         updateAdminHeaderProfile(user);
 
         // 3. GLOBAL FONKSİYONLARI TANIMLA
-        // (Diğer modüllerin HTML içinden çağırabilmesi için window'a atıyoruz)
         window.openQuestionEditor = ContentModule.openQuestionEditor;
         window.AdminReports = ReportsModule.AdminReports;
 
-        // 4. SEKME SİSTEMİNİ BAŞLAT
-        initTabs(role);
+        // 4. ETKİLEŞİM VE MENÜLERİ BAŞLAT
+        initInteractions(role);
         
         // URL'de hash varsa (örn: #exams) o sekmeyi aç, yoksa Dashboard'u aç
         const initialTab = window.location.hash.substring(1) || 'dashboard';
@@ -50,8 +48,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     } catch (error) {
         console.error("❌ Panel Başlatma Hatası:", error);
-        // Hata durumunda içeriği gizle (Güvenlik önlemi)
-        document.querySelector('.content-wrapper').style.display = 'none';
+        const contentWrapper = document.querySelector('.content-wrapper');
+        if(contentWrapper) contentWrapper.style.display = 'none';
         alert("Yetki kontrolü sırasında hata oluştu: " + error.message);
     }
 });
@@ -62,10 +60,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 function activateTab(tabId, role) {
     const tabLink = document.querySelector(`.nav-item[data-tab="${tabId}"]`);
     
-    // Eğer yetkisiz bir alana girmeye çalışıyorsa (Örn: Editör -> Users)
+    // Eğer yetkisiz bir alana girmeye çalışıyorsa
     if (tabLink && tabLink.closest('.admin-only') && role !== 'admin') {
         console.warn("Erişim Engellendi: Bu menü sadece adminler içindir.");
-        activateTab('dashboard', role); // Dashboard'a geri at
+        activateTab('dashboard', role);
         return;
     }
 
@@ -87,7 +85,7 @@ function handleTabChange(target, role) {
     if (targetSection) {
         targetSection.style.display = 'block';
         
-        // 3. İlgili modülün başlatıcı fonksiyonunu çağır (Lazy Load mantığı)
+        // 3. İlgili modülü başlat
         console.log(`🔄 Modül Yükleniyor: ${target}`);
         
         switch(target) {
@@ -116,82 +114,106 @@ function handleTabChange(target, role) {
                 console.warn(`Bilinmeyen Modül: ${target}`);
         }
     } else {
-        console.error(`Hata: #section-${target} HTML içinde bulunamadı!`);
+        console.warn(`Uyarı: #section-${target} HTML içinde bulunamadı.`);
     }
 }
 
-// Sidebar Linklerine Tıklama Olaylarını Ekler
-function initTabs(role) {
+// --- MENÜ VE ETKİLEŞİM YÖNETİMİ ---
+function initInteractions(role) {
+    // 1. Sidebar Linklerine Tıklama
     const tabs = document.querySelectorAll('.sidebar-nav .nav-item[data-tab]');
     tabs.forEach(tab => {
         tab.addEventListener('click', (e) => {
             const href = tab.getAttribute('href');
-            // Eğer normal bir linkse (siteye dön vb.) karışma
             if (href && !href.startsWith('#') && !href.startsWith('javascript')) return;
 
             e.preventDefault();
             const target = tab.dataset.tab;
 
-            // URL Hash güncelle (Sayfa yenilendiğinde aynı yerde kalsın)
+            // URL Hash güncelle
             window.location.hash = target;
             
             // Sekmeyi aç
             activateTab(target, role);
 
             // Mobilde sidebar açıksa kapat
-            if(window.innerWidth < 1024) {
-                document.getElementById('sidebar')?.classList.remove('active');
-                document.getElementById('sidebarOverlay')?.classList.remove('active');
-            }
+            closeMobileMenu();
         });
     });
 
-    // Mobil Menü Butonu (Hamburger)
+    // 2. Mobil Menü Butonu (Hamburger)
     const mobileBtn = document.getElementById('mobileMenuToggle');
     if(mobileBtn) {
-        mobileBtn.addEventListener('click', () => {
-            document.getElementById('sidebar').classList.add('active');
-            document.getElementById('sidebarOverlay').classList.add('active');
+        mobileBtn.addEventListener('click', (e) => {
+            e.stopPropagation(); // Tıklamanın body'ye yayılmasını engelle
+            toggleMobileMenu();
         });
     }
 
-    // Sidebar Kapatma Butonu (X)
+    // 3. Sidebar Kapatma Butonu (X)
     const closeBtn = document.getElementById('closeSidebar');
     if(closeBtn) {
-        closeBtn.addEventListener('click', () => {
-            document.getElementById('sidebar').classList.remove('active');
-            document.getElementById('sidebarOverlay').classList.remove('active');
-        });
+        closeBtn.addEventListener('click', closeMobileMenu);
     }
 
-    // Overlay'e tıklayınca da kapat
+    // 4. Overlay'e tıklayınca kapat
     const overlay = document.getElementById('sidebarOverlay');
     if(overlay) {
-        overlay.addEventListener('click', () => {
-            document.getElementById('sidebar').classList.remove('active');
-            overlay.classList.remove('active');
-        });
+        overlay.addEventListener('click', closeMobileMenu);
     }
     
-    // Çıkış Butonu
-    const logoutBtn = document.getElementById('logoutBtn');
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', async () => {
-            if(confirm("Çıkış yapmak istediğinize emin misiniz?")) {
-                try {
-                    // Firebase auth import edilmediyse window üzerinden veya role-guard'dan gelebilir
-                    // Burada basitçe href yönlendirmesi yapıyoruz, auth.js logout'u halleder
-                    window.location.href = "../index.html"; 
-                    // Not: Gerçek logout işlemi için auth modülünü import edip signOut() çağırmak daha iyidir.
-                } catch(e) {
-                    console.error(e);
-                }
+    // 5. Profil Menüsü Toggle
+    const userMenuToggle = document.getElementById('userMenuToggle');
+    const profileDropdown = document.getElementById('profileDropdown');
+    
+    if(userMenuToggle && profileDropdown) {
+        userMenuToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            profileDropdown.classList.toggle('active');
+        });
+
+        // Sayfada başka yere tıklayınca dropdown'ı kapat
+        document.addEventListener('click', (e) => {
+            if (!profileDropdown.contains(e.target) && !userMenuToggle.contains(e.target)) {
+                profileDropdown.classList.remove('active');
             }
         });
     }
+
+    // 6. Çıkış Butonu
+    const logoutBtn = document.getElementById('logoutBtn'); // Sidebar'daki
+    const headerLogoutBtn = document.getElementById('logoutButton'); // Header'daki
+    
+    const handleLogout = async () => {
+        if(confirm("Çıkış yapmak istediğinize emin misiniz?")) {
+            // Basit yönlendirme (auth.js halleder)
+            window.location.href = "../index.html"; 
+        }
+    };
+
+    if (logoutBtn) logoutBtn.addEventListener('click', handleLogout);
+    if (headerLogoutBtn) headerLogoutBtn.addEventListener('click', handleLogout);
 }
 
 // --- YARDIMCI FONKSİYONLAR ---
+
+function toggleMobileMenu() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    if(sidebar && overlay) {
+        sidebar.classList.toggle('active');
+        overlay.classList.toggle('active');
+    }
+}
+
+function closeMobileMenu() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    if(sidebar && overlay) {
+        sidebar.classList.remove('active');
+        overlay.classList.remove('active');
+    }
+}
 
 // Header'daki profil bilgilerini günceller
 function updateAdminHeaderProfile(user) {
@@ -199,7 +221,7 @@ function updateAdminHeaderProfile(user) {
     const initials = getInitials(displayName);
     const photoUrl = user.photoURL;
 
-    // Elementleri güvenli şekilde seç (Bazıları sayfada olmayabilir)
+    // Helper: Elementi güvenli seç ve güncelle
     const setContent = (id, content) => {
         const el = document.getElementById(id);
         if(el) el.textContent = content;
@@ -224,13 +246,11 @@ function updateAdminHeaderProfile(user) {
 
     // Avatar Mantığı
     if (photoUrl) {
-        // Fotoğraf varsa
         setSrc('userAvatarImage', photoUrl);
         setSrc('dropdownAvatarImage', photoUrl);
         hide('userAvatarInitial');
         hide('dropdownAvatarInitial');
     } else {
-        // Fotoğraf yoksa Baş Harf
         setContent('userAvatarInitial', initials);
         setContent('dropdownAvatarInitial', initials);
         hide('userAvatarImage');
@@ -238,7 +258,6 @@ function updateAdminHeaderProfile(user) {
     }
 }
 
-// İsimden baş harfleri çıkarır (Ahmet Yılmaz -> AY)
 function getInitials(name) {
     if (!name) return "G";
     const parts = name.trim().split(/\s+/);
