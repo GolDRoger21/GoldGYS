@@ -3,7 +3,7 @@
     <a href="/pages/dashboard.html" class="brand-mark header-brand" aria-label="Gold GYS panel ana sayfası">
       <span class="brand-highlight">GOLD</span>GYS
     </a>
-    <button class="mobile-menu-toggle" type="button" aria-label="Menüyü aç/kapat" data-mobile-nav-toggle>
+    <button id="mobileMenuToggle" class="mobile-menu-toggle" type="button" aria-label="Menüyü aç/kapat">
       <span class="icon" data-icon="menu"></span>
     </button>
 
@@ -18,6 +18,10 @@
       <a href="/pages/konular.html" data-page="konular"><span class="icon" data-icon="book"></span>Ders Notları</a>
       <a href="/pages/testler.html" data-page="testler"><span class="icon" data-icon="bolt"></span>Testler</a>
       <a href="/pages/denemeler.html" data-page="denemeler"><span class="icon" data-icon="spark"></span>Denemeler</a>
+      
+      <a href="/admin/index.html" class="admin-only" style="display: none;">
+        <span class="icon" data-icon="settings"></span>Yönetim
+      </a>
     </nav>
 
     <div class="header-quick-actions">
@@ -26,22 +30,22 @@
       </button>
 
       <div class="user-menu-container">
-        <button class="user-menu-toggle icon-button user-avatar-btn" aria-label="Profil Menüsü">
-            <div class="user-avatar-circle">
-                <img class="user-avatar-image" alt="Profil fotoğrafı" loading="lazy">
-                <span class="user-avatar-initial" id="headerUserInitial">?</span>
+        <button id="userMenuToggle" class="user-menu-toggle icon-button user-avatar-btn" aria-label="Profil Menüsü">
+            <div id="userAvatarCircle" class="user-avatar-circle">
+                <img id="userAvatarImage" class="user-avatar-image" alt="Profil fotoğrafı" loading="lazy">
+                <span id="userAvatarInitial" class="user-avatar-initial">?</span>
             </div>
         </button>
 
-        <div class="profile-dropdown">
+        <div id="profileDropdown" class="profile-dropdown">
           <div class="dropdown-header">
-             <div class="user-avatar-circle large">
-                <img class="user-avatar-image" alt="Profil fotoğrafı" loading="lazy">
-                <span class="user-avatar-initial">?</span>
+             <div id="dropdownAvatarCircle" class="user-avatar-circle large">
+                <img id="dropdownAvatarImage" class="user-avatar-image" alt="Profil fotoğrafı" loading="lazy">
+                <span id="dropdownAvatarInitial" class="user-avatar-initial">?</span>
             </div>
             <div class="user-info">
-                <span class="user-name" id="headerUserName">Yükleniyor...</span>
-                <span class="user-email" id="headerUserEmail">...</span>
+                <span class="user-name" id="dropdownUserName">Yükleniyor...</span>
+                <span class="user-email" id="dropdownUserEmail">...</span>
             </div>
           </div>
           
@@ -53,12 +57,12 @@
                 <span>❓</span> Yardım
               </a>
               <div class="dropdown-separator"></div>
-              <button id="logout-btn" class="dropdown-item text-danger">
+              <button id="logoutButton" class="dropdown-item text-danger">
                 <span>🚪</span> Çıkış Yap
               </button>
           </div>
         </div>
       </div>
-      </div>
+    </div>
   </div>
 </div>

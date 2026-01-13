@@ -3,8 +3,9 @@ import { sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.7.
 import { doc, updateDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { getUserProfile, updateUserCache } from "./user-profile.js";
 
-// DOM Elemanlarını dinamik olarak alacağız çünkü sayfa yüklendiğinde hepsi hazır olmayabilir
+// DOM Elemanlarını dinamik olarak alacağız
 const getDom = () => ({
+    // Profil Sayfası Özel Elementleri
     profileAvatarMain: document.getElementById("profileAvatarMain"),
     profileAvatarPlaceholder: document.getElementById("profileAvatarPlaceholder"),
     profileNameMain: document.getElementById("profileNameMain"),
@@ -13,6 +14,7 @@ const getDom = () => ({
     statScore: document.getElementById("statScore"),
     displayTarget: document.getElementById("displayTarget"),
     
+    // Form Elementleri
     inpAd: document.getElementById("inpAd"),
     inpSoyad: document.getElementById("inpSoyad"),
     inpEmail: document.getElementById("inpEmail"),
@@ -37,8 +39,6 @@ export function initProfilePage() {
         
         const dom = getDom();
         if (dom.profileForm) {
-            // Event listener duplication önlemek için 'submit' öncesi klonlama veya kontrol yapılabilir
-            // Basitlik adına doğrudan ekliyoruz (sayfa yenilendiğinde bellek temizlenir)
             dom.profileForm.onsubmit = (e) => {
                 e.preventDefault();
                 saveProfile(user.uid);
@@ -72,6 +72,7 @@ function populateForm(userData, user) {
     let ad = userData.ad;
     let soyad = userData.soyad;
 
+    // Eğer veritabanında ad/soyad yoksa Google profilinden almaya çalış
     if (!ad && !soyad && user.displayName) {
         const parts = user.displayName.split(' ');
         ad = parts[0];
@@ -93,7 +94,7 @@ function updateInfoCard(data, user) {
     if (dom.profileRoleMain) dom.profileRoleMain.textContent = translateRole(data.role);
     if (dom.displayTarget) dom.displayTarget.textContent = data.targetExam || "Belirtilmedi";
 
-    // Avatar Logic
+    // Profil Sayfası Avatarı (Büyük)
     const photoURL = data.photoURL || user.photoURL;
     if (photoURL && dom.profileAvatarMain) {
         dom.profileAvatarMain.src = photoURL;
@@ -106,6 +107,50 @@ function updateInfoCard(data, user) {
             dom.profileAvatarPlaceholder.style.display = 'flex';
         }
     }
+}
+
+// YENİ FONKSİYON: Profil güncellenince Header ve Sidebar'ı da güncelle
+function updateGlobalHeader(data, user) {
+    const fullName = `${data.ad || ''} ${data.soyad || ''}`.trim() || user.displayName || "Kullanıcı";
+    const initial = fullName.charAt(0).toUpperCase();
+    const photoURL = data.photoURL || user.photoURL;
+
+    // header.html ve ui-loader.js ile uyumlu ID'ler
+    const globalIds = {
+        names: ['userNameLabel', 'dropdownUserName', 'headerUserName'], 
+        circles: ['userAvatarCircle', 'dropdownAvatarCircle'],
+        images: ['userAvatarImage', 'dropdownAvatarImage'],
+        initials: ['userAvatarInitial', 'dropdownAvatarInitial']
+    };
+
+    // İsimleri güncelle
+    globalIds.names.forEach(id => {
+        const el = document.getElementById(id);
+        if(el) el.textContent = fullName;
+    });
+
+    // Resimleri/Baş harfleri güncelle
+    globalIds.circles.forEach((circleId, index) => {
+        const circle = document.getElementById(circleId);
+        const img = document.getElementById(globalIds.images[index]);
+        const initEl = document.getElementById(globalIds.initials[index]);
+
+        if (!circle || !img) return;
+
+        if (photoURL) {
+            circle.classList.add('has-photo');
+            img.src = photoURL;
+            img.style.display = 'block';
+            if(initEl) initEl.style.display = 'none';
+        } else {
+            circle.classList.remove('has-photo');
+            img.style.display = 'none';
+            if(initEl) {
+                initEl.style.display = 'flex';
+                initEl.textContent = initial;
+            }
+        }
+    });
 }
 
 async function calculateUserStats(uid) {
@@ -133,7 +178,7 @@ async function calculateUserStats(uid) {
         if (dom.statScore) dom.statScore.textContent = avg;
         if (dom.statTestsCompleted) dom.statTestsCompleted.textContent = completed;
 
-        // Demo amaçlı topic sayısı (gerçek DB'den çekilebilir)
+        // Demo amaçlı topic sayısı
         const totalTopics = 20; 
         const worked = snap.size;
         const ratio = Math.min(100, Math.round((worked / totalTopics) * 100));
@@ -171,10 +216,18 @@ async function saveProfile(uid) {
         // UI güncelle
         const user = auth.currentUser;
         const newData = await getUserProfile(user.uid, { force: true });
+        
+        // 1. Sayfa içi kartı güncelle
         updateInfoCard(newData, user);
+        // 2. Header ve Menüyü anlık güncelle (YENİ)
+        updateGlobalHeader(newData, user);
 
         dom.saveMessage.textContent = "✓ Kaydedildi";
         dom.saveMessage.style.color = "var(--color-success)";
+        
+        // 3 saniye sonra mesajı sil
+        setTimeout(() => { if(dom.saveMessage) dom.saveMessage.textContent = ""; }, 3000);
+
     } catch (e) {
         dom.saveMessage.textContent = "Hata: " + e.message;
         dom.saveMessage.style.color = "var(--color-danger)";
