@@ -1,19 +1,59 @@
 import { db } from "../../firebase-config.js";
 import { collection, query, where, getDocs, doc, updateDoc, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-const usersTableBody = document.getElementById('usersTableBody');
+// Global değişkeni kaldırıp fonksiyon içinde seçmek daha güvenlidir, 
+// ancak renderUsersInterface sonrası seçilmesi gerekir.
+let usersTableBody = null; 
 
 export async function initUsersPage() {
     console.log("Üye yönetimi yükleniyor...");
-    await loadPendingUsers(); // Önce onay bekleyenleri getir
     
-    // Filtreleme butonları için listener eklenebilir
-    document.getElementById('btnShowPending').onclick = loadPendingUsers;
-    document.getElementById('btnShowAll').onclick = loadAllUsers;
+    // 1. Arayüzü Oluştur (HTML'de butonlar yoksa ekler)
+    renderUsersInterface();
+    
+    // 2. Elementleri Seç
+    usersTableBody = document.getElementById('usersTableBody');
+    
+    // 3. Verileri Yükle
+    await loadPendingUsers(); 
+}
+
+function renderUsersInterface() {
+    const container = document.querySelector('#section-users .card');
+    if(!container) return;
+
+    // Mevcut içeriği koru veya yeniden oluştur. 
+    // Burada tablonun üzerine filtre butonlarını ekliyoruz.
+    container.innerHTML = `
+        <div class="toolbar mb-3 p-2" style="background: rgba(255,255,255,0.05); border-radius: 8px;">
+            <button id="btnShowPending" class="btn btn-sm btn-warning mr-2">⏳ Onay Bekleyenler</button>
+            <button id="btnShowAll" class="btn btn-sm btn-secondary">📋 Tüm Üyeler</button>
+        </div>
+        <div class="table-responsive">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Kullanıcı</th>
+                        <th>Rol</th>
+                        <th>Durum</th>
+                        <th>Kayıt Tarihi</th>
+                        <th>İşlemler</th>
+                    </tr>
+                </thead>
+                <tbody id="usersTableBody"></tbody>
+            </table>
+        </div>
+    `;
+
+    // Event Listener'ları güvenli bir şekilde ekle
+    document.getElementById('btnShowPending').addEventListener('click', loadPendingUsers);
+    document.getElementById('btnShowAll').addEventListener('click', loadAllUsers);
 }
 
 // Onay Bekleyenleri Getir
 async function loadPendingUsers() {
+    if (!usersTableBody) usersTableBody = document.getElementById('usersTableBody');
+    if (!usersTableBody) return; // Still not found, exit
     usersTableBody.innerHTML = '<tr><td colspan="5">Yükleniyor...</td></tr>';
     
     const q = query(
@@ -27,12 +67,16 @@ async function loadPendingUsers() {
 
 // Tüm Üyeleri Getir
 async function loadAllUsers() {
+    if (!usersTableBody) usersTableBody = document.getElementById('usersTableBody');
+    if (!usersTableBody) return; // Still not found, exit
     usersTableBody.innerHTML = '<tr><td colspan="5">Yükleniyor...</td></tr>';
     const q = query(collection(db, "users"), orderBy("createdAt", "desc"));
     renderUsersList(q);
 }
 
 async function renderUsersList(queryRef) {
+    if (!usersTableBody) usersTableBody = document.getElementById('usersTableBody');
+    if (!usersTableBody) return; // Still not found, exit
     try {
         const snapshot = await getDocs(queryRef);
         usersTableBody.innerHTML = '';
@@ -112,7 +156,8 @@ async function updateUserStatus(uid, status) {
     try {
         await updateDoc(doc(db, "users", uid), { status: status });
         alert(`Kullanıcı durumu güncellendi: ${status}`);
-        loadPendingUsers(); // Listeyi yenile
+        // Listeyi yenile (onay bekleyenleri tekrar yüklemek en güvenlisi)
+        loadPendingUsers(); 
     } catch (error) {
         console.error("Güncelleme hatası:", error);
         alert("İşlem başarısız!");

@@ -8,7 +8,13 @@ import * as XLSX from "https://cdn.sheetjs.com/xlsx-latest/package/xlsx.mjs";
 export function initImporterPage() {
     console.log("Toplu Yükleme Modülü Başlatılıyor...");
     
-    const container = document.getElementById('section-content'); // İçerik sekmesine ekleyelim veya ayrı sekme yapalım
+    const container = document.getElementById('section-importer'); 
+    
+    if (!container) {
+        console.error("Importer section bulunamadı!");
+        return;
+    }
+
     // Mevcut içeriği temizle ve Importer arayüzünü bas
     container.innerHTML = `
         <div class="section-header">
