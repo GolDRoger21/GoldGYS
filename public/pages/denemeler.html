@@ -1,42 +1,101 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Denemeler | GOLD GYS</title>
-  <link rel="stylesheet" href="/css/app.css">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230F172A'/><text x='50' y='70' font-family='serif' font-size='60' fill='%23D4AF37' text-anchor='middle' font-weight='bold'>G</text><text x='80' y='35' font-size='30'>⚖️</text></svg>">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deneme Sınavları | GOLD GYS</title>
+    <link rel="stylesheet" href="../css/app.css">
+    <link rel="stylesheet" href="../components/ui/ui.css">
 </head>
 <body>
-  <div class="app-layout">
-    <aside id="sidebar-area" class="app-sidebar"></aside>
+    <div id="header-placeholder"></div>
 
-    <main class="app-main">
-      <header id="header-area" class="app-header"></header>
+    <main class="container mt-4 mb-5">
+        <div class="section-header mb-4">
+            <h1>📝 Deneme Sınavları</h1>
+            <p class="text-muted">Gerçek sınav provası yapabileceğiniz, mevzuata uygun denemeler.</p>
+        </div>
 
-      <div class="app-content">
-        <section class="panel-card">
-          <div class="section-head">
-            <div>
-              <p class="eyebrow">Sınav simülasyonları</p>
-              <h1 class="page-heading heading-1">Denemeler</h1>
-              <p class="text-muted">Gerçek sınav deneyimi için hazırlanmış deneme setlerine buradan ulaşabilirsiniz.</p>
+        <div id="examsGrid" class="row">
+            <div class="col-12 text-center py-5">
+                <div class="spinner-border text-primary" role="status"></div>
+                <p>Sınavlar yükleniyor...</p>
             </div>
-          </div>
-        </section>
-      </div>
-
-      <footer id="footer-area" class="app-footer"></footer>
+        </div>
     </main>
-  </div>
 
-  <script type="module">
-    import { protectPage } from '/js/role-guard.js';
-    import { initLayout } from '/js/ui-loader.js';
+    <div id="footer-placeholder"></div>
 
-    protectPage();
-    initLayout('denemeler');
-  </script>
+    <script type="module">
+        import { loadHTML } from "../js/ui-loader.js";
+        import { db } from "../js/firebase-config.js";
+        import { collection, getDocs, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // Header/Footer Yükle
+        loadHTML('../components/header.html', 'header-placeholder');
+        loadHTML('../components/footer.html', 'footer-placeholder');
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const grid = document.getElementById('examsGrid');
+            
+            try {
+                // Sadece Aktif Olan Sınavları Getir
+                const q = query(
+                    collection(db, "exams"), 
+                    where("isActive", "==", true),
+                    orderBy("createdAt", "desc")
+                );
+                
+                const snapshot = await getDocs(q);
+                
+                if (snapshot.empty) {
+                    grid.innerHTML = '<div class="col-12"><div class="alert alert-info">Henüz yayınlanmış deneme sınavı bulunmamaktadır. Takipte kalın!</div></div>';
+                    return;
+                }
+
+                grid.innerHTML = ''; // Loading'i temizle
+
+                snapshot.forEach(docSnap => {
+                    const exam = docSnap.data();
+                    const card = document.createElement('div');
+                    card.className = 'col-md-6 col-lg-4 mb-4';
+                    
+                    // Zorluk veya türüne göre renk belirleme (Opsiyonel)
+                    const badgeColor = exam.role.includes('Müdür') ? 'bg-primary' : 'bg-success';
+
+                    card.innerHTML = `
+                        <div class="card h-100 shadow-sm border-0 exam-card">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <span class="badge ${badgeColor} text-white">${exam.role}</span>
+                                    <small class="text-muted">${new Date(exam.createdAt.seconds * 1000).toLocaleDateString('tr-TR')}</small>
+                                </div>
+                                <h4 class="card-title mb-3">${exam.title}</h4>
+                                
+                                <div class="exam-stats d-flex gap-3 mb-4 text-muted small">
+                                    <span><i class="icon-book"></i> ${exam.totalQuestions} Soru</span>
+                                    <span><i class="icon-clock"></i> ${exam.duration} Dakika</span>
+                                </div>
+
+                                <p class="card-text text-muted">
+                                    Bu deneme sınavı, güncel mevzuat ve sınav dağılımına tam uygun olarak hazırlanmıştır.
+                                </p>
+                            </div>
+                            <div class="card-footer bg-white border-0 pb-4 pt-0">
+                                <a href="test.html?id=${docSnap.id}" class="btn btn-outline-primary w-100 fw-bold">
+                                    BAŞLA 🚀
+                                </a>
+                            </div>
+                        </div>
+                    `;
+                    grid.appendChild(card);
+                });
+
+            } catch (error) {
+                console.error("Hata:", error);
+                grid.innerHTML = `<div class="col-12 text-danger">Bağlantı hatası: ${error.message}</div>`;
+            }
+        });
+    </script>
 </body>
 </html>

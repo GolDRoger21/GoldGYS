@@ -1,49 +1,54 @@
 <div class="sidebar-header">
-    <a href="/admin/index.html" class="brand-logo">GOLD <span class="text-primary">ADMIN</span></a>
-    <button class="close-sidebar-btn" id="closeSidebar" aria-label="Menüyü kapat">✕</button>
+    <a href="/admin/index.html" class="brand-logo">GOLD <span style="color: var(--gold-primary);">YÖNETİM</span></a>
+    <button class="close-sidebar-btn" id="closeSidebar">✕</button>
 </div>
 
 <div class="sidebar-user-info">
     <div class="user-details">
-        <div id="userNameLabel" class="user-name">Yükleniyor...</div>
-        <div id="userRoleLabel" class="user-role">Yönetici</div>
+        <div class="user-name" id="sidebarUserName">Yönetici</div>
+        <div class="user-role" id="sidebarUserRole">Sistem Yöneticisi</div>
     </div>
 </div>
 
 <nav class="sidebar-nav">
-    <div class="nav-label">YÖNETİM PANELİ</div>
-    
+    <div class="nav-label">GENEL</div>
     <a href="#" class="nav-item active" data-tab="dashboard">
-        <span class="icon">dashboard</span> Genel Bakış
+        <span class="icon">📊</span> Genel Bakış
+    </a>
+
+    <div class="nav-label">SINAV MERKEZİ</div>
+    <a href="#" class="nav-item" data-tab="exams">
+        <span class="icon">📝</span> Deneme Sınavları
+    </a>
+    <a href="#" class="nav-item" data-tab="content">
+        <span class="icon">📚</span> Soru Bankası
+    </a>
+    <a href="#" class="nav-item" data-tab="importer">
+        <span class="icon">📥</span> Toplu Soru Yükle
     </a>
 
     <div class="admin-only" style="display: none;">
-        <div class="nav-label">KULLANICI & SİSTEM</div>
+        <div class="nav-label">YÖNETİM & SİSTEM</div>
         <a href="#" class="nav-item" data-tab="users">
-            <span class="icon">people</span> Üye Yönetimi
+            <span class="icon">👥</span> Üye Yönetimi
         </a>
         <a href="#" class="nav-item" data-tab="legislation">
-            <span class="icon">gavel</span> Mevzuat Yönetimi
+            <span class="icon">⚖️</span> Mevzuat Takibi
+        </a>
+        <a href="#" class="nav-item" data-tab="reports">
+            <span class="icon">🚩</span> Hata Bildirimleri
         </a>
     </div>
 
-    <div class="nav-label">İÇERİK</div>
-    <a href="#" class="nav-item" data-tab="content">
-        <span class="icon">library_books</span> İçerik Yönetimi
-    </a>
-    <a href="#" class="nav-item" data-tab="reports">
-        <span class="icon">report_problem</span> Hata Bildirimleri
-    </a>
-
-    <div class="nav-divider"></div>
-
-    <a href="/pages/dashboard.html" class="nav-item">
-        <span class="icon">arrow_back</span> Siteye Dön
-    </a>
+    <div class="sidebar-footer-link">
+        <a href="/pages/dashboard.html" class="nav-item">
+            <span class="icon">⬅️</span> Siteye Dön
+        </a>
+    </div>
 </nav>
 
 <div class="sidebar-footer">
     <button id="logoutBtn" class="nav-item logout">
-        <span class="icon">logout</span> Çıkış Yap
+        <span class="icon">🚪</span> Çıkış Yap
     </button>
 </div>
