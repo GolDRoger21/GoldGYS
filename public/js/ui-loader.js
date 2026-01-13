@@ -14,46 +14,59 @@ const PAGE_CONFIG = {
 // DOM Elemanları için merkezi nesne
 const dom = {};
 
+let layoutInitPromise = null;
+
 /**
  * Arayüzü başlatan ana fonksiyon. Artık parametre almasına gerek yok.
  * Sayfa bilgisini URL'den otomatik olarak alacak.
  */
 export async function initLayout() {
-    // URL'i al ve uygun konfigürasyonu bul
-    const path = window.location.pathname;
-    const config = PAGE_CONFIG[path] || { id: 'unknown', title: 'Sayfa' };
+    if (layoutInitPromise) return layoutInitPromise;
 
-    try {
-        await loadRequiredHTML();
-        cacheDomElements();
+    layoutInitPromise = (async () => {
+        // URL'i al ve uygun konfigürasyonu bul
+        const path = window.location.pathname;
+        const config = PAGE_CONFIG[path] || { id: 'unknown', title: 'Sayfa' };
 
-        if (dom.pageTitle) dom.pageTitle.textContent = config.title;
-        setActiveMenuItem(config.id);
+        try {
+            await loadRequiredHTML();
+            cacheDomElements();
 
-        await checkUserAuthState();
-        setupEventListeners();
-        
-        // Her şey yüklendikten sonra sayfayı görünür yap
-        document.body.style.visibility = 'visible';
-        console.log(`Arayüz '${config.id}' sayfası için başarıyla yüklendi.`);
+            if (dom.pageTitle) dom.pageTitle.textContent = config.title;
+            setActiveMenuItem(config.id);
 
-    } catch (error) {
-        console.error('KRİTİK HATA: Arayüz başlatılamadı.', error);
-        document.body.innerHTML = `<h1>Arayüz Yüklenemedi</h1><p>${error.message}</p>`;
-        document.body.style.visibility = 'visible';
-    }
+            await checkUserAuthState();
+            setupEventListeners();
+            
+            // Her şey yüklendikten sonra sayfayı görünür yap
+            document.body.style.visibility = 'visible';
+            console.log(`Arayüz '${config.id}' sayfası için başarıyla yüklendi.`);
+
+            return true;
+        } catch (error) {
+            console.error('KRİTİK HATA: Arayüz başlatılamadı.', error);
+            document.body.innerHTML = `<h1>Arayüz Yüklenemedi</h1><p>${error.message}</p>`;
+            document.body.style.visibility = 'visible';
+            throw error;
+        }
+    })();
+
+    return layoutInitPromise;
 }
 
 async function loadRequiredHTML() {
     const isAdminPage = window.location.pathname.startsWith('/admin');
     const headerUrl = isAdminPage ? '/components/layouts/admin-header.html' : '/partials/app-header.html';
     const sidebarUrl = '/partials/sidebar.html';
+    const headerTargetId = document.getElementById('main-content') ? 'main-content' : 'header-area';
+    const headerPosition = headerTargetId === 'main-content' ? 'prepend' : 'innerHTML';
+    const sidebarTargetId = document.getElementById('sidebar') ? 'sidebar' : 'sidebar-area';
 
     const partsToLoad = [
         // Ana içerik alanına header'ıprepend ile ekle
-        { url: headerUrl, targetId: 'main-content', position: 'prepend' },
+        { url: headerUrl, targetId: headerTargetId, position: headerPosition },
         // Kenar çubuğu (sidebar) alanını innerHTML ile doldur
-        { url: sidebarUrl, targetId: 'sidebar', position: 'innerHTML' }
+        { url: sidebarUrl, targetId: sidebarTargetId, position: 'innerHTML' }
     ];
 
     await Promise.all(partsToLoad.map(part => loadHTML(part.url, part.targetId, part.position)));
@@ -99,7 +112,7 @@ function setupEventListeners() {
             dom.sidebar?.classList.toggle('active');
             dom.sidebarOverlay?.classList.toggle('active');
         }
-        else if (target.closest('#logoutButton') || target.closest('.sidebar .btn-logout')) {
+        else if (target.closest('#logoutButton') || target.closest('#logoutBtn') || target.closest('.sidebar .btn-logout')) {
             handleLogout();
         }
     });
@@ -111,8 +124,11 @@ async function checkUserAuthState() {
             if (user) {
                 try {
                     const profile = await getUserProfile(user.uid);
-                    updateUIAfterLogin(user, profile || {});
-                    checkUserRole(profile?.role || 'student');
+                    const tokenResult = await user.getIdTokenResult();
+                    const claims = tokenResult?.claims || {};
+                    const resolvedRole = profile?.role || (claims.admin ? 'admin' : claims.editor ? 'editor' : 'student');
+                    updateUIAfterLogin(user, { ...(profile || {}), role: resolvedRole });
+                    checkUserRole(resolvedRole);
                     resolve();
                 } catch (error) {
                     console.error("Oturum hatası:", error);
