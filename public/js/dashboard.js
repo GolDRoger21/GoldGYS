@@ -28,22 +28,36 @@ document.addEventListener("DOMContentLoaded", () => {
                 // 1. Layout'u (header, sidebar) güvenle yükle
                 await initLayout('dashboard');
 
-                // 2. Sayfaya özel içeriği yükle
+                // 2. YETKİ KONTROLÜ (Sidebar için)
+                const idTokenResult = await user.getIdTokenResult();
+                const claims = idTokenResult.claims;
+
+                if (claims.admin || claims.editor) {
+                    const adminItems = document.querySelectorAll('.admin-only');
+                    adminItems.forEach(item => {
+                        item.style.display = 'flex';
+                    });
+                }
+
+                // 3. Sayfaya özel içeriği yükle
                 if(ui.loaderText) ui.loaderText.textContent = "Verileriniz yükleniyor...";
                 
                 const profile = await getUserProfile(user.uid);
                 
-                // Gövdeyi (Hoşgeldin mesajı) güncelle
+                const displayName = profile?.ad || user.displayName || user.email.split('@')[0];
+
                 if(ui.welcomeMsg) {
-                    const name = profile?.ad || user.displayName || "Kullanıcı";
-                    ui.welcomeMsg.textContent = `Hoş geldin, ${name}!`;
+                    ui.welcomeMsg.textContent = `Hoş geldin, ${displayName}!`;
                 }
+
+                // HEADER PROFİL GÜNCELLEME
+                updateHeaderProfileUI(user, displayName);
 
                 // Sayfaya özel diğer fonksiyonlar
                 startCountdown();
-                initMobileMenu(); // initLayout'tan sonra çalışmalı
+                initMobileMenu(); 
 
-                // 3. Her şey hazır, yükleyiciyi gizle
+                // 4. Her şey hazır, yükleyiciyi gizle
                 hideLoader();
 
             } catch (error) {
@@ -112,4 +126,32 @@ function startCountdown() {
 
     updateTimer();
     setInterval(updateTimer, 60000);
+}
+
+/**
+ * Header kısmındaki kullanıcı bilgilerini (isim ve avatar) günceller.
+ * HTML yapısındaki doğru ID ve class'ları hedefler.
+ */
+function updateHeaderProfileUI(user, displayName) {
+    const nameEl = document.getElementById('headerUserName');
+    const avatarImgEl = document.querySelector('.user-avatar-image');
+    const avatarInitialEl = document.getElementById('headerUserInitial');
+
+    if (nameEl) {
+        nameEl.textContent = displayName;
+    }
+
+    if (avatarImgEl && avatarInitialEl) {
+        if (user.photoURL) {
+            avatarImgEl.src = user.photoURL;
+            avatarImgEl.style.display = 'block';
+            avatarInitialEl.style.display = 'none';
+        } else {
+            // Profil resmi yoksa ui-avatars.com'dan bir resim oluştur ve baş harf gösterimini gizle.
+            const encodedName = encodeURIComponent(displayName);
+            avatarImgEl.src = `https://ui-avatars.com/api/?name=${encodedName}&background=0D8ABC&color=fff`;
+            avatarImgEl.style.display = 'block';
+            avatarInitialEl.style.display = 'none';
+        }
+    }
 }
