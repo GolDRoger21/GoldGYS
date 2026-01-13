@@ -1,5 +1,4 @@
 
-import { auth } from "./firebase-config.js";
 import { requireAdminOrEditor } from "./role-guard.js";
 // Modülleri import et
 import * as DashboardModule from "./modules/admin/dashboard.js";
@@ -61,7 +60,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         window.AdminReports = ReportsModule.AdminReports;
 
         initTabs(role);
-        initAdminMenu();
         
         const initialTab = window.location.hash.substring(1) || 'dashboard';
         handleTabChange(initialTab, role);
@@ -109,43 +107,6 @@ function initTabs(role) {
             window.location.hash = target; // URL'i güncelle
             handleTabChange(target, role);
         });
-    });
-}
-
-// Çıkış Yap Butonu
-document.getElementById('logoutBtn')?.addEventListener('click', () => {
-    auth.signOut().then(() => window.location.href = '/login.html');
-});
-
-function initAdminMenu() {
-    document.body.addEventListener('click', (e) => {
-        const toggleBtn = e.target.closest('.user-menu-toggle');
-        if (toggleBtn) {
-            const container = toggleBtn.closest('.user-menu-container');
-            const dropdown = container?.querySelector('.profile-dropdown');
-
-            document.querySelectorAll('.profile-dropdown.active').forEach(d => {
-                if (d !== dropdown) d.classList.remove('active');
-            });
-
-            dropdown?.classList.toggle('active');
-            e.stopPropagation();
-            return;
-        }
-
-        if (!e.target.closest('.profile-dropdown') && !e.target.closest('.user-menu-toggle')) {
-            document.querySelectorAll('.profile-dropdown.active').forEach(d => {
-                d.classList.remove('active');
-            });
-        }
-
-        if (e.target.closest('#logout-btn')) {
-            if (confirm('Çıkış yapmak istiyor musunuz?')) {
-                auth.signOut().then(() => {
-                    window.location.href = '/login.html';
-                });
-            }
-        }
     });
 }
 
