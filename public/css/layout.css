@@ -387,6 +387,7 @@
     }
 }
 
+/* DÜZELTME: !important kaldırıldı. Artık JS yetkiyi doğrulayınca menüyü gösterebilecek. */
 .admin-only {
-    display: none !important; /* Yetkisiz kullanıcılarda gizli, JS ile açılır */
+    display: none; 
 }
