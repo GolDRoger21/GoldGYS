@@ -1,0 +1,49 @@
+<div class="sidebar-header">
+    <a href="/admin/index.html" class="brand-logo">GOLD <span class="text-primary">ADMIN</span></a>
+    <button class="close-sidebar-btn" id="closeSidebar" aria-label="Menüyü kapat">✕</button>
+</div>
+
+<div class="sidebar-user-info">
+    <div class="user-details">
+        <div id="userNameLabel" class="user-name">Yükleniyor...</div>
+        <div id="userRoleLabel" class="user-role">Yönetici</div>
+    </div>
+</div>
+
+<nav class="sidebar-nav">
+    <div class="nav-label">YÖNETİM PANELİ</div>
+    
+    <a href="#" class="nav-item active" data-tab="dashboard">
+        <span class="icon">dashboard</span> Genel Bakış
+    </a>
+
+    <div class="admin-only" style="display: none;">
+        <div class="nav-label">KULLANICI & SİSTEM</div>
+        <a href="#" class="nav-item" data-tab="users">
+            <span class="icon">people</span> Üye Yönetimi
+        </a>
+        <a href="#" class="nav-item" data-tab="legislation">
+            <span class="icon">gavel</span> Mevzuat Yönetimi
+        </a>
+    </div>
+
+    <div class="nav-label">İÇERİK</div>
+    <a href="#" class="nav-item" data-tab="content">
+        <span class="icon">library_books</span> İçerik Yönetimi
+    </a>
+    <a href="#" class="nav-item" data-tab="reports">
+        <span class="icon">report_problem</span> Hata Bildirimleri
+    </a>
+
+    <div class="nav-divider"></div>
+
+    <a href="/pages/dashboard.html" class="nav-item">
+        <span class="icon">arrow_back</span> Siteye Dön
+    </a>
+</nav>
+
+<div class="sidebar-footer">
+    <button id="logoutBtn" class="nav-item logout">
+        <span class="icon">logout</span> Çıkış Yap
+    </button>
+</div>

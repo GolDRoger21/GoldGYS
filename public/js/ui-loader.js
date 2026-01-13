@@ -64,14 +64,13 @@ export async function initLayout() {
 }
 
 async function loadRequiredHTML() {
-    const isAdminPage = window.location.pathname.startsWith('/admin');
+    const isAdminPage = window.location.pathname.startsWith('/admin') || window.location.pathname.includes('/admin/');
     
-    // DÜZELTME: Header yolu 'components/header.html' olarak güncellendi.
-    // Önceki kod 'partials/app-header.html' kullanıyordu, bu da düzeltmelerimizin görünmesini engelliyordu.
+    // Header seçimi
     const headerUrl = isAdminPage ? '/components/layouts/admin-header.html' : '/components/header.html';
     
-    // Sidebar yolu
-    const sidebarUrl = '/partials/sidebar.html';
+    // DÜZELTME BURADA: Admin sayfasındaysak admin-sidebar.html, değilse normal sidebar.html yükle
+    const sidebarUrl = isAdminPage ? '/partials/admin-sidebar.html' : '/partials/sidebar.html';
     
     // Hedef elemanları belirle
     const headerTargetId = document.getElementById('main-content') ? 'main-content' : 'header-area';
