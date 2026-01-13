@@ -47,57 +47,47 @@ async function loadHTML(url, targetId, position = 'append') {
     }
 }
 
+// ========== GÜNCELLENEN KISIM (cacheDomElements fonksiyonunu sadeleştiriyoruz) ==========
 function cacheDomElements() {
-    dom.sidebar = document.getElementById('sidebar');
-    dom.pageTitle = document.getElementById('pageTitle');
-    dom.mobileMenuToggle = document.getElementById('mobileMenuToggle');
-    dom.sidebarOverlay = document.getElementById('sidebarOverlay');
-    dom.userMenuToggle = document.getElementById('userMenuToggle');
-    dom.profileDropdown = document.getElementById('profileDropdown');
+    // Sadece statik veya logout gibi spesifik butonları tutalım
     dom.logoutButton = document.getElementById('logoutButton');
     dom.sidebarLogoutBtn = document.querySelector('.sidebar .btn-logout');
+    dom.pageTitle = document.getElementById('pageTitle');
+    // Diğer dinamik elemanları (toggle butonları) event delegation ile yöneteceğiz
 }
 
-function setActiveMenuItem(activePageId) {
-    if (!dom.sidebar) return;
-    const items = dom.sidebar.querySelectorAll(`[data-page="${activePageId}"]`);
-    items.forEach(item => item.classList.add('active'));
-}
-
+// ========== GÜNCELLENEN KISIM (setupEventListeners fonksiyonu) ==========
 function setupEventListeners() {
-    // Mobile Menu
-    if (dom.mobileMenuToggle && dom.sidebarOverlay) {
-        const newBtn = dom.mobileMenuToggle.cloneNode(true);
-        dom.mobileMenuToggle.parentNode.replaceChild(newBtn, dom.mobileMenuToggle);
-        dom.mobileMenuToggle = newBtn;
+    // 1. GLOBAL EVENT DELEGATION (Tüm tıklamaları tek yerden yönet)
+    document.addEventListener('click', (e) => {
+        // A) Dropdown Menü Kontrolü
+        const toggleBtn = e.target.closest('.user-menu-toggle');
+        const dropdown = document.getElementById('profileDropdown');
+        
+        // Eğer butona tıklandıysa
+        if (toggleBtn) {
+            e.stopPropagation(); // Eventin yukarı tırmanmasını engelle
+            dropdown?.classList.toggle('active');
+        } 
+        // Eğer dropdown dışına tıklandıysa kapat
+        else if (dropdown && dropdown.classList.contains('active') && !e.target.closest('.profile-dropdown')) {
+            dropdown.classList.remove('active');
+        }
 
-        const toggleMenu = (e) => {
-            e?.stopPropagation();
+        // B) Mobil Sidebar Kontrolü
+        const mobileToggle = e.target.closest('#mobileMenuToggle');
+        const closeSidebar = e.target.closest('#closeSidebar');
+        const overlay = e.target.closest('#sidebarOverlay');
+
+        if (mobileToggle || closeSidebar || overlay) {
             const sb = document.getElementById('sidebar');
             const ov = document.getElementById('sidebarOverlay');
-            if(sb) sb.classList.toggle('active');
-            if(ov) ov.classList.toggle('active');
-        };
+            sb?.classList.toggle('active');
+            ov?.classList.toggle('active');
+        }
+    });
 
-        dom.mobileMenuToggle.addEventListener('click', toggleMenu);
-        dom.sidebarOverlay.addEventListener('click', toggleMenu);
-    }
-
-    // Dropdown
-    if (dom.userMenuToggle && dom.profileDropdown) {
-        dom.userMenuToggle.onclick = (e) => {
-            e.stopPropagation();
-            dom.profileDropdown.classList.toggle('active');
-        };
-        
-        document.addEventListener('click', (e) => {
-            if(!dom.userMenuToggle.contains(e.target) && !dom.profileDropdown.contains(e.target)) {
-                dom.profileDropdown.classList.remove('active');
-            }
-        });
-    }
-
-    // Logout Handler
+    // Logout Handler (Sabit butonlar için)
     const handleLogout = async () => {
         if(confirm("Çıkış yapmak istiyor musunuz?")) {
             await signOut(auth);
@@ -107,6 +97,13 @@ function setupEventListeners() {
 
     if(dom.logoutButton) dom.logoutButton.onclick = handleLogout;
     if(dom.sidebarLogoutBtn) dom.sidebarLogoutBtn.onclick = handleLogout;
+}
+
+function setActiveMenuItem(activePageId) {
+    const sidebar = document.getElementById('sidebar');
+    if (!sidebar) return;
+    const items = sidebar.querySelectorAll(`[data-page="${activePageId}"]`);
+    items.forEach(item => item.classList.add('active'));
 }
 
 async function checkUserAuthState() {
@@ -170,10 +167,13 @@ function updateUIAfterLogin(user, profile) {
     setAv(els.dropCirc, els.dropImg, els.dropInit);
 }
 
+// ========== GÜNCELLENEN KISIM (checkUserRole fonksiyonu) ==========
 function checkUserRole(role) {
     if(role === 'admin' || role === 'editor') {
         document.querySelectorAll('.admin-only').forEach(el => {
-            el.style.display = 'flex'; 
+            // Zorla 'flex' yapmak yerine, gizleyen inline stili kaldırıyoruz.
+            // Böylece CSS dosyasındaki orijinal display değeri (block veya flex) devreye girer.
+            el.removeAttribute('style'); 
             el.classList.remove('hidden');
         });
     }

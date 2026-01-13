@@ -144,18 +144,3 @@ getRedirectResult(auth)
         }
     })
     .catch(handleAuthError);
-
-// Global Dropdown Handler (Sayfa yüklendiğinde çalışmalı)
-document.addEventListener('click', (e) => {
-    const isDropdownButton = e.target.closest('.user-menu-toggle');
-    const dropdown = document.querySelector('.profile-dropdown');
-    
-    if (!dropdown) return;
-
-    if (isDropdownButton) {
-        dropdown.classList.toggle('active');
-    } else if (!e.target.closest('.profile-dropdown')) {
-        // Dropdown dışına tıklandıysa kapat
-        dropdown.classList.remove('active');
-    }
-});
