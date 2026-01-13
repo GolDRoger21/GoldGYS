@@ -13,151 +13,30 @@
     <link rel="stylesheet" href="../css/dashboard.css">
     
     <style>
-        #mainWrapper { display: none; opacity: 0; transition: opacity 0.4s ease; }
-        
-        #pageLoader {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #0f172a; z-index: 9999;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            text-align: center; padding: 20px;
-        }
-        .spinner {
-            width: 50px; height: 50px;
-            border: 4px solid rgba(212, 175, 55, 0.2);
-            border-top: 4px solid #d4af37;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-bottom: 20px;
-        }
-        /* Yeni: Yetkisiz giriş ikonu için stil */
-        .auth-warning-icon {
-            font-size: 3rem; margin-bottom: 15px; display: none;
-            animation: bounceIn 0.5s ease;
-        }
-        .loader-text { 
-            color: #e2e8f0; font-family: 'Inter', sans-serif; font-size: 1.1rem; 
-            max-width: 400px; line-height: 1.5;
-        }
-        .loader-subtext {
-            color: #94a3b8; font-size: 0.9rem; margin-top: 10px; display: none;
-        }
-        
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        @keyframes bounceIn { 0% { transform: scale(0.3); opacity: 0; } 50% { transform: scale(1.05); } 70% { transform: scale(0.9); } 100% { transform: scale(1); opacity: 1; } }
+        /* Sayfa yüklenirken içeriğin görünmesini engelle */
+        body { visibility: hidden; }
     </style>
 </head>
 <body>
 
-    <div id="pageLoader">
-        <div class="spinner" id="loaderSpinner"></div>
-        
-        <div class="auth-warning-icon" id="authIcon">🔒</div>
-
-        <div class="loader-text" id="loaderText">GoldGYS Paneli Hazırlanıyor...</div>
-        <div class="loader-subtext" id="loaderSubText">Giriş sayfasına yönlendiriliyorsunuz...</div>
-    </div>
+    <!-- Ana Arayüz Yükleyicisi: Bu script, sayfanın temel yapısını (header, sidebar) ve 
+         kullanıcı bilgilerini yükler. Tüm sayfalarda olmalıdır. -->
+    <script type="module">
+        import { initLayout } from '../js/ui-loader.js';
+        // Sayfa yüklendiğinde, 'dashboard' menü öğesini aktif hale getir ve başlığı ayarla.
+        document.addEventListener('DOMContentLoaded', () => {
+            initLayout('dashboard', 'Genel Bakış');
+        });
+    </script>
 
     <div id="mainWrapper">
+        <!-- Sidebar ve Header bu alana ui-loader.js tarafından dinamik olarak yüklenecek -->
         <div class="sidebar-overlay" id="sidebarOverlay"></div>
+        <aside class="sidebar" id="sidebar"></aside>
 
-        <aside class="sidebar" id="sidebar">
-            <div class="sidebar-header">
-                <a href="/pages/dashboard.html" class="brand-logo">GOLD <span>GYS</span></a>
-                <button class="close-sidebar-btn" id="closeSidebar">✕</button>
-            </div>
+        <main class="main-content" id="main-content">
 
-            <nav class="sidebar-nav">
-                <div class="nav-label">GENEL</div>
-                <a href="/pages/dashboard.html" class="nav-item active">
-                    <span class="icon">🏠</span> Genel Bakış
-                </a>
-                <a href="/pages/profil.html" class="nav-item">
-                    <span class="icon">👤</span> Profilim
-                </a>
-
-                <div class="nav-label">ÇALIŞMA ALANI</div>
-                <a href="/pages/konular.html" class="nav-item">
-                    <span class="icon">📚</span> Dersler & Konular
-                </a>
-                <a href="/pages/testler.html" class="nav-item">
-                    <span class="icon">📝</span> Konu Testleri
-                </a>
-                <a href="/pages/denemeler.html" class="nav-item">
-                    <span class="icon">⚖️</span> Deneme Sınavları
-                </a>
-
-                <div class="nav-label">PERFORMANS</div>
-                <a href="/pages/yanlislarim.html" class="nav-item">
-                    <span class="icon">⚠️</span> Yanlışlarım
-                </a>
-                <a href="/pages/favoriler.html" class="nav-item">
-                    <span class="icon">⭐</span> Favori Sorular
-                </a>
-                <a href="/pages/analiz.html" class="nav-item">
-                    <span class="icon">📊</span> Analiz Raporu
-                </a>
-
-                <div id="adminMenuWrapper" style="display: none;">
-                    <div class="nav-divider"></div>
-                    <a href="/admin/index.html" class="nav-item admin-link">
-                        <span class="icon">⚡</span> Yönetici Paneli
-                    </a>
-                </div>
-            </nav>
-
-            <div class="sidebar-footer">
-                <button id="logoutBtn" class="nav-item logout">
-                    <span class="icon">🚪</span> Çıkış Yap
-                </button>
-            </div>
-        </aside>
-
-        <main class="main-content">
-            <header class="top-bar">
-                <div class="top-left">
-                    <button class="menu-toggle" id="menuToggle">
-                        <span class="bar"></span><span class="bar"></span><span class="bar"></span>
-                    </button>
-                    <div class="page-title">Panel</div>
-                </div>
-                <div class="user-menu-container">
-                    <button class="user-menu-toggle icon-button user-avatar-btn" aria-label="Profil Menüsü">
-                        <span class="user-menu-label">
-                            <span class="user-name" id="headerUserName">...</span>
-                            <span class="user-menu-subtitle">Hesabım</span>
-                        </span>
-                        <div class="user-avatar-circle">
-                            <img class="user-avatar-image" alt="Profil fotoğrafı" loading="lazy">
-                            <span class="user-avatar-initial">?</span>
-                        </div>
-                    </button>
-                    <div class="profile-dropdown">
-                        <div class="dropdown-header">
-                            <div class="user-avatar-circle large">
-                                <img class="user-avatar-image" alt="Profil fotoğrafı" loading="lazy">
-                                <span class="user-avatar-initial">?</span>
-                            </div>
-                            <div class="user-info">
-                                <span class="user-name">Yükleniyor...</span>
-                                <span class="user-email">...</span>
-                            </div>
-                        </div>
-                        <div class="dropdown-content">
-                            <a href="/pages/profil.html" class="dropdown-item">
-                                <span>👤</span> Profilim
-                            </a>
-                            <a href="/pages/yardim.html" class="dropdown-item">
-                                <span>❓</span> Yardım
-                            </a>
-                            <div class="dropdown-separator"></div>
-                            <button id="logout-btn" class="dropdown-item text-danger">
-                                <span>🚪</span> Çıkış Yap
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </header>
-
+            <!-- Sayfaya Özel İçerik -->
             <div class="dashboard-container">
                 <section class="welcome-section">
                     <div class="welcome-text">
@@ -225,6 +104,7 @@
         </main>
     </div>
 
+    <!-- Sayfaya özel diğer scriptler (varsa) -->
     <script type="module" src="../js/dashboard.js"></script>
 </body>
 </html>

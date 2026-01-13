@@ -8,110 +8,52 @@
     <link rel="stylesheet" href="../css/layout.css">
     <link rel="stylesheet" href="../css/admin.css">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230F172A'/><text x='50' y='70' font-family='serif' font-size='60' fill='%23D4AF37' text-anchor='middle' font-weight='bold'>G</text></svg>">
+    <style>
+        /* Sayfa yüklenirken içeriğin görünmesini engelle */
+        body { visibility: hidden; }
+    </style>
 </head>
 <body>
 
-    <aside class="admin-sidebar">
-        <div class="sidebar-header">
-            <div class="logo">GOLD <span>ADMIN</span></div>
-            <div class="role-badge" id="userRoleBadge">Yükleniyor...</div>
-        </div>
+    <!-- Ana Arayüz Yükleyicisi -->
+    <script type="module">
+        import { initLayout } from '../js/ui-loader.js';
+        document.addEventListener('DOMContentLoaded', () => {
+            // Admin paneli için 'admin' anahtar kelimesi ve başlıkla başlat
+            initLayout('admin', 'Yönetim Paneli');
+        });
+    </script>
 
-        <nav class="sidebar-nav">
-            <a href="/pages/dashboard.html" class="nav-item" style="background: rgba(255,255,255,0.05); margin-bottom: 10px; border-left: 3px solid var(--gold);">
-                <span class="icon">⬅️</span> Siteye Dön
-            </a>
-            
-            <a href="#" class="nav-item active" data-tab="dashboard">
-                <span class="icon">📊</span> Genel Bakış
-            </a>
-            
-            <div class="menu-label">İÇERİK YÖNETİMİ</div>
-            <a href="#" class="nav-item" data-tab="content">
-                <span class="icon">📝</span> İçerik Yönetimi
-            </a>
-            <a href="#" class="nav-item" data-tab="reports">
-                <span class="icon">🚩</span> Hata Bildirimleri
-            </a>
-            <a href="#" class="nav-item" data-tab="legislation">
-                <span class="icon">⚖️</span> Mevzuat Takibi
-            </a>
+    <!-- Sidebar ve Main Content Alanları (ui-loader.js bunları dolduracak) -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    <aside class="sidebar" id="sidebar"></aside>
 
-            <div class="menu-label admin-only">SİSTEM</div>
-            <a href="#" class="nav-item admin-only" data-tab="users">
-                <span class="icon">👥</span> Kullanıcılar
-            </a>
-            <a href="#" class="nav-item admin-only" data-tab="settings">
-                <span class="icon">⚙️</span> Ayarlar
-            </a>
-        </nav>
-
-        <div class="sidebar-footer">
-            <button id="logoutBtn" class="btn-logout">Çıkış Yap</button>
-        </div>
-    </aside>
-
-    <main class="admin-main">
-        <header class="top-header">
-            <div class="page-title">Yönetim Paneli</div>
-            <div class="user-menu-container">
-                <button class="user-menu-toggle" id="adminUserMenuToggle">
-                    <span class="user-menu-label">
-                        <span class="user-name" id="headerUserName">Yükleniyor...</span>
-                        <span class="user-menu-subtitle">Yönetim</span>
-                    </span>
-                    <div class="user-avatar-circle">
-                        <img class="user-avatar-image" alt="" id="headerAvatarImage">
-                        <span class="user-avatar-initial" id="headerAvatarInitial">?</span>
-                    </div>
-                </button>
-                <div class="profile-dropdown" id="adminProfileDropdown">
-                     <div class="dropdown-header">
-                        <div class="user-info">
-                            <span class="user-name" id="dropdownUserName">...</span>
-                        </div>
-                     </div>
-                     <div class="dropdown-content">
-                         <a href="/pages/dashboard.html" class="dropdown-item">Siteye Dön</a>
-                         <button id="logout-btn" class="dropdown-item text-danger">Çıkış</button>
-                     </div>
-                </div>
-            </div>
-        </header>
-
-        <div class="content-wrapper">
-             <section id="section-dashboard" class="admin-section">
+    <main class="main-content" id="main-content">
+        <!-- Admin sayfasına özel içerik -->
+        <div class="admin-content-wrapper">
+            <section id="section-dashboard" class="admin-section">
                 <h2>Genel Bakış</h2>
                 <div class="stats-grid"></div>
             </section>
             <section id="section-users" class="admin-section" style="display: none;">
-                <div class="section-header">
-                    <h2>Üye Yönetimi</h2>
-                    </div>
-                <div class="table-responsive">
-                    <table class="admin-table">
-                        <tbody id="usersTableBody"></tbody>
-                    </table>
-                </div>
+                <div class="section-header"><h2>Üye Yönetimi</h2></div>
+                <div class="table-responsive"><table class="admin-table"><tbody id="usersTableBody"></tbody></table></div>
             </section>
             <section id="section-content" class="admin-section" style="display: none;">
                 <h2>İçerik Yönetimi</h2>
-                 <div class="content-forms">
-                    <div id="topicsList"></div>
-                 </div>
+                <div class="content-forms"><div id="topicsList"></div></div>
             </section>
             <section id="section-reports" class="admin-section" style="display: none;">
                 <h2>Hata Bildirimleri</h2>
                 <div id="reportsList"></div>
             </section>
             <section id="section-legislation" class="admin-section" style="display: none;">
-                <div class="section-header">
-                    <h2>⚖️ Mevzuat Değişiklik Yönetimi</h2>
-                </div>
-                </section>
+                <div class="section-header"><h2>⚖️ Mevzuat Değişiklik Yönetimi</h2></div>
+            </section>
         </div>
     </main>
 
+    <!-- Admin sayfasına özel JS -->
     <script type="module" src="../js/admin-page.js"></script>
 </body>
 </html>
