@@ -1,42 +1,103 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Analiz | GOLD GYS</title>
-  <link rel="stylesheet" href="/css/app.css">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230F172A'/><text x='50' y='70' font-family='serif' font-size='60' fill='%23D4AF37' text-anchor='middle' font-weight='bold'>G</text><text x='80' y='35' font-size='30'>⚖️</text></svg>">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Performans Analizi | GOLD GYS</title>
+    <link rel="stylesheet" href="../css/app.css">
+    <link rel="stylesheet" href="../components/ui/ui.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-  <div class="app-layout">
-    <aside id="sidebar-area" class="app-sidebar"></aside>
+    <div id="header-placeholder"></div>
 
-    <main class="app-main">
-      <header id="header-area" class="app-header"></header>
+    <main class="container mt-4 mb-5">
+        <div class="section-header mb-4">
+            <h1>📊 Performans Karnesi</h1>
+            <p class="text-muted">Gelişim sürecinizi ve eksik olduğunuz konuları analiz edin.</p>
+        </div>
 
-      <div class="app-content">
-        <section class="panel-card">
-          <div class="section-head">
-            <div>
-              <p class="eyebrow">Performans takibi</p>
-              <h1 class="page-heading heading-1">Analiz</h1>
-              <p class="text-muted">Test, deneme ve konu bazlı performansınızı takip edin.</p>
+        <div id="loadingStats" class="text-center py-5">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p class="mt-2">Verileriniz analiz ediliyor...</p>
+        </div>
+
+        <div id="statsContent" style="display:none;">
+            
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card p-3 text-center border-0 shadow-sm">
+                        <h3 class="text-primary mb-0" id="statTotalExams">0</h3>
+                        <small class="text-muted">Çözülen Deneme</small>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card p-3 text-center border-0 shadow-sm">
+                        <h3 class="text-success mb-0" id="statAvgScore">%0</h3>
+                        <small class="text-muted">Ortalama Başarı</small>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card p-3 text-center border-0 shadow-sm">
+                        <h3 class="text-warning mb-0" id="statTotalQuestions">0</h3>
+                        <small class="text-muted">Çözülen Soru</small>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card p-3 text-center border-0 shadow-sm">
+                        <h3 class="text-danger mb-0" id="statWrongRate">%0</h3>
+                        <small class="text-muted">Hata Oranı</small>
+                    </div>
+                </div>
             </div>
-          </div>
-        </section>
-      </div>
 
-      <footer id="footer-area" class="app-footer"></footer>
+            <div class="row">
+                <div class="col-lg-8 mb-4">
+                    <div class="card p-4 h-100 shadow-sm border-0">
+                        <h5 class="card-title">📈 Gelişim Grafiği (Son 10 Sınav)</h5>
+                        <canvas id="progressChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 mb-4">
+                    <div class="card p-4 h-100 shadow-sm border-0">
+                        <h5 class="card-title">🎯 Konu Analizi</h5>
+                        <canvas id="topicChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">Sınav Geçmişi</h5>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Tarih</th>
+                                <th>Sınav Adı</th>
+                                <th>D / Y / B</th>
+                                <th>Puan</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyTableBody">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </main>
-  </div>
 
-  <script type="module">
-    import { protectPage } from '/js/role-guard.js';
-    import { initLayout } from '/js/ui-loader.js';
+    <div id="footer-placeholder"></div>
 
-    protectPage();
-    initLayout('analiz');
-  </script>
+    <script type="module" src="../js/analysis.js"></script>
+    <script type="module" src="../js/ui-loader.js"></script>
+    
+    <script type="module">
+        import { loadHTML } from "../js/ui-loader.js";
+        loadHTML('../components/header.html', 'header-placeholder');
+        loadHTML('../components/footer.html', 'footer-placeholder');
+    </script>
 </body>
 </html>
