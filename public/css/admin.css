@@ -6,7 +6,7 @@
     --text-muted: #94A3B8;
     --border-color: #334155;
     --sidebar-width: 260px;
-    --header-height: 70px; /* Header yüksekliği eklendi */
+    --header-height: 70px; /* Header yüksekliği tanımlandı */
     --success: #10b981;
     --warning: #f59e0b;
     --danger: #ef4444;
@@ -23,8 +23,7 @@ body {
     overflow-x: hidden; /* Yatay taşmayı engelle */
 }
 
-/* --- SIDEBAR (DÜZELTİLDİ: .admin-sidebar -> .sidebar) --- */
-/* HTML'de id="sidebar" class="sidebar" kullanıldığı için güncellendi */
+/* --- SIDEBAR (DÜZELTME: .admin-sidebar yerine .sidebar yapıldı) --- */
 .sidebar {
     width: var(--sidebar-width);
     background-color: #0B1120;
@@ -35,13 +34,13 @@ body {
     top: 0;
     left: 0;
     height: 100vh;
-    z-index: 1050; /* Header'dan ve Overlay'den üstte */
+    z-index: 1050; /* Header'ın üzerinde kalması için artırıldı */
     transition: transform 0.3s ease-in-out;
     overflow-y: auto;
 }
 
 .sidebar-header {
-    height: var(--header-height);
+    height: var(--header-height); /* Header ile eşitlendi */
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -117,10 +116,10 @@ body {
 .sidebar-footer { padding: 1rem; border-top: 1px solid var(--border-color); }
 .sidebar-footer button { width: 100%; border:none; background:none; text-align:left;}
 
-/* --- MAIN CONTENT (DÜZELTİLDİ: .admin-main -> .main-content) --- */
+/* --- MAIN CONTENT (DÜZELTME: .admin-main yerine .main-content yapıldı) --- */
 .main-content {
     flex: 1;
-    margin-left: var(--sidebar-width); /* Masaüstünde sidebar kadar boşluk */
+    margin-left: var(--sidebar-width); /* Sidebar kadar boşluk */
     background-color: var(--bg-dark);
     min-height: 100vh;
     display: flex;
@@ -145,7 +144,7 @@ body {
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* --- RESPONSIVE / MOBİL (YENİ EKLENDİ) --- */
+/* --- RESPONSIVE / MOBİL DÜZENLEMELERİ --- */
 @media (max-width: 1024px) {
     /* Sidebar Mobilde Gizlenir */
     .sidebar {
@@ -153,6 +152,7 @@ body {
         width: 280px;
     }
 
+    /* JS ile 'active' sınıfı eklendiğinde açılır */
     .sidebar.active {
         transform: translateX(0);
     }
@@ -176,6 +176,25 @@ body {
         backdrop-filter: blur(2px);
     }
     .sidebar-overlay.active { display: block; }
+    
+    /* Mobilde Header'daki Logo Görünsün */
+    .header-left .brand-logo {
+        display: inline-block !important;
+        font-size: 1rem;
+    }
+}
+
+/* --- MASAÜSTÜ ÖZEL AYARLAR (Çift Logo Sorunu Çözümü) --- */
+@media (min-width: 1025px) {
+    /* Masaüstünde Header'daki logoyu gizle (Zaten Sidebar'da var) */
+    .header-left .brand-logo {
+        display: none !important;
+    }
+    
+    /* Mobil menü butonunu gizle */
+    .mobile-menu-toggle {
+        display: none !important;
+    }
 }
 
 /* --- ORTAK COMPONENTLER --- */
@@ -296,25 +315,6 @@ body {
 .badge.danger { background: rgba(239, 68, 68, 0.2); color: var(--danger); }
 
 /* --- HEADER & PROFILE FIXES --- */
-/* Bu bölüm admin-header.html yapısıyla uyumlu hale getirildi */
-
-/* Mobil Menü Butonu */
-.mobile-menu-toggle {
-    display: none; /* Masaüstünde gizli */
-    background: transparent;
-    border: 1px solid var(--border-color);
-    color: var(--text-white);
-    padding: 6px;
-    border-radius: 6px;
-    cursor: pointer;
-    margin-right: 15px;
-}
-
-@media (max-width: 1024px) {
-    .mobile-menu-toggle { display: block; } /* Mobilde göster */
-}
-
-/* Header Avatar */
 .user-avatar-circle {
     width: 38px;
     height: 38px;
@@ -342,7 +342,7 @@ body {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    display: none; /* JS ile kontrol edilir */
+    display: none;
 }
 
 .user-avatar-circle.has-photo .user-avatar-image { display: block; }
@@ -350,7 +350,7 @@ body {
 
 /* Profil Dropdown */
 .profile-dropdown {
-    display: none; /* JS ile toggle */
+    display: none;
     position: absolute;
     top: 70px;
     right: 1.5rem;
@@ -396,3 +396,16 @@ body {
 .dropdown-item:hover { background: rgba(255, 255, 255, 0.05); color: var(--gold-primary); }
 .dropdown-item.text-danger { color: var(--danger); }
 .dropdown-item.text-danger:hover { background: rgba(239, 68, 68, 0.1); color: var(--danger); }
+
+/* --- TEMA MODU (LIGHT MODE) --- */
+/* Aydınlık Tema Sınıfı */
+body.light-mode {
+    --bg-dark: #F1F5F9;
+    --bg-panel: #FFFFFF;
+    --text-white: #1E293B;
+    --text-muted: #64748B;
+    --border-color: #E2E8F0;
+}
+body.light-mode .sidebar { background-color: #FFFFFF; border-right: 1px solid #E2E8F0; }
+body.light-mode .nav-item:hover { background: rgba(0,0,0,0.05); }
+body.light-mode .section-header h2 { color: #0F172A; }

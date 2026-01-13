@@ -1,4 +1,6 @@
 import { requireAdminOrEditor } from "./role-guard.js";
+// DÜZELTME 1: UI Loader import edildi. HTML parçaları (sidebar, header) yüklenmeden JS çalışmamalı.
+import { initLayout } from "./ui-loader.js";
 
 // --- MODÜL IMPORTLARI ---
 import * as DashboardModule from "./modules/admin/dashboard.js";
@@ -12,12 +14,17 @@ import * as ImporterModule from "./modules/admin/importer.js";  // Toplu Yüklem
 // --- SAYFA BAŞLANGICI ---
 document.addEventListener("DOMContentLoaded", async () => {
     try {
+        // DÜZELTME 2: Önce arayüz parçalarının (Header, Sidebar) yüklenmesini bekle.
+        // Bu işlem bitmeden aşağıdaki element seçimleri (getElementById vb.) null döner.
+        await initLayout(); 
+        console.log("✅ Arayüz (Layout) başarıyla yüklendi.");
+
         // 1. GÜVENLİK VE ROL KONTROLÜ
         const { role, user } = await requireAdminOrEditor();
         console.log(`✅ Panel Başlatıldı. Rol: ${role}, Kullanıcı: ${user.email}`);
 
         // 2. ARAYÜZÜ ROL GÖRE DÜZENLE
-        const roleBadge = document.getElementById('userRoleBadge'); // Eğer varsa
+        const roleBadge = document.getElementById('userRoleBadge');
         const sidebarRole = document.getElementById('sidebarUserRole');
         const sidebarName = document.getElementById('sidebarUserName');
 
@@ -40,6 +47,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         window.AdminReports = ReportsModule.AdminReports;
 
         // 4. ETKİLEŞİM VE MENÜLERİ BAŞLAT
+        initTheme(); // DÜZELTME 3: Tema ayarlarını başlat
         initInteractions(role);
         
         // URL'de hash varsa (örn: #exams) o sekmeyi aç, yoksa Dashboard'u aç
@@ -50,14 +58,35 @@ document.addEventListener("DOMContentLoaded", async () => {
         console.error("❌ Panel Başlatma Hatası:", error);
         const contentWrapper = document.querySelector('.content-wrapper');
         if(contentWrapper) contentWrapper.style.display = 'none';
-        alert("Yetki kontrolü sırasında hata oluştu: " + error.message);
+        alert("Yetki kontrolü veya arayüz yüklemesi sırasında hata oluştu: " + error.message);
     }
 });
+
+// --- TEMA YÖNETİMİ (YENİ EKLENDİ) ---
+function initTheme() {
+    const themeToggle = document.querySelector('[data-theme-toggle]'); // Header'daki buton
+    const body = document.body;
+    
+    // Kayıtlı temayı kontrol et
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'light') {
+        body.classList.add('light-mode');
+    }
+
+    if (themeToggle) {
+        themeToggle.addEventListener('click', () => {
+            body.classList.toggle('light-mode');
+            const isLight = body.classList.contains('light-mode');
+            localStorage.setItem('theme', isLight ? 'light' : 'dark');
+        });
+    }
+}
 
 // --- SEKME YÖNETİMİ ---
 
 // Belirtilen sekmeyi aktif eder ve modülünü yükler
 function activateTab(tabId, role) {
+    // Sidebar'daki linki bul
     const tabLink = document.querySelector(`.nav-item[data-tab="${tabId}"]`);
     
     // Eğer yetkisiz bir alana girmeye çalışıyorsa
@@ -121,6 +150,7 @@ function handleTabChange(target, role) {
 // --- MENÜ VE ETKİLEŞİM YÖNETİMİ ---
 function initInteractions(role) {
     // 1. Sidebar Linklerine Tıklama
+    // Not: initLayout beklendiği için artık bu elementler kesinlikle sayfada var.
     const tabs = document.querySelectorAll('.sidebar-nav .nav-item[data-tab]');
     tabs.forEach(tab => {
         tab.addEventListener('click', (e) => {
@@ -186,7 +216,7 @@ function initInteractions(role) {
     
     const handleLogout = async () => {
         if(confirm("Çıkış yapmak istediğinize emin misiniz?")) {
-            // Basit yönlendirme (auth.js halleder)
+            // Basit yönlendirme (auth.js halleder veya çıkış işlemi burada yapılabilir)
             window.location.href = "../index.html"; 
         }
     };
