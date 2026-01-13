@@ -34,9 +34,16 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (sidebarRole) sidebarRole.textContent = roleText;
         if (sidebarName) sidebarName.textContent = user.displayName || user.email.split('@')[0];
 
-        // Admin olmayanlardan "Yönetim" menülerini gizle
-        if (role !== 'admin') {
-            document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'none');
+        // KRİTİK DÜZELTME: Menü Görünürlük Yönetimi
+        // HTML'de varsayılan olarak gizli (display: none) gelen .admin-only bloklarını yönet
+        const adminElements = document.querySelectorAll('.admin-only');
+        
+        if (role === 'admin') {
+            // Admin ise gizli menüleri GÖSTER
+            adminElements.forEach(el => el.style.display = 'block');
+        } else {
+            // Admin değilse (örn: editör) gizliliği GARANTİLE
+            adminElements.forEach(el => el.style.display = 'none');
         }
 
         // Header Profil Resmini Güncelle
