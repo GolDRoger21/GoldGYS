@@ -1,3 +1,5 @@
+/* public/css/admin.css */
+
 :root {
     --bg-dark: #0F172A;
     --bg-panel: #1E293B;
@@ -6,7 +8,7 @@
     --text-muted: #94A3B8;
     --border-color: #334155;
     --sidebar-width: 260px;
-    --header-height: 70px; /* Header yüksekliği tanımlandı */
+    --header-height: 70px;
     --success: #10b981;
     --warning: #f59e0b;
     --danger: #ef4444;
@@ -20,10 +22,9 @@ body {
     font-family: 'Inter', sans-serif;
     display: flex;
     min-height: 100vh;
-    overflow-x: hidden; /* Yatay taşmayı engelle */
+    overflow-x: hidden;
 }
 
-/* --- SIDEBAR (DÜZELTME: .admin-sidebar yerine .sidebar yapıldı) --- */
 .sidebar {
     width: var(--sidebar-width);
     background-color: #0B1120;
@@ -34,13 +35,13 @@ body {
     top: 0;
     left: 0;
     height: 100vh;
-    z-index: 1050; /* Header'ın üzerinde kalması için artırıldı */
+    z-index: 1050;
     transition: transform 0.3s ease-in-out;
     overflow-y: auto;
 }
 
 .sidebar-header {
-    height: var(--header-height); /* Header ile eşitlendi */
+    height: var(--header-height);
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -62,10 +63,9 @@ body {
     color: var(--text-muted);
     font-size: 1.2rem;
     cursor: pointer;
-    display: none; /* Masaüstünde gizli */
+    display: none;
 }
 
-/* Sidebar Kullanıcı Bilgisi */
 .sidebar-user-info {
     padding: 1.5rem;
     border-bottom: 1px solid var(--border-color);
@@ -75,7 +75,6 @@ body {
 .user-details .user-name { font-weight: 600; color: var(--gold-primary); display: block; }
 .user-details .user-role { font-size: 0.8rem; color: var(--text-muted); margin-top: 2px; display: block; }
 
-/* Sidebar Navigasyon */
 .sidebar-nav { flex: 1; padding: 1.5rem 1rem; }
 
 .nav-label {
@@ -116,10 +115,9 @@ body {
 .sidebar-footer { padding: 1rem; border-top: 1px solid var(--border-color); }
 .sidebar-footer button { width: 100%; border:none; background:none; text-align:left;}
 
-/* --- MAIN CONTENT (DÜZELTME: .admin-main yerine .main-content yapıldı) --- */
 .main-content {
     flex: 1;
-    margin-left: var(--sidebar-width); /* Sidebar kadar boşluk */
+    margin-left: var(--sidebar-width);
     background-color: var(--bg-dark);
     min-height: 100vh;
     display: flex;
@@ -133,7 +131,6 @@ body {
     flex: 1;
 }
 
-/* Admin Section Animasyonları */
 .admin-section {
     padding: 0;
     animation: fadeIn 0.3s ease-in-out;
@@ -144,28 +141,23 @@ body {
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* --- RESPONSIVE / MOBİL DÜZENLEMELERİ --- */
 @media (max-width: 1024px) {
-    /* Sidebar Mobilde Gizlenir */
     .sidebar {
         transform: translateX(-100%);
         width: 280px;
     }
 
-    /* JS ile 'active' sınıfı eklendiğinde açılır */
     .sidebar.active {
         transform: translateX(0);
     }
 
     .close-sidebar-btn { display: block; }
 
-    /* Ana İçerik Mobilde Tam Ekran Olur */
     .main-content {
         margin-left: 0;
         width: 100%;
     }
 
-    /* Overlay (Arka plan karartma) */
     .sidebar-overlay {
         position: fixed;
         top: 0; left: 0;
@@ -177,27 +169,12 @@ body {
     }
     .sidebar-overlay.active { display: block; }
     
-    /* Mobilde Header'daki Logo Görünsün */
     .header-left .brand-logo {
         display: inline-block !important;
         font-size: 1rem;
     }
 }
 
-/* --- MASAÜSTÜ ÖZEL AYARLAR (Çift Logo Sorunu Çözümü) --- */
-@media (min-width: 1025px) {
-    /* Masaüstünde Header'daki logoyu gizle (Zaten Sidebar'da var) */
-    .header-left .brand-logo {
-        display: none !important;
-    }
-    
-    /* Mobil menü butonunu gizle */
-    .mobile-menu-toggle {
-        display: none !important;
-    }
-}
-
-/* --- ORTAK COMPONENTLER --- */
 .section-header {
     display: flex;
     justify-content: space-between;
@@ -209,7 +186,6 @@ body {
 
 .section-header h2 { font-size: 1.5rem; font-weight: 600; color: var(--text-white); }
 
-/* Kartlar */
 .card {
     background: var(--bg-panel);
     border: 1px solid var(--border-color);
@@ -227,7 +203,6 @@ body {
     padding-bottom: 0.5rem;
 }
 
-/* GRID SYSTEM */
 .row {
     display: flex;
     flex-wrap: wrap;
@@ -239,12 +214,10 @@ body {
     max-width: 50%;
     padding: 0 0.75rem;
 }
-/* Responsive Grid */
 @media (max-width: 768px) {
     .col-md-6 { flex: 0 0 100%; max-width: 100%; }
 }
 
-/* FORMS */
 .form-group { margin-bottom: 1rem; }
 
 .form-group label {
@@ -270,7 +243,6 @@ body {
     border-color: var(--gold-primary);
 }
 
-/* BUTTONS */
 .btn {
     display: inline-flex;
     align-items: center;
@@ -295,14 +267,12 @@ body {
 .btn-warning { background: var(--warning); color: black; }
 .btn-danger { background: var(--danger); color: white; }
 
-/* UTILITY CLASSES */
 .mt-2 { margin-top: 0.5rem; }
 .mt-4 { margin-top: 1.5rem; }
 .mb-2 { margin-bottom: 0.5rem; }
 .text-sm { font-size: 0.875rem; }
 .hidden { display: none !important; }
 
-/* TABLES */
 .table-responsive { overflow-x: auto; }
 .admin-table { width: 100%; border-collapse: collapse; min-width: 600px; }
 .admin-table th { text-align: left; padding: 1rem; color: var(--text-muted); border-bottom: 1px solid var(--border-color); font-size: 0.85rem; }
@@ -314,91 +284,6 @@ body {
 .badge.warning { background: rgba(245, 158, 11, 0.2); color: var(--warning); }
 .badge.danger { background: rgba(239, 68, 68, 0.2); color: var(--danger); }
 
-/* --- HEADER & PROFILE FIXES --- */
-.user-avatar-circle {
-    width: 38px;
-    height: 38px;
-    border-radius: 50%;
-    background: var(--gold-primary);
-    color: #000;
-    position: relative;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700;
-    font-size: 1rem;
-    text-transform: uppercase;
-    overflow: hidden;
-    box-shadow: 0 0 10px rgba(212, 175, 55, 0.2);
-}
-
-.user-avatar-circle.large {
-    width: 60px;
-    height: 60px;
-    font-size: 1.5rem;
-}
-
-.user-avatar-image {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: none;
-}
-
-.user-avatar-circle.has-photo .user-avatar-image { display: block; }
-.user-avatar-circle.has-photo .user-avatar-initial { display: none; }
-
-/* Profil Dropdown */
-.profile-dropdown {
-    display: none;
-    position: absolute;
-    top: 70px;
-    right: 1.5rem;
-    width: 280px;
-    background: var(--bg-panel);
-    border: 1px solid var(--border-color);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-    border-radius: 12px;
-    flex-direction: column;
-    overflow: hidden;
-    z-index: 1100;
-}
-
-.profile-dropdown.active { display: flex; }
-
-.dropdown-header {
-    padding: 1.5rem;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    background: rgba(15, 23, 42, 0.5);
-    border-bottom: 1px solid var(--border-color);
-}
-
-.dropdown-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 0.75rem 1rem;
-    border-radius: 8px;
-    background: transparent;
-    border: none;
-    color: var(--text-white);
-    text-decoration: none;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s;
-    font-size: 0.95rem;
-    width: 100%;
-    text-align: left;
-}
-
-.dropdown-item:hover { background: rgba(255, 255, 255, 0.05); color: var(--gold-primary); }
-.dropdown-item.text-danger { color: var(--danger); }
-.dropdown-item.text-danger:hover { background: rgba(239, 68, 68, 0.1); color: var(--danger); }
-
-/* --- TEMA MODU (LIGHT MODE) --- */
-/* Aydınlık Tema Sınıfı */
 body.light-mode {
     --bg-dark: #F1F5F9;
     --bg-panel: #FFFFFF;
@@ -410,83 +295,180 @@ body.light-mode .sidebar { background-color: #FFFFFF; border-right: 1px solid #E
 body.light-mode .nav-item:hover { background: rgba(0,0,0,0.05); }
 body.light-mode .section-header h2 { color: #0F172A; }
 
-/* --- EKSİK OLAN LOGO GİZLEME KURALI --- */
+/* --- GOOGLE STYLE USER MENU & HEADER FIXES --- */
+
+/* 1. Header Düzeni */
+.header-inner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 100%;
+    padding: 0 1.5rem;
+    position: relative;
+}
+
+.header-left, .header-right { display: flex; align-items: center; gap: 1rem; }
+
+/* Mobilde başlık gizlensin, yer açılsın */
+@media (max-width: 1024px) {
+    .header-left .page-title {
+        display: none;
+    }
+}
+
+/* Masaüstünde (sidebar açıkken) portal logosunu gizle */
 @media (min-width: 1025px) {
-    /* Sidebar açıkken Header'daki logoyu gizle */
-    .header-left .brand-logo {
-        display: none !important;
-    }
-    
-    /* Masaüstünde mobil menü butonunu gizle */
-    .mobile-menu-toggle {
+    .brand-logo.mobile-only-logo {
         display: none !important;
     }
 }
 
-/* --- DASHBOARD STYLES (2. Aşama) --- */
+/* 2. User Menu Container */
+.user-menu-container {
+    position: relative;
+}
 
-.dashboard-header {
+/* Avatar Butonu (Tıklanabilir Alan) */
+.user-avatar-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 50%;
+    transition: background 0.2s;
+}
+
+.user-avatar-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.user-avatar-btn:focus {
+    outline: 2px solid var(--gold-primary);
+    outline-offset: 2px;
+}
+
+/* Avatar Dairesi */
+.avatar-circle {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--gold-primary);
+    color: #0F172A;
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    margin-bottom: 25px;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 1.1rem;
+    overflow: hidden;
+    border: 2px solid transparent;
 }
 
-.dashboard-charts-row {
-    display: grid;
-    grid-template-columns: 2fr 1fr; /* Grafik geniş, sağ panel dar */
-    gap: 20px;
-    margin-bottom: 20px;
+.avatar-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
-.dashboard-tables-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
+/* 3. Google Style Dropdown (Floating Card) */
+.google-dropdown {
+    display: none; 
+    position: absolute;
+    top: 50px;
+    right: 0;
+    width: 300px;
+    background: var(--bg-panel);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+    z-index: 2000;
+    flex-direction: column;
+    overflow: hidden;
+    animation: dropdownSlide 0.2s ease-out;
 }
 
-/* Kartlar ve İstatistikler */
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 20px;
-    margin-bottom: 25px;
+.google-dropdown.show {
+    display: flex;
 }
 
-.stat-card {
-    background: var(--bg-secondary, #1e293b); /* Varsayılan koyu renk */
-    border: 1px solid var(--border-color, #334155);
-    border-radius: 12px;
+@keyframes dropdownSlide {
+    from { opacity: 0; transform: translateY(-10px) scale(0.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Dropdown İçeriği */
+.dropdown-user-info {
     padding: 20px;
     display: flex;
-    justify-content: space-between;
+    flex-direction: column;
     align-items: center;
-    transition: transform 0.2s;
+    text-align: center;
+    border-bottom: 1px solid var(--border-color);
+    background: rgba(255, 255, 255, 0.02);
 }
-.stat-card:hover { transform: translateY(-3px); }
 
-.stat-info h3 { font-size: 0.85rem; color: #94a3b8; margin: 0 0 5px 0; }
-.stat-info .value { font-size: 1.8rem; font-weight: 700; color: #fff; }
-.stat-icon { font-size: 1.5rem; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 8px; }
-
-/* Grafikler */
-.chart-container, .donut-card {
-    min-height: 300px;
-    padding: 20px;
+.dropdown-avatar-large {
+    width: 70px;
+    height: 70px;
+    background: var(--gold-primary);
+    color: #000;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    font-weight: bold;
+    margin-bottom: 10px;
+    overflow: hidden;
 }
-.chart-wrapper { position: relative; height: 250px; width: 100%; }
-.chart-wrapper-small { position: relative; height: 180px; display: flex; justify-content: center; }
 
-/* Aksiyon Butonları */
-.action-buttons { display: grid; gap: 10px; margin-top: 10px; }
-.btn-action {
-    display: flex; align-items: center; gap: 10px; width: 100%; padding: 10px;
-    background: rgba(255,255,255,0.05); border: 1px solid var(--border-color);
-    color: var(--text-primary); border-radius: 6px; cursor: pointer; transition: 0.2s;
+.dropdown-user-info .dropdown-text strong {
+    display: block;
+    color: var(--text-white);
+    font-size: 1rem;
 }
-.btn-action:hover { background: var(--gold-primary); color: #000; }
 
-/* Mobil Uyumluluk */
-@media (max-width: 992px) {
-    .dashboard-charts-row, .dashboard-tables-row { grid-template-columns: 1fr; }
+.dropdown-user-info .dropdown-text span {
+    display: block;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}
+
+.dropdown-menu-items {
+    padding: 8px;
+}
+
+.menu-item {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 10px 16px;
+    border-radius: 8px;
+    color: var(--text-white);
+    text-decoration: none;
+    font-size: 0.95rem;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s;
+    text-align: left;
+}
+
+.menu-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.menu-item .icon {
+    margin-right: 12px;
+    font-size: 1.1rem;
+}
+
+.separator {
+    border: 0;
+    border-top: 1px solid var(--border-color);
+    margin: 8px 0;
+}
+
+.logout-item:hover {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
 }
