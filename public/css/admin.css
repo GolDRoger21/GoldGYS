@@ -113,21 +113,30 @@ body {
 /* =========================================
    2. HEADER (ÜST MENÜ - Google Style)
    ========================================= */
+/* =========================================
+   2. HEADER (ÜST MENÜ - Google Style)
+   ========================================= */
+/* Universal Header kullanıldığı için mevcut stil üzerine yazma, sadece yerleşim ayarla */
 .app-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    height: var(--header-height);
-    background: var(--bg-header);
-    padding: 0 25px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
-    position: fixed;
+    /* Eski tanımlar override edilecek */
+    display: block;
+    /* Flex'ten Block'a çevir, çünkü universal içinde header-inner flex */
+    position: sticky !important;
     top: 0;
-    right: 0;
-    left: var(--sidebar-width);
-    z-index: 1000;
-    transition: left 0.3s ease-in-out;
-    border-bottom: 1px solid var(--border-color);
+    width: 100%;
+    z-index: 1050;
+    /* Sidebar ile aynı veya yüksek */
+    padding: 0;
+    border-bottom: none;
+    /* Layout CSS hallediyor */
+}
+
+/* Header, Admin'de sidebar'ın yanına gelmeli (Desktop) */
+@media (min-width: 1025px) {
+    .universal-header {
+        margin-left: var(--sidebar-width);
+        width: calc(100% - var(--sidebar-width));
+    }
 }
 
 .header-left {

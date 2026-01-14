@@ -91,7 +91,8 @@ body {
     top: 0;
     left: 0;
     height: 100vh;
-    z-index: 1000;
+    z-index: 1100;
+    /* Header'dan daha yüksek */
     display: flex;
     flex-direction: column;
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
