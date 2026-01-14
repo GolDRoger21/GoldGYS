@@ -659,3 +659,32 @@ exports.getUserContentSummary = functions.https.onCall(async (data, context) => 
 
   return { ok: true, uid, topics, tests, attempts };
 });
+
+// --- İSTATİSTİK TETİKLEYİCİSİ (YENİ) ---
+// Yeni bir kullanıcı kayıt olduğunda çalışır ve günlük sayacı artırır.
+exports.onUserCreated = functions.firestore
+  .document("users/{uid}")
+  .onCreate(async (snap, context) => {
+    const data = snap.data();
+    let dateStr;
+
+    // Tarihi belirle (createdAt varsa kullan, yoksa sunucu zamanını al)
+    if (data.createdAt && typeof data.createdAt.toDate === 'function') {
+        dateStr = data.createdAt.toDate().toISOString().split('T')[0]; // YYYY-MM-DD
+    } else {
+        dateStr = new Date().toISOString().split('T')[0];
+    }
+
+    // 'stats/daily_users' dokümanını güncelle
+    const statsRef = admin.firestore().collection('stats').doc('daily_users');
+    
+    try {
+        // O günün sayacını atomik olarak +1 artır
+        await statsRef.set({
+            [dateStr]: admin.firestore.FieldValue.increment(1)
+        }, { merge: true });
+        console.log(`Yeni üye sayacı güncellendi: ${dateStr}`);
+    } catch (error) {
+        console.error("Sayaç güncelleme hatası:", error);
+    }
+});

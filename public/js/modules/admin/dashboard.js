@@ -5,7 +5,9 @@ import {
     query, 
     orderBy, 
     limit, 
-    getDocs 
+    getDocs,
+    doc,     // <-- YENİ EKLENDİ
+    getDoc   // <-- YENİ EKLENDİ
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // Chart (Grafik) nesnelerini saklamak için global değişken
@@ -27,8 +29,8 @@ export async function initDashboard() {
     // 2. İstatistik Kartlarını Yükle
     await loadStatsSafe();
 
-    // 3. Grafikleri Başlat (Boş veya örnek veri ile)
-    initChartsSafe();
+    // 3. Grafikleri Başlat (Gerçek Veri ile)
+    await initChartsSafe();
 
     // 4. Tabloları Doldur (Son Üyeler ve Raporlar)
     loadTablesSafe();
@@ -89,46 +91,94 @@ async function loadStatsSafe() {
 }
 
 /**
- * Grafikleri Başlatır
- * Henüz Chart.js kütüphanesi yüklenmediyse veya hata varsa sessizce durur.
+ * Grafikleri Başlatır (Gerçek Veri ile)
  */
-function initChartsSafe() {
+async function initChartsSafe() {
     if (typeof Chart === 'undefined') {
         console.warn("Chart.js yüklenemedi, grafikler atlanıyor.");
         return;
     }
 
-    // 1. Üye Grafiği (Şimdilik Dummy Veri)
+    // 1. ÜYE GRAFİĞİ (GERÇEK VERİ)
     const ctxUsers = document.getElementById('usersChart');
     if (ctxUsers) {
-        if (dashboardCharts.users) dashboardCharts.users.destroy(); // Eskisini temizle
+        // İstatistik dokümanını çek
+        let labels = ['Veri Yok'];
+        let dataValues = [0];
+
+        try {
+            const statsRef = doc(db, "stats", "daily_users");
+            const statsSnap = await getDoc(statsRef);
+
+            if (statsSnap.exists()) {
+                const data = statsSnap.data();
+                // Tarihleri sırala ve son 7 günü al
+                const sortedDates = Object.keys(data).sort().slice(-7);
+                
+                if (sortedDates.length > 0) {
+                    labels = sortedDates.map(d => {
+                        // 2023-10-25 -> 25 Ekim formatı
+                        const dateObj = new Date(d);
+                        return dateObj.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' });
+                    });
+                    dataValues = sortedDates.map(d => data[d]);
+                }
+            }
+        } catch (e) {
+            console.warn("Grafik verisi çekilemedi (Henüz veri oluşmamış olabilir):", e);
+        }
+
+        // Grafiği Çiz
+        if (dashboardCharts.users) dashboardCharts.users.destroy();
         
         dashboardCharts.users = new Chart(ctxUsers, {
             type: 'line',
             data: {
-                labels: ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'],
+                labels: labels,
                 datasets: [{
                     label: 'Yeni Üyeler',
-                    data: [0, 0, 0, 0, 0, 0, 0], // 4. Aşamada buraya gerçek veri gelecek
-                    borderColor: '#D4AF37',
+                    data: dataValues,
+                    borderColor: '#D4AF37', // Altın Rengi
                     backgroundColor: 'rgba(212, 175, 55, 0.1)',
                     tension: 0.4,
-                    fill: true
+                    fill: true,
+                    pointBackgroundColor: '#fff',
+                    pointBorderColor: '#D4AF37',
+                    pointRadius: 4
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
+                plugins: { 
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: '#1e293b',
+                        titleColor: '#fff',
+                        bodyColor: '#cbd5e1',
+                        padding: 10,
+                        displayColors: false,
+                        callbacks: {
+                            title: (items) => items[0].label
+                        }
+                    }
+                },
                 scales: {
-                    y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' } },
-                    x: { grid: { display: false } }
+                    y: { 
+                        beginAtZero: true, 
+                        grid: { color: 'rgba(255,255,255,0.05)' },
+                        ticks: { stepSize: 1, color: '#64748b' } // Ondalık sayı gösterme
+                    },
+                    x: { 
+                        grid: { display: false },
+                        ticks: { color: '#64748b' }
+                    }
                 }
             }
         });
     }
 
-    // 2. Pasta Grafik
+    // 2. PASTA GRAFİK (Şimdilik statik kalabilir veya aynı mantıkla bağlanabilir)
     const ctxQuestions = document.getElementById('questionsChart');
     if (ctxQuestions) {
         if (dashboardCharts.questions) dashboardCharts.questions.destroy();
@@ -138,7 +188,7 @@ function initChartsSafe() {
             data: {
                 labels: ['Matematik', 'Türkçe', 'Tarih'],
                 datasets: [{
-                    data: [10, 10, 10], // Örnek veri
+                    data: [15, 10, 5],
                     backgroundColor: ['#3b82f6', '#10b981', '#ef4444'],
                     borderWidth: 0
                 }]

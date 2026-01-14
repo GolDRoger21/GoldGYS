@@ -25,6 +25,12 @@ service cloud.firestore {
       );
     }
 
+    // İstatistik Okuma İzni (Sadece Adminler)
+    match /stats/{docId} {
+      allow read: if request.auth != null && (request.auth.token.admin == true || request.auth.token.role == 'admin');
+      allow write: if false; // Sadece Cloud Functions yazabilir
+    }
+
     // --- KULLANICILAR (users) ---
     match /users/{uid} {
       // Okuma: Kişi kendisi ise veya Admin ise okuyabilir
