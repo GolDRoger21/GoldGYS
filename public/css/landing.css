@@ -1,4 +1,4 @@
-/* public/css/landing.css */
+/* public/css/landing.css - PREMIUM THEME */
 
 /* --- GENEL AYARLAR --- */
 body {
@@ -6,6 +6,7 @@ body {
     color: var(--text-white);
     font-family: var(--font-family-sans);
     overflow-x: hidden;
+    margin: 0;
 }
 
 .container {
@@ -22,8 +23,8 @@ body {
     width: 100%;
     padding: 20px 0;
     z-index: 1000;
-    background: rgba(15, 23, 42, 0.8);
-    backdrop-filter: blur(12px);
+    background: rgba(15, 23, 42, 0.8); /* Koyu transparan */
+    backdrop-filter: blur(12px); /* Buzlu cam efekti */
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     transition: all 0.3s ease;
 }
@@ -40,33 +41,47 @@ body {
     font-weight: 700;
     color: var(--text-white);
     letter-spacing: -0.5px;
+    text-decoration: none;
 }
 
-.logo span {
-    color: var(--gold-primary);
-}
+.logo span { color: var(--gold-primary); }
 
 .nav-links a {
     color: var(--text-muted);
     text-decoration: none;
-    margin-right: 20px;
+    margin-left: 30px;
     font-weight: 500;
+    font-size: 0.95rem;
     transition: color 0.2s;
 }
 
-.nav-links a:hover {
+.nav-links a:hover { color: var(--text-white); }
+
+.nav-links .btn-nav {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 10px 24px;
+    border-radius: 50px;
     color: var(--text-white);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s;
+}
+
+.nav-links .btn-nav:hover {
+    background: var(--gold-primary);
+    color: #000;
+    border-color: var(--gold-primary);
+    transform: translateY(-2px);
 }
 
 /* --- HERO BÖLÜMÜ --- */
 .hero {
     position: relative;
-    padding: 180px 0 100px;
+    padding: 200px 0 120px;
     text-align: center;
     overflow: hidden;
 }
 
-/* Arka Plan Efekti (Glow) */
+/* Arka Plan Işıltısı */
 .hero::before {
     content: '';
     position: absolute;
@@ -77,12 +92,13 @@ body {
     height: 800px;
     background: radial-gradient(circle, rgba(212, 175, 55, 0.15) 0%, rgba(15, 23, 42, 0) 70%);
     z-index: -1;
-    filter: blur(60px);
+    filter: blur(80px);
+    opacity: 0.8;
 }
 
 .hero h1 {
     font-family: var(--font-family-serif);
-    font-size: 4rem;
+    font-size: 4.5rem;
     line-height: 1.1;
     margin-bottom: 24px;
     font-weight: 800;
@@ -93,7 +109,6 @@ body {
     background: linear-gradient(135deg, #D4AF37 0%, #FDE68A 50%, #D4AF37 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    position: relative;
 }
 
 .hero p {
@@ -104,7 +119,7 @@ body {
     line-height: 1.6;
 }
 
-/* Butonlar */
+/* CTA Butonları */
 .cta-group {
     display: flex;
     gap: 16px;
@@ -114,9 +129,9 @@ body {
 .btn-primary-large {
     background: var(--gold-primary);
     color: #000;
-    padding: 16px 32px;
+    padding: 18px 40px;
     border-radius: 50px;
-    font-weight: 600;
+    font-weight: 700;
     font-size: 1.1rem;
     text-decoration: none;
     transition: transform 0.2s, box-shadow 0.2s;
@@ -124,16 +139,16 @@ body {
 }
 
 .btn-primary-large:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 30px rgba(212, 175, 55, 0.4);
+    transform: translateY(-3px);
+    box-shadow: 0 10px 30px rgba(212, 175, 55, 0.4);
     background: #eac545;
 }
 
 .btn-outline-large {
     background: transparent;
     color: var(--text-white);
-    border: 1px solid var(--border-color);
-    padding: 16px 32px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 18px 40px;
     border-radius: 50px;
     font-weight: 600;
     font-size: 1.1rem;
@@ -146,26 +161,9 @@ body {
     border-color: var(--text-white);
 }
 
-.btn-nav {
-    background: rgba(255, 255, 255, 0.1);
-    color: var(--text-white);
-    padding: 10px 20px;
-    border-radius: 8px;
-    text-decoration: none;
-    font-weight: 600;
-    transition: all 0.2s;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-}
-.btn-nav:hover {
-    background: var(--gold-primary);
-    color: #000;
-    border-color: var(--gold-primary);
-}
-
-/* --- ÖZELLİKLER (FEATURES) --- */
+/* --- ÖZELLİK KARTLARI --- */
 .features {
     padding: 100px 0;
-    position: relative;
 }
 
 .section-header {
@@ -175,7 +173,7 @@ body {
 
 .section-tag {
     color: var(--gold-primary);
-    font-weight: 600;
+    font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 2px;
     font-size: 0.85rem;
@@ -185,13 +183,13 @@ body {
 
 .section-header h2 {
     font-size: 2.5rem;
-    margin-bottom: 16px;
     color: var(--text-white);
+    margin: 0;
 }
 
 .feature-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
     gap: 30px;
 }
 
@@ -199,24 +197,27 @@ body {
     background: var(--bg-panel);
     border: 1px solid var(--border-color);
     padding: 40px;
-    border-radius: 20px;
+    border-radius: 24px;
     transition: all 0.3s ease;
     position: relative;
     overflow: hidden;
 }
 
 .feature-card:hover {
-    transform: translateY(-5px);
+    transform: translateY(-10px);
     border-color: var(--gold-primary);
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.5);
 }
 
 .feature-icon {
     font-size: 2.5rem;
     margin-bottom: 24px;
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 70px;
+    height: 70px;
     background: rgba(255, 255, 255, 0.05);
-    padding: 16px;
     border-radius: 16px;
     color: var(--gold-primary);
 }
@@ -230,15 +231,16 @@ body {
 .feature-card p {
     color: var(--text-muted);
     line-height: 1.6;
+    margin: 0;
 }
 
-/* --- STATS BANNER --- */
+/* --- İSTATİSTİKLER --- */
 .stats-banner {
-    background: linear-gradient(90deg, #0F172A 0%, #1E293B 50%, #0F172A 100%);
     border-top: 1px solid var(--border-color);
     border-bottom: 1px solid var(--border-color);
-    padding: 60px 0;
-    margin-top: 60px;
+    background: rgba(255, 255, 255, 0.02);
+    padding: 80px 0;
+    margin-top: 80px;
 }
 
 .stats-grid {
@@ -246,28 +248,31 @@ body {
     justify-content: space-around;
     text-align: center;
     flex-wrap: wrap;
-    gap: 30px;
+    gap: 40px;
 }
 
 .stat-item .number {
-    font-size: 3rem;
+    font-size: 3.5rem;
     font-weight: 800;
     color: var(--gold-primary);
     display: block;
     font-family: var(--font-family-serif);
+    line-height: 1;
+    margin-bottom: 10px;
 }
 
 .stat-item .label {
     color: var(--text-muted);
-    font-size: 1rem;
+    font-size: 1.1rem;
     text-transform: uppercase;
     letter-spacing: 1px;
 }
 
 /* --- FOOTER --- */
 footer {
-    background: #0B1120;
+    background: #050911;
     padding: 80px 0 40px;
+    margin-top: 0;
     border-top: 1px solid var(--border-color);
 }
 
@@ -280,8 +285,8 @@ footer {
 
 .footer-brand p {
     color: var(--text-muted);
-    margin-top: 16px;
-    max-width: 300px;
+    margin-top: 20px;
+    max-width: 320px;
     line-height: 1.6;
 }
 
@@ -291,24 +296,10 @@ footer {
     font-size: 1.1rem;
 }
 
-.footer-links ul {
-    list-style: none;
-    padding: 0;
-}
-
-.footer-links li {
-    margin-bottom: 12px;
-}
-
-.footer-links a {
-    color: var(--text-muted);
-    text-decoration: none;
-    transition: color 0.2s;
-}
-
-.footer-links a:hover {
-    color: var(--gold-primary);
-}
+.footer-links ul { list-style: none; padding: 0; }
+.footer-links li { margin-bottom: 12px; }
+.footer-links a { color: var(--text-muted); text-decoration: none; transition: color 0.2s; }
+.footer-links a:hover { color: var(--gold-primary); }
 
 .footer-bottom {
     text-align: center;
@@ -318,11 +309,12 @@ footer {
     border-top: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-/* RESPONSIVE */
+/* MOBİL AYARLARI */
 @media (max-width: 768px) {
-    .hero h1 { font-size: 2.5rem; }
-    .footer-content { grid-template-columns: 1fr; gap: 40px; }
-    .nav-links a:not(.btn-nav) { display: none; } /* Mobilde linkleri gizle */
-    .cta-group { flex-direction: column; }
-    .stats-grid { flex-direction: column; }
+    .hero { padding-top: 140px; }
+    .hero h1 { font-size: 2.8rem; }
+    .cta-group { flex-direction: column; width: 100%; max-width: 300px; margin: 0 auto; }
+    .footer-content { grid-template-columns: 1fr; gap: 40px; text-align: center; }
+    .footer-brand p { margin: 20px auto; }
+    .nav-links a:not(.btn-nav) { display: none; }
 }

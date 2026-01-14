@@ -6,7 +6,6 @@
     <title>Sayfa Bulunamadı | GOLD GYS</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles/tokens.css">
-    
     <style>
         body {
             background-color: var(--bg-dark);
@@ -19,9 +18,7 @@
             justify-content: center;
             margin: 0;
             text-align: center;
-            padding: 20px;
         }
-
         .error-code {
             font-family: var(--font-family-serif);
             font-size: 8rem;
@@ -31,28 +28,24 @@
             opacity: 0.8;
             text-shadow: 0 0 30px rgba(212, 175, 55, 0.2);
         }
-
-        h1 { margin: 1rem 0 0.5rem; font-size: 1.5rem; }
-        p { color: var(--text-muted); margin-bottom: 2rem; max-width: 400px; }
-
+        h1 { margin: 1rem 0 0.5rem; }
+        p { color: var(--text-muted); margin-bottom: 2rem; }
         .btn-home {
             background: var(--gold-primary);
             color: #000;
             text-decoration: none;
             padding: 12px 24px;
-            border-radius: var(--radius-md);
+            border-radius: 8px;
             font-weight: 600;
             transition: all 0.2s;
-            display: inline-block;
         }
-
         .btn-home:hover { filter: brightness(1.1); transform: translateY(-2px); }
     </style>
 </head>
 <body>
     <div class="error-code">404</div>
     <h1>Aradığınız Sayfa Bulunamadı</h1>
-    <p>Gitmek istediğiniz sayfa silinmiş, taşınmış veya hiç var olmamış olabilir.</p>
+    <p>Gitmek istediğiniz sayfa silinmiş veya taşınmış olabilir.</p>
     <a href="/index.html" class="btn-home">Ana Sayfaya Dön</a>
 </body>
 </html>

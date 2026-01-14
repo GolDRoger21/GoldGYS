@@ -1,9 +1,9 @@
 import { db } from "./firebase-config.js";
-import { doc, getDoc, setDoc, serverTimestamp, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 /**
- * Kullanıcı veritabanında var mı kontrol eder, yoksa oluşturur.
- * Varsa son giriş zamanını ve Google bilgilerini günceller.
+ * Kullanıcı sisteme Google ile ilk kez giriyorsa veritabanına kaydeder.
+ * Zaten varsa son giriş zamanını günceller.
  * @param {object} user - Firebase Auth kullanıcısı
  */
 export async function ensureUserDocument(user) {
@@ -15,94 +15,111 @@ export async function ensureUserDocument(user) {
         const userSnap = await getDoc(userRef);
 
         if (userSnap.exists()) {
-            // Kullanıcı varsa: Sadece izin verilen alanları güncelle
+            // Kullanıcı zaten var: Sadece son giriş zamanını güncelle
             await updateDoc(userRef, {
                 lastLoginAt: serverTimestamp(),
-                // Firestore kuralları bu alanlara izin vermeli
-                displayName: user.displayName || null,
-                photoURL: user.photoURL || null,
-                email: user.email || null
-            }).catch(err => console.warn("Profil güncelleme uyarısı (Önemsiz):", err));
+                // Veriler güncel kalsın diye auth bilgisinden de besle
+                email: user.email,
+                photoURL: user.photoURL || null
+            }).catch(err => console.warn("Son giriş zamanı güncellenemedi:", err));
             
+            // Mevcut veriyi döndür
             return userSnap.data();
         } else {
-            // Kullanıcı yoksa: Yeni kayıt oluştur
+            // Yeni Kullanıcı: Varsayılan verilerle oluştur
             const newUserData = {
                 uid: user.uid,
-                email: user.email || null,
-                displayName: user.displayName || null,
+                email: user.email,
+                displayName: user.displayName || "",
                 photoURL: user.photoURL || null,
-                role: 'user',        // Varsayılan rol
-                status: 'pending',   // Varsayılan durum (Onay Bekliyor)
+                role: 'user', // Varsayılan rol
                 createdAt: serverTimestamp(),
                 lastLoginAt: serverTimestamp(),
-                updatedAt: serverTimestamp()
+                // Profil sayfası alanları (boş başlatıyoruz)
+                ad: user.displayName ? user.displayName.split(' ')[0] : "",
+                soyad: user.displayName && user.displayName.includes(' ') ? user.displayName.split(' ').slice(1).join(' ') : "",
+                phone: "",
+                title: "",
+                targetExam: ""
             };
-            
+
             await setDoc(userRef, newUserData);
+            console.log("🆕 Yeni kullanıcı veritabanına kaydedildi.");
             return newUserData;
         }
     } catch (error) {
-        console.error("ensureUserDocument hatası:", error);
+        console.error("ensureUserDocument Hatası:", error);
         throw error;
     }
 }
 
 /**
- * Kullanıcı profilini getirir.
- * ÖNCE SessionStorage'a bakar (Maliyet: 0), yoksa Firestore'dan çeker (Maliyet: 1).
+ * Kullanıcı profil verilerini getirir (Önbellek destekli).
+ * @param {string} uid - Kullanıcı ID
+ * @param {object} options - { force: boolean } önbelleği yoksaymak için
  */
-export async function getUserProfile(uid) {
+export async function getUserProfile(uid, options = { force: false }) {
     if (!uid) return null;
 
     const CACHE_KEY = `user_profile_${uid}`;
 
-    // 1. ADIM: Önbelleği Kontrol Et
-    try {
-        const cachedData = sessionStorage.getItem(CACHE_KEY);
-        if (cachedData) {
-            return JSON.parse(cachedData);
+    // 1. Önbellekten kontrol et (Force yoksa)
+    if (!options.force) {
+        const cached = sessionStorage.getItem(CACHE_KEY);
+        if (cached) {
+            try {
+                return JSON.parse(cached);
+            } catch (e) {
+                sessionStorage.removeItem(CACHE_KEY);
+            }
         }
-    } catch (e) {
-        console.warn("Önbellek okuma hatası:", e);
     }
-    
-    // 2. ADIM: Firestore'dan çek
+
+    // 2. Firestore'dan çek
+    const userRef = doc(db, "users", uid);
     try {
-        const userRef = doc(db, "users", uid);
         const docSnap = await getDoc(userRef);
         
         if (docSnap.exists()) {
             const userData = docSnap.data();
             
-            // Tarihleri string'e çevirip önbelleğe al
+            // Tarih nesnelerini string'e çevirip önbelleğe al (JSON hatasını önlemek için)
             const cacheableData = {
                 ...userData,
                 createdAt: userData.createdAt?.toDate ? userData.createdAt.toDate().toISOString() : userData.createdAt,
                 lastLoginAt: userData.lastLoginAt?.toDate ? userData.lastLoginAt.toDate().toISOString() : userData.lastLoginAt
             };
 
+            // Önbelleğe yaz
             sessionStorage.setItem(CACHE_KEY, JSON.stringify(cacheableData));
             return userData;
         } else {
+            console.warn("Kullanıcı profili bulunamadı.");
             return null;
         }
     } catch (error) {
         console.error("Profil verisi alınırken hata:", error);
-        throw error;
+        // Hata durumunda (internet yoksa vb.) önbellekteki eski veriyi döndürmeyi dene
+        const cached = sessionStorage.getItem(CACHE_KEY);
+        return cached ? JSON.parse(cached) : null;
     }
 }
 
 /**
- * Profil güncellendiğinde önbelleği de günceller.
+ * Profil güncellendiğinde önbelleği de anında günceller.
+ * (Böylece sayfa yenilemeye gerek kalmadan yeni ismi görürsün)
  */
 export function updateUserCache(uid, newData) {
     const CACHE_KEY = `user_profile_${uid}`;
     try {
         const cachedRaw = sessionStorage.getItem(CACHE_KEY);
         let currentData = cachedRaw ? JSON.parse(cachedRaw) : {};
+        
+        // Yeni verilerle eskileri birleştir
         const updatedData = { ...currentData, ...newData };
+        
         sessionStorage.setItem(CACHE_KEY, JSON.stringify(updatedData));
+        console.log("✅ Kullanıcı önbelleği güncellendi.");
     } catch (e) {
         console.warn("Cache update hatası:", e);
     }
@@ -112,6 +129,8 @@ export function updateUserCache(uid, newData) {
  * Çıkış yaparken önbelleği temizler.
  */
 export function clearUserCache(uid) {
-    if(uid) sessionStorage.removeItem(`user_profile_${uid}`);
-    sessionStorage.clear();
+    if (uid) {
+        sessionStorage.removeItem(`user_profile_${uid}`);
+    }
+    sessionStorage.clear(); // Garanti olsun diye hepsini temizle
 }

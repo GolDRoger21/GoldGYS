@@ -1,229 +1,170 @@
 // public/js/admin-page.js
 
-// --- MODÜL VE KÜTÜPHANE IMPORTLARI ---
+// 1. Modül ve Altyapı Importları
 import { requireAdminOrEditor } from "./role-guard.js";
 import { initLayout } from "./ui-loader.js";
-import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-// Admin Modülleri
+// Admin Alt Modülleri (İçerik Yönetimi)
 import * as DashboardModule from "./modules/admin/dashboard.js";
 import * as UserModule from "./modules/admin/users.js";
 import * as ContentModule from "./modules/admin/content.js";
 import * as LegislationModule from "./modules/admin/legislation.js";
 import * as ReportsModule from "./modules/admin/reports.js";
 import * as ExamsModule from "./modules/admin/exams.js";
-import * as ImporterModule from "./modules/admin/importer.js";
+// Importer artık ayrı bir HTML sayfası olduğu için buradan import edilmesine gerek yok.
 
-// --- SAYFA BAŞLANGICI ---
+// 2. Sayfa Başlangıcı
 document.addEventListener("DOMContentLoaded", async () => {
     try {
-        // 1. Arayüzü Yükle (Sidebar, Header placeholder vb.)
-        await initLayout(); 
-        console.log("✅ Arayüz yüklendi.");
+        // A. Arayüzü ve Menüleri Yükle
+        // (Header, Sidebar, Profil Resmi, Logout vb. ui-loader tarafından halledilir)
+        await initLayout();
+        console.log("✅ Admin Arayüzü Başlatıldı.");
 
-        // 2. Yetki Kontrolü (Admin veya Editör mü?)
-        const { role, user } = await requireAdminOrEditor();
-        console.log(`✅ Giriş Başarılı: ${role}`);
+        // B. Yetki Kontrolü
+        // Bu sayfa kritik olduğu için tekrar rol kontrolü yapıyoruz.
+        const { role } = await requireAdminOrEditor();
+        console.log(`✅ Yetki Onaylandı: ${role}`);
 
-        // 3. Kullanıcı Bilgilerini Header ve Sidebar'a İşle
-        updateProfileUI(user, role);
-
-        // 4. Admin/Editör Menü Ayrımı (KRİTİK KISIM)
-        const adminElements = document.querySelectorAll('.admin-only');
-        if (role === 'admin') {
-            adminElements.forEach(el => el.classList.remove('hidden')); // CSS class ile yönetmek daha sağlıklı
-            adminElements.forEach(el => el.style.display = 'block');    // Garanti olsun diye inline style
-        } else {
-            adminElements.forEach(el => el.classList.add('hidden'));
-            adminElements.forEach(el => el.style.display = 'none');
-        }
-
-        // 5. Global Fonksiyonları Tanımla
-        window.openQuestionEditor = ContentModule.openQuestionEditor;
-        window.AdminReports = ReportsModule.AdminReports;
-
-        // 6. Başlangıç Ayarları
+        // C. Tema Ayarlarını Başlat
         initTheme();
-        initSidebarInteractions(role);
-        
-        // İlk açılışta hangi tab görünecek?
+
+        // D. Tab Sistemini Başlat (Navigasyon)
+        initTabs(role);
+
+        // E. Başlangıç Tabını Aç (URL hash'ine göre #users, #content vb.)
         const initialTab = window.location.hash.substring(1) || 'dashboard';
         activateTab(initialTab, role);
 
+        // F. Global Fonksiyonları Tanımla (HTML içindeki onclick butonları için)
+        window.openQuestionEditor = ContentModule.openQuestionEditor;
+        window.AdminReports = ReportsModule.AdminReports;
+
     } catch (error) {
-        console.error("Başlatma Hatası:", error);
-        // Hata durumunda login'e atılabilir veya uyarı verilebilir
-        if(error.message.includes("yetki") || error.message.includes("Giriş")) {
-            window.location.href = '/public/login.html';
-        }
+        console.error("❌ Admin Sayfası Hatası:", error);
+        // Kritik hata varsa ui-loader zaten login'e yönlendirmiş olabilir.
     }
 });
-
-// --- HEADER YÖNETİMİ (Yeni Tasarıma Uygun) ---
-
-// 1. Menüyü Aç/Kapa (HTML onclick="toggleUserMenu()" bunu çağırır)
-window.toggleUserMenu = function() {
-    const dropdown = document.getElementById('userDropdown');
-    if (dropdown) {
-        const isHidden = dropdown.style.display === 'none' || dropdown.style.display === '';
-        dropdown.style.display = isHidden ? 'flex' : 'none'; // Flex kullandık çünkü CSS'te flex tanımlı
-    }
-};
-
-// 2. Dışarı Tıklayınca Menüyü Kapat
-document.addEventListener('click', function(event) {
-    const container = document.querySelector('.user-menu-container');
-    const dropdown = document.getElementById('userDropdown');
-    
-    // Tıklanan yer menü değilse ve menü açıksa kapat
-    if (container && !container.contains(event.target) && dropdown && dropdown.style.display !== 'none') {
-        dropdown.style.display = 'none';
-    }
-});
-
-// 3. Güvenli Çıkış Yap
-window.handleLogout = async function() {
-    if(confirm("Yönetim panelinden çıkış yapmak istiyor musunuz?")) {
-        try {
-            const auth = getAuth();
-            await signOut(auth);
-            window.location.href = '/public/login.html';
-        } catch (error) {
-            console.error("Çıkış hatası:", error);
-            alert("Çıkış sırasında hata oluştu.");
-        }
-    }
-};
 
 // --- YARDIMCI FONKSİYONLAR ---
 
-function updateProfileUI(user, role) {
-    // Header Bilgileri (Yeni Header ID'leri)
-    const headerName = document.getElementById('dropdownUserName');
-    const headerEmail = document.getElementById('dropdownUserEmail');
-    const headerImg = document.getElementById('headerAvatarImg');
-    
-    const displayName = user.displayName || user.email.split('@')[0];
-
-    if (headerName) headerName.textContent = displayName;
-    if (headerEmail) headerEmail.textContent = role === 'admin' ? `Yönetici (${user.email})` : `Editör (${user.email})`;
-    if (headerImg && user.photoURL) headerImg.src = user.photoURL;
-
-    // Sidebar'daki Badge (Eğer varsa)
-    const sidebarBadge = document.querySelector('.badge-admin');
-    if (sidebarBadge) sidebarBadge.textContent = role === 'admin' ? 'Admin' : 'Editör';
-}
-
+/**
+ * Aydınlık/Karanlık mod geçişini yönetir.
+ */
 function initTheme() {
     const themeToggle = document.querySelector('[data-theme-toggle]');
     const body = document.body;
     const savedTheme = localStorage.getItem('theme');
     
+    // Kayıtlı tema varsa uygula
     if (savedTheme === 'light') body.classList.add('light-mode');
     
     if (themeToggle) {
         themeToggle.addEventListener('click', () => {
             body.classList.toggle('light-mode');
-            localStorage.setItem('theme', body.classList.contains('light-mode') ? 'light' : 'dark');
+            const isLight = body.classList.contains('light-mode');
+            localStorage.setItem('theme', isLight ? 'light' : 'dark');
         });
     }
 }
 
-function initSidebarInteractions(role) {
-    // Sidebar Tab Geçişleri
-    const tabs = document.querySelectorAll('.sidebar-nav .nav-link'); // Class ismini nav-link olarak güncelledik
+/**
+ * Sidebar linklerine tıklamayı ve Hash değişimini dinler.
+ */
+function initTabs(role) {
+    // 1. Sidebar Link Tıklamaları
+    const links = document.querySelectorAll('.sidebar-nav .nav-link, .sidebar-nav .nav-item');
     
-    tabs.forEach(tab => {
-        tab.addEventListener('click', (e) => {
-            const href = tab.getAttribute('href');
-            // Eğer gerçek bir link ise (../pages/dashboard.html gibi) yönlendirmesine izin ver
-            if (href && !href.includes('#') && !href.startsWith('javascript')) return;
-
-            // Hash link ise (#users, #dashboard) SPA mantığı çalışsın
-            e.preventDefault();
-            const target = href ? href.substring(1) : tab.dataset.tab; // href="#users" -> users
+    links.forEach(link => {
+        link.addEventListener('click', (e) => {
+            const href = link.getAttribute('href');
             
-            // Link admin-only ise ve kullanıcı admin değilse engelle
-            if(tab.closest('.admin-only') && role !== 'admin') {
-                alert("Bu alana erişim yetkiniz yok.");
-                return;
-            }
-
-            if(target) {
-                window.location.hash = target;
-                activateTab(target, role);
+            // Eğer link bir iç sayfa (Tab) ise (#dashboard gibi)
+            if (href && href.startsWith('#')) {
+                e.preventDefault();
+                const tabId = href.substring(1);
                 
-                // Mobildeysek menüyü kapat
-                if(window.innerWidth <= 1024) {
-                    const sidebar = document.querySelector('.sidebar');
-                    if(sidebar) sidebar.classList.remove('active');
-                }
+                // URL Hash'ini güncelle (Bu, hashchange olayını tetikler)
+                window.location.hash = tabId;
+                
+                // Mobildeysek sidebar'ı kapat
+                closeMobileMenu();
             }
+            // Normal link ise (/admin/importer.html gibi) tarayıcı normal yönlensin.
         });
     });
 
-    // Mobil Sidebar Toggle (Header'daki Hamburger Menü)
-    const mobileToggle = document.getElementById('sidebar-toggle');
-    if(mobileToggle) {
-        mobileToggle.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const sidebar = document.querySelector('.sidebar');
-            if(sidebar) sidebar.classList.toggle('active');
-        });
-    }
-
-    // Sidebar dışına tıklayınca kapat (Mobil için)
-    document.addEventListener('click', (e) => {
-        if(window.innerWidth <= 1024) {
-            const sidebar = document.querySelector('.sidebar');
-            const toggleBtn = document.getElementById('sidebar-toggle');
-            if(sidebar && sidebar.classList.contains('active') && !sidebar.contains(e.target) && !toggleBtn.contains(e.target)) {
-                sidebar.classList.remove('active');
-            }
-        }
+    // 2. Tarayıcı Geri/İleri Tuşları İçin Hash Kontrolü
+    window.addEventListener('hashchange', () => {
+        const tabId = window.location.hash.substring(1);
+        if (tabId) activateTab(tabId, role);
     });
 }
 
+/**
+ * İlgili sekmeyi (Section) görünür yapar ve modülünü çalıştırır.
+ */
 function activateTab(tabId, role) {
-    // Önceki aktif tabı temizle
-    document.querySelectorAll('.nav-link').forEach(t => t.classList.remove('active'));
+    // Link Aktifliği (CSS)
+    document.querySelectorAll('.nav-link, .nav-item').forEach(l => l.classList.remove('active'));
     
-    // Yeni tabı aktif yap
-    // Hem href="#tabId" hem de data-tab="tabId" desteği
-    const activeLink = document.querySelector(`.nav-link[href="#${tabId}"]`) || document.querySelector(`.nav-link[data-tab="${tabId}"]`);
+    // Hem nav-link hem nav-item desteği (farklı HTML yapılarına uyum için)
+    const activeLink = document.querySelector(`.nav-link[href="#${tabId}"]`) || 
+                       document.querySelector(`.nav-item[href="#${tabId}"]`);
+    
     if (activeLink) activeLink.classList.add('active');
 
-    // İçerik Alanlarını Yönet
-    handleTabChange(tabId, role);
-}
-
-function handleTabChange(target, role) {
-    // Tüm sectionları gizle
-    document.querySelectorAll('.admin-section').forEach(el => el.style.display = 'none');
+    // Section Görünürlüğü
+    document.querySelectorAll('.admin-section').forEach(s => s.style.display = 'none');
     
-    // Hedef sectionı bul
-    // HTML'de sectionların id'si genellikle "section-dashboard", "section-users" şeklindedir
-    let targetSection = document.getElementById(`section-${target}`);
-    
-    // Eğer section yoksa (henüz yüklenmediyse veya 404), dashboard'a dön
-    if (!targetSection && target !== 'dashboard') {
-        console.warn(`Section bulunamadı: ${target}`);
-        return;
-    }
-
+    const targetSection = document.getElementById(`section-${tabId}`);
     if (targetSection) {
         targetSection.style.display = 'block';
         
-        // Modülleri Lazy Load mantığıyla başlat
-        switch(target) {
-            case 'dashboard': DashboardModule.initDashboard(); break;
-            case 'users': if(role==='admin') UserModule.initUsersPage(); break;
-            case 'content': ContentModule.initContentPage(); break;
-            case 'legislation': if(role==='admin') LegislationModule.initLegislationPage(); break;
-            case 'reports': if(role==='admin') ReportsModule.initReportsPage(); break;
-            case 'exams': ExamsModule.initExamsPage(); break;
-            case 'importer': ImporterModule.initImporterPage(); break;
-            default: break;
+        // İlgili modülün JS kodlarını çalıştır (Lazy Execution)
+        loadModuleData(tabId, role);
+    } else {
+        // Geçersiz bir hash ise varsayılan olarak dashboard'u aç
+        if (tabId !== 'dashboard') {
+            console.warn(`Section bulunamadı: ${tabId}, Dashboard'a yönlendiriliyor.`);
+            activateTab('dashboard', role);
         }
+    }
+}
+
+/**
+ * Tab açıldığında ilgili verileri yükleyen fonksiyon.
+ */
+function loadModuleData(tabId, role) {
+    switch(tabId) {
+        case 'dashboard': 
+            DashboardModule.initDashboard(); 
+            break;
+        case 'users': 
+            if(role === 'admin') UserModule.initUsersPage(); 
+            break;
+        case 'content': 
+            ContentModule.initContentPage(); 
+            break;
+        case 'legislation': 
+            if(role === 'admin') LegislationModule.initLegislationPage(); 
+            break;
+        case 'reports': 
+            if(role === 'admin') ReportsModule.initReportsPage(); 
+            break;
+        case 'exams': 
+            ExamsModule.initExamsPage(); 
+            break;
+        default:
+            break;
+    }
+}
+
+function closeMobileMenu() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    if (window.innerWidth < 1024) {
+        if (sidebar) sidebar.classList.remove('active');
+        if (overlay) overlay.classList.remove('active');
     }
 }

@@ -1,46 +1,59 @@
-
 import { auth } from './firebase-config.js';
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getUserProfile } from './user-profile.js';
 
+// Sayfa Başlık ve ID Ayarları
 const PAGE_CONFIG = {
     '/pages/dashboard.html': { id: 'dashboard', title: 'Genel Bakış' },
     '/admin/index.html': { id: 'admin', title: 'Yönetim Paneli' },
+    '/admin/importer.html': { id: 'importer', title: 'Veri Aktarımı' },
     '/pages/profil.html': { id: 'profile', title: 'Profilim' },
     '/pages/konular.html': { id: 'lessons', title: 'Dersler & Konular' },
     '/pages/testler.html': { id: 'tests', title: 'Testler' },
     '/pages/denemeler.html': { id: 'trials', title: 'Denemeler' },
+    '/pages/analiz.html': { id: 'analysis', title: 'Analiz Raporu' },
+    '/pages/yardim.html': { id: 'help', title: 'Yardım Merkezi' },
 };
 
 let layoutInitPromise = null;
 
+/**
+ * Tüm sayfa düzenini (Header, Sidebar, Auth) başlatan ana fonksiyon.
+ */
 export async function initLayout() {
     if (layoutInitPromise) return layoutInitPromise;
 
     layoutInitPromise = (async () => {
         const path = window.location.pathname;
         const isAdminPage = path.includes('/admin');
-        const config = PAGE_CONFIG[path] || { id: 'unknown', title: 'Sayfa' };
+        const config = PAGE_CONFIG[path] || { id: 'unknown', title: 'Gold GYS' };
 
         try {
+            // 1. HTML Parçalarını Yükle (Header & Sidebar)
             await loadRequiredHTML(isAdminPage);
             
-            // Eventleri ve Auth kontrolünü HER ZAMAN yap
+            // 2. Event Listener'ları Tanımla (Menü açma/kapama vb.)
             setupEventListeners(); 
+            
+            // 3. Kullanıcı Oturumunu Kontrol Et ve UI'ı Güncelle
             await checkUserAuthState();
 
-            // Sayfa özelinde ayarları yap
-            document.getElementById('pageTitle').textContent = config.title;
+            // 4. Sayfa Başlığını Ayarla
+            const pageTitleEl = document.getElementById('pageTitle');
+            if (pageTitleEl) pageTitleEl.textContent = config.title;
+            
+            // 5. Sidebar'da Aktif Menüyü İşaretle
             if (!isAdminPage) {
                 setActiveMenuItem(config.id);
             }
 
-            console.log(isAdminPage ? "🚀 Admin arayüzü ve eventler yüklendi" : "👤 Kullanıcı arayüzü ve eventler yüklendi");
+            console.log("✅ Arayüz başarıyla yüklendi.");
             document.body.style.visibility = 'visible';
             return true;
 
         } catch (error) {
-            console.error('Arayüz Yükleme Hatası:', error);
+            console.error('❌ Arayüz Yükleme Hatası:', error);
+            // Hata olsa bile sayfayı göster (Sonsuz beyaz ekranda kalmasın)
             document.body.style.visibility = 'visible';
             throw error;
         }
@@ -49,141 +62,193 @@ export async function initLayout() {
     return layoutInitPromise;
 }
 
+/**
+ * Admin veya Public sayfasına göre doğru Header/Sidebar dosyalarını çeker.
+ */
 async function loadRequiredHTML(isAdminPage) {
-    const headerUrl = isAdminPage ? '/components/layouts/admin-header.html' : '/components/header.html';
-    const sidebarUrl = isAdminPage ? '/partials/admin-sidebar.html' : '/partials/sidebar.html';
+    // DOĞRU DOSYA YOLLARI (Son yapıya uygun)
+    const headerUrl = isAdminPage 
+        ? '/public/components/layouts/admin-header.html' 
+        : '/public/partials/app-header.html';
+        
+    const sidebarUrl = isAdminPage 
+        ? '/public/partials/admin-sidebar.html' 
+        : '/public/partials/sidebar.html';
+    
+    // Header nereye gömülecek? (Admin sayfasında farklı ID olabilir)
+    const headerTargetId = document.getElementById('app-header-placeholder') ? 'app-header-placeholder' : 'header-area';
     
     await Promise.all([
-        loadHTML(headerUrl, 'header-area', 'innerHTML'),
-        loadHTML(sidebarUrl, 'sidebar', 'innerHTML')
+        loadHTML(headerUrl, headerTargetId),
+        loadHTML(sidebarUrl, 'sidebar')
     ]);
 }
 
-async function loadHTML(url, targetId, position) {
+async function loadHTML(url, targetId) {
     const target = document.getElementById(targetId);
-    if (!target) return;
+    if (!target) {
+        console.warn(`⚠️ Hedef element bulunamadı: #${targetId} (URL: ${url})`);
+        return;
+    }
     try {
         const response = await fetch(url);
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const html = await response.text();
         target.innerHTML = html;
     } catch (e) {
-        console.error(`${url} yüklenemedi:`, e);
+        console.error(`❌ HTML Yüklenemedi (${url}):`, e);
+        target.innerHTML = `<div style="color:red; padding:10px;">Hata: İçerik yüklenemedi.</div>`;
     }
 }
 
+/**
+ * Dropdown, Sidebar Toggle ve Logout butonlarının olaylarını dinler.
+ */
 function setupEventListeners() {
-    // Google Style Dropdown Mantığı
-    const toggleBtn = document.getElementById('userMenuToggle');
-    const dropdown = document.getElementById('profileDropdown');
+    // 1. Profil Dropdown Menüsü (Yeni ID: userAvatarBtn)
+    const toggleBtn = document.getElementById('userAvatarBtn');
+    const dropdown = document.getElementById('userDropdown');
+
     if (toggleBtn && dropdown) {
-        toggleBtn.addEventListener('click', (e) => {
+        // Tıklama olayını temizle ve yeniden ekle (Duplicate önlemek için)
+        const newBtn = toggleBtn.cloneNode(true);
+        toggleBtn.parentNode.replaceChild(newBtn, toggleBtn);
+
+        newBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            dropdown.classList.toggle('show');
+            const isVisible = dropdown.style.display === 'block';
+            dropdown.style.display = isVisible ? 'none' : 'block';
+        });
+
+        // Dışarı tıklayınca kapat
+        document.addEventListener('click', (e) => {
+            if (!dropdown.contains(e.target) && !newBtn.contains(e.target)) {
+                dropdown.style.display = 'none';
+            }
         });
     }
 
-    // Dışarıya veya ESC tuşuna basınca kapatma
-    document.addEventListener('click', (e) => {
-        if (dropdown && !dropdown.contains(e.target) && !toggleBtn.contains(e.target)) {
-            dropdown.classList.remove('show');
-        }
-    });
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && dropdown && dropdown.classList.contains('show')) {
-            dropdown.classList.remove('show');
-        }
-    });
+    // 2. Mobil Sidebar Toggle
+    const mobileToggle = document.getElementById('sidebar-toggle') || document.getElementById('mobileMenuToggle');
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
 
-    // Mobil Menü ve Çıkış Butonu (Event Delegation ile)
+    if (mobileToggle && sidebar) {
+        mobileToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            sidebar.classList.toggle('active');
+            if (overlay) overlay.classList.toggle('active');
+        });
+    }
+
+    if (overlay) {
+        overlay.addEventListener('click', () => {
+            sidebar.classList.remove('active');
+            overlay.classList.remove('active');
+        });
+    }
+
+    // 3. Çıkış Butonu (Event Delegation - ID: logoutBtn veya logoutButton)
     document.body.addEventListener('click', e => {
-        const target = e.target;
-        if (target.closest('#mobileMenuToggle') || target.closest('#closeSidebar') || target.closest('#sidebarOverlay')) {
-            document.getElementById('sidebar')?.classList.toggle('active');
-            document.getElementById('sidebarOverlay')?.classList.toggle('active');
-        }
-        if (target.closest('#logoutButton')) {
+        const target = e.target.closest('button, a');
+        if (!target) return;
+
+        if (target.id === 'logoutBtn' || target.id === 'logoutButton' || target.classList.contains('logout')) {
+            e.preventDefault();
             handleLogout();
         }
     });
 }
 
+/**
+ * Kullanıcı oturum durumunu kontrol eder ve UI'ı günceller.
+ */
 async function checkUserAuthState() {
     return new Promise((resolve) => {
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 try {
+                    // Profil verisini çek
                     const profile = await getUserProfile(user.uid);
+                    
+                    // Admin yetkisini kontrol et
                     const tokenResult = await user.getIdTokenResult();
-                    const isAdmin = tokenResult.claims.admin === true || profile.role === 'admin';
+                    const isAdmin = tokenResult.claims.admin === true || profile?.role === 'admin';
+                    
                     updateUIAfterLogin(user, profile || {}, isAdmin);
-                } catch (e) { console.error('Auth state change error:', e); }
+                } catch (e) { 
+                    console.error('Auth state hatası:', e); 
+                }
             } else {
-                const isPublic = ['/login.html', '/', '/index.html'].includes(window.location.pathname) || window.location.pathname.includes('404');
-                if (!isPublic) window.location.href = '/login.html';
+                // Giriş yapılmamışsa ve korumalı sayfadaysa yönlendir
+                const publicPages = ['/login.html', '/public/login.html', '/', '/index.html', '/public/index.html'];
+                const isPublic = publicPages.some(p => window.location.pathname.endsWith(p)) || window.location.pathname.includes('404');
+                
+                if (!isPublic) {
+                    console.warn("Oturum yok, yönlendiriliyor...");
+                    window.location.href = '/public/login.html';
+                }
             }
             resolve();
         });
     });
 }
 
+/**
+ * Giriş yapıldıktan sonra Header ve Sidebar bilgilerini doldurur.
+ */
 function updateUIAfterLogin(user, profile, isAdmin) {
     const name = (profile.ad && profile.soyad) ? `${profile.ad} ${profile.soyad}` : (user.displayName || "Kullanıcı");
     const email = user.email || "";
-    const initial = name.charAt(0).toUpperCase();
     const photoURL = profile.photoURL || user.photoURL;
 
-    // 1. İsim ve Email Güncelleme
+    // 1. Header Bilgilerini Güncelle (Yeni ID'ler)
     setTextContent('dropdownUserName', name);
     setTextContent('dropdownUserEmail', email);
-    setTextContent('sidebarUserName', name);
-    setTextContent('sidebarUserRole', isAdmin ? "Sistem Yöneticisi" : "Kullanıcı");
+    
+    // Sidebar Bilgilerini Güncelle (Varsa)
+    setTextContent('sidebarUserName', name); // Eski sidebar yapısı için
+    setTextContent('userNameLabel', name);   // Yeni sidebar yapısı için
 
-    // 2. Avatar Güncelleme (Yeni ID'ler ile)
-    updateAvatar('headerAvatar', initial, photoURL);
-    updateAvatar('dropdownAvatar', initial, photoURL);
+    // 2. Avatar Güncelleme
+    const avatarImg = document.getElementById('headerAvatarImg');
+    if (avatarImg && photoURL) {
+        avatarImg.src = photoURL;
+    }
 
-    // 3. Admin Butonunu Ekle (Sadece portalda ve admin ise)
-    const adminBtnContainer = document.getElementById('adminButtonContainer');
-    if (adminBtnContainer) { // Sadece portal header'ında var
-        if (isAdmin) {
-            adminBtnContainer.innerHTML = `
-                <a href="/admin/index.html" class="btn-admin-access">
-                    <span class="icon">⚙️</span> Yönetim Paneli
-                </a>`;
-        } else {
-            adminBtnContainer.innerHTML = ''; // Admin değilse boşalt
+    // 3. Admin Butonunu Göster (Sadece yetkili ise)
+    const adminLink = document.getElementById('adminPanelLink'); // Dropdown içindeki li
+    const adminLinkSidebar = document.getElementById('admin-link-container'); // Sidebar'daki div
+
+    if (isAdmin) {
+        if (adminLink) adminLink.style.display = 'block';
+        if (adminLinkSidebar) {
+            adminLinkSidebar.classList.remove('hidden');
+            adminLinkSidebar.style.display = 'block';
         }
+    } else {
+        if (adminLink) adminLink.style.display = 'none';
+        if (adminLinkSidebar) adminLinkSidebar.style.display = 'none';
     }
 }
 
-// Yardımcı Fonksiyonlar
+// --- Yardımcı Fonksiyonlar ---
+
 function setTextContent(id, text) {
     const el = document.getElementById(id);
     if (el) el.textContent = text;
 }
 
-function updateAvatar(baseId, initial, photoURL) {
-    const img = document.getElementById(`${baseId}Img`);
-    const txt = document.getElementById(`${baseId}Initial`);
-    if (!img || !txt) return;
-
-    if (photoURL) {
-        img.src = photoURL;
-        img.style.display = 'block';
-        txt.style.display = 'none';
-    } else {
-        img.style.display = 'none';
-        txt.textContent = initial;
-        txt.style.display = 'flex';
-    }
-}
-
 function setActiveMenuItem(activePageId) {
     const sidebar = document.getElementById('sidebar');
     if (!sidebar || !activePageId) return;
-    sidebar.querySelectorAll('.nav-item.active').forEach(item => item.classList.remove('active'));
-    const activeItem = sidebar.querySelector(`[data-page="${activePageId}"]`);
+    
+    // Tüm aktif sınıfları temizle
+    sidebar.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+    sidebar.querySelectorAll('.nav-link').forEach(item => item.classList.remove('active'));
+    
+    // İlgili menüyü bul ve aktif yap
+    const activeItem = sidebar.querySelector(`[data-page="${activePageId}"]`) || sidebar.querySelector(`a[href*="${activePageId}"]`);
     if (activeItem) activeItem.classList.add('active');
 }
 
@@ -191,9 +256,10 @@ async function handleLogout() {
     if (confirm("Çıkış yapmak istiyor musunuz?")) {
         try {
             await signOut(auth);
-            window.location.href = '/login.html';
+            window.location.href = '/public/login.html';
         } catch (error) {
             console.error("Çıkış yapılamadı:", error);
+            alert("Çıkış sırasında bir hata oluştu.");
         }
     }
 }

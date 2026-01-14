@@ -18,16 +18,14 @@
             background: var(--bg-panel);
             border: 1px solid var(--border-color);
             padding: 20px;
-            border-radius: var(--radius-lg);
+            border-radius: 12px;
             margin-bottom: 20px;
         }
-        h1 { color: var(--gold-primary); font-family: var(--font-family-serif); border-bottom: 1px solid var(--border-color); padding-bottom: 15px; }
-        .status-item { margin-bottom: 10px; display: flex; justify-content: space-between; }
-        .label { color: var(--text-muted); }
+        h1 { color: var(--gold-primary); border-bottom: 1px solid var(--border-color); padding-bottom: 15px; }
         .success { color: var(--color-success); font-weight: bold; }
         .error { color: var(--color-danger); font-weight: bold; }
         button {
-            background: var(--bg-panel); border: 1px solid var(--gold-primary);
+            background: transparent; border: 1px solid var(--gold-primary);
             color: var(--gold-primary); padding: 8px 16px; border-radius: 4px;
             cursor: pointer; margin-top: 10px;
         }
@@ -38,11 +36,6 @@
     <h1>Sistem Durum Raporu</h1>
     
     <div class="debug-card">
-        <h3>Tarayıcı & Ortam</h3>
-        <div id="envInfo">Yükleniyor...</div>
-    </div>
-
-    <div class="debug-card">
         <h3>Firebase Bağlantısı</h3>
         <div id="firebaseStatus">Kontrol ediliyor...</div>
         <button onclick="checkConnection()">Bağlantıyı Test Et</button>
@@ -50,28 +43,14 @@
 
     <script type="module">
         import { app } from "./js/firebase-config.js";
-
-        // 1. Ortam Bilgileri
-        document.getElementById('envInfo').innerHTML = `
-            <div class="status-item"><span class="label">User Agent:</span> <span>${navigator.userAgent.slice(0, 50)}...</span></div>
-            <div class="status-item"><span class="label">Ekran:</span> <span>${window.innerWidth}x${window.innerHeight}</span></div>
-            <div class="status-item"><span class="label">Çerezler:</span> <span>${navigator.cookieEnabled ? 'Aktif' : 'Pasif'}</span></div>
-        `;
-
-        // 2. Firebase Kontrolü
         window.checkConnection = () => {
             try {
-                if(app) {
-                    document.getElementById('firebaseStatus').innerHTML = '<span class="success">✅ Firebase SDK Yüklendi</span>';
-                } else {
-                    throw new Error("App başlatılamadı");
-                }
+                if(app) document.getElementById('firebaseStatus').innerHTML = '<span class="success">✅ Firebase SDK Yüklendi</span>';
+                else throw new Error("App başlatılamadı");
             } catch (e) {
                 document.getElementById('firebaseStatus').innerHTML = `<span class="error">❌ Hata: ${e.message}</span>`;
             }
         };
-        
-        // Otomatik başlat
         checkConnection();
     </script>
 </body>
