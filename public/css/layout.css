@@ -286,62 +286,64 @@
     color: var(--gold-primary);
 }
 
-/* Kullanıcı Menüsü Toggle */
-.user-menu-toggle {
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    padding: 4px;
-    border-radius: 999px;
-    border: 1px solid transparent;
-    background: transparent;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.user-menu-toggle:hover {
-    background: rgba(255, 255, 255, 0.05);
-    border-color: rgba(255, 255, 255, 0.1);
-}
-
-/* Avatar Stilleri (Standart) */
-.user-avatar-circle {
-    width: 38px;
-    height: 38px;
+/* User Menu & Avatar (Admin.css ile Eşitlendi) */
+.user-avatar-btn {
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
     background: var(--gold-primary);
-    color: #000;
-    position: relative;
-    display: inline-flex;
+    padding: 0;
+    border: none;
+    cursor: pointer;
+    overflow: hidden;
+    transition: transform 0.2s;
+    box-shadow: 0 0 10px rgba(212, 175, 55, 0.2);
+    display: flex;
     align-items: center;
     justify-content: center;
-    font-weight: 700;
-    font-size: 1rem;
-    text-transform: uppercase;
-    overflow: hidden;
-    box-shadow: 0 0 10px rgba(212, 175, 55, 0.2);
 }
 
-.user-avatar-circle.large {
-    width: 60px;
-    height: 60px;
-    font-size: 1.5rem;
+.user-avatar-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 15px rgba(212, 175, 55, 0.4);
 }
 
-.user-avatar-image {
+.avatar-img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    display: none;
-    /* JS ile kontrol edilir */
 }
 
-.user-avatar-circle.has-photo .user-avatar-image {
-    display: block;
+/* Tema Butonu */
+.theme-btn {
+    background: transparent;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 50%;
+    transition: background 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.user-avatar-circle.has-photo .user-avatar-initial {
+.theme-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+body.light-mode .icon-sun {
     display: none;
+}
+
+body:not(.light-mode) .icon-moon {
+    display: none;
+}
+
+/* Avatar Stilleri (Eski kodlar temizlendi, yukarıya taşındı) */
+.user-avatar-circle {
+    display: none;
+    /* Artık kullanılmıyor, img tag kullanılıyor */
 }
 
 /* Profil Dropdown Menü */

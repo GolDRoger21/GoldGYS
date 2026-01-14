@@ -2,24 +2,30 @@
     <div class="header-inner">
         <div class="header-left">
             <button class="icon-button hide-above-md" id="mobileMenuToggle" aria-label="Menü Aç/Kapa">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="3" y1="12" x2="21" y2="12"></line>
+                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                    <line x1="3" y1="18" x2="21" y2="18"></line>
+                </svg>
             </button>
-            
+
             <div class="header-mobile-brand">GOLD <span>GYS</span></div>
-            
+
             <div class="page-title-wrap">
                 <h1 class="page-title" id="pageTitle">Genel Bakış</h1>
             </div>
         </div>
 
         <div class="header-right">
+            <button class="theme-btn" type="button" data-theme-toggle aria-label="Temayı değiştir">
+                <span class="icon-sun">☀️</span>
+                <span class="icon-moon">🌙</span>
+            </button>
             <div class="user-menu-container">
                 <button class="user-avatar-btn" id="userAvatarBtn" aria-label="Kullanıcı Menüsü" type="button">
-                    <img src="/img/default-avatar.svg" 
-                         alt="User" 
-                         class="user-avatar-image" 
-                         id="headerAvatarImg"
-                         onerror="this.src='https://ui-avatars.com/api/?name=User&background=random'">
+                    <img src="/img/default-avatar.svg" alt="User" class="user-avatar-image" id="headerAvatarImg"
+                        onerror="this.src='https://ui-avatars.com/api/?name=User&background=random'">
                 </button>
 
                 <div class="user-dropdown" id="userDropdown" style="display: none;">
@@ -29,14 +35,14 @@
                             <div class="user-email" id="dropdownUserEmail">...</div>
                         </div>
                     </div>
-                    
+
                     <ul class="dropdown-items">
                         <li id="adminPanelLink" style="display: none;">
                             <a href="/admin/index.html" style="color: #d93025;">
                                 <span class="icon">⚙️</span> Yönetim Paneli
                             </a>
                         </li>
-                        
+
                         <li>
                             <a href="/pages/profil.html">
                                 <span class="icon">👤</span> Profilim
@@ -47,9 +53,9 @@
                                 <span class="icon">❓</span> Yardım Merkezi
                             </a>
                         </li>
-                        
+
                         <li class="divider"></li>
-                        
+
                         <li>
                             <a href="#" class="text-danger logout">
                                 <span class="icon">🚪</span> Çıkış Yap
