@@ -1,59 +1,88 @@
 // public/js/header-manager.js
 
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { auth } from "./firebase-config.js";
+import { signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-// Global scope'a ekliyoruz ki HTML'den erişebilelim
-window.toggleUserMenu = function() {
-    const dropdown = document.getElementById('userDropdown');
-    if (dropdown) {
-        dropdown.classList.toggle('show');
-    }
+// --- 1. GLOBAL FONKSİYONLAR ---
+// (Eğer başka bir dosyada tanımlanmadıysa burada tanımla)
+
+if (!window.toggleUserMenu) {
+    window.toggleUserMenu = function() {
+        const dropdown = document.getElementById('userDropdown');
+        if (dropdown) {
+            // CSS'te 'show' class'ı yerine display style kullanıyoruz
+            const isHidden = dropdown.style.display === 'none' || dropdown.style.display === '';
+            dropdown.style.display = isHidden ? 'block' : 'none';
+        }
+    };
 }
+
+if (!window.handleLogout) {
+    window.handleLogout = async function() {
+        if(confirm('Çıkış yapmak istiyor musunuz?')) {
+            try {
+                await signOut(auth);
+                window.location.href = '/public/login.html'; // Doğru yönlendirme
+            } catch (error) {
+                console.error("Çıkış hatası:", error);
+                alert("Çıkış sırasında bir hata oluştu.");
+            }
+        }
+    };
+}
+
+// --- 2. OLAY DİNLEYİCİLERİ ---
 
 // Menü dışına tıklanırsa kapat
 document.addEventListener('click', function(event) {
     const container = document.querySelector('.user-menu-container');
     const dropdown = document.getElementById('userDropdown');
-    if (container && dropdown && !container.contains(event.target)) {
-        dropdown.classList.remove('show');
+    
+    // Tıklanan yer menü değilse ve menü açıksa kapat
+    if (container && !container.contains(event.target) && dropdown && dropdown.style.display === 'block') {
+        dropdown.style.display = 'none';
     }
 });
 
-// Çıkış Fonksiyonu
-window.handleLogout = async function() {
-    if(confirm('Çıkış yapmak istiyor musunuz?')) {
-        try {
-            await auth.signOut();
-            window.location.href = '/login.html'; // Redirect to login page
-        } catch (error) {
-            console.error("Çıkış yapılırken hata oluştu:", error);
-            alert("Çıkış işlemi sırasında bir hata oluştu.");
-        }
-    }
-}
+// --- 3. KULLANICI BİLGİLERİNİ DOLDUR ---
+// (Admin ve Dashboard dışındaki sayfalar için gereklidir)
 
-// Auth state listener to populate user info
 onAuthStateChanged(auth, async (user) => {
     if (user) {
-        // 1. Header Profil Bilgilerini Doldur
-        const nameDisplay = document.getElementById('dropdownName');
-        const emailDisplay = document.getElementById('dropdownEmail');
-        const avatarImg = document.getElementById('headerAvatarImg');
+        // Profil Bilgilerini Güncelle
+        const nameEl = document.getElementById('dropdownUserName'); // ID güncellendi
+        const emailEl = document.getElementById('dropdownUserEmail'); // ID güncellendi
+        const imgEl = document.getElementById('headerAvatarImg');
+        const oldNameEl = document.getElementById('dropdownName'); // Eski ID desteği (yedek)
 
-        if(nameDisplay) nameDisplay.innerText = user.displayName || 'Kullanıcı';
-        if(emailDisplay) emailDisplay.innerText = user.email;
-        if(avatarImg && user.photoURL) avatarImg.src = user.photoURL;
+        const displayName = user.displayName || 'Kullanıcı';
 
-        // 2. Kullanıcı Admin mi? (Portal Sidebar için)
-        const adminLinkContainer = document.getElementById('admin-link-container');
-        if (adminLinkContainer) {
-            // Check for admin custom claims
-            const token = await user.getIdTokenResult();
-            if (token.claims.admin || token.claims.role === 'admin') {
-                adminLinkContainer.classList.remove('hidden'); 
-                adminLinkContainer.style.display = 'block';
+        if(nameEl) nameEl.textContent = displayName;
+        if(oldNameEl) oldNameEl.textContent = displayName;
+        if(emailEl) emailEl.textContent = user.email;
+        if(imgEl && user.photoURL) imgEl.src = user.photoURL;
+
+        // Admin Linkini Kontrol Et (Sidebar için)
+        try {
+            const adminLinkContainer = document.getElementById('admin-link-container');
+            const adminPanelLink = document.getElementById('adminPanelLink'); // Header dropdown'daki link
+            
+            if (adminLinkContainer || adminPanelLink) {
+                const token = await user.getIdTokenResult();
+                const isAdmin = token.claims.admin || token.claims.role === 'admin';
+
+                if (isAdmin) {
+                    if(adminLinkContainer) {
+                        adminLinkContainer.classList.remove('hidden');
+                        adminLinkContainer.style.display = 'block';
+                    }
+                    if(adminPanelLink) {
+                        adminPanelLink.style.display = 'block';
+                    }
+                }
             }
+        } catch (e) {
+            console.log("Yetki kontrolü (header-manager):", e);
         }
     }
 });

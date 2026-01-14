@@ -1,8 +1,11 @@
+// public/js/admin-page.js
+
+// --- MODÜL VE KÜTÜPHANE IMPORTLARI ---
 import { requireAdminOrEditor } from "./role-guard.js";
 import { initLayout } from "./ui-loader.js";
-import './header-manager.js'; // Import header manager
+import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-// --- MODÜL IMPORTLARI ---
+// Admin Modülleri
 import * as DashboardModule from "./modules/admin/dashboard.js";
 import * as UserModule from "./modules/admin/users.js";
 import * as ContentModule from "./modules/admin/content.js";
@@ -14,97 +17,110 @@ import * as ImporterModule from "./modules/admin/importer.js";
 // --- SAYFA BAŞLANGICI ---
 document.addEventListener("DOMContentLoaded", async () => {
     try {
-        // 1. Arayüzü Yükle
+        // 1. Arayüzü Yükle (Sidebar, Header placeholder vb.)
         await initLayout(); 
         console.log("✅ Arayüz yüklendi.");
 
-        // 2. Yetki Kontrolü
+        // 2. Yetki Kontrolü (Admin veya Editör mü?)
         const { role, user } = await requireAdminOrEditor();
         console.log(`✅ Giriş Başarılı: ${role}`);
 
-        // 3. Kullanıcı Bilgilerini Güncelle
-        const roleBadge = document.getElementById('userRoleBadge');
-        const sidebarRole = document.getElementById('sidebarUserRole');
-        const sidebarName = document.getElementById('sidebarUserName');
-        
-        const roleText = role === 'admin' ? 'SİSTEM YÖNETİCİSİ' : 'İÇERİK EDİTÖRÜ';
-        if (roleBadge) roleBadge.textContent = roleText;
-        if (sidebarRole) sidebarRole.textContent = roleText;
-        if (sidebarName) sidebarName.textContent = user.displayName || user.email.split('@')[0];
-        updateAdminHeaderProfile(user);
+        // 3. Kullanıcı Bilgilerini Header ve Sidebar'a İşle
+        updateProfileUI(user, role);
 
-        // --- KRİTİK DÜZELTME BAŞLANGICI ---
-        // Admin menülerini yönet
+        // 4. Admin/Editör Menü Ayrımı (KRİTİK KISIM)
         const adminElements = document.querySelectorAll('.admin-only');
         if (role === 'admin') {
-            // Admin ise gizli menüleri AÇ (display: block yap)
-            adminElements.forEach(el => el.style.display = 'block');
+            adminElements.forEach(el => el.classList.remove('hidden')); // CSS class ile yönetmek daha sağlıklı
+            adminElements.forEach(el => el.style.display = 'block');    // Garanti olsun diye inline style
         } else {
-            // Değilse gizle
+            adminElements.forEach(el => el.classList.add('hidden'));
             adminElements.forEach(el => el.style.display = 'none');
         }
-        // --- KRİTİK DÜZELTME BİTİŞİ ---
 
-        // 4. Global Fonksiyonlar ve Başlatma
+        // 5. Global Fonksiyonları Tanımla
         window.openQuestionEditor = ContentModule.openQuestionEditor;
         window.AdminReports = ReportsModule.AdminReports;
 
+        // 6. Başlangıç Ayarları
         initTheme();
-        initInteractions(role);
+        initSidebarInteractions(role);
         
+        // İlk açılışta hangi tab görünecek?
         const initialTab = window.location.hash.substring(1) || 'dashboard';
         activateTab(initialTab, role);
 
     } catch (error) {
         console.error("Başlatma Hatası:", error);
-        alert("Panel yüklenirken hata: " + error.message);
+        // Hata durumunda login'e atılabilir veya uyarı verilebilir
+        if(error.message.includes("yetki") || error.message.includes("Giriş")) {
+            window.location.href = '/public/login.html';
+        }
     }
 });
 
-// --- HEADER YÖNETİMİ ---
+// --- HEADER YÖNETİMİ (Yeni Tasarıma Uygun) ---
 
-// 1. Menüyü Aç/Kapa (Global Fonksiyon)
+// 1. Menüyü Aç/Kapa (HTML onclick="toggleUserMenu()" bunu çağırır)
 window.toggleUserMenu = function() {
     const dropdown = document.getElementById('userDropdown');
     if (dropdown) {
-        const isHidden = dropdown.style.display === 'none';
-        dropdown.style.display = isHidden ? 'block' : 'none';
+        const isHidden = dropdown.style.display === 'none' || dropdown.style.display === '';
+        dropdown.style.display = isHidden ? 'flex' : 'none'; // Flex kullandık çünkü CSS'te flex tanımlı
     }
 };
 
-// 2. Dışarı Tıklayınca Kapat
+// 2. Dışarı Tıklayınca Menüyü Kapat
 document.addEventListener('click', function(event) {
     const container = document.querySelector('.user-menu-container');
     const dropdown = document.getElementById('userDropdown');
     
-    // Eğer tıklama menü içinde değilse ve menü açıksa kapat
-    if (container && !container.contains(event.target) && dropdown && dropdown.style.display === 'block') {
+    // Tıklanan yer menü değilse ve menü açıksa kapat
+    if (container && !container.contains(event.target) && dropdown && dropdown.style.display !== 'none') {
         dropdown.style.display = 'none';
     }
 });
 
-// 3. Çıkış Yap (Global Fonksiyon)
-import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-
+// 3. Güvenli Çıkış Yap
 window.handleLogout = async function() {
-    if(confirm("Oturumu kapatmak istediğinize emin misiniz?")) {
+    if(confirm("Yönetim panelinden çıkış yapmak istiyor musunuz?")) {
         try {
             const auth = getAuth();
             await signOut(auth);
             window.location.href = '/public/login.html';
         } catch (error) {
             console.error("Çıkış hatası:", error);
-            alert("Çıkış yapılırken bir hata oluştu.");
+            alert("Çıkış sırasında hata oluştu.");
         }
     }
 };
 
-// --- DİĞER FONKSİYONLAR (Aynı kalabilir) ---
+// --- YARDIMCI FONKSİYONLAR ---
+
+function updateProfileUI(user, role) {
+    // Header Bilgileri (Yeni Header ID'leri)
+    const headerName = document.getElementById('dropdownUserName');
+    const headerEmail = document.getElementById('dropdownUserEmail');
+    const headerImg = document.getElementById('headerAvatarImg');
+    
+    const displayName = user.displayName || user.email.split('@')[0];
+
+    if (headerName) headerName.textContent = displayName;
+    if (headerEmail) headerEmail.textContent = role === 'admin' ? `Yönetici (${user.email})` : `Editör (${user.email})`;
+    if (headerImg && user.photoURL) headerImg.src = user.photoURL;
+
+    // Sidebar'daki Badge (Eğer varsa)
+    const sidebarBadge = document.querySelector('.badge-admin');
+    if (sidebarBadge) sidebarBadge.textContent = role === 'admin' ? 'Admin' : 'Editör';
+}
+
 function initTheme() {
     const themeToggle = document.querySelector('[data-theme-toggle]');
     const body = document.body;
     const savedTheme = localStorage.getItem('theme');
+    
     if (savedTheme === 'light') body.classList.add('light-mode');
+    
     if (themeToggle) {
         themeToggle.addEventListener('click', () => {
             body.classList.toggle('light-mode');
@@ -113,23 +129,92 @@ function initTheme() {
     }
 }
 
-function activateTab(tabId, role) {
-    const tabLink = document.querySelector(`.nav-item[data-tab="${tabId}"]`);
-    if (tabLink && tabLink.closest('.admin-only') && role !== 'admin') {
-        activateTab('dashboard', role);
-        return;
+function initSidebarInteractions(role) {
+    // Sidebar Tab Geçişleri
+    const tabs = document.querySelectorAll('.sidebar-nav .nav-link'); // Class ismini nav-link olarak güncelledik
+    
+    tabs.forEach(tab => {
+        tab.addEventListener('click', (e) => {
+            const href = tab.getAttribute('href');
+            // Eğer gerçek bir link ise (../pages/dashboard.html gibi) yönlendirmesine izin ver
+            if (href && !href.includes('#') && !href.startsWith('javascript')) return;
+
+            // Hash link ise (#users, #dashboard) SPA mantığı çalışsın
+            e.preventDefault();
+            const target = href ? href.substring(1) : tab.dataset.tab; // href="#users" -> users
+            
+            // Link admin-only ise ve kullanıcı admin değilse engelle
+            if(tab.closest('.admin-only') && role !== 'admin') {
+                alert("Bu alana erişim yetkiniz yok.");
+                return;
+            }
+
+            if(target) {
+                window.location.hash = target;
+                activateTab(target, role);
+                
+                // Mobildeysek menüyü kapat
+                if(window.innerWidth <= 1024) {
+                    const sidebar = document.querySelector('.sidebar');
+                    if(sidebar) sidebar.classList.remove('active');
+                }
+            }
+        });
+    });
+
+    // Mobil Sidebar Toggle (Header'daki Hamburger Menü)
+    const mobileToggle = document.getElementById('sidebar-toggle');
+    if(mobileToggle) {
+        mobileToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const sidebar = document.querySelector('.sidebar');
+            if(sidebar) sidebar.classList.toggle('active');
+        });
     }
-    document.querySelectorAll('.nav-item').forEach(t => t.classList.remove('active'));
-    if (tabLink) tabLink.classList.add('active');
+
+    // Sidebar dışına tıklayınca kapat (Mobil için)
+    document.addEventListener('click', (e) => {
+        if(window.innerWidth <= 1024) {
+            const sidebar = document.querySelector('.sidebar');
+            const toggleBtn = document.getElementById('sidebar-toggle');
+            if(sidebar && sidebar.classList.contains('active') && !sidebar.contains(e.target) && !toggleBtn.contains(e.target)) {
+                sidebar.classList.remove('active');
+            }
+        }
+    });
+}
+
+function activateTab(tabId, role) {
+    // Önceki aktif tabı temizle
+    document.querySelectorAll('.nav-link').forEach(t => t.classList.remove('active'));
+    
+    // Yeni tabı aktif yap
+    // Hem href="#tabId" hem de data-tab="tabId" desteği
+    const activeLink = document.querySelector(`.nav-link[href="#${tabId}"]`) || document.querySelector(`.nav-link[data-tab="${tabId}"]`);
+    if (activeLink) activeLink.classList.add('active');
+
+    // İçerik Alanlarını Yönet
     handleTabChange(tabId, role);
 }
 
 function handleTabChange(target, role) {
+    // Tüm sectionları gizle
     document.querySelectorAll('.admin-section').forEach(el => el.style.display = 'none');
-    const targetSection = document.getElementById(`section-${target}`);
+    
+    // Hedef sectionı bul
+    // HTML'de sectionların id'si genellikle "section-dashboard", "section-users" şeklindedir
+    let targetSection = document.getElementById(`section-${target}`);
+    
+    // Eğer section yoksa (henüz yüklenmediyse veya 404), dashboard'a dön
+    if (!targetSection && target !== 'dashboard') {
+        console.warn(`Section bulunamadı: ${target}`);
+        return;
+    }
+
     if (targetSection) {
         targetSection.style.display = 'block';
-        // Modülleri başlat
+        
+        // Modülleri Lazy Load mantığıyla başlat
         switch(target) {
             case 'dashboard': DashboardModule.initDashboard(); break;
             case 'users': if(role==='admin') UserModule.initUsersPage(); break;
@@ -138,64 +223,7 @@ function handleTabChange(target, role) {
             case 'reports': if(role==='admin') ReportsModule.initReportsPage(); break;
             case 'exams': ExamsModule.initExamsPage(); break;
             case 'importer': ImporterModule.initImporterPage(); break;
+            default: break;
         }
     }
 }
-
-function initInteractions(role) {
-    const tabs = document.querySelectorAll('.sidebar-nav .nav-item[data-tab]');
-    tabs.forEach(tab => {
-        tab.addEventListener('click', (e) => {
-            const href = tab.getAttribute('href');
-            if (href && !href.startsWith('#') && !href.startsWith('javascript')) return;
-            e.preventDefault();
-            const target = tab.dataset.tab;
-            window.location.hash = target;
-            activateTab(target, role);
-            closeMobileMenu();
-        });
-    });
-
-    // Mobil menü ve çıkış işlemleri
-    const mobileBtn = document.getElementById('mobileMenuToggle');
-    if(mobileBtn) mobileBtn.addEventListener('click', (e) => { e.stopPropagation(); toggleMobileMenu(); });
-    const closeBtn = document.getElementById('closeSidebar');
-    if(closeBtn) closeBtn.addEventListener('click', closeMobileMenu);
-    const overlay = document.getElementById('sidebarOverlay');
-    if(overlay) overlay.addEventListener('click', closeMobileMenu);
-    
-    // Profil Dropdown
-    const userMenuToggle = document.getElementById('userMenuToggle');
-    const profileDropdown = document.getElementById('profileDropdown');
-    if(userMenuToggle && profileDropdown) {
-        userMenuToggle.addEventListener('click', (e) => { e.stopPropagation(); profileDropdown.classList.toggle('active'); });
-        document.addEventListener('click', (e) => {
-            if (!profileDropdown.contains(e.target) && !userMenuToggle.contains(e.target)) profileDropdown.classList.remove('active');
-        });
-    }
-
-    // Çıkış Butonları
-    const handleLogout = () => { if(confirm("Çıkış yapılsın mı?")) window.location.href = "../index.html"; };
-    const logoutBtn = document.getElementById('logoutBtn');
-    const headerLogoutBtn = document.getElementById('logoutButton');
-    if (logoutBtn) logoutBtn.addEventListener('click', handleLogout);
-    if (headerLogoutBtn) headerLogoutBtn.addEventListener('click', handleLogout);
-}
-
-function toggleMobileMenu() {
-    const s = document.getElementById('sidebar'), o = document.getElementById('sidebarOverlay');
-    if(s && o) { s.classList.toggle('active'); o.classList.toggle('active'); }
-}
-function closeMobileMenu() {
-    const s = document.getElementById('sidebar'), o = document.getElementById('sidebarOverlay');
-    if(s && o) { s.classList.remove('active'); o.classList.remove('active'); }
-}
-
-function updateAdminHeaderProfile(user) {
-    const name = user.displayName || user.email.split('@')[0];
-    const elName = document.getElementById('dropdownUserName');
-    const elEmail = document.getElementById('dropdownUserEmail');
-    if(elName) elName.textContent = name;
-    if(elEmail) elEmail.textContent = user.email;
-}
-

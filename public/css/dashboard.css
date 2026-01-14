@@ -1,4 +1,4 @@
-/* public/css/dashboard.css */
+/* public/css/dashboard.css - FINAL VERSION */
 
 :root {
     --bg-dark: #0F172A;
@@ -9,7 +9,7 @@
     --text-muted: #94A3B8;
     --border-color: #334155;
     --sidebar-width: 280px;
-    --header-height: 70px;
+    --header-height: 64px; /* Google Header standart yükseklik */
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -22,7 +22,9 @@ body {
     overflow-x: hidden;
 }
 
-/* --- LOADER STİLİ --- */
+/* =========================================
+   1. LOADER (YÜKLEME EKRANI)
+   ========================================= */
 .page-loader {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     background-color: var(--bg-dark);
@@ -49,15 +51,15 @@ body {
 }
 
 .loader-subtext {
-    margin-top: 10px;
-    font-size: 0.9rem;
-    color: var(--text-muted);
+    margin-top: 10px; font-size: 0.9rem; color: var(--text-muted);
 }
 
 @keyframes spin { to { transform: rotate(360deg); } }
 @keyframes pulse { 50% { opacity: 0.5; } }
 
-/* --- SIDEBAR --- */
+/* =========================================
+   2. SIDEBAR (YAN MENÜ)
+   ========================================= */
 .sidebar {
     width: var(--sidebar-width);
     background-color: #0B1120;
@@ -68,33 +70,17 @@ body {
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.sidebar-header {
+.sidebar-brand {
     height: var(--header-height);
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 0 1.5rem; border-bottom: 1px solid var(--border-color);
+    display: flex; align-items: center; justify-content: center;
+    border-bottom: 1px solid var(--border-color);
 }
 
-.brand-logo { font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 700; color: var(--text-white); text-decoration: none; }
-.brand-logo span { color: var(--gold-primary); }
-
-.close-sidebar-btn {
-    display: none; background: none; border: none; color: var(--text-white); font-size: 1.5rem; cursor: pointer;
-}
-
-/* Sidebar User Info (Sidebar.html içinde eklediğimiz alan) */
-.sidebar-user-info {
-    padding: 1.5rem 1.5rem 0.5rem 1.5rem;
-    border-bottom: 1px solid rgba(51, 65, 85, 0.5);
-}
-.sidebar-user-info .user-name {
-    color: var(--text-white);
-    font-weight: 600;
-}
-.sidebar-user-info .user-role {
+.logo-container .logo-text {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    font-weight: 700;
     color: var(--gold-primary);
-    font-size: 0.8rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
 }
 
 .sidebar-nav { flex: 1; padding: 1.5rem 1rem; overflow-y: auto; }
@@ -108,103 +94,99 @@ body {
     display: flex; align-items: center; padding: 0.75rem 1rem;
     color: var(--text-muted); text-decoration: none; border-radius: 8px;
     margin-bottom: 0.25rem; transition: all 0.2s; font-weight: 500; cursor: pointer;
+    border: none; background: none; width: 100%; text-align: left; font-family: inherit; font-size: 1rem;
 }
 
 .nav-item:hover, .nav-item.active { background-color: rgba(212, 175, 55, 0.1); color: var(--gold-primary); }
 .nav-item .icon { margin-right: 12px; font-size: 1.2rem; min-width: 24px; text-align: center; }
 
 .sidebar-footer { padding: 1rem; border-top: 1px solid var(--border-color); background: #0B1120; }
-.nav-item.logout { color: #ef4444; width: 100%; border: none; background: none; }
+.nav-item.logout { color: #ef4444; }
 .nav-item.logout:hover { background-color: rgba(239, 68, 68, 0.1); }
 
-/* --- HEADER & TOP BAR --- */
-/* Layout.css ve Header.html ile uyumlu stiller */
-.header-inner {
+/* Sidebar içindeki Yönetici Linki */
+.sidebar-footer-nav a { justify-content: center; }
+
+/* =========================================
+   3. HEADER (GOOGLE STYLE - WHITE)
+   ========================================= */
+.app-header {
+    background: #fff; /* Beyaz Header */
+    border-bottom: 1px solid #e0e0e0;
     height: var(--header-height);
-    background-color: rgba(15, 23, 42, 0.95);
-    backdrop-filter: blur(10px);
-    border-bottom: 1px solid var(--border-color);
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 0 1.5rem;
-    position: sticky; top: 0; z-index: 900;
+    position: sticky; /* Sayfa kaydıkça üstte kalır */
+    top: 0;
+    z-index: 900;
+    padding: 0 24px;
+    display: block; /* Flex container header-inner */
 }
 
-.header-left { display: flex; align-items: center; gap: 1rem; }
-.mobile-menu-toggle { display: none; background: none; border: none; color: var(--text-white); font-size: 1.5rem; cursor: pointer; }
-.page-title { font-weight: 600; font-size: 1.1rem; padding-left: 1rem; border-left: 1px solid var(--border-color); margin-left: 1rem; }
-
-/* HEADER AVATAR (Standartlaştırılmış) */
-.user-avatar-circle {
-    width: 40px; height: 40px;
-    background-color: var(--gold-primary);
-    color: #000;
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-weight: 700; font-size: 1.2rem;
-    text-transform: uppercase;
-    box-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
-    overflow: hidden;
-    position: relative;
+.header-inner {
+    display: flex; align-items: center; justify-content: space-between; height: 100%;
 }
 
-.user-avatar-image {
-    width: 100%; height: 100%; object-fit: cover; display: none;
+.header-left { display: flex; align-items: center; gap: 15px; }
+
+/* Mobil Menü Butonu */
+.icon-button {
+    background: none; border: none; cursor: pointer; color: #5f6368; padding: 8px; border-radius: 50%;
+}
+.icon-button:hover { background-color: rgba(0,0,0,0.05); }
+
+.page-title {
+    font-size: 1.25rem; font-weight: 500; color: #202124; margin: 0;
 }
 
-.user-menu-toggle {
-    background: none; border: none; padding: 0; cursor: pointer;
-    border-radius: 50%; transition: transform 0.2s;
+/* Header Sağ Taraf (Profil) */
+.header-right { display: flex; align-items: center; }
+.user-menu-container { position: relative; }
+
+.user-avatar-btn {
+    width: 40px; height: 40px; border-radius: 50%;
+    border: 2px solid transparent; padding: 0;
+    overflow: hidden; cursor: pointer;
+    background: #f1f3f4; transition: all 0.2s;
 }
-.user-menu-toggle:hover { transform: scale(1.05); }
+.user-avatar-btn:hover { border-color: #d2e3fc; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+.user-avatar-image { width: 100%; height: 100%; object-fit: cover; }
 
 /* DROPDOWN MENU */
-.profile-dropdown {
-    position: absolute; right: 1.5rem; top: calc(var(--header-height) + 5px);
-    width: 260px;
-    background: var(--bg-panel); border: 1px solid var(--border-color);
-    border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-    display: none; flex-direction: column; overflow: hidden;
-    z-index: 1001;
-    transform-origin: top right;
-    animation: dropdownSlide 0.2s ease-out;
-}
-.profile-dropdown.active { display: flex; }
-
-@keyframes dropdownSlide {
-    from { opacity: 0; transform: scale(0.95); }
-    to { opacity: 1; transform: scale(1); }
+.user-dropdown {
+    position: absolute; top: 55px; right: 0; width: 260px;
+    background: #fff; border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15); border: 1px solid #dadce0;
+    z-index: 1000; display: none; /* JS ile açılır */
 }
 
 .dropdown-header {
-    padding: 1.25rem; background: rgba(15, 23, 42, 0.5);
-    border-bottom: 1px solid var(--border-color);
-    display: flex; align-items: center; gap: 1rem;
+    padding: 15px; border-bottom: 1px solid #f1f3f4;
+    background: #f8f9fa; border-radius: 8px 8px 0 0;
 }
-.dropdown-header .user-info { display: flex; flex-direction: column; overflow: hidden; }
-.dropdown-header .user-name { font-weight: 600; color: var(--text-white); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.dropdown-header .user-email { font-size: 0.8rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.user-name { font-weight: 600; color: #3c4043; font-size: 0.95rem; }
+.user-email { font-size: 0.8rem; color: #5f6368; margin-top: 2px; }
 
-.dropdown-content { padding: 0.5rem; }
-.dropdown-item {
-    display: flex; align-items: center; gap: 10px;
-    padding: 0.75rem 1rem; color: var(--text-white); text-decoration: none;
-    border-radius: 8px; font-size: 0.95rem; cursor: pointer; border: none; background: none; width: 100%; text-align: left;
+.dropdown-items { list-style: none; padding: 8px 0; margin: 0; }
+.dropdown-items li a {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 20px; color: #3c4043; text-decoration: none;
+    font-size: 0.9rem; transition: background 0.2s;
 }
-.dropdown-item:hover { background: rgba(255, 255, 255, 0.05); }
-.dropdown-item.text-danger { color: #ef4444; }
-.dropdown-item.text-danger:hover { background: rgba(239, 68, 68, 0.1); }
-.dropdown-separator { height: 1px; background: var(--border-color); margin: 0.5rem 0; opacity: 0.5; }
+.dropdown-items li a:hover { background-color: #f1f3f4; }
+.divider { height: 1px; background: #f1f3f4; margin: 5px 0; }
+.text-danger { color: #d93025 !important; }
 
-/* --- MAIN CONTENT & LAYOUT --- */
+/* =========================================
+   4. LAYOUT & CONTENT
+   ========================================= */
 .main-content {
     margin-left: var(--sidebar-width);
-    padding-top: 0; /* Header içinde olduğu için */
+    /* Header sticky olduğu için padding-top gerekmez, akış içinde yer alır */
     display: flex; flex-direction: column; min-height: 100vh;
 }
 
 .dashboard-container { padding: 2rem; max-width: 1400px; width: 100%; margin: 0 auto; }
 
-/* WELCOME SECTION */
+/* Welcome Section */
 .welcome-section {
     background: linear-gradient(135deg, var(--gold-dim), var(--gold-primary));
     color: #0f172a; padding: 2rem; border-radius: 16px; margin-bottom: 2rem;
@@ -216,8 +198,8 @@ body {
     content: ''; position: absolute; top: -50%; right: -10%; width: 300px; height: 300px;
     background: rgba(255,255,255,0.1); border-radius: 50%;
 }
-.welcome-text h1 { font-family: 'Playfair Display', serif; font-size: 1.75rem; margin-bottom: 0.5rem; font-weight: 700; position: relative; }
-.welcome-text p { font-weight: 500; opacity: 0.9; position: relative; }
+.welcome-text h1 { font-family: 'Playfair Display', serif; font-size: 1.75rem; margin-bottom: 0.5rem; font-weight: 700; }
+.welcome-text p { font-weight: 500; opacity: 0.9; }
 
 .exam-countdown {
     background: rgba(255,255,255,0.25); padding: 10px 20px; border-radius: 12px;
@@ -227,16 +209,13 @@ body {
 .exam-countdown .days { display: block; font-size: 2rem; font-weight: 800; line-height: 1; }
 .exam-countdown .label { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; }
 
-/* STATS */
+/* Stats & Cards */
 .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
-
 .stat-card {
     background: var(--bg-panel); border: 1px solid var(--border-color);
-    padding: 1.5rem; border-radius: 12px; display: flex; gap: 1rem;
-    transition: transform 0.2s;
+    padding: 1.5rem; border-radius: 12px; display: flex; gap: 1rem; transition: transform 0.2s;
 }
 .stat-card:hover { transform: translateY(-3px); border-color: var(--gold-primary); }
-
 .stat-icon {
     width: 48px; height: 48px; border-radius: 10px;
     display: flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0;
@@ -244,15 +223,12 @@ body {
 .stat-icon.gold { background: rgba(212, 175, 55, 0.1); color: var(--gold-primary); }
 .stat-icon.blue { background: rgba(59, 130, 246, 0.1); color: #60a5fa; }
 .stat-icon.red { background: rgba(239, 68, 68, 0.1); color: #f87171; }
-
-.stat-info { flex: 1; min-width: 0; }
 .stat-info h3 { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.5rem; }
 .stat-info .stat-value { font-size: 1.5rem; font-weight: 700; display: block; color: var(--text-white); }
 
-/* QUICK ACTIONS */
+/* Quick Actions */
 .section-title { font-size: 1.1rem; color: var(--text-muted); margin-bottom: 1rem; letter-spacing: 0.5px; font-weight: 600; }
 .quick-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; }
-
 .quick-card {
     background: var(--bg-panel); border: 1px solid var(--border-color);
     padding: 1.5rem; border-radius: 12px; text-decoration: none; color: var(--text-white);
@@ -261,9 +237,10 @@ body {
 }
 .quick-card:hover { border-color: var(--gold-primary); transform: translateY(-3px); background: #252f44; }
 .quick-card .q-icon { font-size: 2rem; }
-.quick-card span { font-weight: 500; font-size: 0.95rem; }
 
-/* --- RESPONSIVE --- */
+/* =========================================
+   5. RESPONSIVE (MOBİL)
+   ========================================= */
 .sidebar-overlay {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     background: rgba(0,0,0,0.6); z-index: 999; opacity: 0; pointer-events: none; transition: opacity 0.3s;
@@ -274,155 +251,15 @@ body {
 @media (max-width: 992px) {
     .sidebar { transform: translateX(-100%); width: 260px; }
     .sidebar.active { transform: translateX(0); }
-    .close-sidebar-btn { display: block; }
-    .mobile-menu-toggle { display: block; }
     
     .main-content { margin-left: 0; }
-    .header-inner { padding: 0 1rem; }
-    .page-title { display: none; } /* Mobilde başlığı gizle, yer kazandır */
+    .page-title { display: none; } /* Mobilde başlık gizle */
     
     .dashboard-container { padding: 1.25rem; }
     .welcome-section { flex-direction: column; align-items: flex-start; gap: 1.5rem; text-align: left; }
-    .exam-countdown { width: 100%; display: flex; align-items: center; justify-content: center; gap: 15px; }
-    .exam-countdown .days { font-size: 1.5rem; }
+    .exam-countdown { width: 100%; }
 }
 
-/* --- APP HEADER & DROPDOWN STYLES (PORTAL) --- */
-
-.app-header {
-    background: #fff;
-    border-bottom: 1px solid #e0e0e0;
-    height: 64px;
-    position: sticky;
-    top: 0;
-    z-index: 99;
-    padding: 0 20px;
-}
-
-.header-inner {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    height: 100%;
-}
-
-.header-left {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-}
-
-.page-title {
-    font-size: 1.2rem;
-    font-weight: 600;
-    color: #202124;
-    margin: 0;
-}
-
-/* Sağ Taraf - Profil */
-.header-right {
-    display: flex;
-    align-items: center;
-}
-
-.user-menu-container {
-    position: relative;
-}
-
-.user-avatar-btn {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    border: 2px solid transparent; /* Hover efekti için */
-    padding: 0;
-    overflow: hidden;
-    cursor: pointer;
-    background: #f1f3f4;
-    transition: all 0.2s;
-}
-
-.user-avatar-btn:hover {
-    border-color: #d2e3fc; /* Google mavisi */
-    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-}
-
-.user-avatar-image {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-/* Dropdown Menü */
-.user-dropdown {
-    position: absolute;
-    top: 55px;
-    right: 0;
-    width: 250px;
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
-    border: 1px solid #dadce0;
-    z-index: 1000;
-    /* Varsayılan olarak HTML'de inline style display:none var, JS ile açılacak */
-}
-
-.dropdown-header {
-    padding: 15px;
-    border-bottom: 1px solid #f1f3f4;
-    background: #f8f9fa;
-    border-radius: 8px 8px 0 0;
-}
-
-.user-name {
-    font-weight: 600;
-    color: #3c4043;
-    font-size: 0.95rem;
-}
-
-.user-email {
-    font-size: 0.8rem;
-    color: #5f6368;
-    margin-top: 2px;
-}
-
-.dropdown-items {
-    list-style: none;
-    padding: 8px 0;
-    margin: 0;
-}
-
-.dropdown-items li a {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 10px 20px;
-    color: #3c4043;
-    text-decoration: none;
-    font-size: 0.9rem;
-    transition: background 0.2s;
-}
-
-.dropdown-items li a:hover {
-    background-color: #f1f3f4;
-}
-
-.divider {
-    height: 1px;
-    background: #f1f3f4;
-    margin: 5px 0;
-}
-
-.text-danger {
-    color: #d93025 !important;
-}
-
-.icon-button {
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: #5f6368;
-}
-
-@media (min-width: 769px) {
-    .hide-above-md { display: none; }
+@media (min-width: 993px) {
+    .hide-above-md { display: none; } /* Hamburger menüyü gizle */
 }
