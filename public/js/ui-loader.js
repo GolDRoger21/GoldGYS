@@ -69,7 +69,7 @@ export async function initLayout() {
 }
 
 async function loadRequiredHTML(isAdminPage) {
-    // Admin ve Normal sayfalar için farklı dosyalar ve ID'ler
+    // DÜZELTME: Sunucu kök dizini zaten public olduğu için '/public' ön ekini kaldırdık.
     const headerUrl = isAdminPage ? '/components/layouts/admin-header.html' : '/components/header.html';
     const sidebarUrl = isAdminPage ? '/partials/admin-sidebar.html' : '/partials/sidebar.html';
     
