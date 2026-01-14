@@ -5,46 +5,37 @@
 </div>
 
 <nav class="sidebar-nav" style="display: flex; flex-direction: column; height: calc(100% - 70px);">
-    <ul style="flex-grow: 1; overflow-y: auto;">
-        <li>
-            <a href="#dashboard" class="nav-link active">
-                <i class="icon-dashboard"></i> <span>Genel Bakış</span>
-            </a>
-        </li>
+    <div style="flex-grow: 1; overflow-y: auto; padding-top: 20px;">
+        <div class="nav-label">GENEL</div>
+        <a href="#dashboard" class="nav-item active">
+            <span class="icon">🏠</span> Genel Bakış
+        </a>
 
-        <li>
-            <a href="#content" class="nav-link">
-                <i class="icon-layers"></i> <span>Konular & Dersler</span>
-            </a>
-        </li>
+        <div class="nav-label">İÇERİK YÖNETİMİ</div>
+        <a href="#content" class="nav-item">
+            <span class="icon">📚</span> Konular & Dersler
+        </a>
+        <a href="#exams" class="nav-item">
+            <span class="icon">📝</span> Sınavlar & Sorular
+        </a>
 
-        <li>
-            <a href="#exams" class="nav-link">
-                <i class="icon-edit"></i> <span>Sınavlar & Sorular</span>
-            </a>
-        </li>
+        <div class="nav-label">KULLANICILAR</div>
+        <a href="#users" class="nav-item">
+            <span class="icon">👥</span> Üye Yönetimi
+        </a>
+        <a href="#reports" class="nav-item">
+            <span class="icon">🚩</span> Bildirimler
+        </a>
 
-        <li>
-            <a href="#users" class="nav-link">
-                <i class="icon-users"></i> <span>Kullanıcılar</span>
-            </a>
-        </li>
+        <div class="nav-label">ARAÇLAR</div>
+        <a href="/admin/importer.html" class="nav-item">
+            <span class="icon">📥</span> Toplu Yükleme
+        </a>
+    </div>
 
-        <li>
-            <a href="#reports" class="nav-link">
-                <i class="icon-flag"></i> <span>Bildirimler</span>
-            </a>
-        </li>
-        <li>
-            <a href="/admin/importer.html" class="nav-link">
-                <i class="icon-upload"></i> <span>Toplu Yükleme</span>
-            </a>
-        </li>
-    </ul>
-
-    <div class="sidebar-footer-nav" style="margin-top: auto; border-top: 1px solid rgba(255,255,255,0.1); padding: 15px 0;">
-        <a href="/pages/dashboard.html" class="nav-link warning-link" style="color: #fbbc04;">
-            <i class="icon-home"></i> <span>Siteye Dön (Portal)</span>
+    <div class="sidebar-footer-nav" style="margin-top: auto; padding: 15px 0;">
+        <a href="/pages/dashboard.html" class="nav-item" style="color: #fbbc04; background: rgba(255,188,4,0.1);">
+            <span class="icon">↩️</span> Siteye Dön (Portal)
         </a>
     </div>
 </nav>
