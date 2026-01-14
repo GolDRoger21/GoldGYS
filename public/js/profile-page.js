@@ -1,9 +1,11 @@
+// public/js/profile-page.js
+
 import { auth, db } from "./firebase-config.js";
-import { sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { sendPasswordResetEmail, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { doc, updateDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { getUserProfile, updateUserCache } from "./user-profile.js";
 
-// DOM Elemanlarını dinamik olarak alacağız
+// --- DOM ELEMENTLERİ ---
 const getDom = () => ({
     // Profil Sayfası Özel Elementleri
     profileAvatarMain: document.getElementById("profileAvatarMain"),
@@ -31,6 +33,7 @@ const getDom = () => ({
     statTestsCompleted: document.getElementById("statTestsCompleted"),
 });
 
+// --- BAŞLATMA FONKSİYONU ---
 export function initProfilePage() {
     const user = auth.currentUser;
     if (user) {
@@ -51,6 +54,39 @@ export function initProfilePage() {
     }
 }
 
+// --- HEADER YÖNETİMİ (BU KISIM EKLENDİ) ---
+// Artık header-manager.js dosyasına ihtiyaç duymadan menüyü açıp kapatacak.
+
+window.toggleUserMenu = function() {
+    const dropdown = document.getElementById('userDropdown');
+    if (dropdown) {
+        const isHidden = dropdown.style.display === 'none' || dropdown.style.display === '';
+        dropdown.style.display = isHidden ? 'block' : 'none';
+    }
+};
+
+window.handleLogout = async function() {
+    if(confirm('Çıkış yapmak istiyor musunuz?')) {
+        try {
+            await signOut(auth);
+            window.location.href = '/public/login.html';
+        } catch (error) {
+            console.error("Çıkış hatası:", error);
+        }
+    }
+};
+
+// Menü dışına tıklayınca kapatma
+document.addEventListener('click', function(event) {
+    const container = document.querySelector('.user-menu-container');
+    const dropdown = document.getElementById('userDropdown');
+    if (container && !container.contains(event.target) && dropdown && dropdown.style.display === 'block') {
+        dropdown.style.display = 'none';
+    }
+});
+
+// --- PROFİL İŞLEMLERİ ---
+
 async function loadFullProfile(user) {
     const dom = getDom();
     if (dom.inpEmail) dom.inpEmail.value = user.email;
@@ -60,6 +96,8 @@ async function loadFullProfile(user) {
         if (userData) {
             populateForm(userData, user);
             updateInfoCard(userData, user);
+            // Header'daki bilgileri de güncelle
+            updateGlobalHeader(userData, user);
         }
         await calculateUserStats(user.uid);
     } catch (error) {
@@ -72,7 +110,6 @@ function populateForm(userData, user) {
     let ad = userData.ad;
     let soyad = userData.soyad;
 
-    // Eğer veritabanında ad/soyad yoksa Google profilinden almaya çalış
     if (!ad && !soyad && user.displayName) {
         const parts = user.displayName.split(' ');
         ad = parts[0];
@@ -94,7 +131,6 @@ function updateInfoCard(data, user) {
     if (dom.profileRoleMain) dom.profileRoleMain.textContent = translateRole(data.role);
     if (dom.displayTarget) dom.displayTarget.textContent = data.targetExam || "Belirtilmedi";
 
-    // Profil Sayfası Avatarı (Büyük)
     const photoURL = data.photoURL || user.photoURL;
     if (photoURL && dom.profileAvatarMain) {
         dom.profileAvatarMain.src = photoURL;
@@ -109,48 +145,29 @@ function updateInfoCard(data, user) {
     }
 }
 
-// YENİ FONKSİYON: Profil güncellenince Header ve Sidebar'ı da güncelle
+// HEADER GÜNCELLEME (Yeni Google Style Yapısına Uygun)
 function updateGlobalHeader(data, user) {
     const fullName = `${data.ad || ''} ${data.soyad || ''}`.trim() || user.displayName || "Kullanıcı";
-    const initial = fullName.charAt(0).toUpperCase();
-    const photoURL = data.photoURL || user.photoURL;
-
-    // header.html ve ui-loader.js ile uyumlu ID'ler
-    const globalIds = {
-        names: ['userNameLabel', 'dropdownUserName', 'headerUserName'], 
-        circles: ['userAvatarCircle', 'dropdownAvatarCircle'],
-        images: ['userAvatarImage', 'dropdownAvatarImage'],
-        initials: ['userAvatarInitial', 'dropdownAvatarInitial']
-    };
-
-    // İsimleri güncelle
-    globalIds.names.forEach(id => {
-        const el = document.getElementById(id);
-        if(el) el.textContent = fullName;
-    });
-
-    // Resimleri/Baş harfleri güncelle
-    globalIds.circles.forEach((circleId, index) => {
-        const circle = document.getElementById(circleId);
-        const img = document.getElementById(globalIds.images[index]);
-        const initEl = document.getElementById(globalIds.initials[index]);
-
-        if (!circle || !img) return;
-
-        if (photoURL) {
-            circle.classList.add('has-photo');
-            img.src = photoURL;
-            img.style.display = 'block';
-            if(initEl) initEl.style.display = 'none';
-        } else {
-            circle.classList.remove('has-photo');
-            img.style.display = 'none';
-            if(initEl) {
-                initEl.style.display = 'flex';
-                initEl.textContent = initial;
-            }
-        }
-    });
+    
+    // Yeni Header ID'leri
+    const nameEl = document.getElementById('dropdownUserName');
+    const emailEl = document.getElementById('dropdownUserEmail');
+    const imgEl = document.getElementById('headerAvatarImg');
+    
+    // Verileri yaz
+    if(nameEl) nameEl.textContent = fullName;
+    if(emailEl) emailEl.textContent = user.email;
+    if(imgEl && (data.photoURL || user.photoURL)) {
+        imgEl.src = data.photoURL || user.photoURL;
+    }
+    
+    // Admin yetkisi varsa "Yönetici Paneli" linkini göster
+    if(data.role === 'admin') {
+         const adminLink = document.getElementById('adminPanelLink'); // app-header.html içindeki li ID'si
+         // Not: app-header.html'de <li>'ye id="adminPanelLink" vermiştik.
+         // Eğer yoksa dashboard.js içindeki gibi kontrol etmek gerekir.
+         if(adminLink) adminLink.style.display = 'block';
+    }
 }
 
 async function calculateUserStats(uid) {
@@ -178,7 +195,6 @@ async function calculateUserStats(uid) {
         if (dom.statScore) dom.statScore.textContent = avg;
         if (dom.statTestsCompleted) dom.statTestsCompleted.textContent = completed;
 
-        // Demo amaçlı topic sayısı
         const totalTopics = 20; 
         const worked = snap.size;
         const ratio = Math.min(100, Math.round((worked / totalTopics) * 100));
@@ -213,24 +229,22 @@ async function saveProfile(uid) {
         await updateDoc(doc(db, "users", uid), payload);
         await updateUserCache(uid, payload);
         
-        // UI güncelle
+        // UI Güncelle
         const user = auth.currentUser;
         const newData = await getUserProfile(user.uid, { force: true });
         
-        // 1. Sayfa içi kartı güncelle
         updateInfoCard(newData, user);
-        // 2. Header ve Menüyü anlık güncelle (YENİ)
         updateGlobalHeader(newData, user);
 
         dom.saveMessage.textContent = "✓ Kaydedildi";
-        dom.saveMessage.style.color = "var(--color-success)";
+        dom.saveMessage.style.color = "var(--color-success)"; // tokens.css'ten gelir
+        if(!dom.saveMessage.style.color) dom.saveMessage.style.color = "green"; // Fallback
         
-        // 3 saniye sonra mesajı sil
         setTimeout(() => { if(dom.saveMessage) dom.saveMessage.textContent = ""; }, 3000);
 
     } catch (e) {
         dom.saveMessage.textContent = "Hata: " + e.message;
-        dom.saveMessage.style.color = "var(--color-danger)";
+        dom.saveMessage.style.color = "red";
     } finally {
         btn.disabled = false;
         btn.textContent = originalText;
