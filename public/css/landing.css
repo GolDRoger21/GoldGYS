@@ -1,253 +1,230 @@
 /* public/css/landing.css */
 
-/* --- Genel Stiller --- */
-/* (Root değişkenleri app.css'den miras alınır) */
-
+/* --- GENEL AYARLAR --- */
 body {
     background-color: var(--bg-dark);
-    color: var(--text-light);
-    font-family: 'Inter', sans-serif;
+    color: var(--text-white);
+    font-family: var(--font-family-sans);
     overflow-x: hidden;
 }
 
-/* --- Header & Nav (Landing Özel) --- */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 24px;
+}
+
+/* --- NAVBAR (CAM EFEKTİ) --- */
 .landing-nav {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
-    z-index: 100;
-    background: rgba(15, 23, 42, 0.85);
+    padding: 20px 0;
+    z-index: 1000;
+    background: rgba(15, 23, 42, 0.8);
     backdrop-filter: blur(12px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     transition: all 0.3s ease;
 }
 
-.landing-nav.scrolled {
-    background: rgba(15, 23, 42, 0.98);
-    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
-    border-bottom-color: rgba(212, 175, 55, 0.3);
-}
-
-.header-inner {
-    max-width: 1280px;
-    margin: 0 auto;
-    padding: 1rem 2rem;
+.nav-container {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    height: 70px;
 }
 
-.brand-logo {
-    font-family: 'Playfair Display', serif;
+.logo {
+    font-family: var(--font-family-serif);
+    font-size: 1.8rem;
     font-weight: 700;
-    font-size: 1.75rem;
-    color: var(--text-light);
-    text-decoration: none;
-    display: flex;
-    align-items: center;
-    gap: 0.25rem;
+    color: var(--text-white);
+    letter-spacing: -0.5px;
 }
 
-.brand-logo span {
+.logo span {
     color: var(--gold-primary);
-    text-shadow: 0 0 15px rgba(212, 175, 55, 0.4);
 }
 
-.nav-links {
-    display: flex;
-    align-items: center;
-    gap: 2.5rem;
-}
-
-.nav-links a.nav-link {
-    font-weight: 500;
+.nav-links a {
     color: var(--text-muted);
     text-decoration: none;
+    margin-right: 20px;
+    font-weight: 500;
     transition: color 0.2s;
-    font-size: 0.95rem;
+}
+
+.nav-links a:hover {
+    color: var(--text-white);
+}
+
+/* --- HERO BÖLÜMÜ --- */
+.hero {
     position: relative;
-}
-
-.nav-links a.nav-link:hover {
-    color: var(--gold-primary);
-}
-
-.nav-links a.nav-link::after {
-    content: '';
-    position: absolute;
-    bottom: -4px;
-    left: 0;
-    width: 0;
-    height: 2px;
-    background-color: var(--gold-primary);
-    transition: width 0.3s;
-}
-
-.nav-links a.nav-link:hover::after {
-    width: 100%;
-}
-
-/* --- Hero Section --- */
-.hero-section {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
+    padding: 180px 0 100px;
     text-align: center;
-    padding: 160px 2rem 100px;
-    background: radial-gradient(circle at top center, rgba(30, 41, 59, 0.5) 0%, var(--bg-dark) 70%);
     overflow: hidden;
-    min-height: 90vh;
 }
 
-/* Arka Plan Efekti */
-.hero-section::before {
+/* Arka Plan Efekti (Glow) */
+.hero::before {
     content: '';
     position: absolute;
     top: -50%;
     left: 50%;
     transform: translateX(-50%);
-    width: 100%;
-    height: 100%;
-    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23d4af37' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-    opacity: 0.5;
+    width: 800px;
+    height: 800px;
+    background: radial-gradient(circle, rgba(212, 175, 55, 0.15) 0%, rgba(15, 23, 42, 0) 70%);
     z-index: -1;
-    mask-image: linear-gradient(to bottom, black 0%, transparent 80%);
+    filter: blur(60px);
 }
 
-.hero-content {
-    max-width: 800px;
-    position: relative;
-    z-index: 10;
-    animation: fadeInUp 0.8s ease-out;
-}
-
-.hero-badge {
-    display: inline-flex;
-    align-items: center;
-    padding: 0.5rem 1.25rem;
-    border: 1px solid rgba(212, 175, 55, 0.3);
-    background-color: rgba(212, 175, 55, 0.08);
-    color: var(--gold-primary);
-    border-radius: 999px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    margin-bottom: 2rem;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-}
-
-.hero-title {
-    font-family: 'Playfair Display', serif;
-    font-size: clamp(3rem, 6vw, 4.5rem);
+.hero h1 {
+    font-family: var(--font-family-serif);
+    font-size: 4rem;
+    line-height: 1.1;
+    margin-bottom: 24px;
     font-weight: 800;
-    line-height: 1.15;
-    color: var(--text-light);
-    margin: 0 0 1.5rem;
-    letter-spacing: -0.02em;
+    letter-spacing: -1px;
 }
 
-/* app.css'deki shimmer class'ını kullanıyor */
-.hero-title span {
-    display: inline-block;
+.hero h1 .highlight {
+    background: linear-gradient(135deg, #D4AF37 0%, #FDE68A 50%, #D4AF37 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    position: relative;
 }
 
-.hero-desc {
-    font-size: 1.2rem;
+.hero p {
+    font-size: 1.25rem;
     color: var(--text-muted);
-    line-height: 1.7;
-    margin: 0 auto 2.5rem;
     max-width: 600px;
+    margin: 0 auto 40px;
+    line-height: 1.6;
 }
 
-.hero-buttons {
+/* Butonlar */
+.cta-group {
     display: flex;
+    gap: 16px;
     justify-content: center;
-    gap: 1.25rem;
-    flex-wrap: wrap;
 }
 
-/* Buton Stilleri */
-.btn {
-    border-radius: 8px;
-    padding: 1rem 2rem;
+.btn-primary-large {
+    background: var(--gold-primary);
+    color: #000;
+    padding: 16px 32px;
+    border-radius: 50px;
     font-weight: 600;
-    font-size: 1rem;
+    font-size: 1.1rem;
     text-decoration: none;
-    transition: all 0.3s ease;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 4px 20px rgba(212, 175, 55, 0.3);
 }
 
-.btn-primary {
-    background-color: var(--gold-primary);
-    color: #0F172A; /* Koyu lacivert yazı */
-    border: 1px solid var(--gold-primary);
-    box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
-}
-
-.btn-primary:hover {
-    background-color: #e5c145;
+.btn-primary-large:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(212, 175, 55, 0.4);
+    box-shadow: 0 8px 30px rgba(212, 175, 55, 0.4);
+    background: #eac545;
 }
 
-.btn-secondary {
-    background-color: transparent;
-    color: var(--text-light);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+.btn-outline-large {
+    background: transparent;
+    color: var(--text-white);
+    border: 1px solid var(--border-color);
+    padding: 16px 32px;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 1.1rem;
+    text-decoration: none;
+    transition: all 0.2s;
 }
 
-.btn-secondary:hover {
-    border-color: var(--text-light);
-    background-color: rgba(255, 255, 255, 0.05);
+.btn-outline-large:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: var(--text-white);
 }
 
-/* --- Features Section (Örnek) --- */
-.features-section {
-    padding: 5rem 2rem;
-    background-color: #0B1120;
-    border-top: 1px solid var(--border-dark);
+.btn-nav {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-white);
+    padding: 10px 20px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.2s;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.btn-nav:hover {
+    background: var(--gold-primary);
+    color: #000;
+    border-color: var(--gold-primary);
 }
 
-.features-grid {
+/* --- ÖZELLİKLER (FEATURES) --- */
+.features {
+    padding: 100px 0;
+    position: relative;
+}
+
+.section-header {
+    text-align: center;
+    margin-bottom: 60px;
+}
+
+.section-tag {
+    color: var(--gold-primary);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-size: 0.85rem;
+    margin-bottom: 12px;
+    display: block;
+}
+
+.section-header h2 {
+    font-size: 2.5rem;
+    margin-bottom: 16px;
+    color: var(--text-white);
+}
+
+.feature-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 2rem;
-    max-width: 1280px;
-    margin: 0 auto;
+    gap: 30px;
 }
 
 .feature-card {
-    background: rgba(30, 41, 59, 0.4);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    padding: 2rem;
-    border-radius: 16px;
-    transition: transform 0.3s;
+    background: var(--bg-panel);
+    border: 1px solid var(--border-color);
+    padding: 40px;
+    border-radius: 20px;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
 }
 
 .feature-card:hover {
     transform: translateY(-5px);
-    border-color: rgba(212, 175, 55, 0.3);
-    background: rgba(30, 41, 59, 0.6);
+    border-color: var(--gold-primary);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
 }
 
 .feature-icon {
-    font-size: 2rem;
-    margin-bottom: 1rem;
+    font-size: 2.5rem;
+    margin-bottom: 24px;
+    display: inline-block;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 16px;
+    border-radius: 16px;
     color: var(--gold-primary);
 }
 
 .feature-card h3 {
-    font-size: 1.25rem;
-    margin-bottom: 0.75rem;
-    color: var(--text-light);
+    font-size: 1.5rem;
+    margin-bottom: 12px;
+    color: var(--text-white);
 }
 
 .feature-card p {
@@ -255,44 +232,97 @@ body {
     line-height: 1.6;
 }
 
-/* --- Footer --- */
-.landing-footer {
-    padding: 5rem 2rem 2rem;
-    background-color: #0c1425;
-    border-top: 1px solid var(--border-dark);
+/* --- STATS BANNER --- */
+.stats-banner {
+    background: linear-gradient(90deg, #0F172A 0%, #1E293B 50%, #0F172A 100%);
+    border-top: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+    padding: 60px 0;
+    margin-top: 60px;
 }
 
-/* Animasyon */
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+.stats-grid {
+    display: flex;
+    justify-content: space-around;
+    text-align: center;
+    flex-wrap: wrap;
+    gap: 30px;
 }
 
-/* Responsive */
+.stat-item .number {
+    font-size: 3rem;
+    font-weight: 800;
+    color: var(--gold-primary);
+    display: block;
+    font-family: var(--font-family-serif);
+}
+
+.stat-item .label {
+    color: var(--text-muted);
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* --- FOOTER --- */
+footer {
+    background: #0B1120;
+    padding: 80px 0 40px;
+    border-top: 1px solid var(--border-color);
+}
+
+.footer-content {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 60px;
+    margin-bottom: 60px;
+}
+
+.footer-brand p {
+    color: var(--text-muted);
+    margin-top: 16px;
+    max-width: 300px;
+    line-height: 1.6;
+}
+
+.footer-links h4 {
+    color: var(--text-white);
+    margin-bottom: 24px;
+    font-size: 1.1rem;
+}
+
+.footer-links ul {
+    list-style: none;
+    padding: 0;
+}
+
+.footer-links li {
+    margin-bottom: 12px;
+}
+
+.footer-links a {
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.footer-links a:hover {
+    color: var(--gold-primary);
+}
+
+.footer-bottom {
+    text-align: center;
+    color: rgba(255, 255, 255, 0.3);
+    font-size: 0.9rem;
+    padding-top: 40px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* RESPONSIVE */
 @media (max-width: 768px) {
-    .header-inner {
-        padding: 0 1.5rem;
-    }
-    
-    .nav-links a.nav-link {
-        display: none; /* Mobilde linkleri gizle (Hamburger menü gerekir) */
-    }
-    
-    .hero-title {
-        font-size: 2.5rem;
-    }
-    
-    .hero-section {
-        padding-top: 120px;
-    }
-    
-    .features-grid {
-        grid-template-columns: 1fr;
-    }
+    .hero h1 { font-size: 2.5rem; }
+    .footer-content { grid-template-columns: 1fr; gap: 40px; }
+    .nav-links a:not(.btn-nav) { display: none; } /* Mobilde linkleri gizle */
+    .cta-group { flex-direction: column; }
+    .stats-grid { flex-direction: column; }
 }
