@@ -185,19 +185,26 @@ function setupEventListeners() {
     });
 
     window.handleLogout = handleLogout;
-    // 4. Tema Değiştirme Butonu (Güneş/Ay)
-    const themeBtn = document.querySelector('[data-theme-toggle]');
-    if (themeBtn) {
-        // Mevcut temayı yükle
-        const savedTheme = localStorage.getItem('theme') || 'dark';
-        if (savedTheme === 'light') document.body.classList.add('light-mode');
+    // 4. Tema Değiştirme Butonu (Güneş/Ay) - EVENT DELEGATION
+    // Buton dinamik olarak yüklenebildiği için document body üzerinden dinliyoruz.
 
-        themeBtn.addEventListener('click', () => {
-            document.body.classList.toggle('light-mode');
-            const isLight = document.body.classList.contains('light-mode');
-            localStorage.setItem('theme', isLight ? 'light' : 'dark');
-        });
-    }
+    // İlk yüklemede temayı uygula
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    if (savedTheme === 'light') document.body.classList.add('light-mode');
+
+    document.body.addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-theme-toggle]');
+        if (!btn) return;
+
+        e.preventDefault();
+        e.stopPropagation(); // Event bubbling'i durdur
+
+        document.body.classList.toggle('light-mode');
+        const isLight = document.body.classList.contains('light-mode');
+        localStorage.setItem('theme', isLight ? 'light' : 'dark');
+
+        console.log("Tema değiştirildi:", isLight ? 'Light' : 'Dark');
+    });
 }
 
 /**

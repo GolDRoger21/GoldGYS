@@ -206,6 +206,10 @@ body {
     padding: 6px;
     border-radius: 50%;
     transition: background 0.2s ease;
+    z-index: 1002;
+    /* Sidebar ve Header'dan yüksek olmalı */
+    position: relative;
+    pointer-events: auto;
 }
 
 .theme-btn:hover {
