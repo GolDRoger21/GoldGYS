@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="../css/admin.css">
     
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230F172A'/><text x='50' y='70' font-family='serif' font-size='60' fill='%23D4AF37' text-anchor='middle' font-weight='bold'>G</text></svg>">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <style>
         /* Sayfa yüklenirken içeriğin titremesini engelle */
@@ -26,13 +27,67 @@
         <div class="content-wrapper">
             
             <section id="section-dashboard" class="admin-section">
-                <div class="section-header">
-                    <h2>Genel Bakış</h2>
+                <div class="dashboard-header">
+                    <div>
+                        <h2>Genel Bakış</h2>
+                        <p class="text-muted">Sistem durumunu ve son aktiviteleri buradan takip edebilirsiniz.</p>
+                    </div>
+                    <div class="date-display" id="currentDateDisplay"></div>
                 </div>
-                <div class="stats-grid row" id="statsGrid">
-                    <div class="col-md-12">
-                        <div class="card">
-                            <p class="text-muted">İstatistikler yükleniyor...</p>
+
+                <div class="stats-grid" id="statsGrid">
+                    <div class="card"><p>Veriler yükleniyor...</p></div>
+                </div>
+
+                <div class="dashboard-charts-row">
+                    <div class="chart-container card">
+                        <div class="card-header-flex">
+                            <h3>📈 Son 7 Gün Üye Katılımı</h3>
+                        </div>
+                        <div class="chart-wrapper">
+                            <canvas id="usersChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="quick-actions-container">
+                        <div class="card action-card">
+                            <h3>⚡ Hızlı İşlemler</h3>
+                            <div class="action-buttons">
+                                <button onclick="window.location.hash='content'" class="btn-action">
+                                    <span class="icon">➕</span> Soru Ekle
+                                </button>
+                                <button onclick="window.location.hash='users'" class="btn-action">
+                                    <span class="icon">🔍</span> Üye Ara
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="card donut-card">
+                            <h3>📚 Soru Dağılımı</h3>
+                            <div class="chart-wrapper-small">
+                                <canvas id="questionsChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-tables-row">
+                    <div class="card table-card">
+                        <div class="card-header-flex">
+                            <h3>👥 Son Üyeler</h3>
+                            <a href="#users" class="btn-text">Tümünü Gör →</a>
+                        </div>
+                        <div class="table-responsive">
+                            <tbody id="recentUsersTable"></tbody> </div>
+                    </div>
+
+                    <div class="card table-card">
+                        <div class="card-header-flex">
+                            <h3>🚩 Son Bildirimler</h3>
+                            <a href="#reports" class="btn-text">Tümünü Gör →</a>
+                        </div>
+                        <div class="table-responsive">
+                            <tbody id="recentReportsTable"></tbody>
                         </div>
                     </div>
                 </div>
