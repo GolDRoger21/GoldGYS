@@ -1,8 +1,10 @@
+
+// ... (Importlar aynı kalabilir) ...
 import { auth } from './firebase-config.js';
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getUserProfile } from './user-profile.js';
 
-// Sayfa Konfigürasyonları
+// ... (PAGE_CONFIG ve initLayout aynı kalsın) ...
 const PAGE_CONFIG = {
     '/pages/dashboard.html': { id: 'dashboard', title: 'Genel Bakış' },
     '/admin/index.html': { id: 'admin', title: 'Yönetim Paneli' },
@@ -15,52 +17,34 @@ const PAGE_CONFIG = {
 const dom = {};
 let layoutInitPromise = null;
 
-/**
- * Arayüzü başlatan ana fonksiyon.
- * Admin sayfasında sadece HTML yükler, diğer sayfalarda Auth ve Eventleri de yönetir.
- */
 export async function initLayout() {
     if (layoutInitPromise) return layoutInitPromise;
 
     layoutInitPromise = (async () => {
         const path = window.location.pathname;
-        // Admin sayfasında mıyız kontrolü
         const isAdminPage = path.includes('/admin'); 
         const config = PAGE_CONFIG[path] || { id: 'unknown', title: 'Sayfa' };
 
         try {
-            // 1. HTML Parçalarını Yükle (Header, Sidebar)
             await loadRequiredHTML(isAdminPage);
-            
-            // 2. Elementleri Seç
             cacheDomElements();
-
-            // 3. Başlığı Ayarla (Varsa)
             if (dom.pageTitle) dom.pageTitle.textContent = config.title;
 
-            // 4. SAYFA TÜRÜNE GÖRE AYRIŞTIRMA (KRİTİK BÖLÜM)
             if (isAdminPage) {
-                // ADMIN SAYFASI:
-                // Sadece HTML'i yükledik ve duruyoruz. 
-                // Yetki kontrolü, menü olayları ve diğer her şey 'admin-page.js' tarafından yapılacak.
-                // Bu sayede çakışma önlenir.
                 console.log("🚀 Admin arayüzü yüklendi (Kontrol admin-page.js'de)");
             } else {
-                // NORMAL KULLANICI SAYFASI:
-                // Menüleri aktifleştir, oturum kontrolü yap, eventleri ekle.
                 setActiveMenuItem(config.id);
                 await checkUserAuthState();
-                setupEventListeners(); // Normal sayfaların tıklama olayları
+                setupEventListeners();
                 console.log("👤 Kullanıcı arayüzü yüklendi");
             }
 
-            // Sayfayı görünür yap
             document.body.style.visibility = 'visible';
             return true;
 
         } catch (error) {
             console.error('Arayüz Yükleme Hatası:', error);
-            document.body.style.visibility = 'visible'; // Hata olsa da göster
+            document.body.style.visibility = 'visible';
             throw error;
         }
     })();
@@ -69,19 +53,14 @@ export async function initLayout() {
 }
 
 async function loadRequiredHTML(isAdminPage) {
-    // DÜZELTME: Sunucu kök dizini zaten public olduğu için '/public' ön ekini kaldırdık.
     const headerUrl = isAdminPage ? '/components/layouts/admin-header.html' : '/components/header.html';
     const sidebarUrl = isAdminPage ? '/partials/admin-sidebar.html' : '/partials/sidebar.html';
     
-    // Hedef ID'ler (HTML dosyasındaki <div id="..."> ile eşleşmeli)
-    // admin/index.html'de header için 'header-area' veya 'main-content' olabilir, kontrol edin.
-    // Eğer admin-page.js'de header-area yoksa header yüklenmez.
     const headerTargetId = document.getElementById('header-area') ? 'header-area' : (document.getElementById('main-content') ? 'main-content' : 'header-placeholder');
     const headerPosition = headerTargetId === 'main-content' ? 'prepend' : 'innerHTML';
     
     const sidebarTargetId = document.getElementById('sidebar') ? 'sidebar' : 'sidebar-placeholder';
 
-    // Paralel Yükleme
     await Promise.all([
         loadHTML(headerUrl, headerTargetId, headerPosition),
         loadHTML(sidebarUrl, sidebarTargetId, 'innerHTML')
@@ -90,7 +69,7 @@ async function loadRequiredHTML(isAdminPage) {
 
 async function loadHTML(url, targetId, position) {
     const target = document.getElementById(targetId);
-    if (!target) return; // Hedef yoksa hata verme, sessizce geç
+    if (!target) return;
     
     try {
         const response = await fetch(url);
@@ -100,7 +79,6 @@ async function loadHTML(url, targetId, position) {
         if (position === 'innerHTML') target.innerHTML = html;
         else target.insertAdjacentHTML(position === 'prepend' ? 'afterbegin' : 'beforeend', html);
 
-        // Scriptleri manuel çalıştır (HTML import ile gelen scriptler için)
         target.querySelectorAll('script').forEach(oldScript => {
             const newScript = document.createElement('script');
             Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
@@ -123,12 +101,10 @@ function cacheDomElements() {
     ids.forEach(id => dom[id] = document.getElementById(id));
 }
 
-// Sadece Kullanıcı Sayfaları İçin Event Listener'lar
 function setupEventListeners() {
     document.body.addEventListener('click', e => {
         const target = e.target;
         
-        // Profil Dropdown
         if (target.closest('#userMenuToggle')) {
             e.stopPropagation();
             dom.profileDropdown?.classList.toggle('active');
@@ -136,30 +112,35 @@ function setupEventListeners() {
         else if (dom.profileDropdown?.classList.contains('active') && !target.closest('#profileDropdown')) {
             dom.profileDropdown.classList.remove('active');
         }
-        // Mobil Menü (Sadece kullanıcı sayfalarında, admin'de admin-page.js yönetir)
         else if (target.closest('#mobileMenuToggle') || target.closest('#closeSidebar') || target.closest('#sidebarOverlay')) {
             dom.sidebar?.classList.toggle('active');
             dom.sidebarOverlay?.classList.toggle('active');
         }
-        // Çıkış
         else if (target.closest('#logoutButton')) {
             handleLogout();
         }
     });
 }
 
-// --- Auth ve UI Helper Fonksiyonları ---
+// --- GÜNCELLENEN KISIM BAŞLANGICI ---
 
 async function checkUserAuthState() {
     return new Promise((resolve) => {
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 try {
+                    // 1. Profil Verisini Çek
                     const profile = await getUserProfile(user.uid);
-                    updateUIAfterLogin(user, profile || {});
+                    
+                    // 2. Yetki Kontrolü (Token'dan)
+                    const tokenResult = await user.getIdTokenResult();
+                    const isAdmin = tokenResult.claims.admin === true || profile.role === 'admin';
+
+                    // 3. Arayüzü Güncelle
+                    updateUIAfterLogin(user, profile || {}, isAdmin);
+                    
                 } catch (e) { console.error(e); }
             } else {
-               // Login değilse ve public sayfa değilse yönlendir
                const isPublic = window.location.pathname.includes('login') || window.location.pathname === '/' || window.location.pathname.includes('404');
                if(!isPublic) window.location.href = '/login.html';
             }
@@ -168,32 +149,55 @@ async function checkUserAuthState() {
     });
 }
 
-function updateUIAfterLogin(user, profile) {
+function updateUIAfterLogin(user, profile, isAdmin) {
     const name = (profile.ad && profile.soyad) ? `${profile.ad} ${profile.soyad}` : (user.displayName || "Kullanıcı");
     const email = user.email || "";
     const initial = name.charAt(0).toUpperCase();
     const photoURL = profile.photoURL || user.photoURL;
+    const roleText = isAdmin ? "Yönetici" : "Üye";
 
-    // UI Güncelle
-    if(dom.userNameLabel) dom.userNameLabel.textContent = name;
-    if(dom.dropdownUserName) dom.dropdownUserName.textContent = name;
-    if(dom.dropdownUserEmail) dom.dropdownUserEmail.textContent = email;
+    // 1. İsim ve Rol Alanları (Hem Admin hem Portalda artık aynı ID'ler var)
+    setTextContent('userNameLabel', name);
+    setTextContent('userRoleLabel', roleText);
+    setTextContent('dropdownUserName', name);
+    setTextContent('dropdownUserEmail', email);
+    
+    // Admin sayfasındaki sidebar için ekstra kontrol
+    setTextContent('sidebarUserName', name);
+    setTextContent('sidebarUserRole', isAdmin ? "Sistem Yöneticisi" : "Kullanıcı");
 
-    // Avatar
-    const updateAvatar = (circle, img, initEl) => {
-        if(!circle) return;
+    // 2. Avatar Güncelleme
+    const circles = document.querySelectorAll('#userAvatarCircle'); // Sayfada birden fazla olabilir (mobil/desktop)
+    circles.forEach(circle => {
+        const img = circle.querySelector('.user-avatar-image');
+        const txt = circle.querySelector('.user-avatar-initial');
+        
         if (photoURL) {
-            if(img) { img.src = photoURL; img.style.display = 'block'; }
-            if(initEl) initEl.style.display = 'none';
+            if (img) { img.src = photoURL; img.style.display = 'block'; }
+            if (txt) txt.style.display = 'none';
         } else {
-            if(img) img.style.display = 'none';
-            if(initEl) { initEl.textContent = initial; initEl.style.display = 'flex'; }
+            if (img) img.style.display = 'none';
+            if (txt) { txt.textContent = initial; txt.style.display = 'flex'; }
         }
-    };
+    });
 
-    updateAvatar(dom.userAvatarCircle, dom.userAvatarImage, dom.userAvatarInitial);
-    updateAvatar(dom.dropdownAvatarCircle, dom.dropdownAvatarImage, dom.dropdownAvatarInitial);
+    // 3. Admin Butonunu Ekle (Sadece Portal Header'ındaysa)
+    const adminBtnContainer = document.getElementById('adminButtonContainer');
+    if (adminBtnContainer && isAdmin) {
+        adminBtnContainer.innerHTML = `
+            <a href="/admin/index.html" class="btn-admin-access">
+                <span class="icon">⚙️</span> Yönetim Paneli
+            </a>
+        `;
+    }
 }
+
+// Yardımcı Fonksiyon: Hata almadan text güncelle
+function setTextContent(id, text) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = text;
+}
+// --- GÜNCELLENEN KISIM BİTİŞİ ---
 
 function setActiveMenuItem(activePageId) {
     if (!dom.sidebar || !activePageId) return;
@@ -208,6 +212,3 @@ async function handleLogout() {
         window.location.href = '/login.html';
     }
 }
-
-// Otomatik Başlatma Kaldırıldı!
-// Artık admin-page.js veya dashboard.js kendisi initLayout() çağıracak.

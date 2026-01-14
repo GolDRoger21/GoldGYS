@@ -1,68 +1,40 @@
 <div class="header-inner">
-  <div class="header-left">
-    <a href="/pages/dashboard.html" class="brand-mark header-brand" aria-label="Gold GYS panel ana sayfası">
-      <span class="brand-highlight">GOLD</span>GYS
-    </a>
-    <button id="mobileMenuToggle" class="mobile-menu-toggle" type="button" aria-label="Menüyü aç/kapat">
-      <span class="icon" data-icon="menu"></span>
-    </button>
-
-    <div class="page-title-wrap" role="status">
-      <span id="pageTitle" class="page-title">Panelim</span>
+    <div class="header-left">
+        <button class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="Menü">☰</button>
+        
+        <a href="/pages/dashboard.html" class="brand-logo" style="text-decoration: none; color: inherit;">
+            GOLD <span style="color: var(--gold-primary);">GYS</span>
+        </a>
     </div>
-  </div>
 
-  <div class="header-actions">
-    <nav class="main-nav" aria-label="Ana navigasyon">
-      <a href="/pages/dashboard.html" data-page="dashboard"><span class="icon" data-icon="chart"></span>Panel</a>
-      <a href="/pages/konular.html" data-page="konular"><span class="icon" data-icon="book"></span>Ders Notları</a>
-      <a href="/pages/testler.html" data-page="testler"><span class="icon" data-icon="bolt"></span>Testler</a>
-      <a href="/pages/denemeler.html" data-page="denemeler"><span class="icon" data-icon="spark"></span>Denemeler</a>
-      
-      <a href="/admin/index.html" class="admin-only" style="display: none;">
-        <span class="icon" data-icon="settings"></span>Yönetim
-      </a>
-    </nav>
+    <div class="header-right">
+        <div id="adminButtonContainer" style="margin-right: 15px;"></div>
 
-    <div class="header-quick-actions">
-      <button class="icon-button" type="button" aria-label="Tema değiştir" data-theme-toggle>
-        <span class="icon" data-theme-icon>🌙</span>
-      </button>
-
-      <div class="user-menu-container">
-        <button id="userMenuToggle" class="user-menu-toggle icon-button user-avatar-btn" aria-label="Profil Menüsü">
-            <div id="userAvatarCircle" class="user-avatar-circle">
-                <img id="userAvatarImage" class="user-avatar-image" alt="Profil fotoğrafı" loading="lazy">
-                <span id="userAvatarInitial" class="user-avatar-initial">?</span>
+        <div class="user-menu" id="userMenuToggle">
+            <div class="user-profile">
+                <div class="user-avatar-circle" id="userAvatarCircle">
+                    <img src="" alt="Profil" class="user-avatar-image" id="userAvatarImage" style="display: none;">
+                    <span class="user-avatar-initial" id="userAvatarInitial">?</span>
+                </div>
+                <div class="user-meta">
+                    <span class="user-name" id="userNameLabel">Yükleniyor...</span>
+                    <span class="user-subtitle" id="userRoleLabel">Üye</span>
+                </div>
             </div>
-        </button>
+            
+            <span class="dropdown-arrow">▼</span>
 
-        <div id="profileDropdown" class="profile-dropdown">
-          <div class="dropdown-header">
-             <div id="dropdownAvatarCircle" class="user-avatar-circle large">
-                <img id="dropdownAvatarImage" class="user-avatar-image" alt="Profil fotoğrafı" loading="lazy">
-                <span id="dropdownAvatarInitial" class="user-avatar-initial">?</span>
+            <div class="profile-dropdown" id="profileDropdown">
+                <div class="dropdown-header">
+                    <strong id="dropdownUserName">Kullanıcı</strong>
+                    <span id="dropdownUserEmail">email@example.com</span>
+                </div>
+                <div class="dropdown-divider"></div>
+                <a href="/pages/profil.html" class="dropdown-item">👤 Profilim</a>
+                <a href="/pages/yardim.html" class="dropdown-item">❓ Yardım</a>
+                <div class="dropdown-divider"></div>
+                <button class="dropdown-item text-danger" id="logoutButton">🚪 Çıkış Yap</button>
             </div>
-            <div class="user-info">
-                <span class="user-name" id="dropdownUserName">Yükleniyor...</span>
-                <span class="user-email" id="dropdownUserEmail">...</span>
-            </div>
-          </div>
-          
-          <div class="dropdown-content">
-              <a href="/pages/profil.html" class="dropdown-item">
-                <span>👤</span> Profilim
-              </a>
-              <a href="/pages/yardim.html" class="dropdown-item">
-                <span>❓</span> Yardım
-              </a>
-              <div class="dropdown-separator"></div>
-              <button id="logoutButton" class="dropdown-item text-danger">
-                <span>🚪</span> Çıkış Yap
-              </button>
-          </div>
         </div>
-      </div>
     </div>
-  </div>
 </div>
