@@ -3,101 +3,134 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Performans Analizi | GOLD GYS</title>
-    <link rel="stylesheet" href="../css/app.css">
-    <link rel="stylesheet" href="../components/ui/ui.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title>Analiz Raporu | GOLD GYS</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="../styles/tokens.css">
+    <link rel="stylesheet" href="../css/layout.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <link rel="stylesheet" href="../css/admin.css"> <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        .stats-summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .summary-card {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-color);
+            padding: 20px;
+            border-radius: 16px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .summary-card::after {
+            content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 3px;
+            background: var(--gold-primary); opacity: 0.5;
+        }
+
+        .summary-value { font-size: 2.5rem; font-weight: 700; color: var(--text-white); line-height: 1.2; }
+        .summary-label { color: var(--text-muted); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; }
+        
+        .chart-container {
+            position: relative; 
+            height: 300px; 
+            width: 100%;
+        }
+    </style>
 </head>
 <body>
-    <div id="header-placeholder"></div>
 
-    <main class="container mt-4 mb-5">
-        <div class="section-header mb-4">
-            <h1>📊 Performans Karnesi</h1>
-            <p class="text-muted">Gelişim sürecinizi ve eksik olduğunuz konuları analiz edin.</p>
-        </div>
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    <aside class="sidebar" id="sidebar"></aside>
+    <div id="app-header-placeholder"></div>
 
-        <div id="loadingStats" class="text-center py-5">
-            <div class="spinner-border text-primary" role="status"></div>
-            <p class="mt-2">Verileriniz analiz ediliyor...</p>
-        </div>
-
-        <div id="statsContent" style="display:none;">
+    <main class="main-content" id="main-content">
+        <div class="dashboard-container">
             
-            <div class="row mb-4">
-                <div class="col-md-3">
-                    <div class="card p-3 text-center border-0 shadow-sm">
-                        <h3 class="text-primary mb-0" id="statTotalExams">0</h3>
-                        <small class="text-muted">Çözülen Deneme</small>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="card p-3 text-center border-0 shadow-sm">
-                        <h3 class="text-success mb-0" id="statAvgScore">%0</h3>
-                        <small class="text-muted">Ortalama Başarı</small>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="card p-3 text-center border-0 shadow-sm">
-                        <h3 class="text-warning mb-0" id="statTotalQuestions">0</h3>
-                        <small class="text-muted">Çözülen Soru</small>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="card p-3 text-center border-0 shadow-sm">
-                        <h3 class="text-danger mb-0" id="statWrongRate">%0</h3>
-                        <small class="text-muted">Hata Oranı</small>
-                    </div>
-                </div>
-            </div>
+            <div id="loadingStats" class="loader-spinner" style="margin: 50px auto;"></div>
 
-            <div class="row">
-                <div class="col-lg-8 mb-4">
-                    <div class="card p-4 h-100 shadow-sm border-0">
-                        <h5 class="card-title">📈 Gelişim Grafiği (Son 10 Sınav)</h5>
-                        <canvas id="progressChart"></canvas>
+            <div id="statsContent" style="display: none;">
+                
+                <div class="stats-summary-grid">
+                    <div class="summary-card">
+                        <div class="summary-value" id="totalTests">0</div>
+                        <div class="summary-label">Çözülen Test</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-value" id="avgScore">%0</div>
+                        <div class="summary-label">Başarı Ortalaması</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-value" id="totalQuestions">0</div>
+                        <div class="summary-label">Çözülen Soru</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-value" style="color: var(--color-success);" id="successRate">0.0</div>
+                        <div class="summary-label">Net Ortalaması</div>
                     </div>
                 </div>
 
-                <div class="col-lg-4 mb-4">
-                    <div class="card p-4 h-100 shadow-sm border-0">
-                        <h5 class="card-title">🎯 Konu Analizi</h5>
-                        <canvas id="topicChart"></canvas>
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="card">
+                            <h3>📈 Gelişim Grafiği (Son 10 Sınav)</h3>
+                            <div class="chart-container">
+                                <canvas id="progressChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <div class="card">
+                            <h3>🎯 Doğru / Yanlış Dağılımı</h3>
+                            <div class="chart-container" style="height: 250px; display: flex; justify-content: center;">
+                                <canvas id="ratioChart"></canvas>
+                            </div>
+                            <div style="text-align: center; margin-top: 15px; color: var(--text-muted); font-size: 0.9rem;">
+                                Genel Performans Özeti
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <div class="card shadow-sm border-0">
-                <div class="card-header bg-white">
-                    <h5 class="mb-0">Sınav Geçmişi</h5>
+                <div class="card mt-4">
+                    <h3>📜 Sınav Geçmişi</h3>
+                    <div class="table-responsive">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Tarih</th>
+                                    <th>Sınav Türü</th>
+                                    <th>Puan</th>
+                                    <th>Doğru/Yanlış</th>
+                                    <th>Net</th>
+                                </tr>
+                            </thead>
+                            <tbody id="historyTableBody">
+                                </tbody>
+                        </table>
+                    </div>
                 </div>
-                <div class="table-responsive">
-                    <table class="table table-hover mb-0">
-                        <thead>
-                            <tr>
-                                <th>Tarih</th>
-                                <th>Sınav Adı</th>
-                                <th>D / Y / B</th>
-                                <th>Puan</th>
-                            </tr>
-                        </thead>
-                        <tbody id="historyTableBody">
-                            </tbody>
-                    </table>
-                </div>
+
             </div>
         </div>
     </main>
 
-    <div id="footer-placeholder"></div>
-
-    <script type="module" src="../js/analysis.js"></script>
-    <script type="module" src="../js/ui-loader.js"></script>
-    
     <script type="module">
-        import { loadHTML } from "../js/ui-loader.js";
-        loadHTML('../components/header.html', 'header-placeholder');
-        loadHTML('../components/footer.html', 'footer-placeholder');
+        import { initLayout } from '../js/ui-loader.js';
+        // analysis.js sayfa yüklendiğinde otomatik çalışacak şekilde ayarlandı
+        import '../js/analysis.js'; 
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            await initLayout();
+        });
     </script>
 </body>
 </html>

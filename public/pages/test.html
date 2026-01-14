@@ -4,141 +4,154 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Test Çöz | GOLD GYS</title>
-    <link rel="stylesheet" href="../css/app.css"> 
-    <link rel="stylesheet" href="../components/ui/ui.css">
     
-    <style>
-        /* Test Motoruna Özel Stiller */
-        .tuzak-kutu { background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 10px; margin: 10px 0; font-size: 0.9rem; color: #856404; }
-        .hap-kutu { background-color: #d1ecf1; border-left: 4px solid #17a2b8; padding: 10px; margin: 10px 0; font-size: 0.9rem; color: #0c5460; }
-        .vurgu-negatif { color: #D32F2F; font-weight: 700; text-transform: uppercase; }
-        .sik-btn.correct { background-color: #d4edda; border-color: #28a745; color: #155724; }
-        .sik-btn.wrong { background-color: #f8d7da; border-color: #dc3545; color: #721c24; }
-        .cozum-container { background-color: #f8f9fa; border-top: 1px solid #ddd; padding: 20px; margin-top: 15px; border-radius: 0 0 8px 8px;}
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="../styles/tokens.css">
+    <link rel="stylesheet" href="../css/layout.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <link rel="stylesheet" href="../css/admin.css"> <style>
+        /* Test Sayfasına Özel Stiller */
+        .test-header-card {
+            background: linear-gradient(135deg, var(--bg-panel) 0%, #1e293b 100%);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 80px; /* Header'ın altında kalacak şekilde */
+            z-index: 800;
+        }
+
+        .counters-grid {
+            display: flex;
+            gap: 20px;
+        }
+
+        .counter-item {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            padding: 8px 16px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 100px;
+        }
+
+        .counter-item .label { color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; }
+        .counter-item .value { font-weight: 700; font-size: 1.2rem; color: var(--text-white); }
         
-        .loading-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background:white; z-index:999; display:flex; justify-content:center; align-items:center; flex-direction: column;}
+        .counter-item.success .value { color: var(--color-success); }
+        .counter-item.danger .value { color: var(--color-danger); }
+        
+        /* Şıkların üzerine gelince */
+        .option-label:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: var(--gold-primary) !important;
+        }
+        
+        @media (max-width: 768px) {
+            .test-header-card { flex-direction: column; gap: 15px; align-items: stretch; top: 70px; }
+            .counters-grid { justify-content: space-between; }
+            .counter-item { padding: 5px 10px; min-width: auto; }
+        }
     </style>
 </head>
 <body>
-    
-    <div id="loadingScreen" class="loading-overlay">
-        <div class="spinner-border text-success mb-3" role="status" style="width: 3rem; height: 3rem;"></div>
-        <h3 id="loadingText">Sınav Hazırlanıyor...</h3>
-    </div>
 
-    <header class="header-sticky" style="position: sticky; top: 0; background: white; z-index: 100; padding: 15px; border-bottom: 3px solid #27ae60; display: none; justify-content: space-between; align-items: center;" id="testHeader">
-        <div class="test-title" id="testTitle" style="font-weight:700; color:#2c3e50;">Deneme Sınavı</div>
-        <div class="score-board" style="display: flex; gap: 15px; font-weight: bold;">
-            <div class="score-item" style="color:#27ae60">D: <span id="trueVal">0</span></div>
-            <div class="score-item" style="color:#c0392b">Y: <span id="falseVal">0</span></div>
-            <div class="score-item" style="color:#34495e">K: <span id="remainVal">--</span></div>
-            <div class="score-item" style="color:#e67e22">⏱ <span id="timerDisplay">00:00</span></div>
-        </div>
-    </header>
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    <aside class="sidebar" id="sidebar"></aside>
+    <div id="app-header-placeholder"></div>
 
-    <main class="quiz-container" id="quizContainer" style="max-width: 800px; margin: 20px auto; padding: 0 15px; display:none;">
-        </main>
+    <main class="main-content" id="main-content">
+        <div class="dashboard-container">
+            
+            <div class="test-header-card">
+                <div>
+                    <h2 style="margin:0; font-size:1.5rem; color:var(--gold-primary);">Konu Tarama Testi</h2>
+                    <p style="margin:5px 0 0; color:var(--text-muted); font-size:0.9rem;">Genel Hukuk Bilgisi • 20 Soru</p>
+                </div>
+                
+                <div class="counters-grid">
+                    <div class="counter-item success">
+                        <span class="value" id="trueVal">0</span>
+                        <span class="label">Doğru</span>
+                    </div>
+                    <div class="counter-item danger">
+                        <span class="value" id="falseVal">0</span>
+                        <span class="label">Yanlış</span>
+                    </div>
+                    <div class="counter-item">
+                        <span class="value" id="remainVal">0</span>
+                        <span class="label">Kalan</span>
+                    </div>
+                </div>
 
-    <div class="footer-static" id="testFooter" style="display: none; justify-content: center; gap: 10px; padding: 20px 0; margin-top: 40px; border-top: 1px solid #ddd; background-color: #f8f9fa;">
-        <button id="btnFinish" class="btn-action" style="padding: 10px 30px; background-color: #27ae60; color: white; border: none; border-radius: 6px; cursor: pointer; font-size:1.1rem; font-weight:bold;">Testi Bitir</button>
-    </div>
-
-    <div class="modal-overlay" id="resultModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; justify-content: center; align-items: center;">
-        <div class="modal-content" style="background: white; padding: 30px; border-radius: 12px; text-align: center; max-width: 400px; width: 90%;">
-            <h2>Test Sonucu</h2>
-            <div id="scoreDisplay" style="font-size: 3rem; font-weight: 800; color: #27ae60; margin: 15px 0;">0 / 100</div>
-            <p id="resultText">Analiz ediliyor...</p>
-            <div class="d-flex gap-2 justify-content-center mt-4">
-                <a href="denemeler.html" class="btn btn-secondary" style="padding: 8px 20px; text-decoration:none; color:white; background:#7f8c8d; border-radius:4px;">Çıkış</a>
-                <button onclick="document.getElementById('resultModal').style.display='none'" style="padding: 8px 25px; background: #2c3e50; color: white; border: none; border-radius: 4px; cursor: pointer;">Cevapları İncele</button>
+                <button onclick="testEngine.finishTest()" class="btn btn-primary" style="background:var(--gold-primary); color:black; font-weight:600;">
+                    Testi Bitir
+                </button>
             </div>
+
+            <div id="questions-container">
+                <div class="loader-spinner" style="margin: 50px auto;"></div>
+            </div>
+
         </div>
-    </div>
+    </main>
 
     <script type="module">
-        import { TestEngine } from "../js/test-engine.js";
+        import { initLayout } from '../js/ui-loader.js';
+        import { TestEngine } from '../js/test-engine.js';
         import { db } from "../js/firebase-config.js";
-        import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { collection, getDocs, limit, query } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         document.addEventListener('DOMContentLoaded', async () => {
-            const urlParams = new URLSearchParams(window.location.search);
-            const examId = urlParams.get('id');
-            const loadingScreen = document.getElementById('loadingScreen');
-            const quizContainer = document.getElementById('quizContainer');
-            const testHeader = document.getElementById('testHeader');
-            const testFooter = document.getElementById('testFooter');
+            // 1. Arayüzü Yükle ('tests' menüsünü aktif yap)
+            await initLayout(); // Parametre vermeye gerek yok, URL'den anlar
 
-            if (!examId) {
-                alert("Hata: Sınav ID bulunamadı.");
-                window.location.href = 'denemeler.html';
-                return;
-            }
-
+            // 2. Demo Soruları Çek (Gerçek sistemde URL'den test ID alınır)
+            // Şimdilik veritabanındaki ilk 5 soruyu çekip gösterelim
             try {
-                // 1. Sınav Verisini Çek
-                const docRef = doc(db, "exams", examId);
-                const docSnap = await getDoc(docRef);
-
-                if (!docSnap.exists()) {
-                    alert("Sınav bulunamadı veya kaldırılmış.");
-                    window.location.href = 'denemeler.html';
-                    return;
-                }
-
-                const examData = docSnap.data();
-                document.title = `${examData.title} | Çöz`;
-                document.getElementById('testTitle').innerText = examData.title;
-
-                // 2. Soruları Hazırla
-                // exams.js'de kaydettiğimiz 'questionsSnapshot' kullanıyoruz (Hızlı Yükleme)
-                let questions = examData.questionsSnapshot;
-
-                if (!questions || questions.length === 0) {
-                    throw new Error("Sınav içeriği boş veya hatalı format.");
+                const qRef = collection(db, "questions");
+                const qSnap = await getDocs(query(qRef, limit(5)));
+                
+                let questions = [];
+                if (!qSnap.empty) {
+                    qSnap.forEach(doc => questions.push({ id: doc.id, ...doc.data() }));
+                } else {
+                    // Veritabanı boşsa demo veri kullan
+                    questions = [
+                        {
+                            id: "demo1",
+                            text: "Aşağıdakilerden hangisi 657 sayılı Devlet Memurları Kanunu'na göre memurlara verilen disiplin cezalarından biri değildir?",
+                            options: { A: "Uyarma", B: "Kınama", C: "Sürgün", D: "Aylıktan Kesme", E: "Devlet memurluğundan çıkarma" },
+                            correctAnswer: "C",
+                            solution: "657 sayılı kanunda 'Sürgün' adında bir disiplin cezası bulunmamaktadır. Yer değiştirme cezası vardır ancak sürgün değildir."
+                        },
+                        {
+                            id: "demo2",
+                            text: "Türkiye Cumhuriyeti Anayasası'na göre yasama yetkisi kime aittir?",
+                            options: { A: "Cumhurbaşkanı", B: "TBMM", C: "Anayasa Mahkemesi", D: "Bakanlar Kurulu", E: "Yargıtay" },
+                            correctAnswer: "B",
+                            solution: "Anayasa'nın 7. maddesine göre yasama yetkisi Türk Milleti adına Türkiye Büyük Millet Meclisi'nindir."
+                        }
+                    ];
                 }
 
                 // 3. Test Motorunu Başlat
-                const engine = new TestEngine('quizContainer', questions, examId);
-                
-                // Arayüzü Aç
-                loadingScreen.style.display = 'none';
-                quizContainer.style.display = 'block';
-                testHeader.style.display = 'flex';
-                testFooter.style.display = 'flex';
-
-                // Sayaç Başlat (Basit Timer)
-                startTimer(examData.duration);
-
-                // Bitir Butonu
-                document.getElementById('btnFinish').addEventListener('click', () => {
-                    if(confirm("Testi bitirmek ve sonucu görmek istediğinize emin misiniz?")) {
-                        engine.finishTest();
-                    }
-                });
+                // 'questions-container' ID'si HTML'deki div ile eşleşmeli
+                window.testEngine = new TestEngine('questions-container', questions, 'demo_exam');
 
             } catch (error) {
-                console.error("Test hatası:", error);
-                document.getElementById('loadingText').innerHTML = `<span style="color:red">Hata: ${error.message}</span><br><a href="denemeler.html">Geri Dön</a>`;
+                console.error("Test yükleme hatası:", error);
+                document.getElementById('questions-container').innerHTML = `<div class="card"><p style="color:red; text-align:center;">Test yüklenirken hata oluştu.</p></div>`;
             }
         });
-
-        function startTimer(minutes) {
-            let time = minutes * 60;
-            const display = document.getElementById('timerDisplay');
-            
-            setInterval(() => {
-                const m = Math.floor(time / 60);
-                const s = time % 60;
-                display.innerText = `${m}:${s < 10 ? '0'+s : s}`;
-                
-                if (time > 0) {
-                    time--;
-                } else {
-                    // Süre bitti mantığı eklenebilir
-                    display.style.color = 'red';
-                }
-            }, 1000);
-        }
     </script>
 </body>
 </html>
