@@ -70,8 +70,8 @@ export async function initLayout() {
 
 async function loadRequiredHTML(isAdminPage) {
     // Admin ve Normal sayfalar için farklı dosyalar ve ID'ler
-    const headerUrl = isAdminPage ? '/public/components/layouts/admin-header.html' : '/public/components/header.html';
-    const sidebarUrl = isAdminPage ? '/public/partials/admin-sidebar.html' : '/public/partials/sidebar.html';
+    const headerUrl = isAdminPage ? '/components/layouts/admin-header.html' : '/components/header.html';
+    const sidebarUrl = isAdminPage ? '/partials/admin-sidebar.html' : '/partials/sidebar.html';
     
     // Hedef ID'ler (HTML dosyasındaki <div id="..."> ile eşleşmeli)
     // admin/index.html'de header için 'header-area' veya 'main-content' olabilir, kontrol edin.
