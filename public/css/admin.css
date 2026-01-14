@@ -39,6 +39,12 @@ body {
     .universal-header {
         margin-left: var(--sidebar-width);
         width: calc(100% - var(--sidebar-width));
+        transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    body.sidebar-collapsed .universal-header {
+        margin-left: var(--sidebar-width-collapsed);
+        width: calc(100% - var(--sidebar-width-collapsed));
     }
 }
 
@@ -228,7 +234,14 @@ body:not(.light-mode) .icon-moon {
     background-color: var(--bg-dark);
     min-height: calc(100vh - var(--header-height));
     padding: 2rem;
-    transition: margin-left 0.3s ease-in-out;
+    padding: 2rem;
+    transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@media (min-width: 1025px) {
+    body.sidebar-collapsed .main-content {
+        margin-left: var(--sidebar-width-collapsed);
+    }
 }
 
 .row {

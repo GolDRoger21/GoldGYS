@@ -119,19 +119,39 @@ function setupUniversalHeader(isAdmin) {
         backToSiteLink.style.display = isAdmin ? 'block' : 'none';
     }
 
-    // Mobil Menü Toggle Ayarı
+    // Mobil Menü Toggle Ayarı (Responsive Logic)
     const toggleBtn = document.getElementById('universal-toggle-btn');
     if (toggleBtn) {
-        // Eski event listener'ları temizlemek mümkün olmadığından clone yöntemi
         const newBtn = toggleBtn.cloneNode(true);
         toggleBtn.parentNode.replaceChild(newBtn, toggleBtn);
+
+        // Başlangıç durumunu yükle
+        const savedState = localStorage.getItem('sidebarState');
+        if (savedState === 'collapsed' && window.innerWidth > 1024) {
+            document.body.classList.add('sidebar-collapsed');
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar) sidebar.classList.add('collapsed');
+        }
 
         newBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('sidebarOverlay');
-            if (sidebar) sidebar.classList.toggle('active');
-            if (overlay) overlay.classList.toggle('active');
+
+            // Eğer Desktop ise (> 1024px) -> Collapse Toggle
+            if (window.innerWidth > 1024) {
+                document.body.classList.toggle('sidebar-collapsed');
+                if (sidebar) sidebar.classList.toggle('collapsed');
+
+                // Durumu kaydet
+                const isCollapsed = document.body.classList.contains('sidebar-collapsed');
+                localStorage.setItem('sidebarState', isCollapsed ? 'collapsed' : 'expanded');
+
+            } else {
+                // Eğer Mobil ise (<= 1024px) -> Overlay Toggle
+                if (sidebar) sidebar.classList.toggle('active');
+                if (overlay) overlay.classList.toggle('active');
+            }
         });
     }
 }

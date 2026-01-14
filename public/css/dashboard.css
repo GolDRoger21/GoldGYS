@@ -243,6 +243,25 @@ body {
     display: flex;
     flex-direction: column;
     min-height: 100vh;
+    transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@media (min-width: 1025px) {
+    body.sidebar-collapsed .main-content {
+        margin-left: var(--sidebar-width-collapsed);
+    }
+
+    /* Universal Header için Margin Ayarı (Dashboard) */
+    .universal-header {
+        transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        margin-left: var(--sidebar-width);
+        width: calc(100% - var(--sidebar-width));
+    }
+
+    body.sidebar-collapsed .universal-header {
+        margin-left: var(--sidebar-width-collapsed);
+        width: calc(100% - var(--sidebar-width-collapsed));
+    }
 }
 
 .dashboard-container {

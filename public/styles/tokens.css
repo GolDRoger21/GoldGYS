@@ -97,6 +97,8 @@
 
   --sidebar-width: 260px;
   /* Admin ile eşitlendi */
+  --sidebar-width-collapsed: 72px;
+  /* Daraltılmış genişlik */
   --header-height: 70px;
   /* Admin ve Layout ile eşitlendi */
 
