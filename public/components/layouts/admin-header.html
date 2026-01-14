@@ -1,38 +1,44 @@
 <div class="header-inner">
     <div class="header-left">
-        <button class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="Menü">☰</button>
+        <button class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="Menü">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+        </button>
         
         <h2 class="page-title" id="pageTitle">Yönetim Paneli</h2>
     </div>
 
     <div class="header-right">
-        <a href="/pages/dashboard.html" class="btn-text" style="margin-right: 20px; text-decoration: none; color: var(--text-muted);">
-            Siteye Dön ↗
-        </a>
+        <div class="user-menu-container" id="userMenuContainer">
+            <button class="user-avatar-btn" id="userMenuToggle" aria-label="Profil Menüsü">
+                <div class="avatar-circle">
+                    <img src="" alt="Profil" id="headerAvatarImg" class="avatar-img" style="display: none;">
+                    <span id="headerAvatarInitial" class="avatar-text">Y</span>
+                </div>
+            </button>
 
-        <div class="user-menu" id="userMenuToggle">
-            <div class="user-profile">
-                <div class="user-avatar-circle" id="userAvatarCircle">
-                    <img src="" alt="Profil" class="user-avatar-image" id="userAvatarImage" style="display: none;">
-                    <span class="user-avatar-initial" id="userAvatarInitial">Y</span>
+            <div class="google-dropdown" id="profileDropdown">
+                <div class="dropdown-user-info">
+                    <div class="dropdown-avatar-large">
+                        <span id="dropdownAvatarInitial">Y</span>
+                        <img src="" id="dropdownAvatarImg" style="display: none;">
+                    </div>
+                    <div class="dropdown-text">
+                        <strong id="dropdownUserName">Yönetici</strong>
+                        <span id="dropdownUserEmail">admin@goldgys.com</span>
+                    </div>
                 </div>
-                <div class="user-meta">
-                    <span class="user-name" id="userNameLabel">Yönetici</span>
-                    <span class="user-subtitle" id="userRoleLabel">Sistem</span>
+                
+                <div class="dropdown-menu-items">
+                    <a href="/pages/profil.html" class="menu-item">
+                        <span class="icon">👤</span> Profil Ayarları
+                    </a>
+                    <hr class="separator">
+                    <button class="menu-item logout-item" id="logoutButton">
+                        <span class="icon">🚪</span> Çıkış Yap
+                    </button>
                 </div>
-            </div>
-            
-            <span class="dropdown-arrow">▼</span>
-
-            <div class="profile-dropdown" id="profileDropdown">
-                <div class="dropdown-header">
-                    <strong id="dropdownUserName">Yönetici</strong>
-                    <span id="dropdownUserEmail">admin@goldgys.com</span>
-                </div>
-                <div class="dropdown-divider"></div>
-                <a href="/pages/profil.html" class="dropdown-item">👤 Profil Ayarları</a>
-                <div class="dropdown-divider"></div>
-                <button class="dropdown-item text-danger" id="logoutButton">🚪 Çıkış Yap</button>
             </div>
         </div>
     </div>
