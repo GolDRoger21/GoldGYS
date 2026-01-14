@@ -24,27 +24,43 @@ export async function initLayout() {
     if (layoutInitPromise) return layoutInitPromise;
 
     layoutInitPromise = (async () => {
-        const path = window.location.pathname;
+        // URL Normalizasyonu (Clean URL Desteği)
+        // /admin/importer -> /admin/importer.html olarak algıla
+        let path = window.location.pathname;
+        if (!path.endsWith('.html') && !path.endsWith('/')) {
+            path += '.html';
+        }
+        // Ana sayfa düzeltmesi
+        if (path === '/.html' || path === '/index.html') path = '/index.html';
+
         const isAdminPage = path.includes('/admin');
         const config = PAGE_CONFIG[path] || { id: 'unknown', title: 'Gold GYS' };
+
+        // Debug için
+        console.log(`📍 Sayfa Yükleniyor: ${path} (ID: ${config.id})`);
 
         try {
             // 1. HTML Parçalarını Yükle (Header & Sidebar)
             await loadRequiredHTML(isAdminPage);
-            
+
             // 2. Event Listener'ları Tanımla (Menü açma/kapama vb.)
-            setupEventListeners(); 
-            
+            setupEventListeners();
+
             // 3. Kullanıcı Oturumunu Kontrol Et ve UI'ı Güncelle
             await checkUserAuthState();
 
             // 4. Sayfa Başlığını Ayarla
             const pageTitleEl = document.getElementById('pageTitle');
             if (pageTitleEl) pageTitleEl.textContent = config.title;
-            
+
             // 5. Sidebar'da Aktif Menüyü İşaretle
             if (!isAdminPage) {
+                // Public tarafta
                 setActiveMenuItem(config.id);
+            } else {
+                // Admin tarafta (Hash değişince de tetikle)
+                window.addEventListener('hashchange', () => highlightAdminMenu());
+                highlightAdminMenu();
             }
 
             console.log("✅ Arayüz başarıyla yüklendi.");
@@ -67,17 +83,17 @@ export async function initLayout() {
  */
 async function loadRequiredHTML(isAdminPage) {
     // DOĞRU DOSYA YOLLARI (Son yapıya uygun)
-    const headerUrl = isAdminPage 
-        ? '/components/layouts/admin-header.html' 
+    const headerUrl = isAdminPage
+        ? '/components/layouts/admin-header.html'
         : '/partials/app-header.html';
-        
-    const sidebarUrl = isAdminPage 
-        ? '/partials/admin-sidebar.html' 
+
+    const sidebarUrl = isAdminPage
+        ? '/partials/admin-sidebar.html'
         : '/partials/sidebar.html';
-    
+
     // Header nereye gömülecek? (Admin sayfasında farklı ID olabilir)
     const headerTargetId = document.getElementById('app-header-placeholder') ? 'app-header-placeholder' : 'header-area';
-    
+
     await Promise.all([
         loadHTML(headerUrl, headerTargetId),
         loadHTML(sidebarUrl, 'sidebar')
@@ -177,9 +193,9 @@ function setupEventListeners() {
         if (savedTheme === 'light') document.body.classList.add('light-mode');
 
         themeBtn.addEventListener('click', () => {
-             document.body.classList.toggle('light-mode');
-             const isLight = document.body.classList.contains('light-mode');
-             localStorage.setItem('theme', isLight ? 'light' : 'dark');
+            document.body.classList.toggle('light-mode');
+            const isLight = document.body.classList.contains('light-mode');
+            localStorage.setItem('theme', isLight ? 'light' : 'dark');
         });
     }
 }
@@ -194,20 +210,20 @@ async function checkUserAuthState() {
                 try {
                     // Profil verisini çek
                     const profile = await getUserProfile(user.uid);
-                    
+
                     // Admin yetkisini kontrol et
                     const tokenResult = await user.getIdTokenResult();
                     const isAdmin = tokenResult.claims.admin === true || profile?.role === 'admin';
-                    
+
                     updateUIAfterLogin(user, profile || {}, isAdmin);
-                } catch (e) { 
-                    console.error('Auth state hatası:', e); 
+                } catch (e) {
+                    console.error('Auth state hatası:', e);
                 }
             } else {
                 // Giriş yapılmamışsa ve korumalı sayfadaysa yönlendir
                 const publicPages = ['/login.html', '/public/login.html', '/', '/index.html', '/public/index.html'];
                 const isPublic = publicPages.some(p => window.location.pathname.endsWith(p)) || window.location.pathname.includes('404');
-                
+
                 if (!isPublic) {
                     console.warn("Oturum yok, yönlendiriliyor...");
                     window.location.href = '/public/login.html';
@@ -229,7 +245,7 @@ function updateUIAfterLogin(user, profile, isAdmin) {
     // 1. Header Bilgilerini Güncelle (Yeni ID'ler)
     setTextContent('dropdownUserName', name);
     setTextContent('dropdownUserEmail', email);
-    
+
     // Sidebar Bilgilerini Güncelle (Varsa)
     setTextContent('sidebarUserName', name); // Eski sidebar yapısı için
     setTextContent('userNameLabel', name);   // Yeni sidebar yapısı için
@@ -266,11 +282,11 @@ function setTextContent(id, text) {
 function setActiveMenuItem(activePageId) {
     const sidebar = document.getElementById('sidebar');
     if (!sidebar || !activePageId) return;
-    
+
     // Tüm aktif sınıfları temizle
     sidebar.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
     sidebar.querySelectorAll('.nav-link').forEach(item => item.classList.remove('active'));
-    
+
     // İlgili menüyü bul ve aktif yap
     const activeItem = sidebar.querySelector(`[data-page="${activePageId}"]`) || sidebar.querySelector(`a[href*="${activePageId}"]`);
     if (activeItem) activeItem.classList.add('active');
@@ -285,5 +301,29 @@ async function handleLogout() {
             console.error("Çıkış yapılamadı:", error);
             alert("Çıkış sırasında bir hata oluştu.");
         }
+    }
+}
+
+/**
+ * Admin panelinde URL hash'ine göre menüyü aktif yapar.
+ */
+function highlightAdminMenu() {
+    const sidebar = document.getElementById('sidebar');
+    if (!sidebar) return;
+
+    // Tüm aktifleri temizle
+    sidebar.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+
+    // Hash kontrolü (örn: #users)
+    const hash = window.location.hash || '#dashboard';
+
+    // Hash ile eşleşen linki bul
+    const activeLink = Array.from(sidebar.querySelectorAll('a.nav-item')).find(link => {
+        const href = link.getAttribute('href');
+        return href && href.endsWith(hash);
+    });
+
+    if (activeLink) {
+        activeLink.classList.add('active');
     }
 }

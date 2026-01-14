@@ -1,16 +1,21 @@
 <!DOCTYPE html>
 <html lang="tr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Toplu Yükleme | GOLD GYS</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="../styles/tokens.css">
     <link rel="stylesheet" href="../css/admin.css">
     <style>
         .importer-wrapper {
             max-width: 800px;
             margin: 0 auto;
         }
+
         .status-box {
             background: #000;
             color: #0f0;
@@ -23,11 +28,21 @@
             margin-top: 20px;
             font-size: 0.9rem;
         }
-        .success { color: #4ade80; }
-        .error { color: #ef4444; }
-        .warning { color: #fbbf24; }
+
+        .success {
+            color: #4ade80;
+        }
+
+        .error {
+            color: #ef4444;
+        }
+
+        .warning {
+            color: #fbbf24;
+        }
     </style>
 </head>
+
 <body>
 
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
@@ -43,7 +58,7 @@
             <div class="importer-wrapper">
                 <div class="card">
                     <p style="color: var(--text-muted); margin-bottom: 20px;">
-                        Bu araç, `seed.json` dosyasındaki verileri Firestore veritabanına aktarır. 
+                        Bu araç, `seed.json` dosyasındaki verileri Firestore veritabanına aktarır.
                         İşlem sırasında tarayıcıyı kapatmayın.
                     </p>
 
@@ -63,7 +78,7 @@
 
     <script type="module">
         // Ortak Config ve UI Loader Kullanımı
-        import { db } from "../js/firebase-config.js"; 
+        import { db } from "../js/firebase-config.js";
         import { collection, addDoc, serverTimestamp, getDocs, writeBatch, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { initLayout } from "../js/ui-loader.js";
         import { requireAdminOrEditor } from "../js/role-guard.js";
@@ -72,10 +87,10 @@
         document.addEventListener('DOMContentLoaded', async () => {
             // 1. Arayüzü Yükle
             await initLayout();
-            
+
             // 2. Yetki Kontrolü
             const { role } = await requireAdminOrEditor();
-            if(role !== 'admin') {
+            if (role !== 'admin') {
                 alert("Bu sayfaya sadece Yöneticiler erişebilir.");
                 window.location.href = 'index.html';
             }
@@ -88,7 +103,7 @@
 
         importBtn.addEventListener('click', async () => {
             if (isRunning) return;
-            
+
             if (!confirm("DİKKAT: Veritabanına toplu veri eklenecek. Devam edilsin mi?")) return;
 
             isRunning = true;
@@ -100,7 +115,7 @@
                 // seed.json dosyasını root'tan çekiyoruz
                 const response = await fetch('/seed.json');
                 if (!response.ok) throw new Error("seed.json dosyası bulunamadı! (Ana dizinde olduğundan emin olun)");
-                
+
                 const data = await response.json();
                 statusDiv.innerHTML += `> ✅ Dosya okundu. ${data.length} adet soru bulundu.<br>`;
                 statusDiv.innerHTML += `> 🚀 Firestore yazma işlemi başlıyor...<br>`;
@@ -112,7 +127,7 @@
 
                 for (const question of data) {
                     const docRef = doc(questionsCollection); // Yeni ID oluştur
-                    
+
                     const dataToSave = {
                         ...question,
                         createdAt: serverTimestamp(),
@@ -141,7 +156,7 @@
 
                 statusDiv.innerHTML += '<br><strong class="success">✅ İŞLEM TAMAMLANDI!</strong><br>';
                 statusDiv.innerHTML += `> Toplam ${count} soru başarıyla veritabanına eklendi.`;
-                
+
                 importBtn.className = 'btn btn-success';
                 importBtn.innerHTML = '<span class="icon">✓</span> Tamamlandı';
 
@@ -162,4 +177,5 @@
         }
     </script>
 </body>
+
 </html>
