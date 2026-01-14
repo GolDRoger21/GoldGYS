@@ -5,6 +5,63 @@ import { auth } from "./firebase-config.js";
 import { getUserProfile } from "./user-profile.js";
 import './header-manager.js'; // Import header manager
 
+// --- HEADER VE MENÜ YÖNETİMİ ---
+
+// 1. Menü Aç/Kapa (Global Fonksiyon)
+window.toggleUserMenu = function() {
+    const dropdown = document.getElementById('userDropdown');
+    if (dropdown) {
+        const isHidden = dropdown.style.display === 'none';
+        dropdown.style.display = isHidden ? 'block' : 'none';
+    }
+};
+
+// 2. Dışarı Tıklayınca Kapat
+document.addEventListener('click', function(event) {
+    const container = document.querySelector('.user-menu-container');
+    const dropdown = document.getElementById('userDropdown');
+    // Eğer tıklama menü içinde değilse ve dropdown açıksa kapat
+    if (container && !container.contains(event.target) && dropdown && dropdown.style.display === 'block') {
+        dropdown.style.display = 'none';
+    }
+});
+
+// 3. Kullanıcı Bilgilerini Doldur ve Yetki Kontrolü
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+// auth ve db nesnelerini firebase-config'den alıyorsanız import edin, yoksa getAuth() kullanın.
+
+const auth = getAuth();
+
+onAuthStateChanged(auth, async (user) => {
+    if (user) {
+        // Profil Bilgilerini Güncelle
+        const nameEl = document.getElementById('dropdownUserName');
+        const emailEl = document.getElementById('dropdownUserEmail');
+        const imgEl = document.getElementById('headerAvatarImg');
+
+        if(nameEl) nameEl.innerText = user.displayName || 'Öğrenci';
+        if(emailEl) emailEl.innerText = user.email;
+        if(imgEl && user.photoURL) imgEl.src = user.photoURL;
+
+        // Admin Linkini Kontrol Et (Token Claims)
+        const tokenResult = await user.getIdTokenResult();
+        if (tokenResult.claims.admin || tokenResult.claims.role === 'admin') {
+            const adminLink = document.getElementById('adminPanelLink');
+            if (adminLink) adminLink.style.display = 'block';
+        }
+    } else {
+        // Kullanıcı yoksa login'e at
+        window.location.href = '/public/login.html';
+    }
+});
+
+// 4. Çıkış Yapma
+window.handleLogout = async function() {
+    if(confirm('Oturumu kapatmak istediğinize emin misiniz?')) {
+        await signOut(auth);
+        window.location.href = '/public/login.html';
+    }
+};
 // UI Elementleri
 const ui = {
     loader: document.getElementById("pageLoader"),

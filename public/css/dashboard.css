@@ -286,3 +286,143 @@ body {
     .exam-countdown { width: 100%; display: flex; align-items: center; justify-content: center; gap: 15px; }
     .exam-countdown .days { font-size: 1.5rem; }
 }
+
+/* --- APP HEADER & DROPDOWN STYLES (PORTAL) --- */
+
+.app-header {
+    background: #fff;
+    border-bottom: 1px solid #e0e0e0;
+    height: 64px;
+    position: sticky;
+    top: 0;
+    z-index: 99;
+    padding: 0 20px;
+}
+
+.header-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 100%;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.page-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #202124;
+    margin: 0;
+}
+
+/* Sağ Taraf - Profil */
+.header-right {
+    display: flex;
+    align-items: center;
+}
+
+.user-menu-container {
+    position: relative;
+}
+
+.user-avatar-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 2px solid transparent; /* Hover efekti için */
+    padding: 0;
+    overflow: hidden;
+    cursor: pointer;
+    background: #f1f3f4;
+    transition: all 0.2s;
+}
+
+.user-avatar-btn:hover {
+    border-color: #d2e3fc; /* Google mavisi */
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+.user-avatar-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Dropdown Menü */
+.user-dropdown {
+    position: absolute;
+    top: 55px;
+    right: 0;
+    width: 250px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+    border: 1px solid #dadce0;
+    z-index: 1000;
+    /* Varsayılan olarak HTML'de inline style display:none var, JS ile açılacak */
+}
+
+.dropdown-header {
+    padding: 15px;
+    border-bottom: 1px solid #f1f3f4;
+    background: #f8f9fa;
+    border-radius: 8px 8px 0 0;
+}
+
+.user-name {
+    font-weight: 600;
+    color: #3c4043;
+    font-size: 0.95rem;
+}
+
+.user-email {
+    font-size: 0.8rem;
+    color: #5f6368;
+    margin-top: 2px;
+}
+
+.dropdown-items {
+    list-style: none;
+    padding: 8px 0;
+    margin: 0;
+}
+
+.dropdown-items li a {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 20px;
+    color: #3c4043;
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: background 0.2s;
+}
+
+.dropdown-items li a:hover {
+    background-color: #f1f3f4;
+}
+
+.divider {
+    height: 1px;
+    background: #f1f3f4;
+    margin: 5px 0;
+}
+
+.text-danger {
+    color: #d93025 !important;
+}
+
+.icon-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #5f6368;
+}
+
+@media (min-width: 769px) {
+    .hide-above-md { display: none; }
+}

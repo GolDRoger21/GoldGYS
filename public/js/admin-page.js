@@ -61,6 +61,44 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 });
 
+// --- HEADER YÖNETİMİ ---
+
+// 1. Menüyü Aç/Kapa (Global Fonksiyon)
+window.toggleUserMenu = function() {
+    const dropdown = document.getElementById('userDropdown');
+    if (dropdown) {
+        const isHidden = dropdown.style.display === 'none';
+        dropdown.style.display = isHidden ? 'block' : 'none';
+    }
+};
+
+// 2. Dışarı Tıklayınca Kapat
+document.addEventListener('click', function(event) {
+    const container = document.querySelector('.user-menu-container');
+    const dropdown = document.getElementById('userDropdown');
+    
+    // Eğer tıklama menü içinde değilse ve menü açıksa kapat
+    if (container && !container.contains(event.target) && dropdown && dropdown.style.display === 'block') {
+        dropdown.style.display = 'none';
+    }
+});
+
+// 3. Çıkış Yap (Global Fonksiyon)
+import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+window.handleLogout = async function() {
+    if(confirm("Oturumu kapatmak istediğinize emin misiniz?")) {
+        try {
+            const auth = getAuth();
+            await signOut(auth);
+            window.location.href = '/public/login.html';
+        } catch (error) {
+            console.error("Çıkış hatası:", error);
+            alert("Çıkış yapılırken bir hata oluştu.");
+        }
+    }
+};
+
 // --- DİĞER FONKSİYONLAR (Aynı kalabilir) ---
 function initTheme() {
     const themeToggle = document.querySelector('[data-theme-toggle]');
@@ -160,3 +198,4 @@ function updateAdminHeaderProfile(user) {
     if(elName) elName.textContent = name;
     if(elEmail) elEmail.textContent = user.email;
 }
+

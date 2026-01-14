@@ -4,14 +4,8 @@
     </div>
 </div>
 
-<div class="sidebar-user-info">
-    <div class="user-details">
-        <div id="userNameLabel" class="user-name">Yükleniyor...</div>
-        <div id="userRoleLabel" class="user-role">...</div>
-    </div>
-</div>
-
-<nav class="sidebar-nav">
+<nav class="sidebar-nav" style="display: flex; flex-direction: column; height: calc(100% - 70px);">
+    
     <div class="nav-label">GENEL</div>
     <a href="/pages/dashboard.html" class="nav-item" data-page="dashboard">
         <span class="icon">🏠</span> Genel Bakış
@@ -42,11 +36,12 @@
         <span class="icon">📊</span> Analiz Raporu
     </a>
     
-    <div id="admin-link-container" class="sidebar-footer-nav hidden" style="margin-top: auto; border-top: 1px solid rgba(255,255,255,0.1);">
-        <a href="/admin/index.html" class="nav-link danger-link">
-            <i class="icon-settings"></i> <span>Yönetici Paneli</span>
+    <div id="admin-link-container" class="sidebar-footer-nav hidden" style="margin-top: auto; padding: 15px 0;">
+        <a href="/admin/index.html" class="nav-item" style="color: #ff4444; background: rgba(255,0,0,0.05);">
+            <span class="icon">⚙️</span> Yönetici Paneli
         </a>
     </div>
+
 </nav>
 
 <div class="sidebar-footer">
