@@ -1,7 +1,6 @@
 <!-- Logo Header'da olduğu için buradan kaldırıldı -->
 
-<nav class="sidebar-nav" style="display: flex; flex-direction: column; height: calc(100% - 70px);">
-
+<nav class="sidebar-nav">
     <div class="nav-label">GENEL</div>
     <a href="/pages/dashboard.html" class="nav-item" data-page="dashboard">
         <span class="icon">🏠</span> Genel Bakış
@@ -32,12 +31,12 @@
         <span class="icon">📊</span> Analiz Raporu
     </a>
 
-    <div id="admin-link-container" class="sidebar-footer-nav hidden" style="margin-top: auto; padding: 15px 0;">
-        <a href="/admin/index.html" class="nav-item" style="color: #ff4444; background: rgba(255,0,0,0.05);">
+    <!-- Admin Link Container (JS ile kontrol edilir) -->
+    <div id="admin-link-container" class="hidden" style="margin-top: 1rem;">
+        <a href="/admin/index.html" class="nav-item admin-link">
             <span class="icon">⚙️</span> Yönetici Paneli
         </a>
     </div>
-
 </nav>
 
 <div class="sidebar-footer">
