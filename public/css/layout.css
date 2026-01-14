@@ -17,16 +17,6 @@ body {
     --layout-max-width: 1400px;
     --layout-gutter: clamp(1rem, 3vw, 2rem);
     --layout-grid-gap: clamp(1rem, 2vw, 1.5rem);
-
-    /* Global Tema Değişkenleri (Yedek) */
-    --bg-dark: #0F172A;
-    --bg-panel: #1E293B;
-    --gold-primary: #D4AF37;
-    --text-white: #F8FAFC;
-    --text-muted: #94A3B8;
-    --border-color: #334155;
-    --danger: #ef4444;
-    --header-height: 70px;
 }
 
 /* --- Container & Grid System --- */
@@ -150,7 +140,7 @@ body {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--bg-hover);
     padding: 6px 12px;
     border-radius: 6px;
     font-weight: 500;
@@ -272,7 +262,7 @@ body {
 
 .main-nav a:hover,
 .main-nav a.active {
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--bg-hover);
     color: var(--gold-primary);
 }
 
@@ -295,7 +285,7 @@ body {
 }
 
 .icon-button:hover {
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--bg-hover);
     color: var(--gold-primary);
 }
 
@@ -345,13 +335,7 @@ body {
     background: rgba(255, 255, 255, 0.08);
 }
 
-body.light-mode .icon-sun {
-    display: none;
-}
-
-body:not(.light-mode) .icon-moon {
-    display: none;
-}
+/* Light Mode is managed in tokens.css now */
 
 /* Avatar Stilleri (Eski kodlar temizlendi, yukarıya taşındı) */
 .user-avatar-circle {
@@ -450,7 +434,7 @@ body:not(.light-mode) .icon-moon {
 }
 
 .dropdown-item:hover {
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--bg-hover);
     color: var(--gold-primary);
 }
 

@@ -1,18 +1,28 @@
 <!DOCTYPE html>
 <html lang="tr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Yönetim Paneli | GOLD GYS</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
-    
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap"
+        rel="stylesheet">
+
+    <link rel="stylesheet" href="../styles/tokens.css">
     <link rel="stylesheet" href="../css/admin.css">
-    
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230F172A'/><text x='50' y='70' font-family='serif' font-size='60' fill='%23D4AF37' text-anchor='middle' font-weight='bold'>G</text></svg>">
-    
+
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230F172A'/><text x='50' y='70' font-family='serif' font-size='60' fill='%23D4AF37' text-anchor='middle' font-weight='bold'>G</text></svg>">
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style> body { visibility: hidden; } </style>
+    <style>
+        body {
+            visibility: hidden;
+        }
+    </style>
 </head>
+
 <body>
 
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
@@ -23,7 +33,7 @@
 
     <main class="main-content" id="main-content">
         <div class="content-wrapper">
-            
+
             <section id="section-dashboard" class="admin-section">
                 <div class="section-header">
                     <div>
@@ -34,7 +44,9 @@
                 </div>
 
                 <div class="row mb-4" id="statsGrid">
-                    <div class="col-md-12"><div class="card">Yükleniyor...</div></div>
+                    <div class="col-md-12">
+                        <div class="card">Yükleniyor...</div>
+                    </div>
                 </div>
 
                 <div class="row">
@@ -70,7 +82,9 @@
                         <div class="card">
                             <h3>👥 Son Üyeler</h3>
                             <div class="table-responsive">
-                                <table class="admin-table"><tbody id="recentUsersTable"></tbody></table>
+                                <table class="admin-table">
+                                    <tbody id="recentUsersTable"></tbody>
+                                </table>
                             </div>
                         </div>
                     </div>
@@ -78,7 +92,9 @@
                         <div class="card">
                             <h3>🚩 Bildirimler</h3>
                             <div class="table-responsive">
-                                <table class="admin-table"><tbody id="recentReportsTable"></tbody></table>
+                                <table class="admin-table">
+                                    <tbody id="recentReportsTable"></tbody>
+                                </table>
                             </div>
                         </div>
                     </div>
@@ -86,11 +102,21 @@
             </section>
 
             <section id="section-users" class="admin-section" style="display: none;">
-                <div class="section-header"><h2>Üye Yönetimi</h2></div>
+                <div class="section-header">
+                    <h2>Üye Yönetimi</h2>
+                </div>
                 <div class="card">
                     <div class="table-responsive">
                         <table class="admin-table">
-                            <thead><tr><th>Kullanıcı</th><th>Email</th><th>Rol</th><th>Tarih</th><th>İşlemler</th></tr></thead>
+                            <thead>
+                                <tr>
+                                    <th>Kullanıcı</th>
+                                    <th>Email</th>
+                                    <th>Rol</th>
+                                    <th>Tarih</th>
+                                    <th>İşlemler</th>
+                                </tr>
+                            </thead>
                             <tbody id="usersTableBody"></tbody>
                         </table>
                     </div>
@@ -98,25 +124,38 @@
             </section>
 
             <section id="section-content" class="admin-section" style="display: none;">
-                <div class="section-header"><h2>İçerik Yönetimi</h2></div>
-                <div class="card"><div id="topicsList"></div></div>
+                <div class="section-header">
+                    <h2>İçerik Yönetimi</h2>
+                </div>
+                <div class="card">
+                    <div id="topicsList"></div>
+                </div>
             </section>
 
             <section id="section-reports" class="admin-section" style="display: none;">
-                 <div class="section-header"><h2>Hata Bildirimleri</h2></div>
-                <div class="card"><div id="reportsList"></div></div>
+                <div class="section-header">
+                    <h2>Hata Bildirimleri</h2>
+                </div>
+                <div class="card">
+                    <div id="reportsList"></div>
+                </div>
             </section>
 
             <section id="section-legislation" class="admin-section" style="display: none;">
-                <div class="section-header"><h2>⚖️ Mevzuat Yönetimi</h2></div>
-                 <div class="card"><p style="color: var(--text-muted);">Yapım aşamasında...</p></div>
+                <div class="section-header">
+                    <h2>⚖️ Mevzuat Yönetimi</h2>
+                </div>
+                <div class="card">
+                    <p style="color: var(--text-muted);">Yapım aşamasında...</p>
+                </div>
             </section>
-            
+
             <section id="section-exams" class="admin-section" style="display: none;"></section>
-            </div>
+        </div>
     </main>
 
     <script type="module" src="../js/admin-page.js"></script>
     <script>window.addEventListener('load', () => { document.body.style.visibility = 'visible'; });</script>
 </body>
+
 </html>
