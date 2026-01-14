@@ -176,10 +176,12 @@ body {
     align-items: center;
     justify-content: space-between;
     padding: 0 1.5rem;
-    position: sticky;
+    position: fixed;
     top: 0;
-    z-index: 1050;
-    /* Z-index artırıldı */
+    left: 0;
+    width: 100%;
+    z-index: 1200;
+    /* Z-index artırıldı Sidebar'ın üstünde */
 }
 
 .header-left,
@@ -516,9 +518,9 @@ body {
     box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
     /* Modern gölge */
     position: fixed;
-    top: 0;
+    top: var(--header-height);
     left: 0;
-    height: 100vh;
+    height: calc(100vh - var(--header-height));
     z-index: 1100;
     display: flex;
     flex-direction: column;
@@ -722,5 +724,12 @@ body {
     .sidebar.active {
         transform: translateX(0);
         box-shadow: 10px 0 30px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Mobilde Sidebar Header'ın üstünde olmalı */
+    .sidebar {
+        top: 0;
+        height: 100vh;
+        z-index: 1300;
     }
 }
