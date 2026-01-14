@@ -169,6 +169,19 @@ function setupEventListeners() {
     });
 
     window.handleLogout = handleLogout;
+    // 4. Tema Değiştirme Butonu (Güneş/Ay)
+    const themeBtn = document.querySelector('[data-theme-toggle]');
+    if (themeBtn) {
+        // Mevcut temayı yükle
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        if (savedTheme === 'light') document.body.classList.add('light-mode');
+
+        themeBtn.addEventListener('click', () => {
+             document.body.classList.toggle('light-mode');
+             const isLight = document.body.classList.contains('light-mode');
+             localStorage.setItem('theme', isLight ? 'light' : 'dark');
+        });
+    }
 }
 
 /**
