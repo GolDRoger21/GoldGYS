@@ -84,7 +84,7 @@ async function loadRequiredHTML(isAdminPage) {
     ]);
 }
 
-async function loadHTML(url, targetId) {
+export async function loadHTML(url, targetId) {
     const target = document.getElementById(targetId);
     if (!target) {
         console.warn(`⚠️ Hedef element bulunamadı: #${targetId} (URL: ${url})`);
@@ -114,10 +114,14 @@ function setupEventListeners() {
         const newBtn = toggleBtn.cloneNode(true);
         toggleBtn.parentNode.replaceChild(newBtn, toggleBtn);
 
-        newBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
+        const toggleDropdown = (event) => {
+            if (event && event.stopPropagation) event.stopPropagation();
             const isVisible = dropdown.style.display === 'block';
             dropdown.style.display = isVisible ? 'none' : 'block';
+        };
+
+        newBtn.addEventListener('click', (e) => {
+            toggleDropdown(e);
         });
 
         // Dışarı tıklayınca kapat
@@ -126,6 +130,11 @@ function setupEventListeners() {
                 dropdown.style.display = 'none';
             }
         });
+
+        window.toggleUserMenu = (e) => {
+            if (e && e.stopPropagation) e.stopPropagation();
+            toggleDropdown(e);
+        };
     }
 
     // 2. Mobil Sidebar Toggle
@@ -158,6 +167,8 @@ function setupEventListeners() {
             handleLogout();
         }
     });
+
+    window.handleLogout = handleLogout;
 }
 
 /**
