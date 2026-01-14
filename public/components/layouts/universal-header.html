@@ -1,0 +1,87 @@
+<header class="universal-header">
+    <div class="header-inner">
+        <!-- SOL: Menü Toggle & Logo -->
+        <div class="header-left">
+            <button class="icon-button mobile-only" id="universal-toggle-btn" aria-label="Menüyü Aç/Kapa">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="3" y1="12" x2="21" y2="12"></line>
+                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                    <line x1="3" y1="18" x2="21" y2="18"></line>
+                </svg>
+            </button>
+
+            <!-- Logo (Hem Admin hem Dashboard için ortak stil) -->
+            <a href="/" class="header-brand">
+                GOLD <span class="brand-highlight">GYS</span>
+            </a>
+
+            <!-- Sayfa Başlığı -->
+            <div class="page-title-wrap">
+                <h1 class="page-title" id="pageTitle">Dersler & Konular</h1>
+            </div>
+        </div>
+
+        <!-- SAĞ: Tema & Profil -->
+        <div class="header-right">
+            <!-- Tema Toggle Button -->
+            <button class="theme-btn" type="button" data-theme-toggle aria-label="Temayı değiştir">
+                <span class="icon-sun">☀️</span>
+                <span class="icon-moon">🌙</span>
+            </button>
+
+            <!-- Profil Alanı -->
+            <div class="user-menu-container">
+                <button class="user-avatar-btn" id="userAvatarBtn" aria-label="Kullanıcı Menüsü" type="button">
+                    <img src="/img/default-avatar.svg" alt="User" class="avatar-img" id="headerAvatarImg"
+                        onerror="this.src='https://ui-avatars.com/api/?name=User&background=random'">
+                </button>
+
+                <!-- Dropdown Menü -->
+                <div class="user-dropdown" id="userDropdown" style="display: none;">
+                    <div class="dropdown-header">
+                        <div class="user-info">
+                            <div class="user-name" id="dropdownUserName">Yükleniyor...</div>
+                            <div class="user-email" id="dropdownUserEmail">...</div>
+                        </div>
+                    </div>
+
+                    <ul class="dropdown-items">
+                        <!-- Admin Linki (Sadece Adminlere görünür) -->
+                        <li id="adminPanelLink" style="display: none;">
+                            <a href="/admin/index.html">
+                                <span class="icon">⚙️</span> Yönetim Paneli
+                            </a>
+                        </li>
+
+                        <!-- Siteye Dön Linki (Sadece Admin Sayfasındaysa görünür - JS ile kontrol edilecek) -->
+                        <li id="backToSiteLink" style="display: none;">
+                            <a href="/pages/dashboard.html">
+                                <span class="icon">⬅️</span> Siteye Dön
+                            </a>
+                        </li>
+
+                        <li>
+                            <a href="/pages/profil.html">
+                                <span class="icon">👤</span> Profilim
+                            </a>
+                        </li>
+                        <li>
+                            <a href="/pages/yardim.html">
+                                <span class="icon">❓</span> Yardım Merkezi
+                            </a>
+                        </li>
+
+                        <li class="divider"></li>
+
+                        <li>
+                            <a href="#" class="text-danger logout" id="logoutBtn">
+                                <span class="icon">🚪</span> Çıkış Yap
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>

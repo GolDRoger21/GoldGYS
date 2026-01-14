@@ -81,23 +81,59 @@ export async function initLayout() {
 /**
  * Admin veya Public sayfasına göre doğru Header/Sidebar dosyalarını çeker.
  */
+/**
+ * Admin veya Public sayfasına göre doğru Header/Sidebar dosyalarını çeker.
+ * ARTIK TEK BİR HEADER KULLANILIYOR: universal-header.html
+ */
 async function loadRequiredHTML(isAdminPage) {
-    // DOĞRU DOSYA YOLLARI (Son yapıya uygun)
-    const headerUrl = isAdminPage
-        ? '/components/layouts/admin-header.html'
-        : '/partials/app-header.html';
+    // 1. HEADER (Tek Header Yapısı)
+    const headerUrl = '/components/layouts/universal-header.html';
+    const headerTargetId = document.getElementById('app-header-placeholder') ? 'app-header-placeholder' : 'header-area';
 
+    // 2. SIDEBAR (Sayfaya Göre Değişir)
     const sidebarUrl = isAdminPage
         ? '/partials/admin-sidebar.html'
         : '/partials/sidebar.html';
-
-    // Header nereye gömülecek? (Admin sayfasında farklı ID olabilir)
-    const headerTargetId = document.getElementById('app-header-placeholder') ? 'app-header-placeholder' : 'header-area';
 
     await Promise.all([
         loadHTML(headerUrl, headerTargetId),
         loadHTML(sidebarUrl, 'sidebar')
     ]);
+
+    // Header yüklendikten sonra Admin/User linklerini ayarla
+    setupUniversalHeader(isAdminPage);
+}
+
+function setupUniversalHeader(isAdmin) {
+    const adminLink = document.getElementById('adminPanelLink');
+    const backToSiteLink = document.getElementById('backToSiteLink');
+
+    if (adminLink) {
+        // Admin linkini sadece admin yetkisi varsa göster (daha sonra auth kontrolü tekrar yapacak)
+        // Şimdilik varsayılan gizli, auth kontrolünde açılacak.
+        adminLink.style.display = 'none';
+    }
+
+    if (backToSiteLink) {
+        // Siteye Dön linki sadece Admin sayfasındaysak görünsün
+        backToSiteLink.style.display = isAdmin ? 'block' : 'none';
+    }
+
+    // Mobil Menü Toggle Ayarı
+    const toggleBtn = document.getElementById('universal-toggle-btn');
+    if (toggleBtn) {
+        // Eski event listener'ları temizlemek mümkün olmadığından clone yöntemi
+        const newBtn = toggleBtn.cloneNode(true);
+        toggleBtn.parentNode.replaceChild(newBtn, toggleBtn);
+
+        newBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            if (sidebar) sidebar.classList.toggle('active');
+            if (overlay) overlay.classList.toggle('active');
+        });
+    }
 }
 
 export async function loadHTML(url, targetId) {

@@ -165,10 +165,11 @@ body {
 }
 
 /* Header Container */
+/* Header Container */
 .header-inner {
     height: var(--header-height);
-    background-color: rgba(15, 23, 42, 0.95);
-    /* Yarı saydam koyu */
+    background-color: var(--bg-header);
+    /* Dinamik Değişken */
     backdrop-filter: blur(10px);
     border-bottom: 1px solid var(--border-color);
     display: flex;
@@ -177,7 +178,8 @@ body {
     padding: 0 1.5rem;
     position: sticky;
     top: 0;
-    z-index: 900;
+    z-index: 1050;
+    /* Z-index artırıldı */
 }
 
 .header-left,
