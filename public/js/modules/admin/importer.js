@@ -1,5 +1,6 @@
 import { db } from "../../firebase-config.js";
 import { collection, writeBatch, doc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+// Excel kütüphanesini CDN'den alıyoruz
 import * as XLSX from "https://cdn.sheetjs.com/xlsx-latest/package/xlsx.mjs";
 
 export function initImporterPage() {
@@ -9,7 +10,7 @@ export function initImporterPage() {
     const container = document.getElementById('section-importer'); 
     
     if (!container) {
-        console.error("Importer section bulunamadı!");
+        console.error("Importer section bulunamadı! (HTML'de #section-importer var mı kontrol edin)");
         return;
     }
 
@@ -60,13 +61,17 @@ export function initImporterPage() {
         </div>
     `;
 
-    // Event Listenerlar
-    document.getElementById('fileInput').addEventListener('change', handleFileSelect);
-    document.getElementById('btnStartImport').addEventListener('click', startBatchImport);
-    document.getElementById('btnDownloadTemplate').addEventListener('click', downloadTemplate);
+    // Event Listenerlar (Elementler oluştuktan sonra)
+    const fileInp = document.getElementById('fileInput');
+    const startBtn = document.getElementById('btnStartImport');
+    const dlBtn = document.getElementById('btnDownloadTemplate');
+
+    if(fileInp) fileInp.addEventListener('change', handleFileSelect);
+    if(startBtn) startBtn.addEventListener('click', startBatchImport);
+    if(dlBtn) dlBtn.addEventListener('click', downloadTemplate);
 }
 
-// --- YARDIMCI FONKSİYONLAR (Aynı Mantıkla Devam Ediyor) ---
+// --- YARDIMCI FONKSİYONLAR ---
 let parsedQuestions = [];
 
 async function handleFileSelect(event) {
@@ -109,16 +114,35 @@ function convertExcelData(rawData) {
 
 function validateAndPreview() {
     const table = document.getElementById('previewTableBody');
+    if(!table) return;
+    
     table.innerHTML = '';
     let validCount = 0;
+    
     parsedQuestions.forEach((q, index) => {
         const isValid = q.text && q.correctOption;
         if(isValid) validCount++;
-        table.innerHTML += `<tr style="${!isValid?'background:rgba(255,0,0,0.1)':''}"><td>${index+1}</td><td>${q.category}</td><td>${q.text?.substring(0,30)}...</td><td>${isValid?'✅':'❌'}</td></tr>`;
+        
+        // Tablo satırı
+        const tr = document.createElement('tr');
+        if(!isValid) tr.style.background = 'rgba(255,0,0,0.1)';
+        tr.innerHTML = `
+            <td>${index+1}</td>
+            <td>${q.category}</td>
+            <td>${q.text?.substring(0,30)}...</td>
+            <td>${isValid?'✅':'❌'}</td>
+        `;
+        table.appendChild(tr);
     });
-    document.getElementById('previewCard').style.display = 'block';
-    document.getElementById('btnStartImport').disabled = validCount === 0;
-    document.getElementById('btnStartImport').innerText = `🚀 ${validCount} Soruyu Yükle`;
+
+    const card = document.getElementById('previewCard');
+    const btn = document.getElementById('btnStartImport');
+    
+    if(card) card.style.display = 'block';
+    if(btn) {
+        btn.disabled = validCount === 0;
+        btn.innerText = `🚀 ${validCount} Soruyu Yükle`;
+    }
 }
 
 async function startBatchImport() {
@@ -126,16 +150,27 @@ async function startBatchImport() {
     const batch = writeBatch(db);
     parsedQuestions.forEach(q => {
         q.createdAt = serverTimestamp();
-        batch.set(doc(collection(db, "questions")), q);
+        // Yeni ID ile ekle
+        const docRef = doc(collection(db, "questions"));
+        batch.set(docRef, q);
     });
-    try { await batch.commit(); log("✅ Başarıyla Yüklendi!", "success"); } 
+    try { 
+        await batch.commit(); 
+        log("✅ Başarıyla Yüklendi!", "success"); 
+        alert("İşlem tamamlandı.");
+        // Temizlik
+        parsedQuestions = [];
+        document.getElementById('previewCard').style.display = 'none';
+    } 
     catch(e) { log("Hata: " + e.message, "error"); }
 }
 
 function log(msg, type="info") {
     const area = document.getElementById('importLog');
-    const color = type === 'error' ? 'red' : (type === 'success' ? '#0f0' : '#aaa');
+    if(!area) return;
+    const color = type === 'error' ? '#ef4444' : (type === 'success' ? '#10b981' : '#9ca3af');
     area.innerHTML += `<div style="color:${color}">> ${msg}</div>`;
+    area.scrollTop = area.scrollHeight;
 }
 
 function downloadTemplate() {
