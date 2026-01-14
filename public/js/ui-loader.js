@@ -68,12 +68,12 @@ export async function initLayout() {
 async function loadRequiredHTML(isAdminPage) {
     // DOĞRU DOSYA YOLLARI (Son yapıya uygun)
     const headerUrl = isAdminPage 
-        ? '/public/components/layouts/admin-header.html' 
-        : '/public/partials/app-header.html';
+        ? '/components/layouts/admin-header.html' 
+        : '/partials/app-header.html';
         
     const sidebarUrl = isAdminPage 
-        ? '/public/partials/admin-sidebar.html' 
-        : '/public/partials/sidebar.html';
+        ? '/partials/admin-sidebar.html' 
+        : '/partials/sidebar.html';
     
     // Header nereye gömülecek? (Admin sayfasında farklı ID olabilir)
     const headerTargetId = document.getElementById('app-header-placeholder') ? 'app-header-placeholder' : 'header-area';
