@@ -1,16 +1,14 @@
 /**
  * @file Design Tokens
- * @description Defines the design system's foundational styles, including colors, typography, spacing, and more.
- * This file uses CSS custom properties (variables) to allow for theming and consistency across the application.
- * It includes definitions for both light and dark themes.
+ * @description Projenin temel stil değişkenleri (Renkler, Fontlar, Aralıklar).
+ * Admin, Dashboard ve Portal bu değişkenleri ortak kullanır.
  */
 
 :root {
   /* -------------------------------------------------------------------------- */
-  /*                                 Base Tokens                                */
+  /* TIPOGRAFİ                                  */
   /* -------------------------------------------------------------------------- */
 
-  /* Typography */
   --font-family-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-family-serif: "Playfair Display", Georgia, "Times New Roman", serif;
   
@@ -23,200 +21,73 @@
 
   --line-height-base: 1.6;
   --line-height-tight: 1.4;
-  --line-height-snug: 1.2;
 
-  /* Spacing */
-  --space-0: 0;
-  --space-1: 4px;
-  --space-2: 8px;
-  --space-3: 12px;
-  --space-4: 16px;
-  --space-6: 24px;
-  --space-8: 32px;
-  --space-12: 48px;
+  /* -------------------------------------------------------------------------- */
+  /* ANA RENKLER (GOLD)                             */
+  /* -------------------------------------------------------------------------- */
 
-  /* Semantic spacing aliases */
-  --space-2xs: var(--space-1);
-  --space-xs: var(--space-2);
-  --space-sm: var(--space-3);
-  --space-md: var(--space-4);
-  --space-lg: var(--space-6);
-  --space-xl: var(--space-8);
+  --gold-primary: #D4AF37;       /* Ana Altın Rengi */
+  --gold-dim: #b5932a;           /* Koyu Altın (Gradient için) */
+  --gold-light: rgba(212, 175, 55, 0.15); /* Hafif Altın (Hover için) */
+  
+  /* -------------------------------------------------------------------------- */
+  /* ARKA PLAN VE METİN                             */
+  /* -------------------------------------------------------------------------- */
 
-  /* Radius */
+  --bg-dark: #0F172A;            /* Ana Arka Plan (Koyu Lacivert) */
+  --bg-panel: #1E293B;           /* Kart/Panel Arka Planı */
+  --bg-sidebar: #0B1120;         /* Sidebar Arka Planı */
+  
+  --text-white: #F8FAFC;         /* Beyaz Metin */
+  --text-muted: #94A3B8;         /* Silik Metin (Gri) */
+  --border-color: #334155;       /* Çerçeve Rengi */
+
+  /* -------------------------------------------------------------------------- */
+  /* DURUM RENKLERİ                                 */
+  /* -------------------------------------------------------------------------- */
+
+  /* Success (Yeşil) */
+  --color-success: #10b981;
+  --color-success-bg: rgba(16, 185, 129, 0.15);
+  --color-success-border: #4ADE80;
+
+  /* Warning (Sarı) */
+  --color-warning: #f59e0b;
+  --color-warning-bg: rgba(245, 158, 11, 0.15);
+  --color-warning-border: #FCD34D;
+
+  /* Danger (Kırmızı) */
+  --color-danger: #ef4444;
+  --color-danger-bg: rgba(239, 68, 68, 0.15);
+  --color-danger-border: #FCA5A5;
+
+  /* Info (Mavi) */
+  --color-info: #3b82f6;
+  --color-info-bg: rgba(59, 130, 246, 0.15);
+
+  /* -------------------------------------------------------------------------- */
+  /* DİĞER AYARLAR                               */
+  /* -------------------------------------------------------------------------- */
+  
   --radius-sm: 4px;
   --radius-md: 8px;
-  --radius-lg: 16px;
-  --radius-full: 9999px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
 
-  /* Shadows */
+  --sidebar-width: 280px;
+  --header-height: 64px;
+  
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  --shadow-soft: 0 15px 45px -10px rgba(15, 23, 42, 0.15);
-  --shadow-strong: 0 25px 70px -20px rgba(15, 23, 42, 0.22);
-  --shadow-inner: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
-
-  /* Breakpoints */
-  --bp-sm: 640px;
-  --bp-md: 768px;
-  --bp-lg: 1024px;
-  --bp-xl: 1280px;
-
-  /* Z-Index */
-  --z-index-dropdown: 1000;
-  --z-index-modal: 1050;
-  --z-index-tooltip: 1100;
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
 }
 
-/* -------------------------------------------------------------------------- */
-/*                                 Light Theme                                */
-/* -------------------------------------------------------------------------- */
-
-:root,
-[data-theme="light"] {
-  /* Primary & Accent Colors */
-  --color-primary: #D4AF37;          /* Gold */
-  --color-primary-soft: #F3E5AB;     /* Light Gold */
-  --color-primary-strong: #B5952F;   /* Dark Gold */
-  --color-accent: #1E293B;           /* Deep Navy - For contrast */
-
-  /* Background & Surface Colors */
-  --color-bg: #F8FAFC;               /* Very light gray, almost white */
-  --color-surface: #FFFFFF;          /* Pure white for cards, modals */
-  --color-surface-alt: #F1F5F9;      /* Slightly darker than bg */
-  
-  /* Text Colors */
-  --color-text: #1E293B;             /* Primary text, high contrast */
-  --color-text-secondary: #475569;   /* Secondary text, slightly lighter */
-  --color-text-muted: #64748B;       /* Muted text for hints, captions */
-  --color-text-on-primary: #FFFFFF;  /* Text on primary color backgrounds */
-  --color-text-on-accent: #FFFFFF;   /* Text on accent color backgrounds */
-
-  /* Neutral layers */
-  --color-layer: #1E293B;
-  --color-layer-strong: #0F172A;
-  --color-layer-soft: #E2E8F0;
-  --color-text-contrast: #FFFFFF;
-
-  /* Supporting neutrals */
-  --color-neutral-50: #F8FAFC;
-  --color-neutral-100: #F1F5F9;
-  --color-border-muted: #E2E8F0;
-  --color-contrast-soft: rgba(15, 23, 42, 0.08);
-
-  /* Border Colors */
-  --color-border: #E2E8F0;           /* Default border */
-  --color-border-strong: #CBD5E1;    /* Stronger border */
-  --color-border-interactive: #94A3B8; /* For interactive elements */
-
-  /* Semantic Colors */
-  --color-success: #10B981;
-  --color-success-border: #34D399;
-  --color-success-soft: #D1FAE5;
-  --color-success-strong: #059669;
-  --color-warning: #F59E0B;
-  --color-warning-border: #FCD34D;
-  --color-warning-soft: #FEF3C7;
-  --color-warning-strong: #D97706;
-  --color-danger: #EF4444;
-  --color-danger-border: #FCA5A5;
-  --color-danger-soft: #FEE2E2;
-  --color-danger-strong: #DC2626;
-  --color-info: #3B82F6;
-  --color-info-soft: #DBEAFE;
-  --color-info-strong: #2563EB;
-
-  /* Overlays */
-  --color-overlay: rgba(0, 0, 0, 0.4);
-
-  /* Brand aliases */
-  --gold-main: #D4AF37;
-  --gold-light: #F3E5AB;
-  --gold-dark: #B5952F;
-  --gold-gradient: linear-gradient(135deg, var(--gold-light), var(--gold-main));
-  --gradient-primary: linear-gradient(135deg, var(--color-primary), var(--color-primary-strong));
-  --primary: var(--color-primary);
-  --accent: var(--color-accent);
-  --success: var(--color-success);
-  --text-muted: var(--color-text-muted);
-  --navy-deep: #0F172A;
-  --navy-light: #334155;
-  --font-serif: var(--font-family-serif);
-}
-
-
-/* -------------------------------------------------------------------------- */
-/*                                  Dark Theme                                */
-/* -------------------------------------------------------------------------- */
-
-[data-theme="dark"] {
-  /* Primary & Accent Colors */
-  --color-primary: #D4AF37;          /* Gold - remains consistent */
-  --color-primary-soft: #B5952F;     /* Darker gold for soft variant in dark mode */
-  --color-primary-strong: #F3E5AB;   /* Lighter gold for strong variant */
-  --color-accent: #F3E5AB;           /* Light Gold - for contrast */
-
-  /* Background & Surface Colors */
-  --color-bg: #0F172A;               /* Deep, dark navy blue */
-  --color-surface: #1E293B;          /* Slightly lighter surface for cards */
-  --color-surface-alt: #283447;      /* A slightly lighter surface for hover, etc. */
-
-  /* Text Colors */
-  --color-text: #E2E8F0;             /* Primary text, light gray */
-  --color-text-secondary: #94A3B8;   /* Secondary text, a bit darker */
-  --color-text-muted: #64748B;       /* Muted text */
-  --color-text-on-primary: #1E293B;  /* Text on primary color backgrounds */
-  --color-text-on-accent: #0F172A;   /* Text on accent color backgrounds */
-
-  /* Neutral layers */
-  --color-layer: #F3E5AB;
-  --color-layer-strong: #D4AF37;
-  --color-layer-soft: rgba(243, 229, 171, 0.15);
-  --color-text-contrast: #0F172A;
-
-  /* Supporting neutrals */
-  --color-neutral-50: #1E293B;
-  --color-neutral-100: #283447;
-  --color-border-muted: #334155;
-  --color-contrast-soft: rgba(255, 255, 255, 0.12);
-
-  /* Border Colors */
-  --color-border: #334155;           /* Default border */
-  --color-border-strong: #475569;    /* Stronger border */
-  --color-border-interactive: #64748B; /* For interactive elements */
-
-  /* Semantic Colors */
-  --color-success: #22C55E;
-  --color-success-border: #4ADE80;
-  --color-success-soft: rgba(34, 197, 94, 0.15);
-  --color-success-strong: #4ADE80;
-  --color-warning: #FBBF24;
-  --color-warning-border: #FDE68A;
-  --color-warning-soft: rgba(251, 191, 36, 0.15);
-  --color-warning-strong: #FCD34D;
-  --color-danger: #F87171;
-  --color-danger-border: #FCA5A5;
-  --color-danger-soft: rgba(248, 113, 113, 0.15);
-  --color-danger-strong: #FCA5A5;
-  --color-info: #60A5FA;
-  --color-info-soft: rgba(96, 165, 250, 0.15);
-  --color-info-strong: #93C5FD;
-  
-  /* Overlays */
-  --color-overlay: rgba(0, 0, 0, 0.6);
-
-  /* Brand aliases */
-  --gold-main: #D4AF37;
-  --gold-light: #F3E5AB;
-  --gold-dark: #B5952F;
-  --gold-gradient: linear-gradient(135deg, var(--gold-main), var(--gold-light));
-  --gradient-primary: linear-gradient(135deg, var(--color-primary-strong), var(--color-primary));
-  --primary: var(--color-primary);
-  --accent: var(--color-accent);
-  --success: var(--color-success);
-  --text-muted: var(--color-text-muted);
-  --navy-deep: #E2E8F0;
-  --navy-light: #CBD5E1;
-  --font-serif: var(--font-family-serif);
+/* Light Mode Desteği (İleride gerekirse) */
+body.light-mode {
+    --bg-dark: #F1F5F9;
+    --bg-panel: #FFFFFF;
+    --text-white: #1E293B;
+    --text-muted: #64748B;
+    --border-color: #E2E8F0;
+    --bg-sidebar: #FFFFFF;
 }
