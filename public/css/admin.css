@@ -155,11 +155,23 @@ body.light-mode {
 }
 
 .page-title {
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: var(--gold-primary);
+    font-size: 1.15rem;
+    font-weight: 500;
+    color: var(--text-white); /* Gold yerine Beyaz */
+    opacity: 0.9;
     margin: 0;
 }
+
+/* Mobil için Header Logo (Varsayılan gizli) */
+.mobile-brand {
+    display: none;
+    font-family: 'Playfair Display', serif;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--text-white);
+    margin-right: 15px;
+}
+.mobile-brand span { color: var(--gold-primary); }
 
 /* User Menu & Dropdown */
 .header-right { display: flex; align-items: center; gap: 12px; }
@@ -337,6 +349,12 @@ body:not(.light-mode) .icon-moon { display: none; }
 }
 @media (min-width: 1025px) {
     .mobile-only { display: none; }
+}
+
+@media (max-width: 1024px) {
+    /* Mobilde Başlığı Gizle, Logoyu Göster */
+    .page-title { display: none; }
+    .mobile-brand { display: block; }
 }
 
 /* --- EXTRA GRID SYSTEM (DASHBOARD İÇİN) --- */

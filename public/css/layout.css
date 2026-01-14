@@ -4,7 +4,7 @@
     --layout-max-width: 1400px;
     --layout-gutter: clamp(1rem, 3vw, 2rem);
     --layout-grid-gap: clamp(1rem, 2vw, 1.5rem);
-    
+
     /* Global Tema Değişkenleri (Yedek) */
     --bg-dark: #0F172A;
     --bg-panel: #1E293B;
@@ -31,35 +31,91 @@
 }
 
 /* Column Spans */
-.col-span-1 { grid-column: span 1; }
-.col-span-2 { grid-column: span 2; }
-.col-span-3 { grid-column: span 3; }
-.col-span-4 { grid-column: span 4; }
-.col-span-5 { grid-column: span 5; }
-.col-span-6 { grid-column: span 6; }
-.col-span-7 { grid-column: span 7; }
-.col-span-8 { grid-column: span 8; }
-.col-span-9 { grid-column: span 9; }
-.col-span-10 { grid-column: span 10; }
-.col-span-11 { grid-column: span 11; }
-.col-span-12 { grid-column: span 12; }
+.col-span-1 {
+    grid-column: span 1;
+}
+
+.col-span-2 {
+    grid-column: span 2;
+}
+
+.col-span-3 {
+    grid-column: span 3;
+}
+
+.col-span-4 {
+    grid-column: span 4;
+}
+
+.col-span-5 {
+    grid-column: span 5;
+}
+
+.col-span-6 {
+    grid-column: span 6;
+}
+
+.col-span-7 {
+    grid-column: span 7;
+}
+
+.col-span-8 {
+    grid-column: span 8;
+}
+
+.col-span-9 {
+    grid-column: span 9;
+}
+
+.col-span-10 {
+    grid-column: span 10;
+}
+
+.col-span-11 {
+    grid-column: span 11;
+}
+
+.col-span-12 {
+    grid-column: span 12;
+}
 
 /* Breakpoint Utilities */
 @media (max-width: 1200px) {
-    .lg-col-span-12 { grid-column: span 12; }
-    .lg-col-span-6 { grid-column: span 6; }
-    .lg-col-span-4 { grid-column: span 4; }
+    .lg-col-span-12 {
+        grid-column: span 12;
+    }
+
+    .lg-col-span-6 {
+        grid-column: span 6;
+    }
+
+    .lg-col-span-4 {
+        grid-column: span 4;
+    }
 }
 
 @media (max-width: 1024px) {
-    .md-col-span-12 { grid-column: span 12; }
-    .md-col-span-6 { grid-column: span 6; }
-    .hide-below-md { display: none !important; }
+    .md-col-span-12 {
+        grid-column: span 12;
+    }
+
+    .md-col-span-6 {
+        grid-column: span 6;
+    }
+
+    .hide-below-md {
+        display: none !important;
+    }
 }
 
 @media (max-width: 768px) {
-    .sm-col-span-12 { grid-column: span 12; }
-    .hide-below-sm { display: none !important; }
+    .sm-col-span-12 {
+        grid-column: span 12;
+    }
+
+    .hide-below-sm {
+        display: none !important;
+    }
 }
 
 /* --- GLOBAL HEADER STYLES (Dark Theme) --- */
@@ -108,7 +164,8 @@
 /* Header Container */
 .header-inner {
     height: var(--header-height);
-    background-color: rgba(15, 23, 42, 0.95); /* Yarı saydam koyu */
+    background-color: rgba(15, 23, 42, 0.95);
+    /* Yarı saydam koyu */
     backdrop-filter: blur(10px);
     border-bottom: 1px solid var(--border-color);
     display: flex;
@@ -159,9 +216,25 @@
 }
 
 .page-title {
-    font-size: 1rem;
-    font-weight: 600;
+    font-size: 1.1rem;
+    font-weight: 500;
     color: var(--text-white);
+    /* Gold yerine Beyaz */
+    opacity: 0.9;
+}
+
+/* Mobil Logo */
+.header-mobile-brand {
+    display: none;
+    font-family: 'Playfair Display', serif;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--text-white);
+    margin-left: 10px;
+}
+
+.header-mobile-brand span {
+    color: var(--gold-primary);
 }
 
 /* Ana Navigasyon (Desktop) */
@@ -259,7 +332,8 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
-    display: none; /* JS ile kontrol edilir */
+    display: none;
+    /* JS ile kontrol edilir */
 }
 
 .user-avatar-circle.has-photo .user-avatar-image {
@@ -272,7 +346,8 @@
 
 /* Profil Dropdown Menü */
 .profile-dropdown {
-    display: none; /* JS ile toggle */
+    display: none;
+    /* JS ile toggle */
     position: absolute;
     top: calc(var(--header-height) + 5px);
     right: 1.5rem;
@@ -288,8 +363,15 @@
 }
 
 @keyframes slideDown {
-    from { opacity: 0; transform: translateY(-10px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .profile-dropdown.active {
@@ -380,16 +462,24 @@
 /* Responsive */
 @media (max-width: 992px) {
     .main-nav {
-        display: none; /* Mobilde sidebar kullanılır */
+        display: none;
+        /* Mobilde sidebar kullanılır */
     }
+
     .page-title-wrap {
-        display: none; /* Mobilde yer kazanmak için başlığı gizle */
+        display: none;
+        /* Mobilde yer kazanmak için başlığı gizle */
+    }
+
+    .header-mobile-brand {
+        display: block;
+        /* Mobilde logoyu göster */
     }
 }
 
 /* DÜZELTME: !important kaldırıldı. Artık JS yetkiyi doğrulayınca menüyü gösterebilecek. */
 .admin-only {
-    display: none; 
+    display: none;
 }
 
 /* Admin Erişim Butonu */
