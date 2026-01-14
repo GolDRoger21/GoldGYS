@@ -34,19 +34,8 @@ body {
     top: 0;
 }
 
-/* Header, Admin'de sidebar'ın yanına gelmeli (Desktop) */
-@media (min-width: 1025px) {
-    .universal-header {
-        margin-left: var(--sidebar-width);
-        width: calc(100% - var(--sidebar-width));
-        transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    body.sidebar-collapsed .universal-header {
-        margin-left: var(--sidebar-width-collapsed);
-        width: calc(100% - var(--sidebar-width-collapsed));
-    }
-}
+/* Header, Admin'de sidebar'ın yanına gelmeli (Desktop) -> ARTIK LAYOUT.CSS YÖNETIYOR */
+/* .universal-header styles removed to prevent conflict */
 
 .header-left {
     display: flex;
@@ -229,19 +218,7 @@ body:not(.light-mode) .icon-moon {
    ========================================= */
 .main-content {
     flex: 1;
-    margin-left: var(--sidebar-width);
-    margin-top: var(--header-height);
-    background-color: var(--bg-dark);
-    min-height: calc(100vh - var(--header-height));
-    padding: 2rem;
-    padding: 2rem;
-    transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-@media (min-width: 1025px) {
-    body.sidebar-collapsed .main-content {
-        margin-left: var(--sidebar-width-collapsed);
-    }
+    /* .main-content margins are now handled in layout.css */
 }
 
 .row {
@@ -565,10 +542,12 @@ body:not(.light-mode) .icon-moon {
     align-items: center;
     justify-content: center;
     padding: 1rem;
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--bg-hover);
+    /* Fixed: Use variable for light mode support */
     border: 1px solid var(--border-color);
     border-radius: 8px;
     color: var(--text-white);
+    /* TODO: Ensure this is dark in light mode via tokens */
     cursor: pointer;
     transition: all 0.2s;
 }

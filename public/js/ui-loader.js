@@ -141,7 +141,6 @@ function setupUniversalHeader(isAdmin) {
             // Eğer Desktop ise (> 1024px) -> Collapse Toggle
             if (window.innerWidth > 1024) {
                 document.body.classList.toggle('sidebar-collapsed');
-                if (sidebar) sidebar.classList.toggle('collapsed');
 
                 // Durumu kaydet
                 const isCollapsed = document.body.classList.contains('sidebar-collapsed');
