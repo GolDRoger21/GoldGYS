@@ -123,12 +123,29 @@ function activateTab(tabId, role) {
         
         // İlgili modülün JS kodlarını çalıştır (Lazy Execution)
         loadModuleData(tabId, role);
+        updatePageTitle(tabId);
     } else {
         // Geçersiz bir hash ise varsayılan olarak dashboard'u aç
         if (tabId !== 'dashboard') {
             console.warn(`Section bulunamadı: ${tabId}, Dashboard'a yönlendiriliyor.`);
             activateTab('dashboard', role);
         }
+    }
+}
+
+function updatePageTitle(tabId) {
+    const titles = {
+        dashboard: 'Genel Bakış',
+        users: 'Üye Yönetimi',
+        content: 'Konu ve Ders Yönetimi',
+        exams: 'Sınav Yönetimi',
+        reports: 'Bildirimler',
+        legislation: 'Mevzuat Yönetimi'
+    };
+
+    const pageTitle = document.getElementById('pageTitle');
+    if (pageTitle) {
+        pageTitle.textContent = titles[tabId] || 'Yönetim Paneli';
     }
 }
 
