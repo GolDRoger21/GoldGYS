@@ -1,5 +1,6 @@
 import { requireAdminOrEditor } from "./role-guard.js";
 import { initLayout } from "./ui-loader.js";
+import './header-manager.js'; // Import header manager
 
 // --- MODÜL IMPORTLARI ---
 import * as DashboardModule from "./modules/admin/dashboard.js";

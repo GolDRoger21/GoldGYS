@@ -1,54 +1,26 @@
-<div class="sidebar-header">
-    <a href="/admin/index.html" class="brand-logo">GOLD <span style="color: var(--gold-primary);">YÖNETİM</span></a>
-    <button class="close-sidebar-btn" id="closeSidebar">✕</button>
-</div>
-
-<div class="sidebar-user-info">
-    <div class="user-details">
-        <div class="user-name" id="sidebarUserName">Yönetici</div>
-        <div class="user-role" id="sidebarUserRole">Sistem Yöneticisi</div>
+<div class="sidebar-brand">
+    <div class="logo-container">
+        <span class="logo-text">GOLD GYS <span class="badge-admin">Admin</span></span>
     </div>
 </div>
 
 <nav class="sidebar-nav">
-    <div class="nav-label">GENEL</div>
-    <a href="#" class="nav-item active" data-tab="dashboard">
-        <span class="icon">📊</span> Genel Bakış
-    </a>
+    <ul>
+        <li>
+            <a href="/admin/index.html" class="nav-link active">
+                <i class="icon-dashboard"></i> <span>Genel Bakış</span>
+            </a>
+        </li>
+        <li>
+            <a href="/admin/users.html" class="nav-link">
+                <i class="icon-users"></i> <span>Kullanıcılar</span>
+            </a>
+        </li>
+    </ul>
 
-    <div class="nav-label">SINAV MERKEZİ</div>
-    <a href="#" class="nav-item" data-tab="exams">
-        <span class="icon">📝</span> Deneme Sınavları
-    </a>
-    <a href="#" class="nav-item" data-tab="content">
-        <span class="icon">📚</span> Soru Bankası
-    </a>
-    <a href="#" class="nav-item" data-tab="importer">
-        <span class="icon">📥</span> Toplu Soru Yükle
-    </a>
-
-    <div class="admin-only" style="display: none;">
-        <div class="nav-label">YÖNETİM & SİSTEM</div>
-        <a href="#" class="nav-item" data-tab="users">
-            <span class="icon">👥</span> Üye Yönetimi
-        </a>
-        <a href="#" class="nav-item" data-tab="legislation">
-            <span class="icon">⚖️</span> Mevzuat Takibi
-        </a>
-        <a href="#" class="nav-item" data-tab="reports">
-            <span class="icon">🚩</span> Hata Bildirimleri
-        </a>
-    </div>
-
-    <div class="sidebar-footer-link">
-        <a href="/pages/dashboard.html" class="nav-item">
-            <span class="icon">⬅️</span> Siteye Dön
+    <div class="sidebar-footer-nav" style="margin-top: auto; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px;">
+        <a href="/pages/dashboard.html" class="nav-link warning-link">
+            <i class="icon-home"></i> <span>Siteye Dön (Portal)</span>
         </a>
     </div>
 </nav>
-
-<div class="sidebar-footer">
-    <button id="logoutBtn" class="nav-item logout">
-        <span class="icon">🚪</span> Çıkış Yap
-    </button>
-</div>

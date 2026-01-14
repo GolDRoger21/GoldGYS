@@ -3,6 +3,7 @@
 import { initLayout } from './ui-loader.js';
 import { auth } from "./firebase-config.js";
 import { getUserProfile } from "./user-profile.js";
+import './header-manager.js'; // Import header manager
 
 // UI Elementleri
 const ui = {

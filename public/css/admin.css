@@ -472,3 +472,112 @@ body.light-mode .section-header h2 { color: #0F172A; }
     background: rgba(239, 68, 68, 0.15);
     color: #ef4444;
 }
+
+/* HEADER TEMİZLİĞİ */
+.app-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 64px;
+    background: #fff;
+    padding: 0 24px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    /* Logo zaten sidebar'da, burada margin-left sidebar genişliği kadar olmalı (layout'a göre değişir) */
+}
+
+/* AVATAR & DROPDOWN (Google Style) */
+.user-menu-container {
+    position: relative;
+}
+
+.user-avatar-btn {
+    background: none;
+    border: none;
+    padding: 4px;
+    cursor: pointer;
+    border-radius: 50%;
+    transition: background 0.2s;
+}
+
+.user-avatar-btn:hover {
+    background: rgba(0,0,0,0.05);
+}
+
+.user-avatar-btn img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #e0e0e0;
+}
+
+.user-dropdown {
+    position: absolute;
+    top: 55px;
+    right: 0;
+    width: 240px;
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    z-index: 1000;
+    display: none; /* JS ile toggle edilecek */
+    flex-direction: column;
+}
+
+.user-dropdown.show {
+    display: flex;
+    animation: fadeIn 0.2s ease-out;
+}
+
+.dropdown-header {
+    padding: 16px;
+    border-bottom: 1px solid #eee;
+    background-color: #f8f9fa;
+    border-radius: 8px 8px 0 0;
+}
+
+.user-name { font-weight: 600; color: #333; margin: 0; }
+.user-email { font-size: 0.85rem; color: #666; margin: 0; }
+
+.dropdown-items {
+    list-style: none;
+    padding: 8px 0;
+    margin: 0;
+}
+
+.dropdown-items li a {
+    display: block;
+    padding: 10px 16px;
+    color: #444;
+    text-decoration: none;
+    font-size: 0.95rem;
+    transition: background 0.2s;
+}
+
+.dropdown-items li a:hover {
+    background-color: #f1f3f4; /* Google hover rengi */
+}
+
+.divider {
+    height: 1px;
+    background: #eee;
+    margin: 4px 0;
+}
+
+.text-danger { color: #d93025 !important; }
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* SIDEBAR FOOTER LINK (Siteye Dön / Admin Paneli) */
+.sidebar-footer-nav a {
+    background: rgba(255, 255, 255, 0.05);
+    margin: 10px 15px;
+    border-radius: 6px;
+    justify-content: center;
+}
+.warning-link { color: #fbbc04 !important; } /* Sarımtırak */
+.danger-link { color: #ff8a80 !important; } /* Kırmızımtırak */
