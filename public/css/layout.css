@@ -505,6 +505,192 @@ body {
     box-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
 }
 
-.btn-admin-access .icon {
-    font-size: 1.1em;
+
+/* =========================================
+   SIDEBAR (UNIFIED & MODERN)
+   ========================================= */
+.sidebar {
+    width: var(--sidebar-width);
+    background-color: var(--bg-sidebar);
+    border-right: 1px solid transparent;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
+    /* Modern gölge */
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    z-index: 1100;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sidebar-nav {
+    flex: 1;
+    padding: 1.5rem 1rem;
+    overflow-y: auto;
+    /* İnce scrollbar */
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-color) transparent;
+}
+
+.sidebar-nav::-webkit-scrollbar {
+    width: 4px;
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb {
+    background-color: var(--border-color);
+    border-radius: 4px;
+}
+
+.nav-label {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    margin: 1.5rem 0 0.5rem 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    opacity: 0.8;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    padding: 0.85rem 1rem;
+    color: var(--text-muted);
+    text-decoration: none;
+    border-radius: 8px;
+    /* Yumuşak köşeler */
+    margin-bottom: 0.25rem;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    width: 100%;
+    text-align: left;
+    font-family: inherit;
+    font-size: 0.95rem;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Hover Efekti */
+.nav-item:hover {
+    background-color: var(--bg-hover);
+    color: var(--text-white);
+    transform: translateX(3px);
+    /* Hafif kayma */
+}
+
+/* Aktif Durum */
+.nav-item.active {
+    background: linear-gradient(90deg, rgba(212, 175, 55, 0.15) 0%, rgba(212, 175, 55, 0.05) 100%);
+    color: var(--gold-primary);
+    font-weight: 600;
+}
+
+/* Aktif durum için sol çizgi efekti */
+.nav-item.active::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 60%;
+    width: 3px;
+    background-color: var(--gold-primary);
+    border-radius: 0 4px 4px 0;
+}
+
+.nav-item .icon {
+    margin-right: 12px;
+    font-size: 1.2rem;
+    min-width: 24px;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s;
+}
+
+.nav-item:hover .icon {
+    transform: scale(1.1);
+    color: var(--gold-primary);
+}
+
+/* Footer (Logout vb.) */
+.sidebar-footer {
+    padding: 1rem;
+    border-top: 1px solid var(--border-color);
+    background: var(--bg-sidebar);
+}
+
+.nav-item.logout {
+    color: var(--danger);
+}
+
+.nav-item.logout:hover {
+    background-color: rgba(239, 68, 68, 0.1);
+    color: var(--danger);
+}
+
+.nav-item.logout .icon {
+    color: var(--danger);
+}
+
+/* Admin Panel Linki (Özel Stil) */
+.nav-item.admin-link {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--danger);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.nav-item.admin-link:hover {
+    background: rgba(239, 68, 68, 0.2);
+}
+
+/* Portal Linki (Admin'den Dönüş) */
+.nav-item.portal-link {
+    background: rgba(212, 175, 55, 0.1);
+    color: var(--gold-primary);
+    border: 1px solid rgba(212, 175, 55, 0.2);
+}
+
+.nav-item.portal-link:hover {
+    background: rgba(212, 175, 55, 0.2);
+}
+
+/* Mobile Overlay */
+.sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 1090;
+    /* Sidebar'ın hemen altı */
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    backdrop-filter: blur(2px);
+}
+
+.sidebar-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .sidebar {
+        transform: translateX(-100%);
+        box-shadow: none;
+    }
+
+    .sidebar.active {
+        transform: translateX(0);
+        box-shadow: 10px 0 30px rgba(0, 0, 0, 0.3);
+    }
 }
