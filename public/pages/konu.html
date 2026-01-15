@@ -18,6 +18,29 @@
   <link rel="stylesheet" href="/css/footer.css">
 
   <style>
+    /* Footer Özelleştirme - Sadeleştirme & Hizalama (Konular) */
+    .app-footer .footer-links-grid {
+      display: none !important;
+    }
+
+    .app-footer .footer-shell {
+      gap: 0;
+    }
+
+    .app-footer .footer-meta {
+      border-top: none;
+      padding-top: 0;
+      justify-content: space-between !important;
+      flex-direction: row;
+    }
+
+    @media (max-width: 768px) {
+      .app-footer {
+        padding-top: 1rem;
+        padding-bottom: 2rem;
+      }
+    }
+
     /* Detay Sayfasına Özel Stiller */
     .hero-card {
       background: linear-gradient(135deg, var(--navy-light) 0%, #162445 100%);

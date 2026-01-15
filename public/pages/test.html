@@ -1,11 +1,14 @@
 <!DOCTYPE html>
 <html lang="tr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Test Çöz | GOLD GYS</title>
 
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap"
+        rel="stylesheet">
 
     <link rel="stylesheet" href="../styles/tokens.css">
     <link rel="stylesheet" href="../css/layout.css">
@@ -45,11 +48,25 @@
             min-width: 100px;
         }
 
-        .counter-item .label { color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; }
-        .counter-item .value { font-weight: 700; font-size: 1.2rem; color: var(--text-white); }
+        .counter-item .label {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+        }
 
-        .counter-item.success .value { color: var(--color-success); }
-        .counter-item.danger .value { color: var(--color-danger); }
+        .counter-item .value {
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: var(--text-white);
+        }
+
+        .counter-item.success .value {
+            color: var(--color-success);
+        }
+
+        .counter-item.danger .value {
+            color: var(--color-danger);
+        }
 
         /* Şıkların üzerine gelince */
         .option-label:hover {
@@ -58,12 +75,41 @@
         }
 
         @media (max-width: 768px) {
-            .test-header-card { flex-direction: column; gap: 15px; align-items: stretch; top: calc(var(--header-height) + 6px); }
-            .counters-grid { justify-content: space-between; }
-            .counter-item { padding: 5px 10px; min-width: auto; }
+            .test-header-card {
+                flex-direction: column;
+                gap: 15px;
+                align-items: stretch;
+                top: calc(var(--header-height) + 6px);
+            }
+
+            .counters-grid {
+                justify-content: space-between;
+            }
+
+            .counter-item {
+                padding: 5px 10px;
+                min-width: auto;
+            }
+        }
+
+        /* Footer Özelleştirme - Sınav Modu */
+        .app-footer .footer-links-grid {
+            display: none !important;
+        }
+
+        .app-footer .footer-shell {
+            gap: 0;
+        }
+
+        .app-footer .footer-meta {
+            border-top: none;
+            padding-top: 0;
+            justify-content: space-between !important;
+            flex-direction: row;
         }
     </style>
 </head>
+
 <body>
     <div id="mainWrapper">
         <div class="sidebar-overlay" id="sidebarOverlay"></div>
@@ -75,7 +121,8 @@
                 <div class="test-header-card">
                     <div>
                         <h2 style="margin:0; font-size:1.5rem; color:var(--gold-primary);">Konu Tarama Testi</h2>
-                        <p style="margin:5px 0 0; color:var(--text-muted); font-size:0.9rem;">Genel Hukuk Bilgisi • 20 Soru</p>
+                        <p style="margin:5px 0 0; color:var(--text-muted); font-size:0.9rem;">Genel Hukuk Bilgisi • 20
+                            Soru</p>
                     </div>
 
                     <div class="counters-grid">
@@ -93,7 +140,8 @@
                         </div>
                     </div>
 
-                    <button onclick="testEngine.finishTest()" class="btn btn-primary" style="background:var(--gold-primary); color:black; font-weight:600;">
+                    <button onclick="testEngine.finishTest()" class="btn btn-primary"
+                        style="background:var(--gold-primary); color:black; font-weight:600;">
                         Testi Bitir
                     </button>
                 </div>
@@ -151,4 +199,5 @@
         });
     </script>
 </body>
+
 </html>

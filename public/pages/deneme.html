@@ -1,350 +1,390 @@
 <!DOCTYPE html>
 <html lang="tr">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Deneme Sınavı | GOLD GYS</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/styles/tokens.css">
-  <link rel="stylesheet" href="/css/layout.css">
-  <link rel="stylesheet" href="/css/dashboard.css">
-  <link rel="stylesheet" href="/css/portal.css">
-  <link rel="stylesheet" href="/css/footer.css">
-  <style>
-    .exam-header {
-        position: sticky;
-        top: calc(var(--header-height) + 10px);
-        z-index: 100;
-        background: var(--bg-panel);
-        border: 1px solid var(--border-color);
-        border-radius: 16px;
-        padding: 15px 20px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        box-shadow: var(--shadow-md);
-        margin-bottom: 20px;
-    }
-    .timer-badge {
-        font-size: 1.1rem;
-        font-weight: 800;
-        color: var(--danger);
-        background: rgba(239, 68, 68, 0.15);
-        padding: 6px 15px;
-        border-radius: 20px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        border: 1px solid rgba(239, 68, 68, 0.35);
-    }
-    .stats-badge {
-        display: flex;
-        gap: 15px;
-        font-weight: 600;
-        font-size: 0.95rem;
-        color: var(--text-muted);
-    }
-    .stat-item span { font-weight: 800; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deneme Sınavı | GOLD GYS</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Playfair+Display:wght@700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="/styles/tokens.css">
+    <link rel="stylesheet" href="/css/layout.css">
+    <link rel="stylesheet" href="/css/dashboard.css">
+    <link rel="stylesheet" href="/css/portal.css">
+    <link rel="stylesheet" href="/css/footer.css">
+    <style>
+        .exam-header {
+            position: sticky;
+            top: calc(var(--header-height) + 10px);
+            z-index: 100;
+            background: var(--bg-panel);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow-md);
+            margin-bottom: 20px;
+        }
 
-    .soru-kart {
-        background: var(--bg-panel);
-        border: 1px solid var(--border-color);
-        border-radius: 12px;
-        padding: 25px;
-        margin-bottom: 30px;
-        box-shadow: var(--shadow-sm);
-    }
-    .oncullu-liste {
-        list-style: none;
-        padding: 15px;
-        border-radius: 8px;
-        border-left: 4px solid #3498db;
-        background: rgba(59, 130, 246, 0.1);
-        margin: 15px 0;
-    }
-    .oncullu-liste li {
-        padding: 5px 0;
-        border-bottom: 1px dashed rgba(148, 163, 184, 0.4);
-    }
-    .sik-btn {
-        display: flex;
-        width: 100%;
-        align-items: center;
-        padding: 12px 15px;
-        margin-bottom: 10px;
-        border: 2px solid var(--border-color);
-        border-radius: 8px;
-        background: rgba(255, 255, 255, 0.02);
-        cursor: pointer;
-        transition: all 0.2s;
-        text-align: left;
-        color: var(--text-white);
-    }
-    .sik-btn:hover:not(.disabled) { border-color: #3498db; background: rgba(59, 130, 246, 0.12); }
-    .sik-btn.selected { border-color: #3498db; background: rgba(59, 130, 246, 0.18); }
-    .sik-btn.correct { border-color: #27ae60; background: rgba(16, 185, 129, 0.18); color: #d1fae5; }
-    .sik-btn.wrong { border-color: #e74c3c; background: rgba(239, 68, 68, 0.2); color: #fecaca; }
-    .sik-harf {
-        width: 28px;
-        height: 28px;
-        background: rgba(148, 163, 184, 0.2);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-right: 12px;
-        font-weight: bold;
-        flex-shrink: 0;
-    }
+        .timer-badge {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: var(--danger);
+            background: rgba(239, 68, 68, 0.15);
+            padding: 6px 15px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border: 1px solid rgba(239, 68, 68, 0.35);
+        }
 
-    .cozum-container {
-        margin-top: 15px;
-        padding: 20px;
-        background: rgba(255, 255, 255, 0.03);
-        border-radius: 8px;
-        border: 1px solid var(--border-color);
-        display: none;
-    }
-    .tuzak-kutu {
-        background: rgba(245, 158, 11, 0.15);
-        border-left: 4px solid #f59e0b;
-        padding: 10px;
-        margin-top: 10px;
-        color: #fde68a;
-    }
-    .hap-kutu {
-        background: rgba(6, 182, 212, 0.15);
-        border-left: 4px solid #06b6d4;
-        padding: 10px;
-        margin-top: 10px;
-        color: #cffafe;
-    }
+        .stats-badge {
+            display: flex;
+            gap: 15px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: var(--text-muted);
+        }
 
-    #resultModal .card {
-        background: var(--bg-panel);
-        color: var(--text-white);
-    }
+        .stat-item span {
+            font-weight: 800;
+        }
 
-    @media (max-width: 768px) {
-        .exam-header { flex-direction: column; gap: 12px; align-items: flex-start; }
-        .stats-badge { width: 100%; justify-content: space-between; }
-    }
-  </style>
+        .soru-kart {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .oncullu-liste {
+            list-style: none;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #3498db;
+            background: rgba(59, 130, 246, 0.1);
+            margin: 15px 0;
+        }
+
+        .oncullu-liste li {
+            padding: 5px 0;
+            border-bottom: 1px dashed rgba(148, 163, 184, 0.4);
+        }
+
+        .sik-btn {
+            display: flex;
+            width: 100%;
+            align-items: center;
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.02);
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: left;
+            color: var(--text-white);
+        }
+
+        .sik-btn:hover:not(.disabled) {
+            border-color: #3498db;
+            background: rgba(59, 130, 246, 0.12);
+        }
+
+        .sik-btn.selected {
+            border-color: #3498db;
+            background: rgba(59, 130, 246, 0.18);
+        }
+
+        .sik-btn.correct {
+            border-color: #27ae60;
+            background: rgba(16, 185, 129, 0.18);
+            color: #d1fae5;
+        }
+
+        .sik-btn.wrong {
+            border-color: #e74c3c;
+            background: rgba(239, 68, 68, 0.2);
+            color: #fecaca;
+        }
+
+        .sik-harf {
+            width: 28px;
+            height: 28px;
+            background: rgba(148, 163, 184, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .cozum-container {
+            margin-top: 15px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            display: none;
+        }
+
+        .tuzak-kutu {
+            background: rgba(245, 158, 11, 0.15);
+            border-left: 4px solid #f59e0b;
+            padding: 10px;
+            margin-top: 10px;
+            color: #fde68a;
+        }
+
+        .hap-kutu {
+            background: rgba(6, 182, 212, 0.15);
+            border-left: 4px solid #06b6d4;
+            padding: 10px;
+            margin-top: 10px;
+            color: #cffafe;
+        }
+
+        #resultModal .card {
+            background: var(--bg-panel);
+            color: var(--text-white);
+        }
+
+        @media (max-width: 768px) {
+            .exam-header {
+                flex-direction: column;
+                gap: 12px;
+                align-items: flex-start;
+            }
+
+            .stats-badge {
+                width: 100%;
+                justify-content: space-between;
+            }
+        }
+    </style>
 </head>
+
 <body>
-  <div id="mainWrapper">
-    <div class="sidebar-overlay" id="sidebarOverlay"></div>
-    <aside class="sidebar" id="sidebar"></aside>
-    <div id="app-header-placeholder"></div>
+    <div id="mainWrapper">
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+        <aside class="sidebar" id="sidebar"></aside>
+        <div id="app-header-placeholder"></div>
 
-    <main class="main-content" id="main-content">
-      <div class="dashboard-container" style="max-width: 900px;">
-        <header class="exam-header">
-            <div>
-                <h2 class="heading-3 mb-0" id="examTitle">Deneme Sınavı Yükleniyor...</h2>
-                <small class="text-muted" id="examMeta">Soru Sayısı: -- | Kategori: --</small>
+        <main class="main-content" id="main-content">
+            <div class="dashboard-container" style="max-width: 900px;">
+                <header class="exam-header">
+                    <div>
+                        <h2 class="heading-3 mb-0" id="examTitle">Deneme Sınavı Yükleniyor...</h2>
+                        <small class="text-muted" id="examMeta">Soru Sayısı: -- | Kategori: --</small>
+                    </div>
+
+                    <div style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
+                        <div class="stats-badge">
+                            <div class="stat-item" style="color:#27ae60">D: <span id="trueVal">0</span></div>
+                            <div class="stat-item" style="color:#c0392b">Y: <span id="falseVal">0</span></div>
+                            <div class="stat-item" style="color:#7f8c8d">B: <span id="emptyVal">0</span></div>
+                        </div>
+                        <div class="timer-badge">
+                            <span>⏱️</span>
+                            <span id="timerDisplay">00:00</span>
+                        </div>
+                        <button id="btnFinishExam" class="btn btn-primary">Sınavı Bitir</button>
+                    </div>
+                </header>
+
+                <div id="loader" class="text-center py-5">
+                    <div class="loader-spinner" style="margin: 0 auto 1rem;"></div>
+                    <p class="mt-3">Sınav kağıdı hazırlanıyor...</p>
+                </div>
+
+                <div id="quizContainer"></div>
             </div>
 
-            <div style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
-                <div class="stats-badge">
-                    <div class="stat-item" style="color:#27ae60">D: <span id="trueVal">0</span></div>
-                    <div class="stat-item" style="color:#c0392b">Y: <span id="falseVal">0</span></div>
-                    <div class="stat-item" style="color:#7f8c8d">B: <span id="emptyVal">0</span></div>
-                </div>
-                <div class="timer-badge">
-                    <span>⏱️</span>
-                    <span id="timerDisplay">00:00</span>
-                </div>
-                <button id="btnFinishExam" class="btn btn-primary">Sınavı Bitir</button>
-            </div>
-        </header>
+            <footer id="app-footer-placeholder" class="app-footer"></footer>
+        </main>
+    </div>
 
-        <div id="loader" class="text-center py-5">
-            <div class="loader-spinner" style="margin: 0 auto 1rem;"></div>
-            <p class="mt-3">Sınav kağıdı hazırlanıyor...</p>
+    <div id="resultModal" class="modal-overlay"
+        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2000; justify-content:center; align-items:center;">
+        <div class="card p-5 text-center" style="max-width:500px; width:90%; border-radius:16px;">
+            <h2 class="heading-2 mb-4">Sınav Tamamlandı!</h2>
+
+            <div style="display:flex; justify-content:center; gap:30px; margin-bottom:30px; flex-wrap: wrap;">
+                <div>
+                    <div class="display-4 text-success" style="font-weight:800;" id="resultCorrect">0</div>
+                    <small>DOĞRU</small>
+                </div>
+                <div>
+                    <div class="display-4 text-danger" style="font-weight:800;" id="resultWrong">0</div>
+                    <small>YANLIŞ</small>
+                </div>
+                <div>
+                    <div class="display-4 text-primary" style="font-weight:800;" id="resultScore">0</div>
+                    <small>PUAN</small>
+                </div>
+            </div>
+
+            <p id="resultMessage" class="lead mb-4">Analiz ediliyor...</p>
+
+            <div class="d-grid gap-2">
+                <a href="/pages/dashboard.html" class="btn btn-outline-primary">Ana Sayfaya Dön</a>
+                <button onclick="location.reload()" class="btn btn-primary">Tekrar Çöz</button>
+            </div>
         </div>
+    </div>
 
-        <div id="quizContainer"></div>
-      </div>
+    <script type="module">
+        import { initLayout } from '/js/ui-loader.js';
+        import { TestEngine } from '/js/test-engine.js';
+        import { db, auth } from '/js/firebase-config.js';
+        import { doc, getDoc, collection, getDocs, query, where, documentId, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-      <footer id="app-footer-placeholder" class="app-footer"></footer>
-    </main>
-  </div>
+        let examTimer;
+        let totalSeconds = 0;
+        let engine;
+        let currentExamData = null;
 
-  <div id="resultModal" class="modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2000; justify-content:center; align-items:center;">
-      <div class="card p-5 text-center" style="max-width:500px; width:90%; border-radius:16px;">
-          <h2 class="heading-2 mb-4">Sınav Tamamlandı!</h2>
+        document.addEventListener('DOMContentLoaded', async () => {
+            await initLayout();
+            initExam();
+        });
 
-          <div style="display:flex; justify-content:center; gap:30px; margin-bottom:30px; flex-wrap: wrap;">
-              <div>
-                  <div class="display-4 text-success" style="font-weight:800;" id="resultCorrect">0</div>
-                  <small>DOĞRU</small>
-              </div>
-              <div>
-                  <div class="display-4 text-danger" style="font-weight:800;" id="resultWrong">0</div>
-                  <small>YANLIŞ</small>
-              </div>
-              <div>
-                  <div class="display-4 text-primary" style="font-weight:800;" id="resultScore">0</div>
-                  <small>PUAN</small>
-              </div>
-          </div>
+        async function initExam() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const examId = urlParams.get('id');
 
-          <p id="resultMessage" class="lead mb-4">Analiz ediliyor...</p>
-
-          <div class="d-grid gap-2">
-              <a href="/pages/dashboard.html" class="btn btn-outline-primary">Ana Sayfaya Dön</a>
-              <button onclick="location.reload()" class="btn btn-primary">Tekrar Çöz</button>
-          </div>
-      </div>
-  </div>
-
-  <script type="module">
-    import { protectPage } from '/js/role-guard.js';
-    import { initLayout } from '/js/ui-loader.js';
-    import { TestEngine } from '/js/test-engine.js';
-    import { db, auth } from '/js/firebase-config.js';
-    import { doc, getDoc, collection, getDocs, query, where, documentId, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-    protectPage();
-
-    let examTimer;
-    let totalSeconds = 0;
-    let engine;
-    let currentExamData = null;
-
-    document.addEventListener('DOMContentLoaded', async () => {
-        await initLayout();
-        initExam();
-    });
-
-    async function initExam() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const examId = urlParams.get('id');
-
-        if (!examId) {
-            alert("Deneme ID bulunamadı, Hızlı Test modu açılıyor.");
-            await loadRandomTest();
-            return;
-        }
-
-        try {
-            const examRef = doc(db, "exams", examId);
-            const examSnap = await getDoc(examRef);
-
-            if (!examSnap.exists()) {
-                throw new Error("Sınav bulunamadı!");
+            if (!examId) {
+                alert("Deneme ID bulunamadı, Hızlı Test modu açılıyor.");
+                await loadRandomTest();
+                return;
             }
 
-            currentExamData = { id: examSnap.id, ...examSnap.data() };
-            setupExamUI(currentExamData);
+            try {
+                const examRef = doc(db, "exams", examId);
+                const examSnap = await getDoc(examRef);
 
-            let questions = [];
-            if (currentExamData.questionIds && currentExamData.questionIds.length > 0) {
-                const qQuery = query(collection(db, "questions"), where(documentId(), 'in', currentExamData.questionIds.slice(0, 10)));
-                const qSnap = await getDocs(qQuery);
-                qSnap.forEach(doc => questions.push({ id: doc.id, ...doc.data() }));
-            } else {
-                console.warn("Sınavda tanımlı soru ID'leri yok, rastgele çekiliyor.");
+                if (!examSnap.exists()) {
+                    throw new Error("Sınav bulunamadı!");
+                }
+
+                currentExamData = { id: examSnap.id, ...examSnap.data() };
+                setupExamUI(currentExamData);
+
+                let questions = [];
+                if (currentExamData.questionIds && currentExamData.questionIds.length > 0) {
+                    const qQuery = query(collection(db, "questions"), where(documentId(), 'in', currentExamData.questionIds.slice(0, 10)));
+                    const qSnap = await getDocs(qQuery);
+                    qSnap.forEach(doc => questions.push({ id: doc.id, ...doc.data() }));
+                } else {
+                    console.warn("Sınavda tanımlı soru ID'leri yok, rastgele çekiliyor.");
+                    const qSnap = await getDocs(query(collection(db, "questions"), where("isActive", "==", true)));
+                    qSnap.forEach(doc => questions.push({ id: doc.id, ...doc.data() }));
+                }
+
+                document.getElementById('loader').style.display = 'none';
+                if (questions.length === 0) {
+                    document.getElementById('quizContainer').innerHTML = "<div class='alert alert-warning'>Bu denemeye henüz soru eklenmemiş.</div>";
+                    return;
+                }
+
+                engine = new TestEngine('quizContainer', questions);
+                startTimer(currentExamData.duration || 60);
+
+            } catch (error) {
+                console.error(error);
+                alert("Sınav yüklenirken hata: " + error.message);
+                window.location.href = '/pages/denemeler.html';
+            }
+        }
+
+        function setupExamUI(exam) {
+            document.getElementById('examTitle').textContent = exam.title || "Deneme Sınavı";
+            document.getElementById('examMeta').textContent = `Soru Sayısı: ${exam.totalQuestions || '--'} | Kategori: ${exam.role || '--'}`;
+        }
+
+        async function loadRandomTest() {
+            try {
                 const qSnap = await getDocs(query(collection(db, "questions"), where("isActive", "==", true)));
+                const questions = [];
                 qSnap.forEach(doc => questions.push({ id: doc.id, ...doc.data() }));
+
+                document.getElementById('loader').style.display = 'none';
+                if (questions.length === 0) {
+                    document.getElementById('quizContainer').innerHTML = "<div class='alert alert-warning'>Bu denemeye henüz soru eklenmemiş.</div>";
+                    return;
+                }
+
+                engine = new TestEngine('quizContainer', questions.slice(0, 20));
+                startTimer(60);
+            } catch (error) {
+                console.error(error);
+                alert("Sınav yüklenirken hata: " + error.message);
             }
-
-            document.getElementById('loader').style.display = 'none';
-            if (questions.length === 0) {
-                document.getElementById('quizContainer').innerHTML = "<div class='alert alert-warning'>Bu denemeye henüz soru eklenmemiş.</div>";
-                return;
-            }
-
-            engine = new TestEngine('quizContainer', questions);
-            startTimer(currentExamData.duration || 60);
-
-        } catch (error) {
-            console.error(error);
-            alert("Sınav yüklenirken hata: " + error.message);
-            window.location.href = '/pages/denemeler.html';
         }
-    }
 
-    function setupExamUI(exam) {
-        document.getElementById('examTitle').textContent = exam.title || "Deneme Sınavı";
-        document.getElementById('examMeta').textContent = `Soru Sayısı: ${exam.totalQuestions || '--'} | Kategori: ${exam.role || '--'}`;
-    }
-
-    async function loadRandomTest() {
-        try {
-            const qSnap = await getDocs(query(collection(db, "questions"), where("isActive", "==", true)));
-            const questions = [];
-            qSnap.forEach(doc => questions.push({ id: doc.id, ...doc.data() }));
-
-            document.getElementById('loader').style.display = 'none';
-            if (questions.length === 0) {
-                document.getElementById('quizContainer').innerHTML = "<div class='alert alert-warning'>Bu denemeye henüz soru eklenmemiş.</div>";
-                return;
-            }
-
-            engine = new TestEngine('quizContainer', questions.slice(0, 20));
-            startTimer(60);
-        } catch (error) {
-            console.error(error);
-            alert("Sınav yüklenirken hata: " + error.message);
-        }
-    }
-
-    function startTimer(minutes) {
-        totalSeconds = minutes * 60;
-        updateTimer();
-        clearInterval(examTimer);
-        examTimer = setInterval(() => {
-            totalSeconds--;
+        function startTimer(minutes) {
+            totalSeconds = minutes * 60;
             updateTimer();
-            if (totalSeconds <= 0) {
-                clearInterval(examTimer);
-                finishExam();
+            clearInterval(examTimer);
+            examTimer = setInterval(() => {
+                totalSeconds--;
+                updateTimer();
+                if (totalSeconds <= 0) {
+                    clearInterval(examTimer);
+                    finishExam();
+                }
+            }, 1000);
+        }
+
+        function updateTimer() {
+            const display = document.getElementById('timerDisplay');
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+            display.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            if (totalSeconds <= 300) {
+                display.style.color = 'red';
             }
-        }, 1000);
-    }
-
-    function updateTimer() {
-        const display = document.getElementById('timerDisplay');
-        const minutes = Math.floor(totalSeconds / 60);
-        const seconds = totalSeconds % 60;
-        display.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-        if (totalSeconds <= 300) {
-            display.style.color = 'red';
         }
-    }
 
-    function finishExam() {
-        if (engine) {
-            engine.finishTest();
+        function finishExam() {
+            if (engine) {
+                engine.finishTest();
+            }
         }
-    }
 
-    document.getElementById('btnFinishExam').addEventListener('click', finishExam);
+        document.getElementById('btnFinishExam').addEventListener('click', finishExam);
 
-    window.showResults = async function(results) {
-        document.getElementById('resultCorrect').textContent = results.correct;
-        document.getElementById('resultWrong').textContent = results.wrong;
-        document.getElementById('resultScore').textContent = results.score;
-        document.getElementById('resultMessage').textContent = results.message || "Analiz tamamlandı!";
+        window.showResults = async function (results) {
+            document.getElementById('resultCorrect').textContent = results.correct;
+            document.getElementById('resultWrong').textContent = results.wrong;
+            document.getElementById('resultScore').textContent = results.score;
+            document.getElementById('resultMessage').textContent = results.message || "Analiz tamamlandı!";
 
-        document.getElementById('resultModal').style.display = 'flex';
+            document.getElementById('resultModal').style.display = 'flex';
 
-        try {
-            await addDoc(collection(db, `users/${auth.currentUser.uid}/exam_results`), {
-                examId: currentExamData?.id || null,
-                score: results.score,
-                correct: results.correct,
-                wrong: results.wrong,
-                createdAt: serverTimestamp()
-            });
-        } catch (error) {
-            console.error(error);
+            try {
+                await addDoc(collection(db, `users/${auth.currentUser.uid}/exam_results`), {
+                    examId: currentExamData?.id || null,
+                    score: results.score,
+                    correct: results.correct,
+                    wrong: results.wrong,
+                    createdAt: serverTimestamp()
+                });
+            } catch (error) {
+                console.error(error);
+            }
         }
-    }
-  </script>
+    </script>
 </body>
+
 </html>

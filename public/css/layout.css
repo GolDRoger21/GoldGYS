@@ -637,3 +637,24 @@ body:not(.light-mode) .icon-moon {
         padding: 1.25rem;
     }
 }
+
+/* Light Mode Overrides for Header Navigation */
+body.light-mode .header-page {
+    background: #ffffff;
+    border-color: #e2e8f0;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+body.light-mode .page-breadcrumb {
+    background: #f1f5f9; /* Slate 100 */
+    border-color: #cbd5e1;
+    color: #64748b;
+}
+
+body.light-mode .page-breadcrumb-link {
+    color: #475569;
+}
+
+body.light-mode .page-breadcrumb-link:hover {
+    color: var(--gold-primary);
+}
