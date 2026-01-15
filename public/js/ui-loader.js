@@ -107,13 +107,18 @@ async function loadRequiredHTML(isAdminPage) {
         ? '/partials/admin-sidebar.html'
         : '/partials/sidebar.html';
 
+    // 3. FOOTER (Sadece Public Sayfalarda)
+    // Admin sayfalarında footer gereksiz yer kaplamasın istendi.
     const footerTargetId = document.getElementById('app-footer-placeholder')
         ? 'app-footer-placeholder'
         : (document.getElementById('footer-area') ? 'footer-area' : null);
+
+    // Admin sayfasındaysak footerUrl null olsun, böylece yüklenmez.
     const footerUrl = isAdminPage
-        ? '/components/layouts/admin-footer.html'
+        ? null
         : '/components/footer.html';
-    const footerPromise = footerTargetId ? loadHTML(footerUrl, footerTargetId) : Promise.resolve();
+
+    const footerPromise = (footerTargetId && footerUrl) ? loadHTML(footerUrl, footerTargetId) : Promise.resolve();
 
     await Promise.all([
         loadHTML(headerUrl, headerTargetId),
