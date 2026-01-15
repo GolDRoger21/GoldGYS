@@ -26,17 +26,14 @@ document.addEventListener("DOMContentLoaded", async () => {
         const { role } = await requireAdminOrEditor();
         console.log(`✅ Yetki Onaylandı: ${role}`);
 
-        // C. Tema Ayarlarını Başlat
-        initTheme();
-
-        // D. Tab Sistemini Başlat (Navigasyon)
+        // C. Tab Sistemini Başlat (Navigasyon)
         initTabs(role);
 
-        // E. Başlangıç Tabını Aç (URL hash'ine göre #users, #content vb.)
+        // D. Başlangıç Tabını Aç (URL hash'ine göre #users, #content vb.)
         const initialTab = window.location.hash.substring(1) || 'dashboard';
         activateTab(initialTab, role);
 
-        // F. Global Fonksiyonları Tanımla (HTML içindeki onclick butonları için)
+        // E. Global Fonksiyonları Tanımla (HTML içindeki onclick butonları için)
         window.openQuestionEditor = ContentModule.openQuestionEditor;
         window.AdminReports = ReportsModule.AdminReports;
 
@@ -47,26 +44,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 // --- YARDIMCI FONKSİYONLAR ---
-
-/**
- * Aydınlık/Karanlık mod geçişini yönetir.
- */
-function initTheme() {
-    const themeToggle = document.querySelector('[data-theme-toggle]');
-    const body = document.body;
-    const savedTheme = localStorage.getItem('theme');
-    
-    // Kayıtlı tema varsa uygula
-    if (savedTheme === 'light') body.classList.add('light-mode');
-    
-    if (themeToggle) {
-        themeToggle.addEventListener('click', () => {
-            body.classList.toggle('light-mode');
-            const isLight = body.classList.contains('light-mode');
-            localStorage.setItem('theme', isLight ? 'light' : 'dark');
-        });
-    }
-}
 
 /**
  * Sidebar linklerine tıklamayı ve Hash değişimini dinler.
