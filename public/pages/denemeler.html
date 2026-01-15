@@ -1,12 +1,15 @@
 <!DOCTYPE html>
 <html lang="tr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Deneme Sınavları | GOLD GYS</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="../styles/tokens.css">
     <link rel="stylesheet" href="../css/layout.css">
     <link rel="stylesheet" href="../css/dashboard.css">
@@ -45,8 +48,38 @@
             align-items: center;
             gap: 6px;
         }
+
+        /* Footer Özelleştirme - Sadeleştirme & Hizalama */
+        .app-footer .footer-links-grid {
+            display: none !important;
+        }
+
+        .app-footer .footer-shell {
+            gap: 0;
+        }
+
+        .app-footer .footer-meta {
+            border-top: none;
+            padding-top: 0;
+            justify-content: space-between !important;
+            flex-direction: row-reverse;
+            /* Sosyal sağ, Copyright sol */
+        }
+
+        /* Flex-reverse yerine HTML sırasını koruyup justify-content ile halledelim */
+        .app-footer .footer-meta {
+            flex-direction: row;
+        }
+
+        @media (max-width: 768px) {
+            .app-footer {
+                padding-top: 1rem;
+                padding-bottom: 2rem;
+            }
+        }
     </style>
 </head>
+
 <body>
     <div id="mainWrapper">
         <div class="sidebar-overlay" id="sidebarOverlay"></div>
@@ -140,4 +173,5 @@
         });
     </script>
 </body>
+
 </html>
