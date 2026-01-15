@@ -215,12 +215,10 @@
   </div>
 
   <script type="module">
-    import { protectPage } from '/js/role-guard.js';
-    import { initLayout } from '/js/ui-loader.js';
-    import { EXAM_TOPICS } from '/js/data/subjects-data.js';
+    import { initLayout } from '../js/ui-loader.js';
+    import { EXAM_TOPICS } from '../js/data/subjects-data.js';
 
     // 1. Güvenlik ve Layout
-    protectPage();
     initLayout().then(() => {
       // Layout yüklendikten sonra konuları bas
       renderSubjects('common');
