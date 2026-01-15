@@ -174,14 +174,22 @@ body {
     justify-content: space-between;
     padding: 0 1.5rem;
     width: 100%;
-    gap: 1rem;
-    /* Prevent overlap */
+    gap: 2rem;
+    /* Matches content padding */
 }
 
 .header-left {
     display: flex;
     align-items: center;
     gap: 1rem;
+    width: calc(var(--sidebar-width) - 1.5rem);
+    /* Align with Sidebar */
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Sidebar Daraltıldığında Logo Alanı */
+body.sidebar-collapsed .header-left {
+    width: auto;
 }
 
 .header-center {
