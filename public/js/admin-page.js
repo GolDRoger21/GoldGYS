@@ -124,6 +124,11 @@ function updatePageTitle(tabId) {
     if (pageTitle) {
         pageTitle.textContent = titles[tabId] || 'Yönetim Paneli';
     }
+
+    const breadcrumbCurrent = document.getElementById('pageBreadcrumbCurrent');
+    if (breadcrumbCurrent) {
+        breadcrumbCurrent.textContent = titles[tabId] || 'Yönetim Paneli';
+    }
 }
 
 /**

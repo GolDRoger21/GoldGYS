@@ -49,9 +49,12 @@ export async function initLayout() {
             // 3. Kullanıcı Oturumunu Kontrol Et ve UI'ı Güncelle
             await checkUserAuthState();
 
-            // 4. Sayfa Başlığını Ayarla
+            // 4. Sayfa Başlığını ve Breadcrumb'u Ayarla
+            ensurePageHeader({ isAdminPage, title: config.title });
             const pageTitleEl = document.getElementById('pageTitle');
             if (pageTitleEl) pageTitleEl.textContent = config.title;
+            const breadcrumbCurrent = document.getElementById('pageBreadcrumbCurrent');
+            if (breadcrumbCurrent) breadcrumbCurrent.textContent = config.title;
 
             // 5. Sidebar'da Aktif Menüyü İşaretle
             if (!isAdminPage) {
@@ -102,6 +105,39 @@ async function loadRequiredHTML(isAdminPage) {
 
     // Header yüklendikten sonra Admin/User linklerini ayarla
     setupUniversalHeader(isAdminPage);
+}
+
+function ensurePageHeader({ isAdminPage, title }) {
+    const mainContent = document.getElementById('main-content');
+    if (!mainContent) return;
+
+    let pageHeader = document.getElementById('pageHeader');
+    if (!pageHeader) {
+        pageHeader = document.createElement('div');
+        pageHeader.className = 'page-header';
+        pageHeader.id = 'pageHeader';
+        pageHeader.innerHTML = `
+            <nav class="page-breadcrumb" aria-label="Sayfa konumu">
+                <a class="page-breadcrumb-link" id="pageBreadcrumbRoot" href="/pages/dashboard.html">Panel</a>
+                <span class="page-breadcrumb-separator">/</span>
+                <span class="page-breadcrumb-current" id="pageBreadcrumbCurrent" aria-current="page">${title}</span>
+            </nav>
+            <h1 class="page-title" id="pageTitle">${title}</h1>
+        `;
+
+        mainContent.insertBefore(pageHeader, mainContent.firstChild);
+    }
+
+    const rootLink = document.getElementById('pageBreadcrumbRoot');
+    if (rootLink) {
+        if (isAdminPage) {
+            rootLink.textContent = 'Yönetim';
+            rootLink.setAttribute('href', '/admin/index.html');
+        } else {
+            rootLink.textContent = 'Panel';
+            rootLink.setAttribute('href', '/pages/dashboard.html');
+        }
+    }
 }
 
 function setupUniversalHeader(isAdmin) {

@@ -99,15 +99,6 @@ body {
     gap: 15px;
 }
 
-/* Mobil Menü Butonu */
-.page-title {
-    font-size: 1.2rem;
-    font-weight: 600;
-    color: var(--text-white);
-    margin: 0;
-    opacity: 0.9;
-}
-
 /* Header Sağ Taraf (Profil) */
 .header-right {
     display: flex;
