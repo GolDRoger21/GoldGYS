@@ -8,6 +8,7 @@
     
     <link rel="stylesheet" href="styles/tokens.css">
     <link rel="stylesheet" href="css/landing.css">
+    <link rel="stylesheet" href="css/footer.css">
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -107,35 +108,7 @@
         </div>
     </div>
 
-    <footer>
-        <div class="container">
-            <div class="footer-content">
-                <div class="footer-brand">
-                    <div class="logo">GOLD <span>GYS</span></div>
-                    <p>Adalet Bakanlığı personellerinin kariyer hedeflerine ulaşmaları için geliştirilmiş profesyonel, güvenilir ve modern sınav hazırlık platformu.</p>
-                </div>
-                <div class="footer-links">
-                    <h4>Platform</h4>
-                    <ul>
-                        <li><a href="login.html">Giriş Yap</a></li>
-                        <li><a href="#features">Özellikler</a></li>
-                        <li><a href="pages/yardim.html">Yardım Merkezi</a></li>
-                    </ul>
-                </div>
-                <div class="footer-links">
-                    <h4>Yasal</h4>
-                    <ul>
-                        <li><a href="pages/yasal.html">Kullanım Koşulları</a></li>
-                        <li><a href="pages/yasal.html">Gizlilik Politikası</a></li>
-                        <li><a href="pages/yasal.html">KVKK Aydınlatma</a></li>
-                    </ul>
-                </div>
-            </div>
-            <div class="footer-bottom">
-                &copy; 2026 Gold GYS. Tüm hakları saklıdır.
-            </div>
-        </div>
-    </footer>
+    <footer id="app-footer-placeholder" class="app-footer"></footer>
 
     <script type="module">
         import { auth } from "./js/firebase-config.js";
@@ -157,6 +130,18 @@
                 }
             }
         });
+
+        const footerTarget = document.getElementById("app-footer-placeholder");
+        if (footerTarget) {
+            fetch("/components/footer.html")
+                .then((response) => response.text())
+                .then((html) => {
+                    footerTarget.innerHTML = html;
+                })
+                .catch((error) => {
+                    console.error("Footer yüklenemedi:", error);
+                });
+        }
     </script>
 </body>
 </html>
