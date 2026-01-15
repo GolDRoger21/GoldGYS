@@ -1,36 +1,213 @@
 <!DOCTYPE html>
 <html lang="tr">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Konular | GOLD GYS</title>
+  <title>Sınav Konuları | Gold GYS</title>
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap"
+    rel="stylesheet">
+
   <link rel="stylesheet" href="/styles/tokens.css">
   <link rel="stylesheet" href="/css/layout.css">
-  <link rel="stylesheet" href="/css/dashboard.css">
   <link rel="stylesheet" href="/css/portal.css">
   <link rel="stylesheet" href="/css/footer.css">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230F172A'/><text x='50' y='70' font-family='serif' font-size='60' fill='%23D4AF37' text-anchor='middle' font-weight='bold'>G</text><text x='80' y='35' font-size='30'>⚖️</text></svg>">
+
+  <style>
+    .subjects-header {
+      background: linear-gradient(180deg, rgba(15, 23, 42, 0) 0%, rgba(212, 175, 55, 0.05) 100%);
+      padding-bottom: 2rem;
+      margin-bottom: 2rem;
+      border-bottom: 1px solid var(--navy-border);
+    }
+
+    /* Tab Menüsü */
+    .subject-tabs {
+      display: flex;
+      gap: 1rem;
+      margin-top: 2rem;
+      border-bottom: 2px solid var(--navy-border);
+      padding-bottom: 2px;
+    }
+
+    .tab-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1.1rem;
+      font-weight: 600;
+      padding: 0.8rem 1.5rem;
+      cursor: pointer;
+      position: relative;
+      transition: all 0.3s ease;
+    }
+
+    .tab-btn.active {
+      color: var(--gold-main);
+    }
+
+    .tab-btn.active::after {
+      content: '';
+      position: absolute;
+      bottom: -4px;
+      /* Border üzerine binsin */
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: var(--gold-main);
+      border-radius: 4px 4px 0 0;
+      box-shadow: 0 -2px 10px rgba(212, 175, 55, 0.4);
+    }
+
+    /* Kart Izgarası */
+    .subjects-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 1.5rem;
+      padding: 1rem 0;
+      opacity: 1;
+      transition: opacity 0.3s ease;
+    }
+
+    .subjects-grid.fading {
+      opacity: 0;
+    }
+
+    /* Konu Kartı */
+    .subject-card {
+      background: var(--navy-light);
+      border: 1px solid var(--navy-border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s ease;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .subject-card:hover {
+      transform: translateY(-5px);
+      border-color: var(--gold-main);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Kart Üst Kısım */
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 1rem;
+    }
+
+    .icon-box {
+      width: 48px;
+      height: 48px;
+      background: rgba(212, 175, 55, 0.1);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      color: var(--gold-main);
+    }
+
+    .q-badge {
+      background: var(--navy-deep);
+      border: 1px solid var(--gold-dark);
+      color: var(--gold-light);
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+
+    .card-title {
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: var(--text-light);
+      margin-bottom: 0.5rem;
+    }
+
+    .card-desc {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      margin-bottom: 1.5rem;
+      line-height: 1.4;
+    }
+
+    /* İlerleme Barı */
+    .progress-wrapper {
+      margin-top: auto;
+    }
+
+    .progress-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      margin-bottom: 5px;
+      color: var(--text-muted);
+    }
+
+    .progress-bar-bg {
+      height: 6px;
+      background: var(--navy-deep);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--gold-dark), var(--gold-main));
+      border-radius: 3px;
+      width: 0%;
+      /* JS ile dolacak */
+      transition: width 1s ease;
+    }
+
+    /* Mobilde header sorunu için padding */
+    @media (max-width: 768px) {
+      .subject-tabs {
+        overflow-x: auto;
+        white-space: nowrap;
+      }
+    }
+  </style>
 </head>
+
 <body>
   <div id="mainWrapper">
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
     <aside class="sidebar" id="sidebar"></aside>
+
     <div id="app-header-placeholder"></div>
 
     <main class="main-content" id="main-content">
       <div class="dashboard-container">
-        <section class="panel-card">
-          <div class="section-head">
-            <div>
-              <p class="eyebrow">Konu yönetimi</p>
-              <h1 class="page-heading heading-1">Konular</h1>
-              <p class="text-muted">Konu başlıklarını inceleyin, çalışma listelerinizi yönetin ve eksiklerinizi kapatın.</p>
-            </div>
+
+        <section class="subjects-header">
+          <p class="eyebrow">Müfredat</p>
+          <h1 class="page-heading heading-1">Sınav Konuları</h1>
+          <p class="text-muted">Yazı İşleri Müdürü kadrosu için belirlenen güncel konu dağılımı.</p>
+
+          <div class="subject-tabs">
+            <button class="tab-btn active" data-tab="common">Ortak Konular (32 Soru)</button>
+            <button class="tab-btn" data-tab="field">Alan Bilgisi (48 Soru)</button>
           </div>
         </section>
+
+        <div class="subjects-grid" id="subjectsGrid">
+          <div style="grid-column: 1/-1; text-align: center; padding: 3rem;">
+            <p class="text-muted">Konular yükleniyor...</p>
+          </div>
+        </div>
+
       </div>
 
       <footer id="app-footer-placeholder" class="app-footer"></footer>
@@ -40,9 +217,90 @@
   <script type="module">
     import { protectPage } from '/js/role-guard.js';
     import { initLayout } from '/js/ui-loader.js';
+    import { EXAM_TOPICS } from '/js/data/subjects-data.js';
 
+    // 1. Güvenlik ve Layout
     protectPage();
-    initLayout();
+    initLayout().then(() => {
+      // Layout yüklendikten sonra konuları bas
+      renderSubjects('common');
+    });
+
+    // 2. Tab Değiştirme Mantığı
+    const grid = document.getElementById('subjectsGrid');
+    const tabs = document.querySelectorAll('.tab-btn');
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        // Aktif sınıfını güncelle
+        tabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+
+        // İçeriği animasyonlu değiştir
+        grid.classList.add('fading');
+        setTimeout(() => {
+          renderSubjects(tab.dataset.tab);
+          grid.classList.remove('fading');
+        }, 300);
+      });
+    });
+
+    // 3. Konuları Ekrana Basma Fonksiyonu
+    function renderSubjects(type) {
+      const data = EXAM_TOPICS[type];
+      if (!data) return;
+
+      grid.innerHTML = data.map(topic => `
+                <div class="subject-card" onclick="window.location.href='/pages/konu.html?id=${topic.id}'">
+                    <div class="card-header">
+                        <div class="icon-box">
+                            ${getIcon(topic.icon)}
+                        </div>
+                        <span class="q-badge">${topic.questionCount} Soru</span>
+                    </div>
+                    
+                    <h3 class="card-title">${topic.title}</h3>
+                    <p class="card-desc">${topic.desc}</p>
+                    
+                    <div class="progress-wrapper">
+                        <div class="progress-labels">
+                            <span>İlerleme</span>
+                            <span>%${topic.progress}</span>
+                        </div>
+                        <div class="progress-bar-bg">
+                            <div class="progress-fill" style="width: ${topic.progress}%"></div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+    }
+
+    // Basit ikon eşleştirici (SVG eklenebilir, şimdilik emoji/text)
+    function getIcon(name) {
+      const icons = {
+        'balance-scale': '⚖️',
+        'flag': '🇹🇷',
+        'building': '🏛️',
+        'user-tie': '👔',
+        'book': '📚',
+        'handshake': '🤝',
+        'university': '🎓',
+        'laptop-code': '💻',
+        'calculator': '🧮',
+        'landmark': '🏛️',
+        'gavel': '🔨',
+        'fingerprint': '🔐',
+        'envelope-open-text': '📩',
+        'paper-plane': '📨',
+        'id-card': '🪪',
+        'file-invoice-dollar': '💸',
+        'balance-scale-right': '📜',
+        'lock': '🔒'
+      };
+      return icons[name] || '📌';
+    }
+
   </script>
 </body>
+
 </html>
