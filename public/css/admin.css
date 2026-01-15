@@ -36,10 +36,9 @@ body {
 }
 
 .page-title {
-    font-size: 1.15rem;
-    font-weight: 500;
+    font-size: 1.2rem;
+    font-weight: 600;
     color: var(--text-white);
-    /* Gold yerine Beyaz */
     opacity: 0.9;
     margin: 0;
 }
@@ -65,36 +64,9 @@ body {
     gap: 12px;
 }
 
-.user-menu-container {
-    position: relative;
-}
-
 /* User Menu & Avatar (Layout.css ile Eşitlendi) */
 .user-avatar-btn {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: var(--gold-primary);
-    padding: 0;
-    border: none;
-    cursor: pointer;
-    overflow: hidden;
-    transition: transform 0.2s;
-    box-shadow: 0 0 10px rgba(212, 175, 55, 0.2);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.user-avatar-btn:hover {
-    transform: scale(1.05);
-    box-shadow: 0 0 15px rgba(212, 175, 55, 0.4);
-}
-
-.avatar-img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+    background: var(--bg-panel);
 }
 
 .user-dropdown {
