@@ -147,7 +147,19 @@
     font-size: 1.25rem;
     transition: color 0.2s, transform 0.2s;
     display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 999px;
+    border: 1px solid var(--border-color);
+    background: var(--bg-panel);
     /* Fix for icon alignment */
+}
+
+.footer-social svg {
+    width: 18px;
+    height: 18px;
 }
 
 .footer-social a:hover {
@@ -160,6 +172,17 @@
     font-size: 0.5em;
     /* Make the dot smaller */
     vertical-align: middle;
+}
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
 }
 
 /* --- Responsive --- */
