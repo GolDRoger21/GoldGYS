@@ -15,6 +15,7 @@
     <link rel="stylesheet" href="../styles/tokens.css">
     <link rel="stylesheet" href="../css/layout.css">
     <link rel="stylesheet" href="../css/dashboard.css">
+    <link rel="stylesheet" href="../css/footer.css">
 
     <style>
         /* Sayfa yüklenirken içeriğin görünmesini engelle */
@@ -32,7 +33,7 @@
         import { initLayout } from '../js/ui-loader.js';
         // Sayfa yüklendiğinde, 'dashboard' menü öğesini aktif hale getir ve başlığı ayarla.
         document.addEventListener('DOMContentLoaded', () => {
-            initLayout('dashboard', 'Genel Bakış');
+            initLayout();
         });
     </script>
 
@@ -109,6 +110,8 @@
                 </section>
 
             </div>
+
+            <footer id="app-footer-placeholder" class="app-footer"></footer>
         </main>
     </div>
 

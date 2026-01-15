@@ -557,4 +557,19 @@ body:not(.light-mode) .icon-moon {
     .sidebar-toggle {
         display: inline-flex;
     }
+
+    .main-content {
+        margin-left: 0;
+        padding: 1.5rem;
+    }
+
+    body.sidebar-collapsed .main-content {
+        margin-left: 0;
+    }
+}
+
+@media (max-width: 768px) {
+    .main-content {
+        padding: 1.25rem;
+    }
 }

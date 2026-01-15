@@ -4,34 +4,31 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Onay Bekleniyor | GOLD GYS</title>
-    <link rel="stylesheet" href="/css/app.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
-    
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-            background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
-            font-family: 'Inter', sans-serif;
-            min-height: 100vh;
-        }
+    <link rel="stylesheet" href="/styles/tokens.css">
+    <link rel="stylesheet" href="/css/layout.css">
+    <link rel="stylesheet" href="/css/dashboard.css">
+    <link rel="stylesheet" href="/css/portal.css">
+    <link rel="stylesheet" href="/css/footer.css">
 
-        .pending-container {
+    <style>
+        .pending-wrapper {
+            min-height: calc(100vh - var(--header-height));
             display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
-            min-height: 100vh;
-            padding: 20px;
+            padding: 2rem 1.5rem;
         }
 
         .pending-box {
-            background: rgba(30, 41, 59, 0.8);
+            background: var(--bg-panel);
             border: 1px solid rgba(212, 175, 55, 0.3);
             padding: 3rem 2rem;
             border-radius: 20px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
-            max-width: 500px;
+            max-width: 520px;
             text-align: center;
             backdrop-filter: blur(10px);
         }
@@ -49,7 +46,7 @@
 
         .pending-box h1 {
             font-family: 'Playfair Display', serif;
-            color: #D4AF37;
+            color: var(--gold-primary);
             font-size: 2rem;
             margin: 0 0 1rem 0;
         }
@@ -71,7 +68,7 @@
         }
 
         .status-info h3 {
-            color: #D4AF37;
+            color: var(--gold-primary);
             margin: 0 0 0.5rem 0;
             font-size: 0.95rem;
         }
@@ -81,24 +78,6 @@
             font-size: 0.9rem;
         }
 
-        .button-group {
-            display: flex;
-            gap: 12px;
-            margin-top: 2rem;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-
-        .btn {
-            padding: 12px 24px;
-            border: none;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 0.95rem;
-        }
-
         .btn-logout {
             background: linear-gradient(135deg, #D4AF37 0%, #B5952F 100%);
             color: #0F172A;
@@ -106,14 +85,9 @@
             min-width: 150px;
         }
 
-        .btn-logout:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(212, 175, 55, 0.3);
-        }
-
         .btn-refresh {
             background: rgba(212, 175, 55, 0.2);
-            color: #D4AF37;
+            color: var(--gold-primary);
             border: 1px solid rgba(212, 175, 55, 0.5);
             flex: 1;
             min-width: 150px;
@@ -143,123 +117,122 @@
     </style>
 </head>
 <body>
-    <div class="pending-container">
-        <div class="pending-box">
-            <div class="icon-wait">⏳</div>
-            
-            <h1>Üyelik Onayı Bekleniyor</h1>
-            
-            <p>Merhaba! Kaydınız sistemimize başarıyla ulaştı.</p>
-            <p>Hesabınız şu anda <strong>yönetici onayı</strong> aşamasındadır. Güvenlik prosedürlerimiz gereği başvurular manuel olarak incelenmektedir.</p>
-            
-            <div class="status-info">
-                <h3>ℹ️ Ne Yapmalıyım?</h3>
-                <p>Genellikle onay süreci 1-2 saat içerisinde tamamlanır. Onaylandığında sisteme otomatik olarak erişebileceksiniz.</p>
-            </div>
+    <div id="mainWrapper">
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+        <aside class="sidebar" id="sidebar"></aside>
+        <div id="app-header-placeholder"></div>
 
-            <div class="status-info" style="border-color: #3b82f6; background: rgba(59, 130, 246, 0.1);">
-                <h3>❓ Bir Sorun mu Var?</h3>
-                <p>Eğer uzun süredir bekliyorsanız veya bir hata olduğunu düşünüyorsanız destek ekibimizle iletişime geçebilirsiniz.</p>
-                <div style="margin-top: 10px;">
-                    <a href="/pages/yardim.html" class="btn" style="background: #3b82f6; color: white; text-decoration: none; display: inline-block; font-size: 0.9rem; padding: 8px 16px;">Destek ve İletişim</a>
+        <main class="main-content" id="main-content">
+            <div class="dashboard-container">
+                <div class="pending-wrapper">
+                    <div class="pending-box">
+                        <div class="icon-wait">⏳</div>
+
+                        <h1>Üyelik Onayı Bekleniyor</h1>
+
+                        <p>Merhaba! Kaydınız sistemimize başarıyla ulaştı.</p>
+                        <p>Hesabınız şu anda <strong>yönetici onayı</strong> aşamasındadır. Güvenlik prosedürlerimiz gereği başvurular manuel olarak incelenmektedir.</p>
+
+                        <div class="status-info">
+                            <h3>ℹ️ Ne Yapmalıyım?</h3>
+                            <p>Genellikle onay süreci 1-2 saat içerisinde tamamlanır. Onaylandığında sisteme otomatik olarak erişebileceksiniz.</p>
+                        </div>
+
+                        <div class="status-info" style="border-color: rgba(59, 130, 246, 0.5); background: rgba(59, 130, 246, 0.1);">
+                            <h3 style="color: #60a5fa;">❓ Bir Sorun mu Var?</h3>
+                            <p>Eğer uzun süredir bekliyorsanız veya bir hata olduğunu düşünüyorsanız destek ekibimizle iletişime geçebilirsiniz.</p>
+                            <div style="margin-top: 10px;">
+                                <a href="/pages/yardim.html" class="btn btn-outline-primary">Destek ve İletişim</a>
+                            </div>
+                        </div>
+
+                        <div class="button-group">
+                            <button class="btn btn-refresh" onclick="location.reload()">Durumu Kontrol Et</button>
+                            <button class="btn btn-logout" id="logoutBtn">Çıkış Yap</button>
+                        </div>
+
+                        <p class="footer-text">
+                            GOLD GYS © 2026 | Personel Görevde Yükselme Sistemi
+                        </p>
+                    </div>
                 </div>
             </div>
 
-            <div class="button-group">
-                <button class="btn btn-refresh" onclick="location.reload()">Durumu Kontrol Et</button>
-                <button class="btn btn-logout" id="logoutBtn">Çıkış Yap</button>
-            </div>
-
-            <p class="footer-text">
-                GOLD GYS © 2026 | Personel Görevde Yükselme Sistemi
-            </p>
-        </div>
+            <footer id="app-footer-placeholder" class="app-footer"></footer>
+        </main>
     </div>
 
     <script type="module">
         import { auth, db } from "/js/firebase-config.js";
+        import { initLayout } from '/js/ui-loader.js';
         import { signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-        
+
         const logoutBtn = document.getElementById("logoutBtn");
-        const refreshBtn = document.querySelector(".btn-refresh");
         let isChecking = false;
 
-        // Sayfa yüklendiğinde user var mı kontrol et
+        document.addEventListener('DOMContentLoaded', async () => {
+            await initLayout();
+        });
+
         onAuthStateChanged(auth, async (user) => {
             if (!user) {
                 window.location.href = "/login.html";
                 return;
             }
 
-            // Admin onu onayladıysa dashboard'a yönlendir
             const userRef = doc(db, "users", user.uid);
             const userSnap = await getDoc(userRef);
-            
+
             if (userSnap.exists()) {
                 const userData = userSnap.data();
+
                 if (userData.status === "active") {
                     window.location.href = "/pages/dashboard.html";
                     return;
                 }
+
+                if (userData.status === "rejected") {
+                    alert("❌ Başvurunuz reddedilmiştir.");
+                }
             }
         });
 
-        // "Tekrar Kontrol Et" butonu
-        refreshBtn.addEventListener("click", async () => {
-            if (isChecking) return;
-            isChecking = true;
-            
-            refreshBtn.disabled = true;
-            refreshBtn.innerHTML = "⏳ Kontrol ediliyor...";
-            
-            try {
-                const user = auth.currentUser;
-                if (!user) {
-                    window.location.href = "/login.html";
-                    return;
-                }
-
-                // Firestore'dan en güncel verileri çek
-                const userRef = doc(db, "users", user.uid);
-                const userSnap = await getDoc(userRef);
-                
-                if (userSnap.exists()) {
-                    const userData = userSnap.data();
-                    
-                    if (userData.status === "active") {
-                        // Onaylandı! Dashboard'a git
-                        window.location.href = "/pages/dashboard.html";
-                        return;
-                    } else if (userData.status === "rejected") {
-                        alert("❌ Başvurunuz reddedilmiştir.");
-                        await signOut(auth);
-                        window.location.href = "/login.html";
-                        return;
-                    }
-                }
-                
-                // Hala pending
-                alert("⏳ Hesabınız hala onay bekleniyor. Lütfen daha sonra tekrar deneyin.");
-                
-            } catch (error) {
-                console.error("Kontrol sırasında hata:", error);
-                alert("Kontrol edilirken bir hata oluştu. Lütfen tekrar deneyin.");
-            } finally {
-                refreshBtn.disabled = false;
-                refreshBtn.innerHTML = "Tekrar Kontrol Et";
-                isChecking = false;
-            }
-        });
-        
-        // Çıkış butonu
         logoutBtn.addEventListener("click", async () => {
             try {
                 await signOut(auth);
                 window.location.href = "/login.html";
             } catch (error) {
-                console.error("Çıkış yapılırken hata oluştu:", error);
+                console.error(error);
                 alert("Çıkış yapılırken bir hata oluştu. Lütfen sayfayı yenileyin.");
+            }
+        });
+
+        window.addEventListener('focus', async () => {
+            if (isChecking) return;
+            isChecking = true;
+
+            try {
+                const user = auth.currentUser;
+                if (!user) return;
+
+                const userRef = doc(db, "users", user.uid);
+                const userSnap = await getDoc(userRef);
+
+                if (userSnap.exists()) {
+                    const userData = userSnap.data();
+
+                    if (userData.status === "active") {
+                        window.location.href = "/pages/dashboard.html";
+                    } else if (userData.status === "pending") {
+                        alert("⏳ Hesabınız hala onay bekleniyor. Lütfen daha sonra tekrar deneyin.");
+                    }
+                }
+            } catch (error) {
+                console.error(error);
+                alert("Kontrol edilirken bir hata oluştu. Lütfen tekrar deneyin.");
+            } finally {
+                isChecking = false;
             }
         });
     </script>

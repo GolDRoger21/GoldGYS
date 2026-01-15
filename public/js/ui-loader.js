@@ -11,8 +11,17 @@ const PAGE_CONFIG = {
     '/pages/konular.html': { id: 'lessons', title: 'Dersler & Konular' },
     '/pages/testler.html': { id: 'tests', title: 'Testler' },
     '/pages/denemeler.html': { id: 'trials', title: 'Denemeler' },
+    '/pages/deneme.html': { id: 'trials', title: 'Deneme Sınavı' },
+    '/pages/test.html': { id: 'tests', title: 'Test Çöz' },
     '/pages/analiz.html': { id: 'analysis', title: 'Analiz Raporu' },
+    '/pages/report.html': { id: 'analysis', title: 'Raporlar' },
+    '/pages/yanlislarim.html': { id: 'mistakes', title: 'Yanlışlarım' },
+    '/pages/favoriler.html': { id: 'favorites', title: 'Favoriler' },
+    '/pages/konu.html': { id: 'lessons', title: 'Konu Detayı' },
     '/pages/yardim.html': { id: 'help', title: 'Yardım Merkezi' },
+    '/pages/yasal.html': { id: 'help', title: 'Yasal Bilgilendirme' },
+    '/pages/pending-approval.html': { id: 'unknown', title: 'Onay Bekleniyor' },
+    '/pages/404.html': { id: 'unknown', title: 'Sayfa Bulunamadı' },
 };
 
 let layoutInitPromise = null;
@@ -98,9 +107,18 @@ async function loadRequiredHTML(isAdminPage) {
         ? '/partials/admin-sidebar.html'
         : '/partials/sidebar.html';
 
+    const footerTargetId = document.getElementById('app-footer-placeholder')
+        ? 'app-footer-placeholder'
+        : (document.getElementById('footer-area') ? 'footer-area' : null);
+    const footerUrl = isAdminPage
+        ? '/components/layouts/admin-footer.html'
+        : '/components/footer.html';
+    const footerPromise = footerTargetId ? loadHTML(footerUrl, footerTargetId) : Promise.resolve();
+
     await Promise.all([
         loadHTML(headerUrl, headerTargetId),
-        loadHTML(sidebarUrl, 'sidebar')
+        loadHTML(sidebarUrl, 'sidebar'),
+        footerPromise
     ]);
 
     // Header yüklendikten sonra Admin/User linklerini ayarla

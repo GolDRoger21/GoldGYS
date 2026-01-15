@@ -4,13 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Test Çöz | GOLD GYS</title>
-    
+
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
-    
+
     <link rel="stylesheet" href="../styles/tokens.css">
     <link rel="stylesheet" href="../css/layout.css">
     <link rel="stylesheet" href="../css/dashboard.css">
-    <link rel="stylesheet" href="../css/admin.css"> <style>
+    <link rel="stylesheet" href="../css/portal.css">
+    <link rel="stylesheet" href="../css/footer.css">
+    <style>
         /* Test Sayfasına Özel Stiller */
         .test-header-card {
             background: linear-gradient(135deg, var(--bg-panel) 0%, #1e293b 100%);
@@ -23,7 +25,7 @@
             align-items: center;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
             position: sticky;
-            top: 80px; /* Header'ın altında kalacak şekilde */
+            top: calc(var(--header-height) + 10px);
             z-index: 800;
         }
 
@@ -45,64 +47,65 @@
 
         .counter-item .label { color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; }
         .counter-item .value { font-weight: 700; font-size: 1.2rem; color: var(--text-white); }
-        
+
         .counter-item.success .value { color: var(--color-success); }
         .counter-item.danger .value { color: var(--color-danger); }
-        
+
         /* Şıkların üzerine gelince */
         .option-label:hover {
             background: rgba(255, 255, 255, 0.05);
             border-color: var(--gold-primary) !important;
         }
-        
+
         @media (max-width: 768px) {
-            .test-header-card { flex-direction: column; gap: 15px; align-items: stretch; top: 70px; }
+            .test-header-card { flex-direction: column; gap: 15px; align-items: stretch; top: calc(var(--header-height) + 6px); }
             .counters-grid { justify-content: space-between; }
             .counter-item { padding: 5px 10px; min-width: auto; }
         }
     </style>
 </head>
 <body>
+    <div id="mainWrapper">
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+        <aside class="sidebar" id="sidebar"></aside>
+        <div id="app-header-placeholder"></div>
 
-    <div class="sidebar-overlay" id="sidebarOverlay"></div>
-    <aside class="sidebar" id="sidebar"></aside>
-    <div id="app-header-placeholder"></div>
+        <main class="main-content" id="main-content">
+            <div class="dashboard-container">
+                <div class="test-header-card">
+                    <div>
+                        <h2 style="margin:0; font-size:1.5rem; color:var(--gold-primary);">Konu Tarama Testi</h2>
+                        <p style="margin:5px 0 0; color:var(--text-muted); font-size:0.9rem;">Genel Hukuk Bilgisi • 20 Soru</p>
+                    </div>
 
-    <main class="main-content" id="main-content">
-        <div class="dashboard-container">
-            
-            <div class="test-header-card">
-                <div>
-                    <h2 style="margin:0; font-size:1.5rem; color:var(--gold-primary);">Konu Tarama Testi</h2>
-                    <p style="margin:5px 0 0; color:var(--text-muted); font-size:0.9rem;">Genel Hukuk Bilgisi • 20 Soru</p>
+                    <div class="counters-grid">
+                        <div class="counter-item success">
+                            <span class="value" id="trueVal">0</span>
+                            <span class="label">Doğru</span>
+                        </div>
+                        <div class="counter-item danger">
+                            <span class="value" id="falseVal">0</span>
+                            <span class="label">Yanlış</span>
+                        </div>
+                        <div class="counter-item">
+                            <span class="value" id="remainVal">0</span>
+                            <span class="label">Kalan</span>
+                        </div>
+                    </div>
+
+                    <button onclick="testEngine.finishTest()" class="btn btn-primary" style="background:var(--gold-primary); color:black; font-weight:600;">
+                        Testi Bitir
+                    </button>
                 </div>
-                
-                <div class="counters-grid">
-                    <div class="counter-item success">
-                        <span class="value" id="trueVal">0</span>
-                        <span class="label">Doğru</span>
-                    </div>
-                    <div class="counter-item danger">
-                        <span class="value" id="falseVal">0</span>
-                        <span class="label">Yanlış</span>
-                    </div>
-                    <div class="counter-item">
-                        <span class="value" id="remainVal">0</span>
-                        <span class="label">Kalan</span>
-                    </div>
-                </div>
 
-                <button onclick="testEngine.finishTest()" class="btn btn-primary" style="background:var(--gold-primary); color:black; font-weight:600;">
-                    Testi Bitir
-                </button>
+                <div id="questions-container">
+                    <div class="loader-spinner" style="margin: 50px auto;"></div>
+                </div>
             </div>
 
-            <div id="questions-container">
-                <div class="loader-spinner" style="margin: 50px auto;"></div>
-            </div>
-
-        </div>
-    </main>
+            <footer id="app-footer-placeholder" class="app-footer"></footer>
+        </main>
+    </div>
 
     <script type="module">
         import { initLayout } from '../js/ui-loader.js';
@@ -111,20 +114,16 @@
         import { collection, getDocs, limit, query } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         document.addEventListener('DOMContentLoaded', async () => {
-            // 1. Arayüzü Yükle ('tests' menüsünü aktif yap)
-            await initLayout(); // Parametre vermeye gerek yok, URL'den anlar
+            await initLayout();
 
-            // 2. Demo Soruları Çek (Gerçek sistemde URL'den test ID alınır)
-            // Şimdilik veritabanındaki ilk 5 soruyu çekip gösterelim
             try {
                 const qRef = collection(db, "questions");
                 const qSnap = await getDocs(query(qRef, limit(5)));
-                
+
                 let questions = [];
                 if (!qSnap.empty) {
                     qSnap.forEach(doc => questions.push({ id: doc.id, ...doc.data() }));
                 } else {
-                    // Veritabanı boşsa demo veri kullan
                     questions = [
                         {
                             id: "demo1",
@@ -143,8 +142,6 @@
                     ];
                 }
 
-                // 3. Test Motorunu Başlat
-                // 'questions-container' ID'si HTML'deki div ile eşleşmeli
                 window.testEngine = new TestEngine('questions-container', questions, 'demo_exam');
 
             } catch (error) {
