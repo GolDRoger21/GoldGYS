@@ -191,8 +191,23 @@
     .app-footer .footer-meta {
       border-top: none;
       padding-top: 0;
-      justify-content: center;
-      /* Ortala */
+      justify-content: space-between !important;
+      /* İkonlar sağa, metin sola */
+      flex-direction: row-reverse;
+      /* Sosyal ikonlar sağda kalsın diye dizilimi ters çeviriyoruz veya HTML sırası önemli */
+    }
+
+    /* Flex-reverse yerine HTML sırasını koruyup justify-content ile halledelim */
+    .app-footer .footer-meta {
+      flex-direction: row;
+    }
+
+    /* Konu Kartı - Link Düzeltmeleri */
+    a.subject-card {
+      text-decoration: none;
+      color: inherit;
+      display: flex;
+      /* Flex yapısını koru */
     }
 
     /* Mobilde footer hizalaması */
@@ -221,9 +236,10 @@
           <h1 class="page-heading heading-1">Sınav Konuları</h1>
           <p class="text-muted">Yazı İşleri Müdürü kadrosu için belirlenen güncel konu dağılımı.</p>
 
-          <div class="subject-tabs">
-            <button class="tab-btn active" data-tab="common">Ortak Konular (32 Soru)</button>
-            <button class="tab-btn" data-tab="field">Alan Bilgisi (48 Soru)</button>
+          <div class="subject-tabs" role="tablist">
+            <button class="tab-btn active" data-tab="common" role="tab" aria-selected="true">Ortak Konular (32
+              Soru)</button>
+            <button class="tab-btn" data-tab="field" role="tab" aria-selected="false">Alan Bilgisi (48 Soru)</button>
           </div>
         </section>
 
@@ -256,8 +272,12 @@
     tabs.forEach(tab => {
       tab.addEventListener('click', () => {
         // Aktif sınıfını güncelle
-        tabs.forEach(t => t.classList.remove('active'));
+        tabs.forEach(t => {
+          t.classList.remove('active');
+          t.setAttribute('aria-selected', 'false');
+        });
         tab.classList.add('active');
+        tab.setAttribute('aria-selected', 'true');
 
         // İçeriği animasyonlu değiştir
         grid.classList.add('fading');
@@ -274,7 +294,7 @@
       if (!data) return;
 
       grid.innerHTML = data.map(topic => `
-                <div class="subject-card" onclick="window.location.href='/pages/konu.html?id=${topic.id}'">
+                <a href="/pages/konu.html?id=${topic.id}" class="subject-card">
                     <div class="card-header">
                         <div class="icon-box">
                             ${getIcon(topic.icon)}
@@ -294,7 +314,7 @@
                             <div class="progress-fill" style="width: ${topic.progress}%"></div>
                         </div>
                     </div>
-                </div>
+                </a>
             `).join('');
     }
 
