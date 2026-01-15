@@ -178,6 +178,31 @@
         white-space: nowrap;
       }
     }
+
+    /* Footer Özelleştirme - Konular Sayfası İçin Sadeleştirme */
+    .app-footer .footer-links-grid {
+      display: none !important;
+    }
+
+    .app-footer .footer-shell {
+      gap: 0;
+    }
+
+    .app-footer .footer-meta {
+      border-top: none;
+      padding-top: 0;
+      justify-content: center;
+      /* Ortala */
+    }
+
+    /* Mobilde footer hizalaması */
+    @media (max-width: 768px) {
+      .app-footer {
+        padding-top: 1rem;
+        padding-bottom: 2rem;
+        /* Mobil navigasyon varsa yukarıda kalsın */
+      }
+    }
   </style>
 </head>
 
