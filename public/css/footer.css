@@ -79,6 +79,10 @@
     gap: 1.5rem;
 }
 
+.footer-separator {
+    color: var(--text-muted);
+}
+
 .footer-brand {
     display: flex;
     align-items: center;
@@ -95,6 +99,12 @@
 }
 
 .footer-copyright {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.footer-copy,
+.footer-credit {
     font-size: 0.85rem;
     color: var(--text-muted);
 }
