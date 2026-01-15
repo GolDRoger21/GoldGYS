@@ -74,17 +74,15 @@ body {
    ========================================= */
 .app-header {
     background: var(--bg-header);
-    /* Beyaz Header */
     border-bottom: 1px solid var(--border-color);
     height: var(--header-height);
-    position: sticky;
-    /* Sayfa kaydıkça üstte kalır */
+    position: fixed;
     top: 0;
-    z-index: 900;
-    padding: 0 24px;
-    /* margin-left ve width removed -> handled by layout.css */
+    left: 0;
+    width: 100%;
+    z-index: 1200;
+    padding: 0;
     display: block;
-    /* Flex container header-inner */
 }
 
 .header-inner {
@@ -92,6 +90,7 @@ body {
     align-items: center;
     justify-content: space-between;
     height: 100%;
+    padding: 0 1.5rem;
 }
 
 .header-left {
@@ -102,8 +101,8 @@ body {
 
 /* Mobil Menü Butonu */
 .page-title {
-    font-size: 1.25rem;
-    font-weight: 500;
+    font-size: 1.2rem;
+    font-weight: 600;
     color: var(--text-white);
     margin: 0;
     opacity: 0.9;
@@ -136,7 +135,7 @@ body {
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
-.user-avatar-image {
+.user-avatar-btn .avatar-img {
     width: 100%;
     height: 100%;
     object-fit: cover;
