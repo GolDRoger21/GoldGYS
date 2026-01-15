@@ -1,6 +1,6 @@
 import { db } from "../../firebase-config.js";
 import {
-    collection, getDocs, getDoc, addDoc, updateDoc, deleteDoc, doc, query, where, orderBy, serverTimestamp, writeBatch
+    collection, getDocs, getDoc, addDoc, updateDoc, deleteDoc, doc, query, where, orderBy, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // Global State
@@ -9,13 +9,19 @@ let state = {
     currentSubTopicId: null,
     editingContentId: null,
     topicsMap: {},
+    contentItems: [],
+    contentFilters: {
+        search: '',
+        type: 'all',
+        sort: 'order-asc'
+    },
     // Quiz Builder State
     quizQuestions: []
 };
 
 // UI Template (Inlined for Theme Consistency)
 const UI_TEMPLATE = `
-<div class="d-flex h-100" style="gap: 20px;">
+<div class="d-flex h-100 content-admin" style="gap: 20px;">
     <!-- Sidebar: Konu Ağacı -->
     <aside class="card" style="width: 300px; padding: 0; display: flex; flex-direction: column; overflow: hidden; margin-bottom: 0;">
         <div class="p-3 border-bottom border-secondary">
@@ -41,7 +47,7 @@ const UI_TEMPLATE = `
         <div id="contentPanel" class="d-none flex-column h-100">
             <!-- Header -->
             <div class="p-4 border-bottom border-secondary">
-                <div class="d-flex justify-content-between align-items-start mb-3">
+                <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-3">
                     <div>
                         <div class="d-flex align-items-center gap-2 mb-1">
                             <span class="badge border border-warning text-warning" id="headerCategoryBadge">Kategori</span>
@@ -50,23 +56,68 @@ const UI_TEMPLATE = `
                         <h2 class="mb-0 fw-bold text-white" id="headerTitle">Konu Başlığı</h2>
                         <p class="text-muted mb-0 small" id="headerSubTitle">Alt başlık</p>
                     </div>
+                    <div class="d-flex gap-2 flex-wrap">
+                        <button class="btn btn-sm border-secondary text-white" onclick="window.ContentManager.openModal('video')">
+                            <i class="bi bi-youtube me-1 text-danger"></i> Video
+                        </button>
+                        <button class="btn btn-sm border-secondary text-white" onclick="window.ContentManager.openModal('pdf')">
+                            <i class="bi bi-file-earmark-pdf me-1 text-warning"></i> PDF
+                        </button>
+                        <button class="btn btn-sm border-secondary text-white" onclick="window.ContentManager.openModal('html')">
+                            <i class="bi bi-file-text me-1 text-success"></i> Not
+                        </button>
+                        <div class="vr mx-1 bg-secondary"></div>
+                        <button class="btn btn-primary btn-sm fw-bold" onclick="window.ContentManager.openModal('quiz')">
+                            <i class="bi bi-ui-checks me-1"></i> Test Oluştur
+                        </button>
+                    </div>
                 </div>
 
-                <div class="d-flex gap-2 flex-wrap">
-                    <button class="btn btn-sm border-secondary text-white" onclick="window.ContentManager.openModal('video')">
-                        <i class="bi bi-youtube me-1 text-danger"></i> Video
+                <div class="content-summary d-flex flex-wrap gap-3" id="contentSummary">
+                    <button class="summary-card" data-type="all" type="button">
+                        <div class="summary-title">Toplam</div>
+                        <div class="summary-value" id="contentTotalCount">0</div>
                     </button>
-                    <button class="btn btn-sm border-secondary text-white" onclick="window.ContentManager.openModal('pdf')">
-                        <i class="bi bi-file-earmark-pdf me-1 text-warning"></i> PDF
+                    <button class="summary-card" data-type="video" type="button">
+                        <div class="summary-title">Video</div>
+                        <div class="summary-value text-danger" id="contentVideoCount">0</div>
                     </button>
-                    <button class="btn btn-sm border-secondary text-white" onclick="window.ContentManager.openModal('html')">
-                        <i class="bi bi-file-text me-1 text-success"></i> Not
+                    <button class="summary-card" data-type="pdf" type="button">
+                        <div class="summary-title">PDF</div>
+                        <div class="summary-value text-warning" id="contentPdfCount">0</div>
                     </button>
-                    <div class="vr mx-1 bg-secondary"></div>
-                    <button class="btn btn-primary btn-sm fw-bold" onclick="window.ContentManager.openModal('quiz')">
-                        <i class="bi bi-ui-checks me-1"></i> Test Oluştur
+                    <button class="summary-card" data-type="html" type="button">
+                        <div class="summary-title">Not</div>
+                        <div class="summary-value text-success" id="contentHtmlCount">0</div>
+                    </button>
+                    <button class="summary-card" data-type="quiz" type="button">
+                        <div class="summary-title">Test</div>
+                        <div class="summary-value text-primary" id="contentQuizCount">0</div>
                     </button>
                 </div>
+            </div>
+
+            <div class="content-toolbar p-3 border-bottom border-secondary d-flex flex-wrap gap-3 align-items-center">
+                <div class="input-group input-group-sm flex-grow-1 content-toolbar-search">
+                    <span class="input-group-text bg-dark border-secondary text-muted"><i class="bi bi-search"></i></span>
+                    <input type="text" id="contentSearchInput" class="form-control bg-dark text-white border-secondary" placeholder="İçeriklerde ara...">
+                </div>
+                <select id="contentTypeFilter" class="form-select form-select-sm bg-dark text-white border-secondary content-toolbar-select">
+                    <option value="all">Tüm Tipler</option>
+                    <option value="video">Video</option>
+                    <option value="pdf">PDF</option>
+                    <option value="html">Not</option>
+                    <option value="quiz">Test</option>
+                </select>
+                <select id="contentSortSelect" class="form-select form-select-sm bg-dark text-white border-secondary content-toolbar-select">
+                    <option value="order-asc">Sıra No (Artan)</option>
+                    <option value="order-desc">Sıra No (Azalan)</option>
+                    <option value="date-desc">Tarih (Yeni -> Eski)</option>
+                    <option value="date-asc">Tarih (Eski -> Yeni)</option>
+                </select>
+                <button class="btn btn-sm btn-outline-secondary text-white" id="contentRefreshBtn">
+                    <i class="bi bi-arrow-clockwise me-1"></i> Yenile
+                </button>
             </div>
 
             <!-- List Area -->
@@ -239,23 +290,9 @@ async function loadContents() {
         const q = query(collection(db, "contents"), ...constraints);
         const snapshot = await getDocs(q);
 
-        document.getElementById('contentCountBadge').innerText = `${snapshot.size} İçerik`;
-
-        if (snapshot.empty) {
-            workspace.innerHTML = `
-                <div class="text-center py-5 text-muted">
-                    <i class="bi bi-inbox fs-1 opacity-25"></i>
-                    <p class="mt-2">Bu bölümde henüz içerik yok.</p>
-                </div>`;
-            return;
-        }
-
-        let html = '<div class="d-flex flex-column gap-3">';
-        snapshot.forEach(docSnap => {
-            html += createContentCard(docSnap.id, docSnap.data());
-        });
-        html += '</div>';
-        workspace.innerHTML = html;
+        state.contentItems = snapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() }));
+        updateContentSummary(state.contentItems);
+        renderContentList();
 
     } catch (error) {
         console.error(error);
@@ -263,10 +300,99 @@ async function loadContents() {
     }
 }
 
+function renderContentList() {
+    const workspace = document.getElementById('contentWorkspace');
+    const items = applyContentFilters(state.contentItems);
+
+    document.getElementById('contentCountBadge').innerText = `${items.length} İçerik`;
+
+    if (items.length === 0) {
+        workspace.innerHTML = `
+            <div class="text-center py-5 text-muted">
+                <i class="bi bi-inbox fs-1 opacity-25"></i>
+                <p class="mt-2">Bu filtreye uygun içerik bulunamadı.</p>
+                <button class="btn btn-sm btn-outline-secondary text-white mt-2" onclick="window.ContentManager.clearFilters()">
+                    Filtreleri Temizle
+                </button>
+            </div>`;
+        return;
+    }
+
+    let html = '<div class="d-flex flex-column gap-3">';
+    items.forEach(item => {
+        html += createContentCard(item.id, item);
+    });
+    html += '</div>';
+    workspace.innerHTML = html;
+}
+
+function applyContentFilters(items) {
+    const searchTerm = state.contentFilters.search.trim().toLowerCase();
+    const typeFilter = state.contentFilters.type;
+
+    let filtered = items.filter(item => {
+        const matchesType = typeFilter === 'all' ? true : item.type === typeFilter;
+        if (!matchesType) return false;
+
+        if (!searchTerm) return true;
+        const haystack = `${item.title || ''} ${item.data?.url || ''} ${item.data?.content || ''}`.toLowerCase();
+        return haystack.includes(searchTerm);
+    });
+
+    const sortKey = state.contentFilters.sort;
+    filtered = filtered.sort((a, b) => {
+        if (sortKey === 'order-asc') return (a.order || 0) - (b.order || 0);
+        if (sortKey === 'order-desc') return (b.order || 0) - (a.order || 0);
+        const dateA = getContentTimestamp(a);
+        const dateB = getContentTimestamp(b);
+        if (sortKey === 'date-asc') return dateA - dateB;
+        return dateB - dateA;
+    });
+
+    return filtered;
+}
+
+function updateContentSummary(items) {
+    const counts = {
+        total: items.length,
+        video: 0,
+        pdf: 0,
+        html: 0,
+        quiz: 0
+    };
+
+    items.forEach(item => {
+        if (counts[item.type] !== undefined) counts[item.type] += 1;
+    });
+
+    document.getElementById('contentTotalCount').innerText = counts.total;
+    document.getElementById('contentVideoCount').innerText = counts.video;
+    document.getElementById('contentPdfCount').innerText = counts.pdf;
+    document.getElementById('contentHtmlCount').innerText = counts.html;
+    document.getElementById('contentQuizCount').innerText = counts.quiz;
+
+    highlightSummaryFilter();
+}
+
+function highlightSummaryFilter() {
+    const summary = document.getElementById('contentSummary');
+    if (!summary) return;
+    summary.querySelectorAll('.summary-card').forEach(card => {
+        card.classList.toggle('active', card.dataset.type === state.contentFilters.type);
+    });
+}
+
+function getContentTimestamp(item) {
+    const created = item.createdAt?.seconds ? item.createdAt.seconds * 1000 : 0;
+    const updated = item.updatedAt?.seconds ? item.updatedAt.seconds * 1000 : 0;
+    return Math.max(created, updated, 0);
+}
+
 function createContentCard(id, item) {
     let icon = 'bi-file-earmark';
     let typeClass = 'type-other';
     let metaInfo = '';
+    let subInfo = '';
 
     switch (item.type) {
         case 'video': icon = 'bi-play-circle-fill text-danger'; typeClass = 'type-video'; break;
@@ -280,6 +406,16 @@ function createContentCard(id, item) {
         case 'podcast': icon = 'bi-mic-fill text-info'; typeClass = 'type-podcast'; break;
     }
 
+    if (item.type === 'video' || item.type === 'pdf') {
+        subInfo = `<span class="content-meta"><i class="bi bi-link-45deg"></i> ${truncateText(item.data?.url || '', 48)}</span>`;
+    }
+    if (item.type === 'html') {
+        subInfo = `<span class="content-meta"><i class="bi bi-card-text"></i> Not içeriği</span>`;
+    }
+
+    const dateValue = getContentTimestamp(item);
+    const dateLabel = dateValue ? new Date(dateValue).toLocaleDateString('tr-TR') : 'Tarih yok';
+
     return `
         <div class="content-card ${typeClass} p-3 d-flex align-items-center justify-content-between">
             <div class="d-flex align-items-center">
@@ -290,8 +426,9 @@ function createContentCard(id, item) {
                     <div class="small text-muted">
                         ${item.type.toUpperCase()} 
                         ${metaInfo}
-                        <span class="ms-2 opacity-50">• ${new Date(item.createdAt?.seconds * 1000).toLocaleDateString('tr-TR')}</span>
+                        <span class="ms-2 opacity-50">• ${dateLabel}</span>
                     </div>
+                    ${subInfo ? `<div class="small text-muted mt-1">${subInfo}</div>` : ''}
                 </div>
             </div>
             <div class="d-flex gap-2">
@@ -478,9 +615,6 @@ const saveContent = async () => {
             });
 
             // 1. Soruları Bankaya Ekle (Question Collection)
-            const batch = writeBatch(db);
-            const savedQuestions = [];
-
             // Eğer düzenleme modundaysak eski soruları temizlemek yerine sadece referansları güncelliyoruz
             // Ancak basitlik için: Bu versiyonda soruları 'questions' koleksiyonuna ekliyoruz.
             // Quiz dokümanı içinde soruları gömülü saklamak daha performanslı olabilir bu admin paneli için.
@@ -546,6 +680,69 @@ function bindEvents() {
             });
         });
     }
+
+    const contentSearch = document.getElementById('contentSearchInput');
+    if (contentSearch) {
+        contentSearch.addEventListener('input', (e) => {
+            state.contentFilters.search = e.target.value;
+            renderContentList();
+        });
+    }
+
+    const typeFilter = document.getElementById('contentTypeFilter');
+    if (typeFilter) {
+        typeFilter.addEventListener('change', (e) => {
+            state.contentFilters.type = e.target.value;
+            highlightSummaryFilter();
+            renderContentList();
+        });
+    }
+
+    const sortSelect = document.getElementById('contentSortSelect');
+    if (sortSelect) {
+        sortSelect.addEventListener('change', (e) => {
+            state.contentFilters.sort = e.target.value;
+            renderContentList();
+        });
+    }
+
+    const refreshButton = document.getElementById('contentRefreshBtn');
+    if (refreshButton) {
+        refreshButton.addEventListener('click', () => {
+            loadContents();
+        });
+    }
+
+    const summary = document.getElementById('contentSummary');
+    if (summary) {
+        summary.addEventListener('click', (event) => {
+            const button = event.target.closest('.summary-card');
+            if (!button) return;
+            state.contentFilters.type = button.dataset.type || 'all';
+            const filterSelect = document.getElementById('contentTypeFilter');
+            if (filterSelect) filterSelect.value = state.contentFilters.type;
+            highlightSummaryFilter();
+            renderContentList();
+        });
+    }
+}
+
+function clearFilters() {
+    state.contentFilters = { search: '', type: 'all', sort: 'order-asc' };
+    const searchInput = document.getElementById('contentSearchInput');
+    const typeFilter = document.getElementById('contentTypeFilter');
+    const sortSelect = document.getElementById('contentSortSelect');
+    if (searchInput) searchInput.value = '';
+    if (typeFilter) typeFilter.value = 'all';
+    if (sortSelect) sortSelect.value = 'order-asc';
+    highlightSummaryFilter();
+    renderContentList();
+}
+
+function truncateText(text, maxLength) {
+    if (!text) return '';
+    if (text.length <= maxLength) return text;
+    return `${text.slice(0, maxLength)}...`;
 }
 
 // Window Objesine Bağlama
@@ -557,5 +754,6 @@ window.ContentManager = {
     editContent,
     addQuestion,
     removeQuestion,
-    updateQuestion
+    updateQuestion,
+    clearFilters
 };
