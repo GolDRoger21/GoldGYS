@@ -552,6 +552,55 @@ body {
 }
 
 /* Content List (Sağ Panel) */
+.content-summary {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.summary-card {
+    min-width: 140px;
+    padding: 0.75rem 1rem;
+    background: var(--bg-panel);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    color: var(--text-white);
+    transition: all 0.2s;
+}
+
+.summary-card:hover {
+    border-color: var(--gold-primary);
+    transform: translateY(-1px);
+}
+
+.summary-card.active {
+    border-color: var(--gold-primary);
+    box-shadow: 0 0 0 1px rgba(212, 175, 55, 0.3);
+}
+
+.summary-title {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+}
+
+.summary-value {
+    font-size: 1.4rem;
+    font-weight: 700;
+}
+
+.content-toolbar-search {
+    min-width: 220px;
+}
+
+.content-toolbar-select {
+    min-width: 180px;
+}
+
 .content-card {
     background: var(--bg-panel);
     border: 1px solid var(--border-color);
@@ -585,6 +634,17 @@ body {
 .content-card h6 {
     font-size: 1rem;
     color: var(--text-white);
+}
+
+.content-meta {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.content-meta i {
+    font-size: 0.9rem;
+    color: var(--text-muted);
 }
 
 /* Question Builder Styles */
