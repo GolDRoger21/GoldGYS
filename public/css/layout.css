@@ -232,6 +232,7 @@ body.sidebar-collapsed .sidebar .nav-label,
 body.sidebar-collapsed .sidebar .nav-item span:not(.icon),
 body.sidebar-collapsed .sidebar .sidebar-brand .logo-text,
 body.sidebar-collapsed .sidebar .sidebar-footer-nav span:not(.icon),
+body.sidebar-collapsed .sidebar .sidebar-footer .nav-item span:not(.icon),
 body.sidebar-collapsed .sidebar #logoutBtn span:not(.icon) {
     display: none;
 }
@@ -400,6 +401,55 @@ body.sidebar-collapsed .sidebar .sidebar-footer {
     pointer-events: auto;
 }
 
+/* Shared Header Controls */
+.icon-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-muted);
+    padding: 8px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.icon-button:hover {
+    background-color: var(--bg-hover);
+    color: var(--text-white);
+}
+
+.sidebar-toggle {
+    display: inline-flex;
+}
+
+.theme-btn {
+    background: transparent;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 50%;
+    transition: background 0.2s ease;
+    z-index: 1002;
+    position: relative;
+    pointer-events: auto;
+    color: var(--text-white);
+}
+
+.theme-btn:hover {
+    background: var(--bg-hover);
+}
+
+/* Icons visibility in light/dark mode */
+body.light-mode .icon-sun {
+    display: none;
+}
+
+body:not(.light-mode) .icon-moon {
+    display: none;
+}
+
 /* Responsive */
 @media (max-width: 1024px) {
     .sidebar {
@@ -416,5 +466,9 @@ body.sidebar-collapsed .sidebar .sidebar-footer {
         top: 0;
         height: 100vh;
         z-index: 1300;
+    }
+
+    .sidebar-toggle {
+        display: inline-flex;
     }
 }

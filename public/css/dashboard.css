@@ -1,18 +1,5 @@
 /* public/css/dashboard.css - FINAL VERSION */
 
-:root {
-    --bg-dark: #0F172A;
-    --bg-panel: #1E293B;
-    --gold-primary: #D4AF37;
-    --gold-dim: #b5932a;
-    --text-white: #F8FAFC;
-    --text-muted: #94A3B8;
-    --border-color: #334155;
-    --sidebar-width: 280px;
-    --header-height: 64px;
-    /* Google Header standart yükseklik */
-}
-
 * {
     box-sizing: border-box;
     margin: 0;
@@ -114,19 +101,6 @@ body {
 }
 
 /* Mobil Menü Butonu */
-.icon-button {
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: #5f6368;
-    padding: 8px;
-    border-radius: 50%;
-}
-
-.icon-button:hover {
-    background-color: rgba(0, 0, 0, 0.05);
-}
-
 .page-title {
     font-size: 1.25rem;
     font-weight: 500;
@@ -149,16 +123,16 @@ body {
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    border: 2px solid transparent;
+    border: 1px solid var(--border-color);
     padding: 0;
     overflow: hidden;
     cursor: pointer;
-    background: #f1f3f4;
+    background: var(--bg-panel);
     transition: all 0.2s;
 }
 
 .user-avatar-btn:hover {
-    border-color: #d2e3fc;
+    border-color: var(--gold-primary);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
@@ -225,12 +199,12 @@ body {
 
 .divider {
     height: 1px;
-    background: #f1f3f4;
+    background: var(--border-color);
     margin: 5px 0;
 }
 
 .text-danger {
-    color: #d93025 !important;
+    color: var(--danger) !important;
 }
 
 /* =========================================
