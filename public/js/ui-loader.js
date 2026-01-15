@@ -126,26 +126,6 @@ async function loadRequiredHTML(isAdminPage) {
 }
 
 function ensurePageHeader({ isAdminPage, title }) {
-    const mainContent = document.getElementById('main-content');
-    if (!mainContent) return;
-
-    let pageHeader = document.getElementById('pageHeader');
-    if (!pageHeader) {
-        pageHeader = document.createElement('div');
-        pageHeader.className = 'page-header';
-        pageHeader.id = 'pageHeader';
-        pageHeader.innerHTML = `
-            <nav class="page-breadcrumb" aria-label="Sayfa konumu">
-                <a class="page-breadcrumb-link" id="pageBreadcrumbRoot" href="/pages/dashboard.html">Panel</a>
-                <span class="page-breadcrumb-separator">/</span>
-                <span class="page-breadcrumb-current" id="pageBreadcrumbCurrent" aria-current="page">${title}</span>
-            </nav>
-            <h1 class="page-title" id="pageTitle">${title}</h1>
-        `;
-
-        mainContent.insertBefore(pageHeader, mainContent.firstChild);
-    }
-
     const rootLink = document.getElementById('pageBreadcrumbRoot');
     if (rootLink) {
         if (isAdminPage) {
