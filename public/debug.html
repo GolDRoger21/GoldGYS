@@ -3,239 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Debug - Sistem Durumu | GOLD GYS</title>
+    <title>Sistem Kontrolü | GOLD GYS</title>
+    <link rel="stylesheet" href="styles/tokens.css">
     <style>
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
-            color: #fff;
-            margin: 0;
-            padding: 20px;
-            min-height: 100vh;
-        }
-        .container {
+            background-color: var(--bg-dark);
+            color: var(--text-white);
+            font-family: var(--font-family-sans);
+            padding: 40px;
             max-width: 800px;
             margin: 0 auto;
-            background: rgba(30, 41, 59, 0.8);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .debug-card {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-color);
+            padding: 20px;
             border-radius: 12px;
-            padding: 30px;
-        }
-        h1 {
-            color: #D4AF37;
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        .status-box {
-            background: rgba(15, 23, 42, 0.5);
-            border: 1px solid rgba(212, 175, 55, 0.3);
-            border-radius: 8px;
-            padding: 15px;
             margin-bottom: 20px;
-            font-family: 'Courier New', monospace;
-            font-size: 0.9rem;
-            word-break: break-all;
         }
-        .label {
-            color: #D4AF37;
-            font-weight: 600;
-            margin-top: 15px;
-            margin-bottom: 5px;
+        h1 { color: var(--gold-primary); border-bottom: 1px solid var(--border-color); padding-bottom: 15px; }
+        .success { color: var(--color-success); font-weight: bold; }
+        .error { color: var(--color-danger); font-weight: bold; }
+        button {
+            background: transparent; border: 1px solid var(--gold-primary);
+            color: var(--gold-primary); padding: 8px 16px; border-radius: 4px;
+            cursor: pointer; margin-top: 10px;
         }
-        .value {
-            color: #e2e8f0;
-        }
-        .success {
-            color: #4ade80;
-        }
-        .error {
-            color: #f87171;
-        }
-        .warning {
-            color: #fbbf24;
-        }
-        .btn {
-            background: #D4AF37;
-            color: #0F172A;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 600;
-            margin-right: 10px;
-            margin-top: 20px;
-        }
-        .btn:hover {
-            background: #E5C158;
-        }
-        .btn-secondary {
-            background: #64748b;
-            color: #fff;
-        }
-        .btn-secondary:hover {
-            background: #78909c;
-        }
-        .spinner {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(212, 175, 55, 0.3);
-            border-top: 3px solid #D4AF37;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-        }
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
+        button:hover { background: var(--gold-primary); color: #000; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🔍 Sistem Durumu Kontrol</h1>
-        
-        <div class="label">Oturum Durumu</div>
-        <div class="status-box">
-            <span class="spinner"></span> Kontrol ediliyor...
-        </div>
-
-        <div id="authInfo"></div>
-        <div id="firestoreInfo"></div>
-        <div id="rolesInfo"></div>
-        <div id="issueInfo"></div>
-
-        <div style="margin-top: 30px;">
-            <button class="btn" onclick="location.reload()">Yenile</button>
-            <button class="btn btn-secondary" onclick="window.location.href='/'">Anasayfaya Dön</button>
-            <button class="btn btn-secondary" onclick="logout()">Çıkış Yap</button>
-        </div>
+    <h1>Sistem Durum Raporu</h1>
+    
+    <div class="debug-card">
+        <h3>Firebase Bağlantısı</h3>
+        <div id="firebaseStatus">Kontrol ediliyor...</div>
+        <button onclick="checkConnection()">Bağlantıyı Test Et</button>
     </div>
 
     <script type="module">
-        import { auth, db } from './js/firebase-config.js';
-        import { onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-        import { doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
-
-        window.logout = async () => {
-            await signOut(auth);
-            window.location.href = '/login.html';
-        };
-
-        onAuthStateChanged(auth, async (user) => {
-            const authInfo = document.getElementById('authInfo');
-            const firestoreInfo = document.getElementById('firestoreInfo');
-            const rolesInfo = document.getElementById('rolesInfo');
-            const issueInfo = document.getElementById('issueInfo');
-
-            if (!user) {
-                authInfo.innerHTML = `
-                    <div class="label error">❌ Oturum Açılmamış</div>
-                    <div class="status-box">
-                        Hiçbir oturum açılmamış durumdadır. Lütfen <a href="/login.html" style="color: #D4AF37;">giriş yapın</a>.
-                    </div>
-                `;
-                return;
-            }
-
-            // Auth bilgisi
-            authInfo.innerHTML = `
-                <div class="label success">✅ Oturum Açılmış</div>
-                <div class="status-box">
-                    <div><strong>UID:</strong> <span class="value">${user.uid}</span></div>
-                    <div><strong>Email:</strong> <span class="value">${user.email}</span></div>
-                    <div><strong>Adı:</strong> <span class="value">${user.displayName || '(belirtilmemiş)'}</span></div>
-                </div>
-            `;
-
+        import { app } from "./js/firebase-config.js";
+        window.checkConnection = () => {
             try {
-                // Token Claims bilgisi
-                const token = await user.getIdTokenResult(true);
-                const claims = token.claims;
-                
-                rolesInfo.innerHTML = `
-                    <div class="label">🔐 Token Claims</div>
-                    <div class="status-box">
-                        <div><strong>admin:</strong> <span class="value">${claims.admin || false}</span></div>
-                        <div><strong>role:</strong> <span class="value">${claims.role || '(belirtilmemiş)'}</span></div>
-                        <div><strong>editor:</strong> <span class="value">${claims.editor || false}</span></div>
-                    </div>
-                `;
-
-                // Firestore bilgisi
-                const userDocRef = doc(db, 'users', user.uid);
-                const userSnap = await getDoc(userDocRef);
-                
-                if (!userSnap.exists()) {
-                    firestoreInfo.innerHTML = `
-                        <div class="label warning">⚠️ Firestore Belgesi</div>
-                        <div class="status-box">
-                            Firestore'da kullanıcı belgesi bulunamadı.
-                        </div>
-                    `;
-                } else {
-                    const userData = userSnap.data();
-                    const statusClass = userData.status === 'active' ? 'success' : userData.status === 'pending' ? 'warning' : 'error';
-                    const statusEmoji = userData.status === 'active' ? '✅' : userData.status === 'pending' ? '⏳' : '❌';
-
-                    firestoreInfo.innerHTML = `
-                        <div class="label">📋 Firestore Belgesi</div>
-                        <div class="status-box">
-                            <div><strong>Status:</strong> <span class="${statusClass}">${statusEmoji} ${userData.status || '(belirtilmemiş)'}</span></div>
-                            <div><strong>Rol:</strong> <span class="value">${userData.role || '(belirtilmemiş)'}</span></div>
-                            <div><strong>Roller:</strong> <span class="value">${Array.isArray(userData.roles) ? userData.roles.join(', ') : '(belirtilmemiş)'}</span></div>
-                            <div><strong>Admin:</strong> <span class="value">${userData.isAdmin || false}</span></div>
-                        </div>
-                    `;
-
-                    // Sorun analizi
-                    let problemFound = false;
-                    let problems = [];
-
-                    // Status kontrol
-                    if (userData.status === 'pending') {
-                        problems.push('Status "pending" olarak ayarlanmış - Sisteme giriş yapamayacaksınız.');
-                        problemFound = true;
-                    }
-                    if (userData.status === 'rejected') {
-                        problems.push('Status "rejected" olarak ayarlanmış - Başvurunuz reddedilmiş.');
-                        problemFound = true;
-                    }
-
-                    // Admin yetkisi kontrol
-                    if (!claims.admin && userData.role !== 'admin') {
-                        // Bu sorun değil, ama admin paneline erişemez
-                    }
-
-                    if (problems.length > 0) {
-                        issueInfo.innerHTML = `
-                            <div class="label error">⚠️ Tespit Edilen Sorunlar</div>
-                            <div class="status-box">
-                                <ul>
-                                    ${problems.map(p => `<li>${p}</li>`).join('')}
-                                </ul>
-                            </div>
-                        `;
-                    } else {
-                        issueInfo.innerHTML = `
-                            <div class="label success">✅ Sorun Bulunamadı</div>
-                            <div class="status-box">
-                                Sisteme giriş yapabilmelisiniz. Eğer yine de sorun yaşıyorsanız, tarayıcı konsolunu kontrol edin (F12).
-                            </div>
-                        `;
-                    }
-                }
-            } catch (error) {
-                issueInfo.innerHTML = `
-                    <div class="label error">❌ Hata Oluştu</div>
-                    <div class="status-box">
-                        <div><strong>Hata Mesajı:</strong></div>
-                        <div class="value">${error.message}</div>
-                        <div style="margin-top: 10px; font-size: 0.85rem; color: #cbd5e1;">
-                            Tarayıcı konsolunu kontrol edin (F12) daha fazla bilgi için.
-                        </div>
-                    </div>
-                `;
+                if(app) document.getElementById('firebaseStatus').innerHTML = '<span class="success">✅ Firebase SDK Yüklendi</span>';
+                else throw new Error("App başlatılamadı");
+            } catch (e) {
+                document.getElementById('firebaseStatus').innerHTML = `<span class="error">❌ Hata: ${e.message}</span>`;
             }
-        });
+        };
+        checkConnection();
     </script>
 </body>
 </html>

@@ -178,18 +178,20 @@ async function initChartsSafe() {
         });
     }
 
-    // 2. PASTA GRAFİK (Şimdilik statik kalabilir veya aynı mantıkla bağlanabilir)
+    // 2. PASTA GRAFİK (Gerçek Veriye Bağlı Dağılım)
     const ctxQuestions = document.getElementById('questionsChart');
     if (ctxQuestions) {
         if (dashboardCharts.questions) dashboardCharts.questions.destroy();
 
+        const { labels, dataValues } = await getQuestionDistribution();
+
         dashboardCharts.questions = new Chart(ctxQuestions, {
             type: 'doughnut',
             data: {
-                labels: ['Matematik', 'Türkçe', 'Tarih'],
+                labels,
                 datasets: [{
-                    data: [15, 10, 5],
-                    backgroundColor: ['#3b82f6', '#10b981', '#ef4444'],
+                    data: dataValues,
+                    backgroundColor: buildChartColors(labels.length),
                     borderWidth: 0
                 }]
             },
@@ -200,6 +202,44 @@ async function initChartsSafe() {
             }
         });
     }
+}
+
+async function getQuestionDistribution() {
+    try {
+        const snapshot = await getDocs(collection(db, "questions"));
+        if (snapshot.empty) {
+            return { labels: ['Veri Yok'], dataValues: [0] };
+        }
+
+        const counts = snapshot.docs.reduce((acc, docSnap) => {
+            const data = docSnap.data();
+            const category = (data.category || 'Diğer').trim();
+            acc[category] = (acc[category] || 0) + 1;
+            return acc;
+        }, {});
+
+        const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+        const top = sorted.slice(0, 3);
+        const remainder = sorted.slice(3);
+
+        if (remainder.length > 0) {
+            const restCount = remainder.reduce((sum, [, value]) => sum + value, 0);
+            top.push(['Diğer', restCount]);
+        }
+
+        return {
+            labels: top.map(([label]) => label),
+            dataValues: top.map(([, value]) => value)
+        };
+    } catch (error) {
+        console.warn("Kategori dağılımı alınamadı:", error);
+        return { labels: ['Veri Yok'], dataValues: [0] };
+    }
+}
+
+function buildChartColors(size) {
+    const palette = ['#3b82f6', '#10b981', '#ef4444', '#f59e0b', '#6366f1', '#14b8a6'];
+    return Array.from({ length: size }, (_, index) => palette[index % palette.length]);
 }
 
 /**

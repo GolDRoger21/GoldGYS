@@ -4,18 +4,24 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Yasal Bilgilendirme | GOLD GYS</title>
-  <link rel="stylesheet" href="/css/app.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles/tokens.css">
+  <link rel="stylesheet" href="/css/layout.css">
+  <link rel="stylesheet" href="/css/dashboard.css">
+  <link rel="stylesheet" href="/css/portal.css">
+  <link rel="stylesheet" href="/css/footer.css">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230F172A'/><text x='50' y='70' font-family='serif' font-size='60' fill='%23D4AF37' text-anchor='middle' font-weight='bold'>G</text><text x='80' y='35' font-size='30'>⚖️</text></svg>">
   <style>
     .hero {
-      background: linear-gradient(135deg, #0f172a 0%, #1f2937 100%);
-      color: white;
+      background: linear-gradient(135deg, var(--bg-panel) 0%, #111c2f 100%);
+      color: var(--text-white);
       padding: 36px;
       border-radius: 24px;
       position: relative;
       overflow: hidden;
-      box-shadow: var(--shadow-strong);
+      box-shadow: var(--shadow-lg);
       border: 1px solid rgba(255, 255, 255, 0.08);
       margin-bottom: 24px;
     }
@@ -50,7 +56,7 @@
       border-radius: 999px;
       background: rgba(255, 255, 255, 0.08);
       border: 1px solid rgba(255, 255, 255, 0.12);
-      color: var(--gold-light);
+      color: var(--gold-primary);
       font-weight: 700;
       letter-spacing: 0.3px;
       position: relative;
@@ -62,11 +68,11 @@
       gap: 16px;
     }
     .info-card {
-      background: white;
+      background: var(--bg-panel);
       border-radius: 18px;
       padding: 18px;
-      border: 1px solid rgba(0, 0, 0, 0.04);
-      box-shadow: var(--shadow-soft);
+      border: 1px solid var(--border-color);
+      box-shadow: var(--shadow-sm);
       display: grid;
       gap: 6px;
     }
@@ -80,18 +86,18 @@
     .info-card .value {
       font-size: 1.05rem;
       font-weight: 700;
-      color: var(--navy-deep);
+      color: var(--text-white);
     }
     .legal-card {
-      background: white;
+      background: var(--bg-panel);
       border-radius: 18px;
       padding: 20px;
-      border: 1px solid rgba(0, 0, 0, 0.04);
-      box-shadow: var(--shadow-soft);
+      border: 1px solid var(--border-color);
+      box-shadow: var(--shadow-sm);
     }
     .legal-card h3 {
       margin: 0 0 8px;
-      color: var(--navy-deep);
+      color: var(--text-white);
     }
     .legal-card p {
       color: var(--text-muted);
@@ -105,16 +111,16 @@
       line-height: 1.55;
     }
     .accent-panel {
-      background: #0f172a;
-      color: white;
+      background: #0b1120;
+      color: var(--text-white);
       border-radius: 18px;
       padding: 20px;
       border: 1px solid rgba(255, 255, 255, 0.08);
-      box-shadow: var(--shadow-strong);
+      box-shadow: var(--shadow-lg);
     }
     .accent-panel h3 {
       margin: 0 0 6px;
-      color: white;
+      color: var(--text-white);
     }
     .accent-panel p, .accent-panel li, .accent-panel span {
       color: #cbd5e1;
@@ -122,13 +128,13 @@
   </style>
 </head>
 <body>
-  <div class="app-layout">
-    <aside id="sidebar-area" class="app-sidebar"></aside>
+  <div id="mainWrapper">
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    <aside class="sidebar" id="sidebar"></aside>
+    <div id="app-header-placeholder"></div>
 
-    <main class="app-main">
-      <header id="header-area" class="app-header"></header>
-
-      <div class="app-content">
+    <main class="main-content" id="main-content">
+      <div class="dashboard-container">
         <section class="hero">
           <div class="section-head" style="margin-bottom: 18px; position: relative; z-index: 1;">
             <div>
@@ -329,7 +335,7 @@
         </section>
       </div>
 
-      <footer id="footer-area" class="app-footer"></footer>
+      <footer id="app-footer-placeholder" class="app-footer"></footer>
     </main>
   </div>
 
@@ -338,7 +344,7 @@
     import { initLayout } from '/js/ui-loader.js';
 
     protectPage();
-    initLayout('yasal');
+    initLayout();
   </script>
 </body>
 </html>

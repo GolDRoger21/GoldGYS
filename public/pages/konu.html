@@ -1,42 +1,340 @@
 <!DOCTYPE html>
 <html lang="tr">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Konu Detayı | GOLD GYS</title>
-  <link rel="stylesheet" href="/css/app.css">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230F172A'/><text x='50' y='70' font-family='serif' font-size='60' fill='%23D4AF37' text-anchor='middle' font-weight='bold'>G</text><text x='80' y='35' font-size='30'>⚖️</text></svg>">
+  <title>Konu Detayı | Gold GYS</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Playfair+Display:wght@600;700&display=swap"
+    rel="stylesheet">
+
+  <link rel="stylesheet" href="/styles/tokens.css">
+  <link rel="stylesheet" href="/css/layout.css">
+  <link rel="stylesheet" href="/css/portal.css">
+  <link rel="stylesheet" href="/css/footer.css">
+
+  <style>
+    /* Footer Özelleştirme - Sadeleştirme & Hizalama (Konular) */
+    .app-footer .footer-links-grid {
+      display: none !important;
+    }
+
+    .app-footer .footer-shell {
+      gap: 0;
+    }
+
+    .app-footer .footer-meta {
+      border-top: none;
+      padding-top: 0;
+      justify-content: space-between !important;
+      flex-direction: row;
+    }
+
+    @media (max-width: 768px) {
+      .app-footer {
+        padding-top: 1rem;
+        padding-bottom: 2rem;
+      }
+    }
+
+    /* Detay Sayfasına Özel Stiller */
+    .hero-card {
+      background: linear-gradient(135deg, var(--navy-light) 0%, #162445 100%);
+      border: 1px solid var(--gold-dark);
+      border-radius: 16px;
+      padding: 2.5rem;
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+      margin-bottom: 2rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Arka plan süslemesi */
+    .hero-card::after {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -10%;
+      width: 300px;
+      height: 300px;
+      background: radial-gradient(circle, rgba(212, 175, 55, 0.15) 0%, rgba(0, 0, 0, 0) 70%);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    .hero-icon {
+      font-size: 3.5rem;
+      width: 80px;
+      height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(212, 175, 55, 0.1);
+      border-radius: 16px;
+      color: var(--gold-main);
+      flex-shrink: 0;
+    }
+
+    .hero-content h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 2rem;
+      color: var(--text-light);
+      margin-bottom: 0.5rem;
+    }
+
+    .hero-info {
+      display: flex;
+      gap: 1.5rem;
+      font-size: 0.95rem;
+      color: var(--text-muted);
+    }
+
+    .info-badge {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .info-badge i {
+      color: var(--gold-main);
+    }
+
+    /* Alt Konu Listesi */
+    .subtopic-list {
+      display: grid;
+      gap: 1rem;
+    }
+
+    .subtopic-item {
+      background: var(--navy-light);
+      border: 1px solid var(--navy-border);
+      border-radius: 12px;
+      padding: 1.2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all 0.2s ease;
+    }
+
+    .subtopic-item:hover {
+      border-color: var(--gold-dark);
+      background: #1e293b;
+      /* Hafif aydınlık */
+      transform: translateX(5px);
+    }
+
+    .st-title {
+      font-weight: 500;
+      color: var(--text-light);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .st-status {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--navy-border);
+      /* Tamamlanmamış */
+    }
+
+    .st-status.done {
+      background: var(--color-success);
+      box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
+    }
+
+    .st-actions .btn-sm {
+      padding: 8px 16px;
+      font-size: 0.85rem;
+      border-radius: 6px;
+      margin-left: 10px;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+
+    .btn-gold {
+      background: var(--gold-main);
+      color: var(--navy-deep);
+      border: none;
+    }
+
+    .btn-gold:hover {
+      background: #c5a02e;
+    }
+
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--navy-border);
+      color: var(--text-muted);
+    }
+
+    .btn-outline:hover {
+      border-color: var(--text-light);
+      color: var(--text-light);
+    }
+
+    /* Mobil Ayarları */
+    @media (max-width: 768px) {
+      .hero-card {
+        flex-direction: column;
+        text-align: center;
+        padding: 2rem 1.5rem;
+      }
+
+      .hero-info {
+        justify-content: center;
+      }
+
+      .subtopic-item {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: flex-start;
+      }
+
+      .st-actions {
+        width: 100%;
+        display: flex;
+        gap: 10px;
+      }
+
+      .st-actions .btn-sm {
+        flex: 1;
+        text-align: center;
+        margin-left: 0;
+      }
+    }
+  </style>
 </head>
+
 <body>
-  <div class="app-layout">
-    <aside id="sidebar-area" class="app-sidebar"></aside>
+  <div id="mainWrapper">
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    <aside class="sidebar" id="sidebar"></aside>
 
-    <main class="app-main">
-      <header id="header-area" class="app-header"></header>
+    <div id="app-header-placeholder"></div>
 
-      <div class="app-content">
-        <section class="panel-card">
-          <div class="section-head">
-            <div>
-              <p class="eyebrow">Konu detayları</p>
-              <h1 class="page-heading heading-1">Konu Bilgisi</h1>
-              <p class="text-muted">Seçili konuya ait özet, çalışma listesi ve test bağlantıları burada listelenecek.</p>
-            </div>
+    <main class="main-content" id="main-content">
+      <div class="dashboard-container">
+
+        <nav style="margin-bottom: 1.5rem; font-size: 0.9rem;">
+          <a href="/pages/dashboard.html" style="color: var(--text-muted); text-decoration: none;">Panel</a>
+          <span style="color: var(--navy-border);">/</span>
+          <a href="/pages/konular.html" style="color: var(--text-muted); text-decoration: none;">Konular</a>
+          <span style="color: var(--navy-border);">/</span>
+          <span id="breadcrumbCurrent" style="color: var(--gold-main);">...</span>
+        </nav>
+
+        <div id="topicHero"></div>
+
+        <div style="margin-top: 2rem;">
+          <h2 style="font-size: 1.25rem; margin-bottom: 1rem; color: var(--text-light);">Alt Konu Başlıkları</h2>
+          <div id="subTopicsList" class="subtopic-list">
+            <p class="text-muted">Alt konular yükleniyor...</p>
           </div>
-        </section>
-      </div>
+        </div>
 
-      <footer id="footer-area" class="app-footer"></footer>
+      </div>
+      <footer id="app-footer-placeholder" class="app-footer"></footer>
     </main>
   </div>
 
   <script type="module">
     import { protectPage } from '/js/role-guard.js';
     import { initLayout } from '/js/ui-loader.js';
+    import { getTopicById } from '/js/data/subjects-data.js';
 
+    // Sayfa Yükleme
     protectPage();
-    initLayout('konular');
+    initLayout().then(() => {
+      loadTopicDetails();
+    });
+
+    function loadTopicDetails() {
+      // URL'den ID'yi al
+      const params = new URLSearchParams(window.location.search);
+      const topicId = params.get('id');
+
+      if (!topicId) {
+        window.location.href = '/pages/konular.html';
+        return;
+      }
+
+      const topic = getTopicById(topicId);
+
+      if (!topic) {
+        document.querySelector('.dashboard-container').innerHTML =
+          `<div style="text-align:center; padding:3rem; color:red;">Konu bulunamadı!</div>`;
+        return;
+      }
+
+      // 1. Breadcrumb ve Başlık
+      document.title = `${topic.title} | Gold GYS`;
+      document.getElementById('breadcrumbCurrent').textContent = topic.title;
+
+      // 2. Hero Bölümünü Doldur
+      const heroHTML = `
+            <div class="hero-card">
+                <div class="hero-icon">
+                    ${getIcon(topic.icon)}
+                </div>
+                <div class="hero-content">
+                    <h1>${topic.title}</h1>
+                    <p style="color: var(--text-muted); margin-bottom: 1rem;">${topic.desc}</p>
+                    <div class="hero-info">
+                        <div class="info-badge">
+                            <span>📝 ${topic.questionCount} Soru Çıkıyor</span>
+                        </div>
+                        <div class="info-badge">
+                            <span>📊 %${topic.progress} Tamamlandı</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+      document.getElementById('topicHero').innerHTML = heroHTML;
+
+      // 3. Alt Başlıkları Doldur
+      const listContainer = document.getElementById('subTopicsList');
+      if (topic.subTopics && topic.subTopics.length > 0) {
+        listContainer.innerHTML = topic.subTopics.map((sub, index) => `
+                <div class="subtopic-item">
+                    <div class="st-title">
+                        <div class="st-status ${sub.completed ? 'done' : ''}"></div>
+                        <span>${sub.title}</span>
+                    </div>
+                    <div class="st-actions">
+                        <a href="#" class="btn-sm btn-outline">Not Oku</a>
+                        <a href="/pages/test.html?topic=${topic.id}&sub=${index}" class="btn-sm btn-gold">Test Çöz</a>
+                    </div>
+                </div>
+            `).join('');
+      } else {
+        listContainer.innerHTML = `<p class="text-muted">Bu konuya ait henüz alt başlık girilmemiş.</p>`;
+      }
+    }
+
+    // İkon Eşleştirici (Önceki sayfayla aynı)
+    function getIcon(name) {
+      const icons = {
+        'balance-scale': '⚖️', 'flag': '🇹🇷', 'building': '🏛️', 'user-tie': '👔',
+        'book': '📚', 'handshake': '🤝', 'university': '🎓', 'laptop-code': '💻',
+        'calculator': '🧮', 'landmark': '🏛️', 'gavel': '🔨', 'fingerprint': '🔐',
+        'envelope-open-text': '📩', 'paper-plane': '📨', 'id-card': '🪪',
+        'file-invoice-dollar': '💸', 'balance-scale-right': '📜', 'lock': '🔒'
+      };
+      return icons[name] || '📌';
+    }
   </script>
 </body>
+
 </html>

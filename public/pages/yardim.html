@@ -4,18 +4,24 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Yardım | GOLD GYS</title>
-  <link rel="stylesheet" href="/css/app.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles/tokens.css">
+  <link rel="stylesheet" href="/css/layout.css">
+  <link rel="stylesheet" href="/css/dashboard.css">
+  <link rel="stylesheet" href="/css/portal.css">
+  <link rel="stylesheet" href="/css/footer.css">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230F172A'/><text x='50' y='70' font-family='serif' font-size='60' fill='%23D4AF37' text-anchor='middle' font-weight='bold'>G</text><text x='80' y='35' font-size='30'>⚖️</text></svg>">
   <style>
     .hero {
-      background: linear-gradient(135deg, #0f172a 0%, #1f2937 100%);
-      color: white;
+      background: linear-gradient(135deg, var(--bg-panel) 0%, #111c2f 100%);
+      color: var(--text-white);
       padding: 36px;
       border-radius: 24px;
       position: relative;
       overflow: hidden;
-      box-shadow: var(--shadow-strong);
+      box-shadow: var(--shadow-lg);
       border: 1px solid rgba(255, 255, 255, 0.08);
       margin-bottom: 24px;
     }
@@ -50,7 +56,7 @@
       border-radius: 999px;
       background: rgba(255, 255, 255, 0.08);
       border: 1px solid rgba(255, 255, 255, 0.12);
-      color: var(--gold-light);
+      color: var(--gold-primary);
       font-weight: 700;
       letter-spacing: 0.3px;
       position: relative;
@@ -62,11 +68,11 @@
       gap: 16px;
     }
     .info-card {
-      background: white;
+      background: var(--bg-panel);
       border-radius: 18px;
       padding: 18px;
-      border: 1px solid rgba(0, 0, 0, 0.04);
-      box-shadow: var(--shadow-soft);
+      border: 1px solid var(--border-color);
+      box-shadow: var(--shadow-sm);
       display: grid;
       gap: 6px;
     }
@@ -80,33 +86,33 @@
     .info-card .value {
       font-size: 1.1rem;
       font-weight: 700;
-      color: var(--navy-deep);
+      color: var(--text-white);
     }
     .panel-muted {
-      background: #0f172a;
-      color: white;
+      background: #0b1120;
+      color: var(--text-white);
       border-radius: 18px;
       padding: 20px;
       border: 1px solid rgba(255, 255, 255, 0.08);
-      box-shadow: var(--shadow-strong);
+      box-shadow: var(--shadow-lg);
     }
     .panel-muted h3, .panel-muted h2 {
-      color: white;
+      color: var(--text-white);
       margin: 0 0 6px;
     }
     .panel-muted p, .panel-muted li, .panel-muted span {
       color: #cbd5e1;
     }
     .faq-card {
-      background: white;
+      background: var(--bg-panel);
       border-radius: 18px;
       padding: 18px;
-      border: 1px solid rgba(0, 0, 0, 0.04);
-      box-shadow: var(--shadow-soft);
+      border: 1px solid var(--border-color);
+      box-shadow: var(--shadow-sm);
     }
     .faq-card h3 {
       margin: 0 0 8px;
-      color: var(--navy-deep);
+      color: var(--text-white);
     }
     .faq-card p {
       margin: 0;
@@ -119,49 +125,49 @@
       gap: 6px;
       padding: 6px 10px;
       border-radius: 999px;
-      background: rgba(15, 23, 42, 0.08);
-      color: var(--navy-deep);
+      background: rgba(212, 175, 55, 0.16);
+      border: 1px solid rgba(212, 175, 55, 0.3);
+      color: var(--gold-primary);
       font-weight: 700;
-      letter-spacing: 0.2px;
-      font-size: 0.9rem;
+      font-size: 0.8rem;
     }
   </style>
 </head>
 <body>
-  <div class="app-layout">
-    <aside id="sidebar-area" class="app-sidebar"></aside>
+  <div id="mainWrapper">
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    <aside class="sidebar" id="sidebar"></aside>
+    <div id="app-header-placeholder"></div>
 
-    <main class="app-main">
-      <header id="header-area" class="app-header"></header>
-
-      <div class="app-content">
+    <main class="main-content" id="main-content">
+      <div class="dashboard-container">
         <section class="hero">
           <div class="section-head" style="margin-bottom: 18px; position: relative; z-index: 1;">
             <div>
               <div class="badge">Destek merkezi · 7/24 yanıt</div>
-              <h1>Yardım</h1>
-              <p>İletişim, teknik destek ve sıkça sorulan soruların tamamı marka temasına uygun okunabilir bir yapıda sunuldu.</p>
+              <h1>Yardım Merkezi</h1>
+              <p>Platformu daha verimli kullanmanız için hızlı yanıtlar, güncel iletişim bilgileri ve öne çıkan yardım başlıkları burada.</p>
             </div>
           </div>
           <div class="info-grid" style="position: relative; z-index: 1;">
             <div class="info-card">
-              <span class="label">Destek e-postası</span>
-              <span class="value">destek@goldgys.com</span>
+              <span class="label">Yanıt süresi</span>
+              <span class="value">2 Saat</span>
               <span class="text-muted">Başvurular ortalama 2 saat içinde yanıtlanır.</span>
             </div>
             <div class="info-card">
-              <span class="label">Telefon &amp; Çalışma saati</span>
-              <span class="value">0 (212) 555 00 00</span>
+              <span class="label">Çalışma saatleri</span>
+              <span class="value">09:00 - 19:00</span>
               <span class="text-muted">Hafta içi 09.00 – 19.00 | Acil durumlarda nöbetçi ekip.</span>
             </div>
             <div class="info-card">
-              <span class="label">Canlı destek</span>
-              <span class="value">Uygulama içi sohbet</span>
+              <span class="label">Hızlı destek</span>
+              <span class="value">Canlı sohbet</span>
               <span class="text-muted">Profil menüsündeki sohbet balonu üzerinden anında ulaşın.</span>
             </div>
             <div class="info-card">
-              <span class="label">Sistem durumu</span>
-              <span class="value">status.goldgys.com</span>
+              <span class="label">Güncellemeler</span>
+              <span class="value">Durum sayfası</span>
               <span class="text-muted">Planlı bakım ve kesinti bildirimleri bu adreste paylaşılır.</span>
             </div>
           </div>
@@ -170,8 +176,8 @@
         <section class="panel-card stack gap-lg">
           <div class="section-head">
             <div>
-              <p class="eyebrow">Sıkça sorulan sorular</p>
-              <h2 style="margin: 6px 0 8px;">GOLD GYS hakkında en sık alınan sorular</h2>
+              <p class="eyebrow">Öne çıkan başlıklar</p>
+              <h2>En çok sorulan sorular</h2>
               <p class="text-muted">Platform uyumluluğu, güvenlik ve üyelik yönetimi ile ilgili öne çıkan başlıklar aşağıda özetlendi.</p>
             </div>
           </div>
@@ -179,86 +185,30 @@
           <div class="grid two-cols gap-lg">
             <div class="stack gap-md">
               <div class="faq-card">
-                <h3>GOLD GYS hangi cihazlarda çalışır?</h3>
-                <p>Platform masaüstü tarayıcılara tam uyumludur. Mobil ve tablet erişimi desteklenir; en iyi performans için güncel Chrome veya Edge tarayıcılarını öneriyoruz.</p>
+                <h3>Hesabımı nasıl güvenceye alabilirim?</h3>
+                <p>Çift aşamalı doğrulamayı açın, güçlü ve benzersiz parola kullanın, şüpheli oturumları <span class="badge-inline">Profil &gt; Güvenlik</span> ekranından sonlandırın. Olağandışı bir durum fark ederseniz destek ekibine bildirin.</p>
               </div>
               <div class="faq-card">
-                <h3>Verilerim ne sıklıkla yedekleniyor?</h3>
-                <p>Çalışmalarınız bulut altyapımızda günlük olarak yedeklenir. Soru ve deneme performansları şifrelenmiş olarak saklanır; yedekler coğrafi olarak ayrık veri merkezlerinde tutulur.</p>
+                <h3>Mobil uygulama desteği var mı?</h3>
+                <p class="text-muted">Platform masaüstü tarayıcılar ile tam uyumludur. Mobil cihazlardan erişim de mümkündür ancak en iyi deneyim için Chrome veya Edge gibi modern tarayıcıları öneriyoruz.</p>
               </div>
             </div>
 
             <div class="stack gap-md">
               <div class="faq-card">
-                <h3>Üyelik paketimi değiştirebilir miyim?</h3>
-                <p>Profil &gt; Üyelik bölümünden mevcut planınızı görüntüleyebilir, üst veya alt paketlere geçiş yapabilirsiniz. Değişiklikler bir sonraki faturalama dönemine otomatik yansır.</p>
+                <h3>Çalışma planımı nasıl yönetebilirim?</h3>
+                <p class="text-muted">Profil &gt; Üyelik bölümünden mevcut planınızı görüntüleyebilir, üst veya alt paketlere geçiş yapabilirsiniz. Değişiklikler sonraki faturalandırma dönemine yansır.</p>
               </div>
               <div class="faq-card">
-                <h3>Hesabımın güvenliğini nasıl güçlendiririm?</h3>
-                <p>Çift aşamalı doğrulamayı açın, güçlü ve benzersiz parola kullanın, şüpheli oturumları <span class="badge-inline">Profil &gt; Güvenlik</span> ekranından sonlandırın. Olağandışı bir durum fark ederseniz destek ekibine bildirin.</p>
-              </div>
-            </div>
-          </div>
-
-          <div class="panel-muted">
-            <div class="grid two-cols gap-lg">
-              <div class="stack gap-sm">
-                <div class="eyebrow">İletişim</div>
-                <h3 style="margin: 0;">Doğrudan bağlantı kanallarımız</h3>
-                <p>Üyelik, içerik veya güvenlik konularında ekibimizle doğrudan görüşebilirsiniz.</p>
-                <div class="info-grid">
-                  <div class="info-card">
-                    <span class="label">E-posta</span>
-                    <span class="value">destek@goldgys.com</span>
-                    <span>Önceliklendirme için konu satırında “Acil” ibaresini kullanın.</span>
-                  </div>
-                  <div class="info-card">
-                    <span class="label">Adres</span>
-                    <span class="value">Büyükdere Cad. No:12/8 Şişli, İstanbul</span>
-                    <span>Randevulu ziyaretler için destek ekibiyle iletişime geçin.</span>
-                  </div>
-                </div>
-              </div>
-
-              <div class="stack gap-sm">
-                <div class="eyebrow">Teknik destek</div>
-                <h3 style="margin: 0;">Destek talebi oluştururken</h3>
-                <ul class="check-list">
-                  <li>Karşılaştığınız hatanın ekran görüntüsünü ekleyin.</li>
-                  <li>Kullandığınız tarayıcı, cihaz ve işletim sistemi bilgilerini yazın.</li>
-                  <li>Hatanın tekrar edilme adımlarını mümkün olduğunca açık belirtin.</li>
-                  <li>Hızlı dönüş için <strong>destek@goldgys.com</strong> adresini beyaz listeye ekleyin.</li>
-                </ul>
-                <p>Ortalama yanıt süremiz 2 iş saatidir. Kritik kesintilerde <strong>status.goldgys.com</strong> adresini takip edin.</p>
+                <h3>Verilerim güvende mi?</h3>
+                <p class="text-muted">Çalışmalarınız bulut altyapımızda günlük olarak yedeklenir. Ayrıca soru ve deneme performanslarınız şifrelenmiş olarak saklanır.</p>
               </div>
             </div>
           </div>
 
           <div class="grid two-cols gap-lg">
             <div class="stack gap-md">
-              <div class="eyebrow">Sıkça sorulan sorular</div>
-              <div class="faq">
-                <div class="faq-item">
-                  <h3>GOLD GYS hangi cihazlarda çalışır?</h3>
-                  <p class="text-muted">Platform masaüstü tarayıcılar ile tam uyumludur. Mobil cihazlardan erişim de mümkündür ancak en iyi deneyim için Chrome veya Edge gibi modern tarayıcıları öneriyoruz.</p>
-                </div>
-                <div class="faq-item">
-                  <h3>Hesabımın güvenliğini nasıl sağlarım?</h3>
-                  <p class="text-muted">Çift aşamalı doğrulamayı aktif edin, güçlü ve benzersiz bir parola kullanın ve hesap aktivitelerinizi düzenli olarak kontrol edin. Şüpheli bir durum fark ederseniz destek ekibiyle iletişime geçebilirsiniz.</p>
-                </div>
-                <div class="faq-item">
-                  <h3>Üyelik paketimi değiştirebilir miyim?</h3>
-                  <p class="text-muted">Evet. Profil &gt; Üyelik bölümünden mevcut planınızı görüntüleyebilir, üst veya alt paketlere geçiş yapabilirsiniz. Değişiklikler sonraki faturalandırma dönemine yansır.</p>
-                </div>
-                <div class="faq-item">
-                  <h3>Verilerim ne sıklıkla yedekleniyor?</h3>
-                  <p class="text-muted">Çalışmalarınız bulut altyapımızda günlük olarak yedeklenir. Ayrıca soru ve deneme performanslarınız şifrelenmiş olarak saklanır.</p>
-                </div>
-              </div>
-            </div>
-
-            <div class="panel muted">
-              <div class="eyebrow">Hızlı bağlantılar</div>
+              <h3>Hızlı kaynaklar</h3>
               <ul class="link-list">
                 <li><span class="text-muted">Eğitim ve rehberler</span><br><strong>docs.goldgys.com/rehber</strong></li>
                 <li><span class="text-muted">Sistem durumu</span><br><strong>status.goldgys.com</strong></li>
@@ -266,52 +216,48 @@
                 <li><span class="text-muted">Üyelik ve faturalandırma</span><br><strong>billing@goldgys.com</strong></li>
               </ul>
             </div>
+
+            <div class="panel muted stack gap-sm">
+              <div class="eyebrow">Güvenlik hatırlatma</div>
+              <p class="text-muted">Çift aşamalı doğrulamayı aktif edin, güçlü ve benzersiz bir parola kullanın ve hesap aktivitelerinizi düzenli olarak kontrol edin. Şüpheli bir durum fark ederseniz destek ekibiyle iletişime geçebilirsiniz.</p>
+            </div>
           </div>
         </section>
 
-        <section class="panel-card">
-          <div class="grid two-cols gap-lg">
+        <section class="panel-card grid two-cols gap-lg">
+          <div class="stack gap-sm">
+            <div class="eyebrow">İletişim</div>
+            <h2>Bize ulaşın</h2>
+            <p class="text-muted">7/24 destek veren ekibimiz; üyelik, teknik sorunlar, içerik ve güvenlik konularında size yardımcı olur.</p>
             <div class="stack gap-sm">
-              <div class="eyebrow">İletişim</div>
-              <h2>Bizimle nasıl iletişime geçebilirsiniz?</h2>
-              <p class="text-muted">7/24 destek veren ekibimiz; üyelik, teknik sorunlar, içerik ve güvenlik konularında size yardımcı olur.</p>
-              <div class="contact-grid">
-                <div>
-                  <p class="text-muted">E-posta</p>
-                  <p class="lead">destek@goldgys.com</p>
-                </div>
-                <div>
-                  <p class="text-muted">Telefon</p>
-                  <p class="lead">0 (212) 555 00 00</p>
-                  <p class="text-muted">Hafta içi 09.00 - 19.00</p>
-                </div>
-                <div>
-                  <p class="text-muted">Adres</p>
-                  <p class="lead">Büyükdere Cad. No:12/8 Şişli, İstanbul</p>
-                </div>
-                <div>
-                  <p class="text-muted">Canlı destek</p>
-                  <p class="lead">Uygulama içindeki sohbet balonundan bize ulaşın.</p>
-                </div>
+              <div>
+                <p class="text-muted">E-posta</p>
+                <p class="lead">destek@goldgys.com</p>
+              </div>
+              <div>
+                <p class="text-muted">Telefon</p>
+                <p class="lead">0 (212) 555 00 00</p>
+                <p class="text-muted">Hafta içi 09.00 - 19.00</p>
+              </div>
+              <div>
+                <p class="text-muted">Adres</p>
+                <p class="lead">Büyükdere Cad. No:12/8 Şişli, İstanbul</p>
+              </div>
+              <div>
+                <p class="text-muted">Canlı destek</p>
+                <p class="lead">Uygulama içindeki sohbet balonundan bize ulaşın.</p>
               </div>
             </div>
+          </div>
 
-            <div class="panel muted stack gap-sm">
-              <div class="eyebrow">Teknik destek</div>
-              <h3>Destek talebi oluştururken</h3>
-              <ul class="check-list">
-                <li>Karşılaştığınız hatanın ekran görüntüsünü ekleyin.</li>
-                <li>Kullandığınız tarayıcı, cihaz ve işletim sistemi bilgisini yazın.</li>
-                <li>Hatanın tekrar edilme adımlarını mümkün olduğunca açık belirtin.</li>
-                <li>Hızlı dönüş için <strong>destek@goldgys.com</strong> adresini beyaz listeye ekleyin.</li>
-              </ul>
-              <p class="text-muted">Tüm destek taleplerine ortalama yanıt süremiz 2 iş saatidir. Kritik kesintilerde durum sayfasını kontrol etmeyi unutmayın.</p>
-            </div>
+          <div class="panel muted stack gap-sm">
+            <div class="eyebrow">Hızlı not</div>
+            <p class="text-muted">Tüm destek taleplerine ortalama yanıt süremiz 2 iş saatidir. Kritik kesintilerde durum sayfasını kontrol etmeyi unutmayın.</p>
           </div>
         </section>
       </div>
 
-      <footer id="footer-area" class="app-footer"></footer>
+      <footer id="app-footer-placeholder" class="app-footer"></footer>
     </main>
   </div>
 
@@ -320,7 +266,7 @@
     import { initLayout } from '/js/ui-loader.js';
 
     protectPage();
-    initLayout('yardim');
+    initLayout();
   </script>
 </body>
 </html>
