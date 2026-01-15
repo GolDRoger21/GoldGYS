@@ -11,6 +11,7 @@ import * as ContentModule from "./modules/admin/content.js";
 import * as LegislationModule from "./modules/admin/legislation.js";
 import * as ReportsModule from "./modules/admin/reports.js";
 import * as ExamsModule from "./modules/admin/exams.js";
+import * as QuestionsModule from "./modules/admin/questions.js";
 // Importer artık ayrı bir HTML sayfası olduğu için buradan import edilmesine gerek yok.
 
 // 2. Sayfa Başlangıcı
@@ -153,6 +154,9 @@ function loadModuleData(tabId, role) {
             break;
         case 'exams': 
             ExamsModule.initExamsPage(); 
+            break;
+        case 'questions':
+            QuestionsModule.initQuestionsPage();
             break;
         default:
             break;
