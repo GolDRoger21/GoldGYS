@@ -224,11 +224,46 @@ body {
 }
 
 .page-title {
-    font-size: 1.2rem;
+    font-size: 1.6rem;
     font-weight: 600;
     color: var(--text-white);
     margin: 0;
-    opacity: 0.9;
+}
+
+.page-header {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    margin-bottom: 1.75rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.page-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.page-breadcrumb-link {
+    color: inherit;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.page-breadcrumb-link:hover {
+    color: var(--gold-primary);
+}
+
+.page-breadcrumb-separator {
+    opacity: 0.6;
+}
+
+.page-breadcrumb-current {
+    color: var(--text-white);
+    font-weight: 500;
 }
 
 .user-menu-container {

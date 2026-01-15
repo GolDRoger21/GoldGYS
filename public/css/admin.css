@@ -35,14 +35,6 @@ body {
     gap: 15px;
 }
 
-.page-title {
-    font-size: 1.2rem;
-    font-weight: 600;
-    color: var(--text-white);
-    opacity: 0.9;
-    margin: 0;
-}
-
 /* Mobil için Header Logo (Varsayılan gizli) */
 .mobile-brand {
     display: none;
