@@ -35,7 +35,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         activateTab(initialTab, role);
 
         // E. Global Fonksiyonları Tanımla (HTML içindeki onclick butonları için)
-        window.openQuestionEditor = ContentModule.openQuestionEditor;
         window.AdminReports = ReportsModule.AdminReports;
 
     } catch (error) {
@@ -52,19 +51,19 @@ document.addEventListener("DOMContentLoaded", async () => {
 function initTabs(role) {
     // 1. Sidebar Link Tıklamaları
     const links = document.querySelectorAll('.sidebar-nav .nav-link, .sidebar-nav .nav-item');
-    
+
     links.forEach(link => {
         link.addEventListener('click', (e) => {
             const href = link.getAttribute('href');
-            
+
             // Eğer link bir iç sayfa (Tab) ise (#dashboard gibi)
             if (href && href.startsWith('#')) {
                 e.preventDefault();
                 const tabId = href.substring(1);
-                
+
                 // URL Hash'ini güncelle (Bu, hashchange olayını tetikler)
                 window.location.hash = tabId;
-                
+
                 // Mobildeysek sidebar'ı kapat
                 closeMobileMenu();
             }
@@ -85,20 +84,20 @@ function initTabs(role) {
 function activateTab(tabId, role) {
     // Link Aktifliği (CSS)
     document.querySelectorAll('.nav-link, .nav-item').forEach(l => l.classList.remove('active'));
-    
+
     // Hem nav-link hem nav-item desteği (farklı HTML yapılarına uyum için)
-    const activeLink = document.querySelector(`.nav-link[href="#${tabId}"]`) || 
-                       document.querySelector(`.nav-item[href="#${tabId}"]`);
-    
+    const activeLink = document.querySelector(`.nav-link[href="#${tabId}"]`) ||
+        document.querySelector(`.nav-item[href="#${tabId}"]`);
+
     if (activeLink) activeLink.classList.add('active');
 
     // Section Görünürlüğü
     document.querySelectorAll('.admin-section').forEach(s => s.style.display = 'none');
-    
+
     const targetSection = document.getElementById(`section-${tabId}`);
     if (targetSection) {
         targetSection.style.display = 'block';
-        
+
         // İlgili modülün JS kodlarını çalıştır (Lazy Execution)
         loadModuleData(tabId, role);
         updatePageTitle(tabId);
@@ -136,24 +135,24 @@ function updatePageTitle(tabId) {
  * Tab açıldığında ilgili verileri yükleyen fonksiyon.
  */
 function loadModuleData(tabId, role) {
-    switch(tabId) {
-        case 'dashboard': 
-            DashboardModule.initDashboard(); 
+    switch (tabId) {
+        case 'dashboard':
+            DashboardModule.initDashboard();
             break;
-        case 'users': 
-            if(role === 'admin') UserModule.initUsersPage(); 
+        case 'users':
+            if (role === 'admin') UserModule.initUsersPage();
             break;
-        case 'content': 
-            ContentModule.initContentPage(); 
+        case 'content':
+            ContentModule.initContentPage();
             break;
-        case 'legislation': 
-            if(role === 'admin') LegislationModule.initLegislationPage(); 
+        case 'legislation':
+            if (role === 'admin') LegislationModule.initLegislationPage();
             break;
-        case 'reports': 
-            if(role === 'admin') ReportsModule.initReportsPage(); 
+        case 'reports':
+            if (role === 'admin') ReportsModule.initReportsPage();
             break;
-        case 'exams': 
-            ExamsModule.initExamsPage(); 
+        case 'exams':
+            ExamsModule.initExamsPage();
             break;
         case 'questions':
             QuestionsModule.initQuestionsPage();
