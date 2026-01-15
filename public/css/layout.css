@@ -319,8 +319,7 @@ body.sidebar-collapsed .sidebar .nav-item span:not(.icon),
 body.sidebar-collapsed .sidebar .nav-item .nav-text,
 body.sidebar-collapsed .sidebar .sidebar-brand .logo-text,
 body.sidebar-collapsed .sidebar .sidebar-footer-nav span:not(.icon),
-body.sidebar-collapsed .sidebar .sidebar-footer .nav-item span:not(.icon),
-body.sidebar-collapsed .sidebar #logoutBtn span:not(.icon) {
+body.sidebar-collapsed .sidebar .sidebar-footer .nav-item span:not(.icon) {
     display: none;
 }
 
@@ -432,19 +431,6 @@ body.sidebar-collapsed .sidebar .sidebar-footer {
     padding: 1rem;
     border-top: 1px solid var(--border-color);
     background: var(--bg-sidebar);
-}
-
-.nav-item.logout {
-    color: var(--danger);
-}
-
-.nav-item.logout:hover {
-    background-color: rgba(239, 68, 68, 0.1);
-    color: var(--danger);
-}
-
-.nav-item.logout .icon {
-    color: var(--danger);
 }
 
 /* Special Links */
