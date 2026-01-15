@@ -86,6 +86,37 @@
     transform: translateX(4px);
 }
 
+.footer-company-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    line-height: 1.4;
+}
+
+.footer-company-info strong {
+    color: var(--text-white);
+}
+
+.contact-link {
+    color: var(--gold-primary) !important;
+    text-decoration: none;
+}
+
+.etbis-box {
+    margin-top: 1rem;
+    padding: 0.5rem;
+    border: 1px dashed var(--border-color);
+    border-radius: var(--radius-sm);
+    display: inline-block;
+}
+
+.etbis-note {
+    color: var(--text-muted);
+    font-size: 0.7rem;
+}
+
 /* --- Bottom Section: Meta --- */
 .footer-meta {
     border-top: 1px solid var(--border-color);
@@ -138,23 +169,30 @@
     }
 
     .footer-links-grid {
-        grid-template-columns: 1fr;
-        gap: 2rem;
-    }
-
-    .footer-meta {
-        flex-direction: column;
-        text-align: center;
-        gap: 1rem;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 2rem 1rem;
     }
 
     .footer-brand-block {
-        max-width: 100%;
+        grid-column: 1 / -1;
         align-items: center;
         text-align: center;
+        max-width: 100%;
     }
 
-    .footer-group {
-        align-items: center;
+    .etbis-box {
+        margin: 1rem auto 0;
+    }
+}
+
+@media (max-width: 480px) {
+    .footer-links-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .footer-meta {
+        flex-direction: column-reverse;
+        text-align: center;
+        gap: 1.5rem;
     }
 }
