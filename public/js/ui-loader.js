@@ -46,7 +46,8 @@ export async function initLayout() {
         console.log(`📍 Sayfa Yükleniyor: ${path} (ID: ${config.id})`);
 
         try {
-            // 1. Admin ise Body'e özel sınıf ekle (CSS için KRİTİK ADIM)
+            // 1. TEMA VE LAYOUT AYARI (Kritik)
+            // Admin panelindeysek body'e 'admin-layout' sınıfını ekle
             if (isAdminPage) {
                 document.body.classList.add('admin-layout');
             } else {
@@ -56,7 +57,10 @@ export async function initLayout() {
             // 2. HTML Parçalarını Yükle (Header & Sidebar)
             await loadRequiredHTML(isAdminPage);
 
-            // 3. Event Listener'ları Tanımla
+            // 2.5 Tema geçişini hazırla
+            setupThemeToggle();
+
+            // 3. Event Listener'ları Tanımla (Menü açma/kapama vb.)
             setupEventListeners();
 
             // 4. Kullanıcı Oturumunu Kontrol Et
@@ -76,7 +80,7 @@ export async function initLayout() {
                 highlightAdminMenu();
             }
 
-            console.log("✅ Arayüz başarıyla yüklendi.");
+            // Sayfayı Görünür Yap (FOUC önleme)
             document.body.style.visibility = 'visible';
             return true;
 
@@ -94,18 +98,21 @@ export async function initLayout() {
  * Admin veya Public sayfasına göre doğru Header/Sidebar dosyalarını çeker.
  */
 async function loadRequiredHTML(isAdminPage) {
+    const baseUrl = new URL('.', window.location.href);
+
     // 1. HEADER (Tek Header Yapısı)
-    const headerUrl = '/components/layouts/universal-header.html';
+    const headerUrl = new URL('../components/layouts/universal-header.html', baseUrl).toString();
     const headerTargetId = document.getElementById('app-header-placeholder') ? 'app-header-placeholder' : 'header-area';
 
     // 2. SIDEBAR (Sayfaya Göre Değişir)
     const sidebarUrl = isAdminPage
-        ? '/partials/admin-sidebar.html'
-        : '/partials/sidebar.html';
+        ? new URL('../partials/admin-sidebar.html', baseUrl).toString()
+        : new URL('../partials/sidebar.html', baseUrl).toString();
 
     // 3. FOOTER (Sadece Public Sayfalarda)
+    // Admin sayfasındaysak footerUrl null olsun, yüklenmesin.
     const footerTargetId = document.getElementById('app-footer-placeholder') || document.getElementById('footer-area');
-    const footerUrl = isAdminPage ? null : '/components/footer.html';
+    const footerUrl = isAdminPage ? null : new URL('../components/footer.html', baseUrl).toString();
 
     const promises = [
         loadHTML(headerUrl, headerTargetId),
@@ -118,7 +125,7 @@ async function loadRequiredHTML(isAdminPage) {
 
     await Promise.all(promises);
 
-    // Header yüklendikten sonra linkleri ayarla
+    // Header yüklendikten sonra Admin/User linklerini ayarla
     setupUniversalHeader(isAdminPage);
 }
 
@@ -148,7 +155,7 @@ function setupUniversalHeader(isAdmin) {
         const newBtn = toggleBtn.cloneNode(true);
         toggleBtn.parentNode.replaceChild(newBtn, toggleBtn);
 
-        // Kayıtlı durumu yükle
+        // Kayıtlı sidebar durumunu yükle (LocalStorage)
         const savedState = localStorage.getItem('sidebarState');
         if (savedState === 'collapsed' && window.innerWidth > 1024) {
             document.body.classList.add('sidebar-collapsed');
@@ -157,10 +164,12 @@ function setupUniversalHeader(isAdmin) {
         newBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             if (window.innerWidth > 1024) {
+                // Masaüstü: Daralt/Genişlet
                 document.body.classList.toggle('sidebar-collapsed');
                 const isCollapsed = document.body.classList.contains('sidebar-collapsed');
                 localStorage.setItem('sidebarState', isCollapsed ? 'collapsed' : 'expanded');
             } else {
+                // Mobil: Aç/Kapa
                 const sidebar = document.getElementById('sidebar');
                 const overlay = document.getElementById('sidebarOverlay');
                 if (sidebar) sidebar.classList.toggle('active');
@@ -168,6 +177,34 @@ function setupUniversalHeader(isAdmin) {
             }
         });
     }
+}
+
+function setupThemeToggle() {
+    const toggleButtons = document.querySelectorAll('[data-theme-toggle]');
+    if (!toggleButtons.length) return;
+
+    const applyTheme = (theme) => {
+        const isLight = theme === 'light';
+        document.body.classList.toggle('light-mode', isLight);
+        localStorage.setItem('theme', isLight ? 'light' : 'dark');
+    };
+
+    const storedTheme = localStorage.getItem('theme');
+    if (storedTheme) {
+        applyTheme(storedTheme);
+    } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
+        applyTheme('light');
+    }
+
+    toggleButtons.forEach((btn) => {
+        const newBtn = btn.cloneNode(true);
+        btn.parentNode.replaceChild(newBtn, btn);
+
+        newBtn.addEventListener('click', () => {
+            const isLight = document.body.classList.contains('light-mode');
+            applyTheme(isLight ? 'dark' : 'light');
+        });
+    });
 }
 
 export async function loadHTML(url, targetId) {
@@ -184,7 +221,7 @@ export async function loadHTML(url, targetId) {
 }
 
 function setupEventListeners() {
-    // Profil Dropdown
+    // 1. Profil Dropdown
     const toggleBtn = document.getElementById('userAvatarBtn');
     const dropdown = document.getElementById('userDropdown');
 
@@ -205,7 +242,7 @@ function setupEventListeners() {
         });
     }
 
-    // Mobil Sidebar Toggle
+    // 2. Mobil Sidebar Toggle (Alternatif Butonlar İçin)
     const mobileToggle = document.getElementById('sidebar-toggle') || document.getElementById('mobileMenuToggle');
     const sidebar = document.getElementById('sidebar');
     const overlay = document.getElementById('sidebarOverlay');
@@ -225,7 +262,7 @@ function setupEventListeners() {
         });
     }
 
-    // Çıkış Butonu
+    // 3. Çıkış Butonu
     document.body.addEventListener('click', e => {
         const target = e.target.closest('button, a');
         if (!target) return;
@@ -250,10 +287,12 @@ async function checkUserAuthState() {
                     console.error('Auth state hatası:', e);
                 }
             } else {
+                // Giriş yapmamışsa, public sayfalar hariç login'e yönlendir
                 const publicPages = ['/login.html', '/public/login.html', '/', '/index.html'];
                 const isPublic = publicPages.some(p => window.location.pathname.endsWith(p));
                 
                 if (!isPublic && !window.location.pathname.includes('404')) {
+                    // console.warn("Oturum yok, yönlendiriliyor...");
                     window.location.href = '/public/login.html';
                 }
             }
