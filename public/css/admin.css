@@ -1,492 +1,276 @@
-/* public/css/admin.css - FINAL FIXED VERSION */
+/* public/css/admin.css - TEMA VE LAYOUT DÜZELTİLMİŞ VERSİYON */
 
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
+:root {
+    --admin-sidebar-width: 280px;
+    --editor-header-height: 60px;
 }
 
-body {
-    background-color: var(--bg-dark);
+/* =========================================
+   1. GENEL YAPI VE TEMA
+   ========================================= */
+
+/* Admin Paneli Aktifken (ui-loader.js ekler) */
+body.admin-layout {
+    background-color: var(--bg-dark); /* Tema değişkeni */
     color: var(--text-white);
-    font-family: 'Inter', sans-serif;
-    display: flex;
-    min-height: 100vh;
     overflow-x: hidden;
 }
 
-/* Light Mode is managed in tokens.css */
-
-/* Sidebar layout.css'e taşındı */
-
-/* =========================================
-   2. HEADER (ÜST MENÜ - Google Style)
-   ========================================= */
-/* =========================================
-   2. HEADER (ÜST MENÜ - Google Style)
-   ========================================= */
-/* Universal Header kullanıldığı için mevcut stil üzerine yazma, sadece yerleşim ayarla */
-/* Header, Admin'de sidebar'ın yanına gelmeli (Desktop) -> ARTIK LAYOUT.CSS YÖNETIYOR */
-/* .universal-header styles removed to prevent conflict */
-
-.header-left {
-    display: flex;
-    align-items: center;
-    gap: 15px;
+/* Tablolar */
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
 }
 
-/* Mobil için Header Logo (Varsayılan gizli) */
-.mobile-brand {
-    display: none;
-    font-family: 'Playfair Display', serif;
-    font-size: 1.2rem;
-    font-weight: 700;
-    color: var(--text-white);
-    margin-right: 15px;
-}
-
-.mobile-brand span {
-    color: var(--gold-primary);
-}
-
-/* User Menu & Dropdown */
-.header-right {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-/* User Menu & Avatar (Layout.css ile Eşitlendi) */
-.user-avatar-btn {
-    background: var(--bg-panel);
-}
-
-.user-dropdown {
-    position: absolute;
-    top: 60px;
-    right: 0;
-    width: 260px;
-    background: var(--bg-panel);
-    border-radius: 12px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-    border: 1px solid var(--border-color);
-    overflow: hidden;
-    z-index: 2000;
-    animation: slideDown 0.2s ease-out;
-    display: none;
-}
-
-@keyframes slideDown {
-    from {
-        opacity: 0;
-        transform: translateY(-10px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.dropdown-header {
-    padding: 15px 20px;
-    background: rgba(0, 0, 0, 0.08);
-    border-bottom: 1px solid var(--border-color);
-}
-
-.user-name {
-    font-weight: 600;
-    color: var(--text-white);
-    margin: 0;
-    font-size: 0.95rem;
-}
-
-.user-email {
-    font-size: 0.8rem;
+.admin-table th {
+    font-size: 0.85rem;
     color: var(--text-muted);
-    margin: 3px 0 0 0;
-}
-
-.dropdown-items {
-    list-style: none;
-    padding: 5px 0;
-    margin: 0;
-}
-
-.dropdown-items li a {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 12px 20px;
-    color: var(--text-white);
-    text-decoration: none;
-    transition: background 0.2s;
-    font-size: 0.9rem;
-}
-
-.dropdown-items li a:hover {
-    background-color: rgba(255, 255, 255, 0.08);
-}
-
-.divider {
-    height: 1px;
-    background: var(--border-color);
-    margin: 5px 0;
-}
-
-.text-danger {
-    color: var(--danger) !important;
-}
-
-.text-danger:hover {
-    background-color: var(--color-danger-bg) !important;
-}
-
-/* =========================================
-   3. LAYOUT & GRID (SAYFA YAPISI)
-   ========================================= */
-.main-content {
-    flex: 1;
-    /* .main-content margins are now handled in layout.css */
-}
-
-.row {
-    display: flex;
-    flex-wrap: wrap;
-    margin: 0 -0.75rem;
-}
-
-.col-md-6 {
-    flex: 0 0 50%;
-    max-width: 50%;
-    padding: 0 0.75rem;
-}
-
-@media (max-width: 768px) {
-    .col-md-6 {
-        flex: 0 0 100%;
-        max-width: 100%;
-    }
-}
-
-/* =========================================
-   4. COMPONENTS (Tablolar, Kartlar, Formlar)
-   ========================================= */
-.section-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 2rem;
-    padding-bottom: 1rem;
     border-bottom: 1px solid var(--border-color);
-}
-
-.section-header h2 {
-    font-size: 1.5rem;
+    padding: 12px;
+    text-align: left;
     font-weight: 600;
-    color: var(--text-white);
 }
 
-.card {
+.admin-table td {
+    color: var(--text-white);
+    border-bottom: 1px solid var(--border-color);
+    padding: 12px;
+    vertical-align: middle;
+}
+
+/* Kartlar ve Paneller */
+.admin-section { 
+    width: 100%; 
+    height: 100%; 
+}
+
+.admin-card {
     background: var(--bg-panel);
     border: 1px solid var(--border-color);
     border-radius: 12px;
     padding: 1.5rem;
-    margin-bottom: 1.5rem;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
-.card h3 {
-    color: var(--gold-primary);
-    margin-bottom: 1rem;
-    font-size: 1.1rem;
+.badge {
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    padding: 0.35em 0.65em;
+    border-radius: 4px;
+}
+
+/* =========================================
+   2. TAM EKRAN MODU (CONTENT MODE)
+   ========================================= */
+/* Editör açıldığında devreye girer */
+body.content-mode .main-content {
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100vw;
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1500;
+    background-color: var(--bg-dark); /* Tema uyumlu */
+    overflow: hidden;
+}
+
+.content-manager-layout {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    background-color: var(--bg-dark);
+    overflow: hidden;
+    position: relative;
+}
+
+/* =========================================
+   3. SOL PANEL (KONU AĞACI)
+   ========================================= */
+.cm-sidebar {
+    width: var(--admin-sidebar-width);
+    flex-shrink: 0;
+    background-color: var(--bg-panel); /* Tema uyumlu */
+    border-right: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    z-index: 10;
+}
+
+.cm-header {
+    height: var(--editor-header-height);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 1rem;
     border-bottom: 1px solid var(--border-color);
-    padding-bottom: 0.5rem;
+    background-color: var(--bg-panel);
 }
 
-/* Formlar */
-.form-group {
-    margin-bottom: 1rem;
+.cm-search-box {
+    border-bottom: 1px solid var(--border-color);
+    background-color: var(--bg-panel);
 }
 
-.form-group label {
-    display: block;
-    margin-bottom: 0.5rem;
+.cm-tree-container {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1rem;
+}
+
+/* Konu Listesi */
+.topic-item {
+    padding: 8px 12px;
+    margin-bottom: 4px;
+    border-radius: 6px;
+    cursor: pointer;
     color: var(--text-muted);
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
     font-size: 0.9rem;
 }
 
-.form-control {
-    width: 100%;
-    padding: 0.75rem;
+.topic-item:hover {
+    background-color: var(--bg-hover, rgba(255,255,255,0.05));
+    color: var(--text-white);
+}
+
+.topic-item.active {
+    background-color: rgba(212, 175, 55, 0.15);
+    color: var(--gold-primary);
+    font-weight: 600;
+}
+
+.topic-item.sub-topic {
+    margin-left: 1.2rem;
+    border-left: 1px solid var(--border-color);
+    font-size: 0.85rem;
+}
+
+/* =========================================
+   4. ORTA PANEL (İÇERİK LİSTESİ)
+   ========================================= */
+.cm-list-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
     background-color: var(--bg-dark);
+    border-right: 1px solid var(--border-color);
+    min-width: 0;
+}
+
+.cm-workspace {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.5rem;
+    position: relative;
+    /* Hafif noktalı desen */
+    background-image: radial-gradient(var(--border-color) 1px, transparent 1px);
+    background-size: 20px 20px;
+}
+
+.content-card-item {
+    background-color: var(--bg-panel);
     border: 1px solid var(--border-color);
-    border-radius: 6px;
+    border-radius: 8px;
+    margin-bottom: 0.75rem;
+    transition: transform 0.2s, border-color 0.2s;
+}
+
+.content-card-item:hover {
+    transform: translateX(4px);
+    border-color: var(--gold-primary) !important;
+}
+
+.content-card-item .card-body {
+    padding: 0.75rem;
+}
+
+/* =========================================
+   5. SAĞ PANEL (EDİTÖR - MODAL)
+   ========================================= */
+#contentManagerEditorView {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: var(--bg-dark); /* Simsiyah değil, tema rengi */
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+}
+
+#contentManagerEditorView .container {
+    max-width: 900px;
+    margin: 0 auto;
+    height: 100%;
+    overflow-y: auto;
+    padding: 2rem 1rem;
+    padding-bottom: 50px;
+}
+
+/* Editör ve Formlar */
+.form-control, .form-select {
+    background-color: var(--bg-input, #0F172A);
+    border-color: var(--border-color);
     color: var(--text-white);
 }
 
 .form-control:focus {
-    outline: none;
+    background-color: var(--bg-input, #0F172A);
     border-color: var(--gold-primary);
-}
-
-/* Butonlar */
-.btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0.75rem 1.5rem;
-    border-radius: 6px;
-    font-weight: 500;
-    cursor: pointer;
-    border: none;
-    transition: all 0.2s;
-    font-size: 0.9rem;
-    gap: 8px;
-}
-
-.btn-primary {
-    background: var(--gold-primary);
-    color: #000;
-}
-
-.btn-primary:hover {
-    filter: brightness(1.1);
-}
-
-.btn-danger {
-    background: var(--danger);
-    color: white;
-}
-
-.btn-success {
-    background: var(--success);
-    color: white;
-}
-
-/* Tablolar */
-.table-responsive {
-    overflow-x: auto;
-}
-
-.admin-table {
-    width: 100%;
-    border-collapse: collapse;
-    min-width: 600px;
-}
-
-.admin-table th {
-    text-align: left;
-    padding: 1rem;
-    color: var(--text-muted);
-    border-bottom: 1px solid var(--border-color);
-    font-size: 0.85rem;
-}
-
-.admin-table td {
-    padding: 1rem;
     color: var(--text-white);
-    border-bottom: 1px solid var(--border-color);
-    font-size: 0.95rem;
+    box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.25);
 }
 
-.admin-table tbody tr:hover {
-    background: rgba(255, 255, 255, 0.02);
+/* Quill Editör (Tema Uyumlu) */
+.ql-toolbar {
+    background-color: var(--bg-panel);
+    border-color: var(--border-color) !important;
+    border-radius: 8px 8px 0 0;
 }
 
-/* Badge (Etiketler) */
-.badge {
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 0.75rem;
-    font-weight: 600;
+.ql-toolbar .ql-stroke {
+    stroke: var(--text-muted);
 }
 
-.badge.success {
-    background: rgba(16, 185, 129, 0.2);
-    color: var(--success);
+.ql-toolbar .ql-fill {
+    fill: var(--text-muted);
 }
 
-.badge.warning {
-    background: rgba(245, 158, 11, 0.2);
-    color: var(--warning);
+.ql-container {
+    background-color: #ffffff; /* Editör içi kağıt rengi beyaz kalmalı */
+    color: #000000;
+    border-color: var(--border-color) !important;
+    border-radius: 0 0 8px 8px;
+    font-size: 1rem;
+    min-height: 400px;
 }
 
-.badge.danger {
-    background: rgba(239, 68, 68, 0.2);
-    color: var(--danger);
-}
-
-.hidden {
-    display: none !important;
-}
-
-/* =========================================
-   5. RESPONSIVE (MOBİL UYUMLULUK)
-   ========================================= */
-@media (max-width: 1024px) {
-    .sidebar {
-        transform: translateX(-100%);
-    }
-
-    .sidebar.active {
-        transform: translateX(0);
-    }
-
-    .app-header {
-        left: 0;
-    }
-
-    .main-content {
-        margin-left: 0;
-    }
-
-    .mobile-only {
-        display: block !important;
-        background: none;
-        border: none;
-        font-size: 1.5rem;
-        cursor: pointer;
-    }
-}
-
-@media (min-width: 1025px) {
-    .mobile-only {
-        display: none;
-    }
-}
-
-@media (max-width: 1024px) {
-
-    /* Mobilde Başlığı Gizle, Logoyu Göster */
-    .page-title {
-        display: none;
-    }
-
-    .mobile-brand {
-        display: block;
-    }
-}
-
-/* --- EXTRA GRID SYSTEM (DASHBOARD İÇİN) --- */
-.row {
-    display: flex;
-    flex-wrap: wrap;
-    margin: 0 -0.75rem;
-}
-
-/* Kolon Yapıları */
-.col-md-3 {
-    flex: 0 0 25%;
-    max-width: 25%;
-    padding: 0 0.75rem;
-}
-
-.col-md-4 {
-    flex: 0 0 33.333%;
-    max-width: 33.333%;
-    padding: 0 0.75rem;
-}
-
-.col-md-6 {
-    flex: 0 0 50%;
-    max-width: 50%;
-    padding: 0 0.75rem;
-}
-
-.col-md-8 {
-    flex: 0 0 66.666%;
-    max-width: 66.666%;
-    padding: 0 0.75rem;
-}
-
-.col-md-12 {
-    flex: 0 0 100%;
-    max-width: 100%;
-    padding: 0 0.75rem;
-}
-
-/* Mobilde hepsi tek satır olsun */
-@media (max-width: 992px) {
-
-    .col-md-3,
-    .col-md-4,
-    .col-md-6,
-    .col-md-8 {
-        flex: 0 0 100%;
-        max-width: 100%;
-        margin-bottom: 1rem;
-    }
-}
-
-/* Yardımcı Sınıflar */
-.mb-4 {
-    margin-bottom: 1.5rem;
-}
-
-.gap-2 {
-    gap: 0.5rem;
-}
-
-.d-flex {
-    display: flex;
-}
-
-.align-center {
-    align-items: center;
-}
-
-.justify-between {
-    justify-content: space-between;
-}
-
-.text-right {
-    text-align: right;
-}
-
-/* Dashboard Özel Kartlar */
-.stat-card {
-    background: var(--bg-panel);
-    border: 1px solid var(--border-color);
-    padding: 1.5rem;
-    border-radius: 12px;
-    margin-bottom: 1rem;
-    transition: transform 0.2s;
-}
-
-.stat-card:hover {
-    transform: translateY(-2px);
-    border-color: var(--gold-primary);
-}
-
-.action-btn-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-}
-
-.btn-action {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 1rem;
-    background: var(--bg-hover);
-    /* Fixed: Use variable for light mode support */
+/* Quiz Soru Kartı */
+.qb-question-card {
+    background-color: var(--bg-panel);
     border: 1px solid var(--border-color);
     border-radius: 8px;
-    color: var(--text-white);
-    /* TODO: Ensure this is dark in light mode via tokens */
+    overflow: hidden;
+}
+
+.qb-header {
     cursor: pointer;
-    transition: all 0.2s;
+    user-select: none;
+    border-bottom: 1px solid var(--border-color);
 }
 
-.btn-action:hover {
-    background: rgba(212, 175, 55, 0.1);
-    border-color: var(--gold-primary);
+.qb-header:hover {
+    background-color: var(--bg-hover, rgba(255,255,255,0.03));
 }
 
-.btn-action .icon {
-    font-size: 1.5rem;
-    margin-bottom: 5px;
+/* Input Group (Şıklar) */
+.input-group-text {
+    background-color: var(--bg-panel);
+    border-color: var(--border-color);
+    color: var(--text-white);
 }
