@@ -1,166 +1,315 @@
 <!DOCTYPE html>
-<html lang="tr">
-
+<html lang="tr" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Yönetim Paneli | GOLD GYS</title>
+    <title>GoldGYS - Admin Panel</title>
     
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
-
-    <link rel="stylesheet" href="../styles/tokens.css">
-    <link rel="stylesheet" href="../css/layout.css">
-    <link rel="stylesheet" href="../css/admin.css"> <link rel="stylesheet" href="../css/footer.css">
-
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230F172A'/><text x='50' y='70' font-family='serif' font-size='60' fill='%23D4AF37' text-anchor='middle' font-weight='bold'>G</text></svg>">
-
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-
-    <style>
-        /* FOUC (Flash of Unstyled Content) önleme */
-        body { visibility: hidden; }
-
-        /* İÇERİK YÖNETİMİ AKTİFKEN (Content Mode) */
-        /* Bu kurallar admin.css'i destekler, JS ile 'content-mode' eklenince çalışır */
-        body.content-mode .main-content {
-            padding: 0 !important;
-            overflow: hidden;
-            height: calc(100vh - var(--header-height));
-        }
-
-        /* Admin Section'lar varsayılan olarak tam boy */
-        .admin-section {
-            height: 100%;
-            width: 100%;
-        }
-    </style>
+    <!-- FONT AWESOME -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- STYLES -->
+    <link rel="stylesheet" href="/css/admin.css">
+    <link rel="stylesheet" href="/css/layout.css">
+    <link rel="stylesheet" href="/styles/tokens.css">
+    
+    <!-- FIREBASE -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-functions-compat.js"></script>
 </head>
-
-<body>
-
-    <div class="sidebar-overlay" id="sidebarOverlay"></div>
-
-    <aside class="sidebar" id="sidebar"></aside>
-
-    <div id="app-header-placeholder"></div>
-
-    <main class="main-content" id="main-content">
+<body class="admin-body">
+    
+    <!-- ADMIN CONTAINER -->
+    <div class="admin-container">
         
-        <section id="section-dashboard" class="admin-section">
-            <div class="section-header">
+        <!-- SIDEBAR -->
+        <aside class="admin-sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h2><i class="fas fa-crown"></i> GoldGYS Admin</h2>
+                <small>Gemiadamları Yönetim Sistemi</small>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <ul>
+                    <li>
+                        <a href="/admin/" class="active" data-page="dashboard">
+                            <i class="fas fa-tachometer-alt"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" data-page="questions">
+                            <i class="fas fa-question-circle"></i>
+                            <span>Soru Yönetimi</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" data-page="topics">
+                            <i class="fas fa-folder-tree"></i>
+                            <span>Konu/Kategori</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" data-page="exams">
+                            <i class="fas fa-file-alt"></i>
+                            <span>Sınavlar</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" data-page="users">
+                            <i class="fas fa-users"></i>
+                            <span>Kullanıcılar</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" data-page="reports">
+                            <i class="fas fa-chart-bar"></i>
+                            <span>Raporlar</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" data-page="content">
+                            <i class="fas fa-edit"></i>
+                            <span>İçerik Yönetimi</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/admin/importer.html">
+                            <i class="fas fa-file-import"></i>
+                            <span>Toplu İçe Aktar</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" data-page="settings">
+                            <i class="fas fa-cog"></i>
+                            <span>Ayarlar</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div class="user-avatar">
+                        <i class="fas fa-user-shield"></i>
+                    </div>
+                    <div class="user-details">
+                        <strong id="adminName">Yükleniyor...</strong>
+                        <small id="adminRole">Admin</small>
+                    </div>
+                </div>
+                <button class="btn btn-secondary btn-sm btn-block mt-2" id="logoutBtn">
+                    <i class="fas fa-sign-out-alt"></i> Çıkış Yap
+                </button>
+            </div>
+        </aside>
+        
+        <!-- MOBILE MENU TOGGLE -->
+        <button class="mobile-menu-toggle" id="menuToggle">
+            <i class="fas fa-bars"></i>
+        </button>
+        
+        <!-- MAIN CONTENT -->
+        <main class="admin-main" id="mainContent">
+            
+            <!-- HEADER -->
+            <header class="admin-header">
                 <div>
-                    <h2>Genel Bakış</h2>
-                    <p style="color: var(--text-muted);">Sistem özetini buradan izleyebilirsiniz.</p>
+                    <h1 id="pageTitle">Dashboard</h1>
+                    <p class="text-muted" id="pageSubtitle">Sistem istatistikleri ve hızlı erişim</p>
                 </div>
-                <div class="date-display badge warning" id="currentDateDisplay"></div>
-            </div>
-
-            <div class="row mb-4" id="statsGrid">
-                <div class="col-md-12">
-                    <div class="card">Veriler yükleniyor...</div>
-                </div>
-            </div>
-
-            <div class="row">
-                <div class="col-md-8">
-                    <div class="card">
-                        <h3>📈 Son 7 Gün</h3>
-                        <div style="height: 300px;"><canvas id="usersChart"></canvas></div>
+                
+                <div class="header-actions">
+                    <!-- THEME SWITCHER -->
+                    <div class="theme-switcher" id="themeSwitcher">
+                        <i class="fas fa-moon" id="themeIcon"></i>
+                        <span id="themeText">Karanlık Mod</span>
                     </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="card">
-                        <h3>⚡ Hızlı İşlemler</h3>
-                        <div class="action-btn-grid">
-                            <button onclick="window.location.hash='content'" class="btn-action">
-                                <span class="icon">📚</span><span>İçerik Yönetimi</span>
-                            </button>
-                            <button onclick="window.location.hash='users'" class="btn-action">
-                                <span class="icon">👥</span><span>Üye Yönetimi</span>
-                            </button>
-                        </div>
+                    
+                    <!-- NOTIFICATIONS -->
+                    <div class="notification-bell" id="notificationBell">
+                        <i class="fas fa-bell"></i>
+                        <span class="badge" id="notificationCount">3</span>
                     </div>
-                    <div class="card" style="margin-top: 1rem;">
-                        <h3>📚 Soru Dağılımı</h3>
-                        <div style="height: 200px; display: flex; justify-content: center;">
-                            <canvas id="questionsChart"></canvas>
+                    
+                    <!-- QUICK ACTIONS -->
+                    <div class="dropdown">
+                        <button class="btn btn-primary" id="quickActions">
+                            <i class="fas fa-plus"></i> Hızlı İşlem
+                        </button>
+                        <div class="dropdown-menu">
+                            <a href="#" class="dropdown-item" data-action="add-question">
+                                <i class="fas fa-plus-circle"></i> Yeni Soru
+                            </a>
+                            <a href="#" class="dropdown-item" data-action="add-topic">
+                                <i class="fas fa-folder-plus"></i> Yeni Konu
+                            </a>
+                            <a href="#" class="dropdown-item" data-action="add-exam">
+                                <i class="fas fa-file-medical"></i> Yeni Sınav
+                            </a>
                         </div>
                     </div>
                 </div>
-            </div>
-
-            <div class="row" style="margin-top: 1rem;">
-                <div class="col-md-6">
-                    <div class="card">
-                        <h3>👥 Son Üyeler</h3>
-                        <div class="table-responsive">
-                            <table class="admin-table">
-                                <tbody id="recentUsersTable"></tbody>
+            </header>
+            
+            <!-- DASHBOARD CONTENT -->
+            <section id="dashboardContent">
+                <!-- STATISTICS CARDS -->
+                <div class="dashboard-grid">
+                    <div class="stat-card">
+                        <i class="fas fa-question-circle"></i>
+                        <h3>Toplam Soru</h3>
+                        <div class="value" id="totalQuestions">0</div>
+                        <div class="trend positive">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>+12 Bu Ay</span>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <i class="fas fa-users"></i>
+                        <h3>Aktif Kullanıcılar</h3>
+                        <div class="value" id="activeUsers">0</div>
+                        <div class="trend positive">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>+5 Bugün</span>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <i class="fas fa-file-alt"></i>
+                        <h3>Toplam Sınav</h3>
+                        <div class="value" id="totalExams">0</div>
+                        <div class="trend neutral">
+                            <i class="fas fa-minus"></i>
+                            <span>Sabit</span>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <i class="fas fa-chart-line"></i>
+                        <h3>Başarı Oranı</h3>
+                        <div class="value" id="successRate">%0</div>
+                        <div class="trend negative">
+                            <i class="fas fa-arrow-down"></i>
+                            <span>-2% Dün</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- RECENT ACTIVITY & QUICK ACTIONS -->
+                <div class="row mt-3">
+                    <div class="col-8">
+                        <div class="table-container">
+                            <div class="table-header">
+                                <h3><i class="fas fa-history"></i> Son Aktiviteler</h3>
+                                <a href="#" class="btn btn-sm btn-secondary">Tümünü Gör</a>
+                            </div>
+                            <table class="admin-table" id="recentActivity">
+                                <thead>
+                                    <tr>
+                                        <th>Kullanıcı</th>
+                                        <th>Aktivite</th>
+                                        <th>Zaman</th>
+                                        <th>Durum</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Aktivite verileri JavaScript ile doldurulacak -->
+                                </tbody>
                             </table>
                         </div>
                     </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="card">
-                        <h3>🚩 Son Bildirimler</h3>
-                        <div class="table-responsive">
-                            <table class="admin-table">
-                                <tbody id="recentReportsTable"></tbody>
-                            </table>
+                    
+                    <div class="col-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3><i class="fas fa-bolt"></i> Hızlı İşlemler</h3>
+                            </div>
+                            <div class="card-body">
+                                <button class="btn btn-primary btn-block mb-2" id="btnAddQuestion">
+                                    <i class="fas fa-plus-circle"></i> Yeni Soru Ekle
+                                </button>
+                                <button class="btn btn-secondary btn-block mb-2" id="btnManageTopics">
+                                    <i class="fas fa-folder-tree"></i> Konuları Düzenle
+                                </button>
+                                <button class="btn btn-info btn-block mb-2" id="btnViewReports">
+                                    <i class="fas fa-chart-pie"></i> Detaylı Raporlar
+                                </button>
+                                <button class="btn btn-warning btn-block" id="btnSystemSettings">
+                                    <i class="fas fa-cogs"></i> Sistem Ayarları
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        </section>
-
-        <section id="section-users" class="admin-section" style="display: none;">
-            <div class="section-header">
-                <h2>Üye Yönetimi</h2>
-            </div>
-            <div class="card">
-                <div class="table-responsive">
-                    <table class="admin-table">
+                
+                <!-- PENDING APPROVALS -->
+                <div class="table-container mt-3">
+                    <div class="table-header">
+                        <h3><i class="fas fa-clock"></i> Onay Bekleyen İçerikler</h3>
+                        <div class="table-actions">
+                            <button class="btn btn-sm btn-success" id="approveAll">
+                                <i class="fas fa-check-double"></i> Tümünü Onayla
+                            </button>
+                            <button class="btn btn-sm btn-danger" id="rejectAll">
+                                <i class="fas fa-times-circle"></i> Tümünü Reddet
+                            </button>
+                        </div>
+                    </div>
+                    <table class="admin-table" id="pendingTable">
                         <thead>
                             <tr>
-                                <th>Kullanıcı</th>
-                                <th>Email</th>
-                                <th>Rol</th>
-                                <th>Tarih</th>
+                                <th width="50">
+                                    <input type="checkbox" id="selectAllPending">
+                                </th>
+                                <th>İçerik</th>
+                                <th>Gönderen</th>
+                                <th>Tür</th>
+                                <th>Eklenme Tarihi</th>
                                 <th>İşlemler</th>
                             </tr>
                         </thead>
-                        <tbody id="usersTableBody"></tbody>
+                        <tbody>
+                            <!-- Onay bekleyen içerikler JavaScript ile doldurulacak -->
+                        </tbody>
                     </table>
                 </div>
-            </div>
-        </section>
-
-        <section id="section-content" class="admin-section" style="display: none;">
             </section>
-
-        <section id="section-reports" class="admin-section" style="display: none;">
-            <div class="section-header">
-                <h2>Hata Bildirimleri</h2>
-            </div>
-            <div class="card">
-                <div id="reportsList"></div>
-            </div>
-        </section>
-
-        <section id="section-legislation" class="admin-section" style="display: none;"></section>
-        <section id="section-questions" class="admin-section" style="display: none;"></section>
-        <section id="section-exams" class="admin-section" style="display: none;"></section>
-
-        <footer id="app-footer-placeholder" class="app-footer"></footer>
-    </main>
-
-    <script type="module" src="../js/admin-page.js"></script>
+            
+            <!-- DYNAMIC CONTENT AREA (CRUD Operations) -->
+            <section id="dynamicContent" style="display: none;">
+                <!-- Bu alan JavaScript ile dinamik olarak doldurulacak -->
+            </section>
+            
+            <!-- MODAL CONTAINER -->
+            <div id="modalContainer"></div>
+            
+            <!-- TOAST CONTAINER -->
+            <div class="toast-container" id="toastContainer"></div>
+            
+        </main>
+    </div>
     
-    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+    <!-- SCRIPTS -->
+    <script src="/js/firebase-config.js"></script>
+    <script src="/js/role-guard.js"></script>
+    <script src="/js/admin-page.js"></script>
+    <script src="/js/ui-loader.js"></script>
     
-    <script>window.addEventListener('load', () => { document.body.style.visibility = 'visible'; });</script>
+    <!-- ADMIN MODULES -->
+    <script src="/js/modules/admin/questions.js"></script>
+    <script src="/js/modules/admin/users.js"></script>
+    <script src="/js/modules/admin/reports.js"></script>
+    <script src="/js/modules/admin/utils.js"></script>
+    
+    <script>
+        // Initialize admin system
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeAdminSystem();
+        });
+    </script>
 </body>
-
 </html>
