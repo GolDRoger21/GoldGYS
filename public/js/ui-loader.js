@@ -57,6 +57,9 @@ export async function initLayout() {
             // 2. HTML Parçalarını Yükle (Header & Sidebar)
             await loadRequiredHTML(isAdminPage);
 
+            // 2.5 Tema geçişini hazırla
+            setupThemeToggle();
+
             // 3. Event Listener'ları Tanımla (Menü açma/kapama vb.)
             setupEventListeners();
 
@@ -172,6 +175,34 @@ function setupUniversalHeader(isAdmin) {
             }
         });
     }
+}
+
+function setupThemeToggle() {
+    const toggleButtons = document.querySelectorAll('[data-theme-toggle]');
+    if (!toggleButtons.length) return;
+
+    const applyTheme = (theme) => {
+        const isLight = theme === 'light';
+        document.body.classList.toggle('light-mode', isLight);
+        localStorage.setItem('theme', isLight ? 'light' : 'dark');
+    };
+
+    const storedTheme = localStorage.getItem('theme');
+    if (storedTheme) {
+        applyTheme(storedTheme);
+    } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
+        applyTheme('light');
+    }
+
+    toggleButtons.forEach((btn) => {
+        const newBtn = btn.cloneNode(true);
+        btn.parentNode.replaceChild(newBtn, btn);
+
+        newBtn.addEventListener('click', () => {
+            const isLight = document.body.classList.contains('light-mode');
+            applyTheme(isLight ? 'dark' : 'light');
+        });
+    });
 }
 
 export async function loadHTML(url, targetId) {
