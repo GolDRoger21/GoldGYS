@@ -1,115 +1,95 @@
+// Dosya: public/js/modules/admin/content.js
+
 import { db } from "../../firebase-config.js";
 import { 
-    collection, getDocs, getDoc, addDoc, updateDoc, deleteDoc, doc, query, where, orderBy, serverTimestamp, writeBatch 
+    collection, getDocs, addDoc, deleteDoc, doc, query, where, orderBy, serverTimestamp, writeBatch 
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// Global Durum Yönetimi
-let state = {
-    currentTopicId: null,
-    currentSubTopicId: null,
-    editingContentId: null, // Eğer doluysa "Düzenleme Modu"ndayız demektir
-    topicsMap: {} // ID -> Başlık eşleşmesi için
-};
+// Global Değişkenler
+let currentTopicId = null;
+let currentSubTopicId = null;
 
 export function initContentPage() {
-    console.log("🚀 Gelişmiş İçerik Yönetimi Başlatıldı");
-    renderLayout();
-    loadTopics();
+    console.log("İçerik Yönetimi Başlatıldı (Entegre Test Sistemi)");
+    renderContentInterface();
+    loadTopicsForSelect();
 }
 
-// 1. ARAYÜZ İSKELETİ
-function renderLayout() {
-    const container = document.getElementById('section-content');
+// 1. ARAYÜZ OLUŞTURMA
+function renderContentInterface() {
+    const container = document.getElementById('section-content'); 
     if(!container) return;
 
     container.innerHTML = `
-        <div class="card p-4 shadow-sm border-0">
-            <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
-                <div>
-                    <h2 class="mb-1 text-primary"><i class="bi bi-collection-play"></i> Ders İçerikleri</h2>
-                    <p class="text-muted small mb-0">Ders notları, videolar, testler ve podcast'leri buradan yönetin.</p>
-                </div>
+        <div class="card p-4 shadow-sm">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="mb-0">📚 Ders İçeriği Yönetimi</h2>
             </div>
             
-            <div class="row g-3 mb-4 bg-light p-3 rounded align-items-end">
-                <div class="col-md-5">
-                    <label class="form-label fw-bold text-dark">Ana Konu</label>
-                    <select id="selectTopic" class="form-select form-select-lg shadow-sm">
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Ana Konu Seçin:</label>
+                    <select id="selectTopic" class="form-control form-select-lg">
                         <option value="">-- Konu Seçiniz --</option>
                     </select>
                 </div>
-                <div class="col-md-5">
-                    <label class="form-label fw-bold text-dark">Alt Başlık (Opsiyonel)</label>
-                    <select id="selectSubTopic" class="form-select form-select-lg shadow-sm" disabled>
-                        <option value="">-- Tümü --</option>
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Alt Başlık Seçin:</label>
+                    <select id="selectSubTopic" class="form-control form-select-lg" disabled>
+                        <option value="">-- Önce Ana Konu Seçin --</option>
                     </select>
                 </div>
-                <div class="col-md-2 text-end">
-                    <span class="badge bg-secondary" id="contentCountBadge">0 İçerik</span>
+            </div>
+
+            <div id="actionButtons" style="display:none;" class="mb-4 p-3 bg-white border rounded shadow-sm">
+                <h5 class="mb-3 text-primary">➕ Bu Konuya Ne Eklemek İstersiniz?</h5>
+                <div class="d-flex gap-2 flex-wrap">
+                    <button class="btn btn-outline-primary" onclick="window.showAddModal('video')">
+                        <i class="bi bi-camera-video"></i> Video Ders
+                    </button>
+                    <button class="btn btn-outline-danger" onclick="window.showAddModal('pdf')">
+                        <i class="bi bi-file-pdf"></i> PDF Doküman
+                    </button>
+                    <button class="btn btn-outline-success" onclick="window.showAddModal('html')">
+                        <i class="bi bi-code-slash"></i> HTML Ders Notu
+                    </button>
+                    <button class="btn btn-outline-dark" onclick="window.showAddModal('quiz')">
+                        <i class="bi bi-check2-square"></i> <b>Konu Tarama Testi</b>
+                    </button>
                 </div>
             </div>
 
-            <div id="actionButtons" class="mb-4 text-center" style="display:none;">
-                <div class="p-3 border rounded border-dashed bg-white">
-                    <h6 class="mb-3 text-muted">Bu konuya yeni içerik ekle:</h6>
-                    <div class="d-flex justify-content-center gap-2 flex-wrap">
-                        <button class="btn btn-outline-primary px-4" onclick="window.openModal('video')">
-                            🎥 Video
-                        </button>
-                        <button class="btn btn-outline-danger px-4" onclick="window.openModal('pdf')">
-                            📄 PDF
-                        </button>
-                        <button class="btn btn-outline-success px-4" onclick="window.openModal('html')">
-                            📝 Not (HTML)
-                        </button>
-                        <button class="btn btn-outline-warning px-4" onclick="window.openModal('podcast')">
-                            🎧 Podcast
-                        </button>
-                        <button class="btn btn-dark px-4" onclick="window.openModal('quiz')">
-                            🧩 Tarama Testi
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <div id="contentsList" class="list-group list-group-flush">
-                <div class="text-center text-muted py-5">
-                    <i class="bi bi-arrow-up-circle fs-1"></i><br>
-                    İçerikleri görmek için yukarıdan bir konu seçiniz.
+            <div id="contentsList" class="list-group">
+                <div class="text-center text-muted p-5 bg-light rounded">
+                    İçerikleri görmek ve düzenlemek için yukarıdan bir konu seçiniz.
                 </div>
             </div>
         </div>
 
-        <div id="contentModal" class="modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:10000; align-items:center; justify-content:center; overflow-y:auto;">
-            <div class="modal-dialog bg-white rounded shadow-lg m-auto mt-5 mb-5" style="width:90%; max-width:800px; padding:0;">
-                <div class="modal-header bg-light p-3 border-bottom d-flex justify-content-between">
-                    <h5 id="modalTitle" class="mb-0 fw-bold">İçerik Ekle</h5>
-                    <button type="button" class="btn-close" onclick="window.closeModal()">X</button>
+        <div id="contentModal" class="modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:10000; align-items:center; justify-content:center;">
+            <div class="modal-dialog bg-white rounded shadow-lg" style="width:90%; max-width:800px; max-height:90vh; overflow-y:auto; padding:25px;">
+                <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3">
+                    <h4 id="modalTitle" class="mb-0">İçerik Ekle</h4>
+                    <button type="button" class="btn-close" onclick="document.getElementById('contentModal').style.display='none'">X</button>
                 </div>
                 
-                <div class="modal-body p-4">
+                <div class="modal-body">
                     <input type="hidden" id="inpContentType">
                     
-                    <div class="row mb-3">
-                        <div class="col-md-9">
-                            <label class="form-label fw-bold">Başlık <span class="text-danger">*</span></label>
-                            <input type="text" id="inpTitle" class="form-control" placeholder="Örn: Ders 1 - Giriş">
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label fw-bold">Sıra No</label>
-                            <input type="number" id="inpOrder" class="form-control" value="1">
-                        </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Başlık (Öğrenci bunu görecek)</label>
+                        <input type="text" id="inpTitle" class="form-control" placeholder="Örn: Ders 1 - Giriş">
                     </div>
 
-                    <div id="dynamicFields" class="mb-4"></div>
+                    <div class="mb-3">
+                        <label class="form-label">Sıra No</label>
+                        <input type="number" id="inpOrder" class="form-control" value="1" style="max-width:100px;">
+                    </div>
 
-                    <div id="modalInfo" class="alert alert-light border small text-muted mb-3" style="display:none;"></div>
+                    <div id="dynamicFields" class="mb-3 p-3 bg-light rounded border"></div>
 
-                    <div class="d-flex justify-content-end gap-2 pt-3 border-top">
-                        <button onclick="window.closeModal()" class="btn btn-light border">İptal</button>
-                        <button onclick="window.saveContent()" class="btn btn-success px-4 fw-bold" id="btnSave">
-                            <i class="bi bi-check-lg"></i> Kaydet
-                        </button>
+                    <div class="d-grid gap-2">
+                        <button onclick="window.saveContent()" class="btn btn-success btn-lg">Kaydet ve Yayınla</button>
                     </div>
                 </div>
             </div>
@@ -118,47 +98,39 @@ function renderLayout() {
 
     // Event Listeners
     document.getElementById('selectTopic').addEventListener('change', handleTopicChange);
-    document.getElementById('selectSubTopic').addEventListener('change', () => loadContents());
+    document.getElementById('selectSubTopic').addEventListener('change', loadContents);
 }
 
-// 2. VERİ YÖNETİMİ
-async function loadTopics() {
+// 2. VERİ YÖNETİMİ (Konuları Çekme)
+async function loadTopicsForSelect() {
     const select = document.getElementById('selectTopic');
     const q = query(collection(db, "topics"), orderBy("order"));
+    const snapshot = await getDocs(q);
     
-    try {
-        const snapshot = await getDocs(q);
-        state.topicsMap = {}; // Reset
+    window.allTopicsData = [];
 
-        snapshot.forEach(doc => {
-            const data = doc.data();
-            state.topicsMap[doc.id] = data; // Kaydet
-            
-            const opt = document.createElement('option');
-            opt.value = doc.id;
-            opt.innerText = `${data.title} (${data.category === 'ortak' ? 'Ortak' : 'Alan'})`;
-            select.appendChild(opt);
-        });
-    } catch (e) {
-        console.error("Konular yüklenemedi:", e);
-    }
+    snapshot.forEach(doc => {
+        const data = doc.data();
+        window.allTopicsData.push({ id: doc.id, ...data });
+        const opt = document.createElement('option');
+        opt.value = doc.id;
+        opt.innerText = `${data.title} (${data.category === 'ortak' ? 'Ortak' : 'Alan'})`;
+        select.appendChild(opt);
+    });
 }
 
 function handleTopicChange(e) {
-    state.currentTopicId = e.target.value;
-    state.currentSubTopicId = null; // Reset subtopic
+    const topicId = e.target.value;
+    currentTopicId = topicId;
     
     const subSelect = document.getElementById('selectSubTopic');
     subSelect.innerHTML = '<option value="">-- Tümü --</option>';
+    subSelect.disabled = !topicId;
     
-    const actionButtons = document.getElementById('actionButtons');
-    
-    if (state.currentTopicId) {
-        subSelect.disabled = false;
-        actionButtons.style.display = 'block';
-        
-        // Alt konuları doldur
-        const topicData = state.topicsMap[state.currentTopicId];
+    document.getElementById('actionButtons').style.display = topicId ? 'block' : 'none';
+
+    if (topicId) {
+        const topicData = window.allTopicsData.find(t => t.id === topicId);
         if (topicData && topicData.subTopics) {
             topicData.subTopics.forEach(sub => {
                 const opt = document.createElement('option');
@@ -168,355 +140,209 @@ function handleTopicChange(e) {
             });
         }
         loadContents();
-    } else {
-        subSelect.disabled = true;
-        actionButtons.style.display = 'none';
-        document.getElementById('contentsList').innerHTML = '<div class="text-center text-muted py-5">İçerik seçiniz.</div>';
     }
 }
 
+// 3. İÇERİKLERİ LİSTELEME
 async function loadContents() {
-    if (!state.currentTopicId) return;
+    if (!currentTopicId) return;
     
-    const subTopicVal = document.getElementById('selectSubTopic').value;
-    state.currentSubTopicId = subTopicVal || null;
-
+    currentSubTopicId = document.getElementById('selectSubTopic').value;
     const listDiv = document.getElementById('contentsList');
-    const badge = document.getElementById('contentCountBadge');
-    
-    listDiv.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-primary"></div><p>Yükleniyor...</p></div>';
+    listDiv.innerHTML = '<div class="text-center p-3">Yükleniyor...</div>';
 
-    // Sorgu Oluşturma
     let constraints = [
-        where("topicId", "==", state.currentTopicId),
-        orderBy("order", "asc")
+        where("topicId", "==", currentTopicId),
+        orderBy("order")
     ];
 
-    if (state.currentSubTopicId) {
-        constraints.splice(1, 0, where("subTopicId", "==", state.currentSubTopicId));
+    if (currentSubTopicId) {
+        constraints.splice(1, 0, where("subTopicId", "==", currentSubTopicId));
     }
 
     try {
         const q = query(collection(db, "contents"), ...constraints);
         const snapshot = await getDocs(q);
 
-        badge.innerText = `${snapshot.size} İçerik`;
-
         if (snapshot.empty) {
-            listDiv.innerHTML = `
-                <div class="alert alert-warning d-flex align-items-center" role="alert">
-                    <i class="bi bi-exclamation-circle me-2"></i>
-                    <div>Bu konuda henüz içerik eklenmemiş. Yukarıdaki butonları kullanarak ekleyebilirsiniz.</div>
-                </div>`;
+            listDiv.innerHTML = '<div class="alert alert-warning">Bu konuda henüz içerik yok.</div>';
             return;
         }
 
         listDiv.innerHTML = '';
-        snapshot.forEach(docSnap => {
-            const item = docSnap.data();
-            const el = createContentItemHTML(docSnap.id, item);
-            listDiv.appendChild(el);
-        });
+        snapshot.forEach(doc => {
+            const item = doc.data();
+            const badgeColor = {
+                'video': 'primary', 'pdf': 'danger', 'html': 'success', 'quiz': 'dark'
+            }[item.type] || 'secondary';
 
-    } catch (error) {
-        console.error(error);
-        if(error.message.includes("index")) {
-            listDiv.innerHTML = `<div class="alert alert-danger small">⚠️ <b>Performans İndeksi Gerekli:</b><br>Bu sorgu için Firebase Console'da bir Composite Index oluşturmalısınız. Konsoldaki linke tıklayın.</div>`;
-        } else {
-            listDiv.innerHTML = `<div class="alert alert-danger">Hata: ${error.message}</div>`;
-        }
-    }
-}
+            const typeLabel = item.type === 'quiz' ? 'TEST' : item.type.toUpperCase();
 
-// 3. HTML OLUŞTURUCU (Card Design)
-function createContentItemHTML(id, item) {
-    const div = document.createElement('div');
-    div.className = 'list-group-item p-3 mb-2 border rounded shadow-sm hover-effect';
-    
-    // Tür Belirleme (İkon ve Renk)
-    let icon = 'bi-file-earmark';
-    let color = 'secondary';
-    let typeText = item.type.toUpperCase();
-
-    switch(item.type) {
-        case 'video': icon = 'bi-camera-video'; color = 'primary'; break;
-        case 'pdf': icon = 'bi-file-pdf'; color = 'danger'; break;
-        case 'html': icon = 'bi-file-richtext'; color = 'success'; typeText = 'NOT'; break;
-        case 'quiz': icon = 'bi-puzzle'; color = 'dark'; typeText = 'TEST'; break;
-        case 'podcast': icon = 'bi-mic'; color = 'warning'; break;
-    }
-
-    // Quiz Detayı
-    let detailText = '';
-    if(item.type === 'quiz') {
-        detailText = `<span class="badge bg-light text-dark border ms-2">✅ ${item.data.questionCount || 0} Soru</span>`;
-    } else if (item.type === 'video') {
-        detailText = `<span class="badge bg-light text-dark border ms-2">▶ Video</span>`;
-    }
-
-    div.innerHTML = `
-        <div class="d-flex justify-content-between align-items-center">
-            <div class="d-flex align-items-center">
-                <div class="icon-box bg-${color} text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width:45px; height:45px; font-size:1.2rem;">
-                    <i class="bi ${icon}"></i>
-                </div>
-                <div>
-                    <h5 class="mb-0 fw-bold text-dark">
-                        <span class="text-muted small me-1">#${item.order}</span> ${item.title}
-                    </h5>
-                    <div class="small text-muted mt-1">
-                        <span class="badge bg-${color} me-1">${typeText}</span>
-                        <span>${item.subTopicId ? 'Alt Başlık: ' + findSubTopicName(item.subTopicId) : 'Genel'}</span>
-                        ${detailText}
+            const div = document.createElement('div');
+            div.className = 'list-group-item list-group-item-action d-flex justify-content-between align-items-center mb-2 shadow-sm border rounded';
+            div.innerHTML = `
+                <div class="d-flex align-items-center">
+                    <span class="badge bg-${badgeColor} me-3 p-2">${typeLabel}</span>
+                    <div>
+                        <h5 class="mb-0">${item.order}. ${item.title}</h5>
+                        <small class="text-muted">${item.subTopicId ? 'Alt Başlık: ' + item.subTopicId : 'Genel'}</small>
+                        ${item.type === 'quiz' ? `<br><small class="text-success">Soru Sayısı: ${item.data.questionCount || 0}</small>` : ''}
                     </div>
                 </div>
-            </div>
-            <div class="btn-group">
-                <button class="btn btn-outline-primary btn-sm" onclick="window.editContent('${id}')">
-                    <i class="bi bi-pencil"></i> Düzenle
-                </button>
-                <button class="btn btn-outline-danger btn-sm" onclick="window.deleteContent('${id}')">
-                    <i class="bi bi-trash"></i>
-                </button>
-            </div>
-        </div>
-    `;
-    return div;
+                <div>
+                    <button class="btn btn-sm btn-outline-danger" onclick="window.deleteContent('${doc.id}')">Sil</button>
+                </div>
+            `;
+            listDiv.appendChild(div);
+        });
+    } catch (error) {
+        console.error(error);
+        listDiv.innerHTML = `<div class="alert alert-danger">Hata: ${error.message} (Index gerekebilir)</div>`;
+    }
 }
 
-function findSubTopicName(subId) {
-    // Basit bir arama (Performans için optimize edilebilir)
-    if(!state.currentTopicId) return subId;
-    const topic = state.topicsMap[state.currentTopicId];
-    const sub = topic.subTopics.find(s => s.id === subId);
-    return sub ? sub.title : subId;
-}
-
-// 4. MODAL YÖNETİMİ (EKLEME & DÜZENLEME)
-window.openModal = async (type, mode = 'create', existingData = null) => {
+// 4. MODAL VE EKLEME MANTIĞI
+window.showAddModal = (type) => {
     const modal = document.getElementById('contentModal');
-    const container = document.getElementById('dynamicFields');
-    const titleInp = document.getElementById('inpTitle');
-    const orderInp = document.getElementById('inpOrder');
-    const typeInp = document.getElementById('inpContentType');
-    const infoBox = document.getElementById('modalInfo');
-
     modal.style.display = 'flex';
-    typeInp.value = type;
-    infoBox.style.display = 'none';
+    document.getElementById('inpContentType').value = type;
+    document.getElementById('modalTitle').innerText = `Yeni ${type === 'quiz' ? 'Test' : type.toUpperCase()} Ekle`;
+    
+    const container = document.getElementById('dynamicFields');
     container.innerHTML = '';
 
-    // Mod Ayarları (Ekleme vs Düzenleme)
-    if (mode === 'edit' && existingData) {
-        state.editingContentId = existingData.id;
-        document.getElementById('modalTitle').innerText = `Düzenle: ${type.toUpperCase()}`;
-        titleInp.value = existingData.title;
-        orderInp.value = existingData.order;
-        document.getElementById('btnSave').innerHTML = '<i class="bi bi-save"></i> Güncelle';
-    } else {
-        state.editingContentId = null;
-        document.getElementById('modalTitle').innerText = `Yeni ${type === 'quiz' ? 'Test' : type.toUpperCase()} Ekle`;
-        titleInp.value = '';
-        orderInp.value = document.querySelectorAll('#contentsList .list-group-item').length + 1; // Otomatik sıra
-        document.getElementById('btnSave').innerHTML = '<i class="bi bi-plus-lg"></i> Oluştur';
-    }
-
-    // Dinamik Alanlar
-    if (type === 'video') {
-        const val = existingData ? existingData.data.url : '';
+    if(type === 'video') {
         container.innerHTML = `
-            <label class="form-label">Video Embed Kodu / URL</label>
-            <input type="text" id="inpDataMain" class="form-control" placeholder="https://youtube.com/embed/..." value="${val}">
-            <div class="form-text">Youtube videosuna sağ tıklayıp "Embed Kodu Kopyala" diyerek src kısmını alabilirsiniz.</div>
+            <label class="form-label">Video URL / Embed Kodu</label>
+            <input type="text" id="inpData1" class="form-control" placeholder="https://youtube.com/...">
+            <small class="text-muted">Youtube embed linkini yapıştırın.</small>
         `;
-    } else if (type === 'pdf') {
-        const val = existingData ? existingData.data.url : '';
+    } else if(type === 'html') {
         container.innerHTML = `
-            <label class="form-label">PDF Linki (Firebase Storage URL)</label>
-            <input type="text" id="inpDataMain" class="form-control" placeholder="https://firebasestorage..." value="${val}">
+            <label class="form-label">HTML İçerik (Ders Notları)</label>
+            <textarea id="inpData1" class="form-control font-monospace" rows="10" placeholder="<h1>Başlık</h1><p>İçerik...</p>"></textarea>
         `;
-    } else if (type === 'html') {
-        const val = existingData ? existingData.data.content : '';
+    } else if(type === 'pdf') {
         container.innerHTML = `
-            <label class="form-label">HTML Ders İçeriği</label>
-            <textarea id="inpDataMain" class="form-control font-monospace" rows="12" placeholder="<h1>Başlık</h1><p>İçerik...</p>">${val}</textarea>
-            <div class="form-text">HTML etiketleri desteklenir.</div>
+            <label class="form-label">PDF Linki (Storage URL)</label>
+            <input type="text" id="inpData1" class="form-control" placeholder="https://firebasestorage...">
         `;
-    } else if (type === 'podcast') {
-        const val = existingData ? existingData.data.url : '';
+    } else if(type === 'quiz') {
+        // İŞTE BURASI SENİN İSTEDİĞİN YER: JSON İLE TEST EKLEME
         container.innerHTML = `
-            <label class="form-label">Podcast Ses Dosyası URL</label>
-            <input type="text" id="inpDataMain" class="form-control" placeholder="https://..." value="${val}">
-        `;
-    } else if (type === 'quiz') {
-        // Quiz Düzenleme Modu Farklıdır
-        if (mode === 'edit') {
-            infoBox.style.display = 'block';
-            infoBox.innerHTML = `
-                <strong>ℹ️ Bilgi:</strong> Mevcut testin başlığını veya sırasını değiştirebilirsiniz. 
-                Soruları değiştirmek için aşağıya YENİ bir JSON yapıştırın. Boş bırakırsanız eski sorular korunur.
-            `;
-            container.innerHTML = `
-                <label class="form-label fw-bold">Soruları Güncelle (Opsiyonel)</label>
-                <textarea id="inpDataMain" class="form-control font-monospace" rows="6" placeholder="Soruları değiştirmek istiyorsanız yeni JSON verisini buraya yapıştırın."></textarea>
-            `;
-        } else {
-            // Yeni Quiz Ekleme
-            infoBox.style.display = 'block';
-            infoBox.className = 'alert alert-info border-info';
-            infoBox.innerHTML = `
+            <div class="alert alert-info border-info">
                 <strong>📝 Nasıl Çalışır?</strong><br>
-                Aşağıya hazırladığınız soruları JSON formatında yapıştırın. Sistem bu soruları otomatik olarak:
-                <ul class="mb-0 ps-3 small">
-                    <li>Soru Bankasına kaydeder.</li>
-                    <li>Paketleyip bu konuya test olarak ekler.</li>
-                </ul>
-            `;
-            container.innerHTML = `
-                <label class="form-label fw-bold">Soru Listesi (JSON)</label>
-                <textarea id="inpDataMain" class="form-control font-monospace" rows="12" placeholder='[
+                Aşağıya hazırladığınız soruları JSON formatında yapıştırın. Sistem bu soruları:
+                <ol class="mb-0 ps-3">
+                    <li>Soru Bankasına tek tek ekler.</li>
+                    <li>Bir sınav paketi oluşturur.</li>
+                    <li>Bu konunun altına test olarak ekler.</li>
+                </ol>
+            </div>
+            <label class="form-label fw-bold">Soru Listesi (JSON)</label>
+            <textarea id="inpData1" class="form-control font-monospace" rows="12" placeholder='[
   {
     "text": "Soru metni...",
-    "category": "CMK",
     "options": {"A":"...", "B":"..."},
     "correct": "A",
     "solution": "Çözüm..."
   }
 ]'></textarea>
-            `;
-        }
+        `;
     }
 };
 
-window.closeModal = () => {
-    document.getElementById('contentModal').style.display = 'none';
-};
-
-// 5. KAYDETME MANTIĞI
 window.saveContent = async () => {
     const type = document.getElementById('inpContentType').value;
     const title = document.getElementById('inpTitle').value;
     const order = Number(document.getElementById('inpOrder').value);
-    const dataMain = document.getElementById('inpDataMain').value; // Ana veri inputu
+    const dataInput = document.getElementById('inpData1').value;
+    
+    if(!title || !dataInput) return alert("Lütfen zorunlu alanları doldurun!");
 
-    if (!title) return alert("Başlık zorunludur.");
-    // Quiz düzenlemede JSON boş olabilir (sadece başlık değişiyor olabilir)
-    if (type !== 'quiz' && !dataMain) return alert("İçerik alanı boş olamaz."); 
-    if (type === 'quiz' && !state.editingContentId && !dataMain) return alert("Test oluşturmak için JSON verisi girmelisiniz.");
-
-    const btn = document.getElementById('btnSave');
-    const originalText = btn.innerHTML;
+    const btn = document.querySelector('#contentModal .btn-success');
+    const originalBtnText = btn.innerText;
     btn.disabled = true;
-    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> İşleniyor...';
+    btn.innerText = "⏳ İşleniyor...";
 
     try {
-        let contentPayload = {
-            topicId: state.currentTopicId,
-            subTopicId: state.currentSubTopicId || null,
-            type: type,
-            title: title,
-            order: order,
-            updatedAt: serverTimestamp()
-        };
+        let contentData = {};
 
-        // Veri Hazırlama
-        if (type === 'html') {
-            contentPayload.data = { content: dataMain };
-        } else if (type === 'video' || type === 'pdf' || type === 'podcast') {
-            contentPayload.data = { url: dataMain };
-        } else if (type === 'quiz') {
-            // Quiz İşlemleri (En karmaşığı)
-            if (dataMain.trim().length > 0) {
-                // Eğer JSON girildiyse (Yeni ekleme veya Güncelleme)
-                const questions = JSON.parse(dataMain);
+        // 1. VİDEO, PDF, HTML İSE BASİT EKLEME
+        if(type === 'html') contentData = { content: dataInput };
+        else if(type === 'video' || type === 'pdf') contentData = { url: dataInput };
+        
+        // 2. TEST (QUIZ) İSE KARMAŞIK İŞLEM
+        else if(type === 'quiz') {
+            try {
+                const questions = JSON.parse(dataInput);
                 if(!Array.isArray(questions)) throw new Error("JSON formatı hatalı: Bir liste [...] olmalı.");
 
-                // A) Soruları Bankaya Ekle
+                // A) Soruları 'questions' koleksiyonuna (Soru Bankasına) ekle
                 const batch = writeBatch(db);
-                // (Basitlik için döngüyle ekliyoruz, batch limiti aşmamak için)
-                // Gerçek projede chunking yapılabilir.
+                // Not: Soruları tek tek ekleyip ID'lerini topluyoruz (Batch ile)
+                // Firestore batch limiti 500'dür.
+                
+                // Hızlı işlem için soruları olduğu gibi pakete gömeceğiz (Denormalization)
+                // Ama aynı zamanda soru bankasında da olsun istiyoruz.
+                
+                // Soruları bankaya ekle (Promise.all ile paralel)
                 const questionPromises = questions.map(q => {
                     return addDoc(collection(db, "questions"), {
                         ...q,
-                        topicId: state.currentTopicId,
+                        topicId: currentTopicId, // Hangi konudan geldiğini bilelim
                         createdAt: serverTimestamp(),
                         isActive: true
                     });
                 });
-                await Promise.all(questionPromises);
 
-                // B) Quiz Paketi Oluştur
+                await Promise.all(questionPromises); // Hepsinin bankaya girmesini bekle
+
+                // B) Soruları bir paket (Quiz) olarak kaydet
                 const quizRef = await addDoc(collection(db, "quizzes"), {
                     title: title,
-                    questions: questions,
+                    questions: questions, // Soruları paketin içine gömüyoruz (Performans için)
                     createdAt: serverTimestamp(),
                     type: "subject_test"
                 });
 
-                // C) Content'e bağla
-                contentPayload.data = { 
+                // C) Quiz'i Content'e bağla
+                contentData = { 
                     quizId: quizRef.id, 
                     questionCount: questions.length 
                 };
-            } else if (state.editingContentId) {
-                // Sadece başlık/sıra güncelleniyor, quiz data'sına dokunma
-                // Mevcut datayı korumak için merge yapacağız, burada data alanını boş geçiyoruz.
-                // updateDoc kullanacağımız için sorun yok.
+
+            } catch (jsonErr) {
+                throw new Error("JSON Hatası: " + jsonErr.message);
             }
         }
 
-        // Kayıt İşlemi (Ekle veya Güncelle)
-        if (state.editingContentId) {
-            // GÜNCELLEME
-            const docRef = doc(db, "contents", state.editingContentId);
-            // Eğer quiz düzenleniyor ve JSON boşsa data alanını ezmemeliyiz.
-            if (type === 'quiz' && (!dataMain || dataMain.trim() === '')) {
-                delete contentPayload.data; 
-            }
-            await updateDoc(docRef, contentPayload);
-            alert("✅ İçerik güncellendi.");
-        } else {
-            // YENİ EKLEME
-            contentPayload.createdAt = serverTimestamp();
-            await addDoc(collection(db, "contents"), contentPayload);
-            alert("✅ İçerik başarıyla eklendi.");
-        }
-
-        window.closeModal();
-        loadContents(); // Listeyi yenile
+        // 3. NİHAİ 'CONTENTS' KAYDI (Konuya Bağlama)
+        await addDoc(collection(db, "contents"), {
+            topicId: currentTopicId,
+            subTopicId: document.getElementById('selectSubTopic').value || null,
+            type,
+            title,
+            data: contentData,
+            order,
+            createdAt: serverTimestamp()
+        });
+        
+        document.getElementById('contentModal').style.display = 'none';
+        loadContents();
+        alert("✅ Başarıyla Eklendi!");
 
     } catch (e) {
-        console.error(e);
         alert("Hata: " + e.message);
     } finally {
         btn.disabled = false;
-        btn.innerHTML = originalText;
+        btn.innerText = originalBtnText;
     }
 };
 
-// 6. SİLME VE DÜZENLEME TETİKLEYİCİLERİ
 window.deleteContent = async (id) => {
-    if(confirm("Bu içeriği silmek istediğinize emin misiniz? (Geri alınamaz)")) {
-        try {
-            await deleteDoc(doc(db, "contents", id));
-            loadContents();
-        } catch(e) {
-            alert("Silme hatası: " + e.message);
-        }
-    }
-};
-
-window.editContent = async (id) => {
-    // Mevcut veriyi çekip modala dolduracağız
-    try {
-        const docSnap = await getDoc(doc(db, "contents", id));
-        if (docSnap.exists()) {
-            const data = docSnap.data();
-            // id'yi de objeye ekle
-            window.openModal(data.type, 'edit', { id: docSnap.id, ...data });
-        }
-    } catch(e) {
-        console.error(e);
-        alert("Veri çekilemedi.");
+    if(confirm("Bu içeriği silmek istediğinize emin misiniz?")) {
+        await deleteDoc(doc(db, "contents", id));
+        loadContents();
     }
 };
