@@ -24,11 +24,17 @@ export async function initContentPage() {
     const container = document.getElementById('section-content');
 
     try {
-        // HTML Şablonunu Yükle (Absolute Path kullanarak hata riskini azaltıyoruz)
-        const response = await fetch('/partials/admin/content-manager.html');
-        if (!response.ok) throw new Error(`HTML Şablonu Bulunamadı: ${response.status}`);
+        // HTML Şablonunu Yükle (Absolute Path)
+        const response = await fetch('/public/partials/admin/content-manager.html');
         
-        container.innerHTML = await response.text();
+        // Eğer /public/ ile bulamazsa (Firebase serve yapısına göre) bir de kökten deneyelim
+        if (!response.ok) {
+            const fallbackResponse = await fetch('/partials/admin/content-manager.html');
+            if(!fallbackResponse.ok) throw new Error("HTML Şablonu yüklenemedi.");
+            container.innerHTML = await fallbackResponse.text();
+        } else {
+            container.innerHTML = await response.text();
+        }
 
         // Olay Dinleyicilerini Başlat
         bindEvents();
@@ -117,8 +123,7 @@ function renderTopicTree(topics) {
         // Alt Konular (Varsa)
         if (topic.subTopics && Array.isArray(topic.subTopics)) {
             const subWrapper = document.createElement('div');
-            // subWrapper.className = 'ms-3 border-start border-secondary ps-2'; 
-            // CSS zaten sub-topic class'ını yönetiyor
+            // CSS zaten indentation hallediyor
             
             topic.subTopics.forEach(sub => {
                 const subItem = document.createElement('div');
@@ -145,14 +150,18 @@ function selectTopic(topicId, subTopicId, element) {
 
     // Header Güncelleme
     const topic = state.topicsMap[topicId];
-    document.getElementById('headerTitle').innerText = topic.title;
-    document.getElementById('headerSubTitle').innerText = subTopicId ? 'Alt Konu Seçildi' : 'Ana Konu';
+    if(topic) {
+        document.getElementById('headerTitle').innerText = topic.title;
+        document.getElementById('headerSubTitle').innerText = subTopicId ? 'Alt Konu Seçildi' : 'Ana Konu';
+    }
 
     // "Yeni Ekle" Butonunu Aktif Et
     const btnNew = document.getElementById('btnNewContent');
-    btnNew.disabled = false;
-    btnNew.classList.remove('btn-gold'); 
-    btnNew.classList.add('btn-gold'); // Animasyon tetiklenebilir
+    if(btnNew) {
+        btnNew.disabled = false;
+        // Butonu vurgula
+        btnNew.classList.add('btn-gold'); 
+    }
 
     loadContents();
 }
@@ -185,7 +194,7 @@ async function loadContents() {
 
     } catch (e) {
         console.error("İçerik yükleme hatası:", e);
-        // Eğer index hatası varsa konsola linki basar
+        // Index hatası varsa konsola linki basar
         workspace.innerHTML = `<div class="text-danger text-center p-4">İçerikler yüklenemedi.<br><small>${e.message}</small></div>`;
     }
 }
@@ -218,7 +227,7 @@ function renderContentList() {
         // Verileri Doldur
         clone.querySelector('.content-order').innerText = item.order || '-';
         clone.querySelector('.content-title').innerText = item.title;
-        clone.querySelector('.content-type-badge').innerText = item.type.toUpperCase();
+        clone.querySelector('.content-type-badge').innerText = item.type ? item.type.toUpperCase() : 'Diğer';
         
         // Tarih Formatı
         let dateStr = "";
@@ -267,7 +276,10 @@ const openEditor = (type, mode = 'create', existingData = null) => {
 
     document.getElementById('inpTitle').value = existingData ? existingData.title : '';
     document.getElementById('inpOrder').value = existingData ? existingData.order : (state.contentItems.length + 1);
-    document.getElementById('inpDuration').value = existingData?.duration || '';
+    
+    // Duration alanı opsiyonel
+    const durEl = document.getElementById('inpDuration');
+    if(durEl) durEl.value = existingData?.duration || '';
 
     state.editingContentId = existingData ? existingData.id : null;
 
@@ -299,11 +311,13 @@ const openEditor = (type, mode = 'create', existingData = null) => {
         // Video, PDF, Link
         stdArea.classList.remove('d-none');
         const val = existingData?.data?.url || '';
+        // NOT: Tema uyumu için "bg-black" yerine "form-control" kullanıyoruz.
+        // admin.css içinde form-control rengi değişkene bağlandı.
         stdArea.innerHTML = `
-            <div class="card bg-dark border-secondary mb-4">
+            <div class="card admin-card mb-4">
                 <div class="card-body p-4">
                     <label class="form-label text-gold fw-bold">DOSYA URL / VIDEO LINK</label>
-                    <input type="text" id="inpDataMain" class="form-control bg-black text-white border-secondary" 
+                    <input type="text" id="inpDataMain" class="form-control form-control-lg" 
                            value="${val}" placeholder="https://...">
                     <div class="form-text text-muted">YouTube linki veya PDF dosya yolu yapıştırın.</div>
                 </div>
@@ -321,7 +335,7 @@ function initQuill() {
     
     // Quill global window nesnesinde mi kontrol et
     if (typeof Quill === 'undefined') {
-        alert("Editör kütüphanesi yüklenemedi. Sayfayı yenileyin.");
+        alert("Editör kütüphanesi yüklenemedi. Lütfen sayfayı yenileyin.");
         return;
     }
 
@@ -346,8 +360,11 @@ function renderQuizBuilder() {
     const list = document.getElementById('quizQuestionsList');
     const template = document.getElementById('tpl-quiz-question-card');
     
+    if(!list || !template) return;
+
     list.innerHTML = '';
-    document.getElementById('qbQuestionCount').innerText = state.quizQuestions.length;
+    const qCountEl = document.getElementById('qbQuestionCount');
+    if(qCountEl) qCountEl.innerText = state.quizQuestions.length;
 
     state.quizQuestions.forEach((q, idx) => {
         const clone = template.content.cloneNode(true);
@@ -365,20 +382,23 @@ function renderQuizBuilder() {
         solInput.value = q.solution || '';
         solInput.onchange = (e) => { q.solution = e.target.value; };
 
-        // Şıklar
+        // Şıklar (HTML içinde CSS classlarına dikkat)
         const optsArea = clone.querySelector('.q-options-area');
         ['A', 'B', 'C', 'D', 'E'].forEach(opt => {
             const div = document.createElement('div');
             div.className = 'col-md-6 mb-2';
             const isChecked = q.correct === opt ? 'checked' : '';
+            
+            // Burada tema uyumu için input-group-text ve form-control kullanıyoruz.
+            // admin.css bu sınıfları renklendiriyor.
             div.innerHTML = `
                 <div class="input-group input-group-sm">
-                    <div class="input-group-text bg-dark border-secondary">
+                    <div class="input-group-text">
                         <input class="form-check-input mt-0" type="radio" name="correct-${idx}" ${isChecked} 
                                onchange="window.ContentManager.setCorrect(${idx}, '${opt}')">
-                        <span class="ms-2 fw-bold text-white">${opt}</span>
+                        <span class="ms-2 fw-bold">${opt}</span>
                     </div>
-                    <input type="text" class="form-control bg-black text-white border-secondary" 
+                    <input type="text" class="form-control" 
                            value="${q.options?.[opt] || ''}" 
                            onchange="window.ContentManager.setOption(${idx}, '${opt}', this.value)">
                 </div>`;
@@ -403,7 +423,8 @@ const saveContent = async () => {
         const type = document.getElementById('inpContentType').value;
         const title = document.getElementById('inpTitle').value;
         const order = Number(document.getElementById('inpOrder').value);
-        const duration = Number(document.getElementById('inpDuration').value);
+        const durationInput = document.getElementById('inpDuration');
+        const duration = durationInput ? Number(durationInput.value) : 0;
 
         if(!title) throw new Error("Lütfen bir başlık giriniz.");
 
@@ -420,7 +441,7 @@ const saveContent = async () => {
 
         // Tip Özel Veriler
         if (type === 'html') {
-            if(!state.quillInstance) throw new Error("Editör hatası.");
+            if(!state.quillInstance) throw new Error("Editör başlatılamadı.");
             payload.data = { content: state.quillInstance.root.innerHTML };
         } 
         else if (type === 'quiz') {
@@ -430,9 +451,9 @@ const saveContent = async () => {
             };
         } 
         else {
-            const url = document.getElementById('inpDataMain').value;
-            if(!url) throw new Error("Lütfen URL giriniz.");
-            payload.data = { url: url };
+            const urlInput = document.getElementById('inpDataMain');
+            if(!urlInput || !urlInput.value) throw new Error("Lütfen URL giriniz.");
+            payload.data = { url: urlInput.value };
         }
 
         // Firestore İşlemi
@@ -445,12 +466,11 @@ const saveContent = async () => {
 
         closeEditor();
         loadContents(); // Listeyi yenile
-        
-        // Başarılı olduğuna dair ufak bir bildirim (Opsiyonel: Toast eklenebilir)
-        // alert("Kayıt başarılı!"); 
+        alert("İçerik başarıyla kaydedildi!");
 
     } catch (e) {
         alert("Hata: " + e.message);
+        console.error(e);
     } finally {
         btn.disabled = false; 
         btn.innerHTML = originalText;
@@ -461,6 +481,24 @@ const saveContent = async () => {
 // HTML'deki onclick="..." attributeleri modül içindeki fonksiyonları göremez.
 // Bu yüzden window nesnesine bağlıyoruz.
 
+async function deleteContent(id) {
+    if(confirm('Bu içeriği kalıcı olarak silmek istiyor musunuz?')) { 
+        try {
+            await deleteDoc(doc(db, "contents", id)); 
+            loadContents(); 
+        } catch(e) {
+            alert("Silme hatası: " + e.message);
+        }
+    } 
+}
+
+function removeQuestion(idx) {
+    if(confirm('Bu soruyu silmek istediğinize emin misiniz?')) {
+        state.quizQuestions.splice(idx, 1); 
+        renderQuizBuilder(); 
+    }
+}
+
 window.ContentManager = {
     openEditor,
     closeEditor,
@@ -469,22 +507,11 @@ window.ContentManager = {
         state.quizQuestions.push({text:'', options:{}, correct:'A'}); 
         renderQuizBuilder(); 
     },
-    removeQuestion: (idx) => { 
-        if(confirm('Bu soruyu silmek istediğinize emin misiniz?')) {
-            state.quizQuestions.splice(idx, 1); 
-            renderQuizBuilder(); 
-        }
-    },
+    removeQuestion,
     setCorrect: (idx, val) => { state.quizQuestions[idx].correct = val; },
     setOption: (idx, opt, val) => { 
         if(!state.quizQuestions[idx].options) state.quizQuestions[idx].options={}; 
         state.quizQuestions[idx].options[opt] = val; 
     },
-    // Listeden Silme
-    async deleteContent(id) { 
-        if(confirm('Bu içeriği kalıcı olarak silmek istiyor musunuz?')) { 
-            await deleteDoc(doc(db, "contents", id)); 
-            loadContents(); 
-        } 
-    }
+    deleteContent
 };
