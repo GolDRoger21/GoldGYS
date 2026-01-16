@@ -205,18 +205,27 @@ function selectTopic(topicId, subTopicId, element) {
     const topic = state.topicsMap[topicId];
     const subTitle = subTopicId ? topic.subTopics.find(s => s.id === subTopicId)?.title : 'Genel Konu İçerikleri';
 
-    document.getElementById('headerTitle').innerText = topic.title;
-    document.getElementById('headerSubTitle').innerText = `${topic.id} / ${subTitle}`;
-    document.getElementById('headerCategoryBadge').innerText = topic.category === 'ortak' ? 'Ortak Konu' : 'Alan Bilgisi';
+    const headerTitle = document.getElementById('headerTitle');
+    if (headerTitle) headerTitle.innerText = topic.title;
+
+    const headerSubTitle = document.getElementById('headerSubTitle');
+    if (headerSubTitle) headerSubTitle.innerText = `${topic.id} / ${subTitle}`;
+
+    // YENİ: Butonu aktif et
+    const btnNew = document.getElementById('btnNewContent');
+    if (btnNew) {
+        btnNew.disabled = false;
+        btnNew.innerHTML = `<i class="bi bi-plus-lg me-1"></i>Yeni (${subTopicId ? 'Alt Konu' : 'Ana Konu'})`;
+    }
 
     // Show Panel
-    document.getElementById('emptyState').classList.add('d-none');
-    document.getElementById('emptyState').classList.remove('d-flex');
+    const emptyState = document.getElementById('emptyState');
+    if (emptyState) {
+        emptyState.classList.add('d-none');
+        emptyState.classList.remove('d-flex');
+    }
 
-    const panel = document.getElementById('contentPanel');
-    panel.classList.remove('d-none');
-    panel.classList.add('d-flex');
-
+    // contentListPanel her zaman görünür, sadece içeriği güncelliyoruz
     loadContents();
 }
 
