@@ -98,19 +98,21 @@ export async function initLayout() {
  * Admin veya Public sayfasına göre doğru Header/Sidebar dosyalarını çeker.
  */
 async function loadRequiredHTML(isAdminPage) {
+    const baseUrl = new URL('.', window.location.href);
+
     // 1. HEADER (Tek Header Yapısı)
-    const headerUrl = '/components/layouts/universal-header.html';
+    const headerUrl = new URL('../components/layouts/universal-header.html', baseUrl).toString();
     const headerTargetId = document.getElementById('app-header-placeholder') ? 'app-header-placeholder' : 'header-area';
 
     // 2. SIDEBAR (Sayfaya Göre Değişir)
     const sidebarUrl = isAdminPage
-        ? '/partials/admin-sidebar.html'
-        : '/partials/sidebar.html';
+        ? new URL('../partials/admin-sidebar.html', baseUrl).toString()
+        : new URL('../partials/sidebar.html', baseUrl).toString();
 
     // 3. FOOTER (Sadece Public Sayfalarda)
     // Admin sayfasındaysak footerUrl null olsun, yüklenmesin.
     const footerTargetId = document.getElementById('app-footer-placeholder') || document.getElementById('footer-area');
-    const footerUrl = isAdminPage ? null : '/components/footer.html';
+    const footerUrl = isAdminPage ? null : new URL('../components/footer.html', baseUrl).toString();
 
     const promises = [
         loadHTML(headerUrl, headerTargetId),
