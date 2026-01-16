@@ -22,6 +22,20 @@
         body {
             visibility: hidden;
         }
+
+        /* İçerik Yönetimi aktifken main-content'in padding'ini sıfırla */
+        body.content-mode .main-content {
+            padding: 0 !important;
+            overflow: hidden;
+            /* Çift scrollbar'ı engelle */
+            height: calc(100vh - var(--header-height));
+        }
+
+        /* Admin Section'lar tam boy olsun */
+        .admin-section {
+            height: 100%;
+            width: 100%;
+        }
     </style>
 </head>
 

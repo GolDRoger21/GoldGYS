@@ -98,6 +98,16 @@ function activateTab(tabId, role) {
     if (targetSection) {
         targetSection.style.display = 'block';
 
+        // ÖZEL DURUM: Eğer içerik yönetimindeysek 'content-mode' sınıfını ekle
+        if (tabId === 'content') {
+            document.body.classList.add('content-mode');
+            // Eğer henüz yüklenmediyse içeriği yükle (Lazy Load manuel tetikleme gerekirse)
+            // Not: loadModuleData aşağıda çağrılıyor ama modül içi init'i garanti edelim
+        } else {
+            // Diğer sayfalardaysak normal padding geri gelsin
+            document.body.classList.remove('content-mode');
+        }
+
         // İlgili modülün JS kodlarını çalıştır (Lazy Execution)
         loadModuleData(tabId, role);
         updatePageTitle(tabId);

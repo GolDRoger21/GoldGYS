@@ -103,7 +103,9 @@ async function loadRequiredHTML(isAdminPage) {
     const headerTargetId = document.getElementById('app-header-placeholder') ? 'app-header-placeholder' : 'header-area';
 
     // 2. SIDEBAR (Sayfaya Göre Değişir)
-    const sidebarUrl = isAdminPage
+    // URL kontrolü ile doğru sidebar'ı seç
+    const path = window.location.pathname;
+    const sidebarUrl = (path.includes('/admin/') || path.includes('/admin'))
         ? '/partials/admin-sidebar.html'
         : '/partials/sidebar.html';
 
