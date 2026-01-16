@@ -40,6 +40,106 @@ body {
     transition: left 0.3s ease;
 }
 
+.app-header .header-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    width: 100%;
+    height: 100%;
+}
+
+.header-left,
+.header-center,
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.header-center {
+    flex: 1;
+    justify-content: center;
+}
+
+.header-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-white);
+    text-decoration: none;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+
+.brand-text {
+    font-family: var(--font-family-serif);
+    font-size: 1.1rem;
+}
+
+.icon-button,
+.theme-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    border: 1px solid var(--border-color);
+    background: var(--bg-panel);
+    color: var(--text-white);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.icon-button:hover,
+.theme-btn:hover {
+    border-color: var(--gold-primary);
+    background: var(--bg-hover);
+}
+
+.theme-btn .icon-sun {
+    display: none;
+}
+
+.theme-btn .icon-moon {
+    display: inline-flex;
+}
+
+body.light-mode .theme-btn .icon-sun {
+    display: inline-flex;
+}
+
+body.light-mode .theme-btn .icon-moon {
+    display: none;
+}
+
+.page-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+.page-breadcrumb-link {
+    color: inherit;
+    text-decoration: none;
+}
+
+.page-breadcrumb-link:hover {
+    color: var(--text-white);
+}
+
+.page-breadcrumb-current {
+    color: var(--text-white);
+    font-weight: 600;
+}
+
+.page-breadcrumb-separator {
+    color: var(--text-muted);
+}
+
 /* Sidebar kapalıyken header genişler (Opsiyonel) */
 body.sidebar-collapsed .app-header {
     left: var(--sidebar-width-collapsed, 72px);
