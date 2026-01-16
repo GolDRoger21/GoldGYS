@@ -1,10 +1,17 @@
-/* public/css/admin.css - FINAL CONSOLIDATED VERSION */
+/* public/css/admin.css - V3.0 FINAL */
 
-/* --- 1. GENEL ADMIN AYARLARI --- */
+/* ==========================================
+   1. GENEL ADMIN AYARLARI
+   ========================================== */
 :root {
     --admin-sidebar-width: 280px;
-    /* İçerik Yöneticisi Sidebar'ı */
     --editor-header-height: 60px;
+}
+
+/* Admin paneli aktifken body'e eklenecek genel kurallar */
+body.admin-layout {
+    background-color: #0F172A; /* Slate-900: Derin koyu tema */
+    overflow-x: hidden;
 }
 
 /* Tablolar ve Kartlar için Genel Stil */
@@ -23,27 +30,41 @@
     letter-spacing: 0.5px;
 }
 
+/* ==========================================
+   2. İÇERİK YÖNETİMİ MODU (FULL SCREEN)
+   ========================================== */
+/* Bu mod devreye girdiğinde (body.content-mode), 
+   genel site şablonunun (layout.css) verdiği padding ve marginleri sıfırlarız.
+*/
 
-/* --- 2. İÇERİK YÖNETİMİ (CONTENT MANAGER) LAYOUT --- */
-/* Bu kısım layout.css'in main-content padding'ini ezer ve tam ekran yapar */
+body.content-mode .main-content {
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100vw;
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1500; /* Sidebar(1100) ve Header(1200)'ın üzerine çık */
+    background: #0F172A;
+    overflow: hidden; /* Scroll içeride olacak */
+}
 
+/* Content Manager Ana Kapsayıcı (Flex Yapı) */
 .content-manager-layout {
     display: flex;
-    /* Grid yerine Flex daha güvenli burada */
     width: 100%;
     height: 100%;
-    /* index.html'deki calc() yüksekliğini alır */
-    background-color: var(--bg-dark);
+    background-color: #0F172A;
     overflow: hidden;
     position: relative;
 }
 
-/* A. SOL PANEL (KONU AĞACI) */
+/* --- A. Sol Panel (Konu Ağacı) --- */
 .cm-sidebar {
     width: var(--admin-sidebar-width);
     flex-shrink: 0;
-    background-color: #0F1012;
-    /* Biraz daha koyu ton */
+    background-color: #0B1120; /* Slate-950 */
     border-right: 1px solid var(--border-color);
     display: flex;
     flex-direction: column;
@@ -66,17 +87,17 @@
     padding: 1rem;
 }
 
-/* Konu Item Stilleri */
+/* Konu Listesi Elemanları */
 .topic-item {
     padding: 8px 12px;
     margin-bottom: 4px;
     border-radius: 6px;
     cursor: pointer;
     color: var(--text-muted);
-    transition: all 0.2s;
     font-size: 0.9rem;
     display: flex;
     align-items: center;
+    transition: all 0.2s;
 }
 
 .topic-item:hover {
@@ -85,28 +106,25 @@
 }
 
 .topic-item.active {
-    background: rgba(212, 175, 55, 0.15);
+    background: rgba(212, 175, 55, 0.15); /* Gold Tint */
     color: var(--gold-primary);
     font-weight: 600;
 }
 
 .topic-item.sub-topic {
-    margin-left: 1.5rem;
-    font-size: 0.85rem;
+    margin-left: 1.2rem;
     border-left: 1px solid var(--border-color);
+    font-size: 0.85rem;
 }
 
-
-/* B. ORTA PANEL (İÇERİK LİSTESİ) */
+/* --- B. Orta Panel (İçerik Listesi) --- */
 .cm-list-panel {
     flex-grow: 1;
-    /* Kalan alanı kapla */
     display: flex;
     flex-direction: column;
     background-color: var(--bg-dark);
     border-right: 1px solid var(--border-color);
-    min-width: 0;
-    /* Flex child taşma sorunu için fix */
+    min-width: 0; /* Flex child taşma sorunu için fix */
 }
 
 .cm-workspace {
@@ -114,13 +132,16 @@
     overflow-y: auto;
     padding: 1.5rem;
     position: relative;
+    background-image: radial-gradient(#334155 1px, transparent 1px);
+    background-size: 20px 20px;
 }
 
-/* İçerik Kartları */
+/* İçerik Kartı */
 .content-card-item {
     background: var(--bg-panel);
     border: 1px solid var(--border-color);
     border-radius: 8px;
+    margin-bottom: 0.75rem;
     transition: transform 0.2s, border-color 0.2s;
 }
 
@@ -129,46 +150,43 @@
     border-color: var(--gold-primary);
 }
 
-
-/* C. SAĞ PANEL (EDİTÖR - TAM EKRAN MODAL) */
-/* Editör açıldığında tüm admin panelinin üzerine çıkmalı */
+/* --- C. Sağ Panel (Editör - Modal) --- */
+/* Bu panel açıldığında her şeyin en üstüne çıkar */
 #contentManagerEditorView {
     position: fixed;
     top: 0;
     left: 0;
     width: 100vw;
     height: 100vh;
-    background-color: #0b0c0f;
+    background-color: #020617; /* Slate-950 (Simsiyah) */
     z-index: 9999;
-    /* Header'ın (1200) ve Sidebar'ın (1100) üzerinde */
     display: flex;
     flex-direction: column;
 }
 
-/* Editör Container */
+/* Editör İç Kapsayıcı */
 #contentManagerEditorView .container {
-    max-width: 1000px;
-    /* Okunabilirlik için sınırlı genişlik */
+    max-width: 900px;
     margin: 0 auto;
     height: 100%;
     overflow-y: auto;
+    padding: 2rem 1rem;
     padding-bottom: 50px;
 }
 
-/* --- QUILL EDITÖR DÜZELTMELERİ --- */
+/* Quill Editör Ayarları (Dark Mode Uyumlu) */
 .ql-toolbar {
-    background: #f1f5f9;
+    background: #F1F5F9;
     border-radius: 8px 8px 0 0;
     border-color: #334155 !important;
 }
-
 .ql-container {
-    background: #fff;
+    background: #FFFFFF;
     color: #000;
     border-radius: 0 0 8px 8px;
     border-color: #334155 !important;
-    min-height: 300px;
     font-size: 1rem;
+    min-height: 400px;
 }
 
 /* --- QUIZ BUILDER STİLLERİ --- */
@@ -176,12 +194,26 @@
     background: var(--bg-panel);
     border: 1px solid var(--border-color);
 }
-
 .qb-header {
     cursor: pointer;
     user-select: none;
 }
-
 .qb-header:hover {
-    background: rgba(255, 255, 255, 0.03);
+    background: rgba(255,255,255,0.03);
+}
+
+/* ==========================================
+   3. GENEL ADMIN KARTLARI (Dashboard vb.)
+   ========================================== */
+.admin-section {
+    width: 100%;
+    height: 100%;
+}
+
+.admin-card {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }

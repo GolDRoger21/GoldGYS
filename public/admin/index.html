@@ -5,33 +5,32 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Yönetim Paneli | GOLD GYS</title>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap"
-        rel="stylesheet">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
 
     <link rel="stylesheet" href="../styles/tokens.css">
     <link rel="stylesheet" href="../css/layout.css">
-    <link rel="stylesheet" href="../css/admin.css">
-    <link rel="stylesheet" href="../css/footer.css">
+    <link rel="stylesheet" href="../css/admin.css"> <link rel="stylesheet" href="../css/footer.css">
 
-    <link rel="icon"
-        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230F172A'/><text x='50' y='70' font-family='serif' font-size='60' fill='%23D4AF37' text-anchor='middle' font-weight='bold'>G</text></svg>">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230F172A'/><text x='50' y='70' font-family='serif' font-size='60' fill='%23D4AF37' text-anchor='middle' font-weight='bold'>G</text></svg>">
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        body {
-            visibility: hidden;
-        }
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 
-        /* İçerik Yönetimi aktifken main-content'in padding'ini sıfırla */
+    <style>
+        /* FOUC (Flash of Unstyled Content) önleme */
+        body { visibility: hidden; }
+
+        /* İÇERİK YÖNETİMİ AKTİFKEN (Content Mode) */
+        /* Bu kurallar admin.css'i destekler, JS ile 'content-mode' eklenince çalışır */
         body.content-mode .main-content {
             padding: 0 !important;
             overflow: hidden;
-            /* Çift scrollbar'ı engelle */
             height: calc(100vh - var(--header-height));
         }
 
-        /* Admin Section'lar tam boy olsun */
+        /* Admin Section'lar varsayılan olarak tam boy */
         .admin-section {
             height: 100%;
             width: 100%;
@@ -48,132 +47,119 @@
     <div id="app-header-placeholder"></div>
 
     <main class="main-content" id="main-content">
-        <div class="content-wrapper">
-
-            <section id="section-dashboard" class="admin-section">
-                <div class="section-header">
-                    <div>
-                        <h2>Genel Bakış</h2>
-                        <p style="color: var(--text-muted);">Sistem özetini buradan izleyebilirsiniz.</p>
-                    </div>
-                    <div class="date-display badge warning" id="currentDateDisplay"></div>
+        
+        <section id="section-dashboard" class="admin-section">
+            <div class="section-header">
+                <div>
+                    <h2>Genel Bakış</h2>
+                    <p style="color: var(--text-muted);">Sistem özetini buradan izleyebilirsiniz.</p>
                 </div>
+                <div class="date-display badge warning" id="currentDateDisplay"></div>
+            </div>
 
-                <div class="row mb-4" id="statsGrid">
-                    <div class="col-md-12">
-                        <div class="card">Yükleniyor...</div>
-                    </div>
+            <div class="row mb-4" id="statsGrid">
+                <div class="col-md-12">
+                    <div class="card">Veriler yükleniyor...</div>
                 </div>
+            </div>
 
-                <div class="row">
-                    <div class="col-md-8">
-                        <div class="card">
-                            <h3>📈 Son 7 Gün</h3>
-                            <div style="height: 300px;"><canvas id="usersChart"></canvas></div>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="card">
-                            <h3>⚡ İşlemler</h3>
-                            <div class="action-btn-grid">
-                                <button onclick="window.location.hash='content'" class="btn-action">
-                                    <span class="icon">➕</span><span>Soru Ekle</span>
-                                </button>
-                                <button onclick="window.location.hash='users'" class="btn-action">
-                                    <span class="icon">🔍</span><span>Üye Ara</span>
-                                </button>
-                            </div>
-                        </div>
-                        <div class="card" style="margin-top: 1rem;">
-                            <h3>📚 Dağılım</h3>
-                            <div style="height: 200px; display: flex; justify-content: center;">
-                                <canvas id="questionsChart"></canvas>
-                            </div>
-                        </div>
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="card">
+                        <h3>📈 Son 7 Gün</h3>
+                        <div style="height: 300px;"><canvas id="usersChart"></canvas></div>
                     </div>
                 </div>
-
-                <div class="row" style="margin-top: 1rem;">
-                    <div class="col-md-6">
-                        <div class="card">
-                            <h3>👥 Son Üyeler</h3>
-                            <div class="table-responsive">
-                                <table class="admin-table">
-                                    <tbody id="recentUsersTable"></tbody>
-                                </table>
-                            </div>
+                <div class="col-md-4">
+                    <div class="card">
+                        <h3>⚡ Hızlı İşlemler</h3>
+                        <div class="action-btn-grid">
+                            <button onclick="window.location.hash='content'" class="btn-action">
+                                <span class="icon">📚</span><span>İçerik Yönetimi</span>
+                            </button>
+                            <button onclick="window.location.hash='users'" class="btn-action">
+                                <span class="icon">👥</span><span>Üye Yönetimi</span>
+                            </button>
                         </div>
                     </div>
-                    <div class="col-md-6">
-                        <div class="card">
-                            <h3>🚩 Bildirimler</h3>
-                            <div class="table-responsive">
-                                <table class="admin-table">
-                                    <tbody id="recentReportsTable"></tbody>
-                                </table>
-                            </div>
+                    <div class="card" style="margin-top: 1rem;">
+                        <h3>📚 Soru Dağılımı</h3>
+                        <div style="height: 200px; display: flex; justify-content: center;">
+                            <canvas id="questionsChart"></canvas>
                         </div>
                     </div>
                 </div>
-            </section>
+            </div>
 
-            <section id="section-users" class="admin-section" style="display: none;">
-                <div class="section-header">
-                    <h2>Üye Yönetimi</h2>
-                </div>
-                <div class="card">
-                    <div class="table-responsive">
-                        <table class="admin-table">
-                            <thead>
-                                <tr>
-                                    <th>Kullanıcı</th>
-                                    <th>Email</th>
-                                    <th>Rol</th>
-                                    <th>Tarih</th>
-                                    <th>İşlemler</th>
-                                </tr>
-                            </thead>
-                            <tbody id="usersTableBody"></tbody>
-                        </table>
+            <div class="row" style="margin-top: 1rem;">
+                <div class="col-md-6">
+                    <div class="card">
+                        <h3>👥 Son Üyeler</h3>
+                        <div class="table-responsive">
+                            <table class="admin-table">
+                                <tbody id="recentUsersTable"></tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
+                <div class="col-md-6">
+                    <div class="card">
+                        <h3>🚩 Son Bildirimler</h3>
+                        <div class="table-responsive">
+                            <table class="admin-table">
+                                <tbody id="recentReportsTable"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="section-users" class="admin-section" style="display: none;">
+            <div class="section-header">
+                <h2>Üye Yönetimi</h2>
+            </div>
+            <div class="card">
+                <div class="table-responsive">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Kullanıcı</th>
+                                <th>Email</th>
+                                <th>Rol</th>
+                                <th>Tarih</th>
+                                <th>İşlemler</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section id="section-content" class="admin-section" style="display: none;">
             </section>
 
-            <section id="section-content" class="admin-section" style="display: none;">
-                <div class="section-header">
-                    <h2>İçerik Yönetimi</h2>
-                </div>
-                <div class="card">
-                    <div id="topicsList"></div>
-                </div>
-            </section>
+        <section id="section-reports" class="admin-section" style="display: none;">
+            <div class="section-header">
+                <h2>Hata Bildirimleri</h2>
+            </div>
+            <div class="card">
+                <div id="reportsList"></div>
+            </div>
+        </section>
 
-            <section id="section-reports" class="admin-section" style="display: none;">
-                <div class="section-header">
-                    <h2>Hata Bildirimleri</h2>
-                </div>
-                <div class="card">
-                    <div id="reportsList"></div>
-                </div>
-            </section>
-
-            <section id="section-legislation" class="admin-section" style="display: none;">
-                <div class="section-header">
-                    <h2>⚖️ Mevzuat Yönetimi</h2>
-                </div>
-                <div class="card">
-                    <p style="color: var(--text-muted);">Yapım aşamasında...</p>
-                </div>
-            </section>
-
-            <section id="section-questions" class="admin-section" style="display: none;"></section>
-            <section id="section-exams" class="admin-section" style="display: none;"></section>
-        </div>
+        <section id="section-legislation" class="admin-section" style="display: none;"></section>
+        <section id="section-questions" class="admin-section" style="display: none;"></section>
+        <section id="section-exams" class="admin-section" style="display: none;"></section>
 
         <footer id="app-footer-placeholder" class="app-footer"></footer>
     </main>
 
     <script type="module" src="../js/admin-page.js"></script>
+    
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+    
     <script>window.addEventListener('load', () => { document.body.style.visibility = 'visible'; });</script>
 </body>
 

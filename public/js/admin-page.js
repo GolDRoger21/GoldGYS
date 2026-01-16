@@ -1,182 +1,166 @@
-// public/js/admin-page.js
+import { initLayout } from './ui-loader.js';
+// Not: Diğer modülleri (dashboard, content vb.) en başta import etmiyoruz.
+// Onları aşağıda, ihtiyaç duyulduğu an çağıracağız (Dynamic Import).
 
-// 1. Modül ve Altyapı Importları
-import { requireAdminOrEditor } from "./role-guard.js";
-import { initLayout } from "./ui-loader.js";
+// Yüklenen modülleri hafızada tutmak için (Cache)
+const loadedModules = {
+    dashboard: false,
+    content: false,
+    users: false,
+    reports: false,
+    questions: false,
+    exams: false
+};
 
-// Admin Alt Modülleri (İçerik Yönetimi)
-import * as DashboardModule from "./modules/admin/dashboard.js";
-import * as UserModule from "./modules/admin/users.js";
-import * as ContentModule from "./modules/admin/content.js";
-import * as LegislationModule from "./modules/admin/legislation.js";
-import * as ReportsModule from "./modules/admin/reports.js";
-import * as ExamsModule from "./modules/admin/exams.js";
-import * as QuestionsModule from "./modules/admin/questions.js";
-// Importer artık ayrı bir HTML sayfası olduğu için buradan import edilmesine gerek yok.
-
-// 2. Sayfa Başlangıcı
-document.addEventListener("DOMContentLoaded", async () => {
+/**
+ * 1. SAYFA BAŞLANGICI
+ */
+document.addEventListener('DOMContentLoaded', async () => {
     try {
-        // A. Arayüzü ve Menüleri Yükle
-        // (Header, Sidebar, Profil Resmi, Logout vb. ui-loader tarafından halledilir)
+        // A. Arayüzü Yükle (Header & Sidebar)
         await initLayout();
-        console.log("✅ Admin Arayüzü Başlatıldı.");
+        console.log("✅ Admin Arayüzü (Layout) Yüklendi.");
 
-        // B. Yetki Kontrolü
-        // Bu sayfa kritik olduğu için tekrar rol kontrolü yapıyoruz.
-        const { role } = await requireAdminOrEditor();
-        console.log(`✅ Yetki Onaylandı: ${role}`);
+        // B. Rota İşlemini Başlat
+        handleRouting();
 
-        // C. Tab Sistemini Başlat (Navigasyon)
-        initTabs(role);
+        // C. Hash Değişimlerini Dinle (Linke tıklanınca)
+        window.addEventListener('hashchange', handleRouting);
 
-        // D. Başlangıç Tabını Aç (URL hash'ine göre #users, #content vb.)
-        const initialTab = window.location.hash.substring(1) || 'dashboard';
-        activateTab(initialTab, role);
-
-        // E. Global Fonksiyonları Tanımla (HTML içindeki onclick butonları için)
-        window.AdminReports = ReportsModule.AdminReports;
-
-    } catch (error) {
-        console.error("❌ Admin Sayfası Hatası:", error);
-        // Kritik hata varsa ui-loader zaten login'e yönlendirmiş olabilir.
+    } catch (e) {
+        console.error("❌ Admin Başlatma Hatası:", e);
+        document.body.innerHTML = `<div style="color:red; padding:20px; text-align:center;">Admin paneli yüklenirken hata oluştu.<br>${e.message}</div>`;
     }
 });
 
-// --- YARDIMCI FONKSİYONLAR ---
-
 /**
- * Sidebar linklerine tıklamayı ve Hash değişimini dinler.
+ * 2. ROTA YÖNETİCİSİ (ROUTER)
+ * URL'deki #hash değerine göre doğru sayfayı açar.
  */
-function initTabs(role) {
-    // 1. Sidebar Link Tıklamaları
-    const links = document.querySelectorAll('.sidebar-nav .nav-link, .sidebar-nav .nav-item');
+async function handleRouting() {
+    // Varsayılan sayfa: dashboard
+    const hash = window.location.hash || '#dashboard';
+    const pageId = hash.replace('#', ''); // 'content', 'users' vb.
+    
+    console.log(`🔄 Rota değişti: ${pageId}`);
 
-    links.forEach(link => {
-        link.addEventListener('click', (e) => {
-            const href = link.getAttribute('href');
-
-            // Eğer link bir iç sayfa (Tab) ise (#dashboard gibi)
-            if (href && href.startsWith('#')) {
-                e.preventDefault();
-                const tabId = href.substring(1);
-
-                // URL Hash'ini güncelle (Bu, hashchange olayını tetikler)
-                window.location.hash = tabId;
-
-                // Mobildeysek sidebar'ı kapat
-                closeMobileMenu();
-            }
-            // Normal link ise (/admin/importer.html gibi) tarayıcı normal yönlensin.
-        });
+    // A. Tüm Admin Bölümlerini Gizle
+    document.querySelectorAll('.admin-section').forEach(el => {
+        el.style.display = 'none';
     });
 
-    // 2. Tarayıcı Geri/İleri Tuşları İçin Hash Kontrolü
-    window.addEventListener('hashchange', () => {
-        const tabId = window.location.hash.substring(1);
-        if (tabId) activateTab(tabId, role);
-    });
-}
+    // B. Sidebar Linkini Aktif Yap
+    highlightSidebar(hash);
 
-/**
- * İlgili sekmeyi (Section) görünür yapar ve modülünü çalıştırır.
- */
-function activateTab(tabId, role) {
-    // Link Aktifliği (CSS)
-    document.querySelectorAll('.nav-link, .nav-item').forEach(l => l.classList.remove('active'));
-
-    // Hem nav-link hem nav-item desteği (farklı HTML yapılarına uyum için)
-    const activeLink = document.querySelector(`.nav-link[href="#${tabId}"]`) ||
-        document.querySelector(`.nav-item[href="#${tabId}"]`);
-
-    if (activeLink) activeLink.classList.add('active');
-
-    // Section Görünürlüğü
-    document.querySelectorAll('.admin-section').forEach(s => s.style.display = 'none');
-
-    const targetSection = document.getElementById(`section-${tabId}`);
+    // C. Hedef Bölümü Bul
+    const targetSection = document.getElementById(`section-${pageId}`);
+    
     if (targetSection) {
         targetSection.style.display = 'block';
 
-        // ÖZEL DURUM: Eğer içerik yönetimindeysek 'content-mode' sınıfını ekle
-        if (tabId === 'content') {
-            document.body.classList.add('content-mode');
-            // Eğer henüz yüklenmediyse içeriği yükle (Lazy Load manuel tetikleme gerekirse)
-            // Not: loadModuleData aşağıda çağrılıyor ama modül içi init'i garanti edelim
+        // --- ÖZEL MOD: TAM EKRAN (CONTENT MANAGER) ---
+        if (pageId === 'content') {
+            document.body.classList.add('content-mode'); // CSS'deki padding sıfırlamayı tetikler
         } else {
-            // Diğer sayfalardaysak normal padding geri gelsin
-            document.body.classList.remove('content-mode');
+            document.body.classList.remove('content-mode'); // Normale dön
         }
 
-        // İlgili modülün JS kodlarını çalıştır (Lazy Execution)
-        loadModuleData(tabId, role);
-        updatePageTitle(tabId);
+        // D. Modülü Yükle ve Başlat (Lazy Load)
+        await loadModule(pageId, targetSection);
+
     } else {
-        // Geçersiz bir hash ise varsayılan olarak dashboard'u aç
-        if (tabId !== 'dashboard') {
-            console.warn(`Section bulunamadı: ${tabId}, Dashboard'a yönlendiriliyor.`);
-            activateTab('dashboard', role);
-        }
-    }
-}
-
-function updatePageTitle(tabId) {
-    const titles = {
-        dashboard: 'Genel Bakış',
-        users: 'Üye Yönetimi',
-        content: 'Konu ve Ders Yönetimi',
-        exams: 'Sınav Yönetimi',
-        reports: 'Bildirimler',
-        legislation: 'Mevzuat Yönetimi'
-    };
-
-    const pageTitle = document.getElementById('pageTitle');
-    if (pageTitle) {
-        pageTitle.textContent = titles[tabId] || 'Yönetim Paneli';
-    }
-
-    const breadcrumbCurrent = document.getElementById('pageBreadcrumbCurrent');
-    if (breadcrumbCurrent) {
-        breadcrumbCurrent.textContent = titles[tabId] || 'Yönetim Paneli';
+        // Bilinmeyen bir sayfa ise Dashboard'a at
+        console.warn(`⚠️ Bölüm bulunamadı: ${pageId}, Dashboard'a yönlendiriliyor.`);
+        window.location.hash = '#dashboard';
     }
 }
 
 /**
- * Tab açıldığında ilgili verileri yükleyen fonksiyon.
+ * 3. DİNAMİK MODÜL YÜKLEYİCİ
+ * Modül JS dosyasını sadece ihtiyaç olduğunda indirir ve çalıştırır.
  */
-function loadModuleData(tabId, role) {
-    switch (tabId) {
-        case 'dashboard':
-            DashboardModule.initDashboard();
-            break;
-        case 'users':
-            if (role === 'admin') UserModule.initUsersPage();
-            break;
-        case 'content':
-            ContentModule.initContentPage();
-            break;
-        case 'legislation':
-            if (role === 'admin') LegislationModule.initLegislationPage();
-            break;
-        case 'reports':
-            if (role === 'admin') ReportsModule.initReportsPage();
-            break;
-        case 'exams':
-            ExamsModule.initExamsPage();
-            break;
-        case 'questions':
-            QuestionsModule.initQuestionsPage();
-            break;
-        default:
-            break;
+async function loadModule(moduleId, container) {
+    // Eğer modül zaten yüklendiyse tekrar yükleme (Performans)
+    if (loadedModules[moduleId]) {
+        return; 
+    }
+
+    // Yükleniyor animasyonu (Eğer içerik boşsa)
+    if (container.innerHTML.trim() === '') {
+        container.innerHTML = `
+            <div class="d-flex justify-content-center align-items-center h-100 text-muted" style="min-height:200px;">
+                <div class="spinner-border text-gold me-2" role="status"></div>
+                <div>Modül yükleniyor...</div>
+            </div>
+        `;
+    }
+
+    try {
+        let module;
+        
+        switch (moduleId) {
+            case 'dashboard':
+                module = await import('./modules/admin/dashboard.js');
+                if (module.initDashboard) await module.initDashboard();
+                break;
+
+            case 'content':
+                module = await import('./modules/admin/content.js');
+                if (module.initContentPage) await module.initContentPage();
+                break;
+
+            case 'users':
+                module = await import('./modules/admin/users.js');
+                if (module.initUsersPage) await module.initUsersPage();
+                break;
+
+            case 'reports':
+                module = await import('./modules/admin/reports.js');
+                if (module.initReportsPage) await module.initReportsPage();
+                break;
+                
+            case 'questions':
+                module = await import('./modules/admin/questions.js');
+                if (module.initQuestionsPage) await module.initQuestionsPage();
+                break;
+
+            // Diğer modüller buraya eklenebilir...
+            
+            default:
+                // Modülü olmayan basit sayfalar (örn: legislation) için bir şey yapma
+                break;
+        }
+
+        // Başarıyla yüklendi işaretini koy
+        loadedModules[moduleId] = true;
+
+    } catch (error) {
+        console.error(`❌ Modül Yükleme Hatası (${moduleId}):`, error);
+        container.innerHTML = `
+            <div class="alert alert-danger m-4">
+                <h4>Modül Yüklenemedi</h4>
+                <p>Dosya: /js/modules/admin/${moduleId}.js</p>
+                <small>${error.message}</small>
+            </div>
+        `;
     }
 }
 
-function closeMobileMenu() {
+/**
+ * 4. SIDEBAR İŞARETLEYİCİ
+ */
+function highlightSidebar(hash) {
     const sidebar = document.getElementById('sidebar');
-    const overlay = document.getElementById('sidebarOverlay');
-    if (window.innerWidth < 1024) {
-        if (sidebar) sidebar.classList.remove('active');
-        if (overlay) overlay.classList.remove('active');
-    }
+    if (!sidebar) return;
+
+    // Tüm aktifleri temizle
+    sidebar.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+
+    // Hash ile biten linki bul ve aktif yap
+    const activeLink = Array.from(sidebar.querySelectorAll('a.nav-item')).find(link => {
+        const href = link.getAttribute('href');
+        return href && href.endsWith(hash);
+    });
+
+    if (activeLink) activeLink.classList.add('active');
 }

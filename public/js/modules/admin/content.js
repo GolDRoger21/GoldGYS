@@ -1,6 +1,6 @@
 import { db } from "../../firebase-config.js";
 import {
-    collection, getDocs, getDoc, addDoc, updateDoc, deleteDoc, doc, query, where, orderBy, serverTimestamp, writeBatch
+    collection, getDocs, getDoc, addDoc, updateDoc, deleteDoc, doc, query, where, orderBy, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // Global State
@@ -11,56 +11,71 @@ let state = {
     topicsMap: {},
     contentItems: [],
     contentFilters: { search: '', type: 'all', sort: 'order-asc' },
-    quizQuestions: [],
-    quillInstance: null // Quill editör referansı
+    quizQuestions: [], // Test sorularını geçici tutar
+    quillInstance: null // Editör referansı
 };
 
 // ==========================================
-// 1. BAŞLATMA
+// 1. BAŞLATMA (INIT)
 // ==========================================
 
 export async function initContentPage() {
-    console.log("🚀 İçerik Yönetim Modülü Başlatılıyor (Template Sürümü)...");
+    console.log("🚀 İçerik Yönetimi Modülü Yükleniyor...");
     const container = document.getElementById('section-content');
 
     try {
-        const response = await fetch('../partials/admin/content-manager.html');
-        if (!response.ok) throw new Error("HTML yüklenemedi");
+        // HTML Şablonunu Yükle (Absolute Path kullanarak hata riskini azaltıyoruz)
+        const response = await fetch('/partials/admin/content-manager.html');
+        if (!response.ok) throw new Error(`HTML Şablonu Bulunamadı: ${response.status}`);
+        
         container.innerHTML = await response.text();
 
+        // Olay Dinleyicilerini Başlat
         bindEvents();
-        loadTopics();
+        
+        // Konu Ağacını Çek
+        await loadTopics();
+
+        console.log("✅ İçerik Yönetimi Hazır.");
     } catch (e) {
         console.error(e);
-        container.innerHTML = `<div class="alert alert-danger">Hata: ${e.message}</div>`;
+        container.innerHTML = `<div class="alert alert-danger m-4">Modül yükleme hatası: ${e.message}</div>`;
     }
 }
 
 function bindEvents() {
-    // Arama Kutusu
-    const searchInput = document.getElementById('topicSearch');
-    if (searchInput) {
-        searchInput.addEventListener('keyup', (e) => {
+    // Konu Arama
+    const topicSearch = document.getElementById('topicSearch');
+    if (topicSearch) {
+        topicSearch.addEventListener('keyup', (e) => {
             const val = e.target.value.toLowerCase();
             document.querySelectorAll('.topic-item').forEach(el => {
-                el.style.display = el.innerText.toLowerCase().includes(val) ? 'flex' : 'none';
+                const text = el.innerText.toLowerCase();
+                el.style.display = text.includes(val) ? 'flex' : 'none';
             });
         });
     }
 
-    // Filtreler
-    document.getElementById('contentSearchInput')?.addEventListener('input', (e) => {
-        state.contentFilters.search = e.target.value;
-        renderContentList();
-    });
+    // İçerik Arama ve Filtreleme
+    const contentSearch = document.getElementById('contentSearchInput');
+    if (contentSearch) {
+        contentSearch.addEventListener('input', (e) => {
+            state.contentFilters.search = e.target.value;
+            renderContentList();
+        });
+    }
 }
 
 // ==========================================
-// 2. KONU YÖNETİMİ
+// 2. KONU YÖNETİMİ (SOL PANEL)
 // ==========================================
 
 async function loadTopics() {
     const listContainer = document.getElementById('topicTreeList');
+    if (!listContainer) return;
+
+    listContainer.innerHTML = '<div class="text-center mt-4"><div class="spinner-border text-gold spinner-border-sm"></div></div>';
+
     try {
         const q = query(collection(db, "topics"), orderBy("order"));
         const snapshot = await getDocs(q);
@@ -68,13 +83,15 @@ async function loadTopics() {
         state.topicsMap = {};
         let topics = [];
         snapshot.forEach(doc => {
-            state.topicsMap[doc.id] = { id: doc.id, ...doc.data() };
+            const data = doc.data();
+            state.topicsMap[doc.id] = { id: doc.id, ...data };
             topics.push(state.topicsMap[doc.id]);
         });
 
         renderTopicTree(topics);
     } catch (e) {
-        listContainer.innerHTML = `<div class="text-danger p-3">Konular yüklenemedi.</div>`;
+        console.error(e);
+        listContainer.innerHTML = `<div class="text-danger p-2 small">Konular yüklenemedi.</div>`;
     }
 }
 
@@ -82,164 +99,213 @@ function renderTopicTree(topics) {
     const listContainer = document.getElementById('topicTreeList');
     listContainer.innerHTML = '';
 
+    if (topics.length === 0) {
+        listContainer.innerHTML = '<div class="text-muted text-center p-3 small">Henüz konu eklenmemiş.</div>';
+        return;
+    }
+
     topics.forEach(topic => {
-        const topicEl = document.createElement('div');
-
-        // Ana Konu
+        const wrapper = document.createElement('div');
+        
+        // Ana Konu Satırı
         const mainItem = document.createElement('div');
-        mainItem.className = 'topic-item p-2 d-flex align-items-center cursor-pointer hover-bg-dark rounded';
-        mainItem.innerHTML = `<i class="bi bi-folder2 text-gold me-2"></i><span class="text-white flex-grow-1">${topic.title}</span>`;
+        mainItem.className = 'topic-item';
+        mainItem.innerHTML = `<i class="bi bi-folder2 text-gold me-2"></i><span>${topic.title}</span>`;
         mainItem.onclick = () => selectTopic(topic.id, null, mainItem);
-        topicEl.appendChild(mainItem);
+        wrapper.appendChild(mainItem);
 
-        // Alt Konular
-        if (topic.subTopics) {
+        // Alt Konular (Varsa)
+        if (topic.subTopics && Array.isArray(topic.subTopics)) {
             const subWrapper = document.createElement('div');
-            subWrapper.className = 'ms-4 border-start border-secondary ps-2';
+            // subWrapper.className = 'ms-3 border-start border-secondary ps-2'; 
+            // CSS zaten sub-topic class'ını yönetiyor
+            
             topic.subTopics.forEach(sub => {
                 const subItem = document.createElement('div');
-                subItem.className = 'topic-item sub-topic p-1 text-muted small cursor-pointer hover-text-white';
-                subItem.innerText = sub.title;
-                subItem.onclick = (e) => { e.stopPropagation(); selectTopic(topic.id, sub.id, subItem); };
-                subWrapper.appendChild(subItem);
+                subItem.className = 'topic-item sub-topic';
+                subItem.innerHTML = `<i class="bi bi-arrow-return-right me-2 opacity-50"></i>${sub.title}`;
+                subItem.onclick = (e) => { 
+                    e.stopPropagation(); 
+                    selectTopic(topic.id, sub.id, subItem); 
+                };
+                wrapper.appendChild(subItem);
             });
-            topicEl.appendChild(subWrapper);
         }
-        listContainer.appendChild(topicEl);
+        listContainer.appendChild(wrapper);
     });
 }
 
 function selectTopic(topicId, subTopicId, element) {
-    document.querySelectorAll('.topic-item').forEach(e => e.classList.remove('bg-dark-subtle')); // Basit active class
-    if (element) element.classList.add('bg-dark-subtle');
+    // Görsel Seçim (Active State)
+    document.querySelectorAll('.topic-item').forEach(e => e.classList.remove('active'));
+    if (element) element.classList.add('active');
 
     state.currentTopicId = topicId;
     state.currentSubTopicId = subTopicId;
 
+    // Header Güncelleme
     const topic = state.topicsMap[topicId];
     document.getElementById('headerTitle').innerText = topic.title;
     document.getElementById('headerSubTitle').innerText = subTopicId ? 'Alt Konu Seçildi' : 'Ana Konu';
 
-    // Yeni Ekle Butonunu Aç
+    // "Yeni Ekle" Butonunu Aktif Et
     const btnNew = document.getElementById('btnNewContent');
     btnNew.disabled = false;
-    btnNew.innerHTML = `<i class="bi bi-plus-lg me-1"></i>Yeni Ekle`;
+    btnNew.classList.remove('btn-gold'); 
+    btnNew.classList.add('btn-gold'); // Animasyon tetiklenebilir
 
     loadContents();
 }
 
 // ==========================================
-// 3. İÇERİK LİSTELEME (TEMPLATE KULLANIMI)
+// 3. İÇERİK LİSTELEME (ORTA PANEL)
 // ==========================================
 
 async function loadContents() {
     const workspace = document.getElementById('contentWorkspace');
-    workspace.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-gold"></div></div>';
-
-    let constraints = [
-        where("topicId", "==", state.currentTopicId),
-        orderBy("order", "asc")
-    ];
-    if (state.currentSubTopicId) constraints.splice(1, 0, where("subTopicId", "==", state.currentSubTopicId));
+    workspace.innerHTML = '<div class="d-flex justify-content-center pt-5"><div class="spinner-border text-gold"></div></div>';
 
     try {
+        // Sorgu Oluştur
+        let constraints = [
+            where("topicId", "==", state.currentTopicId),
+            orderBy("order", "asc")
+        ];
+        
+        // Alt konu seçiliyse filtreye ekle
+        if (state.currentSubTopicId) {
+            constraints.splice(1, 0, where("subTopicId", "==", state.currentSubTopicId));
+        }
+
         const q = query(collection(db, "contents"), ...constraints);
         const snapshot = await getDocs(q);
+        
         state.contentItems = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
         renderContentList();
+
     } catch (e) {
-        console.error(e);
-        workspace.innerHTML = '<div class="text-danger text-center">İçerikler yüklenemedi.</div>';
+        console.error("İçerik yükleme hatası:", e);
+        // Eğer index hatası varsa konsola linki basar
+        workspace.innerHTML = `<div class="text-danger text-center p-4">İçerikler yüklenemedi.<br><small>${e.message}</small></div>`;
     }
 }
 
 function renderContentList() {
     const workspace = document.getElementById('contentWorkspace');
-    const template = document.getElementById('tpl-content-card'); // Şablonu al
-
+    const template = document.getElementById('tpl-content-card');
+    
     workspace.innerHTML = '';
 
-    // Filtreleme mantığı (Basitleştirilmiş)
-    let items = state.contentItems.filter(i =>
-        i.title.toLowerCase().includes(state.contentFilters.search.toLowerCase())
+    // İstemci Tarafı Arama Filtresi
+    const filterText = state.contentFilters.search.toLowerCase();
+    const items = state.contentItems.filter(i => 
+        i.title.toLowerCase().includes(filterText)
     );
 
     if (items.length === 0) {
-        workspace.innerHTML = '<div class="text-center text-muted mt-5">İçerik bulunamadı.</div>';
+        workspace.innerHTML = `
+            <div class="h-100 d-flex flex-column align-items-center justify-content-center text-muted opacity-50">
+                <i class="bi bi-inbox display-1 mb-3"></i>
+                <p>Bu başlık altında içerik yok.</p>
+            </div>`;
         return;
     }
 
     items.forEach(item => {
-        const clone = template.content.cloneNode(true); // Şablonu kopyala
-
-        // Verileri doldur
-        clone.querySelector('.content-order').innerText = item.order;
+        // Template Clone
+        const clone = template.content.cloneNode(true);
+        
+        // Verileri Doldur
+        clone.querySelector('.content-order').innerText = item.order || '-';
         clone.querySelector('.content-title').innerText = item.title;
-        clone.querySelector('.content-type-badge').innerText = item.type;
+        clone.querySelector('.content-type-badge').innerText = item.type.toUpperCase();
+        
+        // Tarih Formatı
+        let dateStr = "";
+        if(item.updatedAt && item.updatedAt.toDate) {
+            dateStr = item.updatedAt.toDate().toLocaleDateString('tr-TR');
+        }
+        clone.querySelector('.content-date').innerText = dateStr;
 
-        // İkona karar ver
+        // İkon Seçimi
         const iconBox = clone.querySelector('.content-icon i');
-        if (item.type === 'video') { iconBox.classList.add('bi-youtube', 'text-danger'); }
-        else if (item.type === 'pdf') { iconBox.classList.add('bi-file-earmark-pdf', 'text-warning'); }
-        else if (item.type === 'html') { iconBox.classList.add('bi-file-text', 'text-success'); }
-        else { iconBox.classList.add('bi-ui-checks', 'text-primary'); }
+        iconBox.className = 'bi'; // Reset
+        switch(item.type) {
+            case 'video': iconBox.classList.add('bi-play-circle-fill', 'text-danger'); break;
+            case 'pdf': iconBox.classList.add('bi-file-earmark-pdf-fill', 'text-warning'); break;
+            case 'html': iconBox.classList.add('bi-file-richtext-fill', 'text-success'); break;
+            case 'quiz': iconBox.classList.add('bi-ui-checks', 'text-primary'); break;
+            default: iconBox.classList.add('bi-file-earmark');
+        }
 
-        // Butonlara event bağla
-        clone.querySelector('.btn-edit').onclick = () => editContent(item);
+        // Buton Eventleri
+        clone.querySelector('.btn-edit').onclick = () => openEditor(item.type, 'edit', item);
         clone.querySelector('.btn-delete').onclick = () => deleteContent(item.id);
 
-        workspace.appendChild(clone); // Ekrana ekle
+        workspace.appendChild(clone);
     });
 }
 
 // ==========================================
-// 4. EDİTÖR YÖNETİMİ (QUILL & QUIZ)
+// 4. EDİTÖR YÖNETİMİ (SAĞ/MODAL PANEL)
 // ==========================================
 
 const openEditor = (type, mode = 'create', existingData = null) => {
-    if (mode === 'create' && !state.currentTopicId) return alert("Lütfen önce bir konu seçin.");
+    // Eğer yeni kayıt ise ve konu seçilmediyse uyar
+    if (mode === 'create' && !state.currentTopicId) {
+        alert("Lütfen önce sol menüden bir konu seçiniz.");
+        return;
+    }
 
-    const editorView = document.getElementById('contentManagerEditorView');
-    editorView.classList.remove('d-none'); // Full ekran aç
+    const editorEl = document.getElementById('contentManagerEditorView');
+    editorEl.classList.remove('d-none'); // Modalı Aç
 
-    // Formu Sıfırla
+    // Form Değerlerini Hazırla
     document.getElementById('inpContentType').value = type;
+    document.getElementById('editorModeBadge').innerText = mode === 'create' ? 'YENİ İÇERİK' : 'İÇERİK DÜZENLEME';
+    document.getElementById('editorTitle').innerText = mode === 'create' ? `${type.toUpperCase()} Ekle` : 'İçeriği Düzenle';
+
     document.getElementById('inpTitle').value = existingData ? existingData.title : '';
     document.getElementById('inpOrder').value = existingData ? existingData.order : (state.contentItems.length + 1);
-    document.getElementById('editorModeBadge').innerText = mode === 'create' ? 'YENİ' : 'DÜZENLEME';
+    document.getElementById('inpDuration').value = existingData?.duration || '';
 
     state.editingContentId = existingData ? existingData.id : null;
 
-    // Alanları Gizle/Göster
+    // Alanları Temizle ve Gizle
     const stdArea = document.getElementById('standardEditorArea');
     const htmlArea = document.getElementById('htmlEditorArea');
     const quizArea = document.getElementById('quizBuilderArea');
-
-    stdArea.innerHTML = '';
+    
+    stdArea.innerHTML = ''; 
     stdArea.classList.add('d-none');
     htmlArea.classList.add('d-none');
     quizArea.classList.add('d-none');
 
-    // Tipe Göre Ayarla
+    // Tipe Göre Alan Göster
     if (type === 'html') {
         htmlArea.classList.remove('d-none');
-        initQuill(); // Editörü başlat
-        state.quillInstance.root.innerHTML = existingData?.data?.content || '';
-    }
+        initQuill();
+        // Editör içeriğini ayarla
+        if (state.quillInstance) {
+            state.quillInstance.root.innerHTML = existingData?.data?.content || '';
+        }
+    } 
     else if (type === 'quiz') {
         quizArea.classList.remove('d-none');
         state.quizQuestions = existingData?.data?.questions || [];
         renderQuizBuilder();
-    }
+    } 
     else {
-        // Video veya PDF
+        // Video, PDF, Link
         stdArea.classList.remove('d-none');
         const val = existingData?.data?.url || '';
         stdArea.innerHTML = `
             <div class="card bg-dark border-secondary mb-4">
                 <div class="card-body p-4">
-                    <label class="form-label text-gold fw-bold">URL / LINK</label>
-                    <input type="text" id="inpDataMain" class="form-control bg-black text-white border-secondary" value="${val}" placeholder="https://...">
+                    <label class="form-label text-gold fw-bold">DOSYA URL / VIDEO LINK</label>
+                    <input type="text" id="inpDataMain" class="form-control bg-black text-white border-secondary" 
+                           value="${val}" placeholder="https://...">
+                    <div class="form-text text-muted">YouTube linki veya PDF dosya yolu yapıştırın.</div>
                 </div>
             </div>`;
     }
@@ -249,103 +315,127 @@ const closeEditor = () => {
     document.getElementById('contentManagerEditorView').classList.add('d-none');
 };
 
-// --- QUILL EDITÖR KURULUMU ---
+// --- QUILL EDITÖR BAŞLATICI ---
 function initQuill() {
     if (state.quillInstance) return; // Zaten varsa tekrar kurma
+    
+    // Quill global window nesnesinde mi kontrol et
+    if (typeof Quill === 'undefined') {
+        alert("Editör kütüphanesi yüklenemedi. Sayfayı yenileyin.");
+        return;
+    }
 
     state.quillInstance = new Quill('#quillEditorContainer', {
         theme: 'snow',
-        placeholder: 'Ders içeriğini buraya yazın, görsel ekleyin, düzenleyin...',
+        placeholder: 'Ders notlarını buraya giriniz...',
         modules: {
             toolbar: [
                 [{ 'header': [1, 2, 3, false] }],
                 ['bold', 'italic', 'underline', 'strike'],
                 [{ 'color': [] }, { 'background': [] }],
-                [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-                ['link', 'image', 'video'],
+                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                ['link', 'image', 'video', 'blockquote', 'code-block'],
                 ['clean']
             ]
         }
     });
 }
 
-// --- QUIZ BUILDER (TEMPLATE ILE) ---
+// --- QUIZ SORU YÖNETİCİSİ ---
 function renderQuizBuilder() {
     const list = document.getElementById('quizQuestionsList');
     const template = document.getElementById('tpl-quiz-question-card');
-
+    
     list.innerHTML = '';
     document.getElementById('qbQuestionCount').innerText = state.quizQuestions.length;
 
     state.quizQuestions.forEach((q, idx) => {
         const clone = template.content.cloneNode(true);
-
-        // Başlıklar
+        
         clone.querySelector('.q-number').innerText = idx + 1;
-        clone.querySelector('.q-preview-text').innerText = q.text || 'Metin girilmedi...';
+        clone.querySelector('.q-preview-text').innerText = q.text ? q.text.substring(0, 50) + '...' : 'Yeni Soru';
 
-        // Inputlar
+        // Soru Metni
         const txtInput = clone.querySelector('.q-text-input');
         txtInput.value = q.text || '';
-        txtInput.onchange = (e) => { q.text = e.target.value; renderQuizBuilder(); }; // Basit re-render
+        txtInput.onchange = (e) => { q.text = e.target.value; renderQuizBuilder(); };
 
+        // Çözüm
         const solInput = clone.querySelector('.q-solution-input');
         solInput.value = q.solution || '';
         solInput.onchange = (e) => { q.solution = e.target.value; };
 
-        // Şıkları Döngüyle Oluştur
+        // Şıklar
         const optsArea = clone.querySelector('.q-options-area');
         ['A', 'B', 'C', 'D', 'E'].forEach(opt => {
             const div = document.createElement('div');
-            div.className = 'col-md-6';
+            div.className = 'col-md-6 mb-2';
             const isChecked = q.correct === opt ? 'checked' : '';
             div.innerHTML = `
                 <div class="input-group input-group-sm">
                     <div class="input-group-text bg-dark border-secondary">
-                        <input class="form-check-input mt-0" type="radio" name="correct-${idx}" ${isChecked} onchange="window.ContentManager.setCorrect(${idx}, '${opt}')">
+                        <input class="form-check-input mt-0" type="radio" name="correct-${idx}" ${isChecked} 
+                               onchange="window.ContentManager.setCorrect(${idx}, '${opt}')">
                         <span class="ms-2 fw-bold text-white">${opt}</span>
                     </div>
-                    <input type="text" class="form-control bg-black text-white border-secondary" value="${q.options?.[opt] || ''}" onchange="window.ContentManager.setOption(${idx}, '${opt}', this.value)">
+                    <input type="text" class="form-control bg-black text-white border-secondary" 
+                           value="${q.options?.[opt] || ''}" 
+                           onchange="window.ContentManager.setOption(${idx}, '${opt}', this.value)">
                 </div>`;
             optsArea.appendChild(div);
         });
 
-        // Silme Butonu
+        // Silme
         clone.querySelector('.btn-delete-q').onclick = () => removeQuestion(idx);
 
         list.appendChild(clone);
     });
 }
 
-// --- KAYDETME ---
+// --- KAYDETME İŞLEMİ ---
 const saveContent = async () => {
     const btn = document.getElementById('btnSaveEditor');
     const originalText = btn.innerHTML;
-    btn.disabled = true; btn.innerHTML = 'Kaydediliyor...';
+    btn.disabled = true; 
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Kaydediliyor...';
 
     try {
         const type = document.getElementById('inpContentType').value;
         const title = document.getElementById('inpTitle').value;
         const order = Number(document.getElementById('inpOrder').value);
+        const duration = Number(document.getElementById('inpDuration').value);
 
-        if (!title) throw new Error("Başlık giriniz.");
+        if(!title) throw new Error("Lütfen bir başlık giriniz.");
 
+        // Temel Payload
         let payload = {
             topicId: state.currentTopicId,
             subTopicId: state.currentSubTopicId,
-            type, title, order,
+            type, 
+            title, 
+            order,
+            duration,
             updatedAt: serverTimestamp()
         };
 
-        // Veriyi Hazırla
+        // Tip Özel Veriler
         if (type === 'html') {
+            if(!state.quillInstance) throw new Error("Editör hatası.");
             payload.data = { content: state.quillInstance.root.innerHTML };
-        } else if (type === 'quiz') {
-            payload.data = { questions: state.quizQuestions, questionCount: state.quizQuestions.length };
-        } else {
-            payload.data = { url: document.getElementById('inpDataMain').value };
+        } 
+        else if (type === 'quiz') {
+            payload.data = { 
+                questions: state.quizQuestions, 
+                questionCount: state.quizQuestions.length 
+            };
+        } 
+        else {
+            const url = document.getElementById('inpDataMain').value;
+            if(!url) throw new Error("Lütfen URL giriniz.");
+            payload.data = { url: url };
         }
 
+        // Firestore İşlemi
         if (state.editingContentId) {
             await updateDoc(doc(db, "contents", state.editingContentId), payload);
         } else {
@@ -354,25 +444,47 @@ const saveContent = async () => {
         }
 
         closeEditor();
-        loadContents();
-        alert("Başarıyla kaydedildi!");
+        loadContents(); // Listeyi yenile
+        
+        // Başarılı olduğuna dair ufak bir bildirim (Opsiyonel: Toast eklenebilir)
+        // alert("Kayıt başarılı!"); 
 
     } catch (e) {
         alert("Hata: " + e.message);
     } finally {
-        btn.disabled = false; btn.innerHTML = originalText;
+        btn.disabled = false; 
+        btn.innerHTML = originalText;
     }
 };
 
-// --- YARDIMCI FONKSİYONLAR (GLOBAL ERİŞİM İÇİN) ---
+// --- YARDIMCI FONKSİYONLAR (Global Scope Erişimi İçin) ---
+// HTML'deki onclick="..." attributeleri modül içindeki fonksiyonları göremez.
+// Bu yüzden window nesnesine bağlıyoruz.
+
 window.ContentManager = {
     openEditor,
     closeEditor,
     saveContent,
-    editContent: (item) => openEditor(item.type, 'edit', item),
-    deleteContent: async (id) => { if (confirm('Silinsin mi?')) { await deleteDoc(doc(db, "contents", id)); loadContents(); } },
-    addQuestion: () => { state.quizQuestions.push({ text: '', options: {}, correct: 'A' }); renderQuizBuilder(); },
-    removeQuestion: (idx) => { state.quizQuestions.splice(idx, 1); renderQuizBuilder(); },
+    addQuestion: () => { 
+        state.quizQuestions.push({text:'', options:{}, correct:'A'}); 
+        renderQuizBuilder(); 
+    },
+    removeQuestion: (idx) => { 
+        if(confirm('Bu soruyu silmek istediğinize emin misiniz?')) {
+            state.quizQuestions.splice(idx, 1); 
+            renderQuizBuilder(); 
+        }
+    },
     setCorrect: (idx, val) => { state.quizQuestions[idx].correct = val; },
-    setOption: (idx, opt, val) => { if (!state.quizQuestions[idx].options) state.quizQuestions[idx].options = {}; state.quizQuestions[idx].options[opt] = val; }
+    setOption: (idx, opt, val) => { 
+        if(!state.quizQuestions[idx].options) state.quizQuestions[idx].options={}; 
+        state.quizQuestions[idx].options[opt] = val; 
+    },
+    // Listeden Silme
+    async deleteContent(id) { 
+        if(confirm('Bu içeriği kalıcı olarak silmek istiyor musunuz?')) { 
+            await deleteDoc(doc(db, "contents", id)); 
+            loadContents(); 
+        } 
+    }
 };
