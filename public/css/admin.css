@@ -862,3 +862,40 @@ body {
         display: flex;
     }
 }
+
+/* --- QUILL EDİTÖR ÖZELLEŞTİRMESİ (Dark Mode) --- */
+.ql-toolbar {
+    background-color: #f8f9fa;
+    /* Toolbar açık renk kalsın okunabilirlik için */
+    border-radius: 5px 5px 0 0;
+}
+
+.ql-container {
+    background-color: #ffffff;
+    /* Yazı alanı beyaz olsun, Word gibi */
+    color: #000000;
+    font-size: 16px;
+    border-radius: 0 0 5px 5px;
+}
+
+/* --- İÇERİK KARTLARI HOVER EFEKTİ --- */
+.hover-effect:hover {
+    transform: translateX(5px);
+    border-color: var(--color-gold) !important;
+    transition: all 0.2s ease;
+}
+
+/* --- SORU KARTI (QUIZ) --- */
+.qb-question-card {
+    transition: all 0.3s;
+}
+
+.qb-header:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* --- FULL SCREEN EDITOR MODAL --- */
+.z-index-modal {
+    z-index: 2000;
+    /* Sidebar'ın üzerinde çıksın */
+}

@@ -1,3 +1,5 @@
+<link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+
 <div class="content-manager-layout">
 
     <aside class="cm-sidebar">
@@ -43,7 +45,7 @@
                     <li><button class="dropdown-item" onclick="window.ContentManager.openEditor('pdf')"><i
                                 class="bi bi-file-pdf text-warning me-2"></i>PDF Döküman</button></li>
                     <li><button class="dropdown-item" onclick="window.ContentManager.openEditor('html')"><i
-                                class="bi bi-file-text text-success me-2"></i>HTML Not</button></li>
+                                class="bi bi-file-text text-success me-2"></i>Zengin Metin (HTML)</button></li>
                     <li>
                         <hr class="dropdown-divider">
                     </li>
@@ -64,7 +66,7 @@
             </select>
         </div>
 
-        <div id="contentWorkspace" class="cm-workspace custom-scrollbar position-relative">
+        <div id="contentWorkspace" class="cm-workspace custom-scrollbar position-relative p-3">
             <div id="emptyState"
                 class="h-100 d-flex flex-column align-items-center justify-content-center text-center p-4 text-muted opacity-50">
                 <i class="bi bi-arrow-left-circle display-4 mb-3"></i>
@@ -73,50 +75,139 @@
         </div>
     </section>
 
-    <aside class="cm-editor-panel" id="editorPanel">
-        <div class="h-100 d-flex flex-column" id="editorContentWrapper">
-            <div class="h-100 d-flex align-items-center justify-content-center text-muted">
-                <p>Bir içerik seçin veya yeni oluşturun.</p>
-            </div>
-        </div>
+    <aside class="cm-editor-panel d-none" id="editorPanel">
     </aside>
 
 </div>
 
-<template id="tpl-quiz-editor">
-    <div class="d-flex flex-column h-100">
-        <div class="p-4 border-bottom border-secondary bg-dark">
-            <div class="d-flex justify-content-between align-items-start mb-3">
-                <h5 class="text-gold mb-0"><i class="bi bi-ui-checks me-2"></i>Test Editörü</h5>
-                <button class="btn btn-sm btn-icon btn-outline-secondary"
-                    onclick="window.ContentManager.closeEditor()"><i class="bi bi-x-lg"></i></button>
-            </div>
-            <div class="form-group mb-3">
-                <label class="small text-muted fw-bold">TEST BAŞLIĞI</label>
-                <input type="text" id="inpTitle" class="form-control bg-black border-secondary text-white"
-                    placeholder="Örn: Anayasa Hukuku Tarama Testi">
-            </div>
-            <div class="d-flex gap-2">
-                <div class="form-group flex-grow-1">
-                    <label class="small text-muted fw-bold">SIRALAMA</label>
-                    <input type="number" id="inpOrder" class="form-control bg-black border-secondary text-white">
-                </div>
-                <div class="form-group flex-grow-1">
-                    <label class="small text-muted fw-bold">SÜRE (DK)</label>
-                    <input type="number" id="inpDuration" class="form-control bg-black border-secondary text-white"
-                        placeholder="Opsiyonel">
+<template id="tpl-content-card">
+    <div class="content-card-item card bg-dark border-secondary mb-2 hover-effect">
+        <div class="card-body p-2 d-flex align-items-center gap-3">
+            <div class="badge bg-black border border-secondary text-white content-order"
+                style="width: 32px; height: 32px; display: grid; place-items: center;">1</div>
+            <div class="icon-box fs-4 content-icon"><i class="bi"></i></div>
+            <div class="flex-grow-1">
+                <h6 class="mb-0 text-white fw-bold content-title">Başlık</h6>
+                <div class="d-flex align-items-center gap-2 small text-muted">
+                    <span class="text-uppercase fw-bold content-type-badge" style="font-size: 0.7rem;">TYPE</span>
+                    <span>•</span>
+                    <span class="content-date">Tarih</span>
+                    <span class="content-meta"></span>
                 </div>
             </div>
-        </div>
-
-        <div class="flex-grow-1 overflow-auto custom-scrollbar p-3 bg-dark-subtle" id="quizQuestionsArea">
-        </div>
-
-        <div class="p-3 border-top border-secondary bg-dark d-flex justify-content-between align-items-center">
-            <button class="btn btn-outline-light btn-sm" onclick="window.ContentManager.addQuestion()"><i
-                    class="bi bi-plus-circle me-1"></i>Soru Ekle</button>
-            <button class="btn btn-gold btn-sm fw-bold px-4" onclick="window.ContentManager.saveContent()"
-                id="btnSaveEditor">Kaydet</button>
+            <div class="d-flex gap-1 actions">
+                <button class="btn btn-sm btn-icon btn-dark border-secondary text-white btn-edit" title="Düzenle"><i
+                        class="bi bi-pencil-square"></i></button>
+                <button class="btn btn-sm btn-icon btn-dark border-secondary text-danger btn-delete" title="Sil"><i
+                        class="bi bi-trash"></i></button>
+            </div>
         </div>
     </div>
 </template>
+
+<template id="tpl-quiz-question-card">
+    <div class="qb-question-card bg-dark border border-secondary rounded mb-3 overflow-hidden">
+        <div
+            class="qb-header d-flex justify-content-between align-items-center p-3 bg-dark-subtle border-bottom border-secondary cursor-pointer">
+            <div class="d-flex align-items-center gap-3">
+                <div class="badge bg-gold text-dark rounded-circle fw-bold q-number"
+                    style="width:28px; height:28px; display:grid; place-items:center;">1</div>
+                <span class="fw-bold text-white text-truncate q-preview-text" style="max-width: 500px;">Yeni Soru</span>
+            </div>
+            <div class="d-flex gap-2">
+                <button class="btn btn-sm btn-icon text-danger btn-delete-q"><i class="bi bi-trash"></i></button>
+                <i class="bi bi-chevron-down text-muted q-toggle-icon"></i>
+            </div>
+        </div>
+        <div class="qb-body p-4 collapse show">
+            <div class="mb-3">
+                <label class="form-label text-muted small fw-bold">SORU METNİ</label>
+                <textarea class="form-control bg-black text-white border-secondary q-text-input" rows="2"></textarea>
+            </div>
+            <div class="row g-3 q-options-area">
+            </div>
+            <div class="mt-3">
+                <label class="form-label text-muted small fw-bold text-success">ÇÖZÜM / AÇIKLAMA</label>
+                <input type="text" class="form-control bg-black text-white border-secondary q-solution-input"
+                    placeholder="Açıklama giriniz...">
+            </div>
+        </div>
+    </div>
+</template>
+
+<div id="contentManagerEditorView" class="d-none position-fixed top-0 start-0 w-100 h-100 bg-dark z-index-modal"
+    style="z-index: 1050; overflow-y: auto;">
+    <div class="container py-4">
+        <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom border-secondary">
+            <div>
+                <span id="editorModeBadge" class="badge bg-gold text-dark mb-2">YENİ İÇERİK</span>
+                <h4 class="text-white mb-0" id="editorTitle">İçerik Editörü</h4>
+            </div>
+            <div class="d-flex gap-2">
+                <button class="btn btn-outline-secondary" onclick="window.ContentManager.closeEditor()">İptal</button>
+                <button class="btn btn-gold fw-bold px-4" id="btnSaveEditor"
+                    onclick="window.ContentManager.saveContent()">
+                    <i class="bi bi-save me-2"></i>Kaydet
+                </button>
+            </div>
+        </div>
+
+        <input type="hidden" id="inpContentType">
+
+        <div class="row">
+            <div class="col-md-8 mx-auto">
+
+                <div class="card bg-dark border-secondary mb-4">
+                    <div class="card-body p-4">
+                        <div class="mb-3">
+                            <label class="form-label text-muted small fw-bold">BAŞLIK</label>
+                            <input type="text" id="inpTitle"
+                                class="form-control form-control-lg bg-black text-white border-secondary"
+                                placeholder="İçerik başlığı...">
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label class="form-label text-muted small fw-bold">SIRALAMA</label>
+                                <input type="number" id="inpOrder"
+                                    class="form-control bg-black text-white border-secondary">
+                            </div>
+                            <div class="col-md-6" id="durationArea">
+                                <label class="form-label text-muted small fw-bold">SÜRE (DK)</label>
+                                <input type="number" id="inpDuration"
+                                    class="form-control bg-black text-white border-secondary" placeholder="Opsiyonel">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="standardEditorArea">
+                </div>
+
+                <div id="htmlEditorArea" class="d-none mb-4">
+                    <label class="form-label text-gold fw-bold mb-2"><i class="bi bi-file-richtext me-2"></i>İçerik
+                        Detayı</label>
+                    <div class="bg-white text-dark rounded overflow-hidden">
+                        <div id="quillEditorContainer" style="height: 400px;"></div>
+                    </div>
+                </div>
+
+                <div id="quizBuilderArea" class="d-none">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="text-white"><i class="bi bi-list-check me-2"></i>Sorular (<span
+                                id="qbQuestionCount">0</span>)</h5>
+                        <button class="btn btn-sm btn-outline-light" onclick="window.ContentManager.addQuestion()"><i
+                                class="bi bi-plus-lg me-1"></i>Soru Ekle</button>
+                    </div>
+                    <div id="quizQuestionsList"></div>
+                    <button class="btn btn-outline-secondary w-100 py-3 border-dashed mt-3"
+                        onclick="window.ContentManager.addQuestion()">
+                        <i class="bi bi-plus-circle me-2"></i>Yeni Soru Ekle
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
