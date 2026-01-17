@@ -10,114 +10,99 @@
   <link rel="stylesheet" href="../css/dashboard.css">
   <style>
     /* --- KONU DETAY ÖZEL STİLLERİ --- */
-    .topic-hero {
-      background: linear-gradient(135deg, var(--bg-surface), var(--bg-body));
-      padding: 30px;
-      border-radius: var(--radius-lg);
-      border: 1px solid var(--border-color);
-      margin-bottom: 30px;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .topic-hero::after {
-      content: '';
-      position: absolute;
-      top: 0;
-      right: 0;
-      width: 100%;
-      height: 5px;
-      background: var(--color-primary);
-    }
-
-    .content-grid {
+    .topic-layout {
       display: grid;
-      grid-template-columns: 2fr 1fr;
-      /* İçerik geniş, yan panel dar */
+      grid-template-columns: 350px 1fr;
       gap: 24px;
+      height: calc(100vh - var(--header-height) - 40px);
+      /* Tam ekran hissi */
     }
 
-    /* Materyal Kartları */
-    .material-card {
+    /* SOL KOLON: Ders Listesi */
+    .lessons-sidebar {
       background: var(--bg-surface);
       border: 1px solid var(--border-color);
-      border-radius: var(--radius-md);
-      margin-bottom: 16px;
-      overflow: hidden;
-      transition: transform 0.2s;
-    }
-
-    .material-card:hover {
-      border-color: var(--color-primary);
-    }
-
-    .material-header {
-      padding: 16px;
+      border-radius: var(--radius-lg);
       display: flex;
-      align-items: center;
-      gap: 12px;
-      cursor: pointer;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .lessons-header {
+      padding: 20px;
+      border-bottom: 1px solid var(--border-color);
       background: var(--bg-hover);
     }
 
-    .material-icon {
-      width: 40px;
-      height: 40px;
-      border-radius: 8px;
+    .lessons-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px;
+    }
+
+    .lesson-item {
+      padding: 15px;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: background 0.2s;
       display: flex;
       align-items: center;
-      justify-content: center;
-      font-size: 1.2rem;
-      background: var(--bg-body);
+      gap: 10px;
+      margin-bottom: 5px;
+      border: 1px solid transparent;
+    }
+
+    .lesson-item:hover {
+      background: var(--bg-hover);
+    }
+
+    .lesson-item.active {
+      background: rgba(212, 175, 55, 0.1);
+      border-color: var(--color-primary);
       color: var(--color-primary);
-    }
-
-    .material-title {
       font-weight: 600;
-      color: var(--text-main);
-      flex: 1;
     }
 
-    .material-type {
-      font-size: 0.75rem;
-      text-transform: uppercase;
-      color: var(--text-muted);
-      background: var(--bg-body);
-      padding: 4px 8px;
-      border-radius: 4px;
+    .lesson-status {
+      width: 20px;
+      height: 20px;
+      border: 2px solid var(--text-muted);
+      border-radius: 50%;
+      flex-shrink: 0;
     }
 
-    .material-body {
-      padding: 20px;
-      border-top: 1px solid var(--border-color);
-      display: none;
-      /* JS ile açılacak */
+    .lesson-item.completed .lesson-status {
+      background: var(--color-success);
+      border-color: var(--color-success);
     }
 
-    .material-body.active {
-      display: block;
-      animation: slideDown 0.3s ease;
+    /* SAĞ KOLON: İçerik Alanı */
+    .content-area {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 30px;
+      overflow-y: auto;
+      position: relative;
     }
 
-    @keyframes slideDown {
-      from {
-        opacity: 0;
-        transform: translateY(-10px);
-      }
-
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
+    .content-header {
+      margin-bottom: 20px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
 
-    /* Video Embed */
+    /* İçerik Tipleri */
     .video-wrapper {
       position: relative;
       padding-bottom: 56.25%;
       height: 0;
       overflow: hidden;
-      border-radius: 8px;
+      border-radius: 12px;
+      margin-bottom: 20px;
     }
 
     .video-wrapper iframe {
@@ -128,37 +113,37 @@
       height: 100%;
     }
 
-    /* Yan Panel (Testler & İlerleme) */
-    .side-panel {
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
+    .pdf-embed {
+      width: 100%;
+      height: 600px;
+      border: none;
+      border-radius: 8px;
     }
 
-    .side-card {
-      background: var(--bg-surface);
-      padding: 20px;
-      border-radius: var(--radius-lg);
-      border: 1px solid var(--border-color);
+    .note-content {
+      font-size: 1.1rem;
+      line-height: 1.8;
+      color: var(--text-main);
     }
 
     /* Mobil Uyum */
     @media (max-width: 900px) {
-      .content-grid {
+      .topic-layout {
         grid-template-columns: 1fr;
+        height: auto;
       }
 
-      .side-panel {
-        order: -1;
+      .lessons-sidebar {
+        order: 2;
+        max-height: 400px;
       }
 
-      /* Mobilde testler üstte görünsün mü? Hayır, altta kalsın */
-      .side-panel {
+      .content-area {
         order: 1;
+        min-height: 400px;
       }
     }
   </style>
-    <link rel="manifest" href="/manifest.json">
 </head>
 
 <body>
@@ -167,176 +152,219 @@
     document.addEventListener('DOMContentLoaded', () => initLayout());
   </script>
 
-  <div class="dashboard-container">
-    <!-- Üst Bilgi Alanı -->
-    <div class="topic-hero">
-      <a href="/pages/konular.html" class="btn btn-sm btn-secondary mb-3">← Tüm Konular</a>
-      <h1 id="topicTitle" style="margin-bottom:10px;">Yükleniyor...</h1>
-      <p id="topicDesc" class="text-muted">...</p>
+  <div class="dashboard-container" style="max-width: 1600px;"> <!-- Geniş ekran -->
+    <div class="topic-layout">
 
-      <div class="mt-3 d-flex gap-3">
-        <div class="badge badge-primary" id="topicCategory">...</div>
-        <div class="text-muted small" id="materialCount">0 Materyal</div>
-      </div>
-    </div>
-
-    <div class="content-grid">
-      <!-- SOL KOLON: Ders İçerikleri -->
-      <div class="main-content-area">
-        <h3 class="section-title">Ders Materyalleri</h3>
-        <div id="materialsList">
-          <div class="card p-4 text-center text-muted">Yükleniyor...</div>
+      <!-- SOL: Ders Listesi -->
+      <div class="lessons-sidebar">
+        <div class="lessons-header">
+          <a href="/pages/konular.html" class="text-muted small mb-2 d-block">← Konulara Dön</a>
+          <h3 class="m-0" id="topicTitle">Yükleniyor...</h3>
+          <div class="progress-bar-container mt-3">
+            <div class="progress-bar" id="topicProgress" style="width: 0%"></div>
+          </div>
+          <small class="text-muted" id="progressText">%0 Tamamlandı</small>
+        </div>
+        <div id="lessonsList" class="lessons-list">
+          <!-- Dersler buraya gelecek -->
         </div>
       </div>
 
-      <!-- SAĞ KOLON: Testler ve Araçlar -->
-      <div class="side-panel">
-        <div class="side-card">
-          <h4 class="mb-3">🧠 Pekiştirme Testleri</h4>
-          <p class="text-muted small mb-3">Bu konuyu ne kadar anladığını test et.</p>
-          <div id="testList">
-            <!-- Test butonları buraya -->
-          </div>
-        </div>
-
-        <div class="side-card">
-          <h4 class="mb-3">📊 İlerleme Durumu</h4>
-          <div class="progress-bar-container">
-            <div class="progress-bar" style="width: 0%"></div>
-          </div>
-          <div class="d-flex justify-content-between small text-muted mt-2">
-            <span>Tamamlanan: 0%</span>
-            <span>Hedef: 100%</span>
-          </div>
+      <!-- SAĞ: İçerik -->
+      <div class="content-area" id="contentArea">
+        <div class="text-center p-5 text-muted">
+          <h3>👋 Hoş Geldiniz</h3>
+          <p>Soldaki listeden bir ders seçerek çalışmaya başlayın.</p>
         </div>
       </div>
+
     </div>
   </div>
 
   <script type="module">
     import { db, auth } from '../js/firebase-config.js';
-    import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-    import { saveUserActivity } from '../js/user-profile.js';
+    import { doc, getDoc, collection, getDocs, query, orderBy, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+    let currentTopicId = null;
+    let lessonsData = [];
+    let userProgress = {}; // { lessonId: true/false }
 
     document.addEventListener('DOMContentLoaded', async () => {
       const urlParams = new URLSearchParams(window.location.search);
-      const topicId = urlParams.get('id');
+      currentTopicId = urlParams.get('id');
 
-      if (!topicId) {
+      if (!currentTopicId) {
         window.location.href = '/pages/konular.html';
         return;
       }
 
-      try {
-        const docRef = doc(db, "topics", topicId);
-        const docSnap = await getDoc(docRef);
-
-        if (docSnap.exists()) {
-          const data = docSnap.data();
-          renderTopicDetails(data);
-          renderMaterials(data.materials || []);
-          renderTests(topicId);
-        } else {
-          alert("Konu bulunamadı.");
+      // Auth kontrolü ve ilerleme verisini çekme
+      onAuthStateChanged(auth, async (user) => {
+        if (user) {
+          await loadUserProgress(user.uid);
         }
+        await loadTopicAndLessons();
+      });
+    });
+
+    async function loadUserProgress(uid) {
+      try {
+        const docRef = doc(db, `users/${uid}/progress/${currentTopicId}`);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          userProgress = docSnap.data().completedLessons || {};
+        }
+      } catch (e) { console.error("Progress error:", e); }
+    }
+
+    async function loadTopicAndLessons() {
+      try {
+        // 1. Ana Konu Bilgisi
+        const topicSnap = await getDoc(doc(db, "topics", currentTopicId));
+        if (!topicSnap.exists()) return alert("Konu bulunamadı.");
+
+        const topicData = topicSnap.data();
+        document.getElementById('topicTitle').innerText = topicData.title;
+        document.title = `${topicData.title} | GOLD GYS`;
+
+        // 2. Dersleri Çek (Subcollection)
+        const q = query(collection(db, `topics/${currentTopicId}/lessons`), orderBy("order", "asc"));
+        const snapshot = await getDocs(q);
+
+        lessonsData = [];
+        snapshot.forEach(doc => lessonsData.push({ id: doc.id, ...doc.data() }));
+
+        renderLessonsList();
+        updateProgressBar();
+
       } catch (error) {
         console.error("Hata:", error);
       }
-    });
-
-    function renderTopicDetails(data) {
-      document.title = `${data.title} | GOLD GYS`;
-      document.getElementById('topicTitle').innerText = data.title;
-      document.getElementById('topicDesc').innerText = data.description || 'Açıklama yok.';
-      document.getElementById('topicCategory').innerText = data.category === 'ortak' ? 'Ortak Konu' : 'Alan Bilgisi';
-      document.getElementById('materialCount').innerText = `${data.materials ? data.materials.length : 0} Materyal`;
     }
 
-    function renderMaterials(materials) {
-      const list = document.getElementById('materialsList');
+    function renderLessonsList() {
+      const list = document.getElementById('lessonsList');
+      list.innerHTML = '';
 
-      if (materials.length === 0) {
-        list.innerHTML = '<div class="card p-4 text-center text-muted">Bu konuya henüz içerik eklenmemiş.</div>';
+      if (lessonsData.length === 0) {
+        list.innerHTML = '<div class="p-3 text-muted text-center">Henüz ders eklenmemiş.</div>';
         return;
       }
 
-      list.innerHTML = '';
-      materials.forEach((mat, index) => {
+      lessonsData.forEach((lesson, index) => {
+        const isCompleted = userProgress[lesson.id] === true;
         const div = document.createElement('div');
-        div.className = 'material-card';
-
-        let icon = '📄';
-        let contentHtml = '';
-
-        if (mat.type === 'video') {
-          icon = '▶️';
-          // YouTube embed linki oluşturma (basitçe)
-          const videoId = mat.url.split('v=')[1] || mat.url.split('/').pop();
-          const embedUrl = `https://www.youtube.com/embed/${videoId}`;
-          contentHtml = `<div class="video-wrapper"><iframe src="${embedUrl}" frameborder="0" allowfullscreen loading="lazy"></iframe></div>`;
-        } else if (mat.type === 'pdf') {
-          icon = '📕';
-          contentHtml = `<a href="${mat.url}" target="_blank" class="btn btn-primary w-100">📄 PDF'i Görüntüle / İndir</a>`;
-        } else if (mat.type === 'podcast') {
-          icon = '🎧';
-          contentHtml = `<audio controls style="width:100%"><source src="${mat.url}" type="audio/mpeg">Tarayıcınız ses elementini desteklemiyor.</audio>`;
-        } else if (mat.type === 'html') {
-          icon = '📝';
-          contentHtml = `<div class="text-content p-2">${mat.url}</div>`; // HTML içerik (Not)
-        }
+        div.className = `lesson-item ${isCompleted ? 'completed' : ''}`;
+        div.onclick = () => loadLessonContent(index);
 
         div.innerHTML = `
-                    <div class="material-header" onclick="toggleMaterial(${index})">
-                        <div class="material-icon">${icon}</div>
-                        <div class="material-title">${mat.title}</div>
-                        <div class="material-type">${mat.type}</div>
-                        <div style="color:var(--text-muted)">▼</div>
-                    </div>
-                    <div class="material-body" id="mat-body-${index}">
-                        <p class="text-muted mb-3">${mat.desc || ''}</p>
-                        ${contentHtml}
+                    <div class="lesson-status"></div>
+                    <div>
+                        <div style="font-weight:500;">${lesson.title}</div>
+                        <small class="text-muted">
+                            ${lesson.videoUrl ? '📺 ' : ''}
+                            ${lesson.pdfUrl ? '📄 ' : ''}
+                            ${lesson.podcastUrl ? '🎧 ' : ''}
+                        </small>
                     </div>
                 `;
         list.appendChild(div);
       });
     }
 
-    function renderTests(topicId) {
-      const list = document.getElementById('testList');
-      list.innerHTML = `
-                <a href="/pages/test.html?topic=${topicId}&mode=quick" class="btn-action mb-2">
-                    <span class="icon">⚡</span> Hızlı Tarama Testi (20 Soru)
-                </a>
-                <a href="/pages/test.html?topic=${topicId}&mode=full" class="btn-action">
-                    <span class="icon">📝</span> Kapsamlı Konu Testi
-                </a>
+    function loadLessonContent(index) {
+      const lesson = lessonsData[index];
+      const container = document.getElementById('contentArea');
+
+      // Aktif sınıfını güncelle
+      document.querySelectorAll('.lesson-item').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.lesson-item')[index].classList.add('active');
+
+      let contentHtml = '';
+
+      // Video
+      if (lesson.videoUrl) {
+        const videoId = lesson.videoUrl.split('v=')[1] || lesson.videoUrl.split('/').pop();
+        contentHtml += `
+                    <div class="video-wrapper">
+                        <iframe src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>
+                    </div>
+                `;
+      }
+
+      // Podcast
+      if (lesson.podcastUrl) {
+        contentHtml += `
+                    <div class="card p-3 mb-4 bg-hover">
+                        <h5 class="mb-2">🎧 Sesli Anlatım</h5>
+                        <audio controls style="width:100%">
+                            <source src="${lesson.podcastUrl}" type="audio/mpeg">
+                        </audio>
+                    </div>
+                `;
+      }
+
+      // PDF
+      if (lesson.pdfUrl) {
+        contentHtml += `
+                    <div class="mb-4">
+                        <a href="${lesson.pdfUrl}" target="_blank" class="btn btn-secondary w-100">
+                            📄 PDF Dokümanını Aç / İndir
+                        </a>
+                    </div>
+                `;
+      }
+
+      // HTML Not
+      if (lesson.content) {
+        contentHtml += `
+                    <div class="note-content">
+                        ${lesson.content}
+                    </div>
+                `;
+      }
+
+      container.innerHTML = `
+                <div class="content-header">
+                    <h2 class="m-0">${lesson.title}</h2>
+                    <button class="btn btn-success" onclick="markAsCompleted('${lesson.id}')">
+                        ✅ Tamamlandı İşaretle
+                    </button>
+                </div>
+                ${contentHtml}
             `;
     }
 
-    // Global Toggle Fonksiyonu
-    window.toggleMaterial = (index) => {
-      const body = document.getElementById(`mat-body-${index}`);
-      const wasActive = body.classList.contains('active');
+    // Global Fonksiyon: Tamamlandı İşaretle
+    window.markAsCompleted = async (lessonId) => {
+      if (!auth.currentUser) return alert("Giriş yapmalısınız.");
 
-      // Hepsini kapat (Akordeon efekti için)
-      document.querySelectorAll('.material-body').forEach(el => el.classList.remove('active'));
+      userProgress[lessonId] = true;
+      renderLessonsList(); // Listeyi güncelle (Yeşil tik için)
+      updateProgressBar();
 
-      if (!wasActive) {
-        body.classList.add('active');
-
-        // --- YENİ: Aktiviteyi Kaydet ---
-        if (auth.currentUser) {
-          const topicTitle = document.getElementById('topicTitle').innerText;
-          saveUserActivity(auth.currentUser.uid, {
-            type: 'topic',
-            id: new URLSearchParams(window.location.search).get('id'),
-            title: topicTitle,
-            subTitle: `Materyal #${index + 1}`,
-            progress: 0
-          });
-        }
-      }
+      // Veritabanına Kaydet
+      try {
+        const uid = auth.currentUser.uid;
+        const docRef = doc(db, `users/${uid}/progress/${currentTopicId}`);
+        await setDoc(docRef, {
+          completedLessons: userProgress,
+          lastUpdated: serverTimestamp()
+        }, { merge: true });
+      } catch (e) { console.error(e); }
     };
+
+    function updateProgressBar() {
+      const total = lessonsData.length;
+      if (total === 0) return;
+
+      const completed = Object.values(userProgress).filter(v => v === true).length;
+      const percent = Math.round((completed / total) * 100);
+
+      document.getElementById('topicProgress').style.width = `${percent}%`;
+      document.getElementById('progressText').innerText = `%${percent} Tamamlandı`;
+    }
   </script>
 </body>
 
