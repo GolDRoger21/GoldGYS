@@ -4,263 +4,185 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ders Çalışma Modu | GOLD GYS</title>
+  <title>Konu Detayı | GOLD GYS</title>
   <link rel="stylesheet" href="../styles/tokens.css">
   <link rel="stylesheet" href="../css/layout.css">
   <link rel="stylesheet" href="../css/dashboard.css">
   <style>
-    /* --- COURSE PLAYER LAYOUT --- */
-    body {
+    /* --- PREMIUM KONU DETAY STİLLERİ --- */
+
+    /* Hero Section */
+    .topic-hero {
+      background: linear-gradient(135deg, var(--bg-surface), var(--bg-body));
+      padding: 40px;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-color);
+      margin-bottom: 40px;
+      position: relative;
       overflow: hidden;
-      /* Sayfa kaydırmayı engelle, içerik kendi içinde kayacak */
+      box-shadow: var(--shadow-sm);
     }
 
-    .player-layout {
-      display: grid;
-      grid-template-columns: 350px 1fr;
-      height: calc(100vh - var(--header-height));
-      /* Header hariç tam boy */
-      background: var(--bg-body);
-    }
-
-    /* SOL PANEL: Ders Listesi (Playlist) */
-    .playlist-sidebar {
-      background: var(--bg-surface);
-      border-right: 1px solid var(--border-color);
-      display: flex;
-      flex-direction: column;
+    .topic-hero::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
       height: 100%;
-      z-index: 20;
+      background: var(--color-primary);
     }
 
-    .playlist-header {
-      padding: 20px;
-      border-bottom: 1px solid var(--border-color);
-      background: var(--bg-surface);
-    }
-
-    .playlist-title {
-      font-size: 1rem;
-      font-weight: 700;
-      color: var(--text-main);
-      margin-bottom: 8px;
-    }
-
-    .playlist-progress {
-      display: flex;
+    .back-btn {
+      display: inline-flex;
       align-items: center;
-      gap: 10px;
-      font-size: 0.8rem;
-      color: var(--text-muted);
-    }
-
-    .progress-track {
-      flex: 1;
-      height: 4px;
+      gap: 8px;
+      padding: 8px 16px;
+      border-radius: var(--radius-full);
       background: var(--bg-hover);
-      border-radius: 2px;
-      overflow: hidden;
-    }
-
-    .progress-fill {
-      height: 100%;
-      background: var(--color-success);
-      width: 0%;
-      transition: width 0.3s;
-    }
-
-    .playlist-items {
-      flex: 1;
-      overflow-y: auto;
-      padding: 10px;
-    }
-
-    .lesson-item {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 12px 15px;
-      border-radius: var(--radius-md);
-      cursor: pointer;
-      transition: all 0.2s;
-      border: 1px solid transparent;
-      margin-bottom: 4px;
       color: var(--text-muted);
-    }
-
-    .lesson-item:hover {
-      background: var(--bg-hover);
-      color: var(--text-main);
-    }
-
-    .lesson-item.active {
-      background: rgba(212, 175, 55, 0.1);
-      border-color: var(--color-primary);
-      color: var(--color-primary);
-    }
-
-    .lesson-icon {
-      font-size: 1.1rem;
-      min-width: 24px;
-      text-align: center;
-    }
-
-    .lesson-info {
-      flex: 1;
-      overflow: hidden;
-    }
-
-    .lesson-title {
+      text-decoration: none;
+      font-weight: 600;
       font-size: 0.9rem;
-      font-weight: 500;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      transition: all 0.2s;
+      margin-bottom: 20px;
     }
 
-    .lesson-duration {
-      font-size: 0.75rem;
-      opacity: 0.7;
+    .back-btn:hover {
+      background: var(--bg-surface);
+      color: var(--color-primary);
+      box-shadow: var(--shadow-sm);
     }
 
-    .status-icon {
-      width: 18px;
-      height: 18px;
-      border: 2px solid var(--border-color);
-      border-radius: 50%;
-      flex-shrink: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .lesson-item.completed .status-icon {
-      background: var(--color-success);
-      border-color: var(--color-success);
-      color: white;
-      font-size: 10px;
-    }
-
-    .lesson-item.completed .status-icon::after {
-      content: '✓';
-    }
-
-    /* SAĞ PANEL: İçerik Görüntüleyici */
-    .player-content {
-      display: flex;
-      flex-direction: column;
-      height: 100%;
-      overflow-y: auto;
-      padding: 30px 40px;
-      scroll-behavior: smooth;
-    }
-
-    .content-wrapper {
-      max-width: 900px;
-      width: 100%;
-      margin: 0 auto;
-    }
-
-    .lesson-header {
-      margin-bottom: 24px;
-      border-bottom: 1px solid var(--border-color);
-      padding-bottom: 16px;
-    }
-
-    .lesson-main-title {
-      font-size: 1.8rem;
-      font-weight: 700;
+    .topic-title {
+      font-size: 2.5rem;
+      font-weight: 800;
       color: var(--text-main);
       margin-bottom: 10px;
       font-family: var(--font-family-serif);
     }
 
-    /* Video Embed */
-    .video-container {
-      position: relative;
-      padding-bottom: 56.25%;
-      height: 0;
-      overflow: hidden;
-      border-radius: 12px;
-      box-shadow: var(--shadow-md);
-      margin-bottom: 30px;
-      background: black;
+    .topic-desc {
+      font-size: 1.1rem;
+      color: var(--text-muted);
+      max-width: 800px;
+      line-height: 1.6;
     }
 
-    .video-container iframe {
+    /* Kategori Başlıkları */
+    .category-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 40px 0 20px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .cat-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: rgba(212, 175, 55, 0.1);
+      color: var(--color-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+    }
+
+    .cat-title {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--text-main);
+      margin: 0;
+    }
+
+    /* İçerik Gridleri */
+    .video-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+    }
+
+    .pdf-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 15px;
+    }
+
+    .note-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    /* Video Kartı */
+    .video-card {
+      background: var(--bg-surface);
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border-color);
+      transition: transform 0.2s;
+      cursor: pointer;
+    }
+
+    .video-card:hover {
+      transform: translateY(-4px);
+      border-color: var(--color-primary);
+    }
+
+    .video-thumb {
+      position: relative;
+      padding-bottom: 56.25%;
+      background: #000;
+    }
+
+    .video-thumb img {
       position: absolute;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
+      object-fit: cover;
+      opacity: 0.8;
     }
 
-    /* PDF Embed */
-    .pdf-container {
-      height: 80vh;
-      border-radius: 12px;
-      overflow: hidden;
-      border: 1px solid var(--border-color);
-      margin-bottom: 30px;
-    }
-
-    /* Navigasyon Butonları */
-    .lesson-nav {
+    .play-icon {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 50px;
+      height: 50px;
+      background: rgba(0, 0, 0, 0.7);
+      border-radius: 50%;
       display: flex;
-      justify-content: space-between;
-      margin-top: 40px;
-      padding-top: 20px;
-      border-top: 1px solid var(--border-color);
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 1.5rem;
+      border: 2px solid white;
     }
 
-    /* MOBİL UYUM */
-    @media (max-width: 900px) {
-      body {
-        overflow: auto;
-      }
-
-      /* Mobilde scroll serbest */
-      .player-layout {
-        grid-template-columns: 1fr;
-        height: auto;
-        display: block;
-      }
-
-      /* Mobilde Playlist'i alta al veya accordion yap */
-      .playlist-sidebar {
-        position: relative;
-        height: auto;
-        max-height: 300px;
-        border-right: none;
-        border-bottom: 1px solid var(--border-color);
-        order: 2;
-        /* İçerikten sonra gelsin */
-      }
-
-      .player-content {
-        padding: 20px;
-        height: auto;
-        order: 1;
-      }
-
-      .lesson-main-title {
-        font-size: 1.4rem;
-      }
+    .video-info {
+      padding: 15px;
     }
 
-    /* --- YENİ EKLENEN STİLLER --- */
-
-    /* Materyal Başlıkları */
-    .material-title {
-      font-size: 1.2rem;
+    .video-title {
       font-weight: 600;
-      color: var(--color-primary);
-      border-left: 4px solid var(--color-primary);
-      padding-left: 10px;
+      color: var(--text-main);
+      margin-bottom: 5px;
+      display: block;
     }
 
-    /* Audio Player Kartı */
-    .audio-player-card {
+    .video-meta {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    /* PDF Kartı */
+    .pdf-card {
       background: var(--bg-surface);
       border: 1px solid var(--border-color);
       border-radius: 12px;
@@ -268,95 +190,146 @@
       display: flex;
       align-items: center;
       gap: 15px;
-      box-shadow: var(--shadow-sm);
-    }
-
-    .audio-icon {
-      width: 40px;
-      height: 40px;
-      background: rgba(212, 175, 55, 0.1);
-      color: var(--color-primary);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.2rem;
-    }
-
-    /* Butonlar (Premium Görünüm) */
-    .btn {
-      padding: 10px 20px;
-      border-radius: 8px;
-      font-weight: 600;
-      cursor: pointer;
+      text-decoration: none;
       transition: all 0.2s;
-      border: none;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 0.95rem;
     }
 
-    .btn-primary {
-      background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dim));
-      color: var(--text-on-gold);
-      box-shadow: 0 4px 10px rgba(212, 175, 55, 0.3);
-    }
-
-    .btn-primary:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 15px rgba(212, 175, 55, 0.4);
-    }
-
-    .btn-secondary {
-      background: var(--bg-surface);
-      color: var(--text-main);
-      border: 1px solid var(--border-color);
-    }
-
-    .btn-secondary:hover {
+    .pdf-card:hover {
       background: var(--bg-hover);
-      border-color: var(--text-muted);
+      border-color: var(--color-primary);
     }
 
-    .btn-success {
-      background: linear-gradient(135deg, #10b981, #059669);
+    .pdf-icon {
+      font-size: 2rem;
+      color: #e74c3c;
+    }
+
+    .pdf-info h4 {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text-main);
+      margin: 0 0 4px 0;
+    }
+
+    .pdf-info span {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    /* Not Kartı */
+    .note-card {
+      background: var(--bg-surface);
+      border-left: 4px solid var(--color-success);
+      padding: 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: background 0.2s;
+    }
+
+    .note-card:hover {
+      background: var(--bg-hover);
+    }
+
+    .note-title {
+      font-weight: 600;
+      color: var(--text-main);
+      font-size: 1.1rem;
+    }
+
+    /* Video Modal */
+    .video-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.9);
+      z-index: 2000;
+      display: none;
+      justify-content: center;
+      align-items: center;
+      backdrop-filter: blur(5px);
+    }
+
+    .video-wrapper {
+      width: 90%;
+      max-width: 900px;
+      aspect-ratio: 16/9;
+      position: relative;
+    }
+
+    .video-wrapper iframe {
+      width: 100%;
+      height: 100%;
+      border-radius: 12px;
+      box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+    }
+
+    .close-video {
+      position: absolute;
+      top: -40px;
+      right: 0;
       color: white;
-      box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);
+      font-size: 2rem;
+      cursor: pointer;
     }
 
-    .btn-success:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 15px rgba(16, 185, 129, 0.4);
+    /* Not Görüntüleyici */
+    .note-viewer {
+      position: fixed;
+      top: 0;
+      right: -100%;
+      width: 600px;
+      height: 100%;
+      background: var(--bg-surface);
+      z-index: 2000;
+      box-shadow: -5px 0 30px rgba(0, 0, 0, 0.3);
+      transition: right 0.3s ease;
+      padding: 40px;
+      overflow-y: auto;
     }
 
-    /* Not İçeriği (Typography) */
-    .note-content {
-      font-family: 'Georgia', serif;
-      /* Okuma için serif */
-      font-size: 1.15rem;
+    .note-viewer.active {
+      right: 0;
+    }
+
+    .close-note {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: var(--text-muted);
+    }
+
+    .note-body {
+      font-size: 1.1rem;
       line-height: 1.8;
       color: var(--text-main);
-      max-width: 800px;
     }
 
-    .note-content h1,
-    .note-content h2,
-    .note-content h3 {
-      font-family: var(--font-family-sans);
-      color: var(--color-primary);
-      margin-top: 1.5em;
-      margin-bottom: 0.5em;
+    .note-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1999;
+      display: none;
     }
 
-    .note-content ul,
-    .note-content ol {
-      padding-left: 20px;
-      margin-bottom: 1em;
+    .note-overlay.active {
+      display: block;
     }
 
-    .note-content li {
-      margin-bottom: 0.5em;
+    @media (max-width: 768px) {
+      .note-viewer {
+        width: 100%;
+      }
     }
   </style>
 </head>
@@ -367,328 +340,248 @@
     document.addEventListener('DOMContentLoaded', () => initLayout());
   </script>
 
-  <div class="player-layout">
+  <div class="dashboard-container">
+    <!-- Hero -->
+    <div class="topic-hero">
+      <a href="/pages/konular.html" class="back-btn">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M19 12H5M12 19l-7-7 7-7" />
+        </svg>
+        Tüm Konulara Dön
+      </a>
+      <h1 class="topic-title" id="topicTitle">Yükleniyor...</h1>
+      <p class="topic-desc" id="topicDesc">...</p>
+    </div>
 
-    <!-- SOL: Ders Listesi -->
-    <aside class="playlist-sidebar">
-      <div class="playlist-header">
-        <a href="/pages/konular.html" class="text-muted small mb-2 d-block" style="text-decoration:none;">← Konulara
-          Dön</a>
-        <div class="playlist-title" id="topicTitle">Yükleniyor...</div>
-        <div class="playlist-progress">
-          <div class="progress-track">
-            <div class="progress-fill" id="topicProgress" style="width: 0%"></div>
-          </div>
-          <span id="progressText">0%</span>
-        </div>
+    <!-- 1. VİDEO DERSLER -->
+    <div id="sectionVideos" style="display:none;">
+      <div class="category-header">
+        <div class="cat-icon">🎥</div>
+        <h2 class="cat-title">Video Dersler</h2>
       </div>
-      <div class="playlist-items" id="lessonsList">
-        <!-- Dersler JS ile gelecek -->
+      <div id="videoList" class="video-grid"></div>
+    </div>
+
+    <!-- 2. DERS NOTLARI (PDF) -->
+    <div id="sectionPDFs" style="display:none;">
+      <div class="category-header">
+        <div class="cat-icon">📕</div>
+        <h2 class="cat-title">Ders Notları (PDF)</h2>
       </div>
-    </aside>
+      <div id="pdfList" class="pdf-grid"></div>
+    </div>
 
-    <!-- SAĞ: İçerik Alanı -->
-    <main class="player-content" id="mainScroll">
-      <div class="content-wrapper">
-        <div id="contentDisplay">
-          <div class="text-center p-5 text-muted">
-            <div class="spinner-border text-primary mb-3"></div>
-            <p>Ders içeriği yükleniyor...</p>
-          </div>
-        </div>
-
-        <!-- Navigasyon -->
-        <div class="lesson-nav" id="lessonNav" style="display:none;">
-          <button class="btn btn-secondary" id="btnPrev" disabled>← Önceki</button>
-          <button class="btn btn-success" id="btnComplete">✅ Tamamla ve İlerle</button>
-          <button class="btn btn-secondary" id="btnNext" disabled>Sonraki →</button>
-        </div>
+    <!-- 3. ÖZET NOTLAR (HTML) -->
+    <div id="sectionNotes" style="display:none;">
+      <div class="category-header">
+        <div class="cat-icon">📝</div>
+        <h2 class="cat-title">Özet Bilgiler</h2>
       </div>
-    </main>
+      <div id="noteList" class="note-grid"></div>
+    </div>
 
+    <!-- 4. TESTLER -->
+    <div id="sectionTests" style="display:none;">
+      <div class="category-header">
+        <div class="cat-icon">🧠</div>
+        <h2 class="cat-title">Konu Testleri</h2>
+      </div>
+      <div id="testList" class="video-grid"></div>
+    </div>
+  </div>
+
+  <!-- Video Modal -->
+  <div id="videoModal" class="video-modal">
+    <div class="video-wrapper">
+      <span class="close-video" onclick="closeVideo()">×</span>
+      <div id="videoPlayer"></div>
+    </div>
+  </div>
+
+  <!-- Not Görüntüleyici -->
+  <div class="note-overlay" id="noteOverlay" onclick="closeNote()"></div>
+  <div class="note-viewer" id="noteViewer">
+    <span class="close-note" onclick="closeNote()">×</span>
+    <h2 id="noteTitleDisplay" class="mb-4"></h2>
+    <div id="noteBodyDisplay" class="note-body"></div>
   </div>
 
   <script type="module">
-    import { db, auth } from '../js/firebase-config.js';
-    import { doc, getDoc, collection, getDocs, query, orderBy, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-
-    let currentTopicId = null;
-    let lessonsData = [];
-    let userProgress = {};
-    let activeLessonIndex = 0;
+    import { db } from '../js/firebase-config.js';
+    import { doc, getDoc, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     document.addEventListener('DOMContentLoaded', async () => {
       const urlParams = new URLSearchParams(window.location.search);
-      currentTopicId = urlParams.get('id');
+      const topicId = urlParams.get('id');
 
-      if (!currentTopicId) {
+      if (!topicId) {
         window.location.href = '/pages/konular.html';
         return;
       }
 
-      // Auth durumunu beklemeden içeriği yüklemeye başla (Hız için)
-      loadTopicAndLessons();
-
-      onAuthStateChanged(auth, async (user) => {
-        if (user) {
-          await loadUserProgress(user.uid);
-          // İlerleme verisi gelince listeyi güncelle (Tik işaretleri için)
-          renderPlaylist();
-        }
-      });
+      await loadTopicContent(topicId);
     });
 
-    async function loadUserProgress(uid) {
+    async function loadTopicContent(topicId) {
       try {
-        const docRef = doc(db, `users/${uid}/progress/${currentTopicId}`);
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          userProgress = docSnap.data().completedLessons || {};
-        }
-      } catch (e) { console.error("Progress error:", e); }
-    }
+        // 1. Konu Bilgisi
+        const topicSnap = await getDoc(doc(db, "topics", topicId));
+        if (!topicSnap.exists()) return alert("Konu bulunamadı.");
 
-    async function loadTopicAndLessons() {
-      try {
-        // 1. Konu Başlığını Çek
-        const topicSnap = await getDoc(doc(db, "topics", currentTopicId));
-        if (!topicSnap.exists()) {
-          document.getElementById('contentDisplay').innerHTML = '<div class="alert alert-danger">Konu bulunamadı.</div>';
-          return;
-        }
-        document.getElementById('topicTitle').innerText = topicSnap.data().title;
+        const data = topicSnap.data();
+        document.getElementById('topicTitle').innerText = data.title;
+        document.getElementById('topicDesc').innerText = data.description || 'Bu konu için açıklama bulunmuyor.';
+        document.title = `${data.title} | GOLD GYS`;
 
-        // 2. Dersleri (Lessons Subcollection) Çek
-        // DİKKAT: Burası kritik. Admin paneli 'lessons' koleksiyonuna yazıyor.
-        const q = query(collection(db, `topics/${currentTopicId}/lessons`), orderBy("order", "asc"));
+        // 2. Dersleri Çek ve Kategorize Et
+        const q = query(collection(db, `topics/${topicId}/lessons`), orderBy("order", "asc"));
         const snapshot = await getDocs(q);
 
-        lessonsData = [];
-        snapshot.forEach(doc => {
-          // Veri yapısını normalize et
-          const data = doc.data();
-          // Admin panelinde 'materials' dizisi içinde tutuluyorsa onu düzleştirmemiz gerekebilir
-          // Veya her lesson tek bir materyal mi? Admin panelindeki yapıya göre:
-          // Admin panelinde: Bir lesson içinde 'materials' array'i var.
+        const videos = [];
+        const pdfs = [];
+        const notes = [];
 
-          if (data.materials && Array.isArray(data.materials)) {
-            // Eğer dersin içinde birden fazla materyal varsa, bunları alt alta ders gibi gösterebiliriz
-            // Veya dersi ana başlık yapıp, içeriğinde materyalleri gösterebiliriz.
-            // Şimdilik dersi tek parça alalım, içeriğinde materyalleri render edelim.
-            lessonsData.push({ id: doc.id, ...data });
-          } else {
-            // Eski yapı veya tekil yapı
-            lessonsData.push({ id: doc.id, ...data });
+        snapshot.forEach(doc => {
+          const lesson = doc.data();
+          if (lesson.materials) {
+            lesson.materials.forEach(mat => {
+              if (mat.type === 'video') videos.push(mat);
+              else if (mat.type === 'pdf') pdfs.push(mat);
+              else if (mat.type === 'html') notes.push(mat);
+            });
           }
         });
 
-        if (lessonsData.length > 0) {
-          renderPlaylist();
-          loadLesson(0); // İlk dersi aç
-        } else {
-          document.getElementById('contentDisplay').innerHTML = `
-                        <div class="text-center p-5">
-                            <div style="font-size:3rem;">📭</div>
-                            <h3 class="mt-3">Henüz İçerik Eklenmemiş</h3>
-                            <p class="text-muted">Bu konuya ait ders notları hazırlanıyor.</p>
-                        </div>
-                    `;
-        }
+        // Render
+        renderVideos(videos);
+        renderPDFs(pdfs);
+        renderNotes(notes);
+        renderTests(topicId); // Testleri de göster
 
       } catch (error) {
         console.error("Hata:", error);
-        document.getElementById('contentDisplay').innerHTML = `<div class="alert alert-danger">Veri yüklenirken hata oluştu: ${error.message}</div>`;
       }
     }
 
-    function renderPlaylist() {
-      const list = document.getElementById('lessonsList');
-      list.innerHTML = '';
+    function renderVideos(list) {
+      if (list.length === 0) return;
+      document.getElementById('sectionVideos').style.display = 'block';
+      const container = document.getElementById('videoList');
 
-      let completedCount = 0;
+      list.forEach(video => {
+        // YouTube ID ve Thumbnail
+        let videoId = '';
+        try {
+          if (video.url.includes('youtu')) {
+            const urlObj = new URL(video.url.startsWith('http') ? video.url : `https://${video.url}`);
+            if (video.url.includes('watch')) videoId = urlObj.searchParams.get('v');
+            else if (video.url.includes('embed')) videoId = urlObj.pathname.split('/').pop();
+            else if (video.url.includes('youtu.be')) videoId = urlObj.pathname.substring(1);
+          }
+        } catch (e) { }
 
-      lessonsData.forEach((lesson, index) => {
-        const isCompleted = userProgress[lesson.id] === true;
-        if (isCompleted) completedCount++;
-
-        // İkon belirle (İlk materyale göre)
-        let icon = '📄';
-        if (lesson.materials && lesson.materials.length > 0) {
-          const type = lesson.materials[0].type;
-          if (type === 'video') icon = '▶️';
-          else if (type === 'podcast') icon = '🎧';
-        }
+        const thumbUrl = videoId ? `https://img.youtube.com/vi/${videoId}/mqdefault.jpg` : '../img/video-placeholder.jpg';
 
         const div = document.createElement('div');
-        div.className = `lesson-item ${isCompleted ? 'completed' : ''}`;
-        div.id = `lesson-item-${index}`;
-        div.onclick = () => loadLesson(index);
-
+        div.className = 'video-card';
+        div.onclick = () => openVideo(videoId);
         div.innerHTML = `
-                    <div class="status-icon"></div>
-                    <div class="lesson-info">
-                        <div class="lesson-title">${index + 1}. ${lesson.title}</div>
-                        <div class="lesson-duration">${lesson.materials ? lesson.materials.length : 0} Materyal</div>
+                    <div class="video-thumb">
+                        <img src="${thumbUrl}" alt="${video.title}" loading="lazy">
+                        <div class="play-icon">▶</div>
                     </div>
-                    <div class="lesson-icon">${icon}</div>
+                    <div class="video-info">
+                        <span class="video-title">${video.title}</span>
+                        <span class="video-meta">Video Ders</span>
+                    </div>
                 `;
-        list.appendChild(div);
+        container.appendChild(div);
       });
-
-      // Progress Bar
-      const percent = lessonsData.length > 0 ? Math.round((completedCount / lessonsData.length) * 100) : 0;
-      document.getElementById('topicProgress').style.width = `${percent}%`;
-      document.getElementById('progressText').innerText = `%${percent}`;
     }
 
-    function loadLesson(index) {
-      if (index < 0 || index >= lessonsData.length) return;
-      activeLessonIndex = index;
-      const lesson = lessonsData[index];
+    function renderPDFs(list) {
+      if (list.length === 0) return;
+      document.getElementById('sectionPDFs').style.display = 'block';
+      const container = document.getElementById('pdfList');
 
-      // Aktif sınıfı güncelle
-      document.querySelectorAll('.lesson-item').forEach(el => el.classList.remove('active'));
-      const activeItem = document.getElementById(`lesson-item-${index}`);
-      if (activeItem) activeItem.classList.add('active');
+      list.forEach(pdf => {
+        const a = document.createElement('a');
+        a.href = pdf.url;
+        a.target = '_blank';
+        a.className = 'pdf-card';
+        a.innerHTML = `
+                    <div class="pdf-icon">📕</div>
+                    <div class="pdf-info">
+                        <h4>${pdf.title}</h4>
+                        <span>Görüntüle / İndir</span>
+                    </div>
+                `;
+        container.appendChild(a);
+      });
+    }
 
-      const container = document.getElementById('contentDisplay');
-      let contentHtml = '';
+    function renderNotes(list) {
+      if (list.length === 0) return;
+      document.getElementById('sectionNotes').style.display = 'block';
+      const container = document.getElementById('noteList');
 
-      // Materyalleri Döngüye Al (Çoklu Materyal Desteği)
-      if (lesson.materials && lesson.materials.length > 0) {
-        lesson.materials.forEach(mat => {
-          contentHtml += `<div class="material-block mb-5">`;
+      list.forEach(note => {
+        const div = document.createElement('div');
+        div.className = 'note-card';
+        div.onclick = () => openNote(note.title, note.url); // note.url içinde HTML var
+        div.innerHTML = `
+                    <span class="note-title">${note.title}</span>
+                    <span class="text-muted">Oku →</span>
+                `;
+        container.appendChild(div);
+      });
+    }
 
-          // Başlık (Varsa)
-          if (mat.title) contentHtml += `<h3 class="material-title mb-3">${mat.title}</h3>`;
+    function renderTests(topicId) {
+      // Şimdilik demo testler
+      document.getElementById('sectionTests').style.display = 'block';
+      const container = document.getElementById('testList');
 
-          // 1. Video
-          if (mat.type === 'video') {
-            // YouTube ID ayıklama (Sağlam yöntem)
-            let videoId = '';
-            try {
-              if (mat.url.includes('youtu')) {
-                const urlObj = new URL(mat.url);
-                if (mat.url.includes('watch')) videoId = urlObj.searchParams.get('v');
-                else if (mat.url.includes('embed')) videoId = urlObj.pathname.split('/').pop();
-                else if (mat.url.includes('youtu.be')) videoId = urlObj.pathname.substring(1);
-              }
-            } catch (e) { console.warn("Video URL hatası", e); }
-
-            if (videoId) {
-              contentHtml += `
-                                <div class="video-container">
-                                    <iframe src="https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1" frameborder="0" allowfullscreen></iframe>
-                                </div>`;
-            } else {
-              contentHtml += `<div class="alert alert-warning">Geçersiz Video URL: ${mat.url}</div>`;
-            }
-          }
-
-          // 2. PDF
-          else if (mat.type === 'pdf') {
-            contentHtml += `
-                            <div class="pdf-container">
-                                <iframe src="${mat.url}" width="100%" height="100%"></iframe>
-                            </div>
-                            <div class="text-center">
-                                <a href="${mat.url}" target="_blank" class="btn btn-outline-primary btn-sm">
-                                    📄 PDF'i Tam Ekran Aç
-                                </a>
-                            </div>`;
-          }
-
-          // 3. Podcast
-          else if (mat.type === 'podcast') {
-            contentHtml += `
-                            <div class="audio-player-card">
-                                <div class="audio-icon">🎧</div>
-                                <div style="flex:1">
-                                    <div style="font-weight:600; margin-bottom:5px;">Sesli Anlatım</div>
-                                    <audio controls style="width:100%; height:30px;">
-                                        <source src="${mat.url}" type="audio/mpeg">
-                                    </audio>
-                                </div>
-                            </div>`;
-          }
-
-          // 4. HTML Not
-          else if (mat.type === 'html') {
-            contentHtml += `<div class="note-content typography-body">${mat.url}</div>`; // mat.url içinde HTML var
-          }
-
-          contentHtml += `</div>`; // Block sonu
-        });
-      } else {
-        contentHtml = '<div class="text-muted">Bu derse materyal eklenmemiş.</div>';
-      }
-
-      // Render
       container.innerHTML = `
-                <div class="lesson-header">
-                    <h1 class="lesson-main-title">${lesson.title}</h1>
+                <div class="video-card" onclick="window.location.href='/pages/test.html?topic=${topicId}&mode=quick'">
+                    <div class="video-info" style="border-left:4px solid #10b981;">
+                        <span class="video-title">⚡ Hızlı Tarama Testi</span>
+                        <span class="video-meta">20 Soru • Rastgele</span>
+                    </div>
                 </div>
-                <div class="lesson-body">
-                    ${contentHtml}
+                <div class="video-card" onclick="window.location.href='/pages/test.html?topic=${topicId}&mode=full'">
+                    <div class="video-info" style="border-left:4px solid #3b82f6;">
+                        <span class="video-title">📝 Kapsamlı Konu Testi</span>
+                        <span class="video-meta">50 Soru • Tüm Konu</span>
+                    </div>
                 </div>
             `;
-
-      // Navigasyon Butonlarını Göster
-      document.getElementById('lessonNav').style.display = 'flex';
-      updateNavButtons();
-
-      // Scroll Top
-      document.getElementById('mainScroll').scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    function updateNavButtons() {
-      const btnPrev = document.getElementById('btnPrev');
-      const btnNext = document.getElementById('btnNext');
-      const btnComplete = document.getElementById('btnComplete');
+    // --- GLOBAL FONKSİYONLAR ---
+    window.openVideo = (videoId) => {
+      if (!videoId) return alert("Video açılamadı.");
+      const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`;
+      document.getElementById('videoPlayer').innerHTML = `<iframe src="${embedUrl}" frameborder="0" allowfullscreen></iframe>`;
+      document.getElementById('videoModal').style.display = 'flex';
+    };
 
-      btnPrev.disabled = activeLessonIndex === 0;
+    window.closeVideo = () => {
+      document.getElementById('videoModal').style.display = 'none';
+      document.getElementById('videoPlayer').innerHTML = '';
+    };
 
-      // Son ders ise "Bitir" yazsın
-      if (activeLessonIndex === lessonsData.length - 1) {
-        btnNext.style.display = 'none';
-        btnComplete.innerText = "🎉 Konuyu Bitir";
-      } else {
-        btnNext.style.display = 'inline-block';
-        btnNext.disabled = false;
-        btnComplete.innerText = "✅ Tamamla ve İlerle";
-      }
+    window.openNote = (title, content) => {
+      document.getElementById('noteTitleDisplay').innerText = title;
+      document.getElementById('noteBodyDisplay').innerHTML = content;
+      document.getElementById('noteViewer').classList.add('active');
+      document.getElementById('noteOverlay').classList.add('active');
+    };
 
-      btnPrev.onclick = () => loadLesson(activeLessonIndex - 1);
-      btnNext.onclick = () => loadLesson(activeLessonIndex + 1);
-
-      btnComplete.onclick = async () => {
-        const lessonId = lessonsData[activeLessonIndex].id;
-
-        // UI Güncelle
-        userProgress[lessonId] = true;
-        renderPlaylist();
-
-        // DB Kayıt
-        if (auth.currentUser) {
-          try {
-            const uid = auth.currentUser.uid;
-            await setDoc(doc(db, `users/${uid}/progress/${currentTopicId}`), {
-              completedLessons: userProgress,
-              lastUpdated: serverTimestamp()
-            }, { merge: true });
-          } catch (e) { console.error(e); }
-        }
-
-        // İlerle
-        if (activeLessonIndex < lessonsData.length - 1) {
-          loadLesson(activeLessonIndex + 1);
-        } else {
-          alert("Tebrikler! Bu konuyu tamamladınız.");
-          window.location.href = '/pages/konular.html';
-        }
-      };
-    }
+    window.closeNote = () => {
+      document.getElementById('noteViewer').classList.remove('active');
+      document.getElementById('noteOverlay').classList.remove('active');
+    };
   </script>
 </body>
 
