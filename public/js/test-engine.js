@@ -142,16 +142,21 @@ export class TestEngine {
     async saveWrongAnswer(questionId, questionData) {
         try {
             // Kullanıcının 'wrongs' koleksiyonuna ekle
-            // Aynı soru varsa tarihini güncelle (setDoc merge ile)
+            // setDoc ve merge: true kullanarak, varsa günceller yoksa oluşturur
             const wrongRef = doc(db, `users/${auth.currentUser.uid}/wrongs/${questionId}`);
+
             await setDoc(wrongRef, {
                 questionId: questionId,
-                text: questionData.text,
+                text: questionData.text ? questionData.text.substring(0, 150) + "..." : "Soru metni yok",
                 category: questionData.category || 'Genel',
                 lastAttempt: serverTimestamp(),
-                count: increment(1)
+                count: increment(1) // Yanlış sayısını 1 artır
             }, { merge: true });
-        } catch (e) { console.error("Yanlış kayıt hatası:", e); }
+
+            console.log("Yanlış cevap kaydedildi.");
+        } catch (e) {
+            console.error("Yanlış kayıt hatası:", e);
+        }
     }
 
     updateCounters() {
