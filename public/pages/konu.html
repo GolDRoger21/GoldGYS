@@ -5,6 +5,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Konu Detayı | GOLD GYS</title>
+  <link rel="icon"
+    href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230F172A'/><text x='50' y='70' font-family='serif' font-size='60' fill='%23D4AF37' text-anchor='middle' font-weight='bold'>G</text></svg>">
   <link rel="stylesheet" href="../styles/tokens.css">
   <link rel="stylesheet" href="../css/layout.css">
   <link rel="stylesheet" href="../css/dashboard.css">
@@ -181,66 +183,9 @@
       color: var(--text-muted);
     }
 
-    /* --- FULL SCREEN VIEWER (TAM EKRAN DÜZELTME) --- */
-    .viewer-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: var(--bg-body);
-      z-index: 2000;
-      display: none;
-      flex-direction: column;
-      animation: slideUp 0.3s ease;
-    }
+    /* --- FULL SCREEN VIEWER DÜZELTMELERİ --- */
 
-    .viewer-overlay.active {
-      display: flex;
-    }
-
-    .viewer-header {
-      padding: 15px 40px;
-      border-bottom: 1px solid var(--border-color);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: var(--bg-surface);
-      flex-shrink: 0;
-      box-shadow: var(--shadow-sm);
-      z-index: 10;
-    }
-
-    .viewer-title {
-      font-size: 1.2rem;
-      font-weight: 700;
-      color: var(--text-main);
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .close-viewer {
-      background: var(--bg-hover);
-      border: none;
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      color: var(--text-main);
-      font-size: 1.5rem;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: background 0.2s;
-    }
-
-    .close-viewer:hover {
-      background: var(--color-danger);
-      color: white;
-    }
-
-    /* Scroll Bar Düzeltmesi: Body tam ekran, scroll içeride DEĞİL, ana akışta */
+    /* Scroll Bar Gizleme (Ama kaydırma çalışsın) */
     .viewer-body {
       flex: 1;
       overflow-y: auto;
@@ -248,192 +193,94 @@
       width: 100%;
       max-width: 1000px;
       margin: 0 auto;
-      /* Scroll bar'ı güzelleştir */
-      scrollbar-width: thin;
-      scrollbar-color: var(--color-primary) var(--bg-hover);
+      /* Firefox */
+      scrollbar-width: none;
+      /* IE and Edge */
+      -ms-overflow-style: none;
     }
 
-    /* HTML Not Okuyucu (Tam Ekran Hissi) */
-    .note-reader-content {
-      font-size: 1.2rem;
-      line-height: 1.8;
-      color: var(--text-main);
-      font-family: 'Georgia', serif;
-      /* Okuma için serif */
-      background: transparent;
-      /* Kart görünümü kaldırıldı, kağıt hissi */
-      padding: 0;
-      border: none;
-      box-shadow: none;
+    /* Chrome, Safari, Opera için scrollbar gizleme */
+    .viewer-body::-webkit-scrollbar {
+      display: none;
     }
 
-    .note-reader-content h1,
-    .note-reader-content h2,
-    .note-reader-content h3 {
-      font-family: var(--font-family-sans);
-      color: var(--color-primary);
-      margin-top: 1.5em;
-    }
-
-    .note-reader-content ul,
-    .note-reader-content ol {
-      padding-left: 20px;
-      margin-bottom: 1em;
-    }
-
-    .note-reader-content li {
-      margin-bottom: 0.5em;
-    }
-
-    /* Video Modal (TAM EKRAN DÜZELTME) */
+    /* --- VIDEO MODAL DÜZELTMELERİ --- */
     #videoModal {
       position: fixed;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
-      background: black;
+      background: rgba(0, 0, 0, 0.95);
+      /* Tam siyah yerine çok koyu opak */
       z-index: 3000;
-      /* Tamamen siyah arka plan */
       display: none;
       justify-content: center;
       align-items: center;
       flex-direction: column;
+      backdrop-filter: blur(5px);
     }
 
-    /* Video Wrapper: Tam genişlik */
+    /* Video Wrapper: Orantılı ve Merkezde */
     .video-wrapper-modal {
+      position: relative;
+      width: 90%;
+      max-width: 1200px;
+      aspect-ratio: 16 / 9;
+      /* En-Boy oranını kilitler */
+      background: #000;
+      border-radius: 16px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+      overflow: hidden;
+    }
+
+    /* Iframe: Wrapper'ı tam doldurur */
+    .video-wrapper-modal iframe {
       width: 100%;
       height: 100%;
-      max-width: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    /* Iframe: Orantılı ve büyük */
-    .video-wrapper-modal iframe {
-      width: 80vw;
-      height: 80vh;
-      /* Ekranın %80'ini kapla */
-      max-width: 1280px;
-      aspect-ratio: 16/9;
       border: none;
-      box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
     }
 
+    /* Kapatma Butonu: Videonun sağ üst köşesine değil, ekranın sağına sabit */
     .video-close-btn {
       position: absolute;
-      top: 20px;
-      right: 20px;
-      background: rgba(255, 255, 255, 0.2);
+      top: 30px;
+      right: 30px;
+      background: rgba(255, 255, 255, 0.1);
       color: white;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 30px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 12px 24px;
+      border-radius: 50px;
       cursor: pointer;
       font-weight: 600;
-      backdrop-filter: blur(5px);
-      transition: background 0.2s;
+      font-size: 1rem;
+      backdrop-filter: blur(10px);
+      transition: all 0.3s ease;
+      z-index: 3001;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
     .video-close-btn:hover {
-      background: rgba(255, 255, 255, 0.4);
-    }
-
-    /* Liste Görünümü */
-    .content-list-item {
-      display: flex;
-      align-items: center;
-      gap: 20px;
-      padding: 20px;
-      background: var(--bg-surface);
-      border: 1px solid var(--border-color);
-      border-radius: 12px;
-      margin-bottom: 15px;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .content-list-item:hover {
-      transform: translateX(10px);
+      background: var(--color-primary);
+      color: #000;
       border-color: var(--color-primary);
+      transform: translateY(-2px);
     }
 
-    .item-status {
-      width: 24px;
-      height: 24px;
-      border: 2px solid var(--text-muted);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.2s;
-    }
-
-    .item-status.completed {
-      background: var(--color-success);
-      border-color: var(--color-success);
-      color: white;
-    }
-
-    .item-status.completed::after {
-      content: '✓';
-      font-size: 14px;
-      font-weight: bold;
-    }
-
-    @keyframes fadeIn {
-      from {
-        opacity: 0;
-      }
-
-      to {
-        opacity: 1;
-      }
-    }
-
-    @keyframes slideUp {
-      from {
-        transform: translateY(100%);
-      }
-
-      to {
-        transform: translateY(0);
-      }
-    }
-
+    /* Mobil Uyumluluk */
     @media (max-width: 768px) {
-      .topic-hero-card {
-        padding: 30px 20px;
-        text-align: center;
-      }
-
-      .back-link-wrapper {
-        position: static;
-        margin-bottom: 20px;
-        display: flex;
-        justify-content: center;
-      }
-
-      .hub-title {
-        font-size: 1.8rem;
-      }
-
-      .stats-row {
-        flex-direction: column;
-        gap: 10px;
-      }
-
-      .stat-pill {
-        justify-content: center;
+      .video-wrapper-modal {
         width: 100%;
+        border-radius: 0;
       }
 
-      .video-wrapper-modal iframe {
-        width: 100%;
-        height: auto;
-        aspect-ratio: 16/9;
+      .video-close-btn {
+        top: 15px;
+        right: 15px;
+        padding: 8px 16px;
+        font-size: 0.9rem;
       }
     }
   </style>
@@ -520,8 +367,13 @@
   </div>
 
   <!-- Video Modal (TAM EKRAN) -->
+  <!-- Video Modal (TAM EKRAN) -->
   <div id="videoModal">
-    <button class="video-close-btn" onclick="closeVideo()">✕ Kapat</button>
+    <!-- Kapatma butonu wrapper dışına alındı -->
+    <button class="video-close-btn" onclick="closeVideo()">
+      <span>✕</span> Kapat
+    </button>
+
     <div class="video-wrapper-modal">
       <div id="videoPlayer" style="width:100%; height:100%;"></div>
     </div>
@@ -661,23 +513,77 @@
       setTimeout(() => { document.getElementById('viewerContent').innerHTML = ''; }, 300);
     };
 
-    // --- İÇERİK OYNATMA (GÜNCELLENDİ) ---
+    // --- İÇERİK OYNATMA VE OTOMATİK DÜZELTME ---
+
+    // 1. Akıllı İçerik Onarıcı Fonksiyon
+    function processHtmlContent(htmlString) {
+      // HTML'i geçici bir DOM nesnesine çevir
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(htmlString, 'text/html');
+
+      // A) RESİMLERİ ONAR
+      const images = doc.querySelectorAll('img');
+      images.forEach(img => {
+        // Boş src varsa sil
+        if (!img.src || img.src === window.location.href) {
+          img.remove();
+          return;
+        }
+
+        // HTTP -> HTTPS Zorlaması (Güvenlik için)
+        if (img.src.startsWith('http://')) {
+          img.src = img.src.replace('http://', 'https://');
+        }
+
+        // Hata durumunda çalışacak inline kod ekle (Self-Healing)
+        // Resim yüklenemezse (404), konsol hatasını engelleyemeyiz ama
+        // kullanıcıya kırık ikon yerine şık bir placeholder gösterebiliriz veya gizleyebiliriz.
+        img.setAttribute('onerror', "this.onerror=null; this.style.display='none';");
+
+        // Stil iyileştirmesi (Taşmaları engelle)
+        img.style.maxWidth = '100%';
+        img.style.height = 'auto';
+        img.style.borderRadius = '8px';
+        img.style.marginTop = '10px';
+      });
+
+      // B) LİNKLERİ ONAR
+      const links = doc.querySelectorAll('a');
+      links.forEach(link => {
+        // Linkleri yeni sekmede açmaya zorla
+        link.setAttribute('target', '_blank');
+        link.setAttribute('rel', 'noopener noreferrer');
+
+        // Link metni yoksa URL'i metin yap
+        if (!link.innerText.trim()) {
+          link.innerText = "Bağlantıyı Görüntüle";
+        }
+      });
+
+      return doc.body.innerHTML;
+    }
+
+    // 2. Güncellenmiş Oynatma Fonksiyonu
     window.playContent = (item) => {
       const content = document.getElementById('viewerContent');
       const title = document.getElementById('viewerTitle');
 
-      // Geri Butonu
-      title.innerHTML = `<span onclick="openViewer('${item.type}')" style="cursor:pointer; opacity:0.7;">← Geri</span> <span style="margin-left:10px;">${item.title}</span>`;
+      // Geri Butonu ve Başlık
+      title.innerHTML = `
+        <span onclick="openViewer('${item.type}')" style="cursor:pointer; opacity:0.7; display:flex; align-items:center; gap:5px;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            Geri
+        </span> 
+        <span style="margin-left:15px; border-left:1px solid var(--border-color); padding-left:15px;">${item.title}</span>
+      `;
 
       let html = '';
 
       if (item.type === 'video') {
         let videoId = '';
         try {
-          // URL düzeltme (http ekleme)
           let safeUrl = item.url.trim();
           if (!safeUrl.startsWith('http')) safeUrl = `https://${safeUrl}`;
-
           const urlObj = new URL(safeUrl);
 
           if (safeUrl.includes('youtu')) {
@@ -689,11 +595,10 @@
 
         if (videoId) {
           const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`;
-          // Video Player'ı Modal İçine Koy
           document.getElementById('videoPlayer').innerHTML = `<iframe src="${embedUrl}" frameborder="0" allowfullscreen style="width:100%; height:100%;"></iframe>`;
           document.getElementById('videoModal').style.display = 'flex';
           markComplete(item.id);
-          return; // HTML içeriği değiştirmeye gerek yok, modal açıldı
+          return;
         } else {
           alert("Geçersiz video linki.");
         }
@@ -704,25 +609,29 @@
       }
       else if (item.type === 'podcast') {
         html = `
-                    <div class="card p-5 text-center" style="background:var(--bg-surface); border-radius:20px;">
-                        <div style="font-size:4rem; margin-bottom:20px;">🎧</div>
-                        <h3>${item.title}</h3>
-                        <audio controls style="width:100%; margin-top:20px;" autoplay>
-                            <source src="${item.url}" type="audio/mpeg">
-                        </audio>
-                    </div>`;
+            <div class="card p-5 text-center" style="background:var(--bg-surface); border-radius:20px; max-width:600px; margin:0 auto;">
+                <div style="font-size:4rem; margin-bottom:20px;">🎧</div>
+                <h3>${item.title}</h3>
+                <audio controls style="width:100%; margin-top:20px;" autoplay>
+                    <source src="${item.url}" type="audio/mpeg">
+                    Tarayıcınız ses dosyasını desteklemiyor.
+                </audio>
+            </div>`;
       }
       else if (item.type === 'html') {
+        // --- BURADA OTOMATİK DÜZELTME DEVREYE GİRİYOR ---
+        const safeHtml = processHtmlContent(item.url);
+
         html = `
-                    <div class="note-reader-content" style="max-width:800px; margin:0 auto;">
-                        ${item.url}
-                    </div>
-                    <div class="text-center mt-5">
-                        <button class="btn btn-success btn-lg" onclick="markComplete('${item.id}'); openViewer('html');">
-                            ✅ Okudum, Tamamla
-                        </button>
-                    </div>
-                `;
+            <div class="note-reader-content" style="max-width:800px; margin:0 auto;">
+                ${safeHtml}
+            </div>
+            <div class="text-center mt-5" style="padding-bottom: 50px;">
+                <button class="btn btn-success btn-lg" onclick="markComplete('${item.id}'); openViewer('html');">
+                    ✅ Okudum, Tamamla
+                </button>
+            </div>
+        `;
       }
       else if (item.type === 'test') {
         window.location.href = item.url;
