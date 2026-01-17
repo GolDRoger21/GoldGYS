@@ -1,16 +1,18 @@
 import { db } from "../../firebase-config.js";
 import {
-    collection, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, serverTimestamp, query, orderBy, writeBatch
+    collection, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, serverTimestamp, query, orderBy, where, writeBatch
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 let modalElement = null;
 let topicForm = null;
-let currentLessons = []; // Alt konuları (dersleri) hafızada tutmak için
+let currentLessons = [];
+let currentMaterials = []; // Seçili dersin materyalleri
+let activeLessonId = null; // Hangi dersi düzenliyoruz?
 
 export function initTopicsPage() {
-    console.log("🚀 Gelişmiş CMS Başlatılıyor...");
+    console.log("Profesyonel CMS Başlatılıyor...");
     renderTopicsInterface();
-    loadTopics();
+    loadTopics(); // Varsayılan: Tümü
 }
 
 function renderTopicsInterface() {
@@ -20,12 +22,34 @@ function renderTopicsInterface() {
     container.innerHTML = `
         <div class="section-header">
             <div>
-                <h2>📚 Müfredat ve İçerik Yönetimi</h2>
-                <p class="text-muted">Ana konuları ve alt ders içeriklerini buradan yönetin.</p>
+                <h2>📚 Müfredat ve İçerik Stüdyosu</h2>
+                <p class="text-muted">Dersleri yönetin, içerik ekleyin ve müfredatı düzenleyin.</p>
             </div>
-            <button id="btnNewTopic" class="btn btn-primary">➕ Yeni Ana Konu Ekle</button>
+            <div class="d-flex gap-2">
+                <button class="btn btn-secondary" onclick="window.openTrashModal()">🗑️ Çöp Kutusu</button>
+                <button id="btnNewTopic" class="btn btn-primary">➕ Yeni Ana Konu</button>
+            </div>
         </div>
         
+        <!-- Filtreleme ve Arama -->
+        <div class="card mb-4 p-3">
+            <div class="row align-items-center">
+                <div class="col-md-4">
+                    <input type="text" id="searchTopic" class="form-control" placeholder="Konu Ara...">
+                </div>
+                <div class="col-md-3">
+                    <select id="filterCategory" class="form-control">
+                        <option value="all">Tüm Kategoriler</option>
+                        <option value="ortak">Ortak Konular</option>
+                        <option value="alan">Alan Konuları</option>
+                    </select>
+                </div>
+                <div class="col-md-5 text-right">
+                    <small class="text-muted" id="topicCountBadge">0 Konu Listelendi</small>
+                </div>
+            </div>
+        </div>
+
         <div class="card mb-4">
             <div class="table-responsive">
                 <table class="admin-table">
@@ -46,97 +70,153 @@ function renderTopicsInterface() {
             </div>
         </div>
 
-        <!-- Gelişmiş Konu Modal -->
+        <!-- Konu Düzenleme Modalı (Genişletilmiş) -->
         <div id="topicModal" class="modal-overlay" style="display:none;">
-            <div class="modal-content admin-modal-content" style="max-width: 1000px; height: 95vh;">
+            <div class="modal-content admin-modal-content" style="max-width: 1100px; height: 95vh;">
                 <div class="modal-header">
                     <h3 id="topicModalTitle">Konu Düzenle</h3>
                     <button id="btnCloseTopicModal" class="close-btn">&times;</button>
                 </div>
                 
-                <div class="modal-body-scroll" style="display: grid; grid-template-columns: 1fr 2fr; gap: 20px;">
+                <div class="modal-body-scroll" style="display: grid; grid-template-columns: 300px 1fr; gap: 0; padding:0;">
                     
-                    <!-- SOL KOLON: Ana Konu Bilgileri -->
-                    <div class="topic-meta-panel" style="border-right: 1px solid var(--border-color); padding-right: 20px;">
-                        <h4 class="mb-3 text-primary">Ana Konu Bilgileri</h4>
-                        <form id="topicMetaForm">
-                            <input type="hidden" id="editTopicId">
-                            
+                    <!-- SOL KOLON: Ders Listesi -->
+                    <div class="lessons-sidebar" style="border-right: 1px solid var(--border-color); background: var(--bg-body); padding: 20px; overflow-y: auto;">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="mb-0">Dersler</h5>
+                            <button class="btn btn-sm btn-outline-primary" onclick="addNewLessonUI()">+ Ekle</button>
+                        </div>
+                        <div id="lessonsListContainer" class="lessons-nav">
+                            <!-- Ders listesi buraya -->
+                        </div>
+                    </div>
+
+                    <!-- SAĞ KOLON: Editör Alanı -->
+                    <div class="editor-area" style="padding: 20px; overflow-y: auto;">
+                        
+                        <!-- Ana Konu Meta Formu (Varsayılan Görünüm) -->
+                        <div id="topicMetaPanel">
+                            <h4 class="mb-4 border-bottom pb-2">Ana Konu Ayarları</h4>
+                            <form id="topicMetaForm">
+                                <input type="hidden" id="editTopicId">
+                                <div class="row">
+                                    <div class="col-md-8 form-group">
+                                        <label>Konu Başlığı</label>
+                                        <input type="text" id="inpTopicTitle" class="form-control" required>
+                                    </div>
+                                    <div class="col-md-4 form-group">
+                                        <label>Sıra No</label>
+                                        <input type="number" id="inpTopicOrder" class="form-control" required>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 form-group">
+                                        <label>Kategori</label>
+                                        <select id="inpTopicCategory" class="form-control">
+                                            <option value="ortak">Ortak Konular</option>
+                                            <option value="alan">Alan Konuları</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6 form-group">
+                                        <label>Durum</label>
+                                        <select id="inpTopicStatus" class="form-control">
+                                            <option value="true">✅ Aktif</option>
+                                            <option value="false">❌ Pasif</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>Açıklama</label>
+                                    <textarea id="inpTopicDesc" class="form-control" rows="3"></textarea>
+                                </div>
+                                <div class="text-right">
+                                    <button type="button" id="btnSaveMeta" class="btn btn-success">💾 Ana Konuyu Kaydet</button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- Ders İçerik Editörü (Ders seçilince görünür) -->
+                        <div id="lessonEditorPanel" style="display:none;">
+                            <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
+                                <h4 class="mb-0">Ders İçeriği Düzenle</h4>
+                                <div>
+                                    <button class="btn btn-sm btn-danger" onclick="deleteCurrentLesson()">🗑️ Dersi Sil</button>
+                                    <button class="btn btn-sm btn-success" onclick="saveCurrentLesson()">💾 Dersi Kaydet</button>
+                                </div>
+                            </div>
+
                             <div class="form-group">
-                                <label>Konu Başlığı</label>
-                                <input type="text" id="inpTopicTitle" class="form-control" placeholder="Örn: Anayasa Hukuku" required>
+                                <label>Ders Başlığı</label>
+                                <input type="text" id="inpLessonTitle" class="form-control">
                             </div>
                             
                             <div class="row">
-                                <div class="col-6 form-group">
+                                <div class="col-md-6 form-group">
                                     <label>Sıra No</label>
-                                    <input type="number" id="inpTopicOrder" class="form-control" required>
+                                    <input type="number" id="inpLessonOrder" class="form-control">
                                 </div>
-                                <div class="col-6 form-group">
-                                    <label>Kategori</label>
-                                    <select id="inpTopicCategory" class="form-control">
-                                        <option value="ortak">Ortak Konular</option>
-                                        <option value="alan">Alan Konuları</option>
+                                <div class="col-md-6 form-group">
+                                    <label>Durum</label>
+                                    <select id="inpLessonStatus" class="form-control">
+                                        <option value="true">✅ Aktif</option>
+                                        <option value="false">❌ Pasif</option>
                                     </select>
                                 </div>
                             </div>
 
-                            <div class="form-group">
-                                <label>Soru Hedefi</label>
-                                <input type="number" id="inpTopicTarget" class="form-control" value="0">
-                            </div>
-
-                            <div class="form-group">
-                                <label>Açıklama</label>
-                                <textarea id="inpTopicDesc" class="form-control" rows="3"></textarea>
-                            </div>
+                            <hr class="border-subtle my-4">
                             
-                            <button type="button" id="btnSaveMeta" class="btn btn-success w-100 mt-3">💾 Ana Konuyu Kaydet</button>
-                        </form>
-                    </div>
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <label class="mb-0 font-weight-bold">Materyaller (Çoklu Ekleme)</label>
+                                <div class="btn-group">
+                                    <button class="btn btn-sm btn-secondary" onclick="addMaterial('pdf')">+ PDF</button>
+                                    <button class="btn btn-sm btn-secondary" onclick="addMaterial('video')">+ Video</button>
+                                    <button class="btn btn-sm btn-secondary" onclick="addMaterial('podcast')">+ Podcast</button>
+                                    <button class="btn btn-sm btn-secondary" onclick="addMaterial('html')">+ Not</button>
+                                </div>
+                            </div>
 
-                    <!-- SAĞ KOLON: Dersler (Alt Konular) -->
-                    <div class="lessons-panel">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h4 class="mb-0 text-primary">Dersler (Alt Başlıklar)</h4>
-                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="addNewLessonUI()">+ Ders Ekle</button>
-                        </div>
-                        
-                        <div id="lessonsContainer" class="lessons-list" style="max-height: 600px; overflow-y: auto;">
-                            <div class="text-center text-muted p-4 border rounded bg-hover" id="emptyLessonsMsg">
-                                Bu konuya ait ders bulunamadı.
+                            <div id="materialsList" class="materials-container">
+                                <!-- Materyaller buraya -->
                             </div>
                         </div>
+
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Çöp Kutusu Modalı -->
+        <div id="trashModal" class="modal-overlay" style="display:none;">
+            <div class="modal-content admin-modal-content">
+                <div class="modal-header">
+                    <h3>🗑️ Geri Dönüşüm Kutusu</h3>
+                    <button onclick="document.getElementById('trashModal').style.display='none'" class="close-btn">&times;</button>
+                </div>
+                <div class="modal-body-scroll">
+                    <table class="admin-table">
+                        <thead><tr><th>Tür</th><th>Başlık</th><th>Silinme Tarihi</th><th>İşlem</th></tr></thead>
+                        <tbody id="trashTableBody"></tbody>
+                    </table>
                 </div>
             </div>
         </div>
     `;
 
-    // CSS Ekleme (Dinamik)
+    // CSS
     const style = document.createElement('style');
     style.innerHTML = `
-        .lesson-item {
-            background: var(--bg-body);
-            border: 1px solid var(--border-color);
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            position: relative;
-            transition: border-color 0.2s;
+        .lessons-nav .nav-item {
+            padding: 10px; border-radius: 6px; cursor: pointer; margin-bottom: 5px;
+            border: 1px solid transparent; transition: all 0.2s;
         }
-        .lesson-item:hover { border-color: var(--color-primary); }
-        .lesson-header {
-            display: flex; justify-content: space-between; align-items: center;
-            margin-bottom: 10px; cursor: pointer;
-        }
-        .lesson-body { display: none; padding-top: 10px; border-top: 1px solid var(--border-color); }
-        .lesson-item.active .lesson-body { display: block; }
-        .lesson-item.active .toggle-icon { transform: rotate(180deg); }
+        .lessons-nav .nav-item:hover { background: var(--bg-hover); }
+        .lessons-nav .nav-item.active { background: rgba(212, 175, 55, 0.1); border-color: var(--color-primary); color: var(--color-primary); font-weight: 600; }
         
-        .content-type-badge {
-            font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; margin-right: 5px;
-            background: var(--bg-surface); border: 1px solid var(--border-color);
+        .material-row {
+            background: var(--bg-body); border: 1px solid var(--border-color);
+            padding: 15px; border-radius: 8px; margin-bottom: 10px;
+            display: grid; grid-template-columns: 40px 1fr auto; gap: 15px; align-items: start;
         }
     `;
     document.head.appendChild(style);
@@ -144,286 +224,339 @@ function renderTopicsInterface() {
     modalElement = document.getElementById('topicModal');
     topicForm = document.getElementById('topicMetaForm');
 
+    // Event Listeners
     document.getElementById('btnNewTopic').addEventListener('click', () => openTopicEditor());
     document.getElementById('btnCloseTopicModal').addEventListener('click', closeTopicModal);
     document.getElementById('btnSaveMeta').addEventListener('click', handleSaveTopicMeta);
 
-    // Global fonksiyonlar
+    // Arama ve Filtreleme
+    document.getElementById('searchTopic').addEventListener('input', filterTopics);
+    document.getElementById('filterCategory').addEventListener('change', filterTopics);
+
+    // Global Fonksiyonlar
     window.openTopicEditor = openTopicEditor;
     window.closeTopicModal = closeTopicModal;
-    window.deleteTopic = deleteTopic;
+    window.softDeleteTopic = softDeleteTopic;
     window.addNewLessonUI = addNewLessonUI;
-    window.toggleLessonBody = toggleLessonBody;
-    window.deleteLesson = deleteLesson;
-    window.saveLesson = saveLesson;
+    window.selectLesson = selectLesson;
+    window.saveCurrentLesson = saveCurrentLesson;
+    window.deleteCurrentLesson = deleteCurrentLesson;
+    window.addMaterial = addMaterial;
+    window.removeMaterial = removeMaterial;
+    window.openTrashModal = openTrashModal;
+    window.restoreItem = restoreItem;
+    window.permanentDelete = permanentDelete;
 }
 
-// --- ANA KONU İŞLEMLERİ ---
+// --- LİSTELEME VE FİLTRELEME ---
+
+let allTopicsCache = [];
 
 async function loadTopics() {
     const tbody = document.getElementById('topicsTableBody');
-    if (!tbody) return;
+    tbody.innerHTML = '<tr><td colspan="6" class="text-center">Yükleniyor...</td></tr>';
 
     try {
+        // Sadece silinmemiş (isActive !== 'deleted') konuları getir
+        // Not: Firestore'da 'deleted' statusu kullanacağız
         const q = query(collection(db, "topics"), orderBy("order", "asc"));
         const snapshot = await getDocs(q);
 
-        if (snapshot.empty) {
-            tbody.innerHTML = '<tr><td colspan="6" class="text-center">Henüz konu eklenmemiş.</td></tr>';
-            return;
-        }
-
-        tbody.innerHTML = '';
-        snapshot.forEach(docSnap => {
-            const data = docSnap.data();
-            // Alt koleksiyon sayısını çekmek maliyetli olabilir, şimdilik 'lessonCount' alanını kullanacağız (varsa)
-            const lessonCount = data.lessonCount || 0;
-
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td>${data.order || '-'}</td>
-                <td><strong>${data.title}</strong></td>
-                <td><span class="badge badge-${data.category}">${data.category === 'ortak' ? 'Ortak' : 'Alan'}</span></td>
-                <td>${lessonCount} Ders</td>
-                <td>${data.isActive ? '✅ Aktif' : '❌ Pasif'}</td>
-                <td>
-                    <button class="btn btn-sm btn-primary" onclick="window.openTopicEditor('${docSnap.id}')">✏️ Düzenle</button>
-                    <button class="btn btn-sm btn-danger" onclick="window.deleteTopic('${docSnap.id}')">🗑️</button>
-                </td>
-            `;
-            tbody.appendChild(tr);
+        allTopicsCache = [];
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            if (data.status !== 'deleted') {
+                allTopicsCache.push({ id: doc.id, ...data });
+            }
         });
 
+        filterTopics(); // Listeyi çiz
+
     } catch (error) {
-        console.error("Hata:", error);
+        console.error(error);
         tbody.innerHTML = `<tr><td colspan="6" class="text-danger">Hata: ${error.message}</td></tr>`;
     }
 }
 
+function filterTopics() {
+    const search = document.getElementById('searchTopic').value.toLowerCase();
+    const category = document.getElementById('filterCategory').value;
+    const tbody = document.getElementById('topicsTableBody');
+    const badge = document.getElementById('topicCountBadge');
+
+    const filtered = allTopicsCache.filter(t => {
+        const matchSearch = t.title.toLowerCase().includes(search);
+        const matchCat = category === 'all' || t.category === category;
+        return matchSearch && matchCat;
+    });
+
+    badge.innerText = `${filtered.length} Konu Listelendi`;
+    tbody.innerHTML = '';
+
+    if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">Kayıt bulunamadı.</td></tr>';
+        return;
+    }
+
+    filtered.forEach(t => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${t.order}</td>
+            <td><strong>${t.title}</strong></td>
+            <td><span class="badge badge-${t.category}">${t.category === 'ortak' ? 'Ortak' : 'Alan'}</span></td>
+            <td>${t.lessonCount || 0} Ders</td>
+            <td>${t.isActive ? '✅ Aktif' : '❌ Pasif'}</td>
+            <td>
+                <button class="btn btn-sm btn-primary" onclick="window.openTopicEditor('${t.id}')">✏️</button>
+                <button class="btn btn-sm btn-danger" onclick="window.softDeleteTopic('${t.id}')">🗑️</button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+// --- EDİTÖR İŞLEMLERİ ---
+
 async function openTopicEditor(id = null) {
     modalElement.style.display = 'flex';
     topicForm.reset();
-    document.getElementById('lessonsContainer').innerHTML = '';
-    currentLessons = [];
+    document.getElementById('lessonsListContainer').innerHTML = '';
+    document.getElementById('lessonEditorPanel').style.display = 'none';
+    document.getElementById('topicMetaPanel').style.display = 'block';
 
     if (id) {
-        document.getElementById('topicModalTitle').innerText = "Konu ve Dersleri Düzenle";
+        document.getElementById('topicModalTitle').innerText = "Konu Düzenle";
         document.getElementById('editTopicId').value = id;
 
-        try {
-            // 1. Ana Konuyu Çek
-            const docSnap = await getDoc(doc(db, "topics", id));
-            if (docSnap.exists()) {
-                const data = docSnap.data();
-                document.getElementById('inpTopicTitle').value = data.title;
-                document.getElementById('inpTopicOrder').value = data.order;
-                document.getElementById('inpTopicCategory').value = data.category;
-                document.getElementById('inpTopicTarget').value = data.totalQuestionTarget;
-                document.getElementById('inpTopicDesc').value = data.description || '';
+        const topic = allTopicsCache.find(t => t.id === id);
+        if (topic) {
+            document.getElementById('inpTopicTitle').value = topic.title;
+            document.getElementById('inpTopicOrder').value = topic.order;
+            document.getElementById('inpTopicCategory').value = topic.category;
+            document.getElementById('inpTopicStatus').value = topic.isActive.toString();
+            document.getElementById('inpTopicDesc').value = topic.description || '';
 
-                // 2. Alt Dersleri (Lessons) Çek
-                loadLessons(id);
-            }
-        } catch (e) { console.error(e); }
+            loadLessons(id);
+        }
     } else {
         document.getElementById('topicModalTitle').innerText = "Yeni Konu Ekle";
         document.getElementById('editTopicId').value = "";
-        document.getElementById('emptyLessonsMsg').innerText = "Önce ana konuyu kaydedin, sonra ders ekleyebilirsiniz.";
-        document.querySelector('.lessons-panel button').disabled = true; // Kaydetmeden ders eklenemez
     }
 }
 
 async function handleSaveTopicMeta() {
     const id = document.getElementById('editTopicId').value;
-
     const data = {
         title: document.getElementById('inpTopicTitle').value,
         order: parseInt(document.getElementById('inpTopicOrder').value),
         category: document.getElementById('inpTopicCategory').value,
-        totalQuestionTarget: parseInt(document.getElementById('inpTopicTarget').value),
+        isActive: document.getElementById('inpTopicStatus').value === 'true',
         description: document.getElementById('inpTopicDesc').value,
-        isActive: true,
         updatedAt: serverTimestamp()
     };
 
     try {
-        let topicId = id;
         if (id) {
             await updateDoc(doc(db, "topics", id), data);
         } else {
             data.createdAt = serverTimestamp();
             data.lessonCount = 0;
-            const docRef = await addDoc(collection(db, "topics"), data);
-            topicId = docRef.id;
-            document.getElementById('editTopicId').value = topicId;
-
-            // Yeni kayıt sonrası ders eklemeyi aktif et
-            document.querySelector('.lessons-panel button').disabled = false;
-            document.getElementById('emptyLessonsMsg').innerText = "Şimdi ders ekleyebilirsiniz.";
+            data.status = 'active';
+            const ref = await addDoc(collection(db, "topics"), data);
+            document.getElementById('editTopicId').value = ref.id;
         }
-
-        alert("Ana konu bilgileri kaydedildi.");
-        loadTopics(); // Listeyi yenile
-    } catch (error) {
-        alert("Hata: " + error.message);
-    }
+        alert("Ana konu kaydedildi.");
+        loadTopics();
+    } catch (e) { alert("Hata: " + e.message); }
 }
 
-// --- DERS (LESSON) İŞLEMLERİ ---
+// --- DERS YÖNETİMİ ---
 
 async function loadLessons(topicId) {
-    const container = document.getElementById('lessonsContainer');
-    container.innerHTML = '<div class="text-center p-3">Dersler yükleniyor...</div>';
+    const container = document.getElementById('lessonsListContainer');
+    container.innerHTML = '<div class="text-center p-2">Yükleniyor...</div>';
 
-    try {
-        const q = query(collection(db, `topics/${topicId}/lessons`), orderBy("order", "asc"));
-        const snapshot = await getDocs(q);
+    const q = query(collection(db, `topics/${topicId}/lessons`), orderBy("order", "asc"));
+    const snapshot = await getDocs(q);
 
-        container.innerHTML = '';
-        if (snapshot.empty) {
-            container.innerHTML = '<div class="text-center text-muted p-3 border rounded" id="emptyLessonsMsg">Henüz ders eklenmemiş.</div>';
-            return;
-        }
+    container.innerHTML = '';
+    currentLessons = [];
 
-        snapshot.forEach(docSnap => {
-            renderLessonItem(docSnap.id, docSnap.data());
-        });
-    } catch (e) {
-        console.error(e);
-        container.innerHTML = '<div class="text-danger">Dersler yüklenemedi.</div>';
-    }
+    snapshot.forEach(doc => {
+        const data = { id: doc.id, ...doc.data() };
+        currentLessons.push(data);
+
+        const div = document.createElement('div');
+        div.className = 'nav-item';
+        div.innerText = `${data.order}. ${data.title}`;
+        div.onclick = () => selectLesson(data.id);
+        container.appendChild(div);
+    });
+}
+
+function selectLesson(lessonId) {
+    activeLessonId = lessonId;
+    const lesson = currentLessons.find(l => l.id === lessonId);
+
+    // UI Güncelle
+    document.getElementById('topicMetaPanel').style.display = 'none';
+    document.getElementById('lessonEditorPanel').style.display = 'block';
+
+    // Formu Doldur
+    document.getElementById('inpLessonTitle').value = lesson.title;
+    document.getElementById('inpLessonOrder').value = lesson.order;
+    document.getElementById('inpLessonStatus').value = lesson.isActive.toString();
+
+    // Materyalleri Yükle
+    currentMaterials = lesson.materials || [];
+    renderMaterials();
 }
 
 function addNewLessonUI() {
-    const container = document.getElementById('lessonsContainer');
-    const emptyMsg = document.getElementById('emptyLessonsMsg');
-    if (emptyMsg) emptyMsg.style.display = 'none';
-
-    // Geçici ID (Kaydedilince gerçek ID alacak)
-    const tempId = 'new_' + Date.now();
-    renderLessonItem(tempId, { title: '', order: 0, content: '', videoUrl: '', pdfUrl: '', podcastUrl: '' }, true);
-}
-
-function renderLessonItem(id, data, isNew = false) {
-    const container = document.getElementById('lessonsContainer');
-    const div = document.createElement('div');
-    div.className = `lesson-item ${isNew ? 'active' : ''}`;
-    div.id = `lesson-${id}`;
-
-    div.innerHTML = `
-        <div class="lesson-header" onclick="window.toggleLessonBody('${id}')">
-            <div>
-                <span class="badge badge-secondary mr-2">#${data.order || 0}</span>
-                <strong>${data.title || 'Yeni Ders'}</strong>
-            </div>
-            <span class="toggle-icon">▼</span>
-        </div>
-        <div class="lesson-body">
-            <div class="form-group">
-                <label>Ders Başlığı</label>
-                <input type="text" class="form-control l-title" value="${data.title || ''}" placeholder="Örn: Temel Haklar">
-            </div>
-            <div class="row">
-                <div class="col-6 form-group">
-                    <label>Sıra No</label>
-                    <input type="number" class="form-control l-order" value="${data.order || 0}">
-                </div>
-                <div class="col-6 form-group">
-                    <label>Video URL (YouTube)</label>
-                    <input type="text" class="form-control l-video" value="${data.videoUrl || ''}" placeholder="https://youtube.com/...">
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-6 form-group">
-                    <label>PDF URL</label>
-                    <input type="text" class="form-control l-pdf" value="${data.pdfUrl || ''}" placeholder="https://...">
-                </div>
-                <div class="col-6 form-group">
-                    <label>Podcast URL</label>
-                    <input type="text" class="form-control l-podcast" value="${data.podcastUrl || ''}" placeholder="https://...">
-                </div>
-            </div>
-            <div class="form-group">
-                <label>Ders Notu (HTML/Metin)</label>
-                <textarea class="form-control l-content" rows="4" placeholder="Ders içeriği...">${data.content || ''}</textarea>
-            </div>
-            <div class="text-right mt-2">
-                <button type="button" class="btn btn-sm btn-danger" onclick="window.deleteLesson('${id}')">Sil</button>
-                <button type="button" class="btn btn-sm btn-success" onclick="window.saveLesson('${id}')">Kaydet</button>
-            </div>
-        </div>
-    `;
-
-    // Yeni eklenen dersi en başa veya sona ekle
-    if (isNew) container.prepend(div);
-    else container.appendChild(div);
-}
-
-function toggleLessonBody(id) {
-    const el = document.getElementById(`lesson-${id}`);
-    if (el) el.classList.toggle('active');
-}
-
-async function saveLesson(id) {
     const topicId = document.getElementById('editTopicId').value;
-    const el = document.getElementById(`lesson-${id}`);
+    if (!topicId) return alert("Önce ana konuyu kaydedin.");
 
+    activeLessonId = null; // Yeni kayıt
+    document.getElementById('topicMetaPanel').style.display = 'none';
+    document.getElementById('lessonEditorPanel').style.display = 'block';
+
+    // Formu Temizle
+    document.getElementById('inpLessonTitle').value = "";
+    document.getElementById('inpLessonOrder').value = currentLessons.length + 1;
+    currentMaterials = [];
+    renderMaterials();
+}
+
+function addMaterial(type) {
+    currentMaterials.push({
+        id: Date.now(),
+        type: type,
+        title: '',
+        url: '',
+        desc: ''
+    });
+    renderMaterials();
+}
+
+function removeMaterial(id) {
+    currentMaterials = currentMaterials.filter(m => m.id !== id);
+    renderMaterials();
+}
+
+function renderMaterials() {
+    const container = document.getElementById('materialsList');
+    container.innerHTML = '';
+
+    currentMaterials.forEach(mat => {
+        const div = document.createElement('div');
+        div.className = 'material-row';
+
+        let icon = '📄';
+        if (mat.type === 'video') icon = '▶️';
+        if (mat.type === 'podcast') icon = '🎧';
+        if (mat.type === 'html') icon = '📝';
+
+        div.innerHTML = `
+            <div class="mat-icon" style="font-size:1.5rem;">${icon}</div>
+            <div class="mat-content d-grid gap-2">
+                <input type="text" class="form-control form-control-sm mat-title" placeholder="Başlık" value="${mat.title}">
+                ${mat.type === 'html'
+                ? `<textarea class="form-control form-control-sm mat-url" rows="3" placeholder="İçerik...">${mat.url}</textarea>`
+                : `<input type="text" class="form-control form-control-sm mat-url" placeholder="URL" value="${mat.url}">`
+            }
+            </div>
+            <button class="btn btn-sm btn-danger" onclick="removeMaterial(${mat.id})">X</button>
+        `;
+
+        // Binding
+        div.querySelector('.mat-title').addEventListener('input', (e) => mat.title = e.target.value);
+        div.querySelector('.mat-url').addEventListener('input', (e) => mat.url = e.target.value);
+
+        container.appendChild(div);
+    });
+}
+
+async function saveCurrentLesson() {
+    const topicId = document.getElementById('editTopicId').value;
     const data = {
-        title: el.querySelector('.l-title').value,
-        order: parseInt(el.querySelector('.l-order').value),
-        videoUrl: el.querySelector('.l-video').value,
-        pdfUrl: el.querySelector('.l-pdf').value,
-        podcastUrl: el.querySelector('.l-podcast').value,
-        content: el.querySelector('.l-content').value,
+        title: document.getElementById('inpLessonTitle').value,
+        order: parseInt(document.getElementById('inpLessonOrder').value),
+        isActive: document.getElementById('inpLessonStatus').value === 'true',
+        materials: currentMaterials,
         updatedAt: serverTimestamp()
     };
 
     try {
-        if (id.startsWith('new_')) {
-            // Yeni kayıt
+        if (activeLessonId) {
+            await updateDoc(doc(db, `topics/${topicId}/lessons`, activeLessonId), data);
+        } else {
             data.createdAt = serverTimestamp();
             await addDoc(collection(db, `topics/${topicId}/lessons`), data);
-            // Ana konudaki ders sayısını artır (Opsiyonel ama iyi olur)
+            // Ders sayısını güncelle (Cloud Function yoksa manuel)
             // await updateDoc(doc(db, "topics", topicId), { lessonCount: increment(1) });
-        } else {
-            // Güncelleme
-            await updateDoc(doc(db, `topics/${topicId}/lessons`, id), data);
         }
-
         alert("Ders kaydedildi.");
-        loadLessons(topicId); // Listeyi yenile (ID'leri düzeltmek için)
-    } catch (e) {
-        alert("Hata: " + e.message);
-    }
+        loadLessons(topicId);
+    } catch (e) { alert("Hata: " + e.message); }
 }
 
-async function deleteLesson(id) {
-    if (!confirm("Bu dersi silmek istediğinize emin misiniz?")) return;
+// --- ÇÖP KUTUSU (SOFT DELETE) ---
 
-    const topicId = document.getElementById('editTopicId').value;
+async function softDeleteTopic(id) {
+    if (!confirm("Bu konuyu çöp kutusuna taşımak istiyor musunuz?")) return;
+    try {
+        await updateDoc(doc(db, "topics", id), {
+            status: 'deleted',
+            deletedAt: serverTimestamp()
+        });
+        loadTopics();
+    } catch (e) { alert("Hata: " + e.message); }
+}
 
-    if (id.startsWith('new_')) {
-        document.getElementById(`lesson-${id}`).remove();
-    } else {
-        try {
-            await deleteDoc(doc(db, `topics/${topicId}/lessons`, id));
-            document.getElementById(`lesson-${id}`).remove();
-        } catch (e) { alert("Silme hatası: " + e.message); }
+async function openTrashModal() {
+    const modal = document.getElementById('trashModal');
+    const tbody = document.getElementById('trashTableBody');
+    modal.style.display = 'flex';
+    tbody.innerHTML = '<tr><td colspan="4">Yükleniyor...</td></tr>';
+
+    const q = query(collection(db, "topics"), where("status", "==", "deleted"));
+    const snapshot = await getDocs(q);
+
+    tbody.innerHTML = '';
+    if (snapshot.empty) {
+        tbody.innerHTML = '<tr><td colspan="4">Çöp kutusu boş.</td></tr>';
+        return;
+    }
+
+    snapshot.forEach(doc => {
+        const data = doc.data();
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>Konu</td>
+            <td>${data.title}</td>
+            <td>${data.deletedAt ? new Date(data.deletedAt.seconds * 1000).toLocaleDateString() : '-'}</td>
+            <td>
+                <button class="btn btn-sm btn-success" onclick="window.restoreItem('${doc.id}')">Geri Yükle</button>
+                <button class="btn btn-sm btn-danger" onclick="window.permanentDelete('${doc.id}')">Kalıcı Sil</button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+async function restoreItem(id) {
+    await updateDoc(doc(db, "topics", id), { status: 'active', deletedAt: null });
+    openTrashModal(); // Listeyi yenile
+    loadTopics(); // Ana listeyi yenile
+}
+
+async function permanentDelete(id) {
+    if (confirm("BU İŞLEM GERİ ALINAMAZ! Kalıcı olarak silinsin mi?")) {
+        await deleteDoc(doc(db, "topics", id));
+        openTrashModal();
     }
 }
 
 function closeTopicModal() {
     modalElement.style.display = 'none';
-}
-
-async function deleteTopic(id) {
-    if (confirm("Bu konuyu silmek istediğinize emin misiniz? (DİKKAT: Altındaki dersler de silinmeli)")) {
-        try {
-            // Not: Firestore'da parent silinince subcollection silinmez. 
-            // Gerçek bir uygulamada Cloud Function ile recursive delete yapılmalı.
-            // Şimdilik sadece topic'i siliyoruz.
-            await deleteDoc(doc(db, "topics", id));
-            loadTopics();
-        } catch (e) { alert("Silme hatası: " + e.message); }
-    }
 }
