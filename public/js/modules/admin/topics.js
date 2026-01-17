@@ -476,28 +476,56 @@ function renderMaterials() {
     });
 }
 
+// --- EKSİK OLAN FONKSİYONLAR ---
+
+async function deleteCurrentLesson() {
+    if (!activeLessonId) return alert("Silinecek ders seçilmedi.");
+
+    if (confirm("Bu dersi silmek istediğinize emin misiniz?")) {
+        const topicId = document.getElementById('editTopicId').value;
+        try {
+            await deleteDoc(doc(db, `topics/${topicId}/lessons`, activeLessonId));
+            alert("Ders silindi.");
+
+            // UI Temizle
+            document.getElementById('lessonEditorPanel').style.display = 'none';
+            document.getElementById('topicMetaPanel').style.display = 'block';
+            activeLessonId = null;
+
+            // Listeyi Yenile
+            loadLessons(topicId);
+        } catch (e) {
+            alert("Silme hatası: " + e.message);
+        }
+    }
+}
+
 async function saveCurrentLesson() {
     const topicId = document.getElementById('editTopicId').value;
+    if (!topicId) return alert("Ana konu ID bulunamadı.");
+
     const data = {
         title: document.getElementById('inpLessonTitle').value,
-        order: parseInt(document.getElementById('inpLessonOrder').value),
+        order: parseInt(document.getElementById('inpLessonOrder').value) || 0,
         isActive: document.getElementById('inpLessonStatus').value === 'true',
-        materials: currentMaterials,
+        materials: currentMaterials, // Global değişkenden al
         updatedAt: serverTimestamp()
     };
 
     try {
         if (activeLessonId) {
+            // Güncelleme
             await updateDoc(doc(db, `topics/${topicId}/lessons`, activeLessonId), data);
         } else {
+            // Yeni Kayıt
             data.createdAt = serverTimestamp();
             await addDoc(collection(db, `topics/${topicId}/lessons`), data);
-            // Ders sayısını güncelle (Cloud Function yoksa manuel)
-            // await updateDoc(doc(db, "topics", topicId), { lessonCount: increment(1) });
         }
-        alert("Ders kaydedildi.");
-        loadLessons(topicId);
-    } catch (e) { alert("Hata: " + e.message); }
+        alert("Ders başarıyla kaydedildi.");
+        loadLessons(topicId); // Listeyi yenile
+    } catch (e) {
+        alert("Hata: " + e.message);
+    }
 }
 
 // --- ÇÖP KUTUSU (SOFT DELETE) ---
