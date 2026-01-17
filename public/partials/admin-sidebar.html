@@ -1,54 +1,41 @@
-<div class="sidebar-header">
-    <a href="/admin/index.html" class="brand-logo">GOLD <span style="color: var(--gold-primary);">YÖNETİM</span></a>
-    <button class="close-sidebar-btn" id="closeSidebar">✕</button>
-</div>
-
-<div class="sidebar-user-info">
-    <div class="user-details">
-        <div class="user-name" id="sidebarUserName">Yönetici</div>
-        <div class="user-role" id="sidebarUserRole">Sistem Yöneticisi</div>
-    </div>
-</div>
-
 <nav class="sidebar-nav">
-    <div class="nav-label">GENEL</div>
-    <a href="#" class="nav-item active" data-tab="dashboard">
-        <span class="icon">📊</span> Genel Bakış
+    <div class="nav-label">Yönetim</div>
+
+    <a href="/admin/index.html" class="nav-item" data-tab="dashboard" title="Admin Paneli">
+        <span class="icon">📊</span>
+        <span>Genel Bakış</span>
+    </a>
+    <a href="#users" class="nav-item" data-tab="users" title="Üye Yönetimi">
+        <span class="icon">👥</span>
+        <span>Üyeler</span>
     </a>
 
-    <div class="nav-label">SINAV MERKEZİ</div>
-    <a href="#" class="nav-item" data-tab="exams">
-        <span class="icon">📝</span> Deneme Sınavları
+    <div class="nav-label">İçerik</div>
+
+    <a href="#content" class="nav-item" data-tab="content" title="Soru Bankası">
+        <span class="icon">📚</span>
+        <span>Sorular</span>
     </a>
-    <a href="#" class="nav-item" data-tab="content">
-        <span class="icon">📚</span> Soru Bankası
+    <a href="#exams" class="nav-item" data-tab="exams" title="Deneme Sınavları">
+        <span class="icon">📝</span>
+        <span>Denemeler</span>
     </a>
-    <a href="#" class="nav-item" data-tab="importer">
-        <span class="icon">📥</span> Toplu Soru Yükle
+    <a href="#importer" class="nav-item" data-tab="importer" title="Toplu Yükleme">
+        <span class="icon">📥</span>
+        <span>İçe Aktar</span>
     </a>
 
-    <div class="admin-only" style="display: none;">
-        <div class="nav-label">YÖNETİM & SİSTEM</div>
-        <a href="#" class="nav-item" data-tab="users">
-            <span class="icon">👥</span> Üye Yönetimi
-        </a>
-        <a href="#" class="nav-item" data-tab="legislation">
-            <span class="icon">⚖️</span> Mevzuat Takibi
-        </a>
-        <a href="#" class="nav-item" data-tab="reports">
-            <span class="icon">🚩</span> Hata Bildirimleri
-        </a>
-    </div>
+    <div class="nav-label">Sistem</div>
 
-    <div class="sidebar-footer-link">
-        <a href="/pages/dashboard.html" class="nav-item">
-            <span class="icon">⬅️</span> Siteye Dön
-        </a>
-    </div>
+    <a href="#reports" class="nav-item" data-tab="reports" title="Hata Bildirimleri">
+        <span class="icon">🚩</span>
+        <span>Bildirimler</span>
+    </a>
+
+    <div class="separator"></div>
+
+    <a href="/pages/dashboard.html" class="nav-item" title="Siteye Dön">
+        <span class="icon">⬅️</span>
+        <span>Siteye Dön</span>
+    </a>
 </nav>
-
-<div class="sidebar-footer">
-    <button id="logoutBtn" class="nav-item logout">
-        <span class="icon">🚪</span> Çıkış Yap
-    </button>
-</div>

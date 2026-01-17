@@ -1,110 +1,106 @@
 <!DOCTYPE html>
 <html lang="tr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Panel | GOLD GYS</title>
-    
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
-    
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap"
+        rel="stylesheet">
+
+    <link rel="stylesheet" href="../styles/tokens.css">
     <link rel="stylesheet" href="../css/layout.css">
     <link rel="stylesheet" href="../css/dashboard.css">
-    
+
     <style>
         /* Sayfa yüklenirken içeriğin görünmesini engelle */
-        body { visibility: hidden; }
+        body {
+            visibility: hidden;
+        }
     </style>
 </head>
-<body>
 
-    <!-- Ana Arayüz Yükleyicisi: Bu script, sayfanın temel yapısını (header, sidebar) ve 
-         kullanıcı bilgilerini yükler. Tüm sayfalarda olmalıdır. -->
+<body>
+    <!-- UI Loader: Layout, Header, Sidebar ve Auth Yönetimi -->
     <script type="module">
         import { initLayout } from '../js/ui-loader.js';
-        // Sayfa yüklendiğinde, 'dashboard' menü öğesini aktif hale getir ve başlığı ayarla.
         document.addEventListener('DOMContentLoaded', () => {
-            initLayout('dashboard', 'Genel Bakış');
+            initLayout();
         });
     </script>
 
-    <div id="mainWrapper">
-        <!-- Sidebar ve Header bu alana ui-loader.js tarafından dinamik olarak yüklenecek -->
-        <div class="sidebar-overlay" id="sidebarOverlay"></div>
-        <aside class="sidebar" id="sidebar"></aside>
-
-        <main class="main-content" id="main-content">
-
-            <!-- Sayfaya Özel İçerik -->
-            <div class="dashboard-container">
-                <section class="welcome-section">
-                    <div class="welcome-text">
-                        <h1 id="welcomeMsg">Hoş geldin...</h1>
-                        <p>Adalet Bakanlığı sınav yolculuğunda bugünkü hedefin ne?</p>
-                    </div>
-                    <div class="exam-countdown">
-                        <span class="days" id="countdownDays">--</span>
-                        <span class="label">Gün Kaldı</span>
-                    </div>
-                </section>
-
-                <section class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-icon gold">🎯</div>
-                        <div class="stat-info">
-                            <h3>Genel Başarı</h3>
-                            <div class="progress-bar-container">
-                                <div class="progress-bar" id="successRateBar" style="width: 0%"></div>
-                            </div>
-                            <span class="stat-value" id="successRateText">%0</span>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon blue">📝</div>
-                        <div class="stat-info">
-                            <h3>Çözülen Soru</h3>
-                            <span class="stat-value">0</span>
-                        </div>
-                    </div>
-
-                    <div class="stat-card">
-                        <div class="stat-icon red">⚠️</div>
-                        <div class="stat-info">
-                            <h3>Yanlış Sayısı</h3>
-                            <span class="stat-value">0</span>
-                            <small class="link-small"><a href="/pages/yanlislarim.html">Tekrar Et →</a></small>
-                        </div>
-                    </div>
-                </section>
-                
-                <section class="quick-access">
-                    <h2 class="section-title">Hızlı İşlemler</h2>
-                    <div class="quick-grid">
-                        <a href="/pages/testler.html" class="quick-card">
-                            <span class="q-icon">⚡</span>
-                            <span>Test Çöz</span>
-                        </a>
-                        <a href="/pages/denemeler.html" class="quick-card">
-                            <span class="q-icon">🏆</span>
-                            <span>Deneme Başlat</span>
-                        </a>
-                        <a href="/pages/konular.html" class="quick-card">
-                            <span class="q-icon">📖</span>
-                            <span>Konu Çalış</span>
-                        </a>
-                        <a href="/pages/analiz.html" class="quick-card">
-                            <span class="q-icon">📈</span>
-                            <span>Durumumu Gör</span>
-                        </a>
-                    </div>
-                </section>
-
+    <!-- Sayfaya Özel İçerik -->
+    <div class="dashboard-container">
+        <section class="welcome-section">
+            <div class="welcome-text">
+                <h1 id="welcomeMsg">Hoş geldin...</h1>
+                <p>Adalet Bakanlığı sınav yolculuğunda bugünkü hedefin ne?</p>
             </div>
-        </main>
+            <div class="exam-countdown">
+                <span class="days" id="countdownDays">--</span>
+                <span class="label">Gün Kaldı</span>
+            </div>
+        </section>
+
+        <section class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon gold">🎯</div>
+                <div class="stat-info">
+                    <h3>Genel Başarı</h3>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar" id="successRateBar" style="width: 0%"></div>
+                    </div>
+                    <span class="stat-value" id="successRateText">%0</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon blue">📝</div>
+                <div class="stat-info">
+                    <h3>Çözülen Soru</h3>
+                    <span class="stat-value">0</span>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon red">⚠️</div>
+                <div class="stat-info">
+                    <h3>Yanlış Sayısı</h3>
+                    <span class="stat-value">0</span>
+                    <small class="link-small"><a href="/pages/yanlislarim.html">Tekrar Et →</a></small>
+                </div>
+            </div>
+        </section>
+
+        <section class="quick-access">
+            <h2 class="section-title">Hızlı İşlemler</h2>
+            <div class="quick-grid">
+                <a href="/pages/testler.html" class="quick-card">
+                    <span class="q-icon">⚡</span>
+                    <span>Test Çöz</span>
+                </a>
+                <a href="/pages/denemeler.html" class="quick-card">
+                    <span class="q-icon">🏆</span>
+                    <span>Deneme Başlat</span>
+                </a>
+                <a href="/pages/konular.html" class="quick-card">
+                    <span class="q-icon">📖</span>
+                    <span>Konu Çalış</span>
+                </a>
+                <a href="/pages/analiz.html" class="quick-card">
+                    <span class="q-icon">📈</span>
+                    <span>Durumumu Gör</span>
+                </a>
+            </div>
+        </section>
+
     </div>
 
-    <!-- Sayfaya özel diğer scriptler (varsa) -->
+    <!-- Sayfaya özel diğer scriptler -->
     <script type="module" src="../js/dashboard.js"></script>
 </body>
+
 </html>
