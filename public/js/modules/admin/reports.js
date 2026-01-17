@@ -27,29 +27,37 @@ export async function initReportsPage() {
 
 function renderReports(snapshot) {
     let html = '<div class="grid-12 stack-md">';
-    
+
     snapshot.forEach(docSnap => {
         const data = docSnap.data();
         const date = data.createdAt ? new Date(data.createdAt.seconds * 1000).toLocaleDateString('tr-TR') : '-';
-        
+
+        // Kaynak belirteci (Yardım sayfasından mı geldi?)
+        const sourceBadge = data.source === 'help_page'
+            ? '<span class="badge badge-info ml-2">📧 İletişim Formu</span>'
+            : '<span class="badge badge-warning ml-2">🚩 Soru Bildirimi</span>';
+
         html += `
         <div class="col-span-12 card" id="report-${docSnap.id}">
             <div style="display:flex; justify-content:space-between; align-items:start;">
                 <div>
-                    <h4 class="text-warning">${data.type || 'Hata Bildirimi'}</h4>
-                    <p class="text-sm text-muted">Soru ID: ${data.questionId} • ${date} • Gönderen: ${data.userId || 'Anonim'}</p>
+                    <h4 class="text-main">${data.type || 'Bildirim'} ${sourceBadge}</h4>
+                    <p class="text-sm text-muted">
+                        Gönderen: ${data.userEmail || data.userId || 'Anonim'} • ${date}
+                        ${data.questionId ? `• Soru ID: ${data.questionId}` : ''}
+                    </p>
                 </div>
                 <div>
                     <button class="btn btn-sm btn-secondary" onclick="window.AdminReports.archive('${docSnap.id}')">Arşivle</button>
                     <button class="btn btn-sm btn-danger" onclick="window.AdminReports.delete('${docSnap.id}')">Sil</button>
                 </div>
             </div>
-            <div class="mt-2 p-2 bg-dark rounded">
+            <div class="mt-2 p-3 bg-hover rounded text-main">
                 ${data.description || 'Açıklama yok'}
             </div>
         </div>`;
     });
-    
+
     html += '</div>';
     listContainer.innerHTML = html;
 }
@@ -57,17 +65,17 @@ function renderReports(snapshot) {
 // Global Actions
 export const AdminReports = {
     archive: async (id) => {
-        if(!confirm('Bu bildirimi arşivlemek istiyor musunuz?')) return;
+        if (!confirm('Bu bildirimi arşivlemek istiyor musunuz?')) return;
         try {
             await updateDoc(doc(db, "reports", id), { status: 'archived' });
             document.getElementById(`report-${id}`).remove();
-        } catch(e) { alert("İşlem başarısız"); }
+        } catch (e) { alert("İşlem başarısız"); }
     },
     delete: async (id) => {
-        if(!confirm('Bu bildirimi kalıcı olarak silmek istiyor musunuz?')) return;
+        if (!confirm('Bu bildirimi kalıcı olarak silmek istiyor musunuz?')) return;
         try {
             await deleteDoc(doc(db, "reports", id));
             document.getElementById(`report-${id}`).remove();
-        } catch(e) { alert("Silme başarısız"); }
+        } catch (e) { alert("Silme başarısız"); }
     }
 };

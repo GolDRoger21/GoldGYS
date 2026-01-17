@@ -1,327 +1,289 @@
 <!DOCTYPE html>
 <html lang="tr">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Yardım | GOLD GYS</title>
-  <link rel="stylesheet" href="/css/app.css">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230F172A'/><text x='50' y='70' font-family='serif' font-size='60' fill='%23D4AF37' text-anchor='middle' font-weight='bold'>G</text><text x='80' y='35' font-size='30'>⚖️</text></svg>">
+  <title>Yardım Merkezi | GOLD GYS</title>
+  <link rel="stylesheet" href="../styles/tokens.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/dashboard.css">
+  <link rel="manifest" href="/manifest.json">
   <style>
-    .hero {
-      background: linear-gradient(135deg, #0f172a 0%, #1f2937 100%);
-      color: white;
-      padding: 36px;
-      border-radius: 24px;
-      position: relative;
-      overflow: hidden;
-      box-shadow: var(--shadow-strong);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      margin-bottom: 24px;
+    /* --- YARDIM SAYFASI ÖZEL STİLLERİ --- */
+    .help-hero {
+      text-align: center;
+      padding: 40px 20px;
+      background: linear-gradient(135deg, var(--bg-surface), var(--bg-body));
+      border-bottom: 1px solid var(--border-color);
+      margin-bottom: 30px;
     }
-    .hero::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background: radial-gradient(circle at 15% 20%, rgba(212, 175, 55, 0.2), transparent 30%),
-                  radial-gradient(circle at 85% 10%, rgba(255, 255, 255, 0.12), transparent 30%),
-                  radial-gradient(circle at 80% 80%, rgba(212, 175, 55, 0.12), transparent 25%);
-      pointer-events: none;
+
+    .help-hero h1 {
+      font-size: 2rem;
+      margin-bottom: 10px;
+      color: var(--text-main);
     }
-    .hero h1 {
-      font-family: 'Playfair Display', serif;
-      font-size: 2.2rem;
-      margin: 6px 0 10px;
-      position: relative;
-      z-index: 1;
-    }
-    .hero p {
-      color: #cbd5e1;
-      max-width: 760px;
-      line-height: 1.65;
-      position: relative;
-      z-index: 1;
-    }
-    .hero .badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 10px 16px;
-      border-radius: 999px;
-      background: rgba(255, 255, 255, 0.08);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      color: var(--gold-light);
-      font-weight: 700;
-      letter-spacing: 0.3px;
-      position: relative;
-      z-index: 1;
-    }
-    .info-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 16px;
-    }
-    .info-card {
-      background: white;
-      border-radius: 18px;
-      padding: 18px;
-      border: 1px solid rgba(0, 0, 0, 0.04);
-      box-shadow: var(--shadow-soft);
-      display: grid;
-      gap: 6px;
-    }
-    .info-card .label {
-      font-size: 0.9rem;
-      text-transform: uppercase;
-      letter-spacing: 0.4px;
-      font-weight: 700;
+
+    .help-hero p {
       color: var(--text-muted);
+      max-width: 600px;
+      margin: 0 auto;
     }
-    .info-card .value {
-      font-size: 1.1rem;
-      font-weight: 700;
-      color: var(--navy-deep);
+
+    .help-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+      max-width: 1000px;
+      margin: 0 auto;
     }
-    .panel-muted {
-      background: #0f172a;
-      color: white;
-      border-radius: 18px;
-      padding: 20px;
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      box-shadow: var(--shadow-strong);
+
+    /* SSS Akordeon */
+    .faq-item {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      margin-bottom: 10px;
+      overflow: hidden;
     }
-    .panel-muted h3, .panel-muted h2 {
-      color: white;
-      margin: 0 0 6px;
+
+    .faq-question {
+      padding: 15px 20px;
+      cursor: pointer;
+      font-weight: 600;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--bg-hover);
+      color: var(--text-main);
     }
-    .panel-muted p, .panel-muted li, .panel-muted span {
-      color: #cbd5e1;
-    }
-    .faq-card {
-      background: white;
-      border-radius: 18px;
-      padding: 18px;
-      border: 1px solid rgba(0, 0, 0, 0.04);
-      box-shadow: var(--shadow-soft);
-    }
-    .faq-card h3 {
-      margin: 0 0 8px;
-      color: var(--navy-deep);
-    }
-    .faq-card p {
-      margin: 0;
+
+    .faq-answer {
+      padding: 0 20px;
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease, padding 0.3s ease;
       color: var(--text-muted);
       line-height: 1.6;
     }
-    .badge-inline {
-      display: inline-flex;
+
+    .faq-item.active .faq-answer {
+      padding: 15px 20px;
+      max-height: 200px;
+      /* Yeterince büyük bir değer */
+    }
+
+    .faq-icon {
+      transition: transform 0.3s;
+    }
+
+    .faq-item.active .faq-icon {
+      transform: rotate(180deg);
+    }
+
+    /* İletişim Formu */
+    .contact-card {
+      background: var(--bg-surface);
+      padding: 25px;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-color);
+      box-shadow: var(--shadow-sm);
+    }
+
+    /* Hızlı İletişim Butonları */
+    .quick-contact {
+      display: flex;
+      gap: 15px;
+      margin-top: 20px;
+      justify-content: center;
+    }
+
+    .qc-btn {
+      display: flex;
       align-items: center;
-      gap: 6px;
-      padding: 6px 10px;
-      border-radius: 999px;
-      background: rgba(15, 23, 42, 0.08);
-      color: var(--navy-deep);
-      font-weight: 700;
-      letter-spacing: 0.2px;
+      gap: 8px;
+      padding: 10px 20px;
+      border-radius: var(--radius-full);
+      text-decoration: none;
+      font-weight: 600;
       font-size: 0.9rem;
+      transition: transform 0.2s;
+    }
+
+    .qc-btn:hover {
+      transform: translateY(-2px);
+    }
+
+    .qc-whatsapp {
+      background: #25D366;
+      color: white;
+    }
+
+    .qc-telegram {
+      background: #0088cc;
+      color: white;
+    }
+
+    @media (max-width: 768px) {
+      .help-grid {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
-    <link rel="manifest" href="/manifest.json">
 </head>
+
 <body>
-  <div class="app-layout">
-    <aside id="sidebar-area" class="app-sidebar"></aside>
+  <script type="module">
+    import { initLayout } from '../js/ui-loader.js';
+    document.addEventListener('DOMContentLoaded', () => initLayout());
+  </script>
 
-    <main class="app-main">
-      <header id="header-area" class="app-header"></header>
+  <div class="help-hero">
+    <h1>Nasıl Yardımcı Olabiliriz?</h1>
+    <p>Sıkça sorulan soruları inceleyin veya doğrudan bizimle iletişime geçin.</p>
 
-      <div class="app-content">
-        <section class="hero">
-          <div class="section-head" style="margin-bottom: 18px; position: relative; z-index: 1;">
-            <div>
-              <div class="badge">Destek merkezi · 7/24 yanıt</div>
-              <h1>Yardım</h1>
-              <p>İletişim, teknik destek ve sıkça sorulan soruların tamamı marka temasına uygun okunabilir bir yapıda sunuldu.</p>
-            </div>
+    <div class="quick-contact">
+      <a href="https://wa.me/905555555555" target="_blank" class="qc-btn qc-whatsapp">
+        <span>📱</span> WhatsApp Destek
+      </a>
+      <a href="https://t.me/goldgys" target="_blank" class="qc-btn qc-telegram">
+        <span>✈️</span> Telegram Grubu
+      </a>
+    </div>
+  </div>
+
+  <div class="dashboard-container">
+    <div class="help-grid">
+      <!-- SOL KOLON: SSS -->
+      <div>
+        <h3 class="section-title">Sıkça Sorulan Sorular</h3>
+
+        <div class="faq-item">
+          <div class="faq-question" onclick="toggleFaq(this)">
+            Sisteme nasıl üye olabilirim?
+            <span class="faq-icon">▼</span>
           </div>
-          <div class="info-grid" style="position: relative; z-index: 1;">
-            <div class="info-card">
-              <span class="label">Destek e-postası</span>
-              <span class="value">destek@goldgys.com</span>
-              <span class="text-muted">Başvurular ortalama 2 saat içinde yanıtlanır.</span>
-            </div>
-            <div class="info-card">
-              <span class="label">Telefon &amp; Çalışma saati</span>
-              <span class="value">0 (212) 555 00 00</span>
-              <span class="text-muted">Hafta içi 09.00 – 19.00 | Acil durumlarda nöbetçi ekip.</span>
-            </div>
-            <div class="info-card">
-              <span class="label">Canlı destek</span>
-              <span class="value">Uygulama içi sohbet</span>
-              <span class="text-muted">Profil menüsündeki sohbet balonu üzerinden anında ulaşın.</span>
-            </div>
-            <div class="info-card">
-              <span class="label">Sistem durumu</span>
-              <span class="value">status.goldgys.com</span>
-              <span class="text-muted">Planlı bakım ve kesinti bildirimleri bu adreste paylaşılır.</span>
-            </div>
+          <div class="faq-answer">
+            Google hesabınızla giriş yaparak otomatik üyelik oluşturabilirsiniz. Üyeliğiniz yönetici onayı sonrası
+            aktifleşecektir.
           </div>
-        </section>
+        </div>
 
-        <section class="panel-card stack gap-lg">
-          <div class="section-head">
-            <div>
-              <p class="eyebrow">Sıkça sorulan sorular</p>
-              <h2 style="margin: 6px 0 8px;">GOLD GYS hakkında en sık alınan sorular</h2>
-              <p class="text-muted">Platform uyumluluğu, güvenlik ve üyelik yönetimi ile ilgili öne çıkan başlıklar aşağıda özetlendi.</p>
-            </div>
+        <div class="faq-item">
+          <div class="faq-question" onclick="toggleFaq(this)">
+            Şifremi unuttum, ne yapmalıyım?
+            <span class="faq-icon">▼</span>
           </div>
-
-          <div class="grid two-cols gap-lg">
-            <div class="stack gap-md">
-              <div class="faq-card">
-                <h3>GOLD GYS hangi cihazlarda çalışır?</h3>
-                <p>Platform masaüstü tarayıcılara tam uyumludur. Mobil ve tablet erişimi desteklenir; en iyi performans için güncel Chrome veya Edge tarayıcılarını öneriyoruz.</p>
-              </div>
-              <div class="faq-card">
-                <h3>Verilerim ne sıklıkla yedekleniyor?</h3>
-                <p>Çalışmalarınız bulut altyapımızda günlük olarak yedeklenir. Soru ve deneme performansları şifrelenmiş olarak saklanır; yedekler coğrafi olarak ayrık veri merkezlerinde tutulur.</p>
-              </div>
-            </div>
-
-            <div class="stack gap-md">
-              <div class="faq-card">
-                <h3>Üyelik paketimi değiştirebilir miyim?</h3>
-                <p>Profil &gt; Üyelik bölümünden mevcut planınızı görüntüleyebilir, üst veya alt paketlere geçiş yapabilirsiniz. Değişiklikler bir sonraki faturalama dönemine otomatik yansır.</p>
-              </div>
-              <div class="faq-card">
-                <h3>Hesabımın güvenliğini nasıl güçlendiririm?</h3>
-                <p>Çift aşamalı doğrulamayı açın, güçlü ve benzersiz parola kullanın, şüpheli oturumları <span class="badge-inline">Profil &gt; Güvenlik</span> ekranından sonlandırın. Olağandışı bir durum fark ederseniz destek ekibine bildirin.</p>
-              </div>
-            </div>
+          <div class="faq-answer">
+            Giriş sayfasındaki "Şifremi Unuttum" bağlantısını kullanarak veya Profil sayfasından şifre sıfırlama
+            e-postası talep edebilirsiniz.
           </div>
+        </div>
 
-          <div class="panel-muted">
-            <div class="grid two-cols gap-lg">
-              <div class="stack gap-sm">
-                <div class="eyebrow">İletişim</div>
-                <h3 style="margin: 0;">Doğrudan bağlantı kanallarımız</h3>
-                <p>Üyelik, içerik veya güvenlik konularında ekibimizle doğrudan görüşebilirsiniz.</p>
-                <div class="info-grid">
-                  <div class="info-card">
-                    <span class="label">E-posta</span>
-                    <span class="value">destek@goldgys.com</span>
-                    <span>Önceliklendirme için konu satırında “Acil” ibaresini kullanın.</span>
-                  </div>
-                  <div class="info-card">
-                    <span class="label">Adres</span>
-                    <span class="value">Büyükdere Cad. No:12/8 Şişli, İstanbul</span>
-                    <span>Randevulu ziyaretler için destek ekibiyle iletişime geçin.</span>
-                  </div>
-                </div>
-              </div>
-
-              <div class="stack gap-sm">
-                <div class="eyebrow">Teknik destek</div>
-                <h3 style="margin: 0;">Destek talebi oluştururken</h3>
-                <ul class="check-list">
-                  <li>Karşılaştığınız hatanın ekran görüntüsünü ekleyin.</li>
-                  <li>Kullandığınız tarayıcı, cihaz ve işletim sistemi bilgilerini yazın.</li>
-                  <li>Hatanın tekrar edilme adımlarını mümkün olduğunca açık belirtin.</li>
-                  <li>Hızlı dönüş için <strong>destek@goldgys.com</strong> adresini beyaz listeye ekleyin.</li>
-                </ul>
-                <p>Ortalama yanıt süremiz 2 iş saatidir. Kritik kesintilerde <strong>status.goldgys.com</strong> adresini takip edin.</p>
-              </div>
-            </div>
+        <div class="faq-item">
+          <div class="faq-question" onclick="toggleFaq(this)">
+            Deneme sınavları ne zaman yayınlanır?
+            <span class="faq-icon">▼</span>
           </div>
-
-          <div class="grid two-cols gap-lg">
-            <div class="stack gap-md">
-              <div class="eyebrow">Sıkça sorulan sorular</div>
-              <div class="faq">
-                <div class="faq-item">
-                  <h3>GOLD GYS hangi cihazlarda çalışır?</h3>
-                  <p class="text-muted">Platform masaüstü tarayıcılar ile tam uyumludur. Mobil cihazlardan erişim de mümkündür ancak en iyi deneyim için Chrome veya Edge gibi modern tarayıcıları öneriyoruz.</p>
-                </div>
-                <div class="faq-item">
-                  <h3>Hesabımın güvenliğini nasıl sağlarım?</h3>
-                  <p class="text-muted">Çift aşamalı doğrulamayı aktif edin, güçlü ve benzersiz bir parola kullanın ve hesap aktivitelerinizi düzenli olarak kontrol edin. Şüpheli bir durum fark ederseniz destek ekibiyle iletişime geçebilirsiniz.</p>
-                </div>
-                <div class="faq-item">
-                  <h3>Üyelik paketimi değiştirebilir miyim?</h3>
-                  <p class="text-muted">Evet. Profil &gt; Üyelik bölümünden mevcut planınızı görüntüleyebilir, üst veya alt paketlere geçiş yapabilirsiniz. Değişiklikler sonraki faturalandırma dönemine yansır.</p>
-                </div>
-                <div class="faq-item">
-                  <h3>Verilerim ne sıklıkla yedekleniyor?</h3>
-                  <p class="text-muted">Çalışmalarınız bulut altyapımızda günlük olarak yedeklenir. Ayrıca soru ve deneme performanslarınız şifrelenmiş olarak saklanır.</p>
-                </div>
-              </div>
-            </div>
-
-            <div class="panel muted">
-              <div class="eyebrow">Hızlı bağlantılar</div>
-              <ul class="link-list">
-                <li><span class="text-muted">Eğitim ve rehberler</span><br><strong>docs.goldgys.com/rehber</strong></li>
-                <li><span class="text-muted">Sistem durumu</span><br><strong>status.goldgys.com</strong></li>
-                <li><span class="text-muted">Geri bildirim formu</span><br><strong>forms.goldgys.com/geri-bildirim</strong></li>
-                <li><span class="text-muted">Üyelik ve faturalandırma</span><br><strong>billing@goldgys.com</strong></li>
-              </ul>
-            </div>
+          <div class="faq-answer">
+            Deneme sınavları haftalık olarak sisteme yüklenmektedir. Yeni sınav eklendiğinde bildirim alırsınız.
           </div>
-        </section>
+        </div>
 
-        <section class="panel-card">
-          <div class="grid two-cols gap-lg">
-            <div class="stack gap-sm">
-              <div class="eyebrow">İletişim</div>
-              <h2>Bizimle nasıl iletişime geçebilirsiniz?</h2>
-              <p class="text-muted">7/24 destek veren ekibimiz; üyelik, teknik sorunlar, içerik ve güvenlik konularında size yardımcı olur.</p>
-              <div class="contact-grid">
-                <div>
-                  <p class="text-muted">E-posta</p>
-                  <p class="lead">destek@goldgys.com</p>
-                </div>
-                <div>
-                  <p class="text-muted">Telefon</p>
-                  <p class="lead">0 (212) 555 00 00</p>
-                  <p class="text-muted">Hafta içi 09.00 - 19.00</p>
-                </div>
-                <div>
-                  <p class="text-muted">Adres</p>
-                  <p class="lead">Büyükdere Cad. No:12/8 Şişli, İstanbul</p>
-                </div>
-                <div>
-                  <p class="text-muted">Canlı destek</p>
-                  <p class="lead">Uygulama içindeki sohbet balonundan bize ulaşın.</p>
-                </div>
-              </div>
-            </div>
-
-            <div class="panel muted stack gap-sm">
-              <div class="eyebrow">Teknik destek</div>
-              <h3>Destek talebi oluştururken</h3>
-              <ul class="check-list">
-                <li>Karşılaştığınız hatanın ekran görüntüsünü ekleyin.</li>
-                <li>Kullandığınız tarayıcı, cihaz ve işletim sistemi bilgisini yazın.</li>
-                <li>Hatanın tekrar edilme adımlarını mümkün olduğunca açık belirtin.</li>
-                <li>Hızlı dönüş için <strong>destek@goldgys.com</strong> adresini beyaz listeye ekleyin.</li>
-              </ul>
-              <p class="text-muted">Tüm destek taleplerine ortalama yanıt süremiz 2 iş saatidir. Kritik kesintilerde durum sayfasını kontrol etmeyi unutmayın.</p>
-            </div>
+        <div class="faq-item">
+          <div class="faq-question" onclick="toggleFaq(this)">
+            Mobil uygulama var mı?
+            <span class="faq-icon">▼</span>
           </div>
-        </section>
+          <div class="faq-answer">
+            Sitemiz PWA (Progressive Web App) uyumludur. Tarayıcı menüsünden "Ana Ekrana Ekle" diyerek uygulama gibi
+            kullanabilirsiniz.
+          </div>
+        </div>
       </div>
 
-      <footer id="footer-area" class="app-footer"></footer>
-    </main>
+      <!-- SAĞ KOLON: İletişim Formu -->
+      <div>
+        <h3 class="section-title">Bize Yazın</h3>
+        <div class="contact-card">
+          <form id="contactForm">
+            <div class="form-group">
+              <label>Konu</label>
+              <select id="inpSubject" class="form-control">
+                <option value="Genel">Genel Sorular</option>
+                <option value="Teknik">Teknik Sorun Bildirimi</option>
+                <option value="İçerik">Soru/İçerik Hatası</option>
+                <option value="Öneri">Öneri ve İstek</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Mesajınız</label>
+              <textarea id="inpMessage" class="form-control" rows="5" placeholder="Lütfen detaylı bilgi verin..."
+                required></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100">Gönder</button>
+          </form>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script type="module">
-    import { protectPage } from '/js/role-guard.js';
-    import { initLayout } from '/js/ui-loader.js';
+    import { db, auth } from '../js/firebase-config.js';
+    import { collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    protectPage();
-    initLayout('yardim');
+    // SSS Akordeon Fonksiyonu
+    window.toggleFaq = (element) => {
+      const item = element.parentElement;
+      const isActive = item.classList.contains('active');
+
+      // Diğerlerini kapat (Opsiyonel)
+      document.querySelectorAll('.faq-item').forEach(el => el.classList.remove('active'));
+
+      if (!isActive) {
+        item.classList.add('active');
+      }
+    };
+
+    // Form Gönderimi
+    document.getElementById('contactForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      if (!auth.currentUser) {
+        alert("Mesaj göndermek için giriş yapmalısınız.");
+        return;
+      }
+
+      const btn = e.target.querySelector('button');
+      const originalText = btn.innerText;
+      btn.disabled = true;
+      btn.innerText = "Gönderiliyor...";
+
+      try {
+        await addDoc(collection(db, "reports"), {
+          userId: auth.currentUser.uid,
+          userEmail: auth.currentUser.email,
+          type: document.getElementById('inpSubject').value, // 'type' alanı admin panelinde kullanılıyor
+          description: document.getElementById('inpMessage').value, // 'description' alanı admin panelinde kullanılıyor
+          status: 'pending',
+          createdAt: serverTimestamp(),
+          source: 'help_page'
+        });
+
+        alert("Mesajınız başarıyla iletildi. En kısa sürede dönüş yapacağız.");
+        e.target.reset();
+      } catch (error) {
+        console.error("Hata:", error);
+        alert("Bir hata oluştu: " + error.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerText = originalText;
+      }
+    });
   </script>
 </body>
+
 </html>
