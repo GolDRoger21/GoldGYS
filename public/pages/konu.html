@@ -247,6 +247,117 @@
         font-size: 1.4rem;
       }
     }
+
+    /* --- YENİ EKLENEN STİLLER --- */
+
+    /* Materyal Başlıkları */
+    .material-title {
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: var(--color-primary);
+      border-left: 4px solid var(--color-primary);
+      padding-left: 10px;
+    }
+
+    /* Audio Player Kartı */
+    .audio-player-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 15px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .audio-icon {
+      width: 40px;
+      height: 40px;
+      background: rgba(212, 175, 55, 0.1);
+      color: var(--color-primary);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+    }
+
+    /* Butonlar (Premium Görünüm) */
+    .btn {
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.95rem;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dim));
+      color: var(--text-on-gold);
+      box-shadow: 0 4px 10px rgba(212, 175, 55, 0.3);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 15px rgba(212, 175, 55, 0.4);
+    }
+
+    .btn-secondary {
+      background: var(--bg-surface);
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+    }
+
+    .btn-secondary:hover {
+      background: var(--bg-hover);
+      border-color: var(--text-muted);
+    }
+
+    .btn-success {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: white;
+      box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);
+    }
+
+    .btn-success:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 15px rgba(16, 185, 129, 0.4);
+    }
+
+    /* Not İçeriği (Typography) */
+    .note-content {
+      font-family: 'Georgia', serif;
+      /* Okuma için serif */
+      font-size: 1.15rem;
+      line-height: 1.8;
+      color: var(--text-main);
+      max-width: 800px;
+    }
+
+    .note-content h1,
+    .note-content h2,
+    .note-content h3 {
+      font-family: var(--font-family-sans);
+      color: var(--color-primary);
+      margin-top: 1.5em;
+      margin-bottom: 0.5em;
+    }
+
+    .note-content ul,
+    .note-content ol {
+      padding-left: 20px;
+      margin-bottom: 1em;
+    }
+
+    .note-content li {
+      margin-bottom: 0.5em;
+    }
   </style>
 </head>
 
@@ -316,11 +427,15 @@
         return;
       }
 
+      // Auth durumunu beklemeden içeriği yüklemeye başla (Hız için)
+      loadTopicAndLessons();
+
       onAuthStateChanged(auth, async (user) => {
         if (user) {
           await loadUserProgress(user.uid);
+          // İlerleme verisi gelince listeyi güncelle (Tik işaretleri için)
+          renderPlaylist();
         }
-        await loadTopicAndLessons();
       });
     });
 
@@ -336,29 +451,54 @@
 
     async function loadTopicAndLessons() {
       try {
-        // 1. Konu Bilgisi
+        // 1. Konu Başlığını Çek
         const topicSnap = await getDoc(doc(db, "topics", currentTopicId));
-        if (!topicSnap.exists()) return alert("Konu bulunamadı.");
+        if (!topicSnap.exists()) {
+          document.getElementById('contentDisplay').innerHTML = '<div class="alert alert-danger">Konu bulunamadı.</div>';
+          return;
+        }
         document.getElementById('topicTitle').innerText = topicSnap.data().title;
 
-        // 2. Dersleri Çek
+        // 2. Dersleri (Lessons Subcollection) Çek
+        // DİKKAT: Burası kritik. Admin paneli 'lessons' koleksiyonuna yazıyor.
         const q = query(collection(db, `topics/${currentTopicId}/lessons`), orderBy("order", "asc"));
         const snapshot = await getDocs(q);
 
         lessonsData = [];
-        snapshot.forEach(doc => lessonsData.push({ id: doc.id, ...doc.data() }));
+        snapshot.forEach(doc => {
+          // Veri yapısını normalize et
+          const data = doc.data();
+          // Admin panelinde 'materials' dizisi içinde tutuluyorsa onu düzleştirmemiz gerekebilir
+          // Veya her lesson tek bir materyal mi? Admin panelindeki yapıya göre:
+          // Admin panelinde: Bir lesson içinde 'materials' array'i var.
+
+          if (data.materials && Array.isArray(data.materials)) {
+            // Eğer dersin içinde birden fazla materyal varsa, bunları alt alta ders gibi gösterebiliriz
+            // Veya dersi ana başlık yapıp, içeriğinde materyalleri gösterebiliriz.
+            // Şimdilik dersi tek parça alalım, içeriğinde materyalleri render edelim.
+            lessonsData.push({ id: doc.id, ...data });
+          } else {
+            // Eski yapı veya tekil yapı
+            lessonsData.push({ id: doc.id, ...data });
+          }
+        });
 
         if (lessonsData.length > 0) {
           renderPlaylist();
-          // İlk tamamlanmamış dersi bul ve aç
-          const firstUnfinished = lessonsData.findIndex(l => !userProgress[l.id]);
-          loadLesson(firstUnfinished !== -1 ? firstUnfinished : 0);
+          loadLesson(0); // İlk dersi aç
         } else {
-          document.getElementById('contentDisplay').innerHTML = '<div class="alert alert-warning">Bu konuya henüz ders eklenmemiş.</div>';
+          document.getElementById('contentDisplay').innerHTML = `
+                        <div class="text-center p-5">
+                            <div style="font-size:3rem;">📭</div>
+                            <h3 class="mt-3">Henüz İçerik Eklenmemiş</h3>
+                            <p class="text-muted">Bu konuya ait ders notları hazırlanıyor.</p>
+                        </div>
+                    `;
         }
 
       } catch (error) {
         console.error("Hata:", error);
+        document.getElementById('contentDisplay').innerHTML = `<div class="alert alert-danger">Veri yüklenirken hata oluştu: ${error.message}</div>`;
       }
     }
 
@@ -372,10 +512,13 @@
         const isCompleted = userProgress[lesson.id] === true;
         if (isCompleted) completedCount++;
 
-        // İkon Seçimi
+        // İkon belirle (İlk materyale göre)
         let icon = '📄';
-        if (lesson.videoUrl) icon = '▶️';
-        else if (lesson.podcastUrl) icon = '🎧';
+        if (lesson.materials && lesson.materials.length > 0) {
+          const type = lesson.materials[0].type;
+          if (type === 'video') icon = '▶️';
+          else if (type === 'podcast') icon = '🎧';
+        }
 
         const div = document.createElement('div');
         div.className = `lesson-item ${isCompleted ? 'completed' : ''}`;
@@ -386,14 +529,15 @@
                     <div class="status-icon"></div>
                     <div class="lesson-info">
                         <div class="lesson-title">${index + 1}. ${lesson.title}</div>
+                        <div class="lesson-duration">${lesson.materials ? lesson.materials.length : 0} Materyal</div>
                     </div>
                     <div class="lesson-icon">${icon}</div>
                 `;
         list.appendChild(div);
       });
 
-      // Progress Bar Güncelle
-      const percent = Math.round((completedCount / lessonsData.length) * 100);
+      // Progress Bar
+      const percent = lessonsData.length > 0 ? Math.round((completedCount / lessonsData.length) * 100) : 0;
       document.getElementById('topicProgress').style.width = `${percent}%`;
       document.getElementById('progressText').innerText = `%${percent}`;
     }
@@ -403,88 +547,118 @@
       activeLessonIndex = index;
       const lesson = lessonsData[index];
 
-      // Aktif Sınıfını Güncelle
+      // Aktif sınıfı güncelle
       document.querySelectorAll('.lesson-item').forEach(el => el.classList.remove('active'));
       const activeItem = document.getElementById(`lesson-item-${index}`);
-      if (activeItem) {
-        activeItem.classList.add('active');
-        // Listede görünür yap (Scroll)
-        activeItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      }
+      if (activeItem) activeItem.classList.add('active');
 
-      // İçeriği Oluştur
       const container = document.getElementById('contentDisplay');
-      let mediaHtml = '';
+      let contentHtml = '';
 
-      // 1. Video Varsa
-      if (lesson.videoUrl) {
-        const videoId = lesson.videoUrl.split('v=')[1] || lesson.videoUrl.split('/').pop();
-        mediaHtml += `
-                    <div class="video-container">
-                        <iframe src="https://www.youtube.com/embed/${videoId}?rel=0" frameborder="0" allowfullscreen></iframe>
-                    </div>
-                `;
+      // Materyalleri Döngüye Al (Çoklu Materyal Desteği)
+      if (lesson.materials && lesson.materials.length > 0) {
+        lesson.materials.forEach(mat => {
+          contentHtml += `<div class="material-block mb-5">`;
+
+          // Başlık (Varsa)
+          if (mat.title) contentHtml += `<h3 class="material-title mb-3">${mat.title}</h3>`;
+
+          // 1. Video
+          if (mat.type === 'video') {
+            // YouTube ID ayıklama (Sağlam yöntem)
+            let videoId = '';
+            try {
+              if (mat.url.includes('youtu')) {
+                const urlObj = new URL(mat.url);
+                if (mat.url.includes('watch')) videoId = urlObj.searchParams.get('v');
+                else if (mat.url.includes('embed')) videoId = urlObj.pathname.split('/').pop();
+                else if (mat.url.includes('youtu.be')) videoId = urlObj.pathname.substring(1);
+              }
+            } catch (e) { console.warn("Video URL hatası", e); }
+
+            if (videoId) {
+              contentHtml += `
+                                <div class="video-container">
+                                    <iframe src="https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1" frameborder="0" allowfullscreen></iframe>
+                                </div>`;
+            } else {
+              contentHtml += `<div class="alert alert-warning">Geçersiz Video URL: ${mat.url}</div>`;
+            }
+          }
+
+          // 2. PDF
+          else if (mat.type === 'pdf') {
+            contentHtml += `
+                            <div class="pdf-container">
+                                <iframe src="${mat.url}" width="100%" height="100%"></iframe>
+                            </div>
+                            <div class="text-center">
+                                <a href="${mat.url}" target="_blank" class="btn btn-outline-primary btn-sm">
+                                    📄 PDF'i Tam Ekran Aç
+                                </a>
+                            </div>`;
+          }
+
+          // 3. Podcast
+          else if (mat.type === 'podcast') {
+            contentHtml += `
+                            <div class="audio-player-card">
+                                <div class="audio-icon">🎧</div>
+                                <div style="flex:1">
+                                    <div style="font-weight:600; margin-bottom:5px;">Sesli Anlatım</div>
+                                    <audio controls style="width:100%; height:30px;">
+                                        <source src="${mat.url}" type="audio/mpeg">
+                                    </audio>
+                                </div>
+                            </div>`;
+          }
+
+          // 4. HTML Not
+          else if (mat.type === 'html') {
+            contentHtml += `<div class="note-content typography-body">${mat.url}</div>`; // mat.url içinde HTML var
+          }
+
+          contentHtml += `</div>`; // Block sonu
+        });
+      } else {
+        contentHtml = '<div class="text-muted">Bu derse materyal eklenmemiş.</div>';
       }
 
-      // 2. PDF Varsa
-      if (lesson.pdfUrl) {
-        mediaHtml += `
-                    <div class="pdf-container">
-                        <iframe src="${lesson.pdfUrl}" width="100%" height="100%"></iframe>
-                    </div>
-                    <div class="text-center mb-4">
-                        <a href="${lesson.pdfUrl}" target="_blank" class="btn btn-sm btn-outline-primary">PDF'i Yeni Sekmede Aç</a>
-                    </div>
-                `;
-      }
-
-      // 3. Podcast Varsa
-      if (lesson.podcastUrl) {
-        mediaHtml += `
-                    <div class="card p-3 mb-4 bg-surface border-color">
-                        <h5 class="mb-2">🎧 Sesli Ders</h5>
-                        <audio controls style="width:100%">
-                            <source src="${lesson.podcastUrl}" type="audio/mpeg">
-                        </audio>
-                    </div>
-                `;
-      }
-
-      // 4. HTML Not Varsa
-      if (lesson.content) {
-        mediaHtml += `<div class="note-content typography-body">${lesson.content}</div>`;
-      }
-
-      // Başlık ve İçerik Render
+      // Render
       container.innerHTML = `
                 <div class="lesson-header">
                     <h1 class="lesson-main-title">${lesson.title}</h1>
                 </div>
-                ${mediaHtml}
+                <div class="lesson-body">
+                    ${contentHtml}
+                </div>
             `;
 
-      // Navigasyon Butonlarını Güncelle
+      // Navigasyon Butonlarını Göster
+      document.getElementById('lessonNav').style.display = 'flex';
       updateNavButtons();
 
-      // Mobilde yukarı kaydır
-      if (window.innerWidth <= 900) {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      } else {
-        document.getElementById('mainScroll').scrollTo({ top: 0, behavior: 'smooth' });
-      }
+      // Scroll Top
+      document.getElementById('mainScroll').scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     function updateNavButtons() {
-      const nav = document.getElementById('lessonNav');
       const btnPrev = document.getElementById('btnPrev');
       const btnNext = document.getElementById('btnNext');
       const btnComplete = document.getElementById('btnComplete');
 
-      nav.style.display = 'flex';
       btnPrev.disabled = activeLessonIndex === 0;
-      btnNext.disabled = activeLessonIndex === lessonsData.length - 1;
 
-      // Buton İşlevleri
+      // Son ders ise "Bitir" yazsın
+      if (activeLessonIndex === lessonsData.length - 1) {
+        btnNext.style.display = 'none';
+        btnComplete.innerText = "🎉 Konuyu Bitir";
+      } else {
+        btnNext.style.display = 'inline-block';
+        btnNext.disabled = false;
+        btnComplete.innerText = "✅ Tamamla ve İlerle";
+      }
+
       btnPrev.onclick = () => loadLesson(activeLessonIndex - 1);
       btnNext.onclick = () => loadLesson(activeLessonIndex + 1);
 
@@ -493,7 +667,7 @@
 
         // UI Güncelle
         userProgress[lessonId] = true;
-        renderPlaylist(); // Tik işaretini koy
+        renderPlaylist();
 
         // DB Kayıt
         if (auth.currentUser) {
@@ -506,11 +680,12 @@
           } catch (e) { console.error(e); }
         }
 
-        // Otomatik Sonraki Derse Geç
+        // İlerle
         if (activeLessonIndex < lessonsData.length - 1) {
           loadLesson(activeLessonIndex + 1);
         } else {
-          alert("Tebrikler! Bu konudaki tüm dersleri tamamladınız. 🎉");
+          alert("Tebrikler! Bu konuyu tamamladınız.");
+          window.location.href = '/pages/konular.html';
         }
       };
     }
