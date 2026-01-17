@@ -10,6 +10,7 @@ import * as ReportsModule from "./modules/admin/reports.js";
 import * as ExamsModule from "./modules/admin/exams.js";
 import * as ImporterModule from "./modules/admin/importer.js";
 import * as TopicsModule from "./modules/admin/topics.js";
+import { initNotifications } from "./modules/admin/notifications.js";
 
 // --- SAYFA BAŞLANGICI ---
 document.addEventListener("DOMContentLoaded", async () => {
@@ -17,6 +18,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         // 1. Arayüzü Yükle
         await initLayout();
         console.log("✅ Arayüz yüklendi.");
+
+        // Bildirim Sistemini Başlat (Sadece Admin Panelinde)
+        initNotifications();
 
         // 2. Yetki Kontrolü
         const { role, user } = await requireAdminOrEditor();
