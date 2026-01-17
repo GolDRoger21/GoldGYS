@@ -9,36 +9,49 @@
   <link rel="stylesheet" href="../css/layout.css">
   <link rel="stylesheet" href="../css/dashboard.css">
   <style>
-    /* --- PREMIUM HUB TASARIMI --- */
+    /* --- PREMIUM HUB TASARIMI (DÜZELTİLMİŞ) --- */
     .hub-container {
-      max-width: 1100px;
+      max-width: 1200px;
       margin: 0 auto;
       padding: 40px 20px;
       animation: fadeIn 0.5s ease;
     }
 
-    /* Header */
+    /* Header (Düzeltildi: Flexbox ile çakışma önlendi) */
     .hub-header {
-      text-align: center;
-      margin-bottom: 40px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      margin-bottom: 50px;
+      position: relative;
+    }
+
+    .header-top-row {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
       position: relative;
     }
 
     .back-link {
-      position: absolute;
-      left: 0;
-      top: 20px;
-      display: flex;
+      display: inline-flex;
       align-items: center;
       gap: 8px;
       color: var(--text-muted);
       text-decoration: none;
       font-weight: 600;
       transition: color 0.2s;
+      padding: 8px 16px;
+      border-radius: 20px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
     }
 
     .back-link:hover {
       color: var(--color-primary);
+      border-color: var(--color-primary);
     }
 
     .hub-title {
@@ -46,11 +59,13 @@
       font-size: 2.5rem;
       font-weight: 800;
       color: var(--text-main);
-      margin: 0 0 10px 0;
+      margin: 20px 0 10px 0;
       letter-spacing: -1px;
+      text-align: center;
+      line-height: 1.2;
     }
 
-    /* İstatistik Kartları (Yeni) */
+    /* İstatistik Kartları */
     .stats-row {
       display: flex;
       justify-content: center;
@@ -113,6 +128,11 @@
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       position: relative;
       overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 200px;
     }
 
     .hub-card:hover {
@@ -154,7 +174,7 @@
       color: var(--text-muted);
     }
 
-    /* --- FULL SCREEN VIEWER --- */
+    /* --- FULL SCREEN VIEWER (DÜZELTİLDİ) --- */
     .viewer-overlay {
       position: fixed;
       top: 0;
@@ -173,18 +193,23 @@
     }
 
     .viewer-header {
-      padding: 20px 40px;
+      padding: 15px 30px;
       border-bottom: 1px solid var(--border-color);
       display: flex;
       justify-content: space-between;
       align-items: center;
       background: var(--bg-surface);
+      flex-shrink: 0;
+      /* Header küçülmesin */
     }
 
     .viewer-title {
       font-size: 1.2rem;
       font-weight: 700;
       color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
 
     .close-viewer {
@@ -207,13 +232,16 @@
       color: white;
     }
 
+    /* Scroll Bar Düzeltmesi: Body tam ekran, scroll içeride */
     .viewer-body {
       flex: 1;
       overflow-y: auto;
       padding: 40px;
+      width: 100%;
       max-width: 1000px;
       margin: 0 auto;
-      width: 100%;
+      scrollbar-width: thin;
+      scrollbar-color: var(--color-primary) var(--bg-hover);
     }
 
     /* Liste Görünümü */
@@ -265,6 +293,11 @@
       color: var(--text-main);
       font-family: 'Georgia', serif;
       /* Okuma için serif */
+      background: var(--bg-surface);
+      padding: 40px;
+      border-radius: 16px;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--border-color);
     }
 
     .note-reader-content h1,
@@ -283,6 +316,40 @@
 
     .note-reader-content li {
       margin-bottom: 0.5em;
+    }
+
+    /* Video Modal (DÜZELTİLDİ) */
+    #videoModal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.95);
+      z-index: 3000;
+      display: none;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      padding: 20px;
+    }
+
+    /* Video Wrapper: Genişlik sınırlandırıldı ama mobilde tam ekran */
+    .video-wrapper-modal {
+      width: 100%;
+      max-width: 1200px;
+      aspect-ratio: 16/9;
+      position: relative;
+      background: black;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
+    }
+
+    .video-wrapper-modal iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
     }
 
     @keyframes fadeIn {
@@ -307,17 +374,23 @@
 
     @media (max-width: 768px) {
       .hub-header {
-        text-align: center;
-        padding-top: 60px;
+        padding-top: 20px;
+      }
+
+      .header-top-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
       }
 
       .back-link {
-        top: 10px;
-        left: 20px;
+        position: static;
+        transform: none;
       }
 
       .hub-title {
         font-size: 2rem;
+        margin-top: 10px;
       }
 
       .viewer-body {
@@ -331,6 +404,7 @@
       .stat-box {
         min-width: 100px;
         padding: 10px;
+        flex: 1;
       }
     }
   </style>
@@ -345,17 +419,21 @@
   <!-- ANA HUB (KATEGORİLER) -->
   <div class="dashboard-container hub-container" id="mainHub">
     <div class="hub-header">
-      <a href="/pages/konular.html" class="back-link">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M19 12H5M12 19l-7-7 7-7" />
-        </svg>
-        Konulara Dön
-      </a>
+      <div class="header-top-row">
+        <a href="/pages/konular.html" class="back-link">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M19 12H5M12 19l-7-7 7-7" />
+          </svg>
+          Konulara Dön
+        </a>
+        <!-- İlerleme Halkası Buraya Gelebilir veya Gizlenebilir -->
+      </div>
+
       <h1 class="hub-title" id="topicTitle">Yükleniyor...</h1>
       <p class="text-muted" id="topicProgressText">%0 Tamamlandı</p>
     </div>
 
-    <!-- İstatistikler (Yeni) -->
+    <!-- İstatistikler -->
     <div class="stats-row">
       <div class="stat-box" onclick="goToMistakes()">
         <span class="stat-icon">⚠️</span>
@@ -414,14 +492,15 @@
     </div>
   </div>
 
-  <!-- Video Modal -->
-  <div id="videoModal"
-    style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:3000; display:none; justify-content:center; align-items:center; flex-direction:column;">
-    <div style="width:90%; max-width:1000px; aspect-ratio:16/9; position:relative;">
+  <!-- Video Modal (YENİLENMİŞ) -->
+  <div id="videoModal">
+    <div class="video-wrapper-modal">
       <div id="videoPlayer"></div>
     </div>
     <button onclick="closeVideo()"
-      style="margin-top:20px; padding:10px 30px; background:rgba(255,255,255,0.1); color:white; border:1px solid rgba(255,255,255,0.2); border-radius:30px; cursor:pointer;">Kapat</button>
+      style="margin-top:20px; padding:12px 40px; background:rgba(255,255,255,0.15); color:white; border:1px solid rgba(255,255,255,0.3); border-radius:30px; cursor:pointer; font-weight:600; transition:background 0.2s;">
+      Kapat
+    </button>
   </div>
 
   <script type="module">
@@ -458,11 +537,8 @@
 
     async function loadUserStats(uid) {
       try {
-        // Yanlış Sayısı (Bu konuya ait)
-        // Not: 'wrongs' koleksiyonunda 'category' veya 'topicId' alanı olmalı.
-        // Şimdilik genel sayıyı çekiyoruz, ileride filtre eklenebilir.
-        const wrongsQ = query(collection(db, `users/${uid}/wrongs`), where("category", "==", currentTopicTitle)); // Başlığa göre filtreleme denemesi
-        // Eğer category tam eşleşmezse genel sayı gelir.
+        // Yanlış Sayısı
+        const wrongsQ = query(collection(db, `users/${uid}/wrongs`), where("category", "==", currentTopicTitle));
         const wrongsSnap = await getCountFromServer(collection(db, `users/${uid}/wrongs`));
         document.getElementById('statWrong').innerText = wrongsSnap.data().count;
 
@@ -470,10 +546,7 @@
         const favsSnap = await getCountFromServer(collection(db, `users/${uid}/favorites`));
         document.getElementById('statFav').innerText = favsSnap.data().count;
 
-        // Doğru Sayısı (Progress'ten hesaplanabilir veya ayrı tutulabilir)
-        // Şimdilik placeholder
         document.getElementById('statCorrect').innerText = "-";
-
       } catch (e) { console.warn("İstatistik hatası:", e); }
     }
 
@@ -515,7 +588,6 @@
       let total = 0, completed = 0;
       ['video', 'pdf', 'podcast', 'html', 'test'].forEach(type => {
         const count = allMaterials[type].length;
-        // Element var mı kontrol et (Hata önleme)
         const el = document.getElementById(`count${type.charAt(0).toUpperCase() + type.slice(1)}`);
         if (el) el.innerText = `${count} İçerik`;
 
@@ -580,7 +652,6 @@
       if (item.type === 'video') {
         let videoId = '';
         try {
-          // URL düzeltme (http ekleme)
           const safeUrl = item.url.startsWith('http') ? item.url : `https://${item.url}`;
           const urlObj = new URL(safeUrl);
 
@@ -652,9 +723,16 @@
       } catch (e) { }
     };
 
-    // Yönlendirmeler
-    window.goToMistakes = () => window.location.href = '/pages/yanlislarim.html';
-    window.goToFavorites = () => window.location.href = '/pages/favoriler.html';
+    // Yönlendirmeler (Filtreli URL ile)
+    window.goToMistakes = () => {
+      const topicName = encodeURIComponent(currentTopicTitle);
+      window.location.href = `/pages/yanlislarim.html?category=${topicName}`;
+    };
+
+    window.goToFavorites = () => {
+      const topicName = encodeURIComponent(currentTopicTitle);
+      window.location.href = `/pages/favoriler.html?category=${topicName}`;
+    };
 
   </script>
 </body>
