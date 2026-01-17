@@ -1,44 +1,39 @@
 <div class="header-inner">
     <div class="header-left">
-        <button class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="Menü">
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-        </button>
-        <a href="/pages/dashboard.html" class="brand-logo mobile-only-logo" style="text-decoration: none; color: inherit;">
+        <button class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="Menü">☰</button>
+        
+        <a href="/pages/dashboard.html" class="brand-logo" style="text-decoration: none; color: inherit;">
             GOLD <span style="color: var(--gold-primary);">GYS</span>
         </a>
     </div>
 
     <div class="header-right">
-        <!-- Admin butonu dinamik olarak buraya eklenecek -->
         <div id="adminButtonContainer" style="margin-right: 15px;"></div>
 
-        <div class="user-menu-container" id="userMenuContainer">
-            <button class="user-avatar-btn" id="userMenuToggle" aria-label="Profil Menüsü">
-                <div class="avatar-circle">
-                    <img src="" alt="Profil" id="headerAvatarImg" class="avatar-img" style="display: none;">
-                    <span id="headerAvatarInitial" class="avatar-text">?</span>
+        <div class="user-menu" id="userMenuToggle">
+            <div class="user-profile">
+                <div class="user-avatar-circle" id="userAvatarCircle">
+                    <img src="" alt="Profil" class="user-avatar-image" id="userAvatarImage" style="display: none;">
+                    <span class="user-avatar-initial" id="userAvatarInitial">?</span>
                 </div>
-            </button>
+                <div class="user-meta">
+                    <span class="user-name" id="userNameLabel">Yükleniyor...</span>
+                    <span class="user-subtitle" id="userRoleLabel">Üye</span>
+                </div>
+            </div>
+            
+            <span class="dropdown-arrow">▼</span>
 
-            <div class="google-dropdown" id="profileDropdown">
-                <div class="dropdown-user-info">
-                    <div class="dropdown-avatar-large">
-                        <span id="dropdownAvatarInitial">?</span>
-                        <img src="" id="dropdownAvatarImg" style="display: none;">
-                    </div>
-                    <div class="dropdown-text">
-                        <strong id="dropdownUserName">Kullanıcı</strong>
-                        <span id="dropdownUserEmail">email@example.com</span>
-                    </div>
+            <div class="profile-dropdown" id="profileDropdown">
+                <div class="dropdown-header">
+                    <strong id="dropdownUserName">Kullanıcı</strong>
+                    <span id="dropdownUserEmail">email@example.com</span>
                 </div>
-                <div class="dropdown-menu-items">
-                    <a href="/pages/profil.html" class="menu-item"><span class="icon">👤</span> Profilim</a>
-                    <a href="/pages/yardim.html" class="menu-item"><span class="icon">❓</span> Yardım</a>
-                    <hr class="separator">
-                    <button class="menu-item logout-item" id="logoutButton"><span class="icon">🚪</span> Çıkış Yap</button>
-                </div>
+                <div class="dropdown-divider"></div>
+                <a href="/pages/profil.html" class="dropdown-item">👤 Profilim</a>
+                <a href="/pages/yardim.html" class="dropdown-item">❓ Yardım</a>
+                <div class="dropdown-divider"></div>
+                <button class="dropdown-item text-danger" id="logoutButton">🚪 Çıkış Yap</button>
             </div>
         </div>
     </div>

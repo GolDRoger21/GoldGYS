@@ -1,31 +1,54 @@
-<!-- Logo Header'da olduğu için buradan kaldırıldı -->
+<div class="sidebar-header">
+    <a href="/pages/dashboard.html" class="brand-logo">GOLD <span>GYS</span></a>
+    <button class="close-sidebar-btn" id="closeSidebar" aria-label="Menüyü kapat">✕</button>
+</div>
+
+<div class="sidebar-user-info">
+    <div class="user-details">
+        <div id="userNameLabel" class="user-name">Yükleniyor...</div>
+        <div id="userRoleLabel" class="user-role">...</div>
+    </div>
+</div>
 
 <nav class="sidebar-nav">
     <div class="nav-label">GENEL</div>
+    <a href="/pages/dashboard.html" class="nav-item" data-page="dashboard">
+        <span class="icon">🏠</span> Genel Bakış
+    </a>
     <a href="/pages/profil.html" class="nav-item" data-page="profile">
-        <span class="icon">👤</span><span class="nav-text">Profilim</span>
+        <span class="icon">👤</span> Profilim
     </a>
 
     <div class="nav-label">ÇALIŞMA ALANI</div>
     <a href="/pages/konular.html" class="nav-item" data-page="lessons">
-        <span class="icon">📚</span><span class="nav-text">Dersler & Konular</span>
+        <span class="icon">📚</span> Dersler & Konular
     </a>
     <a href="/pages/testler.html" class="nav-item" data-page="tests">
-        <span class="icon">📝</span><span class="nav-text">Konu Testleri</span>
+        <span class="icon">📝</span> Konu Testleri
     </a>
     <a href="/pages/denemeler.html" class="nav-item" data-page="trials">
-        <span class="icon">⚖️</span><span class="nav-text">Deneme Sınavları</span>
+        <span class="icon">⚖️</span> Deneme Sınavları
     </a>
 
     <div class="nav-label">PERFORMANS</div>
     <a href="/pages/yanlislarim.html" class="nav-item" data-page="mistakes">
-        <span class="icon">⚠️</span><span class="nav-text">Yanlışlarım</span>
+        <span class="icon">⚠️</span> Yanlışlarım
     </a>
     <a href="/pages/favoriler.html" class="nav-item" data-page="favorites">
-        <span class="icon">⭐</span><span class="nav-text">Favori Sorular</span>
+        <span class="icon">⭐</span> Favori Sorular
     </a>
     <a href="/pages/analiz.html" class="nav-item" data-page="analysis">
-        <span class="icon">📊</span><span class="nav-text">Analiz Raporu</span>
+        <span class="icon">📊</span> Analiz Raporu
     </a>
 
+    <div class="nav-label admin-only" style="display: none;">YÖNETİM</div>
+    <a href="/admin/index.html" class="nav-item admin-only" style="display: none;" data-page="admin">
+        <span class="icon">⚡</span> Yönetici Paneli
+    </a>
 </nav>
+
+<div class="sidebar-footer">
+    <button id="logoutBtn" class="nav-item logout">
+        <span class="icon">🚪</span> Çıkış Yap
+    </button>
+</div>

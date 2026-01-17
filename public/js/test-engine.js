@@ -1,261 +1,240 @@
 import { db, auth } from "./firebase-config.js";
-import { doc, setDoc, deleteDoc, addDoc, collection, serverTimestamp, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { doc, getDoc, setDoc, updateDoc, arrayUnion, deleteDoc, addDoc, collection, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 export class TestEngine {
-    /**
-     * @param {string} containerId - Soruların basılacağı HTML elementinin ID'si
-     * @param {Array} questionsData - Soru listesi
-     * @param {string|null} examId - Hangi sınavın çözüldüğü (İstatistik için)
-     */
+    // Constructor'a 'examId' parametresi eklendi
     constructor(containerId, questionsData, examId = null) {
         this.container = document.getElementById(containerId);
         this.questions = questionsData;
-        this.examId = examId;
-        this.answers = {}; // Kullanıcının cevapları { soruId: 'A' }
+        this.examId = examId; // Hangi sınavın çözüldüğünü takip etmek için
+        this.currentIndex = 0;
+        this.answers = {}; 
         this.favorites = new Set();
         
-        // UI Elementleri (HTML'de bu ID'lerin olması gerekir)
+        // UI Elementleri
         this.ui = {
             trueVal: document.getElementById('trueVal'),
             falseVal: document.getElementById('falseVal'),
             remainVal: document.getElementById('remainVal'),
+            modal: document.getElementById('resultModal'),
             scoreDisplay: document.getElementById('scoreDisplay'),
-            resultModal: document.getElementById('resultModal'),
-            modalBody: document.querySelector('#resultModal .modal-body')
+            resultText: document.getElementById('resultText')
         };
         
-        if (!this.container) {
-            console.error(`TestEngine Hatası: '${containerId}' ID'li element bulunamadı.`);
-            return;
-        }
-
+        window.testEngine = this;
         this.init();
     }
 
     async init() {
-        this.renderLoading();
         await this.loadUserFavorites();
         this.renderAllQuestions();
         this.updateCounters();
-        console.log("✅ Test Motoru Başlatıldı");
-    }
-
-    renderLoading() {
-        this.container.innerHTML = `
-            <div style="text-align:center; padding:40px; color:var(--text-muted);">
-                <div class="loader-spinner" style="margin:0 auto 20px;"></div>
-                <p>Sorular hazırlanıyor...</p>
-            </div>`;
     }
 
     async loadUserFavorites() {
         if (!auth.currentUser) return;
-        // Not: Gerçek uygulamada tüm favorileri çekmek yerine, 
-        // sayfadaki soruların favori olup olmadığını kontrol etmek daha performanslıdır.
-        // Şimdilik client-side yönetiyoruz.
+        // Performans için basit bir yöntem: LocalStorage veya basit bir cache kullanılabilir.
+        // Şimdilik boş geçiyoruz, favoriler sayfasında detaylı yükleme yapılır.
     }
 
     renderAllQuestions() {
-        this.container.innerHTML = ''; // Temizle
-
-        if (!this.questions || this.questions.length === 0) {
-            this.container.innerHTML = '<div class="card"><p style="padding:20px; text-align:center;">Bu testte soru bulunmamaktadır.</p></div>';
-            return;
-        }
-
+        this.container.innerHTML = '';
         this.questions.forEach((q, index) => {
-            const card = document.createElement('div');
-            card.className = 'card question-card'; // admin.css .card sınıfını kullanır
-            card.id = `q-${q.id}`;
-            card.style.marginBottom = "2rem"; // Kartlar arası boşluk
-
-            // Soru Başlığı ve Araçlar
-            const headerHtml = `
-                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:15px; border-bottom:1px solid var(--border-color); padding-bottom:10px;">
-                    <span class="badge" style="background:var(--bg-dark); color:var(--gold-primary);">Soru ${index + 1}</span>
-                    <div class="question-tools">
-                        <button class="btn-icon fav-btn" onclick="testEngine.toggleFavorite('${q.id}')" title="Favorilere Ekle">
-                            ${this.favorites.has(q.id) ? '★' : '☆'}
-                        </button>
-                        <button class="btn-icon report-btn" onclick="testEngine.openReportModal('${q.id}')" title="Hata Bildir">
-                            ⚠️
-                        </button>
-                    </div>
-                </div>`;
-
-            // Soru Metni
-            const textHtml = `<div class="question-text" style="font-size:1.1rem; margin-bottom:20px; line-height:1.6;">${q.text}</div>`;
-
-            // Şıklar
-            let optionsHtml = '<div class="options-grid" style="display:grid; gap:10px;">';
-            ['A', 'B', 'C', 'D', 'E'].forEach(opt => {
-                if (q.options && q.options[opt]) {
-                    optionsHtml += `
-                        <label class="option-label" id="opt-${q.id}-${opt}" style="
-                            display:flex; align-items:center; padding:12px 15px; 
-                            border:1px solid var(--border-color); border-radius:8px; 
-                            cursor:pointer; transition:all 0.2s;">
-                            
-                            <input type="radio" name="q-${q.id}" value="${opt}" 
-                                onchange="testEngine.handleAnswer('${q.id}', '${opt}')"
-                                style="margin-right:10px; accent-color:var(--gold-primary);">
-                            
-                            <span style="font-weight:600; margin-right:10px; color:var(--gold-primary);">${opt})</span>
-                            <span>${q.options[opt]}</span>
-                        </label>`;
-                }
-            });
-            optionsHtml += '</div>';
-
-            // Çözüm Alanı (Başlangıçta Gizli)
-            const solutionHtml = `
-                <div id="sol-${q.id}" class="solution-box" style="display:none; margin-top:20px; padding:15px; background:rgba(16, 185, 129, 0.1); border-left:3px solid var(--color-success); border-radius:4px;">
-                    <strong style="color:var(--color-success); display:block; margin-bottom:5px;">✅ Doğru Cevap: ${q.correctAnswer}</strong>
-                    <p style="margin:0; font-size:0.95rem; color:var(--text-white);">${q.solution || 'Çözüm açıklaması mevcut değil.'}</p>
-                </div>`;
-
-            card.innerHTML = headerHtml + textHtml + optionsHtml + solutionHtml;
+            const card = this.createQuestionCard(q, index);
             this.container.appendChild(card);
         });
     }
 
-    handleAnswer(questionId, selectedOpt) {
-        // Eğer soru daha önce çözüldüyse işlem yapma (Opsiyonel)
-        if (this.answers[questionId]) return;
+    createQuestionCard(q, index) {
+        const article = document.createElement('article');
+        article.className = 'soru-kart';
+        article.id = `q-${q.id}`;
+        article.dataset.id = q.id;
+        article.dataset.answered = 'false';
 
-        const q = this.questions.find(x => x.id === questionId);
-        if (!q) return;
-
-        this.answers[questionId] = selectedOpt;
-        
-        // UI Güncellemesi (Doğru/Yanlış Renklendirme)
-        const selectedLabel = document.getElementById(`opt-${questionId}-${selectedOpt}`);
-        const correctLabel = document.getElementById(`opt-${questionId}-${q.correctAnswer}`);
-        const solutionBox = document.getElementById(`sol-${questionId}`);
-
-        if (selectedOpt === q.correctAnswer) {
-            // Doğru
-            if(selectedLabel) {
-                selectedLabel.style.background = "rgba(16, 185, 129, 0.2)";
-                selectedLabel.style.borderColor = "var(--color-success)";
-            }
-        } else {
-            // Yanlış
-            if(selectedLabel) {
-                selectedLabel.style.background = "rgba(239, 68, 68, 0.2)";
-                selectedLabel.style.borderColor = "var(--color-danger)";
-            }
-            // Doğruyu göster
-            if(correctLabel) {
-                correctLabel.style.background = "rgba(16, 185, 129, 0.2)";
-                correctLabel.style.borderColor = "var(--color-success)";
+        // 1. Öncüllü Soru Kontrolü
+        let contentHTML = q.text;
+        if (q.type === 'oncullu' && q.onculler && q.onculler.length > 0) {
+            const listItems = q.onculler.map(o => `<li>${o}</li>`).join('');
+            contentHTML += `<ul class="oncullu-liste">${listItems}</ul>`;
+            if (q.questionRoot) {
+                contentHTML += `<p class="soru-kok-vurgu">${q.questionRoot}</p>`;
             }
         }
 
-        // Çözümü Göster
-        if(solutionBox) solutionBox.style.display = 'block';
+        // 2. Şıklar
+        const optionsHTML = q.options.map(opt => `
+            <button class="sik-btn" onclick="window.testEngine.handleAnswer('${q.id}', '${opt.id}')">
+                <div class="sik-harf">${opt.id}</div>
+                ${opt.text}
+            </button>
+        `).join('');
 
-        // İstatistikleri Güncelle
+        // 3. Kart HTML
+        article.innerHTML = `
+            <div class="kart-header">
+                <span class="soru-no">SORU ${index + 1}</span>
+                <div class="kart-actions" style="display:flex; gap:10px;">
+                    <button class="btn-icon fav-btn" onclick="window.testEngine.toggleFavorite('${q.id}')" title="Favori">
+                        ${this.favorites.has(q.id) ? '★' : '☆'}
+                    </button>
+                    <button class="btn-icon report-btn" onclick="window.testEngine.openReportModal('${q.id}')" title="Bildir">
+                        🚩
+                    </button>
+                </div>
+            </div>
+            <div class="soru-metni text-justify-custom">${contentHTML}</div>
+            <div class="siklar-alani">${optionsHTML}</div>
+            
+            <div class="cozum-container" id="sol-${q.id}" style="display:none;">
+                <div class="cozum-header">💡 Detaylı Analiz & Çözüm</div>
+                <div class="cozum-content text-justify-custom">
+                    ${q.solution.dayanakText ? `<p><strong>⚖️ Dayanak:</strong> ${q.solution.dayanakText}</p>` : ''}
+                    <p><strong>🧠 Analiz:</strong> ${q.solution.analiz || 'Çözüm yüklenemedi.'}</p>
+                    ${q.solution.tuzak ? `<div class="tuzak-kutu"><strong>⚠️ Sınav Tuzağı:</strong> ${q.solution.tuzak}</div>` : ''}
+                    ${q.solution.hap ? `<div class="hap-kutu"><strong>💊 Hap Bilgi:</strong> ${q.solution.hap}</div>` : ''}
+                </div>
+            </div>
+        `;
+        return article;
+    }
+
+    handleAnswer(questionId, selectedOptionId) {
+        const card = document.getElementById(`q-${questionId}`);
+        if (card.dataset.answered === 'true') return;
+
+        const question = this.questions.find(q => q.id === questionId);
+        const isCorrect = (selectedOptionId === question.correctOption);
+
+        this.answers[questionId] = { 
+            selected: selectedOptionId, 
+            isCorrect,
+            category: question.category || 'Genel' // İstatistik için kategori kaydı
+        };
+        
+        card.dataset.answered = 'true';
+        card.dataset.result = isCorrect ? 'correct' : 'wrong';
+
+        // UI Güncelleme
+        const buttons = card.querySelectorAll('.sik-btn');
+        buttons.forEach(btn => {
+            btn.classList.add('disabled');
+            const optId = btn.querySelector('.sik-harf').innerText;
+            if (optId === selectedOptionId) btn.classList.add(isCorrect ? 'correct' : 'wrong');
+            if (!isCorrect && optId === question.correctOption) btn.classList.add('correct');
+        });
+
+        // Çözümü Göster
+        const solDiv = document.getElementById(`sol-${questionId}`);
+        if(solDiv) {
+            solDiv.style.display = 'block';
+            solDiv.animate([{ opacity: 0, transform: 'translateY(-10px)' }, { opacity: 1, transform: 'translateY(0)' }], { duration: 300 });
+        }
         this.updateCounters();
     }
 
     updateCounters() {
-        let correct = 0;
-        let wrong = 0;
+        const answeredCount = Object.keys(this.answers).length;
+        const correctCount = Object.values(this.answers).filter(a => a.isCorrect).length;
+        const wrongCount = Object.values(this.answers).filter(a => !a.isCorrect).length;
+
+        if (this.ui.trueVal) this.ui.trueVal.innerText = correctCount;
+        if (this.ui.falseVal) this.ui.falseVal.innerText = wrongCount;
+        if (this.ui.remainVal) this.ui.remainVal.innerText = this.questions.length - answeredCount;
+    }
+
+    // --- SONUÇ KAYDETME VE BİTİRME ---
+    
+    async finishTest() {
+        const total = this.questions.length;
+        const correctCount = Object.values(this.answers).filter(a => a.isCorrect).length;
+        const wrongCount = Object.values(this.answers).filter(a => !a.isCorrect).length;
+        const emptyCount = total - (correctCount + wrongCount);
+        const score = Math.round((correctCount / total) * 100);
+
+        // 1. Modalı Göster
+        if (this.ui.scoreDisplay) this.ui.scoreDisplay.innerText = `%${score}`;
         
-        Object.keys(this.answers).forEach(qId => {
-            const q = this.questions.find(x => x.id === qId);
-            if (q) {
-                if (this.answers[qId] === q.correctAnswer) correct++;
-                else wrong++;
-            }
+        let msg = "Test tamamlandı.";
+        if (score >= 90) msg = "Mükemmel! Derece yapabilirsin. 🏆";
+        else if (score >= 70) msg = "Gayet iyi, başarılar. 👏";
+        else msg = "Biraz daha tekrar yapmalısın. 📚";
+        if (this.ui.resultText) this.ui.resultText.innerText = msg;
+        if (this.ui.modal) this.ui.modal.style.display = 'flex';
+
+        // 2. Sonucu Veritabanına Kaydet
+        await this.saveExamResult({ score, correctCount, wrongCount, emptyCount, total });
+    }
+
+    async saveExamResult(stats) {
+        if (!auth.currentUser) return; // Misafir kullanıcı kaydetmez
+
+        // Kategori Bazlı Analiz Çıkar
+        const categoryBreakdown = {};
+        this.questions.forEach(q => {
+            const cat = q.category || 'Genel';
+            if(!categoryBreakdown[cat]) categoryBreakdown[cat] = { total: 0, correct: 0 };
+            
+            categoryBreakdown[cat].total++;
+            const ans = this.answers[q.id];
+            if(ans && ans.isCorrect) categoryBreakdown[cat].correct++;
         });
 
-        const total = this.questions.length;
-        const remaining = total - (correct + wrong);
+        try {
+            const resultData = {
+                userId: auth.currentUser.uid,
+                examId: this.examId || 'custom',
+                examTitle: document.getElementById('testTitle')?.innerText || 'Genel Test',
+                score: stats.score,
+                correct: stats.correctCount,
+                wrong: stats.wrongCount,
+                empty: stats.emptyCount,
+                total: stats.total,
+                categoryStats: categoryBreakdown,
+                completedAt: serverTimestamp()
+            };
 
-        if(this.ui.trueVal) this.ui.trueVal.textContent = correct;
-        if(this.ui.falseVal) this.ui.falseVal.textContent = wrong;
-        if(this.ui.remainVal) this.ui.remainVal.textContent = remaining;
-    }
-
-    async finishTest() {
-        if (!confirm("Testi bitirmek istediğinize emin misiniz?")) return;
-
-        // Sonuç Hesapla
-        const correct = parseInt(this.ui.trueVal?.textContent || 0);
-        const wrong = parseInt(this.ui.falseVal?.textContent || 0);
-        const score = Math.round((correct / this.questions.length) * 100);
-
-        // Veritabanına Kaydet (Sadece giriş yapmışsa)
-        if (auth.currentUser) {
-            try {
-                await addDoc(collection(db, `users/${auth.currentUser.uid}/exam_results`), {
-                    examId: this.examId || 'custom',
-                    score: score,
-                    correct: correct,
-                    wrong: wrong,
-                    total: this.questions.length,
-                    completedAt: serverTimestamp()
-                });
-                console.log("Sonuç kaydedildi.");
-            } catch (e) {
-                console.error("Sonuç kaydetme hatası:", e);
-            }
+            // Kullanıcının "exam_results" koleksiyonuna ekle
+            await addDoc(collection(db, `users/${auth.currentUser.uid}/exam_results`), resultData);
+            console.log("Sonuç başarıyla kaydedildi.");
+            
+        } catch (error) {
+            console.error("Sonuç kaydetme hatası:", error);
         }
-
-        alert(`Test Bitti!\nPuanınız: ${score}\nDoğru: ${correct} - Yanlış: ${wrong}`);
-        // İstenirse burada modal açılabilir veya yönlendirme yapılabilir
-        // window.location.href = '/pages/dashboard.html';
     }
 
-    // --- FAVORİ & REPORT İŞLEMLERİ ---
-
+    // ... (toggleFavorite ve openReportModal fonksiyonları önceki haliyle aynı kalabilir veya buraya ekleyebilirsiniz)
     async toggleFavorite(questionId) {
-        if (!auth.currentUser) return alert("Bu işlem için giriş yapmalısınız.");
-        
+        if (!auth.currentUser) return alert("Giriş yapmalısınız.");
         const btn = document.querySelector(`#q-${questionId} .fav-btn`);
         const userFavRef = doc(db, `users/${auth.currentUser.uid}/favorites/${questionId}`);
 
-        try {
-            if (this.favorites.has(questionId)) {
-                // Favoriden Çıkar
-                this.favorites.delete(questionId);
-                if(btn) btn.innerText = '☆';
-                await deleteDoc(userFavRef);
-            } else {
-                // Favoriye Ekle
-                this.favorites.add(questionId);
-                if(btn) btn.innerText = '★';
-                
-                const q = this.questions.find(x => x.id === questionId);
+        if (this.favorites.has(questionId)) {
+            this.favorites.delete(questionId);
+            btn.innerText = '☆';
+            try { await deleteDoc(userFavRef); } catch(e) {}
+        } else {
+            this.favorites.add(questionId);
+            btn.innerText = '★';
+            const q = this.questions.find(q => q.id === questionId);
+            try {
                 await setDoc(userFavRef, {
                     questionId: q.id,
-                    text: q.text.substring(0, 100) + "...",
+                    text: q.text.substring(0, 150) + "...",
                     category: q.category || "Genel",
                     addedAt: serverTimestamp()
                 });
-            }
-        } catch (e) {
-            console.error("Favori işlemi hatası:", e);
-            alert("İşlem sırasında bir hata oluştu.");
+            } catch(e) {}
         }
     }
 
     openReportModal(questionId) {
-        const desc = prompt("Hata veya düzeltme öneriniz nedir?");
+        const desc = prompt("Hata bildiriminiz nedir?");
         if (desc && auth.currentUser) {
             addDoc(collection(db, "reports"), {
-                questionId: questionId,
-                userId: auth.currentUser.uid,
-                description: desc,
-                status: 'pending',
-                createdAt: serverTimestamp()
-            }).then(() => alert("Bildiriminiz alındı, teşekkürler."))
-              .catch(() => alert("Bildirim gönderilemedi."));
+                questionId, userId: auth.currentUser.uid, description: desc, status: "pending", createdAt: serverTimestamp()
+            });
+            alert("Bildiriminiz alındı.");
         }
     }
 }
-
-// Global scope'a ekle (HTML'den erişebilmek için)
-window.TestEngine = TestEngine;

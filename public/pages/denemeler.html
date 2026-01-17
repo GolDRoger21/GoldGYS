@@ -1,166 +1,91 @@
 <!DOCTYPE html>
 <html lang="tr">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Deneme Sınavları | GOLD GYS</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap"
-        rel="stylesheet">
-    <link rel="stylesheet" href="../styles/tokens.css">
-    <link rel="stylesheet" href="../css/layout.css">
-    <link rel="stylesheet" href="../css/dashboard.css">
-    <link rel="stylesheet" href="../css/portal.css">
-    <link rel="stylesheet" href="../css/footer.css">
-    <style>
-        .exam-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-            gap: 1.5rem;
-        }
-
-        .exam-card {
-            display: flex;
-            flex-direction: column;
-            min-height: 100%;
-        }
-
-        .exam-card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            gap: 0.75rem;
-        }
-
-        .exam-stats {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-            color: var(--text-muted);
-            font-size: 0.85rem;
-        }
-
-        .exam-stats span {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        /* Footer Özelleştirme - Sadeleştirme & Hizalama */
-        .app-footer .footer-links-grid {
-            display: none !important;
-        }
-
-        .app-footer .footer-shell {
-            gap: 0;
-        }
-
-        .app-footer .footer-meta {
-            border-top: none;
-            padding-top: 0;
-            justify-content: space-between !important;
-            flex-direction: row-reverse;
-            /* Sosyal sağ, Copyright sol */
-        }
-
-        /* Flex-reverse yerine HTML sırasını koruyup justify-content ile halledelim */
-        .app-footer .footer-meta {
-            flex-direction: row;
-        }
-
-        @media (max-width: 768px) {
-            .app-footer {
-                padding-top: 1rem;
-                padding-bottom: 2rem;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="../css/app.css">
+    <link rel="stylesheet" href="../components/ui/ui.css">
 </head>
-
 <body>
-    <div id="mainWrapper">
-        <div class="sidebar-overlay" id="sidebarOverlay"></div>
-        <aside class="sidebar" id="sidebar"></aside>
-        <div id="app-header-placeholder"></div>
+    <div id="header-placeholder"></div>
 
-        <main class="main-content" id="main-content">
-            <div class="dashboard-container">
-                <section class="panel-card mb-4">
-                    <div class="section-head">
-                        <div>
-                            <h1 class="page-heading heading-1">📝 Deneme Sınavları</h1>
-                            <p class="text-muted">Gerçek sınav provası yapabileceğiniz, mevzuata uygun denemeler.</p>
-                        </div>
-                    </div>
-                </section>
+    <main class="container mt-4 mb-5">
+        <div class="section-header mb-4">
+            <h1>📝 Deneme Sınavları</h1>
+            <p class="text-muted">Gerçek sınav provası yapabileceğiniz, mevzuata uygun denemeler.</p>
+        </div>
 
-                <div id="examsGrid" class="exam-grid">
-                    <div class="panel-card text-center">
-                        <div class="loader-spinner" style="margin: 0 auto 1rem;"></div>
-                        <p class="text-muted">Sınavlar yükleniyor...</p>
-                    </div>
-                </div>
+        <div id="examsGrid" class="row">
+            <div class="col-12 text-center py-5">
+                <div class="spinner-border text-primary" role="status"></div>
+                <p>Sınavlar yükleniyor...</p>
             </div>
+        </div>
+    </main>
 
-            <footer id="app-footer-placeholder" class="app-footer"></footer>
-        </main>
-    </div>
+    <div id="footer-placeholder"></div>
 
     <script type="module">
+        import { loadHTML } from "../js/ui-loader.js";
         import { db } from "../js/firebase-config.js";
-        import { initLayout } from "../js/ui-loader.js";
         import { collection, getDocs, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+        // Header/Footer Yükle
+        loadHTML('../components/header.html', 'header-placeholder');
+        loadHTML('../components/footer.html', 'footer-placeholder');
+
         document.addEventListener('DOMContentLoaded', async () => {
-            await initLayout();
-
             const grid = document.getElementById('examsGrid');
-
+            
             try {
+                // Sadece Aktif Olan Sınavları Getir
                 const q = query(
-                    collection(db, "exams"),
+                    collection(db, "exams"), 
                     where("isActive", "==", true),
                     orderBy("createdAt", "desc")
                 );
-
+                
                 const snapshot = await getDocs(q);
-
+                
                 if (snapshot.empty) {
-                    grid.innerHTML = '<div class="alert alert-info">Henüz yayınlanmış deneme sınavı bulunmamaktadır. Takipte kalın!</div>';
+                    grid.innerHTML = '<div class="col-12"><div class="alert alert-info">Henüz yayınlanmış deneme sınavı bulunmamaktadır. Takipte kalın!</div></div>';
                     return;
                 }
 
-                grid.innerHTML = '';
+                grid.innerHTML = ''; // Loading'i temizle
 
                 snapshot.forEach(docSnap => {
                     const exam = docSnap.data();
                     const card = document.createElement('div');
-                    card.className = 'card exam-card';
-
-                    const badgeClass = exam.role.includes('Müdür') ? 'primary' : 'success';
+                    card.className = 'col-md-6 col-lg-4 mb-4';
+                    
+                    // Zorluk veya türüne göre renk belirleme (Opsiyonel)
+                    const badgeColor = exam.role.includes('Müdür') ? 'bg-primary' : 'bg-success';
 
                     card.innerHTML = `
-                        <div class="card-body">
-                            <div class="exam-card-header">
-                                <span class="badge ${badgeClass}">${exam.role}</span>
-                                <small class="text-muted">${new Date(exam.createdAt.seconds * 1000).toLocaleDateString('tr-TR')}</small>
+                        <div class="card h-100 shadow-sm border-0 exam-card">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <span class="badge ${badgeColor} text-white">${exam.role}</span>
+                                    <small class="text-muted">${new Date(exam.createdAt.seconds * 1000).toLocaleDateString('tr-TR')}</small>
+                                </div>
+                                <h4 class="card-title mb-3">${exam.title}</h4>
+                                
+                                <div class="exam-stats d-flex gap-3 mb-4 text-muted small">
+                                    <span><i class="icon-book"></i> ${exam.totalQuestions} Soru</span>
+                                    <span><i class="icon-clock"></i> ${exam.duration} Dakika</span>
+                                </div>
+
+                                <p class="card-text text-muted">
+                                    Bu deneme sınavı, güncel mevzuat ve sınav dağılımına tam uygun olarak hazırlanmıştır.
+                                </p>
                             </div>
-                            <h4 class="card-title">${exam.title}</h4>
-                            <div class="exam-stats">
-                                <span>📘 ${exam.totalQuestions} Soru</span>
-                                <span>⏱️ ${exam.duration} Dakika</span>
+                            <div class="card-footer bg-white border-0 pb-4 pt-0">
+                                <a href="test.html?id=${docSnap.id}" class="btn btn-outline-primary w-100 fw-bold">
+                                    BAŞLA 🚀
+                                </a>
                             </div>
-                            <p class="card-text">
-                                Bu deneme sınavı, güncel mevzuat ve sınav dağılımına tam uygun olarak hazırlanmıştır.
-                            </p>
-                        </div>
-                        <div class="card-footer">
-                            <a href="test.html?id=${docSnap.id}" class="btn btn-outline-primary w-100 fw-bold">
-                                BAŞLA 🚀
-                            </a>
                         </div>
                     `;
                     grid.appendChild(card);
@@ -168,10 +93,9 @@
 
             } catch (error) {
                 console.error("Hata:", error);
-                grid.innerHTML = `<div class="alert alert-danger">Bağlantı hatası: ${error.message}</div>`;
+                grid.innerHTML = `<div class="col-12 text-danger">Bağlantı hatası: ${error.message}</div>`;
             }
         });
     </script>
 </body>
-
 </html>

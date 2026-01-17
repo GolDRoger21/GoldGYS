@@ -1,185 +1,181 @@
 <!DOCTYPE html>
 <html lang="tr">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Toplu Yükleme | GOLD GYS</title>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap"
-        rel="stylesheet">
-    <link rel="stylesheet" href="../styles/tokens.css">
-    <link rel="stylesheet" href="../css/layout.css">
+    <title>Firestore Veri Aktarım Aracı</title>
     <link rel="stylesheet" href="../css/admin.css">
-    <link rel="stylesheet" href="../css/footer.css">
     <style>
-        .importer-wrapper {
-            max-width: 800px;
-            margin: 0 auto;
+        /* Admin.css değişkenlerini kullanan modern stil */
+        body { 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            background-color: var(--bg-dark); 
+            color: var(--text-white);
+            font-family: 'Inter', sans-serif;
         }
 
-        .status-box {
-            background: #000;
-            color: #0f0;
-            font-family: 'Consolas', monospace;
-            padding: 15px;
-            border-radius: 8px;
-            height: 300px;
-            overflow-y: auto;
-            border: 1px solid #333;
-            margin-top: 20px;
-            font-size: 0.9rem;
+        .importer-card { 
+            background: var(--bg-panel); 
+            padding: 40px; 
+            border-radius: 16px; 
+            border: 1px solid var(--border-color);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.4); 
+            text-align: center; 
+            max-width: 500px; 
+            width: 100%; 
         }
 
-        .success {
-            color: #4ade80;
+        h2 {
+            color: var(--text-white);
+            margin-bottom: 1rem;
+            font-family: 'Playfair Display', serif;
         }
 
-        .error {
-            color: #ef4444;
+        p.text-muted {
+            color: var(--text-muted);
+            margin-bottom: 2rem;
+            line-height: 1.5;
         }
 
-        .warning {
-            color: #fbbf24;
+        #status { 
+            margin-top: 25px; 
+            font-weight: 500; 
+            font-family: 'Courier New', monospace; 
+            text-align: left; 
+            background: #0f172a; 
+            color: #cbd5e1; 
+            padding: 15px; 
+            border-radius: 8px; 
+            max-height: 250px; 
+            overflow-y: auto; 
+            border: 1px solid var(--border-color);
+            font-size: 0.85rem;
+        }
+
+        #status.error { border-left: 4px solid var(--danger); color: #fca5a5; }
+        #status.success { border-left: 4px solid var(--success); color: #86efac; }
+        
+        .code-path {
+            background: rgba(255,255,255,0.1);
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: var(--gold-primary);
         }
     </style>
 </head>
-
 <body>
 
-    <div class="sidebar-overlay" id="sidebarOverlay"></div>
-    <aside class="sidebar" id="sidebar"></aside>
-    <div id="app-header-placeholder"></div>
-
-    <main class="main-content">
-        <div class="content-wrapper">
-            <div class="section-header">
-                <h2>Toplu Veri Yükleme</h2>
-            </div>
-
-            <div class="importer-wrapper">
-                <div class="card">
-                    <p style="color: var(--text-muted); margin-bottom: 20px;">
-                        Bu araç, `seed.json` dosyasındaki verileri Firestore veritabanına aktarır.
-                        İşlem sırasında tarayıcıyı kapatmayın.
-                    </p>
-
-                    <div style="display: flex; gap: 10px; justify-content: center;">
-                        <button id="startImportBtn" class="btn btn-primary">
-                            <span class="icon">🚀</span> Aktarımı Başlat
-                        </button>
-                    </div>
-
-                    <div id="statusLog" class="status-box">
-                        > Hazır. Başlamak için butona tıklayın...<br>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <footer id="app-footer-placeholder" class="app-footer"></footer>
-    </main>
+    <div class="importer-card">
+        <div style="font-size: 3rem; margin-bottom: 10px;">🚀</div>
+        <h2>Tek Tıkla Veri Aktarımı</h2>
+        <p class="text-muted">
+            <span class="code-path">public/seed.json</span> dosyasındaki verileri Firestore'daki <span class="code-path">questions</span> koleksiyonuna aktarmak için butona tıklayın.
+        </p>
+        
+        <button id="importBtn" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 1rem;">
+            Soruları Veritabanına Aktar
+        </button>
+        
+        <div id="status" style="display:none;"></div>
+    </div>
 
     <script type="module">
-        // Ortak Config ve UI Loader Kullanımı
-        import { db } from "../js/firebase-config.js";
-        import { collection, addDoc, serverTimestamp, getDocs, writeBatch, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-        import { initLayout } from "../js/ui-loader.js";
-        import { requireAdminOrEditor } from "../js/role-guard.js";
+        import { db, auth } from '../js/firebase-config.js';
+        import { collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-        // Sayfa Başlangıcı
-        document.addEventListener('DOMContentLoaded', async () => {
-            // 1. Arayüzü Yükle
-            await initLayout();
+        const importBtn = document.getElementById('importBtn');
+        const statusDiv = document.getElementById('status');
 
-            // 2. Yetki Kontrolü
-            const { role } = await requireAdminOrEditor();
-            if (role !== 'admin') {
-                alert("Bu sayfaya sadece Yöneticiler erişebilir.");
-                window.location.href = 'index.html';
+        let isRunning = false;
+
+        onAuthStateChanged(auth, user => {
+            if (!user) {
+                statusDiv.style.display = 'block';
+                statusDiv.className = 'error';
+                statusDiv.innerHTML = "⚠️ HATA: Lütfen önce admin hesabınızla giriş yapın.";
+                importBtn.disabled = true;
+                importBtn.classList.add('btn-secondary');
+                importBtn.classList.remove('btn-primary');
             }
         });
 
-        // İçe Aktarım Mantığı
-        const importBtn = document.getElementById('startImportBtn');
-        const statusDiv = document.getElementById('statusLog');
-        let isRunning = false;
-
         importBtn.addEventListener('click', async () => {
             if (isRunning) return;
+            if (!auth.currentUser) {
+                alert("Lütfen önce giriş yapın.");
+                return;
+            }
 
-            if (!confirm("DİKKAT: Veritabanına toplu veri eklenecek. Devam edilsin mi?")) return;
+            if (!confirm("Bu işlem `public/seed.json` dosyasındaki verileri veritabanına ekleyecektir. Onaylıyor musunuz?")) {
+                return;
+            }
 
             isRunning = true;
             importBtn.disabled = true;
-            importBtn.innerHTML = '<span class="icon">⏳</span> İşleniyor...';
-            statusDiv.innerHTML = '> 🔄 Veri dosyası (seed.json) okunuyor...<br>';
+            importBtn.innerText = "İşlem Yürütülüyor...";
+            statusDiv.style.display = 'block';
+            statusDiv.className = '';
+            statusDiv.innerHTML = '⏳ İşlem başlatıldı...<br>';
 
             try {
-                // seed.json dosyasını root'tan çekiyoruz
-                const response = await fetch('/seed.json');
-                if (!response.ok) throw new Error("seed.json dosyası bulunamadı! (Ana dizinde olduğundan emin olun)");
+                // 1. seed.json dosyasını çek
+                statusDiv.innerHTML += '-> `seed.json` dosyası aranıyor...<br>';
+                
+                // Not: seed.json dosyasının public klasöründe olması gerekir
+                const response = await fetch('../seed.json');
+                
+                if (!response.ok) {
+                    if(response.status === 404) {
+                        throw new Error("`public/seed.json` dosyası bulunamadı. Lütfen dosyayı doğru yere koyduğunuzdan emin olun.");
+                    }
+                    throw new Error(`Dosya okuma hatası (HTTP ${response.status})`);
+                }
+                
+                const questions = await response.json();
 
-                const data = await response.json();
-                statusDiv.innerHTML += `> ✅ Dosya okundu. ${data.length} adet soru bulundu.<br>`;
-                statusDiv.innerHTML += `> 🚀 Firestore yazma işlemi başlıyor...<br>`;
+                if (!Array.isArray(questions)) throw new Error('JSON verisi bir dizi (array) formatında olmalı.');
+                
+                statusDiv.innerHTML += `-> ${questions.length} adet soru bulundu. Firestore'a yazılıyor...<br>`;
 
-                const questionsCollection = collection(db, "questions");
+                // 2. Her bir soruyu Firestore'a ekle
+                const questionsCollection = collection(db, 'questions');
                 let count = 0;
-                let batch = writeBatch(db); // Batch kullanımı (Daha hızlı)
-                let batchCount = 0;
-
-                for (const question of data) {
-                    const docRef = doc(questionsCollection); // Yeni ID oluştur
-
+                
+                for (const question of questions) {
                     const dataToSave = {
                         ...question,
                         createdAt: serverTimestamp(),
-                        isFlaggedForReview: false,
-                        searchKeywords: generateKeywords(question.text) // Basit arama keywordleri
+                        isFlaggedForReview: question.isFlaggedForReview || false
                     };
-
-                    batch.set(docRef, dataToSave);
-                    batchCount++;
+                    await addDoc(questionsCollection, dataToSave);
                     count++;
-
-                    // Firestore Batch limiti 500'dür. Biz 400'de bir gönderelim.
-                    if (batchCount >= 400) {
-                        await batch.commit();
-                        statusDiv.innerHTML += `<span class="success">> ${count} veri kaydedildi (Batch)...</span><br>`;
+                    
+                    // Her 5 soruda bir durumu güncelle (Performans için)
+                    if (count % 5 === 0) {
+                        statusDiv.innerHTML += `<span style="opacity:0.7">- ${count}. soru eklendi...</span><br>`;
+                        // Scroll en alta
                         statusDiv.scrollTop = statusDiv.scrollHeight;
-                        batch = writeBatch(db); // Yeni batch
-                        batchCount = 0;
                     }
                 }
-
-                // Kalanları gönder
-                if (batchCount > 0) {
-                    await batch.commit();
-                }
-
-                statusDiv.innerHTML += '<br><strong class="success">✅ İŞLEM TAMAMLANDI!</strong><br>';
-                statusDiv.innerHTML += `> Toplam ${count} soru başarıyla veritabanına eklendi.`;
-
+                
+                statusDiv.innerHTML += '<br><strong class="success">✅ BAŞARILI!</strong> Tüm veriler başarıyla aktarıldı.';
                 importBtn.className = 'btn btn-success';
-                importBtn.innerHTML = '<span class="icon">✓</span> Tamamlandı';
+                importBtn.innerText = "İşlem Tamamlandı";
 
             } catch (error) {
-                console.error("Hata:", error);
-                statusDiv.innerHTML += `<br><strong class="error">❌ HATA: ${error.message}</strong><br>`;
-                importBtn.innerHTML = 'Tekrar Dene';
-                importBtn.disabled = false;
+                console.error("Aktarım Hatası:", error);
+                statusDiv.innerHTML += `<br><strong class="error">❌ HATA: ${error.message}</strong>`;
+                importBtn.innerText = "Hata Oluştu";
+                importBtn.className = 'btn btn-danger';
             } finally {
                 isRunning = false;
             }
         });
-
-        // Basit Arama Keyword Üretici (Opsiyonel)
-        function generateKeywords(text) {
-            if (!text) return [];
-            return text.toLowerCase().split(' ').filter(word => word.length > 2).slice(0, 10);
-        }
     </script>
-</body>
 
+</body>
 </html>

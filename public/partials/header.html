@@ -1,0 +1,25 @@
+<div class="header-inner">
+    <div class="header-left">
+        <button class="mobile-menu-toggle" onclick="toggleSidebar()" aria-label="Yan menüyü aç/kapat">☰</button>
+        <span id="pageTitle" class="page-title">Panelim</span>
+    </div>
+    <div class="header-right">
+        <div class="user-menu" data-profile-menu>
+            <div class="user-profile">
+                <div class="user-avatar-circle">
+                    <img class="user-avatar-image" alt="Profil fotoğrafı" loading="lazy">
+                    <span class="user-avatar-initial" id="headerUserInitial">?</span>
+                </div>
+                <div class="user-meta">
+                    <span class="user-name" id="headerUserName">Yükleniyor...</span>
+                    <span class="user-subtitle">Aktif</span>
+                </div>
+            </div>
+            <button class="profile-toggle" type="button" aria-haspopup="true" aria-expanded="false" data-profile-toggle>▾</button>
+            <div class="profile-dropdown" id="profileDropdown">
+                <a href="/pages/profil.html">👤 Profilim</a>
+                <button class="logout-btn" type="button" onclick="window.handleLogout()">🚪 Çıkış Yap</button>
+            </div>
+        </div>
+    </div>
+</div>

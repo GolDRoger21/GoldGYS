@@ -1,27 +1,13 @@
-// public/js/analysis.js
-
 import { db, auth } from "./firebase-config.js";
-import { collection, query, getDocs, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { collection, query, where, getDocs, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-// Renk Paleti (Tokens.css ile uyumlu)
-const COLORS = {
-    gold: '#D4AF37',
-    goldLight: 'rgba(212, 175, 55, 0.2)',
-    success: '#10b981',
-    danger: '#ef4444',
-    text: '#94A3B8',
-    grid: '#334155'
-};
-
 document.addEventListener('DOMContentLoaded', () => {
-    // Auth durumunu bekle
     onAuthStateChanged(auth, async (user) => {
         if (user) {
-            await initAnalysis(user.uid);
+            initAnalysis(user.uid);
         } else {
-            // ui-loader zaten yönlendirir ama güvenlik önlemi:
-            console.warn("Analiz için giriş gerekli.");
+            window.location.href = '../login.html';
         }
     });
 });
@@ -31,185 +17,136 @@ async function initAnalysis(userId) {
     const contentEl = document.getElementById('statsContent');
 
     try {
-        // 1. Verileri Çek (Son 20 Sınav)
+        // Kullanıcının sınav sonuçlarını çek
         const resultsRef = collection(db, `users/${userId}/exam_results`);
+        // Son 20 sınavı getir
         const q = query(resultsRef, orderBy('completedAt', 'desc'), limit(20));
         const snapshot = await getDocs(q);
 
         if (snapshot.empty) {
-            loadingEl.innerHTML = `
-                <div class="card" style="text-align:center; padding:40px;">
-                    <h3>Henüz veri yok 📉</h3>
-                    <p style="color:var(--text-muted);">Sınav çözdükçe istatistikleriniz burada oluşacak.</p>
-                    <a href="testler.html" class="btn btn-primary" style="margin-top:10px; display:inline-block;">Test Çöz</a>
-                </div>`;
+            loadingEl.innerHTML = '<div class="alert alert-info">Henüz hiç deneme sınavı çözmediniz. Çözdükçe istatistikleriniz burada belirecek.</div>';
             return;
         }
 
         const results = [];
         snapshot.forEach(doc => results.push(doc.data()));
 
-        // Verileri tarihe göre eskiden yeniye sırala (Grafik için)
-        const sortedResults = [...results].reverse();
-
-        // 2. İstatistikleri Hesapla ve Yaz
+        // Verileri İşle
         calculateSummary(results);
-
-        // 3. Grafikleri Çiz
-        renderProgressChart(sortedResults);
-        renderRatioChart(results);
-
-        // 4. Tabloyu Doldur
+        renderProgressChart(results);
+        renderTopicChart(results);
         renderHistoryTable(results);
 
-        // 5. Yüklemeyi Bitir
         loadingEl.style.display = 'none';
         contentEl.style.display = 'block';
 
     } catch (error) {
         console.error("Analiz hatası:", error);
-        loadingEl.innerHTML = `<div style="color:red; text-align:center;">Veriler yüklenirken hata oluştu: ${error.message}</div>`;
+        loadingEl.innerHTML = '<div class="text-danger">Veriler yüklenirken bir hata oluştu.</div>';
     }
 }
 
 function calculateSummary(results) {
-    let totalTests = results.length;
-    let totalScore = 0;
-    let totalCorrect = 0;
-    let totalWrong = 0;
-    let totalQuestions = 0;
+    const totalExams = results.length;
+    const totalScore = results.reduce((acc, curr) => acc + curr.score, 0);
+    const avgScore = Math.round(totalScore / totalExams);
+    
+    const totalQuestions = results.reduce((acc, curr) => acc + (curr.total || 0), 0);
+    const totalWrong = results.reduce((acc, curr) => acc + curr.wrong, 0);
+    const wrongRate = totalQuestions > 0 ? Math.round((totalWrong / totalQuestions) * 100) : 0;
 
-    results.forEach(r => {
-        totalScore += Number(r.score || 0);
-        totalCorrect += Number(r.correct || 0);
-        totalWrong += Number(r.wrong || 0);
-        totalQuestions += Number(r.total || 0);
-    });
-
-    const avgScore = totalTests > 0 ? (totalScore / totalTests).toFixed(1) : 0;
-    const netAvg = totalTests > 0 ? ((totalCorrect - (totalWrong * 0.25)) / totalTests).toFixed(1) : 0; // 4 yanlış 1 doğru hesabı varsa
-
-    document.getElementById('totalTests').textContent = totalTests;
-    document.getElementById('avgScore').textContent = `%${avgScore}`;
-    document.getElementById('totalQuestions').textContent = totalQuestions;
-    document.getElementById('successRate').textContent = netAvg;
+    document.getElementById('statTotalExams').innerText = totalExams;
+    document.getElementById('statAvgScore').innerText = `%${avgScore}`;
+    document.getElementById('statTotalQuestions').innerText = totalQuestions;
+    document.getElementById('statWrongRate').innerText = `%${wrongRate}`;
 }
 
-function renderProgressChart(data) {
-    const ctx = document.getElementById('progressChart').getContext('2d');
+function renderProgressChart(results) {
+    // Grafiği tersten (eskiden yeniye) çizmek için diziyi ters çeviriyoruz
+    const chartData = [...results].reverse();
     
-    // Verileri hazırla
-    const labels = data.map((_, index) => `Sınav ${index + 1}`);
-    const scores = data.map(r => r.score);
-
+    const ctx = document.getElementById('progressChart').getContext('2d');
     new Chart(ctx, {
         type: 'line',
         data: {
-            labels: labels,
+            labels: chartData.map(r => new Date(r.completedAt.seconds * 1000).toLocaleDateString('tr-TR', {day:'numeric', month:'short'})),
             datasets: [{
-                label: 'Puan Gelişimi',
-                data: scores,
-                borderColor: COLORS.gold,
-                backgroundColor: COLORS.goldLight,
-                borderWidth: 3,
-                tension: 0.4, // Eğrisel çizgi
-                pointBackgroundColor: '#fff',
-                pointRadius: 4,
+                label: 'Sınav Puanı',
+                data: chartData.map(r => r.score),
+                borderColor: '#27ae60',
+                backgroundColor: 'rgba(39, 174, 96, 0.1)',
+                tension: 0.3,
                 fill: true
             }]
         },
         options: {
             responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false },
-                tooltip: {
-                    backgroundColor: 'rgba(0,0,0,0.8)',
-                    titleColor: COLORS.gold,
-                    callbacks: {
-                        label: function(context) {
-                            return ` Puan: ${context.parsed.y}`;
-                        }
-                    }
-                }
-            },
             scales: {
-                y: {
-                    beginAtZero: true,
-                    max: 100,
-                    grid: { color: 'rgba(255,255,255,0.05)' },
-                    ticks: { color: COLORS.text }
-                },
-                x: {
-                    grid: { display: false },
-                    ticks: { color: COLORS.text }
+                y: { beginAtZero: true, max: 100 }
+            }
+        }
+    });
+}
+
+function renderTopicChart(results) {
+    // Tüm sınavlardaki kategori başarılarını topla
+    const categoryTotals = {}; // { "Anayasa": { correct: 10, total: 15 } }
+
+    results.forEach(exam => {
+        if (!exam.categoryStats) return;
+        Object.entries(exam.categoryStats).forEach(([cat, stats]) => {
+            if (!categoryTotals[cat]) categoryTotals[cat] = { correct: 0, total: 0 };
+            categoryTotals[cat].correct += stats.correct;
+            categoryTotals[cat].total += stats.total;
+        });
+    });
+
+    const labels = Object.keys(categoryTotals);
+    const data = labels.map(cat => {
+        const t = categoryTotals[cat];
+        return Math.round((t.correct / t.total) * 100);
+    });
+
+    const ctx = document.getElementById('topicChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'radar', // Veya 'bar' yapabilirsiniz
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Konu Başarısı (%)',
+                data: data,
+                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                borderColor: 'rgb(54, 162, 235)',
+                pointBackgroundColor: 'rgb(54, 162, 235)',
+                pointBorderColor: '#fff',
+                pointHoverBackgroundColor: '#fff',
+                pointHoverBorderColor: 'rgb(54, 162, 235)'
+            }]
+        },
+        options: {
+            scales: {
+                r: { 
+                    angleLines: { display: false },
+                    suggestedMin: 0,
+                    suggestedMax: 100
                 }
             }
         }
     });
 }
 
-function renderRatioChart(results) {
-    const ctx = document.getElementById('ratioChart').getContext('2d');
-    
-    let totalCorrect = 0;
-    let totalWrong = 0;
-    let totalEmpty = 0;
-
-    results.forEach(r => {
-        totalCorrect += r.correct;
-        totalWrong += r.wrong;
-        // Toplam sorudan (D+Y) çıkarınca boş bulunur
-        const empty = r.total - (r.correct + r.wrong);
-        totalEmpty += empty > 0 ? empty : 0;
-    });
-
-    new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-            labels: ['Doğru', 'Yanlış', 'Boş'],
-            datasets: [{
-                data: [totalCorrect, totalWrong, totalEmpty],
-                backgroundColor: [COLORS.success, COLORS.danger, '#64748B'],
-                borderWidth: 0,
-                hoverOffset: 4
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels: { color: COLORS.text, padding: 20 }
-                }
-            },
-            cutout: '70%' // Ortası delik halka
-        }
-    });
-}
-
 function renderHistoryTable(results) {
     const tbody = document.getElementById('historyTableBody');
-    tbody.innerHTML = results.map(r => {
-        // Tarih formatlama
-        let dateStr = "-";
-        if (r.completedAt && r.completedAt.seconds) {
-            dateStr = new Date(r.completedAt.seconds * 1000).toLocaleDateString('tr-TR');
-        }
-
-        const net = (r.correct - (r.wrong * 0.25)).toFixed(2);
-        
-        return `
+    tbody.innerHTML = results.map(r => `
         <tr>
-            <td style="color:var(--text-muted);">${dateStr}</td>
-            <td style="font-weight:500;">${r.examId === 'custom' ? 'Konu Tarama' : r.examId}</td>
-            <td><span class="badge ${r.score >= 70 ? 'success' : 'warning'}">%${r.score}</span></td>
+            <td>${new Date(r.completedAt.seconds * 1000).toLocaleDateString('tr-TR')}</td>
+            <td>${r.examTitle}</td>
             <td>
-                <span style="color:var(--color-success)">${r.correct} D</span> / 
-                <span style="color:var(--color-danger)">${r.wrong} Y</span>
+                <span class="text-success">${r.correct} D</span> / 
+                <span class="text-danger">${r.wrong} Y</span> / 
+                <span class="text-muted">${r.empty} B</span>
             </td>
-            <td style="font-weight:bold; color:var(--text-white);">${net}</td>
-        </tr>`;
-    }).join('');
+            <td><span class="badge ${r.score >= 70 ? 'bg-success' : 'bg-warning'} text-white" style="font-size:0.9rem">%${r.score}</span></td>
+        </tr>
+    `).join('');
 }

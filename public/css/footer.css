@@ -1,31 +1,29 @@
 /* public/css/footer.css */
 
+/* Eski token importunu kaldırıyoruz, artık global değişkenleri kullanacağız */
+
 .app-footer {
-    width: 100%;
-    background-color: var(--bg-sidebar);
-    /* Matches sidebar/panel dark tone */
+    grid-column: 1 / -1;
+    padding: 3rem 2rem 2rem;
+    background-color: #0B1120; /* Sidebar ile aynı koyu ton */
     border-top: 1px solid var(--border-color);
     color: var(--text-muted);
-    font-size: var(--font-size-sm);
-    margin-top: auto;
-    /* Pushes footer to bottom in flex/grid layouts */
-    padding: 3rem 0 0;
-    /* Top padding for the main area */
+    font-size: 0.95rem;
+    margin-top: auto; /* İçerik azsa footer'ı en alta it */
 }
 
 .footer-shell {
-    max-width: var(--layout-max-width, 1400px);
+    max-width: 1200px;
+    width: 100%;
     margin: 0 auto;
-    padding: 0 var(--layout-gutter, 2rem);
     display: flex;
     flex-direction: column;
     gap: 3rem;
 }
 
-/* --- Top Section: Links Grid --- */
 .footer-links-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
     gap: 2rem;
 }
 
@@ -35,187 +33,118 @@
     gap: 1rem;
 }
 
-.footer-brand-block {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    max-width: 300px;
-}
-
-.footer-brand-logo {
-    font-family: var(--font-family-serif);
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: var(--text-white);
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.footer-brand-logo span {
-    color: var(--gold-primary);
-}
-
-.footer-desc {
-    font-size: 0.9rem;
-    line-height: var(--line-height-base);
-    color: var(--text-muted);
-}
-
 .footer-label {
     color: var(--text-white);
-    font-weight: 600;
-    font-size: 0.95rem;
-    margin-bottom: 0.5rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    margin-bottom: 0.25rem;
     position: relative;
     display: inline-block;
 }
 
+/* Başlık altı minik çizgi */
+.footer-label::after {
+    content: '';
+    display: block;
+    width: 24px;
+    height: 2px;
+    background-color: var(--gold-primary);
+    margin-top: 6px;
+    border-radius: 2px;
+}
+
 .footer-group a {
     color: var(--text-muted);
+    font-weight: 500;
     text-decoration: none;
-    font-size: 0.9rem;
     transition: all 0.2s ease;
     display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
 }
 
 .footer-group a:hover {
     color: var(--gold-primary);
-    transform: translateX(4px);
+    transform: translateX(4px); /* Hoverda sağa kayma efekti */
 }
 
-.footer-company-info {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    font-size: 0.8rem;
-    color: var(--text-muted);
-    line-height: 1.4;
-}
-
-.footer-company-info strong {
-    color: var(--text-white);
-}
-
-.contact-link {
-    color: var(--gold-primary) !important;
-    text-decoration: none;
-}
-
-.etbis-box {
-    margin-top: 1rem;
-    padding: 0.5rem;
-    border: 1px dashed var(--border-color);
-    border-radius: var(--radius-sm);
-    display: inline-block;
-}
-
-.etbis-note {
-    color: var(--text-muted);
-    font-size: 0.7rem;
-}
-
-/* --- Bottom Section: Meta --- */
 .footer-meta {
-    border-top: 1px solid var(--border-color);
-    padding: 1.5rem 0;
     display: flex;
     align-items: center;
     justify-content: space-between;
+    padding-top: 2rem;
+    border-top: 1px solid rgba(51, 65, 85, 0.5);
     flex-wrap: wrap;
-    gap: 1rem;
-    font-size: 0.85rem;
+    gap: 1.5rem;
+}
+
+.footer-brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    font-size: 1.2rem;
+    color: var(--text-white);
+    text-decoration: none;
+}
+
+.footer-brand span {
+    color: var(--gold-primary);
 }
 
 .footer-copyright {
+    font-size: 0.85rem;
     color: var(--text-muted);
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
 }
 
 .footer-social {
     display: flex;
-    align-items: center;
     gap: 1rem;
 }
 
 .footer-social a {
     color: var(--text-muted);
-    font-size: 1.25rem;
-    transition: color 0.2s, transform 0.2s;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 38px;
-    height: 38px;
-    border-radius: 999px;
-    border: 1px solid var(--border-color);
-    background: var(--bg-panel);
-    /* Fix for icon alignment */
-}
-
-.footer-social svg {
-    width: 18px;
-    height: 18px;
+    transition: color 0.2s;
+    font-size: 1.2rem;
+    text-decoration: none;
 }
 
 .footer-social a:hover {
-    color: var(--gold-primary);
-    transform: scale(1.1);
+    color: var(--text-white);
 }
 
-.footer-separator {
-    color: var(--border-color);
-    font-size: 0.5em;
-    /* Make the dot smaller */
-    vertical-align: middle;
-}
-
-.sr-only {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    border: 0;
-}
-
-/* --- Responsive --- */
+/* Responsive Ayarlar */
 @media (max-width: 768px) {
     .app-footer {
-        padding-top: 2rem;
+        padding: 2rem 1.5rem;
     }
 
     .footer-links-grid {
-        grid-template-columns: repeat(2, 1fr);
         gap: 2rem 1rem;
+        grid-template-columns: repeat(2, 1fr); /* Mobilde 2 kolon */
     }
 
-    .footer-brand-block {
-        grid-column: 1 / -1;
+    .footer-meta {
+        flex-direction: column;
         align-items: center;
         text-align: center;
-        max-width: 100%;
-    }
-
-    .etbis-box {
-        margin: 1rem auto 0;
+        gap: 1rem;
     }
 }
 
 @media (max-width: 480px) {
     .footer-links-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .footer-meta {
-        flex-direction: column-reverse;
+        grid-template-columns: 1fr; /* Çok küçük ekranda tek kolon */
         text-align: center;
-        gap: 1.5rem;
+    }
+    
+    .footer-label::after {
+        margin: 6px auto 0; /* Çizgiyi ortala */
+    }
+    
+    .footer-group a:hover {
+        transform: translateX(0); /* Mobilde kayma efektini kapat */
     }
 }
