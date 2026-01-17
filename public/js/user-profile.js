@@ -1,5 +1,5 @@
 import { db } from "./firebase-config.js";
-import { doc, getDoc, setDoc, serverTimestamp, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { doc, getDoc, setDoc, serverTimestamp, updateDoc, addDoc, collection } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 /**
  * Kullanıcı veritabanında var mı kontrol eder, yoksa oluşturur.
@@ -10,7 +10,7 @@ export async function ensureUserDocument(user) {
     if (!user) throw new Error("Kullanıcı bilgisi bulunamadı");
 
     const userRef = doc(db, "users", user.uid);
-    
+
     try {
         const userSnap = await getDoc(userRef);
 
@@ -23,7 +23,7 @@ export async function ensureUserDocument(user) {
                 photoURL: user.photoURL || null,
                 email: user.email || null
             }).catch(err => console.warn("Profil güncelleme uyarısı (Önemsiz):", err));
-            
+
             return userSnap.data();
         } else {
             // Kullanıcı yoksa: Yeni kayıt oluştur
@@ -38,7 +38,7 @@ export async function ensureUserDocument(user) {
                 lastLoginAt: serverTimestamp(),
                 updatedAt: serverTimestamp()
             };
-            
+
             await setDoc(userRef, newUserData);
             return newUserData;
         }
@@ -66,15 +66,15 @@ export async function getUserProfile(uid) {
     } catch (e) {
         console.warn("Önbellek okuma hatası:", e);
     }
-    
+
     // 2. ADIM: Firestore'dan çek
     try {
         const userRef = doc(db, "users", uid);
         const docSnap = await getDoc(userRef);
-        
+
         if (docSnap.exists()) {
             const userData = docSnap.data();
-            
+
             // Tarihleri string'e çevirip önbelleğe al
             const cacheableData = {
                 ...userData,
@@ -112,6 +112,46 @@ export function updateUserCache(uid, newData) {
  * Çıkış yaparken önbelleği temizler.
  */
 export function clearUserCache(uid) {
-    if(uid) sessionStorage.removeItem(`user_profile_${uid}`);
+    if (uid) sessionStorage.removeItem(`user_profile_${uid}`);
     sessionStorage.clear();
+}
+
+/**
+ * Kullanıcının son eriştiği içeriği kaydeder.
+ * @param {string} uid - Kullanıcı ID
+ * @param {object} activity - { type: 'topic'|'test', id: string, title: string, progress: number }
+ */
+export async function saveUserActivity(uid, activity) {
+    if (!uid || !activity) return;
+
+    try {
+        const activityRef = doc(db, `users/${uid}/activity/last_access`);
+        await setDoc(activityRef, {
+            ...activity,
+            timestamp: serverTimestamp()
+        }, { merge: true });
+
+        // Ayrıca geçmişe de ekleyelim (History)
+        const historyRef = collection(db, `users/${uid}/activity_history`);
+        await addDoc(historyRef, {
+            ...activity,
+            timestamp: serverTimestamp()
+        });
+
+    } catch (e) {
+        console.warn("Aktivite kaydedilemedi:", e);
+    }
+}
+
+/**
+ * Kullanıcının son aktivitesini getirir.
+ */
+export async function getLastActivity(uid) {
+    try {
+        const docRef = doc(db, `users/${uid}/activity/last_access`);
+        const docSnap = await getDoc(docRef);
+        return docSnap.exists() ? docSnap.data() : null;
+    } catch (e) {
+        return null;
+    }
 }

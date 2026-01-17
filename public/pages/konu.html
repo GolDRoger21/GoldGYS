@@ -213,8 +213,9 @@
   </div>
 
   <script type="module">
-    import { db } from '../js/firebase-config.js';
+    import { db, auth } from '../js/firebase-config.js';
     import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { saveUserActivity } from '../js/user-profile.js';
 
     document.addEventListener('DOMContentLoaded', async () => {
       const urlParams = new URLSearchParams(window.location.search);
@@ -321,6 +322,18 @@
 
       if (!wasActive) {
         body.classList.add('active');
+
+        // --- YENİ: Aktiviteyi Kaydet ---
+        if (auth.currentUser) {
+          const topicTitle = document.getElementById('topicTitle').innerText;
+          saveUserActivity(auth.currentUser.uid, {
+            type: 'topic',
+            id: new URLSearchParams(window.location.search).get('id'),
+            title: topicTitle,
+            subTitle: `Materyal #${index + 1}`,
+            progress: 0
+          });
+        }
       }
     };
   </script>
