@@ -1,4 +1,5 @@
-/* --- ADMIN PANEL STYLES --- */
+/* --- ADMIN PANEL ÖZEL STİLLERİ --- */
+/* Not: Genel layout (header, sidebar) layout.css'ten gelir. */
 
 /* Section Header */
 .section-header {
@@ -14,6 +15,7 @@
     font-size: 1.5rem;
     font-weight: 700;
     color: var(--text-main);
+    margin: 0;
 }
 
 /* Cards */
@@ -146,6 +148,28 @@
 .btn-sm {
     padding: 6px 12px;
     font-size: 0.85rem;
+}
+
+/* Action Buttons (Dashboard) */
+.btn-action {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 12px;
+    background: var(--bg-hover);
+    border: 1px solid var(--border-color);
+    color: var(--text-main);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: 0.2s;
+    font-weight: 500;
+}
+
+.btn-action:hover {
+    background: var(--color-primary);
+    color: var(--text-on-gold);
+    border-color: var(--color-primary);
 }
 
 /* Forms */

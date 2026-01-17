@@ -236,7 +236,7 @@ body.sidebar-collapsed .nav-label {
     display: none;
     /* JS ile flex yapılacak */
     flex-direction: column;
-    z-index: var(--z-dropdown);
+    z-index: 2000;
     overflow: hidden;
     animation: dropdownFadeIn 0.2s ease-out;
 }

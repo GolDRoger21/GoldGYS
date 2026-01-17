@@ -154,68 +154,65 @@ function updateThemeIcon(theme) {
 }
 
 function setupEventListeners() {
-    // Sidebar Toggle (Hamburger)
-    const toggleBtn = document.getElementById('sidebarToggle');
-    const overlay = document.getElementById('sidebarOverlay');
+    // Event Delegation: Dinamik yüklenen elementler için body'ye listener ekliyoruz
+    document.body.addEventListener('click', (e) => {
+        const target = e.target;
 
-    if (toggleBtn) {
-        toggleBtn.addEventListener('click', () => {
-            // Mobilde 'sidebar-open', Desktopta 'sidebar-collapsed' toggle
+        // 1. Sidebar Toggle (Hamburger)
+        const toggleBtn = target.closest('#sidebarToggle');
+        if (toggleBtn) {
+            e.stopPropagation();
             if (window.innerWidth <= 768) {
                 document.body.classList.toggle('sidebar-open');
             } else {
                 document.body.classList.toggle('sidebar-collapsed');
-                const isCollapsed = document.body.classList.contains('sidebar-collapsed');
-                localStorage.setItem('sidebarCollapsed', isCollapsed);
+                localStorage.setItem('sidebarCollapsed', document.body.classList.contains('sidebar-collapsed'));
             }
-        });
-    }
+            return;
+        }
 
-    if (overlay) {
-        overlay.addEventListener('click', () => {
-            document.body.classList.remove('sidebar-open');
-        });
-    }
+        // 2. Profil Menüsü Toggle
+        const userMenuToggle = target.closest('#userMenuToggle');
+        if (userMenuToggle) {
+            e.stopPropagation();
+            const dropdown = document.getElementById('profileDropdown');
+            if (dropdown) {
+                dropdown.classList.toggle('active');
+            }
+            return;
+        }
 
-    // Tema Toggle
-    const themeBtn = document.getElementById('themeToggle');
-    if (themeBtn) {
-        themeBtn.addEventListener('click', () => {
+        // 3. Tema Toggle
+        const themeBtn = target.closest('#themeToggle');
+        if (themeBtn) {
             const current = document.documentElement.getAttribute('data-theme');
             const next = current === 'dark' ? 'light' : 'dark';
             document.documentElement.setAttribute('data-theme', next);
             localStorage.setItem('theme', next);
             updateThemeIcon(next);
-        });
-    }
+            return;
+        }
 
-    // Profil Dropdown
-    const userMenuToggle = document.getElementById('userMenuToggle');
-    const profileDropdown = document.getElementById('profileDropdown');
-
-    if (userMenuToggle && profileDropdown) {
-        userMenuToggle.addEventListener('click', (e) => {
-            e.stopPropagation();
-            profileDropdown.classList.toggle('active');
-        });
-
-        document.addEventListener('click', (e) => {
-            if (!profileDropdown.contains(e.target) && !userMenuToggle.contains(e.target)) {
-                profileDropdown.classList.remove('active');
-            }
-        });
-    }
-
-    // Çıkış Butonu
-    const logoutBtn = document.getElementById('logoutButton');
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', async () => {
+        // 4. Çıkış Butonu
+        const logoutBtn = target.closest('#logoutButton');
+        if (logoutBtn) {
             if (confirm("Çıkış yapmak istiyor musunuz?")) {
-                await signOut(auth);
-                window.location.href = '/login.html';
+                signOut(auth).then(() => window.location.href = '/login.html');
             }
-        });
-    }
+            return;
+        }
+
+        // 5. Dışarı Tıklama (Menüleri Kapat)
+        const dropdown = document.getElementById('profileDropdown');
+        if (dropdown && dropdown.classList.contains('active') && !target.closest('#profileDropdown')) {
+            dropdown.classList.remove('active');
+        }
+
+        // Mobil Sidebar Overlay Tıklama
+        if (target.id === 'sidebarOverlay') {
+            document.body.classList.remove('sidebar-open');
+        }
+    });
 }
 
 async function checkUserAuthState() {
