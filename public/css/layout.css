@@ -10,7 +10,6 @@ body {
     color: var(--text-main);
     font-family: var(--font-family-sans);
     overflow-x: hidden;
-    /* Yatay taşmayı engelle */
     transition: background-color var(--transition-medium), color var(--transition-medium);
 }
 
@@ -45,6 +44,7 @@ body.sidebar-collapsed .app-layout {
     padding: 0 20px;
     height: var(--header-height);
     box-shadow: var(--shadow-sm);
+    transition: background-color var(--transition-medium), border-color var(--transition-medium);
 }
 
 .header-left,
@@ -75,7 +75,8 @@ body.sidebar-collapsed .app-layout {
     font-family: var(--font-family-serif);
     font-size: 1.4rem;
     font-weight: 700;
-    color: var(--text-main);
+    color: var(--text-logo);
+    /* Logo rengi temaya göre değişecek */
     text-decoration: none;
     display: flex;
     align-items: center;
@@ -99,7 +100,7 @@ body.sidebar-collapsed .app-layout {
     overflow-y: auto;
     overflow-x: hidden;
     z-index: var(--z-sidebar);
-    transition: width var(--transition-medium);
+    transition: width var(--transition-medium), background-color var(--transition-medium);
     padding: 12px 0;
 }
 
@@ -120,6 +121,7 @@ body.sidebar-collapsed .app-sidebar {
     margin-right: 12px;
     transition: all var(--transition-fast);
     white-space: nowrap;
+    position: relative;
 }
 
 .nav-item:hover {
@@ -178,12 +180,11 @@ body.sidebar-collapsed .nav-label {
     padding: 24px;
     overflow-y: auto;
     background-color: var(--bg-body);
-    /* İçerik taşmasını önlemek için */
     width: 100%;
-    max-width: 100%;
+    transition: background-color var(--transition-medium);
 }
 
-/* --- PROFILE DROPDOWN (FIXED) --- */
+/* --- PROFILE DROPDOWN --- */
 .user-menu-container {
     position: relative;
 }
@@ -226,17 +227,15 @@ body.sidebar-collapsed .nav-label {
 .google-dropdown {
     position: absolute;
     top: 120%;
-    /* Biraz aşağı ittik */
     right: 0;
     width: 280px;
-    background: var(--bg-surface);
+    background: var(--bg-dropdown);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-md);
     display: none;
-    /* JS ile flex yapılacak */
     flex-direction: column;
-    z-index: 2000;
+    z-index: var(--z-dropdown);
     overflow: hidden;
     animation: dropdownFadeIn 0.2s ease-out;
 }
@@ -326,8 +325,6 @@ body.sidebar-collapsed .nav-label {
     body.sidebar-collapsed .app-sidebar {
         width: 280px;
     }
-
-    /* Mobilde collapse yok */
 
     .sidebar-overlay {
         position: fixed;

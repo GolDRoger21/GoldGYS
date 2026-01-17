@@ -6,7 +6,6 @@
   /* --- Spacing & Layout --- */
   --header-height: 64px;
   --sidebar-width: 260px;
-  /* Biraz genişlettik */
   --sidebar-width-collapsed: 72px;
   --radius-md: 8px;
   --radius-lg: 12px;
@@ -16,7 +15,6 @@
   --z-content: 1;
   --z-header: 1000;
   --z-sidebar: 1001;
-  /* Header'ın üstünde kalsın */
   --z-overlay: 999;
   --z-dropdown: 1100;
   --z-modal: 2000;
@@ -42,20 +40,29 @@
 
   /* Backgrounds */
   --bg-body: #0F172A;
-  /* Deep Navy */
+  /* Deep Navy (Sayfa Arkaplanı) */
   --bg-header: #0F172A;
-  /* Header Background */
+  /* Header Arkaplanı */
   --bg-sidebar: #0B1120;
-  /* Sidebar daha koyu */
+  /* Sidebar Arkaplanı (Biraz daha koyu) */
   --bg-surface: #1E293B;
-  /* Cards/Panels - Daha açık */
+  /* Kartlar/Paneller */
   --bg-hover: rgba(255, 255, 255, 0.08);
+  /* Hover Efekti */
   --bg-input: #0F172A;
+  /* Input Alanları */
+  --bg-dropdown: #1E293B;
+  /* Dropdown Menü */
 
   /* Text */
   --text-main: #F8FAFC;
+  /* Ana Metin (Beyazımsı) */
   --text-muted: #94A3B8;
+  /* İkincil Metin (Gri) */
   --text-on-gold: #0F172A;
+  /* Gold üzerindeki metin (Koyu) */
+  --text-logo: #F8FAFC;
+  /* Logo Metni */
 
   /* Borders */
   --border-color: #334155;
@@ -67,11 +74,11 @@
   --shadow-gold: 0 0 15px rgba(212, 175, 55, 0.15);
 }
 
-/* --- LIGHT THEME --- */
+/* --- LIGHT THEME (Aydınlık Mod - Okunabilirlik Odaklı) --- */
 [data-theme="light"] {
   /* Brand Colors */
   --color-primary: #B5952F;
-  /* Darker Gold for contrast */
+  /* Darker Gold (Beyaz üzerinde okunması için) */
   --color-primary-hover: #D4AF37;
   --color-primary-dim: #F3E5AB;
   --color-danger: #dc2626;
@@ -80,16 +87,27 @@
 
   /* Backgrounds */
   --bg-body: #F1F5F9;
+  /* Açık Gri (Göz yormayan beyaz) */
   --bg-header: #FFFFFF;
+  /* Beyaz Header */
   --bg-sidebar: #FFFFFF;
+  /* Beyaz Sidebar */
   --bg-surface: #FFFFFF;
+  /* Beyaz Kartlar */
   --bg-hover: #F8FAFC;
+  /* Çok açık gri hover */
   --bg-input: #FFFFFF;
+  --bg-dropdown: #FFFFFF;
 
   /* Text */
   --text-main: #0F172A;
+  /* Koyu Lacivert (Siyah yerine) */
   --text-muted: #64748B;
+  /* Gri Metin */
   --text-on-gold: #FFFFFF;
+  /* Gold üzerindeki metin */
+  --text-logo: #0F172A;
+  /* Logo Metni (Koyu) */
 
   /* Borders */
   --border-color: #E2E8F0;
