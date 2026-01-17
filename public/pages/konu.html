@@ -9,7 +9,7 @@
   <link rel="stylesheet" href="../css/layout.css">
   <link rel="stylesheet" href="../css/dashboard.css">
   <style>
-    /* --- PREMIUM HUB TASARIMI (DÜZELTİLMİŞ) --- */
+    /* --- PREMIUM HUB TASARIMI (V3) --- */
     .hub-container {
       max-width: 1200px;
       margin: 0 auto;
@@ -17,22 +17,33 @@
       animation: fadeIn 0.5s ease;
     }
 
-    /* Header (Düzeltildi: Flexbox ile çakışma önlendi) */
-    .hub-header {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 20px;
-      margin-bottom: 50px;
+    /* Header Kartı (YENİ) */
+    .topic-hero-card {
+      background: linear-gradient(135deg, var(--bg-surface), var(--bg-body));
+      border: 1px solid var(--border-color);
+      border-radius: 24px;
+      padding: 40px;
+      margin-bottom: 40px;
       position: relative;
+      overflow: hidden;
+      box-shadow: var(--shadow-md);
+      text-align: center;
     }
 
-    .header-top-row {
+    .topic-hero-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
       width: 100%;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      position: relative;
+      height: 6px;
+      background: linear-gradient(90deg, var(--color-primary), var(--color-primary-hover));
+    }
+
+    .back-link-wrapper {
+      position: absolute;
+      top: 20px;
+      left: 20px;
     }
 
     .back-link {
@@ -42,27 +53,34 @@
       color: var(--text-muted);
       text-decoration: none;
       font-weight: 600;
-      transition: color 0.2s;
       padding: 8px 16px;
       border-radius: 20px;
-      background: var(--bg-surface);
-      border: 1px solid var(--border-color);
+      background: var(--bg-hover);
+      transition: all 0.2s;
+      font-size: 0.9rem;
     }
 
     .back-link:hover {
+      background: var(--bg-surface);
       color: var(--color-primary);
-      border-color: var(--color-primary);
+      box-shadow: var(--shadow-sm);
     }
 
     .hub-title {
       font-family: var(--font-family-serif);
-      font-size: 2.5rem;
+      font-size: 2.2rem;
       font-weight: 800;
       color: var(--text-main);
-      margin: 20px 0 10px 0;
-      letter-spacing: -1px;
-      text-align: center;
-      line-height: 1.2;
+      margin: 10px 0;
+      letter-spacing: -0.5px;
+      line-height: 1.3;
+    }
+
+    .hub-subtitle {
+      color: var(--text-muted);
+      font-size: 1rem;
+      max-width: 600px;
+      margin: 0 auto;
     }
 
     /* İstatistik Kartları */
@@ -70,52 +88,44 @@
       display: flex;
       justify-content: center;
       gap: 20px;
-      margin-bottom: 40px;
+      margin-top: 30px;
       flex-wrap: wrap;
     }
 
-    .stat-box {
-      background: var(--bg-surface);
+    .stat-pill {
+      background: var(--bg-body);
       border: 1px solid var(--border-color);
-      padding: 15px 25px;
-      border-radius: 16px;
-      text-align: center;
-      min-width: 140px;
-      cursor: pointer;
+      padding: 10px 20px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.9rem;
+      color: var(--text-main);
       transition: transform 0.2s;
-      box-shadow: var(--shadow-sm);
+      cursor: pointer;
     }
 
-    .stat-box:hover {
-      transform: translateY(-3px);
+    .stat-pill:hover {
+      transform: translateY(-2px);
       border-color: var(--color-primary);
     }
 
-    .stat-val {
-      font-size: 1.5rem;
-      font-weight: 800;
-      color: var(--text-main);
-      display: block;
+    .stat-pill-icon {
+      color: var(--color-primary);
+      font-size: 1.1rem;
     }
 
-    .stat-lbl {
-      font-size: 0.8rem;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .stat-icon {
-      font-size: 1.2rem;
-      margin-bottom: 5px;
-      display: block;
+    .stat-pill strong {
+      font-weight: 700;
+      margin-left: 4px;
     }
 
     /* Grid */
     .hub-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 20px;
+      gap: 24px;
     }
 
     .hub-card {
@@ -132,49 +142,46 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      min-height: 200px;
+      min-height: 220px;
     }
 
     .hub-card:hover {
-      transform: translateY(-10px);
+      transform: translateY(-8px);
       border-color: var(--color-primary);
-      box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.3);
-    }
-
-    .hub-card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 4px;
-      background: var(--bg-hover);
-      transition: background 0.3s;
-    }
-
-    .hub-card:hover::before {
-      background: var(--color-primary);
+      box-shadow: 0 15px 30px -10px rgba(0, 0, 0, 0.2);
     }
 
     .card-icon {
-      font-size: 3rem;
-      margin-bottom: 15px;
-      display: block;
+      font-size: 3.5rem;
+      margin-bottom: 20px;
+      background: var(--bg-hover);
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.3s;
+    }
+
+    .hub-card:hover .card-icon {
+      transform: scale(1.1);
+      background: rgba(212, 175, 55, 0.1);
     }
 
     .card-title {
-      font-size: 1.1rem;
+      font-size: 1.2rem;
       font-weight: 700;
       color: var(--text-main);
       margin-bottom: 5px;
     }
 
     .card-meta {
-      font-size: 0.85rem;
+      font-size: 0.9rem;
       color: var(--text-muted);
     }
 
-    /* --- FULL SCREEN VIEWER (DÜZELTİLDİ) --- */
+    /* --- FULL SCREEN VIEWER (TAM EKRAN DÜZELTME) --- */
     .viewer-overlay {
       position: fixed;
       top: 0;
@@ -193,14 +200,15 @@
     }
 
     .viewer-header {
-      padding: 15px 30px;
+      padding: 15px 40px;
       border-bottom: 1px solid var(--border-color);
       display: flex;
       justify-content: space-between;
       align-items: center;
       background: var(--bg-surface);
       flex-shrink: 0;
-      /* Header küçülmesin */
+      box-shadow: var(--shadow-sm);
+      z-index: 10;
     }
 
     .viewer-title {
@@ -232,7 +240,7 @@
       color: white;
     }
 
-    /* Scroll Bar Düzeltmesi: Body tam ekran, scroll içeride */
+    /* Scroll Bar Düzeltmesi: Body tam ekran, scroll içeride DEĞİL, ana akışta */
     .viewer-body {
       flex: 1;
       overflow-y: auto;
@@ -240,8 +248,97 @@
       width: 100%;
       max-width: 1000px;
       margin: 0 auto;
+      /* Scroll bar'ı güzelleştir */
       scrollbar-width: thin;
       scrollbar-color: var(--color-primary) var(--bg-hover);
+    }
+
+    /* HTML Not Okuyucu (Tam Ekran Hissi) */
+    .note-reader-content {
+      font-size: 1.2rem;
+      line-height: 1.8;
+      color: var(--text-main);
+      font-family: 'Georgia', serif;
+      /* Okuma için serif */
+      background: transparent;
+      /* Kart görünümü kaldırıldı, kağıt hissi */
+      padding: 0;
+      border: none;
+      box-shadow: none;
+    }
+
+    .note-reader-content h1,
+    .note-reader-content h2,
+    .note-reader-content h3 {
+      font-family: var(--font-family-sans);
+      color: var(--color-primary);
+      margin-top: 1.5em;
+    }
+
+    .note-reader-content ul,
+    .note-reader-content ol {
+      padding-left: 20px;
+      margin-bottom: 1em;
+    }
+
+    .note-reader-content li {
+      margin-bottom: 0.5em;
+    }
+
+    /* Video Modal (TAM EKRAN DÜZELTME) */
+    #videoModal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: black;
+      z-index: 3000;
+      /* Tamamen siyah arka plan */
+      display: none;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+    }
+
+    /* Video Wrapper: Tam genişlik */
+    .video-wrapper-modal {
+      width: 100%;
+      height: 100%;
+      max-width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Iframe: Orantılı ve büyük */
+    .video-wrapper-modal iframe {
+      width: 80vw;
+      height: 80vh;
+      /* Ekranın %80'ini kapla */
+      max-width: 1280px;
+      aspect-ratio: 16/9;
+      border: none;
+      box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
+    }
+
+    .video-close-btn {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 30px;
+      cursor: pointer;
+      font-weight: 600;
+      backdrop-filter: blur(5px);
+      transition: background 0.2s;
+    }
+
+    .video-close-btn:hover {
+      background: rgba(255, 255, 255, 0.4);
     }
 
     /* Liste Görünümü */
@@ -286,72 +383,6 @@
       font-weight: bold;
     }
 
-    /* HTML Not Okuyucu (Typography) */
-    .note-reader-content {
-      font-size: 1.15rem;
-      line-height: 1.8;
-      color: var(--text-main);
-      font-family: 'Georgia', serif;
-      /* Okuma için serif */
-      background: var(--bg-surface);
-      padding: 40px;
-      border-radius: 16px;
-      box-shadow: var(--shadow-sm);
-      border: 1px solid var(--border-color);
-    }
-
-    .note-reader-content h1,
-    .note-reader-content h2,
-    .note-reader-content h3 {
-      font-family: var(--font-family-sans);
-      color: var(--color-primary);
-      margin-top: 1.5em;
-    }
-
-    .note-reader-content ul,
-    .note-reader-content ol {
-      padding-left: 20px;
-      margin-bottom: 1em;
-    }
-
-    .note-reader-content li {
-      margin-bottom: 0.5em;
-    }
-
-    /* Video Modal (DÜZELTİLDİ) */
-    #videoModal {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.95);
-      z-index: 3000;
-      display: none;
-      justify-content: center;
-      align-items: center;
-      flex-direction: column;
-      padding: 20px;
-    }
-
-    /* Video Wrapper: Genişlik sınırlandırıldı ama mobilde tam ekran */
-    .video-wrapper-modal {
-      width: 100%;
-      max-width: 1200px;
-      aspect-ratio: 16/9;
-      position: relative;
-      background: black;
-      border-radius: 16px;
-      overflow: hidden;
-      box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
-    }
-
-    .video-wrapper-modal iframe {
-      width: 100%;
-      height: 100%;
-      border: none;
-    }
-
     @keyframes fadeIn {
       from {
         opacity: 0;
@@ -373,38 +404,36 @@
     }
 
     @media (max-width: 768px) {
-      .hub-header {
-        padding-top: 20px;
+      .topic-hero-card {
+        padding: 30px 20px;
+        text-align: center;
       }
 
-      .header-top-row {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 10px;
-      }
-
-      .back-link {
+      .back-link-wrapper {
         position: static;
-        transform: none;
+        margin-bottom: 20px;
+        display: flex;
+        justify-content: center;
       }
 
       .hub-title {
-        font-size: 2rem;
-        margin-top: 10px;
-      }
-
-      .viewer-body {
-        padding: 20px;
+        font-size: 1.8rem;
       }
 
       .stats-row {
+        flex-direction: column;
         gap: 10px;
       }
 
-      .stat-box {
-        min-width: 100px;
-        padding: 10px;
-        flex: 1;
+      .stat-pill {
+        justify-content: center;
+        width: 100%;
+      }
+
+      .video-wrapper-modal iframe {
+        width: 100%;
+        height: auto;
+        aspect-ratio: 16/9;
       }
     }
   </style>
@@ -418,63 +447,61 @@
 
   <!-- ANA HUB (KATEGORİLER) -->
   <div class="dashboard-container hub-container" id="mainHub">
-    <div class="hub-header">
-      <div class="header-top-row">
+
+    <!-- Yeni Hero Card -->
+    <div class="topic-hero-card">
+      <div class="back-link-wrapper">
         <a href="/pages/konular.html" class="back-link">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M19 12H5M12 19l-7-7 7-7" />
           </svg>
           Konulara Dön
         </a>
-        <!-- İlerleme Halkası Buraya Gelebilir veya Gizlenebilir -->
       </div>
 
       <h1 class="hub-title" id="topicTitle">Yükleniyor...</h1>
-      <p class="text-muted" id="topicProgressText">%0 Tamamlandı</p>
-    </div>
+      <p class="hub-subtitle" id="topicDesc">Konu detayları ve ilerleme durumunuz.</p>
 
-    <!-- İstatistikler -->
-    <div class="stats-row">
-      <div class="stat-box" onclick="goToMistakes()">
-        <span class="stat-icon">⚠️</span>
-        <span class="stat-val" id="statWrong">0</span>
-        <span class="stat-lbl">Yanlış</span>
-      </div>
-      <div class="stat-box" onclick="goToFavorites()">
-        <span class="stat-icon">⭐</span>
-        <span class="stat-val" id="statFav">0</span>
-        <span class="stat-lbl">Favori</span>
-      </div>
-      <div class="stat-box">
-        <span class="stat-icon">✅</span>
-        <span class="stat-val" id="statCorrect">0</span>
-        <span class="stat-lbl">Doğru</span>
+      <!-- İstatistikler -->
+      <div class="stats-row">
+        <div class="stat-pill" onclick="goToMistakes()">
+          <span class="stat-pill-icon">⚠️</span>
+          <span>Yanlış: <strong id="statWrong">0</strong></span>
+        </div>
+        <div class="stat-pill" onclick="goToFavorites()">
+          <span class="stat-pill-icon">⭐</span>
+          <span>Favori: <strong id="statFav">0</strong></span>
+        </div>
+        <div class="stat-pill">
+          <span class="stat-pill-icon">✅</span>
+          <span>Çözülen: <strong id="statCorrect">0</strong></span>
+        </div>
       </div>
     </div>
 
     <div class="hub-grid">
       <div class="hub-card" onclick="openViewer('video')">
-        <span class="card-icon">🎥</span>
+        <div class="card-icon">🎥</div>
         <div class="card-title">Video Dersler</div>
         <div class="card-meta" id="countVideo">0 İçerik</div>
       </div>
       <div class="hub-card" onclick="openViewer('pdf')">
-        <span class="card-icon">📕</span>
+        <div class="card-icon">📕</div>
         <div class="card-title">Ders Notları</div>
         <div class="card-meta" id="countPDF">0 Dosya</div>
       </div>
       <div class="hub-card" onclick="openViewer('podcast')">
-        <span class="card-icon">🎧</span>
+        <div class="card-icon">🎧</div>
         <div class="card-title">Podcastler</div>
         <div class="card-meta" id="countPodcast">0 Kayıt</div>
       </div>
       <div class="hub-card" onclick="openViewer('html')">
-        <span class="card-icon">📝</span>
+        <div class="card-icon">📝</div>
         <div class="card-title">Özet Bilgiler</div>
         <div class="card-meta" id="countHtml">0 Not</div>
       </div>
       <div class="hub-card" onclick="openViewer('test')">
-        <span class="card-icon">🧠</span>
+        <div class="card-icon">🧠</div>
         <div class="card-title">Konu Testleri</div>
         <div class="card-meta" id="countTest">0 Test</div>
       </div>
@@ -492,15 +519,12 @@
     </div>
   </div>
 
-  <!-- Video Modal (YENİLENMİŞ) -->
+  <!-- Video Modal (TAM EKRAN) -->
   <div id="videoModal">
+    <button class="video-close-btn" onclick="closeVideo()">✕ Kapat</button>
     <div class="video-wrapper-modal">
-      <div id="videoPlayer"></div>
+      <div id="videoPlayer" style="width:100%; height:100%;"></div>
     </div>
-    <button onclick="closeVideo()"
-      style="margin-top:20px; padding:12px 40px; background:rgba(255,255,255,0.15); color:white; border:1px solid rgba(255,255,255,0.3); border-radius:30px; cursor:pointer; font-weight:600; transition:background 0.2s;">
-      Kapat
-    </button>
   </div>
 
   <script type="module">
@@ -521,7 +545,7 @@
       onAuthStateChanged(auth, async (user) => {
         if (user) {
           await loadUserProgress(user.uid);
-          await loadUserStats(user.uid); // Yanlış/Doğru sayıları
+          await loadUserStats(user.uid);
         }
         await loadTopicData();
       });
@@ -558,6 +582,7 @@
       currentTopicTitle = data.title;
       document.getElementById('topicTitle').innerText = data.title;
       document.title = `${data.title} | GOLD GYS`;
+      if (data.description) document.getElementById('topicDesc').innerText = data.description;
 
       const q = query(collection(db, `topics/${currentTopicId}/lessons`), orderBy("order", "asc"));
       const snapshot = await getDocs(q);
@@ -594,9 +619,6 @@
         total += count;
         completed += allMaterials[type].filter(i => userProgress[i.id]).length;
       });
-
-      const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
-      document.getElementById('topicProgressText').innerText = `%${percent} Tamamlandı`;
     }
 
     // --- VIEWER YÖNETİMİ ---
@@ -639,7 +661,7 @@
       setTimeout(() => { document.getElementById('viewerContent').innerHTML = ''; }, 300);
     };
 
-    // --- İÇERİK OYNATMA ---
+    // --- İÇERİK OYNATMA (GÜNCELLENDİ) ---
     window.playContent = (item) => {
       const content = document.getElementById('viewerContent');
       const title = document.getElementById('viewerTitle');
@@ -652,7 +674,10 @@
       if (item.type === 'video') {
         let videoId = '';
         try {
-          const safeUrl = item.url.startsWith('http') ? item.url : `https://${item.url}`;
+          // URL düzeltme (http ekleme)
+          let safeUrl = item.url.trim();
+          if (!safeUrl.startsWith('http')) safeUrl = `https://${safeUrl}`;
+
           const urlObj = new URL(safeUrl);
 
           if (safeUrl.includes('youtu')) {
@@ -664,9 +689,11 @@
 
         if (videoId) {
           const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`;
-          document.getElementById('videoPlayer').innerHTML = `<iframe src="${embedUrl}" frameborder="0" allowfullscreen style="width:100%; height:100%; border-radius:12px;"></iframe>`;
+          // Video Player'ı Modal İçine Koy
+          document.getElementById('videoPlayer').innerHTML = `<iframe src="${embedUrl}" frameborder="0" allowfullscreen style="width:100%; height:100%;"></iframe>`;
           document.getElementById('videoModal').style.display = 'flex';
           markComplete(item.id);
+          return; // HTML içeriği değiştirmeye gerek yok, modal açıldı
         } else {
           alert("Geçersiz video linki.");
         }
@@ -723,7 +750,7 @@
       } catch (e) { }
     };
 
-    // Yönlendirmeler (Filtreli URL ile)
+    // Yönlendirmeler
     window.goToMistakes = () => {
       const topicName = encodeURIComponent(currentTopicTitle);
       window.location.href = `/pages/yanlislarim.html?category=${topicName}`;
