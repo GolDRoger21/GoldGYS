@@ -9,12 +9,13 @@ import * as LegislationModule from "./modules/admin/legislation.js";
 import * as ReportsModule from "./modules/admin/reports.js";
 import * as ExamsModule from "./modules/admin/exams.js";
 import * as ImporterModule from "./modules/admin/importer.js";
+import * as TopicsModule from "./modules/admin/topics.js";
 
 // --- SAYFA BAŞLANGICI ---
 document.addEventListener("DOMContentLoaded", async () => {
     try {
         // 1. Arayüzü Yükle
-        await initLayout(); 
+        await initLayout();
         console.log("✅ Arayüz yüklendi.");
 
         // 2. Yetki Kontrolü
@@ -25,7 +26,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         const roleBadge = document.getElementById('userRoleBadge');
         const sidebarRole = document.getElementById('sidebarUserRole');
         const sidebarName = document.getElementById('sidebarUserName');
-        
+
         const roleText = role === 'admin' ? 'SİSTEM YÖNETİCİSİ' : 'İÇERİK EDİTÖRÜ';
         if (roleBadge) roleBadge.textContent = roleText;
         if (sidebarRole) sidebarRole.textContent = roleText;
@@ -50,7 +51,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         initTheme();
         initInteractions(role);
-        
+
         const initialTab = window.location.hash.substring(1) || 'dashboard';
         activateTab(initialTab, role);
 
@@ -91,14 +92,15 @@ function handleTabChange(target, role) {
     if (targetSection) {
         targetSection.style.display = 'block';
         // Modülleri başlat
-        switch(target) {
+        switch (target) {
             case 'dashboard': DashboardModule.initDashboard(); break;
-            case 'users': if(role==='admin') UserModule.initUsersPage(); break;
+            case 'users': if (role === 'admin') UserModule.initUsersPage(); break;
             case 'content': ContentModule.initContentPage(); break;
-            case 'legislation': if(role==='admin') LegislationModule.initLegislationPage(); break;
-            case 'reports': if(role==='admin') ReportsModule.initReportsPage(); break;
+            case 'legislation': if (role === 'admin') LegislationModule.initLegislationPage(); break;
+            case 'reports': if (role === 'admin') ReportsModule.initReportsPage(); break;
             case 'exams': ExamsModule.initExamsPage(); break;
             case 'importer': ImporterModule.initImporterPage(); break;
+            case 'topics': TopicsModule.initTopicsPage(); break;
         }
     }
 }
@@ -119,16 +121,16 @@ function initInteractions(role) {
 
     // Mobil menü ve çıkış işlemleri
     const mobileBtn = document.getElementById('mobileMenuToggle');
-    if(mobileBtn) mobileBtn.addEventListener('click', (e) => { e.stopPropagation(); toggleMobileMenu(); });
+    if (mobileBtn) mobileBtn.addEventListener('click', (e) => { e.stopPropagation(); toggleMobileMenu(); });
     const closeBtn = document.getElementById('closeSidebar');
-    if(closeBtn) closeBtn.addEventListener('click', closeMobileMenu);
+    if (closeBtn) closeBtn.addEventListener('click', closeMobileMenu);
     const overlay = document.getElementById('sidebarOverlay');
-    if(overlay) overlay.addEventListener('click', closeMobileMenu);
-    
+    if (overlay) overlay.addEventListener('click', closeMobileMenu);
+
     // Profil Dropdown
     const userMenuToggle = document.getElementById('userMenuToggle');
     const profileDropdown = document.getElementById('profileDropdown');
-    if(userMenuToggle && profileDropdown) {
+    if (userMenuToggle && profileDropdown) {
         userMenuToggle.addEventListener('click', (e) => { e.stopPropagation(); profileDropdown.classList.toggle('active'); });
         document.addEventListener('click', (e) => {
             if (!profileDropdown.contains(e.target) && !userMenuToggle.contains(e.target)) profileDropdown.classList.remove('active');
@@ -136,7 +138,7 @@ function initInteractions(role) {
     }
 
     // Çıkış Butonları
-    const handleLogout = () => { if(confirm("Çıkış yapılsın mı?")) window.location.href = "../index.html"; };
+    const handleLogout = () => { if (confirm("Çıkış yapılsın mı?")) window.location.href = "../index.html"; };
     const logoutBtn = document.getElementById('logoutBtn');
     const headerLogoutBtn = document.getElementById('logoutButton');
     if (logoutBtn) logoutBtn.addEventListener('click', handleLogout);
@@ -145,17 +147,17 @@ function initInteractions(role) {
 
 function toggleMobileMenu() {
     const s = document.getElementById('sidebar'), o = document.getElementById('sidebarOverlay');
-    if(s && o) { s.classList.toggle('active'); o.classList.toggle('active'); }
+    if (s && o) { s.classList.toggle('active'); o.classList.toggle('active'); }
 }
 function closeMobileMenu() {
     const s = document.getElementById('sidebar'), o = document.getElementById('sidebarOverlay');
-    if(s && o) { s.classList.remove('active'); o.classList.remove('active'); }
+    if (s && o) { s.classList.remove('active'); o.classList.remove('active'); }
 }
 
 function updateAdminHeaderProfile(user) {
     const name = user.displayName || user.email.split('@')[0];
     const elName = document.getElementById('dropdownUserName');
     const elEmail = document.getElementById('dropdownUserEmail');
-    if(elName) elName.textContent = name;
-    if(elEmail) elEmail.textContent = user.email;
+    if (elName) elName.textContent = name;
+    if (elEmail) elEmail.textContent = user.email;
 }
