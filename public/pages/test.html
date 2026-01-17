@@ -1,32 +1,85 @@
 <!DOCTYPE html>
 <html lang="tr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Test Çöz | GOLD GYS</title>
-    <link rel="stylesheet" href="../css/app.css"> 
+    <link rel="stylesheet" href="../css/app.css">
     <link rel="stylesheet" href="../components/ui/ui.css">
-    
+
     <style>
         /* Test Motoruna Özel Stiller */
-        .tuzak-kutu { background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 10px; margin: 10px 0; font-size: 0.9rem; color: #856404; }
-        .hap-kutu { background-color: #d1ecf1; border-left: 4px solid #17a2b8; padding: 10px; margin: 10px 0; font-size: 0.9rem; color: #0c5460; }
-        .vurgu-negatif { color: #D32F2F; font-weight: 700; text-transform: uppercase; }
-        .sik-btn.correct { background-color: #d4edda; border-color: #28a745; color: #155724; }
-        .sik-btn.wrong { background-color: #f8d7da; border-color: #dc3545; color: #721c24; }
-        .cozum-container { background-color: #f8f9fa; border-top: 1px solid #ddd; padding: 20px; margin-top: 15px; border-radius: 0 0 8px 8px;}
-        
-        .loading-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background:white; z-index:999; display:flex; justify-content:center; align-items:center; flex-direction: column;}
+        .tuzak-kutu {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 0.9rem;
+            color: #856404;
+        }
+
+        .hap-kutu {
+            background-color: #d1ecf1;
+            border-left: 4px solid #17a2b8;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 0.9rem;
+            color: #0c5460;
+        }
+
+        .vurgu-negatif {
+            color: #D32F2F;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .sik-btn.correct {
+            background-color: #d4edda;
+            border-color: #28a745;
+            color: #155724;
+        }
+
+        .sik-btn.wrong {
+            background-color: #f8d7da;
+            border-color: #dc3545;
+            color: #721c24;
+        }
+
+        .cozum-container {
+            background-color: #f8f9fa;
+            border-top: 1px solid #ddd;
+            padding: 20px;
+            margin-top: 15px;
+            border-radius: 0 0 8px 8px;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: white;
+            z-index: 999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
     </style>
 </head>
+
 <body>
-    
+
     <div id="loadingScreen" class="loading-overlay">
         <div class="spinner-border text-success mb-3" role="status" style="width: 3rem; height: 3rem;"></div>
         <h3 id="loadingText">Sınav Hazırlanıyor...</h3>
     </div>
 
-    <header class="header-sticky" style="position: sticky; top: 0; background: white; z-index: 100; padding: 15px; border-bottom: 3px solid #27ae60; display: none; justify-content: space-between; align-items: center;" id="testHeader">
+    <header class="header-sticky"
+        style="position: sticky; top: 0; background: white; z-index: 100; padding: 15px; border-bottom: 3px solid #27ae60; display: none; justify-content: space-between; align-items: center;"
+        id="testHeader">
         <div class="test-title" id="testTitle" style="font-weight:700; color:#2c3e50;">Deneme Sınavı</div>
         <div class="score-board" style="display: flex; gap: 15px; font-weight: bold;">
             <div class="score-item" style="color:#27ae60">D: <span id="trueVal">0</span></div>
@@ -36,21 +89,31 @@
         </div>
     </header>
 
-    <main class="quiz-container" id="quizContainer" style="max-width: 800px; margin: 20px auto; padding: 0 15px; display:none;">
-        </main>
+    <main class="quiz-container" id="quizContainer"
+        style="max-width: 800px; margin: 20px auto; padding: 0 15px; display:none;">
+    </main>
 
-    <div class="footer-static" id="testFooter" style="display: none; justify-content: center; gap: 10px; padding: 20px 0; margin-top: 40px; border-top: 1px solid #ddd; background-color: #f8f9fa;">
-        <button id="btnFinish" class="btn-action" style="padding: 10px 30px; background-color: #27ae60; color: white; border: none; border-radius: 6px; cursor: pointer; font-size:1.1rem; font-weight:bold;">Testi Bitir</button>
+    <div class="footer-static" id="testFooter"
+        style="display: none; justify-content: center; gap: 10px; padding: 20px 0; margin-top: 40px; border-top: 1px solid #ddd; background-color: #f8f9fa;">
+        <button id="btnFinish" class="btn-action"
+            style="padding: 10px 30px; background-color: #27ae60; color: white; border: none; border-radius: 6px; cursor: pointer; font-size:1.1rem; font-weight:bold;">Testi
+            Bitir</button>
     </div>
 
-    <div class="modal-overlay" id="resultModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; justify-content: center; align-items: center;">
-        <div class="modal-content" style="background: white; padding: 30px; border-radius: 12px; text-align: center; max-width: 400px; width: 90%;">
+    <div class="modal-overlay" id="resultModal"
+        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; justify-content: center; align-items: center;">
+        <div class="modal-content"
+            style="background: white; padding: 30px; border-radius: 12px; text-align: center; max-width: 400px; width: 90%;">
             <h2>Test Sonucu</h2>
-            <div id="scoreDisplay" style="font-size: 3rem; font-weight: 800; color: #27ae60; margin: 15px 0;">0 / 100</div>
+            <div id="scoreDisplay" style="font-size: 3rem; font-weight: 800; color: #27ae60; margin: 15px 0;">0 / 100
+            </div>
             <p id="resultText">Analiz ediliyor...</p>
             <div class="d-flex gap-2 justify-content-center mt-4">
-                <a href="denemeler.html" class="btn btn-secondary" style="padding: 8px 20px; text-decoration:none; color:white; background:#7f8c8d; border-radius:4px;">Çıkış</a>
-                <button onclick="document.getElementById('resultModal').style.display='none'" style="padding: 8px 25px; background: #2c3e50; color: white; border: none; border-radius: 4px; cursor: pointer;">Cevapları İncele</button>
+                <a href="denemeler.html" class="btn btn-secondary"
+                    style="padding: 8px 20px; text-decoration:none; color:white; background:#7f8c8d; border-radius:4px;">Çıkış</a>
+                <button onclick="document.getElementById('resultModal').style.display='none'"
+                    style="padding: 8px 25px; background: #2c3e50; color: white; border: none; border-radius: 4px; cursor: pointer;">Cevapları
+                    İncele</button>
             </div>
         </div>
     </div>
@@ -58,87 +121,116 @@
     <script type="module">
         import { TestEngine } from "../js/test-engine.js";
         import { db } from "../js/firebase-config.js";
-        import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { doc, getDoc, collection, query, where, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         document.addEventListener('DOMContentLoaded', async () => {
             const urlParams = new URLSearchParams(window.location.search);
             const examId = urlParams.get('id');
+            const topicId = urlParams.get('topic'); // Yeni parametre
+
             const loadingScreen = document.getElementById('loadingScreen');
             const quizContainer = document.getElementById('quizContainer');
             const testHeader = document.getElementById('testHeader');
             const testFooter = document.getElementById('testFooter');
 
-            if (!examId) {
-                alert("Hata: Sınav ID bulunamadı.");
+            if (!examId && !topicId) {
+                alert("Hata: Sınav veya Konu ID parametresi eksik.");
                 window.location.href = 'denemeler.html';
                 return;
             }
 
             try {
-                // 1. Sınav Verisini Çek
-                const docRef = doc(db, "exams", examId);
-                const docSnap = await getDoc(docRef);
+                let questions = [];
+                let title = "Test";
+                let duration = 30; // Varsayılan süre
+                let testId = examId || topicId;
 
-                if (!docSnap.exists()) {
-                    alert("Sınav bulunamadı veya kaldırılmış.");
-                    window.location.href = 'denemeler.html';
-                    return;
+                if (examId) {
+                    // --- DENEME SINAVI MODU ---
+                    const docRef = doc(db, "exams", examId);
+                    const docSnap = await getDoc(docRef);
+
+                    if (!docSnap.exists()) {
+                        throw new Error("Sınav bulunamadı.");
+                    }
+
+                    const examData = docSnap.data();
+                    title = examData.title;
+                    duration = examData.duration;
+
+                    // Soruları Hazırla
+                    questions = examData.questionsSnapshot;
                 }
+                else if (topicId) {
+                    // --- KONU BAZLI TEST MODU ---
+                    // 1. Konu Başlığını Çek
+                    const topicSnap = await getDoc(doc(db, "topics", topicId));
+                    const topicTitle = topicSnap.exists() ? topicSnap.data().title : "Konu Testi";
+                    title = `${topicTitle} - Tarama Testi`;
 
-                const examData = docSnap.data();
-                document.title = `${examData.title} | Çöz`;
-                document.getElementById('testTitle').innerText = examData.title;
+                    // 2. Konuya Ait Soruları Çek (Demo: Rastgele 20 soru)
+                    // Gerçek senaryoda: where("topicId", "==", topicId) eklenmeli.
+                    const qQuery = query(collection(db, "questions"), where("isActive", "==", true), limit(50));
+                    const qSnap = await getDocs(qQuery);
 
-                // 2. Soruları Hazırla
-                // exams.js'de kaydettiğimiz 'questionsSnapshot' kullanıyoruz (Hızlı Yükleme)
-                let questions = examData.questionsSnapshot;
+                    if (qSnap.empty) {
+                        throw new Error("Bu konuyla ilgili henüz soru eklenmemiş.");
+                    }
+
+                    const allDocs = qSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+                    // Rastgele 20 soru seç
+                    questions = allDocs.sort(() => 0.5 - Math.random()).slice(0, 20);
+                }
 
                 if (!questions || questions.length === 0) {
-                    throw new Error("Sınav içeriği boş veya hatalı format.");
+                    throw new Error("Test içeriği oluşturulamadı.");
                 }
 
+                document.title = `${title} | Çöz`;
+                document.getElementById('testTitle').innerText = title;
+
                 // 3. Test Motorunu Başlat
-                const engine = new TestEngine('quizContainer', questions, examId);
-                
+                const engine = new TestEngine('quizContainer', questions, testId);
+
                 // Arayüzü Aç
                 loadingScreen.style.display = 'none';
                 quizContainer.style.display = 'block';
                 testHeader.style.display = 'flex';
                 testFooter.style.display = 'flex';
 
-                // Sayaç Başlat (Basit Timer)
-                startTimer(examData.duration);
+                // Sayaç Başlat
+                startTimer(duration);
 
                 // Bitir Butonu
                 document.getElementById('btnFinish').addEventListener('click', () => {
-                    if(confirm("Testi bitirmek ve sonucu görmek istediğinize emin misiniz?")) {
+                    if (confirm("Testi bitirmek ve sonucu görmek istediğinize emin misiniz?")) {
                         engine.finishTest();
                     }
                 });
 
             } catch (error) {
                 console.error("Test hatası:", error);
-                document.getElementById('loadingText').innerHTML = `<span style="color:red">Hata: ${error.message}</span><br><a href="denemeler.html">Geri Dön</a>`;
+                document.getElementById('loadingText').innerHTML = `<span style="color:red">Hata: ${error.message}</span><br><button onclick="window.history.back()" class="btn btn-secondary mt-3">Geri Dön</button>`;
             }
         });
 
         function startTimer(minutes) {
             let time = minutes * 60;
             const display = document.getElementById('timerDisplay');
-            
+
             setInterval(() => {
                 const m = Math.floor(time / 60);
                 const s = time % 60;
-                display.innerText = `${m}:${s < 10 ? '0'+s : s}`;
-                
+                display.innerText = `${m}:${s < 10 ? '0' + s : s}`;
+
                 if (time > 0) {
                     time--;
                 } else {
-                    // Süre bitti mantığı eklenebilir
                     display.style.color = 'red';
                 }
             }, 1000);
         }
     </script>
 </body>
+
 </html>

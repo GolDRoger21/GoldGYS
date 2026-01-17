@@ -1,42 +1,161 @@
 <!DOCTYPE html>
 <html lang="tr">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Konu Detayı | GOLD GYS</title>
-  <link rel="stylesheet" href="/css/app.css">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230F172A'/><text x='50' y='70' font-family='serif' font-size='60' fill='%23D4AF37' text-anchor='middle' font-weight='bold'>G</text><text x='80' y='35' font-size='30'>⚖️</text></svg>">
+  <link rel="stylesheet" href="../styles/tokens.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/dashboard.css">
+  <style>
+    .topic-detail-header {
+      background: var(--bg-surface);
+      padding: 30px;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-color);
+      margin-bottom: 30px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .resource-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 16px;
+      margin-top: 20px;
+    }
+
+    .resource-card {
+      background: var(--bg-body);
+      border: 1px solid var(--border-color);
+      padding: 16px;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: var(--text-main);
+      transition: all 0.2s;
+    }
+
+    .resource-card:hover {
+      border-color: var(--color-primary);
+      background: var(--bg-hover);
+    }
+
+    .res-icon {
+      font-size: 1.5rem;
+    }
+
+    .test-list-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      margin-bottom: 10px;
+    }
+  </style>
 </head>
+
 <body>
-  <div class="app-layout">
-    <aside id="sidebar-area" class="app-sidebar"></aside>
+  <script type="module">
+    import { initLayout } from '../js/ui-loader.js';
+    document.addEventListener('DOMContentLoaded', () => initLayout());
+  </script>
 
-    <main class="app-main">
-      <header id="header-area" class="app-header"></header>
+  <div class="dashboard-container">
+    <div id="topicHeader" class="topic-detail-header">
+      <a href="/pages/konular.html" class="btn btn-sm btn-secondary mb-3">← Konulara Dön</a>
+      <h1 id="topicTitle" style="margin-bottom:10px;">Yükleniyor...</h1>
+      <p id="topicDesc" class="text-muted">...</p>
 
-      <div class="app-content">
-        <section class="panel-card">
-          <div class="section-head">
-            <div>
-              <p class="eyebrow">Konu detayları</p>
-              <h1 class="page-heading heading-1">Konu Bilgisi</h1>
-              <p class="text-muted">Seçili konuya ait özet, çalışma listesi ve test bağlantıları burada listelenecek.</p>
-            </div>
-          </div>
-        </section>
+      <div class="mt-4">
+        <h4 class="text-muted mb-2" style="font-size:0.9rem; text-transform:uppercase;">Ders Materyalleri</h4>
+        <div id="resourceList" class="resource-list">
+          <!-- Linkler buraya gelecek -->
+        </div>
       </div>
+    </div>
 
-      <footer id="footer-area" class="app-footer"></footer>
-    </main>
+    <div class="section-title">Konu Testleri</div>
+    <div id="testList">
+      <div class="card p-4">Bu konu için henüz test eklenmemiş.</div>
+    </div>
   </div>
 
   <script type="module">
-    import { protectPage } from '/js/role-guard.js';
-    import { initLayout } from '/js/ui-loader.js';
+    import { db } from '../js/firebase-config.js';
+    import { doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    protectPage();
-    initLayout('konular');
+    document.addEventListener('DOMContentLoaded', async () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const topicId = urlParams.get('id');
+
+      if (!topicId) {
+        window.location.href = '/pages/konular.html';
+        return;
+      }
+
+      try {
+        // 1. Konu Detayını Çek
+        const docRef = doc(db, "topics", topicId);
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          document.title = `${data.title} | GOLD GYS`;
+          document.getElementById('topicTitle').innerText = data.title;
+          document.getElementById('topicDesc').innerText = data.description || '';
+
+          // Materyalleri Listele
+          const resList = document.getElementById('resourceList');
+          if (data.contentLinks && data.contentLinks.length > 0) {
+            resList.innerHTML = '';
+            data.contentLinks.forEach(link => {
+              let icon = '📄';
+              if (link.type === 'video') icon = '▶️';
+              if (link.type === 'podcast') icon = '🎧';
+
+              resList.innerHTML += `
+                                <a href="${link.url}" target="_blank" class="resource-card">
+                                    <span class="res-icon">${icon}</span>
+                                    <div>
+                                        <div style="font-weight:600;">${link.title}</div>
+                                        <small class="text-muted">${link.type.toUpperCase()}</small>
+                                    </div>
+                                </a>
+                            `;
+            });
+          } else {
+            resList.innerHTML = '<small class="text-muted">Ekli materyal yok.</small>';
+          }
+        } else {
+          alert("Konu bulunamadı.");
+        }
+
+        // 2. İlgili Testleri Çek (Şimdilik 'questions' koleksiyonundan filtreleyerek simüle ediyoruz)
+        // İleride 'tests' koleksiyonu oluşturulursa oradan çekilir.
+        // Şimdilik "Hızlı Test Başlat" butonu koyalım.
+
+        const testList = document.getElementById('testList');
+        testList.innerHTML = `
+                    <div class="test-list-item">
+                        <div>
+                            <strong>Hızlı Tarama Testi</strong>
+                            <div class="text-muted small">Bu konuya ait rastgele 20 soru</div>
+                        </div>
+                        <a href="/pages/test.html?topic=${topicId}&mode=quick" class="btn btn-primary">Başla</a>
+                    </div>
+                `;
+
+      } catch (error) {
+        console.error("Hata:", error);
+      }
+    });
   </script>
 </body>
+
 </html>
