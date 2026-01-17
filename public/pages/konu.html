@@ -158,6 +158,7 @@
       }
     }
   </style>
+    <link rel="manifest" href="/manifest.json">
 </head>
 
 <body>
@@ -272,7 +273,7 @@
           // YouTube embed linki oluşturma (basitçe)
           const videoId = mat.url.split('v=')[1] || mat.url.split('/').pop();
           const embedUrl = `https://www.youtube.com/embed/${videoId}`;
-          contentHtml = `<div class="video-wrapper"><iframe src="${embedUrl}" frameborder="0" allowfullscreen></iframe></div>`;
+          contentHtml = `<div class="video-wrapper"><iframe src="${embedUrl}" frameborder="0" allowfullscreen loading="lazy"></iframe></div>`;
         } else if (mat.type === 'pdf') {
           icon = '📕';
           contentHtml = `<a href="${mat.url}" target="_blank" class="btn btn-primary w-100">📄 PDF'i Görüntüle / İndir</a>`;

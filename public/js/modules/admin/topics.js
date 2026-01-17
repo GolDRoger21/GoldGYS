@@ -176,12 +176,12 @@ async function loadTopics() {
 
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td>${data.order || '-'}</td>
-                <td><strong>${data.title}</strong></td>
-                <td><span class="badge badge-${data.category}">${data.category === 'ortak' ? 'Ortak' : 'Alan'}</span></td>
-                <td>${matCount} Materyal</td>
-                <td>${data.isActive ? '✅ Aktif' : '❌ Pasif'}</td>
-                <td>
+                <td data-label="Sıra">${data.order || '-'}</td>
+                <td data-label="Konu"><strong>${data.title}</strong></td>
+                <td data-label="Kategori"><span class="badge badge-${data.category}">${data.category === 'ortak' ? 'Ortak' : 'Alan'}</span></td>
+                <td data-label="İçerik">${matCount} Materyal</td>
+                <td data-label="Durum">${data.isActive ? '✅ Aktif' : '❌ Pasif'}</td>
+                <td data-label="İşlemler">
                     <button class="btn btn-sm btn-primary" onclick="window.openTopicEditor('${docSnap.id}')">✏️</button>
                     <button class="btn btn-sm btn-danger" onclick="window.deleteTopic('${docSnap.id}')">🗑️</button>
                 </td>
