@@ -27,22 +27,95 @@ export class TestEngine {
 
     async init() {
         await this.loadUserFavorites();
-        this.renderAllQuestions();
+        // this.renderAllQuestions(); // Eski toplu gösterim iptal
+        this.renderCurrentQuestion(); // Yeni adım adım gösterim
         this.updateCounters();
+        this.setupMobileGestures();
     }
 
-    async loadUserFavorites() {
-        if (!auth.currentUser) return;
-        // Performans için basit bir yöntem: LocalStorage veya basit bir cache kullanılabilir.
-        // Şimdilik boş geçiyoruz, favoriler sayfasında detaylı yükleme yapılır.
-    }
+    // --- NAVİGASYON VE RENDER ---
 
-    renderAllQuestions() {
+    renderCurrentQuestion() {
         this.container.innerHTML = '';
-        this.questions.forEach((q, index) => {
-            const card = this.createQuestionCard(q, index);
-            this.container.appendChild(card);
+        const q = this.questions[this.currentIndex];
+        const card = this.createQuestionCard(q, this.currentIndex);
+        this.container.appendChild(card);
+
+        // Navigasyon Butonlarını Ekle
+        this.renderNavigation();
+    }
+
+    renderNavigation() {
+        const navDiv = document.createElement('div');
+        navDiv.className = 'test-navigation';
+        navDiv.style.cssText = "display: flex; justify-content: space-between; margin-top: 20px; gap: 10px;";
+
+        // Önceki Butonu
+        const btnPrev = document.createElement('button');
+        btnPrev.className = 'btn-nav btn-prev';
+        btnPrev.innerHTML = '← Önceki';
+        btnPrev.onclick = () => this.prevQuestion();
+        btnPrev.disabled = this.currentIndex === 0;
+
+        // Sonraki / Bitir Butonu
+        const btnNext = document.createElement('button');
+        btnNext.className = 'btn-nav btn-next';
+
+        if (this.currentIndex === this.questions.length - 1) {
+            btnNext.innerHTML = 'Testi Bitir ✓';
+            btnNext.className += ' btn-finish';
+            btnNext.onclick = () => {
+                if (confirm("Testi bitirmek istediğinize emin misiniz?")) this.finishTest();
+            };
+        } else {
+            btnNext.innerHTML = 'Sonraki →';
+            btnNext.onclick = () => this.nextQuestion();
+        }
+
+        navDiv.appendChild(btnPrev);
+        navDiv.appendChild(btnNext);
+        this.container.appendChild(navDiv);
+    }
+
+    nextQuestion() {
+        if (this.currentIndex < this.questions.length - 1) {
+            this.currentIndex++;
+            this.renderCurrentQuestion();
+            this.scrollToTop();
+        }
+    }
+
+    prevQuestion() {
+        if (this.currentIndex > 0) {
+            this.currentIndex--;
+            this.renderCurrentQuestion();
+            this.scrollToTop();
+        }
+    }
+
+    scrollToTop() {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    setupMobileGestures() {
+        // Basit Swipe Algılama
+        let touchstartX = 0;
+        let touchendX = 0;
+        const threshold = 50;
+
+        this.container.addEventListener('touchstart', e => {
+            touchstartX = e.changedTouches[0].screenX;
         });
+
+        this.container.addEventListener('touchend', e => {
+            touchendX = e.changedTouches[0].screenX;
+            this.handleGesture();
+        });
+
+        this.handleGesture = () => {
+            if (touchendX < touchstartX - threshold) this.nextQuestion(); // Sola kaydır (İleri)
+            if (touchendX > touchstartX + threshold) this.prevQuestion(); // Sağa kaydır (Geri)
+        }
     }
 
     createQuestionCard(q, index) {
@@ -137,6 +210,11 @@ export class TestEngine {
         }
 
         this.updateCounters();
+
+        // Otomatik İlerleme (Opsiyonel: Kullanıcıyı çok sıkmamak için sadece küçük bir gecikme ile)
+        // setTimeout(() => {
+        //     if (isCorrect) this.nextQuestion(); 
+        // }, 1000);
     }
 
     async saveWrongAnswer(questionId, questionData) {
@@ -153,7 +231,7 @@ export class TestEngine {
                 count: increment(1) // Yanlış sayısını 1 artır
             }, { merge: true });
 
-            console.log("Yanlış cevap kaydedildi.");
+            // console.log("Yanlış cevap kaydedildi.");
         } catch (e) {
             console.error("Yanlış kayıt hatası:", e);
         }
@@ -222,7 +300,7 @@ export class TestEngine {
 
             // Kullanıcının "exam_results" koleksiyonuna ekle
             await addDoc(collection(db, `users/${auth.currentUser.uid}/exam_results`), resultData);
-            console.log("Sonuç başarıyla kaydedildi.");
+            // console.log("Sonuç başarıyla kaydedildi.");
 
         } catch (error) {
             console.error("Sonuç kaydetme hatası:", error);
