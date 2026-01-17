@@ -1,103 +1,176 @@
 <!DOCTYPE html>
 <html lang="tr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Performans Analizi | GOLD GYS</title>
-    <link rel="stylesheet" href="../css/app.css">
-    <link rel="stylesheet" href="../components/ui/ui.css">
+    <link rel="stylesheet" href="../styles/tokens.css">
+    <link rel="stylesheet" href="../css/layout.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <!-- Chart.js Kütüphanesi -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .analysis-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+            margin-bottom: 30px;
+        }
+
+        .chart-container {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            box-shadow: var(--shadow-sm);
+            height: 350px;
+            position: relative;
+        }
+
+        .kpi-card {
+            background: var(--bg-surface);
+            padding: 20px;
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .kpi-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .kpi-value {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--text-main);
+            line-height: 1;
+        }
+
+        .kpi-label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-top: 4px;
+        }
+
+        /* Renkler */
+        .bg-gold-soft {
+            background: rgba(212, 175, 55, 0.15);
+            color: var(--color-primary);
+        }
+
+        .bg-green-soft {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--color-success);
+        }
+
+        .bg-red-soft {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--color-danger);
+        }
+
+        .bg-blue-soft {
+            background: rgba(59, 130, 246, 0.15);
+            color: #3b82f6;
+        }
+    </style>
 </head>
+
 <body>
-    <div id="header-placeholder"></div>
+    <script type="module">
+        import { initLayout } from '../js/ui-loader.js';
+        document.addEventListener('DOMContentLoaded', () => initLayout());
+    </script>
 
-    <main class="container mt-4 mb-5">
-        <div class="section-header mb-4">
-            <h1>📊 Performans Karnesi</h1>
-            <p class="text-muted">Gelişim sürecinizi ve eksik olduğunuz konuları analiz edin.</p>
+    <div class="dashboard-container">
+        <div class="section-header">
+            <div>
+                <h2>📊 Performans Karnesi</h2>
+                <p class="text-muted">Gelişim sürecinizi ve eksik olduğunuz konuları analiz edin.</p>
+            </div>
+            <div class="date-display" id="lastUpdate">Güncelleniyor...</div>
         </div>
 
-        <div id="loadingStats" class="text-center py-5">
-            <div class="spinner-border text-primary" role="status"></div>
-            <p class="mt-2">Verileriniz analiz ediliyor...</p>
-        </div>
-
-        <div id="statsContent" style="display:none;">
-            
-            <div class="row mb-4">
-                <div class="col-md-3">
-                    <div class="card p-3 text-center border-0 shadow-sm">
-                        <h3 class="text-primary mb-0" id="statTotalExams">0</h3>
-                        <small class="text-muted">Çözülen Deneme</small>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="card p-3 text-center border-0 shadow-sm">
-                        <h3 class="text-success mb-0" id="statAvgScore">%0</h3>
-                        <small class="text-muted">Ortalama Başarı</small>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="card p-3 text-center border-0 shadow-sm">
-                        <h3 class="text-warning mb-0" id="statTotalQuestions">0</h3>
-                        <small class="text-muted">Çözülen Soru</small>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="card p-3 text-center border-0 shadow-sm">
-                        <h3 class="text-danger mb-0" id="statWrongRate">%0</h3>
-                        <small class="text-muted">Hata Oranı</small>
-                    </div>
+        <!-- KPI Kartları -->
+        <div class="stats-grid">
+            <div class="kpi-card">
+                <div class="kpi-icon bg-blue-soft">📝</div>
+                <div>
+                    <div class="kpi-value" id="totalExams">0</div>
+                    <div class="kpi-label">Çözülen Deneme</div>
                 </div>
             </div>
-
-            <div class="row">
-                <div class="col-lg-8 mb-4">
-                    <div class="card p-4 h-100 shadow-sm border-0">
-                        <h5 class="card-title">📈 Gelişim Grafiği (Son 10 Sınav)</h5>
-                        <canvas id="progressChart"></canvas>
-                    </div>
-                </div>
-
-                <div class="col-lg-4 mb-4">
-                    <div class="card p-4 h-100 shadow-sm border-0">
-                        <h5 class="card-title">🎯 Konu Analizi</h5>
-                        <canvas id="topicChart"></canvas>
-                    </div>
+            <div class="kpi-card">
+                <div class="kpi-icon bg-green-soft">🎯</div>
+                <div>
+                    <div class="kpi-value" id="avgScore">%0</div>
+                    <div class="kpi-label">Ortalama Başarı</div>
                 </div>
             </div>
-
-            <div class="card shadow-sm border-0">
-                <div class="card-header bg-white">
-                    <h5 class="mb-0">Sınav Geçmişi</h5>
+            <div class="kpi-card">
+                <div class="kpi-icon bg-gold-soft">⚡</div>
+                <div>
+                    <div class="kpi-value" id="totalQuestions">0</div>
+                    <div class="kpi-label">Toplam Soru</div>
                 </div>
-                <div class="table-responsive">
-                    <table class="table table-hover mb-0">
-                        <thead>
-                            <tr>
-                                <th>Tarih</th>
-                                <th>Sınav Adı</th>
-                                <th>D / Y / B</th>
-                                <th>Puan</th>
-                            </tr>
-                        </thead>
-                        <tbody id="historyTableBody">
-                            </tbody>
-                    </table>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-icon bg-red-soft">⚠️</div>
+                <div>
+                    <div class="kpi-value" id="wrongRate">%0</div>
+                    <div class="kpi-label">Hata Oranı</div>
                 </div>
             </div>
         </div>
-    </main>
 
-    <div id="footer-placeholder"></div>
+        <!-- Grafikler -->
+        <div class="analysis-grid">
+            <div class="chart-container">
+                <h3 class="mb-3" style="font-size:1.1rem; color:var(--text-main);">📈 Gelişim Grafiği (Son 10 Sınav)
+                </h3>
+                <canvas id="progressChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h3 class="mb-3" style="font-size:1.1rem; color:var(--text-main);">🎯 Konu Bazlı Başarı</h3>
+                <canvas id="topicChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Geçmiş Tablosu -->
+        <div class="card">
+            <div class="p-3 border-bottom border-color">
+                <h3 style="font-size:1.1rem; margin:0; color:var(--text-main);">Sınav Geçmişi</h3>
+            </div>
+            <div class="table-responsive">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Tarih</th>
+                            <th>Sınav Adı</th>
+                            <th>Doğru / Yanlış / Boş</th>
+                            <th>Puan</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyTableBody">
+                        <tr>
+                            <td colspan="4" class="text-center p-4">Veriler yükleniyor...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 
     <script type="module" src="../js/analysis.js"></script>
-    <script type="module" src="../js/ui-loader.js"></script>
-    
-    <script type="module">
-        import { loadHTML } from "../js/ui-loader.js";
-        loadHTML('../components/header.html', 'header-placeholder');
-        loadHTML('../components/footer.html', 'footer-placeholder');
-    </script>
 </body>
+
 </html>
