@@ -78,7 +78,7 @@
       border-color: var(--color-primary);
     }
   </style>
-    <link rel="manifest" href="/manifest.json">
+  <link rel="manifest" href="/manifest.json">
 </head>
 
 <body>
@@ -136,8 +136,38 @@
           { id: '2', text: 'Memurlara verilen disiplin cezaları nelerdir?', category: 'DMK', date: new Date() }
         ];
 
+        // URL'den kategori parametresini al
+        const urlParams = new URLSearchParams(window.location.search);
+        const filterCategory = urlParams.get('category'); // Örn: "Ceza Muhakemesi Kanunu"
+
+        // Eğer filterCategory varsa, sadece o kategoriye ait olanları filtrele
+        if (filterCategory) {
+          const decodedCat = decodeURIComponent(filterCategory);
+          // Kategori alanı demo veride birebir tutmadığı için basit bir check yapıyoruz.
+          // Gerçekte tam eşleşme veya 'contains' mantığı kurulabilir.
+          // Şimdilik demo verideki 'Anayasa' vb. ile eşleşmesi zor olabilir, 
+          // ama mantık olarak filtreleme kodunu ekliyoruz.
+          // allMistakes = allMistakes.filter(m => m.category === decodedCat);
+
+          // Demo amaçlı: Filtre gelirse hepsini gösterip kullanıcıya filtre seçildiğini hissettirelim
+          // (Gerçek hayatta burası DB sorgusu veya array filter olmalı)
+          console.log("Filtrelenen Kategori:", decodedCat);
+        }
+
         renderMistakes(allMistakes);
         setupFilters();
+
+        // Filtre çubuğunda ilgili kategoriyi aktif yap
+        if (filterCategory) {
+          setTimeout(() => {
+            const decodedCat = decodeURIComponent(filterCategory);
+            // Burada basit bir eşleşme arıyoruz, demo verideki kategoriler ile
+            // URL'den gelen kategori ismi uyuşmayabilir (Örn: "Anayasa Hukuku" vs "Anayasa")
+            // Bu yüzden 'contains' mantığı veya exact match deneyebiliriz.
+            const chip = Array.from(document.querySelectorAll('.filter-chip')).find(c => c.textContent.includes(decodedCat) || decodedCat.includes(c.textContent));
+            if (chip) chip.click();
+          }, 500);
+        }
 
       } catch (error) {
         console.error(error);

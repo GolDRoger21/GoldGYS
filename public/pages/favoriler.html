@@ -39,7 +39,7 @@
       gap: 10px;
     }
   </style>
-    <link rel="manifest" href="/manifest.json">
+  <link rel="manifest" href="/manifest.json">
 </head>
 
 <body>
@@ -75,8 +75,17 @@
 
     async function loadFavorites(uid) {
       const list = document.getElementById('favoritesList');
+
+      // URL'den kategori parametresini al
+      const urlParams = new URLSearchParams(window.location.search);
+      const filterCategory = urlParams.get('category');
+
       try {
-        const snapshot = await getDocs(collection(db, `users/${uid}/favorites`));
+        let q = collection(db, `users/${uid}/favorites`);
+        // Eğer filtre varsa, sorguya ekleyebiliriz veya client-side filtreleyebiliriz.
+        // Basitlik için tümünü çekip burada filtreleyelim (az veri için uygun)
+
+        const snapshot = await getDocs(q);
 
         if (snapshot.empty) {
           list.innerHTML = '<div class="card p-4 text-center text-muted">Henüz favori soru eklemediniz.</div>';
@@ -84,8 +93,21 @@
         }
 
         list.innerHTML = '';
+        let hasContent = false;
+
         snapshot.forEach(docSnap => {
           const data = docSnap.data();
+
+          // Filtre Kontrolü
+          if (filterCategory) {
+            const decodedCat = decodeURIComponent(filterCategory);
+            // Kategori eşleşmesi (Tam veya Kısmi)
+            // URL'den gelen ile verideki kategori biraz farklı olabilir, bu yüzden 'includes' kullanmak daha güvenli olabilir
+            // veya tam eşleşme
+            if (data.category !== decodedCat) return;
+          }
+
+          hasContent = true;
           const div = document.createElement('div');
           div.className = 'fav-card';
           div.id = `fav-${docSnap.id}`;
@@ -101,6 +123,10 @@
                     `;
           list.appendChild(div);
         });
+
+        if (!hasContent) {
+          list.innerHTML = `<div class="card p-4 text-center text-muted">Bu kategoride (${decodeURIComponent(filterCategory)}) favori sorunuz yok.</div>`;
+        }
 
       } catch (error) {
         list.innerHTML = '<div class="text-danger">Hata oluştu.</div>';
