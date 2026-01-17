@@ -1,42 +1,119 @@
 <!DOCTYPE html>
 <html lang="tr">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Favoriler | GOLD GYS</title>
-  <link rel="stylesheet" href="/css/app.css">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230F172A'/><text x='50' y='70' font-family='serif' font-size='60' fill='%23D4AF37' text-anchor='middle' font-weight='bold'>G</text><text x='80' y='35' font-size='30'>⚖️</text></svg>">
+  <link rel="stylesheet" href="../styles/tokens.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/dashboard.css">
+  <style>
+    .fav-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      margin-bottom: 16px;
+      position: relative;
+    }
+
+    .fav-icon {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      color: var(--color-primary);
+      font-size: 1.2rem;
+      cursor: pointer;
+    }
+
+    .fav-content {
+      padding-right: 30px;
+    }
+
+    .fav-actions {
+      margin-top: 15px;
+      padding-top: 15px;
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      gap: 10px;
+    }
+  </style>
 </head>
+
 <body>
-  <div class="app-layout">
-    <aside id="sidebar-area" class="app-sidebar"></aside>
+  <script type="module">
+    import { initLayout } from '../js/ui-loader.js';
+    document.addEventListener('DOMContentLoaded', () => initLayout());
+  </script>
 
-    <main class="app-main">
-      <header id="header-area" class="app-header"></header>
-
-      <div class="app-content">
-        <section class="panel-card">
-          <div class="section-head">
-            <div>
-              <p class="eyebrow">Kaydedilen içerikler</p>
-              <h1 class="page-heading heading-1">Favorilerim</h1>
-              <p class="text-muted">Öne çıkardığınız soru ve konulara hızlıca geri dönün.</p>
-            </div>
-          </div>
-        </section>
+  <div class="dashboard-container">
+    <div class="section-header">
+      <div>
+        <h2>⭐ Favori Sorular</h2>
+        <p class="text-muted">Önemli bulduğunuz ve kaydettiğiniz sorular.</p>
       </div>
+      <button class="btn btn-secondary">🖨️ PDF Olarak İndir</button>
+    </div>
 
-      <footer id="footer-area" class="app-footer"></footer>
-    </main>
+    <div id="favoritesList">
+      <div class="card p-4 text-center">Yükleniyor...</div>
+    </div>
   </div>
 
   <script type="module">
-    import { protectPage } from '/js/role-guard.js';
-    import { initLayout } from '/js/ui-loader.js';
+    import { db, auth } from '../js/firebase-config.js';
+    import { collection, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-    protectPage();
-    initLayout('favoriler');
+    document.addEventListener('DOMContentLoaded', () => {
+      onAuthStateChanged(auth, async (user) => {
+        if (user) loadFavorites(user.uid);
+      });
+    });
+
+    async function loadFavorites(uid) {
+      const list = document.getElementById('favoritesList');
+      try {
+        const snapshot = await getDocs(collection(db, `users/${uid}/favorites`));
+
+        if (snapshot.empty) {
+          list.innerHTML = '<div class="card p-4 text-center text-muted">Henüz favori soru eklemediniz.</div>';
+          return;
+        }
+
+        list.innerHTML = '';
+        snapshot.forEach(docSnap => {
+          const data = docSnap.data();
+          const div = document.createElement('div');
+          div.className = 'fav-card';
+          div.id = `fav-${docSnap.id}`;
+          div.innerHTML = `
+                        <div class="fav-icon" onclick="removeFavorite('${docSnap.id}')">★</div>
+                        <div class="fav-content">
+                            <div class="badge badge-secondary mb-2">${data.category || 'Genel'}</div>
+                            <p>${data.text}</p>
+                        </div>
+                        <div class="fav-actions">
+                            <button class="btn btn-sm btn-primary">Çözümü Gör</button>
+                        </div>
+                    `;
+          list.appendChild(div);
+        });
+
+      } catch (error) {
+        list.innerHTML = '<div class="text-danger">Hata oluştu.</div>';
+      }
+    }
+
+    window.removeFavorite = async (id) => {
+      if (confirm("Favorilerden çıkarmak istiyor musunuz?")) {
+        const uid = auth.currentUser.uid;
+        await deleteDoc(doc(db, `users/${uid}/favorites`, id));
+        document.getElementById(`fav-${id}`).remove();
+      }
+    };
   </script>
 </body>
+
 </html>

@@ -1,5 +1,5 @@
 import { db, auth } from "./firebase-config.js";
-import { doc, getDoc, setDoc, updateDoc, arrayUnion, deleteDoc, addDoc, collection, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { doc, getDoc, setDoc, updateDoc, arrayUnion, deleteDoc, addDoc, collection, serverTimestamp, increment } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 export class TestEngine {
     // Constructor'a 'examId' parametresi eklendi
@@ -8,9 +8,9 @@ export class TestEngine {
         this.questions = questionsData;
         this.examId = examId; // Hangi sınavın çözüldüğünü takip etmek için
         this.currentIndex = 0;
-        this.answers = {}; 
+        this.answers = {};
         this.favorites = new Set();
-        
+
         // UI Elementleri
         this.ui = {
             trueVal: document.getElementById('trueVal'),
@@ -20,7 +20,7 @@ export class TestEngine {
             scoreDisplay: document.getElementById('scoreDisplay'),
             resultText: document.getElementById('resultText')
         };
-        
+
         window.testEngine = this;
         this.init();
     }
@@ -106,12 +106,12 @@ export class TestEngine {
         const question = this.questions.find(q => q.id === questionId);
         const isCorrect = (selectedOptionId === question.correctOption);
 
-        this.answers[questionId] = { 
-            selected: selectedOptionId, 
+        this.answers[questionId] = {
+            selected: selectedOptionId,
             isCorrect,
             category: question.category || 'Genel' // İstatistik için kategori kaydı
         };
-        
+
         card.dataset.answered = 'true';
         card.dataset.result = isCorrect ? 'correct' : 'wrong';
 
@@ -126,11 +126,32 @@ export class TestEngine {
 
         // Çözümü Göster
         const solDiv = document.getElementById(`sol-${questionId}`);
-        if(solDiv) {
+        if (solDiv) {
             solDiv.style.display = 'block';
             solDiv.animate([{ opacity: 0, transform: 'translateY(-10px)' }, { opacity: 1, transform: 'translateY(0)' }], { duration: 300 });
         }
+
+        // YENİ: Yanlış cevap ise veritabanına kaydet
+        if (!isCorrect && auth.currentUser) {
+            this.saveWrongAnswer(questionId, question);
+        }
+
         this.updateCounters();
+    }
+
+    async saveWrongAnswer(questionId, questionData) {
+        try {
+            // Kullanıcının 'wrongs' koleksiyonuna ekle
+            // Aynı soru varsa tarihini güncelle (setDoc merge ile)
+            const wrongRef = doc(db, `users/${auth.currentUser.uid}/wrongs/${questionId}`);
+            await setDoc(wrongRef, {
+                questionId: questionId,
+                text: questionData.text,
+                category: questionData.category || 'Genel',
+                lastAttempt: serverTimestamp(),
+                count: increment(1)
+            }, { merge: true });
+        } catch (e) { console.error("Yanlış kayıt hatası:", e); }
     }
 
     updateCounters() {
@@ -144,7 +165,7 @@ export class TestEngine {
     }
 
     // --- SONUÇ KAYDETME VE BİTİRME ---
-    
+
     async finishTest() {
         const total = this.questions.length;
         const correctCount = Object.values(this.answers).filter(a => a.isCorrect).length;
@@ -154,7 +175,7 @@ export class TestEngine {
 
         // 1. Modalı Göster
         if (this.ui.scoreDisplay) this.ui.scoreDisplay.innerText = `%${score}`;
-        
+
         let msg = "Test tamamlandı.";
         if (score >= 90) msg = "Mükemmel! Derece yapabilirsin. 🏆";
         else if (score >= 70) msg = "Gayet iyi, başarılar. 👏";
@@ -173,11 +194,11 @@ export class TestEngine {
         const categoryBreakdown = {};
         this.questions.forEach(q => {
             const cat = q.category || 'Genel';
-            if(!categoryBreakdown[cat]) categoryBreakdown[cat] = { total: 0, correct: 0 };
-            
+            if (!categoryBreakdown[cat]) categoryBreakdown[cat] = { total: 0, correct: 0 };
+
             categoryBreakdown[cat].total++;
             const ans = this.answers[q.id];
-            if(ans && ans.isCorrect) categoryBreakdown[cat].correct++;
+            if (ans && ans.isCorrect) categoryBreakdown[cat].correct++;
         });
 
         try {
@@ -197,7 +218,7 @@ export class TestEngine {
             // Kullanıcının "exam_results" koleksiyonuna ekle
             await addDoc(collection(db, `users/${auth.currentUser.uid}/exam_results`), resultData);
             console.log("Sonuç başarıyla kaydedildi.");
-            
+
         } catch (error) {
             console.error("Sonuç kaydetme hatası:", error);
         }
@@ -206,25 +227,29 @@ export class TestEngine {
     // ... (toggleFavorite ve openReportModal fonksiyonları önceki haliyle aynı kalabilir veya buraya ekleyebilirsiniz)
     async toggleFavorite(questionId) {
         if (!auth.currentUser) return alert("Giriş yapmalısınız.");
+
         const btn = document.querySelector(`#q-${questionId} .fav-btn`);
         const userFavRef = doc(db, `users/${auth.currentUser.uid}/favorites/${questionId}`);
 
         if (this.favorites.has(questionId)) {
             this.favorites.delete(questionId);
             btn.innerText = '☆';
-            try { await deleteDoc(userFavRef); } catch(e) {}
+            btn.classList.remove('active');
+            try { await deleteDoc(userFavRef); } catch (e) { }
         } else {
             this.favorites.add(questionId);
             btn.innerText = '★';
+            btn.classList.add('active');
+
             const q = this.questions.find(q => q.id === questionId);
             try {
                 await setDoc(userFavRef, {
                     questionId: q.id,
-                    text: q.text.substring(0, 150) + "...",
+                    text: q.text,
                     category: q.category || "Genel",
                     addedAt: serverTimestamp()
                 });
-            } catch(e) {}
+            } catch (e) { }
         }
     }
 
