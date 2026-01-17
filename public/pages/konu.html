@@ -143,6 +143,56 @@
         min-height: 400px;
       }
     }
+
+    /* Odak Modu Stilleri */
+    body.focus-mode .app-header,
+    body.focus-mode .app-sidebar {
+      display: none !important;
+    }
+
+    body.focus-mode .dashboard-container {
+      max-width: 100%;
+      padding: 0;
+      margin: 0;
+    }
+
+    body.focus-mode .topic-layout {
+      grid-template-columns: 1fr;
+      /* Tek kolon */
+      height: 100vh;
+    }
+
+    body.focus-mode .lessons-sidebar {
+      display: none;
+      /* Ders listesini gizle */
+    }
+
+    body.focus-mode .content-area {
+      border: none;
+      border-radius: 0;
+      height: 100vh;
+      padding: 20px;
+    }
+
+    /* Odak Modu Çıkış Butonu */
+    .exit-focus-btn {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 9999;
+      background: rgba(0, 0, 0, 0.5);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 20px;
+      display: none;
+      cursor: pointer;
+      backdrop-filter: blur(5px);
+    }
+
+    body.focus-mode .exit-focus-btn {
+      display: block;
+    }
   </style>
 </head>
 
@@ -151,6 +201,9 @@
     import { initLayout } from '../js/ui-loader.js';
     document.addEventListener('DOMContentLoaded', () => initLayout());
   </script>
+
+  <!-- Odak Modu Çıkış Butonu -->
+  <button class="exit-focus-btn" onclick="toggleFocusMode()">✕ Odak Modundan Çık</button>
 
   <div class="dashboard-container" style="max-width: 1600px;"> <!-- Geniş ekran -->
     <div class="topic-layout">
@@ -172,6 +225,11 @@
 
       <!-- SAĞ: İçerik -->
       <div class="content-area" id="contentArea">
+        <div class="d-flex justify-content-end mb-3">
+          <button class="btn btn-sm btn-outline-primary" onclick="toggleFocusMode()">
+            👁️ Odak Modu
+          </button>
+        </div>
         <div class="text-center p-5 text-muted">
           <h3>👋 Hoş Geldiniz</h3>
           <p>Soldaki listeden bir ders seçerek çalışmaya başlayın.</p>
@@ -365,6 +423,10 @@
       document.getElementById('topicProgress').style.width = `${percent}%`;
       document.getElementById('progressText').innerText = `%${percent} Tamamlandı`;
     }
+
+    window.toggleFocusMode = () => {
+      document.body.classList.toggle('focus-mode');
+    };
   </script>
 </body>
 

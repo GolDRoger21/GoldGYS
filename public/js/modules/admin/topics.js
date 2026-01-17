@@ -456,10 +456,17 @@ function renderMaterials() {
         if (mat.type === 'podcast') icon = '🎧';
         if (mat.type === 'html') icon = '📝';
 
+        let preview = '';
+        if (mat.type === 'video') preview = `<span class="text-primary small">Video Önizleme Aktif</span>`;
+        if (mat.type === 'pdf') preview = `<span class="text-danger small">PDF Dosyası</span>`;
+
         div.innerHTML = `
             <div class="mat-icon" style="font-size:1.5rem;">${icon}</div>
             <div class="mat-content d-grid gap-2">
-                <input type="text" class="form-control form-control-sm mat-title" placeholder="Başlık" value="${mat.title}">
+                <div class="d-flex justify-content-between">
+                    <input type="text" class="form-control form-control-sm mat-title" placeholder="Başlık" value="${mat.title}">
+                    ${preview}
+                </div>
                 ${mat.type === 'html'
                 ? `<textarea class="form-control form-control-sm mat-url" rows="3" placeholder="İçerik...">${mat.url}</textarea>`
                 : `<input type="text" class="form-control form-control-sm mat-url" placeholder="URL" value="${mat.url}">`
