@@ -311,47 +311,45 @@
       font-weight: bold;
     }
 
-    /* --- HTML NOT OKUYUCU (PREMIUM TASARIM) --- */
+    /* --- HTML NOT OKUYUCU (MODERN & DARK MODE UYUMLU) --- */
     .note-reader-content {
-      font-family: 'Inter', system-ui, -apple-system, sans-serif;
-      /* Modern font */
-      font-size: 1.05rem;
-      line-height: 1.7;
-      color: #334155;
-      /* Koyu gri, göz yormaz */
-      background: #ffffff;
+      font-family: 'Merriweather', 'Georgia', serif;
+      /* Okuma için Serif font */
+      font-size: 1.1rem;
+      line-height: 1.8;
+      letter-spacing: 0.01em;
+      color: var(--text-main);
+      /* Tema değişkeni */
+      background: var(--bg-surface);
+      /* Tema değişkeni */
       padding: 40px;
       border-radius: 16px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+      box-shadow: var(--shadow-sm);
       margin-bottom: 30px;
+      max-width: 760px;
+      /* Göz takibi için ideal genişlik */
+      margin-left: auto;
+      margin-right: auto;
+      transition: background 0.3s, color 0.3s;
     }
 
-    /* Başlıklar - Gemini Tarzı */
+    /* Başlıklar */
     .note-reader-content h1,
     .note-reader-content h2 {
-      color: #1e293b;
+      font-family: var(--font-family-sans);
+      /* Başlıklar Sans-Serif */
+      color: var(--text-main);
       font-weight: 800;
       margin-top: 2rem;
       margin-bottom: 1rem;
-      letter-spacing: -0.5px;
-      position: relative;
-    }
-
-    .note-reader-content h1 {
-      font-size: 2rem;
-      border-bottom: 2px solid #e2e8f0;
+      border-bottom: 2px solid var(--border-color);
       padding-bottom: 10px;
     }
 
-    .note-reader-content h2 {
-      font-size: 1.5rem;
-    }
-
-    /* Alt Başlıklar - Renkli İkon Hissi */
     .note-reader-content h3 {
+      font-family: var(--font-family-sans);
       font-size: 1.2rem;
       color: var(--color-primary);
-      /* Gold rengi */
       font-weight: 700;
       margin-top: 1.5rem;
       display: flex;
@@ -359,84 +357,44 @@
       gap: 8px;
     }
 
-    /* Paragraflar */
-    .note-reader-content p {
-      margin-bottom: 1.2rem;
+    /* Vurgular ve Listeler */
+    .note-reader-content mark {
+      background-color: rgba(212, 175, 55, 0.2);
+      /* Gold highlight */
+      color: inherit;
+      padding: 0 4px;
+      border-radius: 4px;
     }
 
-    /* Listeler - Temiz Görünüm */
     .note-reader-content ul,
     .note-reader-content ol {
       margin-bottom: 1.5rem;
       padding-left: 20px;
-      background: #f8fafc;
-      /* Hafif gri arka plan */
+      background: var(--bg-hover);
+      /* Hafif ton */
       padding: 20px 20px 20px 40px;
       border-radius: 12px;
-      border: 1px solid #e2e8f0;
+      border: 1px solid var(--border-color);
     }
 
     .note-reader-content li {
       margin-bottom: 0.5rem;
-      padding-left: 5px;
     }
 
-    /* Vurgulu Alanlar (Callout Boxes) */
-    .note-reader-content blockquote {
-      background: rgba(212, 175, 55, 0.1);
-      /* Gold hafif zemin */
-      border-left: 4px solid var(--color-primary);
-      margin: 20px 0;
-      padding: 20px;
-      border-radius: 0 8px 8px 0;
-      font-style: italic;
-      color: #0f172a;
-    }
-
-    .note-reader-content strong {
-      color: #0f172a;
-      font-weight: 700;
-    }
-
-    /* Tablolar */
-    .note-reader-content table {
-      width: 100%;
-      border-collapse: collapse;
-      margin: 25px 0;
-      font-size: 0.95rem;
-      border-radius: 8px;
-      overflow: hidden;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-    }
-
-    .note-reader-content th {
-      background-color: #1e293b;
-      color: white;
-      padding: 12px 15px;
-      text-align: left;
-    }
-
-    .note-reader-content td {
-      border-bottom: 1px solid #e2e8f0;
-      padding: 12px 15px;
-      background: white;
+    /* İkonlar (Material Icons desteği yoksa emoji gibi davranır) */
+    .note-reader-content .material-icons {
+      vertical-align: middle;
+      margin-right: 5px;
+      color: var(--color-primary);
     }
 
     /* Resimler */
     .note-reader-content img {
       max-width: 100%;
       height: auto;
-      border-radius: 12px;
+      border-radius: 8px;
       margin: 20px 0;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    }
-
-    /* Mobil Uyum */
-    @media (max-width: 768px) {
-      .note-reader-content {
-        padding: 20px;
-        font-size: 1rem;
-      }
+      display: block;
     }
 
     /* --- VIDEO MODAL (KESİN ÇÖZÜM) --- */
@@ -528,6 +486,9 @@
     import { initLayout } from '../js/ui-loader.js';
     document.addEventListener('DOMContentLoaded', () => initLayout());
   </script>
+
+  <!-- HTML Temizleyici (Güvenlik İçin) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
 
   <!-- ANA HUB (KATEGORİLER) -->
   <div class="dashboard-container hub-container" id="mainHub">
@@ -637,9 +598,9 @@
 
     async function loadUserStats(uid) {
       try {
-        // Yanlış Sayısı
+        // Yanlış Sayısı (DÜZELTİLDİ)
         const wrongsQ = query(collection(db, `users/${uid}/wrongs`), where("category", "==", currentTopicTitle));
-        const wrongsSnap = await getCountFromServer(collection(db, `users/${uid}/wrongs`));
+        const wrongsSnap = await getCountFromServer(wrongsQ); // <-- BURASI DÜZELTİLDİ (Eskiden collection veriliyordu)
         document.getElementById('statWrong').innerText = wrongsSnap.data().count;
 
         // Favori Sayısı
@@ -823,37 +784,27 @@
             </div>`;
       }
       else if (item.type === 'html') {
-        // --- IFRAME ÇÖZÜMÜ (NOTLARI ORİJİNAL HALİYLE GÖSTERİR) ---
+        // --- GÜVENLİ HTML ENJEKSİYONU (IFRAME YOK) ---
 
-        // 1. Iframe Oluştur
-        const iframe = document.createElement('iframe');
-        iframe.style.width = '100%';
-        iframe.style.height = '80vh'; // Ekranın %80'ini kaplasın
-        iframe.style.border = 'none';
-        iframe.style.borderRadius = '12px';
-        iframe.style.backgroundColor = '#fff';
-        iframe.style.boxShadow = '0 4px 20px rgba(0,0,0,0.1)';
+        // 1. HTML'i Temizle (XSS Koruması)
+        // Not: item.url veritabanında HTML içeriğini tutuyor olmalı.
+        const cleanHtml = DOMPurify.sanitize(item.url, {
+          USE_PROFILES: { html: true },
+          ADD_TAGS: ['iframe'], // Eğer not içinde youtube embed varsa izin ver
+          ADD_ATTR: ['allow', 'allowfullscreen', 'frameborder', 'scrolling']
+        });
 
-        // 2. Tamamla Butonu
-        const btnDiv = document.createElement('div');
-        btnDiv.className = 'text-center mt-3';
-        btnDiv.style.paddingBottom = '50px';
-        btnDiv.innerHTML = `
-            <button class="btn btn-success btn-lg" onclick="markComplete('${item.id}'); openViewer('html');">
-                ✅ Okudum, Tamamla
-            </button>
+        // 2. İçeriği Bas
+        html = `
+            <div class="note-reader-content">
+                ${cleanHtml}
+            </div>
+            <div class="text-center mt-5" style="padding-bottom: 50px;">
+                <button id="btnComplete-${item.id}" class="btn btn-success btn-lg" onclick="markComplete('${item.id}', this)">
+                    ✅ Okudum, Tamamla
+                </button>
+            </div>
         `;
-
-        // 3. İçeriği Temizle ve Ekle
-        content.innerHTML = '';
-        content.appendChild(iframe);
-        content.appendChild(btnDiv);
-
-        // 4. Iframe İçine HTML'i Yaz (Tailwind ve Fontlar çalışsın diye)
-        const doc = iframe.contentWindow.document;
-        doc.open();
-        doc.write(item.url); // item.url içinde raw HTML var
-        doc.close();
       }
       else if (item.type === 'test') {
         window.location.href = item.url;
@@ -868,18 +819,44 @@
       document.getElementById('videoPlayer').innerHTML = '';
     };
 
-    window.markComplete = async (id) => {
+    window.markComplete = async (id, btnElement = null) => {
       if (!auth.currentUser) return;
+
+      // UI Güncellemesi (Anlık)
       userProgress[id] = true;
       updateStats();
+
+      // Buton varsa durumunu güncelle
+      if (btnElement) {
+        btnElement.innerText = "🎉 Tamamlandı";
+        btnElement.disabled = true;
+        btnElement.classList.remove('btn-success');
+        btnElement.classList.add('btn-secondary');
+      }
+
+      // Veritabanı Kaydı
       try {
         const uid = auth.currentUser.uid;
         await setDoc(doc(db, `users/${uid}/progress/${currentTopicId}`), {
           completedMaterials: userProgress,
           lastUpdated: serverTimestamp()
         }, { merge: true });
-      } catch (e) { }
+      } catch (e) { console.error("Kayıt hatası:", e); }
     };
+
+    // Klavye Navigasyonu (ESC ile kapatma)
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        const viewer = document.getElementById('viewerOverlay');
+        const videoModal = document.getElementById('videoModal');
+
+        if (videoModal.style.display === 'flex') {
+          closeVideo();
+        } else if (viewer.classList.contains('active')) {
+          closeViewer();
+        }
+      }
+    });
 
     // Yönlendirmeler
     window.goToMistakes = () => {
