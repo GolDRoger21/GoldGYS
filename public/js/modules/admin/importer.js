@@ -10,7 +10,10 @@ export function initImporterPage() {
                 <h2>📥 Toplu Soru Yükleme</h2>
                 <p class="text-muted">Excel veya JSON dosyasından binlerce soruyu tek seferde yükleyin.</p>
             </div>
-            <button onclick="downloadTemplate()" class="btn btn-outline-primary">📄 Excel Şablonu İndir</button>
+            <div class="d-flex gap-2">
+                <button onclick="showGuide()" class="btn btn-info text-white">ℹ️ Format Rehberi</button>
+                <button onclick="downloadTemplate()" class="btn btn-outline-primary">📄 Excel Şablonu İndir</button>
+            </div>
         </div>
 
         <div class="row">
@@ -42,6 +45,45 @@ export function initImporterPage() {
                             <tbody id="previewTableBody"></tbody>
                         </table>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- REHBER MODALI -->
+        <div id="guideModal" class="modal-overlay" style="display:none;">
+            <div class="modal-content admin-modal-content">
+                <div class="modal-header">
+                    <h3>📋 Veri Hazırlama Rehberi</h3>
+                    <button onclick="document.getElementById('guideModal').style.display='none'" class="close-btn">&times;</button>
+                </div>
+                <div class="modal-body-scroll">
+                    <h5>Excel Formatı</h5>
+                    <p>Excel dosyanızın ilk satırı başlık olmalıdır. Sütun isimleri şunlardır:</p>
+                    <ul class="list-group mb-3">
+                        <li class="list-group-item"><strong>Kategori:</strong> Konu başlığı (Örn: Anayasa)</li>
+                        <li class="list-group-item"><strong>Soru Metni:</strong> Sorunun kendisi</li>
+                        <li class="list-group-item"><strong>A, B, C, D, E:</strong> Şıklar</li>
+                        <li class="list-group-item"><strong>Doğru Cevap:</strong> Sadece harf (A, B...)</li>
+                        <li class="list-group-item"><strong>Kanun No:</strong> İlgili kanun kodu (Örn: 5271)</li>
+                        <li class="list-group-item"><strong>Madde No:</strong> İlgili madde numarası</li>
+                        <li class="list-group-item"><strong>Çözüm Analiz:</strong> Detaylı açıklama</li>
+                    </ul>
+                    
+                    <h5>JSON Formatı (Gelişmiş)</h5>
+                    <pre style="background:#f8f9fa; padding:10px; border-radius:5px;">
+[
+  {
+    "text": "Soru metni...",
+    "options": [
+       {"id": "A", "text": "Cevap A"},
+       {"id": "B", "text": "Cevap B"}
+    ],
+    "correctOption": "A",
+    "legislationRef": { "code": "5271", "article": "12" },
+    "solution": { "analiz": "...", "hap": "..." }
+  }
+]
+                    </pre>
                 </div>
             </div>
         </div>
@@ -251,4 +293,8 @@ window.downloadTemplate = () => {
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Sablon");
     XLSX.writeFile(wb, "Soru_Sablonu.xlsx");
+};
+
+window.showGuide = () => {
+    document.getElementById('guideModal').style.display = 'flex';
 };

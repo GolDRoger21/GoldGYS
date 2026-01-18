@@ -173,17 +173,18 @@
 
         document.addEventListener('DOMContentLoaded', async () => {
             const urlParams = new URLSearchParams(window.location.search);
-            const examId = urlParams.get('id');
-            const topicId = urlParams.get('topic');
-            const mode = urlParams.get('mode') || 'practice'; // Varsayılan: Öğrenme Modu
-            const duration = parseInt(urlParams.get('duration')) || 0; // Varsayılan: Süresiz
+            const examId = urlParams.get('id'); // Test ID (Lesson ID)
+            const topicId = urlParams.get('topic'); // Konu ID
+            const mode = urlParams.get('mode'); // practice, exam, smart
+            const filter = urlParams.get('filter'); // random, order, wrongs, favorites
+            const duration = parseInt(urlParams.get('duration')) || 0;
 
             const loadingScreen = document.getElementById('loadingScreen');
             const quizContainer = document.getElementById('quizContainer');
             const testHeader = document.getElementById('testHeader');
             const testFooter = document.getElementById('testFooter');
 
-            if (!examId && !topicId) {
+            if (!examId && !topicId && mode !== 'custom') {
                 alert("Hata: Sınav veya Konu ID parametresi eksik.");
                 window.location.href = 'denemeler.html';
                 return;
@@ -192,87 +193,105 @@
             try {
                 let questions = [];
                 let title = "Test";
-                let testId = examId || topicId;
 
-                if (examId) {
-                    // --- DENEME SINAVI MODU ---
-                    // (Burada exams koleksiyonundan soru ID'lerini çekip soruları getireceğiz - Faz 3'te detaylandırılacak)
-                    // Şimdilik basit bir sorgu ile simüle ediyoruz:
+                if (mode === 'smart' && topicId) {
+                    // --- AKILLI ÇALIŞMA MODU ---
+
+                    // 1. Konu Başlığını Al (Kategori filtrelemesi için)
+                    const topicSnap = await getDoc(doc(db, "topics", topicId));
+                    const topicTitle = topicSnap.exists() ? topicSnap.data().title : "";
+                    title = `${topicTitle} - Çalışma Modu`;
+
+                    // 2. Soruları Çek
+                    if (filter === 'favorites') {
+                        // TODO: Favorilerden çek
+                        alert("Favoriler modu yakında eklenecek.");
+                        window.history.back();
+                        return;
+                    }
+                    else if (filter === 'wrongs') {
+                        // TODO: Yanlışlardan çek
+                        alert("Yanlışlar modu yakında eklenecek.");
+                        window.history.back();
+                        return;
+                    }
+                    else {
+                        // Tüm aktif soruları çek (Kategoriye göre)
+                        // Not: İleride limit veya pagination eklenebilir
+                        const qQuery = query(collection(db, "questions"), where("category", "==", topicTitle), where("isActive", "==", true));
+                        const qSnap = await getDocs(qQuery);
+                        questions = qSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+                    }
+
+                    // 3. Filtreleme ve Sıralama
+                    if (filter === 'random') {
+                        questions.sort(() => 0.5 - Math.random());
+                    } else if (filter === 'order') {
+                        // Madde numarasına göre sırala (legislationRef.article)
+                        questions.sort((a, b) => {
+                            const artA = parseInt((a.legislationRef?.article || '0').replace(/\D/g, '')) || 9999;
+                            const artB = parseInt((b.legislationRef?.article || '0').replace(/\D/g, '')) || 9999;
+                            return artA - artB;
+                        });
+                    }
+
+                } else if (examId && topicId) {
+                    // --- KLASİK TEST MODU (Lesson içindeki test) ---
+                    // Test verisi 'lessons' koleksiyonunda saklı
+                    const lessonRef = doc(db, `topics/${topicId}/lessons`, examId);
+                    const lessonSnap = await getDoc(lessonRef);
+
+                    if (lessonSnap.exists()) {
+                        const data = lessonSnap.data();
+                        title = data.title;
+                        questions = data.questions || []; // Test oluştururken kaydettiğimiz sorular
+                    }
+                }
+                else if (mode === 'custom' && urlParams.get('source') === 'local') {
+                    // --- CUSTOM LOCAL MOD ---
+                    const storedData = localStorage.getItem('customTestQuestions');
+                    if (storedData) {
+                        const rawQuestions = JSON.parse(storedData);
+                        const ids = rawQuestions.map(q => q.questionId || q.id);
+
+                        // ID varsa veri tabanından çekmeyi dene, yoksa local veriye güven
+                        // Şimdilik basitlik adına local veriyi kullanıyoruz, ancak tip dönüşümü yapıyoruz
+                        questions = rawQuestions.map(q => ({
+                            id: q.questionId || q.id,
+                            text: q.text || "Soru metni yüklenemedi",
+                            options: q.options || [],
+                            correctOption: q.correctOption,
+                            solution: q.solution || {},
+                            type: q.type || 'standard',
+                            category: q.category,
+                            legislationRef: q.legislationRef
+                        }));
+                        title = "Özel Test";
+                    }
+                }
+                else if (examId) {
+                    // --- GENEL DENEME MODU (Eski Logic) ---
                     const qQuery = query(collection(db, "questions"), where("isActive", "==", true), limit(20));
                     const qSnap = await getDocs(qQuery);
                     questions = qSnap.docs.map(d => ({ id: d.id, ...d.data() }));
                     title = "Deneme Sınavı";
                 }
 
-                // --- YENİ: CUSTOM MOD (Yanlışlar/Favoriler İçin) ---
-                else if (mode === 'custom' && urlParams.get('source') === 'local') {
-                    const storedData = localStorage.getItem('customTestQuestions');
-                    if (storedData) {
-                        const rawQuestions = JSON.parse(storedData);
-
-                        // Eğer soruların sadece ID'si varsa, veritabanından detaylarını çekmemiz gerekebilir.
-                        // Ancak TestEngine'de "saveWrongAnswer" fonksiyonunda metni de kaydetmiştik.
-                        // Yine de en güncel hali için ID'lerden çekmek daha sağlıklıdır.
-
-                        // ID listesini çıkar
-                        const ids = rawQuestions.map(q => q.questionId || q.id);
-
-                        // Firestore 'in' sorgusu (Max 10 limitine takılmamak için döngü veya promise.all)
-                        // Basitlik için: Eğer metin varsa direkt kullan, yoksa çek.
-                        // Biz şimdilik localStorage'daki veriyi kullanacağız, eksikse kullanıcıya uyarı veririz.
-
-                        questions = rawQuestions.map(q => ({
-                            id: q.questionId || q.id,
-                            text: q.text || "Soru metni bulunamadı",
-                            options: q.options || [], // Eğer options yoksa bu sorun olur!
-                            correctOption: q.correctOption,
-                            solution: q.solution || {},
-                            type: q.type || 'standard',
-                            category: q.category
-                        }));
-
-                        // EĞER options yoksa (ki wrongs koleksiyonunda tutmuyoruz), mecburen DB'den çekmeliyiz.
-                        // Bu yüzden en sağlamı ID'leri alıp DB'den çekmektir.
-                        if (ids.length > 0) {
-                            // Firestore'dan güncel verileri çek (Batch mantığı gerekebilir ama şimdilik 10'arlı çekelim)
-                            // Basit çözüm: Tek tek çek (Performans düşük ama güvenli)
-                            const promises = ids.map(id => getDoc(doc(db, "questions", id)));
-                            const docs = await Promise.all(promises);
-                            questions = docs.filter(d => d.exists()).map(d => ({ id: d.id, ...d.data() }));
-                        }
-
-                        title = "Özel Test (Yanlışlar/Favoriler)";
-                    }
-                }
-                else if (topicId) {
-                    // --- KONU BAZLI TEST MODU ---
-                    const topicSnap = await getDoc(doc(db, "topics", topicId));
-                    const topicTitle = topicSnap.exists() ? topicSnap.data().title : "Konu Testi";
-                    title = `${topicTitle} - Tarama Testi`;
-
-                    // Konuya ait soruları çek (Rastgelelik eklenebilir)
-                    // Not: Gerçekte 'category' veya 'topicId' ile filtrelemeliyiz.
-                    // Şimdilik tüm aktif sorulardan çekiyoruz.
-                    const qQuery = query(collection(db, "questions"), where("isActive", "==", true), limit(20));
-                    const qSnap = await getDocs(qQuery);
-                    questions = qSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-                }
 
                 if (!questions || questions.length === 0) {
-                    throw new Error("Test içeriği oluşturulamadı veya soru bulunamadı.");
+                    throw new Error("Soru bulunamadı veya test içeriği boş.");
                 }
 
                 document.title = `${title} | Çöz`;
                 document.getElementById('testTitle').innerText = title;
 
-                // 3. Test Motorunu Başlat (Parametrelerle)
+                // Test Motorunu Başlat
                 const engine = new TestEngine('quizContainer', questions, {
-                    examId: testId,
-                    mode: mode,
-                    duration: duration
+                    mode: mode === 'smart' ? 'practice' : (mode || 'exam'), // Smart modda 'practice' gibi davran
+                    menuButton: true // Yan menü desteği varsa aktif et
                 });
 
-                // Arayüzü Aç
+                // UI Aç
                 loadingScreen.style.display = 'none';
                 quizContainer.style.display = 'block';
                 testHeader.style.display = 'flex';
@@ -280,14 +299,14 @@
 
                 // Bitir Butonu
                 document.getElementById('btnFinish').addEventListener('click', () => {
-                    if (confirm("Testi bitirmek ve sonucu görmek istediğinize emin misiniz?")) {
+                    if (confirm("Testi bitirmek istiyor musunuz?")) {
                         engine.finishTest();
                     }
                 });
 
             } catch (error) {
-                console.error("Test hatası:", error);
-                document.getElementById('loadingText').innerHTML = `<span style="color:red">Hata: ${error.message}</span><br><button onclick="window.history.back()" class="btn btn-secondary mt-3">Geri Dön</button>`;
+                console.error(error);
+                loadingScreen.innerHTML = `<div class="text-center"><h3 class="text-danger">Hata: ${error.message}</h3><button onclick="window.history.back()" class="btn btn-secondary mt-3">Geri Dön</button></div>`;
             }
         });
     </script>

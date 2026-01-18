@@ -5,99 +5,77 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Konu Çalışma Alanı | GOLD GYS</title>
-  <link rel="icon"
-    href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230F172A'/><text x='50' y='70' font-family='serif' font-size='60' fill='%23D4AF37' text-anchor='middle' font-weight='bold'>G</text></svg>">
-
-  <!-- CSS Dosyaları -->
   <link rel="stylesheet" href="../styles/tokens.css">
   <link rel="stylesheet" href="../css/layout.css">
   <link rel="stylesheet" href="../css/dashboard.css">
-
-  <!-- İkonlar -->
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-
   <style>
-    /* --- SAYFAYA ÖZEL PREMIUM CSS --- */
-
-    /* 1. Header & Progress */
-    .topic-header {
-      background: linear-gradient(135deg, var(--bg-surface), var(--bg-body));
-      padding: 30px 20px;
-      border-bottom: 1px solid var(--border-color);
+    /* --- YENİ STİLLER --- */
+    .study-mode-card {
+      background: linear-gradient(135deg, #2c3e50, #34495e);
+      color: white;
+      border-radius: 16px;
+      padding: 25px;
+      margin-bottom: 30px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
       position: relative;
-    }
-
-    .header-content {
-      max-width: 1200px;
-      margin: 0 auto;
-      position: relative;
-      z-index: 2;
-    }
-
-    .btn-back-custom {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      background: var(--bg-surface);
-      border: 1px solid var(--border-color);
-      padding: 10px 20px;
-      border-radius: 30px;
-      color: var(--text-muted);
-      font-weight: 600;
-      font-size: 0.9rem;
-      text-decoration: none;
-      transition: all 0.2s ease;
-      margin-bottom: 20px;
-      box-shadow: var(--shadow-sm);
-    }
-
-    .btn-back-custom:hover {
-      background: var(--bg-hover);
-      color: var(--text-main);
-      border-color: var(--color-primary);
-      transform: translateX(-3px);
-    }
-
-    .topic-title {
-      font-family: var(--font-family-serif);
-      font-size: 2.5rem;
-      color: var(--text-main);
-      margin-bottom: 10px;
-      line-height: 1.2;
-    }
-
-    .topic-meta {
-      color: var(--text-muted);
-      font-size: 1rem;
-    }
-
-    /* Progress Bar */
-    .progress-wrapper {
-      margin-top: 25px;
-      background: var(--bg-hover);
-      height: 6px;
-      border-radius: 10px;
       overflow: hidden;
     }
 
-    .progress-bar {
-      height: 100%;
-      background: linear-gradient(90deg, var(--color-primary), #F3E5AB);
-      width: 0%;
-      transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
-      box-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
+    .study-mode-card::after {
+      content: '🧠';
+      position: absolute;
+      right: -20px;
+      bottom: -20px;
+      font-size: 10rem;
+      opacity: 0.1;
+      transform: rotate(-15deg);
     }
 
-    .progress-text {
+    .mode-options {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 15px;
+      margin-top: 20px;
+    }
+
+    .mode-btn {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: white;
+      padding: 15px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: center;
       display: flex;
-      justify-content: space-between;
-      margin-top: 8px;
-      font-size: 0.85rem;
-      color: var(--text-muted);
-      font-weight: 600;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
     }
 
-    /* 2. Layout Grid */
+    .mode-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: translateY(-3px);
+    }
+
+    .mode-btn.active {
+      background: var(--color-primary);
+      border-color: var(--color-primary);
+      color: #000;
+    }
+
+    .mode-icon {
+      font-size: 1.5rem;
+    }
+
+    /* Mevcut stiller korunuyor... */
+    .topic-header {
+      background: var(--bg-surface);
+      padding: 30px 20px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
     .content-container {
       max-width: 1200px;
       margin: 0 auto;
@@ -107,487 +85,18 @@
       gap: 40px;
     }
 
-    /* 3. Test Kartları (GÜNCELLENDİ) */
-    .section-header-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
-    }
-
-    .section-title {
-      font-size: 1.3rem;
-      color: var(--text-main);
-      margin: 0;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      border-left: 4px solid var(--color-primary);
-      padding-left: 15px;
-    }
-
-    .btn-reset-all {
-      background: transparent;
-      border: 1px solid var(--color-danger);
-      color: var(--color-danger);
-      padding: 6px 12px;
-      border-radius: 20px;
-      font-size: 0.8rem;
-      cursor: pointer;
-      transition: all 0.2s;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-    }
-
-    .btn-reset-all:hover {
-      background: rgba(239, 68, 68, 0.1);
-    }
-
     .test-card {
       background: var(--bg-surface);
       border: 1px solid var(--border-color);
       border-radius: 16px;
-      padding: 25px;
-      margin-bottom: 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-      /* Dikey yerleşim */
-      transition: all 0.3s ease;
-    }
-
-    .test-card:hover {
-      transform: translateY(-4px);
-      border-color: var(--color-primary);
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-    }
-
-    .test-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      width: 100%;
-    }
-
-    .test-info h3 {
-      font-size: 1.1rem;
-      margin-bottom: 5px;
-      color: var(--text-main);
-    }
-
-    .test-meta {
-      color: var(--text-muted);
-      font-size: 0.85rem;
-      display: flex;
-      gap: 15px;
-    }
-
-    /* Test Modu Butonları */
-    .test-modes {
-      display: flex;
-      gap: 10px;
-      width: 100%;
-      margin-top: 10px;
-    }
-
-    .btn-mode {
-      flex: 1;
-      padding: 10px;
-      border-radius: 8px;
-      font-weight: 600;
-      font-size: 0.9rem;
-      text-decoration: none;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      transition: all 0.2s;
-      border: 1px solid transparent;
-    }
-
-    /* Sınav Modu (Kırmızı/Ciddi) */
-    .btn-mode.exam {
-      background: rgba(239, 68, 68, 0.1);
-      color: #ef4444;
-      border-color: rgba(239, 68, 68, 0.2);
-    }
-
-    .btn-mode.exam:hover {
-      background: #ef4444;
-      color: white;
-    }
-
-    /* Öğrenme Modu (Mavi/Rahat) */
-    .btn-mode.practice {
-      background: rgba(59, 130, 246, 0.1);
-      color: #3b82f6;
-      border-color: rgba(59, 130, 246, 0.2);
-    }
-
-    .btn-mode.practice:hover {
-      background: #3b82f6;
-      color: white;
-    }
-
-    /* Tamamlandı Rozeti */
-    .test-badge-done {
-      background: rgba(16, 185, 129, 0.1);
-      color: #10b981;
-      padding: 4px 10px;
-      border-radius: 20px;
-      font-size: 0.75rem;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-
-    /* 4. Kaynak Grupları (Akordeon) */
-    .resource-group {
+      padding: 20px;
       margin-bottom: 15px;
-      border: 1px solid var(--border-color);
-      border-radius: 12px;
-      background: var(--bg-surface);
-      overflow: hidden;
-    }
-
-    .resource-header {
-      padding: 15px 20px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      cursor: pointer;
-      background: var(--bg-surface);
-      transition: background 0.2s;
-    }
-
-    .resource-header:hover {
-      background: var(--bg-hover);
-    }
-
-    .resource-title {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      font-weight: 600;
-      color: var(--text-main);
-      font-size: 1rem;
-    }
-
-    .resource-count {
-      background: var(--bg-body);
-      color: var(--text-muted);
-      padding: 2px 8px;
-      border-radius: 10px;
-      font-size: 0.75rem;
-      font-weight: 700;
-    }
-
-    .resource-body {
-      display: none;
-      border-top: 1px solid var(--border-color);
-      background: var(--bg-body);
-    }
-
-    .resource-group.active .resource-body {
-      display: block;
-      animation: slideDown 0.3s ease;
-    }
-
-    .resource-item {
-      padding: 12px 20px;
-      border-bottom: 1px solid var(--border-color);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-
-    .resource-item:last-child {
-      border-bottom: none;
-    }
-
-    .resource-item:hover {
-      background: var(--bg-hover);
-    }
-
-    .res-name {
-      font-size: 0.9rem;
-      color: var(--text-main);
-    }
-
-    .res-status {
-      color: var(--text-muted);
-      font-size: 1.2rem;
-    }
-
-    .res-status.done {
-      color: var(--color-success);
-    }
-
-    /* İkon Renkleri */
-    .icon-box {
-      width: 32px;
-      height: 32px;
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.2rem;
-    }
-
-    .video-icon {
-      background: rgba(239, 68, 68, 0.1);
-      color: #ef4444;
-    }
-
-    .pdf-icon {
-      background: rgba(59, 130, 246, 0.1);
-      color: #3b82f6;
-    }
-
-    .html-icon {
-      background: rgba(16, 185, 129, 0.1);
-      color: #10b981;
-    }
-
-    .podcast-icon {
-      background: rgba(168, 85, 247, 0.1);
-      color: #a855f7;
-    }
-
-    /* --- VIEWER & TOGGLE SWITCH --- */
-    .viewer-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: var(--bg-body);
-      z-index: 9999;
-      display: none;
-      flex-direction: column;
-    }
-
-    .viewer-overlay.active {
-      display: flex;
-    }
-
-    .viewer-header {
-      padding: 15px 30px;
-      border-bottom: 1px solid var(--border-color);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: var(--bg-surface);
-      height: 70px;
-    }
-
-    .viewer-title-area {
-      display: flex;
-      align-items: center;
-      gap: 15px;
-    }
-
-    .viewer-body {
-      flex: 1;
-      overflow-y: auto;
-      padding: 0;
-      background: #f1f5f9;
-    }
-
-    /* GEMINI TARZI TOGGLE SWITCH */
-    .toggle-container {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-right: 20px;
-    }
-
-    .toggle-label {
-      font-size: 0.9rem;
-      font-weight: 600;
-      color: var(--text-main);
-    }
-
-    .switch {
-      position: relative;
-      display: inline-block;
-      width: 50px;
-      height: 26px;
-    }
-
-    .switch input {
-      opacity: 0;
-      width: 0;
-      height: 0;
-    }
-
-    .slider {
-      position: absolute;
-      cursor: pointer;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background-color: var(--border-color);
-      transition: .4s;
-      border-radius: 34px;
-    }
-
-    .slider:before {
-      position: absolute;
-      content: "";
-      height: 18px;
-      width: 18px;
-      left: 4px;
-      bottom: 4px;
-      background-color: white;
-      transition: .4s;
-      border-radius: 50%;
-    }
-
-    input:checked+.slider {
-      background-color: var(--color-success);
-    }
-
-    input:checked+.slider:before {
-      transform: translateX(24px);
-    }
-
-    /* Iframe Container */
-    .iframe-container {
-      width: 100%;
-      height: 100%;
-      border: none;
-      display: block;
-    }
-
-    /* Video Modal */
-    #videoModal {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(0, 0, 0, 0.95);
-      z-index: 20000 !important;
-      display: none;
-      justify-content: center;
-      align-items: center;
-      flex-direction: column;
-    }
-
-    .video-wrapper-modal {
-      position: relative;
-      width: 90%;
-      max-width: 1200px;
-      aspect-ratio: 16 / 9;
-      background: #000;
-      border-radius: 16px;
-      overflow: hidden;
-    }
-
-    .video-close-btn {
-      position: absolute;
-      top: 30px;
-      right: 30px;
-      background: rgba(255, 255, 255, 0.1);
-      color: white;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      padding: 10px 20px;
-      border-radius: 50px;
-      cursor: pointer;
-      font-weight: 600;
-      z-index: 20001;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    /* Video Altı Kontrol */
-    .video-controls {
-      margin-top: 20px;
-      display: flex;
-      gap: 15px;
-    }
-
-    .btn-video-toggle {
-      background: rgba(255, 255, 255, 0.1);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      color: white;
-      padding: 10px 20px;
-      border-radius: 30px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      transition: all 0.2s;
-    }
-
-    .btn-video-toggle.active {
-      background: var(--color-success);
-      border-color: var(--color-success);
-    }
-
-    @keyframes slideDown {
-      from {
-        opacity: 0;
-        transform: translateY(-10px);
-      }
-
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
     }
 
     @media (max-width: 900px) {
       .content-container {
         grid-template-columns: 1fr;
       }
-
-      .viewer-header {
-        padding: 10px 15px;
-      }
-
-      .toggle-label {
-        display: none;
-      }
-    }
-
-    /* --- BOŞ DURUM (EMPTY STATE) STİLLERİ --- */
-    .empty-state-card {
-      background: var(--bg-surface);
-      border: 2px dashed var(--border-color);
-      /* Kesikli çizgi */
-      border-radius: 16px;
-      padding: 30px;
-      text-align: center;
-      color: var(--text-muted);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .empty-state-card .material-icons {
-      font-size: 2.5rem;
-      opacity: 0.5;
-      color: var(--text-muted);
-    }
-
-    .empty-resource-item {
-      padding: 15px 20px;
-      color: var(--text-muted);
-      font-size: 0.9rem;
-      font-style: italic;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      background: rgba(0, 0, 0, 0.02);
     }
   </style>
 </head>
@@ -599,112 +108,76 @@
     document.addEventListener('DOMContentLoaded', () => initLayout());
   </script>
 
-  <!-- HEADER -->
   <header class="topic-header">
-    <div class="header-content">
-      <a href="/pages/konular.html" class="btn-back-custom">
-        <span class="material-icons" style="font-size:18px;">arrow_back</span> Tüm Konular
+    <div style="max-width: 1200px; margin: 0 auto;">
+      <a href="/pages/konular.html"
+        style="text-decoration:none; color:var(--text-muted); display:flex; align-items:center; gap:5px; margin-bottom:10px;">
+        <span class="material-icons">arrow_back</span> Tüm Konular
       </a>
-      <h1 class="topic-title" id="topicTitle">Yükleniyor...</h1>
-      <div class="topic-meta">
-        <span id="topicDesc">...</span>
+      <h1 id="topicTitle" style="margin:0; font-family:var(--font-family-serif);">Yükleniyor...</h1>
+      <div class="progress-wrapper"
+        style="margin-top:20px; background:var(--bg-hover); height:6px; border-radius:10px;">
+        <div class="progress-bar" id="topicProgressBar" style="width:0%; height:100%; background:var(--color-primary);">
+        </div>
       </div>
-
-      <div class="progress-wrapper">
-        <div class="progress-bar" id="topicProgressBar"></div>
-      </div>
-      <div class="progress-text">
-        <span>İlerleme Durumu</span>
-        <span id="progressPercent">%0 Tamamlandı</span>
-      </div>
+      <small id="progressText" style="color:var(--text-muted);">%0 Tamamlandı</small>
     </div>
   </header>
 
-  <!-- ANA İÇERİK -->
   <div class="content-container">
 
-    <!-- SOL KOLON: TESTLER -->
-    <div class="tests-section">
-      <div class="section-header-row">
-        <h2 class="section-title"><span class="material-icons">quiz</span> Konu Testleri</h2>
-        <button class="btn-reset-all" onclick="resetAllTests()">
-          <span class="material-icons" style="font-size:16px;">restart_alt</span> Tümünü Sıfırla
-        </button>
-      </div>
-      <div id="testsList">
-        <div class="test-card">Yükleniyor...</div>
-      </div>
-    </div>
+    <!-- SOL KOLON -->
+    <div class="main-section">
 
-    <!-- SAĞ KOLON: ÇALIŞMA KAYNAKLARI -->
-    <div class="materials-section">
-      <h2 class="section-title"><span class="material-icons">library_books</span> Çalışma Kaynakları</h2>
-      <div id="resourceGroups">
-        <!-- Gruplar JS ile gelecek -->
-      </div>
-    </div>
+      <!-- YENİ: AKILLI ÇALIŞMA MODU -->
+      <div class="study-mode-card">
+        <h2 style="margin:0; font-size:1.5rem;">🚀 Serbest Çalışma Modu</h2>
+        <p style="opacity:0.8; margin-top:5px;">Bu konuya ait <strong id="totalQCount">0</strong> soruyu dilediğin gibi
+          çöz.</p>
 
-  </div>
-
-  <!-- TAM EKRAN GÖRÜNTÜLEYİCİ (VIEWER) -->
-  <div class="viewer-overlay" id="viewerOverlay">
-    <div class="viewer-header">
-      <div class="viewer-title-area">
-        <button onclick="closeViewer()"
-          style="background:none; border:none; color:var(--text-main); cursor:pointer; display:flex; align-items:center;">
-          <span class="material-icons">arrow_back</span>
-        </button>
-        <h3 id="viewerTitle" style="margin:0; color:var(--text-main); font-size:1.1rem;">İçerik</h3>
-      </div>
-
-      <div style="display:flex; align-items:center;">
-        <!-- EVRENSEL TOGGLE SWITCH -->
-        <div class="toggle-container">
-          <span class="toggle-label">Tamamlandı</span>
-          <label class="switch">
-            <input type="checkbox" id="statusToggleInput" onchange="toggleCurrentContentStatus()">
-            <span class="slider"></span>
-          </label>
+        <div class="mode-options">
+          <button class="mode-btn" onclick="startSmartTest('random')">
+            <span class="mode-icon">🔀</span>
+            <span>Karışık</span>
+          </button>
+          <button class="mode-btn" onclick="startSmartTest('order')">
+            <span class="mode-icon">abc</span>
+            <span>Madde Sırasına Göre</span>
+          </button>
+          <button class="mode-btn" onclick="startSmartTest('wrongs')">
+            <span class="mode-icon">⚠️</span>
+            <span>Sadece Yanlışlar</span>
+          </button>
+          <button class="mode-btn" onclick="startSmartTest('favorites')">
+            <span class="mode-icon">⭐</span>
+            <span>Favoriler</span>
+          </button>
         </div>
-
-        <button onclick="closeViewer()"
-          style="background:none; border:none; color:var(--text-muted); font-size:1.5rem; cursor:pointer;">✕</button>
       </div>
+
+      <!-- KONU TESTLERİ -->
+      <h3 style="border-left:4px solid var(--color-primary); padding-left:10px; margin-bottom:20px;">📝 Konu Testleri
+      </h3>
+      <div id="testsList">Yükleniyor...</div>
+
     </div>
 
-    <div class="viewer-body" id="viewerBody">
-      <!-- İçerik buraya -->
+    <!-- SAĞ KOLON: DERS NOTLARI -->
+    <div class="side-section">
+      <h3 style="border-left:4px solid var(--color-success); padding-left:10px; margin-bottom:20px;">📚 Ders Notları
+      </h3>
+      <div id="materialsList"></div>
     </div>
+
   </div>
-
-  <!-- VIDEO MODAL -->
-  <div id="videoModal">
-    <button class="video-close-btn" onclick="closeVideo()">
-      <span class="material-icons">close</span> Kapat
-    </button>
-    <div class="video-wrapper-modal">
-      <div id="videoPlayer" style="width:100%; height:100%;"></div>
-    </div>
-    <!-- Video Altı Kontrol -->
-    <div class="video-controls">
-      <button id="btnVideoToggle" class="btn-video-toggle" onclick="toggleCurrentContentStatus()">
-        <span class="material-icons">check_circle</span> Tamamlandı Olarak İşaretle
-      </button>
-    </div>
-  </div>
-
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
 
   <script type="module">
     import { db, auth } from '../js/firebase-config.js';
-    import { doc, getDoc, collection, getDocs, query, orderBy, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { doc, getDoc, collection, getDocs, query, orderBy, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
     import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
     let currentTopicId = null;
-    let userProgress = {};
-    let currentMaterialId = null;
-    let allMaterials = [];
-    let testIds = [];
+    let topicTitle = "";
 
     document.addEventListener('DOMContentLoaded', async () => {
       const urlParams = new URLSearchParams(window.location.search);
@@ -713,381 +186,79 @@
 
       onAuthStateChanged(auth, async (user) => {
         if (user) {
-          await loadUserProgress(user.uid);
+          await loadTopicData();
+          await loadQuestionCount();
         }
-        await loadTopicData();
       });
     });
 
-    async function loadUserProgress(uid) {
-      try {
-        const docRef = doc(db, `users/${uid}/progress/${currentTopicId}`);
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          userProgress = docSnap.data().completedMaterials || {};
-        }
-      } catch (e) { console.error(e); }
-    }
-
     async function loadTopicData() {
-      // 1. Konu Başlığını Çek
+      // Konu Bilgisi
       const topicSnap = await getDoc(doc(db, "topics", currentTopicId));
       if (topicSnap.exists()) {
         const data = topicSnap.data();
+        topicTitle = data.title;
         document.getElementById('topicTitle').innerText = data.title;
-        document.getElementById('topicDesc').innerText = data.description || 'Konu detayları';
-        document.title = `${data.title} | GOLD GYS`;
+        document.title = `${data.title} | Çalışma`;
       }
 
-      // 2. İçerikleri Çek
+      // Dersler ve Testler (Subcollection)
       const q = query(collection(db, `topics/${currentTopicId}/lessons`), orderBy("order", "asc"));
       const snapshot = await getDocs(q);
 
       const testsContainer = document.getElementById('testsList');
-      testsContainer.innerHTML = '';
-      allMaterials = [];
-      testIds = [];
+      const materialsContainer = document.getElementById('materialsList');
 
-      // Gruplama Yapısı
-      const groups = {
-        video: { title: 'Video Dersler', icon: 'play_circle', class: 'video-icon', items: [] },
-        pdf: { title: 'PDF Notlar', icon: 'picture_as_pdf', class: 'pdf-icon', items: [] },
-        podcast: { title: 'Podcastler', icon: 'headset', class: 'podcast-icon', items: [] },
-        html: { title: 'Özel Notlar', icon: 'article', class: 'html-icon', items: [] }
-      };
+      testsContainer.innerHTML = '';
+      materialsContainer.innerHTML = '';
 
       snapshot.forEach(doc => {
-        const lesson = doc.data();
-        if (lesson.materials) {
-          lesson.materials.forEach(mat => {
-            const matId = mat.id || `${doc.id}_${Math.random().toString(36).substr(2, 9)}`;
-            const item = { ...mat, id: matId, lessonTitle: lesson.title };
+        const item = { id: doc.id, ...doc.data() };
 
-            allMaterials.push(item);
-
-            if (item.type === 'test') {
-              renderTestCard(item, testsContainer);
-              testIds.push(item.id);
-            } else if (groups[item.type]) {
-              groups[item.type].items.push(item);
-            }
-          });
-        }
-      });
-
-      // --- TESTLER BOŞSA UYARI GÖSTER ---
-      if (testIds.length === 0) {
-        testsContainer.innerHTML = `
-                <div class="empty-state-card">
-                    <span class="material-icons">quiz</span>
-                    <span>Bu konuya ait henüz test eklenmemiştir.</span>
-                </div>
-            `;
-        // "Tümünü Sıfırla" butonunu gizle
-        const resetBtn = document.querySelector('.btn-reset-all');
-        if (resetBtn) resetBtn.style.display = 'none';
-      } else {
-        const resetBtn = document.querySelector('.btn-reset-all');
-        if (resetBtn) resetBtn.style.display = 'flex';
-      }
-
-      renderResourceGroups(groups);
-      updateProgressBar();
-    }
-
-    // --- TEST KARTI OLUŞTURMA (YENİ TASARIM) ---
-    function renderTestCard(test, container) {
-      const isDone = userProgress[test.id];
-      // Soru sayısı veritabanında yoksa varsayılan 20
-      const qCount = test.qCount || 20;
-      // Süre Hesabı: Soru * 1.25 dk
-      const duration = Math.ceil(qCount * 1.25);
-
-      const html = `
-            <div class="test-card">
-                <div class="test-header">
-                    <div class="test-info">
-                        <h3>${test.title}</h3>
-                        <div class="test-meta">
-                            <span><i class="material-icons" style="font-size:14px; vertical-align:middle;">format_list_numbered</i> ${qCount} Soru</span>
-                            <span><i class="material-icons" style="font-size:14px; vertical-align:middle;">timer</i> ${duration} Dk</span>
+        if (item.type === 'test') {
+          // Test Kartı
+          const qCount = item.qCount || (item.questions ? item.questions.length : 0);
+          testsContainer.innerHTML += `
+                    <div class="test-card">
+                        <div style="display:flex; justify-content:space-between;">
+                            <strong>${item.title}</strong>
+                            <span class="badge bg-light text-dark">${qCount} Soru</span>
                         </div>
-                    </div>
-                    ${isDone ? `
-                        <div style="text-align:right;">
-                            <div class="test-badge-done"><span class="material-icons" style="font-size:14px;">check</span> Çözüldü</div>
-                            <button class="btn-reset-all" style="margin-top:5px; border:none; font-size:0.75rem;" onclick="resetTest('${test.id}')">Sıfırla</button>
+                        <div style="margin-top:10px; display:flex; gap:10px;">
+                            <a href="/pages/test.html?id=${item.id}&topic=${currentTopicId}&mode=practice" class="btn btn-sm btn-outline-primary w-100">Çöz</a>
                         </div>
-                    ` : ''}
-                </div>
-                
-                <div class="test-modes">
-                    <a href="/pages/test.html?id=${test.id}&mode=exam&duration=${duration}" class="btn-mode exam">
-                        <span class="material-icons">timer</span> Sınav Modu
-                    </a>
-                    <a href="/pages/test.html?id=${test.id}&mode=practice" class="btn-mode practice">
-                        <span class="material-icons">school</span> Öğrenme Modu
-                    </a>
-                </div>
-            </div>
-        `;
-      container.innerHTML += html;
-    }
-
-    // --- KAYNAK GRUPLARI (PODCAST DAHİL) ---
-    function renderResourceGroups(groups) {
-      const container = document.getElementById('resourceGroups');
-      container.innerHTML = '';
-
-      Object.keys(groups).forEach(key => {
-        const group = groups[key];
-
-        // ARTIK BOŞ OLSA BİLE GİZLEMİYORUZ (return satırı kaldırıldı)
-
-        const groupDiv = document.createElement('div');
-        groupDiv.className = 'resource-group';
-
-        // Header
-        const header = document.createElement('div');
-        header.className = 'resource-header';
-        header.onclick = () => groupDiv.classList.toggle('active');
-        header.innerHTML = `
-                <div class="resource-title">
-                    <div class="icon-box ${group.class}"><span class="material-icons">${group.icon}</span></div>
-                    ${group.title}
-                </div>
-                <div style="display:flex; align-items:center; gap:10px;">
-                    <span class="resource-count">${group.items.length}</span>
-                    <span class="material-icons" style="color:var(--text-muted);">expand_more</span>
-                </div>
-            `;
-
-        // Body (Liste)
-        const body = document.createElement('div');
-        body.className = 'resource-body';
-
-        // --- İÇERİK KONTROLÜ ---
-        if (group.items.length === 0) {
-          // İçerik yoksa bilgilendirme mesajı
-          body.innerHTML = `
-                    <div class="empty-resource-item">
-                        <span class="material-icons" style="font-size:18px;">info</span>
-                        Henüz bu kategoride içerik eklenmedi.
                     </div>
                 `;
         } else {
-          // İçerik varsa listele
-          group.items.forEach(item => {
-            const isDone = userProgress[item.id];
-            const itemDiv = document.createElement('div');
-            itemDiv.className = 'resource-item';
-
-            itemDiv.innerHTML = `
-                        <div style="flex:1; display:flex; align-items:center; gap:10px;" onclick="openContent('${encodeURIComponent(JSON.stringify(item))}')">
-                            <span class="res-name">${item.title}</span>
-                        </div>
-                        <div class="status-toggle ${isDone ? 'completed' : ''}" onclick="toggleMaterialStatus('${item.id}', this, event)">
-                            <span class="material-icons" style="font-size:16px;">check</span>
-                        </div>
-                    `;
-            body.appendChild(itemDiv);
-          });
+          // Ders Notu
+          materialsContainer.innerHTML += `
+                    <div class="test-card" style="border-left:4px solid var(--color-success);">
+                        <strong>${item.title}</strong>
+                        <button class="btn btn-sm btn-light w-100 mt-2">İncele</button>
+                    </div>
+                `;
         }
-
-        groupDiv.appendChild(header);
-        groupDiv.appendChild(body);
-        container.appendChild(groupDiv);
       });
+
+      if (testsContainer.innerHTML === '') testsContainer.innerHTML = '<p class="text-muted">Bu konuda test bulunamadı.</p>';
+      if (materialsContainer.innerHTML === '') materialsContainer.innerHTML = '<p class="text-muted">Ders notu eklenmemiş.</p>';
     }
 
-    // --- İÇERİK AÇMA (VIEWER) ---
-    // Not: HTML içinde onclick ile nesne gönderirken stringify/encode yapmak gerekir.
-    window.openContent = (itemStr) => {
-      const item = JSON.parse(decodeURIComponent(itemStr));
-      currentMaterialId = item.id;
-
-      const overlay = document.getElementById('viewerOverlay');
-      const body = document.getElementById('viewerBody');
-      const title = document.getElementById('viewerTitle');
-      const toggle = document.getElementById('statusToggleInput');
-      const videoToggle = document.getElementById('btnVideoToggle');
-
-      title.innerText = item.title;
-      body.innerHTML = '';
-
-      // Toggle durumunu ayarla
-      const isDone = !!userProgress[item.id];
-      toggle.checked = isDone;
-      if (videoToggle) {
-        videoToggle.classList.toggle('active', isDone);
-        videoToggle.innerHTML = isDone ? '<span class="material-icons">check_circle</span> Tamamlandı' : '<span class="material-icons">radio_button_unchecked</span> Tamamlanmadı';
-      }
-
-      if (item.type === 'video') {
-        let videoId = '';
-        try {
-          let url = new URL(item.url.startsWith('http') ? item.url : `https://${item.url}`);
-          if (url.hostname.includes('youtu')) videoId = url.searchParams.get('v') || url.pathname.split('/').pop();
-        } catch (e) { }
-
-        if (videoId) {
-          const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1`;
-          document.getElementById('videoPlayer').innerHTML = `
-                    <iframe src="${embedUrl}" style="width:100%; height:100%; border:none;" 
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-                    allowfullscreen></iframe>`;
-          document.getElementById('videoModal').style.display = 'flex';
-          return;
-        }
-      }
-      else if (item.type === 'html') {
-        const cleanHtml = DOMPurify.sanitize(item.url, {
-          USE_PROFILES: { html: true },
-          ADD_TAGS: ['iframe', 'style'],
-          ADD_ATTR: ['allow', 'allowfullscreen', 'frameborder', 'scrolling', 'class', 'style', 'target']
-        });
-
-        const iframe = document.createElement('iframe');
-        iframe.className = 'iframe-container';
-        iframe.style.background = '#fff';
-        body.appendChild(iframe);
-
-        const doc = iframe.contentWindow.document;
-        doc.open();
-        doc.write(`
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <meta charset="UTF-8">
-                    <script src="https://cdn.tailwindcss.com"><\/script>
-                    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-                    <style>
-                        body { font-family: 'Inter', sans-serif; padding: 40px; color: #334155; line-height: 1.6; }
-                        ::-webkit-scrollbar { width: 8px; }
-                        ::-webkit-scrollbar-track { background: #f1f1f1; }
-                        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-                    </style>
-                </head>
-                <body>${cleanHtml}</body>
-                </html>
-            `);
-        doc.close();
-      }
-      else if (item.type === 'podcast') {
-        body.innerHTML = `
-                <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; padding:20px;">
-                    <div style="font-size:5rem; margin-bottom:20px; color:var(--color-primary);">🎧</div>
-                    <h2 style="color:var(--text-main); margin-bottom:20px; text-align:center;">${item.title}</h2>
-                    <audio controls autoplay style="width:100%; max-width:600px;">
-                        <source src="${item.url}" type="audio/mpeg">
-                        Tarayıcınız ses dosyasını desteklemiyor.
-                    </audio>
-                </div>
-            `;
-      }
-      else if (item.type === 'pdf') {
-        window.open(item.url, '_blank');
-        return;
-      }
-
-      overlay.classList.add('active');
-    };
-
-    // --- İLERLEME YÖNETİMİ (LİSTE ÜZERİNDEN) ---
-    window.toggleMaterialStatus = async (id, element, event) => {
-      if (event) event.stopPropagation(); // Tıklama kartı açmasın
-
-      const isComplete = !userProgress[id]; // Tersi yap
-      userProgress[id] = isComplete;
-
-      // UI Güncelle (Anlık)
-      if (element) {
-        if (isComplete) element.classList.add('completed');
-        else element.classList.remove('completed');
-
-        // İkonu değiştir
-        const icon = element.querySelector('.material-icons');
-        if (icon) icon.innerText = isComplete ? 'check' : '';
-      }
-      updateProgressBar();
-
-      // DB Güncelle
-      await saveProgress();
-    };
-
-    // --- İLERLEME YÖNETİMİ (VIEWER ÜZERİNDEN) ---
-    window.toggleCurrentContentStatus = async () => {
-      if (!currentMaterialId) return;
-
-      const toggle = document.getElementById('statusToggleInput');
-      const isComplete = toggle.checked;
-
-      userProgress[currentMaterialId] = isComplete;
-      updateProgressBar();
-
-      // Ana listedeki ikonu da güncelle (Eğer arka planda açıksa)
-      // Not: Listeyi yeniden render etmiyoruz, DOM'dan bulup güncelliyoruz
-      // Bu kısım biraz kompleks olabilir, en temizi sayfayı yenilemek veya listeyi tekrar render etmektir.
-      // Şimdilik basitçe progress barı güncelliyoruz.
-
-      await saveProgress();
-    };
-
-    function updateProgressBar() {
-      const total = allMaterials.length;
-      if (total === 0) return;
-      const completed = allMaterials.filter(m => userProgress[m.id]).length;
-      const percent = Math.round((completed / total) * 100);
-      document.getElementById('topicProgressBar').style.width = `${percent}%`;
-      document.getElementById('progressPercent').innerText = `%${percent} Tamamlandı`;
+    async function loadQuestionCount() {
+      // Bu konuya ait toplam soru sayısını bul (Kategoriye göre)
+      // Not: Firestore'da 'count' sorgusu maliyetlidir, cache kullanılabilir.
+      // Şimdilik basit sorgu:
+      const q = query(collection(db, "questions"), where("category", "==", topicTitle), where("isActive", "==", true));
+      const snap = await getDocs(q); // Sadece count alacağız
+      document.getElementById('totalQCount').innerText = snap.size;
     }
 
-    async function saveProgress() {
-      if (!auth.currentUser) return;
-      try {
-        await setDoc(doc(db, `users/${auth.currentUser.uid}/progress/${currentTopicId}`), {
-          completedMaterials: userProgress,
-          lastUpdated: serverTimestamp()
-        }, { merge: true });
-      } catch (e) { console.error("Kayıt hatası:", e); }
-    }
-
-    // Test Sıfırlama
-    window.resetTest = async (testId) => {
-      if (!confirm("Bu testin ilerlemesini sıfırlamak istiyor musunuz?")) return;
-      userProgress[testId] = false;
-      await saveProgress();
-      loadTopicData(); // UI Yenile
+    // Global Fonksiyon
+    window.startSmartTest = (mode) => {
+      // Test sayfasına yönlendir, parametreleri gönder
+      // mode: random, order, wrongs, favorites
+      window.location.href = `/pages/test.html?topic=${currentTopicId}&mode=smart&filter=${mode}`;
     };
-
-    // Tüm Testleri Sıfırlama
-    window.resetAllTests = async () => {
-      if (!confirm("Bu konudaki TÜM testlerin ilerlemesini sıfırlamak istiyor musunuz?")) return;
-      testIds.forEach(id => userProgress[id] = false);
-      await saveProgress();
-      loadTopicData();
-    };
-
-    window.closeViewer = () => {
-      document.getElementById('viewerOverlay').classList.remove('active');
-      document.getElementById('viewerBody').innerHTML = '';
-      currentMaterialId = null;
-      // Listeyi güncellemek için (ikonlar değişmiş olabilir)
-      loadTopicData();
-    };
-
-    window.closeVideo = () => {
-      document.getElementById('videoModal').style.display = 'none';
-      document.getElementById('videoPlayer').innerHTML = '';
-      loadTopicData();
-    };
-
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') {
-        if (document.getElementById('videoModal').style.display === 'flex') closeVideo();
-        else if (document.getElementById('viewerOverlay').classList.contains('active')) closeViewer();
-      }
-    });
 
   </script>
 </body>
