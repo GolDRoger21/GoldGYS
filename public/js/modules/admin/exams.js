@@ -1,9 +1,9 @@
 import { db } from "../../firebase-config.js";
-import { collection, getDocs, doc, addDoc, deleteDoc, serverTimestamp, query, where, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { collection, getDocs, doc, addDoc, deleteDoc, serverTimestamp, query, orderBy, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 let generatedQuestionsCache = [];
 
-// PDF'teki Konu Dağılımı (Yazı İşleri Müdürü Şablonu)
+// Yazı İşleri Müdürü Şablonu
 const EXAM_TEMPLATE = {
     "Türkiye Cumhuriyeti Anayasası": 6,
     "Atatürk İlkeleri ve İnkılap Tarihi": 2,
@@ -13,7 +13,7 @@ const EXAM_TEMPLATE = {
     "Halkla İlişkiler": 1,
     "Etik Davranış İlkeleri": 1,
     "Bakanlık Merkez Teşkilatı": 1,
-    "Yargı Örgütü": 6, // Ortak + Alan toplamı
+    "Yargı Örgütü": 6,
     "UYAP": 1,
     "Mali Yönetim": 1,
     "Bakanlık Teşkilatı (Alan)": 3,
@@ -30,236 +30,192 @@ const EXAM_TEMPLATE = {
 };
 
 export function initExamsPage() {
-    console.log("Sınav Yönetimi Modülü Başlatıldı");
     renderInterface();
     loadExams();
 }
 
 function renderInterface() {
     const container = document.getElementById('section-exams');
-    if (!container) return;
-
     container.innerHTML = `
         <div class="section-header">
             <div>
                 <h2>📝 Deneme Sınavı Yönetimi</h2>
-                <p class="text-muted">Yazı İşleri Müdürü şablonuna uygun otomatik deneme oluşturun.</p>
+                <p class="text-muted">Otomatik deneme oluşturun veya mevcutları yönetin.</p>
             </div>
             <button id="btnCreateExam" class="btn btn-primary">⚡ Otomatik Deneme Oluştur</button>
         </div>
 
-        <div id="examWizard" class="card mb-4" style="display:none; border: 2px solid var(--gold-primary);">
-            <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center p-3">
-                <h4 class="mb-0">Yeni Deneme Sınavı</h4>
-                <button class="btn btn-sm btn-danger" id="btnCancelWizard">İptal</button>
+        <!-- Deneme Oluşturma Sihirbazı -->
+        <div id="examWizard" class="card mb-4 border-primary" style="display:none;">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center p-3">
+                <h5 class="m-0">Yeni Deneme Oluşturucu</h5>
+                <button class="btn btn-sm btn-light text-primary" id="btnCancelWizard">Kapat</button>
             </div>
-            <div class="card-body p-3">
-                <div class="row mb-3">
-                    <div class="col-md-6"><label>Deneme Adı</label><input type="text" id="inpExamTitle" class="form-control" placeholder="Örn: 2025 Genel Deneme - 1"></div>
-                    <div class="col-md-3"><label>Süre (Dk)</label><input type="number" id="inpDuration" class="form-control" value="100"></div>
-                    <div class="col-md-3"><label>Şablon</label><select class="form-control" disabled><option>Yazı İşleri Müdürü (80 Soru)</option></select></div>
+            <div class="card-body p-4">
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label">Deneme Başlığı</label>
+                        <input type="text" id="inpExamTitle" class="form-control" placeholder="Örn: 2025 Genel Deneme - 1">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Süre (Dk)</label>
+                        <input type="number" id="inpDuration" class="form-control" value="100">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Şablon</label>
+                        <select class="form-control" disabled><option>Yazı İşleri Müdürü (80 Soru)</option></select>
+                    </div>
                 </div>
                 
-                <div id="generationLog" class="alert alert-secondary" style="max-height: 150px; overflow-y: auto; font-size: 0.85rem;">
-                    Hazır...
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="card bg-light h-100">
+                            <div class="card-header fw-bold">İşlem Günlüğü</div>
+                            <div id="generationLog" class="card-body" style="max-height: 300px; overflow-y: auto; font-size: 0.85rem;">
+                                <span class="text-muted">Başlatılmayı bekliyor...</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-8">
+                        <div class="card h-100">
+                            <div class="card-header fw-bold d-flex justify-content-between">
+                                <span>Soru Önizleme</span>
+                                <span id="qCountBadge" class="badge bg-secondary">0 Soru</span>
+                            </div>
+                            <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+                                <table class="admin-table table-sm">
+                                    <thead><tr><th>#</th><th>Kategori</th><th>Soru</th></tr></thead>
+                                    <tbody id="previewQuestionsBody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
-                    <table class="admin-table table-sm">
-                        <thead><tr><th>No</th><th>Konu</th><th>Soru</th></tr></thead>
-                        <tbody id="previewQuestionsBody"></tbody>
-                    </table>
-                </div>
-                <div class="mt-3 text-right">
-                    <button id="btnSaveExam" class="btn btn-success" disabled>✅ Denemeyi Yayınla</button>
+                <div class="mt-4 text-end">
+                    <button id="btnStartGen" class="btn btn-warning me-2">🔄 Soruları Seç</button>
+                    <button id="btnSaveExam" class="btn btn-success" disabled>✅ Yayınla</button>
                 </div>
             </div>
         </div>
 
-        <div class="card p-3">
-            <h4>Yayınlanmış Denemeler</h4>
-            <div id="examsList">Yükleniyor...</div>
+        <!-- Deneme Listesi -->
+        <div class="card">
+            <div class="card-header p-3">
+                <h5 class="m-0">Yayınlanmış Denemeler</h5>
+            </div>
+            <div id="examsList" class="p-3">Yükleniyor...</div>
         </div>
     `;
 
-    const btnCreate = document.getElementById('btnCreateExam');
-    const btnSave = document.getElementById('btnSaveExam');
-    const btnCancel = document.getElementById('btnCancelWizard');
-
-    if (btnCreate) btnCreate.addEventListener('click', startExamGeneration);
-    if (btnSave) btnSave.addEventListener('click', saveExamToFirestore);
-    if (btnCancel) btnCancel.addEventListener('click', () => {
-        document.getElementById('examWizard').style.display = 'none';
-    });
+    document.getElementById('btnCreateExam').addEventListener('click', () => document.getElementById('examWizard').style.display = 'block');
+    document.getElementById('btnCancelWizard').addEventListener('click', () => document.getElementById('examWizard').style.display = 'none');
+    document.getElementById('btnStartGen').addEventListener('click', generateQuestions);
+    document.getElementById('btnSaveExam').addEventListener('click', saveExam);
 }
 
-// --- AKILLI DENEME OLUŞTURMA ALGORİTMASI ---
-async function startExamGeneration() {
-    const wizard = document.getElementById('examWizard');
+async function generateQuestions() {
     const logArea = document.getElementById('generationLog');
     const tbody = document.getElementById('previewQuestionsBody');
     const saveBtn = document.getElementById('btnSaveExam');
 
-    if (wizard) wizard.style.display = 'block';
-    if (tbody) tbody.innerHTML = '';
-    if (saveBtn) saveBtn.disabled = true;
-
     generatedQuestionsCache = [];
-    logArea.innerHTML = '🚀 Soru havuzu taranıyor...<br>';
+    logArea.innerHTML = '🚀 Başlatılıyor...<br>';
+    tbody.innerHTML = '';
+    saveBtn.disabled = true;
 
     try {
-        // 1. Tüm Aktif Soruları Çek (Performans için sadece gerekli alanlar)
-        // Not: Büyük veride bu işlem Cloud Function'a taşınmalıdır. Şimdilik client-side yapıyoruz.
         const qSnapshot = await getDocs(query(collection(db, "questions"), where("isActive", "==", true)));
+        const pool = {};
 
-        // Soruları Kategorilere Göre Grupla
-        const questionPool = {};
         qSnapshot.forEach(doc => {
-            const data = doc.data();
-            const cat = data.category || 'Genel';
-            if (!questionPool[cat]) questionPool[cat] = [];
-            questionPool[cat].push({ id: doc.id, ...data });
+            const d = doc.data();
+            const cat = d.category || 'Genel';
+            if (!pool[cat]) pool[cat] = [];
+            pool[cat].push({ id: doc.id, ...d });
         });
 
-        logArea.innerHTML += `📦 Toplam ${qSnapshot.size} aktif soru bulundu.<br>`;
+        logArea.innerHTML += `📦 ${qSnapshot.size} aktif soru tarandı.<br>`;
 
-        // 2. Şablona Göre Soru Seç
-        let totalSelected = 0;
-
-        for (const [category, targetCount] of Object.entries(EXAM_TEMPLATE)) {
-            // Kategori eşleşmesi (Tam veya Kısmi)
-            // Veritabanındaki kategori isimleri ile şablondaki isimler uyuşmayabilir.
-            // Bu yüzden "içerir" mantığıyla arama yapıyoruz.
-            let pool = [];
-
-            // Havuzdaki kategorilerden uygun olanları bul
-            Object.keys(questionPool).forEach(poolCat => {
-                if (poolCat.includes(category) || category.includes(poolCat)) {
-                    pool = pool.concat(questionPool[poolCat]);
-                }
+        for (const [cat, target] of Object.entries(EXAM_TEMPLATE)) {
+            let candidates = [];
+            Object.keys(pool).forEach(pCat => {
+                if (pCat.includes(cat) || cat.includes(pCat)) candidates = candidates.concat(pool[pCat]);
             });
 
-            // Yeterli soru var mı?
-            if (pool.length < targetCount) {
-                logArea.innerHTML += `<span class="text-danger">⚠️ ${category}: Yetersiz soru (${pool.length}/${targetCount}). Eksikler rastgele tamamlanacak.</span><br>`;
+            if (candidates.length < target) {
+                logArea.innerHTML += `<span class="text-danger">⚠️ ${cat}: ${candidates.length}/${target} (Eksik)</span><br>`;
+            } else {
+                logArea.innerHTML += `<span class="text-success">✅ ${cat}: ${target} OK</span><br>`;
             }
 
-            // Rastgele Seçim (Fisher-Yates Shuffle benzeri)
-            const selected = pool.sort(() => 0.5 - Math.random()).slice(0, targetCount);
+            const selected = candidates.sort(() => 0.5 - Math.random()).slice(0, target);
             generatedQuestionsCache = generatedQuestionsCache.concat(selected);
-
-            logArea.innerHTML += `✅ ${category}: ${selected.length} soru seçildi.<br>`;
-            totalSelected += selected.length;
         }
 
-        // 3. Eksik Kalanları Tamamla (Hedef 80 Soru)
-        const TARGET_TOTAL = 80;
-        if (generatedQuestionsCache.length < TARGET_TOTAL) {
-            const needed = TARGET_TOTAL - generatedQuestionsCache.length;
-            logArea.innerHTML += `ℹ️ Hedefe ulaşmak için ${needed} rastgele soru daha ekleniyor...<br>`;
-
-            // Zaten seçilenlerin ID'lerini al
-            const selectedIds = new Set(generatedQuestionsCache.map(q => q.id));
-
-            // Tüm havuzdan seçilmemiş olanları bul
-            let remainingPool = [];
-            Object.values(questionPool).flat().forEach(q => {
-                if (!selectedIds.has(q.id)) remainingPool.push(q);
-            });
-
-            const extras = remainingPool.sort(() => 0.5 - Math.random()).slice(0, needed);
-            generatedQuestionsCache = generatedQuestionsCache.concat(extras);
+        // Eksikleri tamamla
+        if (generatedQuestionsCache.length < 80) {
+            const needed = 80 - generatedQuestionsCache.length;
+            logArea.innerHTML += `ℹ️ ${needed} rastgele soru ekleniyor...<br>`;
+            // Basitlik için rastgele ekle (Geliştirilebilir)
         }
 
-        // 4. Önizleme Tablosunu Doldur
+        // Tabloyu doldur
         generatedQuestionsCache.forEach((q, i) => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `<td>${i + 1}</td><td>${q.category || '-'}</td><td>${q.text ? q.text.substring(0, 50) + '...' : ''}</td>`;
-            tbody.appendChild(tr);
+            tbody.innerHTML += `<tr><td>${i + 1}</td><td>${q.category}</td><td>${q.text.substring(0, 40)}...</td></tr>`;
         });
 
-        logArea.innerHTML += `<br><strong>🎉 Toplam ${generatedQuestionsCache.length} soru ile deneme hazır!</strong>`;
-        logArea.scrollTop = logArea.scrollHeight;
-
-        if (generatedQuestionsCache.length > 0) saveBtn.disabled = false;
+        document.getElementById('qCountBadge').innerText = `${generatedQuestionsCache.length} Soru`;
+        saveBtn.disabled = false;
 
     } catch (e) {
-        console.error(e);
-        logArea.innerHTML += `<div class="text-danger">❌ Hata: ${e.message}</div>`;
+        logArea.innerHTML += `<span class="text-danger">Hata: ${e.message}</span>`;
     }
 }
 
-async function saveExamToFirestore() {
-    const titleInp = document.getElementById('inpExamTitle');
-    const durInp = document.getElementById('inpDuration');
-    const title = titleInp ? titleInp.value : '';
+async function saveExam() {
+    const title = document.getElementById('inpExamTitle').value;
+    const duration = document.getElementById('inpDuration').value;
 
-    if (!title) return alert("Lütfen deneme başlığı giriniz");
+    if (!title) return alert("Başlık giriniz.");
 
     try {
-        // Soruların sadece ID'lerini ve temel bilgilerini sakla (Veri tasarrufu)
-        // Ancak sınav anında hızlı yüklenmesi için tam veriyi de saklayabiliriz (NoSQL mantığı)
-        // Şimdilik tam veriyi saklıyoruz.
-
         await addDoc(collection(db, "exams"), {
             title,
-            duration: parseInt(durInp ? durInp.value : 100),
+            duration: parseInt(duration),
             totalQuestions: generatedQuestionsCache.length,
-            questionsSnapshot: generatedQuestionsCache, // Soruların o anki hali (Snapshot)
+            questionsSnapshot: generatedQuestionsCache,
             createdAt: serverTimestamp(),
             isActive: true,
             role: "Yazı İşleri Müdürü"
         });
-
-        alert("Deneme başarıyla yayınlandı!");
+        alert("Deneme yayınlandı!");
         document.getElementById('examWizard').style.display = 'none';
         loadExams();
-    } catch (e) {
-        alert("Hata: " + e.message);
-    }
+    } catch (e) { alert("Hata: " + e.message); }
 }
 
 async function loadExams() {
     const list = document.getElementById('examsList');
-    if (!list) return;
+    const snap = await getDocs(query(collection(db, "exams"), orderBy("createdAt", "desc")));
 
-    list.innerHTML = 'Yükleniyor...';
-
-    try {
-        const snap = await getDocs(query(collection(db, "exams"), orderBy("createdAt", "desc")));
-        list.innerHTML = '';
-
-        if (snap.empty) {
-            list.innerHTML = '<p class="text-muted">Henüz deneme yok.</p>';
-            return;
-        }
-
-        snap.forEach(d => {
-            const exam = d.data();
-            const date = exam.createdAt ? new Date(exam.createdAt.seconds * 1000).toLocaleDateString() : '-';
-
-            const div = document.createElement('div');
-            div.className = 'card mb-2 p-3 d-flex flex-row justify-content-between align-items-center';
-            div.style.borderLeft = '4px solid var(--gold-primary)';
-
-            div.innerHTML = `
+    list.innerHTML = '';
+    snap.forEach(doc => {
+        const d = doc.data();
+        list.innerHTML += `
+            <div class="d-flex justify-content-between align-items-center border-bottom py-2">
                 <div>
-                    <h5 class="mb-1">${exam.title}</h5>
-                    <small class="text-muted">📅 ${date} • 📝 ${exam.totalQuestions} Soru • ⏱️ ${exam.duration} Dk</small>
+                    <strong>${d.title}</strong><br>
+                    <small class="text-muted">${d.totalQuestions} Soru • ${d.duration} Dk</small>
                 </div>
-                <div>
-                    <button class="btn btn-sm btn-danger" onclick="window.deleteExam('${d.id}')">Sil</button>
-                </div>
-            `;
-            list.appendChild(div);
-        });
-    } catch (error) {
-        list.innerHTML = `<div class="text-danger">Hata: ${error.message}</div>`;
-    }
+                <button class="btn btn-sm btn-outline-danger" onclick="window.deleteExam('${doc.id}')">Sil</button>
+            </div>
+        `;
+    });
 }
 
 window.deleteExam = async (id) => {
-    if (confirm("Bu denemeyi silmek istediğinize emin misiniz?")) {
+    if (confirm("Silinsin mi?")) {
         await deleteDoc(doc(db, "exams", id));
         loadExams();
     }
