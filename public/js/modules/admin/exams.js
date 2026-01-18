@@ -3,30 +3,32 @@ import { collection, getDocs, doc, addDoc, deleteDoc, serverTimestamp, query, or
 
 let generatedQuestionsCache = [];
 
-// Yazı İşleri Müdürü Şablonu
+// SINAV ŞABLONU (Konu Dağılımı)
+// Not: Veritabanındaki 'category' alanlarınızın bu isimleri içerdiğinden emin olun.
 const EXAM_TEMPLATE = {
-    "Türkiye Cumhuriyeti Anayasası": 6,
-    "Atatürk İlkeleri ve İnkılap Tarihi": 2,
+    "Anayasa": 6,
+    "Atatürk": 2,
     "Devlet Teşkilatı": 9,
-    "Devlet Memurları Kanunu": 6,
-    "Türkçe Dil Bilgisi": 2,
+    "Devlet Memurları": 6,
+    "Türkçe": 2,
     "Halkla İlişkiler": 1,
-    "Etik Davranış İlkeleri": 1,
-    "Bakanlık Merkez Teşkilatı": 1,
-    "Yargı Örgütü": 6,
+    "Etik": 1,
+    "Bakanlık": 4, // Merkez + Alan
+    "Yargı": 6,
     "UYAP": 1,
-    "Mali Yönetim": 1,
-    "Bakanlık Teşkilatı (Alan)": 3,
-    "Komisyonlar": 1,
-    "Elektronik İşlemler (İmza/SEGBİS)": 3,
-    "Resmi Yazışma": 6,
-    "Tebligat Hukuku": 5,
-    "Diğer Mevzuat (Bilgi Edinme vb.)": 7,
-    "Yazı İşleri ve Harçlar": 9,
-    "Ceza Muhakemesi Kanunu": 3,
-    "Hukuk Muhakemeleri Kanunu": 3,
-    "İdari Yargılama Usulü": 2,
-    "İnfaz Kanunu": 2
+    "Mali": 1,
+    "Komisyon": 1,
+    "Elektronik": 3,
+    "Yazışma": 6,
+    "Tebligat": 5,
+    "Bilgi Edinme": 1,
+    "Dilekçe": 1,
+    "Disiplin": 2,
+    "Yazı İşleri": 9,
+    "Ceza Muhakemesi": 3,
+    "Hukuk Muhakemeleri": 3,
+    "İdari Yargılama": 2,
+    "İnfaz": 2
 };
 
 export function initExamsPage() {
@@ -36,6 +38,8 @@ export function initExamsPage() {
 
 function renderInterface() {
     const container = document.getElementById('section-exams');
+    if (!container) return;
+
     container.innerHTML = `
         <div class="section-header">
             <div>
@@ -71,7 +75,7 @@ function renderInterface() {
                     <div class="col-md-4">
                         <div class="card bg-light h-100">
                             <div class="card-header fw-bold">İşlem Günlüğü</div>
-                            <div id="generationLog" class="card-body" style="max-height: 300px; overflow-y: auto; font-size: 0.85rem;">
+                            <div id="generationLog" class="card-body p-2" style="max-height: 300px; overflow-y: auto; font-size: 0.85rem; font-family:monospace;">
                                 <span class="text-muted">Başlatılmayı bekliyor...</span>
                             </div>
                         </div>
@@ -114,6 +118,7 @@ function renderInterface() {
     document.getElementById('btnSaveExam').addEventListener('click', saveExam);
 }
 
+// --- AKILLI ALGORİTMA ---
 async function generateQuestions() {
     const logArea = document.getElementById('generationLog');
     const tbody = document.getElementById('previewQuestionsBody');
@@ -125,9 +130,12 @@ async function generateQuestions() {
     saveBtn.disabled = true;
 
     try {
+        // 1. Tüm Aktif Soruları Çek
+        // Not: Büyük veride bu işlem Cloud Function ile yapılmalıdır. Şimdilik client-side.
         const qSnapshot = await getDocs(query(collection(db, "questions"), where("isActive", "==", true)));
-        const pool = {};
 
+        // Soruları Havuza At
+        const pool = {};
         qSnapshot.forEach(doc => {
             const d = doc.data();
             const cat = d.category || 'Genel';
@@ -135,41 +143,62 @@ async function generateQuestions() {
             pool[cat].push({ id: doc.id, ...d });
         });
 
-        logArea.innerHTML += `📦 ${qSnapshot.size} aktif soru tarandı.<br>`;
+        logArea.innerHTML += `📦 ${qSnapshot.size} aktif soru tarandı.<br>----------------<br>`;
 
-        for (const [cat, target] of Object.entries(EXAM_TEMPLATE)) {
+        // 2. Şablona Göre Seçim Yap
+        for (const [targetCat, targetCount] of Object.entries(EXAM_TEMPLATE)) {
             let candidates = [];
-            Object.keys(pool).forEach(pCat => {
-                if (pCat.includes(cat) || cat.includes(pCat)) candidates = candidates.concat(pool[pCat]);
+
+            // Havuzdaki kategorilerden, hedef kategori ismini İÇERENLERİ bul
+            // Örn: "Anayasa" arıyorsak "Anayasa Hukuku", "TC Anayasası" vb. gelir.
+            Object.keys(pool).forEach(poolCat => {
+                if (poolCat.includes(targetCat) || targetCat.includes(poolCat)) {
+                    candidates = candidates.concat(pool[poolCat]);
+                }
             });
 
-            if (candidates.length < target) {
-                logArea.innerHTML += `<span class="text-danger">⚠️ ${cat}: ${candidates.length}/${target} (Eksik)</span><br>`;
+            // Yeterli soru var mı?
+            if (candidates.length < targetCount) {
+                logArea.innerHTML += `<span class="text-danger">⚠️ ${targetCat}: ${candidates.length}/${targetCount} (Eksik)</span><br>`;
             } else {
-                logArea.innerHTML += `<span class="text-success">✅ ${cat}: ${target} OK</span><br>`;
+                logArea.innerHTML += `<span class="text-success">✅ ${targetCat}: ${targetCount} OK</span><br>`;
             }
 
-            const selected = candidates.sort(() => 0.5 - Math.random()).slice(0, target);
+            // Rastgele Karıştır ve Seç
+            const selected = candidates.sort(() => 0.5 - Math.random()).slice(0, targetCount);
             generatedQuestionsCache = generatedQuestionsCache.concat(selected);
         }
 
-        // Eksikleri tamamla
+        // 3. Eksikleri Tamamla (Hedef 80)
         if (generatedQuestionsCache.length < 80) {
             const needed = 80 - generatedQuestionsCache.length;
-            logArea.innerHTML += `ℹ️ ${needed} rastgele soru ekleniyor...<br>`;
-            // Basitlik için rastgele ekle (Geliştirilebilir)
+            logArea.innerHTML += `----------------<br>ℹ️ Hedef 80 için ${needed} rastgele soru ekleniyor...<br>`;
+
+            // Seçilmemiş sorulardan bir havuz oluştur
+            const selectedIds = new Set(generatedQuestionsCache.map(q => q.id));
+            let remainingPool = [];
+            Object.values(pool).flat().forEach(q => {
+                if (!selectedIds.has(q.id)) remainingPool.push(q);
+            });
+
+            const extras = remainingPool.sort(() => 0.5 - Math.random()).slice(0, needed);
+            generatedQuestionsCache = generatedQuestionsCache.concat(extras);
         }
 
-        // Tabloyu doldur
+        // 4. Tabloyu Doldur
         generatedQuestionsCache.forEach((q, i) => {
             tbody.innerHTML += `<tr><td>${i + 1}</td><td>${q.category}</td><td>${q.text.substring(0, 40)}...</td></tr>`;
         });
 
         document.getElementById('qCountBadge').innerText = `${generatedQuestionsCache.length} Soru`;
-        saveBtn.disabled = false;
+        logArea.innerHTML += `<br><strong>🎉 Deneme Hazır!</strong>`;
+        logArea.scrollTop = logArea.scrollHeight;
+
+        if (generatedQuestionsCache.length > 0) saveBtn.disabled = false;
 
     } catch (e) {
         logArea.innerHTML += `<span class="text-danger">Hata: ${e.message}</span>`;
+        console.error(e);
     }
 }
 
@@ -180,6 +209,8 @@ async function saveExam() {
     if (!title) return alert("Başlık giriniz.");
 
     try {
+        // Soruların anlık kopyasını (Snapshot) kaydediyoruz.
+        // Böylece ana soru değişse/silinse bile deneme bozulmaz.
         await addDoc(collection(db, "exams"), {
             title,
             duration: parseInt(duration),
@@ -189,7 +220,7 @@ async function saveExam() {
             isActive: true,
             role: "Yazı İşleri Müdürü"
         });
-        alert("Deneme yayınlandı!");
+        alert("Deneme başarıyla yayınlandı!");
         document.getElementById('examWizard').style.display = 'none';
         loadExams();
     } catch (e) { alert("Hata: " + e.message); }
@@ -200,22 +231,31 @@ async function loadExams() {
     const snap = await getDocs(query(collection(db, "exams"), orderBy("createdAt", "desc")));
 
     list.innerHTML = '';
+    if (snap.empty) {
+        list.innerHTML = '<p class="text-muted">Henüz deneme yok.</p>';
+        return;
+    }
+
     snap.forEach(doc => {
         const d = doc.data();
+        const date = d.createdAt ? new Date(d.createdAt.seconds * 1000).toLocaleDateString() : '-';
+
         list.innerHTML += `
             <div class="d-flex justify-content-between align-items-center border-bottom py-2">
                 <div>
                     <strong>${d.title}</strong><br>
-                    <small class="text-muted">${d.totalQuestions} Soru • ${d.duration} Dk</small>
+                    <small class="text-muted">📅 ${date} • 📝 ${d.totalQuestions} Soru • ⏱️ ${d.duration} Dk</small>
                 </div>
-                <button class="btn btn-sm btn-outline-danger" onclick="window.deleteExam('${doc.id}')">Sil</button>
+                <div>
+                    <button class="btn btn-sm btn-outline-danger" onclick="window.deleteExam('${doc.id}')">Sil</button>
+                </div>
             </div>
         `;
     });
 }
 
 window.deleteExam = async (id) => {
-    if (confirm("Silinsin mi?")) {
+    if (confirm("Bu denemeyi silmek istediğinize emin misiniz?")) {
         await deleteDoc(doc(db, "exams", id));
         loadExams();
     }

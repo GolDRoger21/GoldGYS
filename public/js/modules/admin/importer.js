@@ -67,30 +67,58 @@ async function handleFileSelect(event) {
     } catch (error) { log(`Hata: ${error.message}`, "error"); }
 }
 
+// --- GÜNCELLENECEK FONKSİYON: Excel Verisini Dönüştürme ---
 function convertExcelData(rawData) {
-    return rawData.map(row => ({
-        category: row['Kategori'] || 'Genel',
-        difficulty: 3,
-        type: 'standard',
-        text: row['Soru Metni'],
-        options: [
-            { id: 'A', text: row['A'] || '' }, { id: 'B', text: row['B'] || '' },
-            { id: 'C', text: row['C'] || '' }, { id: 'D', text: row['D'] || '' },
-            { id: 'E', text: row['E'] || '' }
-        ],
-        correctOption: row['Doğru Cevap'],
-        solution: {
-            analiz: row['Çözüm'] || '',
-            dayanakText: row['Mevzuat'] || ''
-        },
-        legislationRef: {
-            code: String(row['Kanun No'] || ''),
-            article: String(row['Madde No'] || '')
-        },
-        isActive: true,
-        isFlaggedForReview: false,
-        createdAt: serverTimestamp()
-    }));
+    return rawData.map(row => {
+        // Excel sütun isimleri (Esnek yapı)
+        const type = row['Tip'] || row['type'] || 'standard';
+
+        // Öncülleri ayır (Excel'de "I. ..., II. ..." şeklinde tek hücrede veya ayrı sütunlarda olabilir)
+        // Basitlik için Excel'de "Onculler" sütununda alt alta satırlarla veya özel bir ayraçla (|) geldiğini varsayalım.
+        let onculler = [];
+        if (row['Onculler']) {
+            onculler = row['Onculler'].split('|').map(s => s.trim());
+        }
+
+        return {
+            category: row['Kategori'] || row['category'] || 'Genel',
+            difficulty: parseInt(row['Zorluk'] || row['difficulty']) || 3,
+            type: type,
+            text: row['Soru Metni'] || row['text'],
+            questionRoot: row['Soru Koku'] || row['questionRoot'] || null,
+            onculler: onculler,
+
+            options: [
+                { id: 'A', text: row['A'] || '' },
+                { id: 'B', text: row['B'] || '' },
+                { id: 'C', text: row['C'] || '' },
+                { id: 'D', text: row['D'] || '' },
+                { id: 'E', text: row['E'] || '' }
+            ],
+            correctOption: (row['Doğru Cevap'] || row['correctOption'] || '').toUpperCase(),
+
+            // Detaylı Çözüm Objesi
+            solution: {
+                analiz: row['Çözüm Analiz'] || row['analiz'] || '',
+                dayanakText: row['Mevzuat Dayanak'] || row['dayanak'] || '',
+                hap: row['Hap Bilgi'] || row['hap'] || '',
+                tuzak: row['Sınav Tuzağı'] || row['tuzak'] || ''
+            },
+
+            // Mevzuat Referansı Objesi
+            legislationRef: {
+                code: String(row['Kanun No'] || row['code'] || ''),
+                name: row['Kanun Adı'] || row['legName'] || '',
+                article: String(row['Madde No'] || row['article'] || '')
+            },
+
+            tags: (row['Etiketler'] || '').split(',').map(t => t.trim()).filter(Boolean),
+
+            isActive: true,
+            isFlaggedForReview: false,
+            createdAt: serverTimestamp()
+        };
+    });
 }
 
 function validateAndPreview() {

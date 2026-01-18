@@ -6,14 +6,13 @@ export class TestEngine {
         this.container = document.getElementById(containerId);
         this.questions = questionsData;
         this.examId = options.examId || null;
-        this.mode = options.mode || 'practice'; // 'exam' (Sınav) veya 'practice' (Öğrenme)
-        this.duration = options.duration || 0; // Dakika cinsinden süre (Sınav modu için)
+        this.mode = options.mode || 'practice'; // 'exam' veya 'practice'
+        this.duration = options.duration || 0; // Dakika
 
         this.currentIndex = 0;
-        this.answers = {}; // { qId: { selected: 'A', isCorrect: true, timeSpent: 12 } }
+        this.answers = {}; // { qId: { selected: 'A', isCorrect: true } }
         this.favorites = new Set();
         this.timerInterval = null;
-        this.startTime = null;
         this.remainingTime = this.duration * 60;
 
         // UI Elementleri
@@ -37,6 +36,7 @@ export class TestEngine {
         this.updateCounters();
         this.setupMobileGestures();
 
+        // Sınav Moduysa Sayacı Başlat
         if (this.mode === 'exam' && this.duration > 0) {
             this.startTimer();
         } else {
@@ -44,9 +44,8 @@ export class TestEngine {
         }
     }
 
-    // --- SAYAÇ YÖNETİMİ ---
+    // --- SAYAÇ ---
     startTimer() {
-        this.startTime = Date.now();
         this.timerInterval = setInterval(() => {
             this.remainingTime--;
             const m = Math.floor(this.remainingTime / 60);
@@ -58,12 +57,12 @@ export class TestEngine {
             if (this.remainingTime <= 0) {
                 clearInterval(this.timerInterval);
                 alert("Süre doldu! Test bitiriliyor.");
-                this.finishTest(true); // true = timeout
+                this.finishTest(true);
             }
         }, 1000);
     }
 
-    // --- RENDER İŞLEMLERİ ---
+    // --- RENDER ---
     renderCurrentQuestion() {
         this.container.innerHTML = '';
         const q = this.questions[this.currentIndex];
@@ -71,7 +70,7 @@ export class TestEngine {
         this.container.appendChild(card);
         this.renderNavigation();
 
-        // Eğer daha önce cevaplanmışsa durumu geri yükle
+        // Daha önce cevaplandıysa durumu geri yükle
         if (this.answers[q.id]) {
             this.restoreAnswerState(q.id);
         }
@@ -83,7 +82,7 @@ export class TestEngine {
         article.id = `q-${q.id}`;
         article.dataset.id = q.id;
 
-        // 1. Öncüllü Soru Kontrolü
+        // 1. Öncüllü Soru Yapısı
         let contentHTML = q.text;
         if (q.type === 'oncullu' && q.onculler && q.onculler.length > 0) {
             const listItems = q.onculler.map(o => `<li>${o}</li>`).join('');
@@ -101,7 +100,7 @@ export class TestEngine {
             </button>
         `).join('');
 
-        // 3. Çözüm Alanı (Yeni Veri Yapısına Göre)
+        // 3. Detaylı Çözüm Alanı (Başlangıçta Gizli)
         const sol = q.solution || {};
         const leg = q.legislationRef || {};
 
@@ -109,7 +108,7 @@ export class TestEngine {
             <div class="cozum-container" id="sol-${q.id}" style="display:none;">
                 <div class="cozum-header">💡 Detaylı Analiz & Çözüm</div>
                 <div class="cozum-content text-justify-custom">
-                    ${leg.code ? `<p class="mb-2"><span class="badge badge-info">⚖️ ${leg.name || 'Kanun'} Md. ${leg.article}</span></p>` : ''}
+                    ${leg.code ? `<div class="mb-2"><span class="badge bg-info text-dark">⚖️ ${leg.name || 'Kanun'} Md. ${leg.article}</span></div>` : ''}
                     ${sol.dayanakText ? `<p><strong>Dayanak:</strong> ${sol.dayanakText}</p>` : ''}
                     <p><strong>🧠 Analiz:</strong> ${sol.analiz || 'Çözüm yüklenemedi.'}</p>
                     ${sol.tuzak ? `<div class="tuzak-kutu"><strong>⚠️ Sınav Tuzağı:</strong> ${sol.tuzak}</div>` : ''}
@@ -167,8 +166,7 @@ export class TestEngine {
 
     // --- CEVAPLAMA MANTIĞI ---
     handleAnswer(questionId, selectedOptionId) {
-        // Eğer daha önce cevaplandıysa işlem yapma
-        if (this.answers[questionId]) return;
+        if (this.answers[questionId]) return; // Zaten cevaplandıysa çık
 
         const question = this.questions.find(q => q.id === questionId);
         const isCorrect = (selectedOptionId === question.correctOption);
@@ -180,12 +178,12 @@ export class TestEngine {
             category: question.category || 'Genel'
         };
 
-        // UI Güncelleme (Moda Göre)
+        // Moda Göre Davranış
         if (this.mode === 'practice') {
-            // Öğrenme Modu: Anlık geri bildirim ve çözüm göster
+            // Öğrenme Modu: Anlık geri bildirim ve çözüm
             this.showFeedback(questionId, selectedOptionId, isCorrect, question.correctOption);
         } else {
-            // Sınav Modu: Sadece seçili olduğunu göster (Renk verme)
+            // Sınav Modu: Sadece seçimi işaretle (Renk yok)
             this.markSelected(questionId, selectedOptionId);
         }
 
@@ -197,18 +195,18 @@ export class TestEngine {
         const buttons = card.querySelectorAll('.sik-btn');
 
         buttons.forEach(btn => {
-            btn.classList.add('disabled'); // Tıklamayı engelle
+            btn.classList.add('disabled');
             const optId = btn.dataset.opt;
 
             if (optId === selectedId) {
                 btn.classList.add(isCorrect ? 'correct' : 'wrong');
             }
             if (!isCorrect && optId === correctId) {
-                btn.classList.add('correct'); // Doğruyu göster
+                btn.classList.add('correct');
             }
         });
 
-        // Çözümü Aç
+        // Çözümü Göster
         const solDiv = document.getElementById(`sol-${qId}`);
         if (solDiv) {
             solDiv.style.display = 'block';
@@ -228,7 +226,7 @@ export class TestEngine {
         buttons.forEach(btn => {
             btn.classList.remove('selected');
             if (btn.dataset.opt === selectedId) {
-                btn.classList.add('selected'); // Sadece mavi çerçeve vb.
+                btn.classList.add('selected'); // Sadece mavi çerçeve
             }
         });
     }
@@ -267,18 +265,17 @@ export class TestEngine {
     async finishTest(isTimeout = false) {
         if (this.timerInterval) clearInterval(this.timerInterval);
 
-        // İstatistikleri Hesapla
         const total = this.questions.length;
         const correctCount = Object.values(this.answers).filter(a => a.isCorrect).length;
-        const wrongCount = Object.values(this.answers).filter(a => a.isCorrect === false).length; // Boşları sayma
+        const wrongCount = Object.values(this.answers).filter(a => a.isCorrect === false).length;
         const emptyCount = total - (correctCount + wrongCount);
         const score = Math.round((correctCount / total) * 100);
 
-        // Sınav Modundaysa: Şimdi tüm cevapları kontrol et ve göster
+        // Sınav Modundaysa: Modu 'practice' yap ve cevapları göster
         if (this.mode === 'exam') {
-            this.mode = 'practice'; // Artık inceleme moduna geç
-            this.renderCurrentQuestion(); // Mevcut soruyu güncelle
+            this.mode = 'practice';
             alert("Sınav bitti! Şimdi cevaplarınızı ve çözümleri inceleyebilirsiniz.");
+            this.renderCurrentQuestion(); // Mevcut soruyu güncelle (renkler gelsin)
         }
 
         // Modalı Göster

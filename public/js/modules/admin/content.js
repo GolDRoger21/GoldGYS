@@ -131,6 +131,12 @@ function renderContentInterface() {
                         <textarea id="inpText" class="form-control" rows="3" required></textarea>
                     </div>
 
+                    <!-- Etiketler -->
+                    <div class="mb-3">
+                         <label class="form-label">Etiketler (Virgül ile ayırın)</label>
+                         <input type="text" id="inpTags" class="form-control" placeholder="Örn: zor, 2024, soru-bankasi">
+                    </div>
+
                     <!-- Seçenekler -->
                     <div class="row g-2 mb-3">
                         <div class="col-md-6"><input type="text" id="inpOptA" class="form-control" placeholder="A) Seçenek" required></div>
@@ -243,99 +249,146 @@ function renderOnculler() {
     ).join('');
 }
 
-export async function openQuestionEditor(id = null) {
+// --- GÜNCELLENECEK FONKSİYON 1: Formu Doldurma ---
+export async function openQuestionEditor(questionId = null) {
     modalElement.style.display = 'flex';
+    const title = document.getElementById('modalTitle');
     questionForm.reset();
     currentOnculler = [];
     renderOnculler();
-    document.getElementById('modalTitle').innerText = id ? "Soruyu Düzenle" : "Yeni Soru Ekle";
-    document.getElementById('editQuestionId').value = id || "";
 
-    if (id) {
-        const docSnap = await getDoc(doc(db, "questions", id));
-        if (docSnap.exists()) {
-            const data = docSnap.data();
-            document.getElementById('inpCategory').value = data.category || '';
-            document.getElementById('inpDifficulty').value = data.difficulty || 3;
-            document.getElementById('inpType').value = data.type || 'standard';
-            document.getElementById('inpText').value = data.text || '';
+    if (questionId) {
+        title.innerText = "Soruyu Düzenle";
+        document.getElementById('editQuestionId').value = questionId;
 
-            // Seçenekler
-            const opts = data.options || [];
-            const map = {};
-            opts.forEach(o => map[o.id] = o.text);
-            ['A', 'B', 'C', 'D', 'E'].forEach(k => document.getElementById(`inpOpt${k}`).value = map[k] || '');
-            document.getElementById('inpCorrect').value = data.correctOption;
+        try {
+            const docSnap = await getDoc(doc(db, "questions", questionId));
+            if (docSnap.exists()) {
+                const data = docSnap.data();
 
-            // Öncüller
-            if (data.type === 'oncullu') {
-                currentOnculler = data.onculler || [];
-                document.getElementById('inpQuestionRoot').value = data.questionRoot || '';
-                renderOnculler();
+                // 1. Temel Alanlar
+                document.getElementById('inpCategory').value = data.category || '';
+                document.getElementById('inpDifficulty').value = data.difficulty || 3;
+                document.getElementById('inpType').value = data.type || 'standard';
+                document.getElementById('inpText').value = data.text || '';
+                document.getElementById('inpTags').value = data.tags ? data.tags.join(', ') : '';
+
+                // 2. Seçenekler (Array yapısına uygun)
+                if (Array.isArray(data.options)) {
+                    const map = {};
+                    data.options.forEach(o => map[o.id] = o.text);
+                    document.getElementById('inpOptA').value = map['A'] || '';
+                    document.getElementById('inpOptB').value = map['B'] || '';
+                    document.getElementById('inpOptC').value = map['C'] || '';
+                    document.getElementById('inpOptD').value = map['D'] || '';
+                    document.getElementById('inpOptE').value = map['E'] || '';
+                }
+
+                document.getElementById('inpCorrect').value = data.correctOption;
+
+                // 3. Öncüllü Soru Verileri
+                if (data.type === 'oncullu') {
+                    currentOnculler = data.onculler || [];
+                    document.getElementById('inpQuestionRoot').value = data.questionRoot || '';
+                    renderOnculler();
+                }
+                toggleQuestionType(); // Arayüzü güncelle
+
+                // 4. Detaylı Çözüm (Map yapısı)
+                const sol = data.solution || {};
+                document.getElementById('inpSolAnaliz').value = sol.analiz || '';
+                document.getElementById('inpSolDayanak').value = sol.dayanakText || '';
+                document.getElementById('inpSolHap').value = sol.hap || '';
+                document.getElementById('inpSolTuzak').value = sol.tuzak || '';
+
+                // 5. Mevzuat Referansı (Map yapısı - İleride filtreleme için kritik)
+                const leg = data.legislationRef || {};
+                document.getElementById('inpLegCode').value = leg.code || '';
+                document.getElementById('inpLegName').value = leg.name || '';
+                document.getElementById('inpLegArt').value = leg.article || '';
             }
-            toggleQuestionType();
-
-            // Çözüm & Mevzuat
-            const sol = data.solution || {};
-            document.getElementById('inpSolAnaliz').value = sol.analiz || '';
-            document.getElementById('inpSolDayanak').value = sol.dayanakText || '';
-            document.getElementById('inpSolHap').value = sol.hap || '';
-            document.getElementById('inpSolTuzak').value = sol.tuzak || '';
-
-            const leg = data.legislationRef || {};
-            document.getElementById('inpLegCode').value = leg.code || '';
-            document.getElementById('inpLegName').value = leg.name || '';
-            document.getElementById('inpLegArt').value = leg.article || '';
+        } catch (e) {
+            console.error("Hata:", e);
         }
     } else {
+        title.innerText = "Yeni Soru Ekle";
+        document.getElementById('editQuestionId').value = "";
         toggleQuestionType();
     }
 }
 
 function closeModal() { modalElement.style.display = 'none'; }
 
+// --- GÜNCELLENECEK FONKSİYON 2: Kaydetme ---
 async function handleSaveQuestion(e) {
     e.preventDefault();
     const id = document.getElementById('editQuestionId').value;
 
-    const data = {
+    // JSON Yapısına Birebir Uygun Obje Oluşturma
+    const questionData = {
+        // Temel Bilgiler
         category: document.getElementById('inpCategory').value.trim(),
-        difficulty: parseInt(document.getElementById('inpDifficulty').value),
+        difficulty: parseInt(document.getElementById('inpDifficulty').value) || 3,
         type: document.getElementById('inpType').value,
         text: document.getElementById('inpText').value.trim(),
-        options: ['A', 'B', 'C', 'D', 'E'].map(k => ({ id: k, text: document.getElementById(`inpOpt${k}`).value.trim() })),
+        tags: document.getElementById('inpTags').value.split(',').map(t => t.trim()).filter(Boolean),
+
+        // Durum Bilgileri
+        isActive: true,
+        isFlaggedForReview: false, // Mevzuat değişikliğinde true olacak
+
+        // Seçenekler (Array of Maps)
+        options: [
+            { id: "A", text: document.getElementById('inpOptA').value.trim() },
+            { id: "B", text: document.getElementById('inpOptB').value.trim() },
+            { id: "C", text: document.getElementById('inpOptC').value.trim() },
+            { id: "D", text: document.getElementById('inpOptD').value.trim() },
+            { id: "E", text: document.getElementById('inpOptE').value.trim() }
+        ],
         correctOption: document.getElementById('inpCorrect').value,
+
+        // Detaylı Çözüm (Map)
         solution: {
             analiz: document.getElementById('inpSolAnaliz').value.trim(),
             dayanakText: document.getElementById('inpSolDayanak').value.trim(),
             hap: document.getElementById('inpSolHap').value.trim(),
             tuzak: document.getElementById('inpSolTuzak').value.trim()
         },
+
+        // Mevzuat Referansı (Map - Filtreleme için kritik)
         legislationRef: {
-            code: document.getElementById('inpLegCode').value.trim(),
-            name: document.getElementById('inpLegName').value.trim(),
-            article: document.getElementById('inpLegArt').value.trim()
+            code: document.getElementById('inpLegCode').value.trim(), // Örn: "5271"
+            name: document.getElementById('inpLegName').value.trim(), // Örn: "Ceza Muhakemesi Kanunu"
+            article: document.getElementById('inpLegArt').value.trim() // Örn: "231"
         },
-        isActive: true,
-        isFlaggedForReview: false,
+
         updatedAt: serverTimestamp()
     };
 
-    if (data.type === 'oncullu') {
-        data.onculler = currentOnculler;
-        data.questionRoot = document.getElementById('inpQuestionRoot').value.trim();
+    // Öncüllü Soru Kontrolü
+    if (questionData.type === 'oncullu') {
+        questionData.onculler = currentOnculler; // Global array'den al
+        questionData.questionRoot = document.getElementById('inpQuestionRoot').value.trim();
+    } else {
+        questionData.onculler = [];
+        questionData.questionRoot = null;
     }
 
     try {
-        if (id) await updateDoc(doc(db, "questions", id), data);
-        else {
-            data.createdAt = serverTimestamp();
-            await addDoc(collection(db, "questions"), data);
+        if (id) {
+            await updateDoc(doc(db, "questions", id), questionData);
+            alert("Soru başarıyla güncellendi.");
+        } else {
+            questionData.createdAt = serverTimestamp();
+            await addDoc(collection(db, "questions"), questionData);
+            alert("Yeni soru başarıyla eklendi.");
         }
         closeModal();
         loadQuestions();
-        alert("Kaydedildi.");
-    } catch (e) { alert("Hata: " + e.message); }
+    } catch (error) {
+        console.error("Kaydetme hatası:", error);
+        alert("Hata: " + error.message);
+    }
 }
 
 async function loadQuestions() {
