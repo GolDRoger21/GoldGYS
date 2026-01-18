@@ -3,33 +3,45 @@ import { collection, getDocs, doc, addDoc, deleteDoc, serverTimestamp, query, or
 
 let generatedQuestionsCache = [];
 
-// SINAV ŞABLONU (Konu Dağılımı)
-// Not: Veritabanındaki 'category' alanlarınızın bu isimleri içerdiğinden emin olun.
-const EXAM_TEMPLATE = {
-    "Anayasa": 6,
-    "Atatürk": 2,
-    "Devlet Teşkilatı": 9,
-    "Devlet Memurları": 6,
-    "Türkçe": 2,
-    "Halkla İlişkiler": 1,
-    "Etik": 1,
-    "Bakanlık": 4, // Merkez + Alan
-    "Yargı": 6,
-    "UYAP": 1,
-    "Mali": 1,
-    "Komisyon": 1,
-    "Elektronik": 3,
-    "Yazışma": 6,
-    "Tebligat": 5,
-    "Bilgi Edinme": 1,
-    "Dilekçe": 1,
-    "Disiplin": 2,
-    "Yazı İşleri": 9,
-    "Ceza Muhakemesi": 3,
-    "Hukuk Muhakemeleri": 3,
-    "İdari Yargılama": 2,
-    "İnfaz": 2
-};
+// SINAV ŞABLONU (PDF'e Göre Kanun Kodları ve Soru Sayıları)
+const EXAM_BLUEPRINT = [
+    { code: "2709", count: 6, name: "Anayasa" },
+    { code: "HIST_01", count: 1, name: "İnkılap Tarihi" },
+    { code: "SEC_01", count: 1, name: "Ulusal Güvenlik" },
+    { code: "5302", count: 2, name: "İl Özel İdaresi" },
+    { code: "5393", count: 2, name: "Belediye Kanunu" },
+    { code: "5442", count: 2, name: "İl İdaresi Kanunu" },
+    { code: "CBK-1", count: 4, name: "CB Kararnamesi (Genel+Bakanlık)" }, // 3 Genel + 1 Bakanlık
+    { code: "657", count: 6, name: "Devlet Memurları Kanunu" },
+    { code: "LANG_01", count: 2, name: "Türkçe Dil Bilgisi" },
+    { code: "PR_01", count: 1, name: "Halkla İlişkiler" },
+    { code: "ETHIC_01", count: 1, name: "Etik İlkeler" },
+    { code: "5235", count: 2, name: "Adli Yargı Kanunu" },
+    { code: "2576", count: 2, name: "İdari Yargı Kanunu" },
+    { code: "YONETMELIK_YAZI", count: 0, name: "Yazı İşleri Yön. (Ortak)" }, // Ortak konularda soru sayısı 0 görünüyor ama eklenebilir
+    { code: "UYAP_01", count: 1, name: "UYAP" },
+    { code: "5018", count: 1, name: "Mali Yönetim" },
+    // ALAN BİLGİSİ
+    { code: "YONETMELIK_KOMISYON", count: 1, name: "Komisyonlar" },
+    { code: "5070", count: 2, name: "E-İmza" },
+    { code: "YONETMELIK_SEGBIS", count: 1, name: "SEGBİS" },
+    { code: "YONETMELIK_YAZISMA", count: 6, name: "Resmi Yazışma" },
+    { code: "7201", count: 2, name: "Tebligat Kanunu" },
+    { code: "YONETMELIK_TEBLIGAT", count: 2, name: "Tebligat Yön." },
+    { code: "YONETMELIK_ETEBLIGAT", count: 1, name: "E-Tebligat" },
+    { code: "4982", count: 1, name: "Bilgi Edinme" },
+    { code: "3071", count: 1, name: "Dilekçe Hakkı" },
+    { code: "YONETMELIK_DISIPLIN", count: 2, name: "Disiplin Yön." },
+    { code: "YONETMELIK_GYS", count: 1, name: "GYS Yön." },
+    { code: "YONETMELIK_ATAMA", count: 2, name: "Atama Yön." },
+    { code: "492", count: 1, name: "Harçlar Kanunu" },
+    { code: "YONETMELIK_ADLI", count: 4, name: "Adli Yazı İşleri" },
+    { code: "YONETMELIK_IDARI", count: 4, name: "İdari Yazı İşleri" },
+    { code: "5271", count: 3, name: "CMK" },
+    { code: "6100", count: 3, name: "HMK" },
+    { code: "2577", count: 2, name: "İYUK" },
+    { code: "5275", count: 2, name: "İnfaz Kanunu" }
+];
 
 export function initExamsPage() {
     renderInterface();
@@ -119,109 +131,61 @@ function renderInterface() {
 }
 
 // --- AKILLI ALGORİTMA ---
-import { EXAM_RULES } from "../../data/exam-rules.js";
-
-// --- AKILLI ALGORİTMA ---
 async function generateQuestions() {
     const logArea = document.getElementById('generationLog');
     const tbody = document.getElementById('previewQuestionsBody');
     const saveBtn = document.getElementById('btnSaveExam');
 
     generatedQuestionsCache = [];
-    logArea.innerHTML = '🚀 Başlatılıyor (Akıllı Mod)...<br>';
+    logArea.innerHTML = '🚀 Başlatılıyor...<br>';
     tbody.innerHTML = '';
     saveBtn.disabled = true;
 
     try {
         // 1. Tüm Aktif Soruları Çek
         const qSnapshot = await getDocs(query(collection(db, "questions"), where("isActive", "==", true)));
-
-        // Soruları Havuza At (Kategoriden bağımsız düz liste)
-        const allQuestions = [];
-        qSnapshot.forEach(doc => {
-            allQuestions.push({ id: doc.id, ...doc.data() });
-        });
+        const allQuestions = qSnapshot.docs.map(d => ({ id: d.id, ...d.data() }));
 
         logArea.innerHTML += `📦 ${allQuestions.length} aktif soru tarandı.<br>----------------<br>`;
-        const selectedIds = new Set();
 
-        // Helper: Soru derse uygun mu?
-        const isMatch = (q, lesson) => {
-            if (!q.legislationRef) return false;
-            const qCode = q.legislationRef.code;
-            const qArt = parseInt(q.legislationRef.article);
+        // 2. Blueprint'e Göre Seçim Yap
+        for (const rule of EXAM_BLUEPRINT) {
+            if (rule.count === 0) continue;
 
-            // Kod Eşleşmeli
-            if (qCode !== lesson.legislationCode) return false;
+            // Bu kanuna ait soruları filtrele (legislationRef.code ile)
+            const candidates = allQuestions.filter(q => q.legislationRef?.code === rule.code);
 
-            // Aralık Kontrolü
-            if (lesson.articleRange === "ALL") return true;
-            if (typeof lesson.articleRange === 'string' && lesson.articleRange.includes('-')) {
-                const [start, end] = lesson.articleRange.split('-').map(Number);
-                return qArt >= start && qArt <= end;
-            }
-            return false;
-        };
-
-        // 2. EXAM_RULES (Müfredat) Üzerinden İlerle
-        for (const topicRule of EXAM_RULES) {
-            let topicSelectedCount = 0;
-            logArea.innerHTML += `<strong>📌 ${topicRule.title}</strong> (Hedef: ${topicRule.totalQuestionTarget})<br>`;
-
-            // A. Ders (Lesson) Bazlı Seçim
-            if (topicRule.lessons && topicRule.lessons.length > 0) {
-                for (const lesson of topicRule.lessons) {
-                    if (lesson.qTarget > 0) {
-                        // Bu derse uygun soruları bul
-                        const candidates = allQuestions.filter(q =>
-                            !selectedIds.has(q.id) && isMatch(q, lesson)
-                        );
-
-                        // Rastgele Seç
-                        const picked = candidates.sort(() => 0.5 - Math.random()).slice(0, lesson.qTarget);
-
-                        picked.forEach(q => {
-                            generatedQuestionsCache.push(q);
-                            selectedIds.add(q.id);
-                        });
-                        topicSelectedCount += picked.length;
-                        logArea.innerHTML += `&nbsp;&nbsp;↳ ${lesson.title}: ${picked.length}/${lesson.qTarget}<br>`;
-                    }
-                }
+            if (candidates.length < rule.count) {
+                logArea.innerHTML += `<span class="text-danger">⚠️ ${rule.name}: ${candidates.length}/${rule.count} (Eksik)</span><br>`;
+            } else {
+                logArea.innerHTML += `<span class="text-success">✅ ${rule.name}: ${rule.count} OK</span><br>`;
             }
 
-            // B. Eksikleri Tamamla (Konu Bazlı Fallback)
-            if (topicSelectedCount < topicRule.totalQuestionTarget) {
-                const needed = topicRule.totalQuestionTarget - topicSelectedCount;
-                // Konu başlığı eşleşen veya kategori eşleşen boştaki sorular
-                const extras = allQuestions.filter(q =>
-                    !selectedIds.has(q.id) &&
-                    (q.category === topicRule.title || q.category.includes(topicRule.title))
-                );
-
-                const pickedExtras = extras.sort(() => 0.5 - Math.random()).slice(0, needed);
-                pickedExtras.forEach(q => {
-                    generatedQuestionsCache.push(q);
-                    selectedIds.add(q.id);
-                });
-
-                if (pickedExtras.length > 0) {
-                    logArea.innerHTML += `&nbsp;&nbsp;⚠️ Ek Takviye: ${pickedExtras.length} soru<br>`;
-                }
-            }
+            // Rastgele Karıştır ve Seç
+            const selected = candidates.sort(() => 0.5 - Math.random()).slice(0, rule.count);
+            generatedQuestionsCache = generatedQuestionsCache.concat(selected);
         }
 
-        // 3. Genel Kontrol ve Tablo
-        // ... (Eski koddaki 80 soruya tamamlama ve tablo render kısmı buraya eklenebilir veya mevcut koddaki gibi bırakılabilir)
-        // Ancak burada EXAM_RULES kullandığımız için "Object.entries(EXAM_TEMPLATE)" döngüsü kalktı.
+        // 3. Eksikleri Tamamla (Hedef 80)
+        if (generatedQuestionsCache.length < 80) {
+            const needed = 80 - generatedQuestionsCache.length;
+            logArea.innerHTML += `----------------<br>ℹ️ Hedef 80 için ${needed} rastgele soru ekleniyor...<br>`;
 
-        // Tabloyu Doldur
+            // Seçilmemiş sorulardan bir havuz oluştur
+            const selectedIds = new Set(generatedQuestionsCache.map(q => q.id));
+            const remainingPool = allQuestions.filter(q => !selectedIds.has(q.id));
+
+            const extras = remainingPool.sort(() => 0.5 - Math.random()).slice(0, needed);
+            generatedQuestionsCache = generatedQuestionsCache.concat(extras);
+        }
+
+        // 4. Tabloyu Doldur
         generatedQuestionsCache.forEach((q, i) => {
             tbody.innerHTML += `<tr><td>${i + 1}</td><td>${q.category}</td><td>${q.text.substring(0, 40)}...</td></tr>`;
         });
 
         document.getElementById('qCountBadge').innerText = `${generatedQuestionsCache.length} Soru`;
-        logArea.innerHTML += `<br><strong>🎉 Deneme Hazır! Toplam: ${generatedQuestionsCache.length}</strong>`;
+        logArea.innerHTML += `<br><strong>🎉 Deneme Hazır!</strong>`;
         logArea.scrollTop = logArea.scrollHeight;
 
         if (generatedQuestionsCache.length > 0) saveBtn.disabled = false;
@@ -239,8 +203,6 @@ async function saveExam() {
     if (!title) return alert("Başlık giriniz.");
 
     try {
-        // Soruların anlık kopyasını (Snapshot) kaydediyoruz.
-        // Böylece ana soru değişse/silinse bile deneme bozulmaz.
         await addDoc(collection(db, "exams"), {
             title,
             duration: parseInt(duration),

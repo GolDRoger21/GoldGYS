@@ -2,7 +2,6 @@ import { db } from "../../firebase-config.js";
 import {
     collection, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, serverTimestamp, query, orderBy, limit, where
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { findTopicByLegislation } from "../../data/legislation-map.js";
 
 let modalElement = null;
 let questionForm = null;
@@ -10,11 +9,11 @@ let currentOnculler = [];
 
 export function initContentPage() {
     renderContentInterface();
-    loadDynamicCategories(); // <--- YENİ: Kategorileri veritabanından çek
+    loadDynamicCategories();
     loadQuestions();
 }
 
-// Kategorileri Firestore'dan Çeken Fonksiyon
+// Kategorileri Firestore'dan Çek
 async function loadDynamicCategories() {
     const dataList = document.getElementById('categoryList');
     const filterSelect = document.getElementById('filterCategory');
@@ -22,26 +21,20 @@ async function loadDynamicCategories() {
     if (!dataList || !filterSelect) return;
 
     try {
-        // Konuları isme göre sıralı getir
         const q = query(collection(db, "topics"), orderBy("title", "asc"));
         const snapshot = await getDocs(q);
 
-        // Mevcut seçenekleri temizle (Varsayılanlar kalsın istiyorsan burayı silme)
         dataList.innerHTML = '';
-
-        // Filtre select'ini temizle ama "Tümü" seçeneğini koru
         filterSelect.innerHTML = '<option value="">Tüm Kategoriler</option>';
 
         snapshot.forEach(doc => {
             const topic = doc.data();
             const title = topic.title;
 
-            // 1. Soru Ekleme Formundaki Liste
             const option = document.createElement('option');
             option.value = title;
             dataList.appendChild(option);
 
-            // 2. Filtreleme Select Kutusu
             const selectOption = document.createElement('option');
             selectOption.value = title;
             selectOption.innerText = title;
@@ -74,7 +67,6 @@ function renderContentInterface() {
                     <input type="text" id="searchQuestion" class="form-control" placeholder="Soru metni veya ID ara...">
                 </div>
                 <div class="col-md-3">
-                    <!-- Dinamik olarak dolacak -->
                     <select id="filterCategory" class="form-control">
                         <option value="">Yükleniyor...</option>
                     </select>
@@ -124,12 +116,30 @@ function renderContentInterface() {
                 <form id="questionForm" class="modal-body-scroll">
                     <input type="hidden" id="editQuestionId">
 
+                    <!-- YENİ: Mevzuat Referansı (Otomatik Kategori Seçimi İçin) -->
+                    <div class="card p-3 mb-3 bg-light border-primary">
+                        <h6 class="text-primary" style="margin-top:0;">⚖️ Mevzuat Bağlantısı (Otomatik Sınıflandırma)</h6>
+                        <div class="row g-2">
+                            <div class="col-md-4">
+                                <label class="form-label">Kanun No / Kod</label>
+                                <input type="text" id="inpLegCode" class="form-control" placeholder="Örn: 2577 veya CBK-1">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Madde No</label>
+                                <input type="number" id="inpLegArticle" class="form-control" placeholder="Örn: 5">
+                            </div>
+                            <div class="col-md-4 d-flex align-items-end">
+                                <button type="button" id="btnAutoDetect" class="btn btn-outline-primary w-100">Konuyu Bul</button>
+                            </div>
+                        </div>
+                        <small class="text-muted" id="autoDetectResult" style="display:block; margin-top:5px;"></small>
+                    </div>
+
                     <!-- Üst Bilgiler -->
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <label class="form-label">Kategori (Konu)</label>
                             <input type="text" id="inpCategory" class="form-control" list="categoryList" placeholder="Konu seçin veya yazın..." required>
-                            <!-- Dinamik Datalist -->
                             <datalist id="categoryList"></datalist>
                         </div>
                         <div class="col-md-3">
@@ -191,7 +201,7 @@ function renderContentInterface() {
                         </div>
                         <div class="row g-2">
                             <div class="col-md-6">
-                                <label>Mevzuat Dayanağı</label>
+                                <label>Mevzuat Dayanağı (Metin)</label>
                                 <input type="text" id="inpSolDayanak" class="form-control">
                             </div>
                             <div class="col-md-6">
@@ -202,22 +212,6 @@ function renderContentInterface() {
                                 <label class="text-danger">Sınav Tuzağı</label>
                                 <input type="text" id="inpSolTuzak" class="form-control">
                             </div>
-                        </div>
-                    </div>
-
-                    <!-- Mevzuat Referansı (Takip İçin) -->
-                    <div class="row g-2 mb-3">
-                        <div class="col-md-4">
-                            <label>Kanun No</label>
-                            <input type="text" id="inpLegCode" class="form-control" placeholder="5271">
-                        </div>
-                        <div class="col-md-4">
-                            <label>Kanun Adı</label>
-                            <input type="text" id="inpLegName" class="form-control" placeholder="CMK">
-                        </div>
-                        <div class="col-md-4">
-                            <label>Madde No</label>
-                            <input type="text" id="inpLegArt" class="form-control" placeholder="231">
                         </div>
                     </div>
 
@@ -238,28 +232,75 @@ function renderContentInterface() {
     document.getElementById('btnFilter').addEventListener('click', loadQuestions);
     document.getElementById('inpType').addEventListener('change', toggleQuestionType);
     document.getElementById('btnAddOncul').addEventListener('click', addOncul);
+    document.getElementById('btnAutoDetect').addEventListener('click', autoDetectTopic); // YENİ
     questionForm.addEventListener('submit', handleSaveQuestion);
 
+    window.openQuestionEditorInternal = openQuestionEditor;
     window.removeOnculInternal = removeOncul;
     window.closeModal = closeModal;
-
-    // Auto-Select Listener
-    const autoSelectHandler = () => {
-        const code = document.getElementById('inpLegCode').value.trim();
-        const art = document.getElementById('inpLegArt').value.trim();
-        if (code) {
-            const match = findTopicByLegislation(code, art);
-            if (match) {
-                document.getElementById('inpCategory').value = match.topic;
-                // Optional: Show feedback "Otomatik seçildi: X"
-            }
-        }
-    };
-    document.getElementById('inpLegCode').addEventListener('blur', autoSelectHandler);
-    document.getElementById('inpLegArt').addEventListener('blur', autoSelectHandler);
 }
 
-// --- İŞLEVLER ---
+// --- OTOMATİK KONU TESPİTİ (YENİ) ---
+async function autoDetectTopic() {
+    const code = document.getElementById('inpLegCode').value.trim();
+    const article = parseInt(document.getElementById('inpLegArticle').value);
+    const resultLabel = document.getElementById('autoDetectResult');
+
+    if (!code || isNaN(article)) {
+        resultLabel.innerHTML = '<span class="text-danger">Lütfen Kanun No ve Madde No girin.</span>';
+        return;
+    }
+
+    resultLabel.innerText = 'Aranıyor...';
+
+    try {
+        // Tüm konuları çek (Cache'den gelmesi daha iyi olurdu ama şimdilik direkt çekiyoruz)
+        const q = query(collection(db, "topics"));
+        const snapshot = await getDocs(q);
+
+        let foundLesson = null;
+        let foundTopic = null;
+
+        // Konuları ve alt dersleri tara
+        for (const doc of snapshot.docs) {
+            const topic = doc.data();
+            // Alt dersleri çek
+            const lessonsSnap = await getDocs(collection(db, `topics/${doc.id}/lessons`));
+
+            lessonsSnap.forEach(lDoc => {
+                const lesson = lDoc.data();
+                // Kanun kodu eşleşiyor mu?
+                if (lesson.legislationCode === code) {
+                    // Madde aralığını kontrol et
+                    if (lesson.articleRange === 'ALL') {
+                        foundLesson = lesson;
+                        foundTopic = topic;
+                    } else if (lesson.articleRange && lesson.articleRange.includes('-')) {
+                        const [start, end] = lesson.articleRange.split('-').map(Number);
+                        if (article >= start && article <= end) {
+                            foundLesson = lesson;
+                            foundTopic = topic;
+                        }
+                    }
+                }
+            });
+            if (foundTopic) break;
+        }
+
+        if (foundTopic && foundLesson) {
+            document.getElementById('inpCategory').value = foundTopic.title;
+            resultLabel.innerHTML = `<span class="text-success">✅ Bulundu: ${foundTopic.title} > ${foundLesson.title}</span>`;
+        } else {
+            resultLabel.innerHTML = '<span class="text-warning">⚠️ Bu maddeye uygun konu bulunamadı. Manuel seçiniz.</span>';
+        }
+
+    } catch (error) {
+        console.error(error);
+        resultLabel.innerText = 'Hata oluştu.';
+    }
+}
+
+// --- DİĞER İŞLEVLER ---
 
 function toggleQuestionType() {
     const type = document.getElementById('inpType').value;
@@ -296,6 +337,7 @@ export async function openQuestionEditor(id = null) {
     renderOnculler();
     document.getElementById('modalTitle').innerText = id ? "Soruyu Düzenle" : "Yeni Soru Ekle";
     document.getElementById('editQuestionId').value = id || "";
+    document.getElementById('autoDetectResult').innerText = "";
 
     if (id) {
         const docSnap = await getDoc(doc(db, "questions", id));
@@ -305,6 +347,12 @@ export async function openQuestionEditor(id = null) {
             document.getElementById('inpDifficulty').value = data.difficulty || 3;
             document.getElementById('inpType').value = data.type || 'standard';
             document.getElementById('inpText').value = data.text || '';
+
+            // Mevzuat Bilgileri
+            if (data.legislationRef) {
+                document.getElementById('inpLegCode').value = data.legislationRef.code || '';
+                document.getElementById('inpLegArticle').value = data.legislationRef.article || '';
+            }
 
             // Seçenekler
             const opts = data.options || [];
@@ -321,17 +369,12 @@ export async function openQuestionEditor(id = null) {
             }
             toggleQuestionType();
 
-            // Çözüm & Mevzuat
+            // Çözüm
             const sol = data.solution || {};
             document.getElementById('inpSolAnaliz').value = sol.analiz || '';
             document.getElementById('inpSolDayanak').value = sol.dayanakText || '';
             document.getElementById('inpSolHap').value = sol.hap || '';
             document.getElementById('inpSolTuzak').value = sol.tuzak || '';
-
-            const leg = data.legislationRef || {};
-            document.getElementById('inpLegCode').value = leg.code || '';
-            document.getElementById('inpLegName').value = leg.name || '';
-            document.getElementById('inpLegArt').value = leg.article || '';
         }
     } else {
         toggleQuestionType();
@@ -357,10 +400,10 @@ async function handleSaveQuestion(e) {
             hap: document.getElementById('inpSolHap').value.trim(),
             tuzak: document.getElementById('inpSolTuzak').value.trim()
         },
+        // YENİ: Mevzuat Referansı
         legislationRef: {
             code: document.getElementById('inpLegCode').value.trim(),
-            name: document.getElementById('inpLegName').value.trim(),
-            article: document.getElementById('inpLegArt').value.trim()
+            article: document.getElementById('inpLegArticle').value.trim()
         },
         isActive: true,
         isFlaggedForReview: false,
