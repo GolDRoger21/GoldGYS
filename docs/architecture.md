@@ -1,18 +1,34 @@
-# Mimari Özet (Stage 0)
+# Teknik Mimari ve Kod Yapısı
 
-## Hedef
-- Firebase Hosting (statik yayın)
-- Firebase Authentication (yetkilendirme)
-- Firestore (içerik + kullanıcı verisi)
-- Admin panel (içerik yönetimi)
-- Binlerce soru / çok sayıda test / deneme
+## Frontend Mimarisi
+Proje, **Vanilla JS + ES Modules** üzerine kuruludur. Framework (React/Vue) kullanılmamıştır, ancak modern bir yapıdadır.
 
-## Temel İlke: Content-driven Portal
-- Konu (Topic) merkezli HUB: Notlar + Testler + Videolar + Podcast
-- Test ve Deneme motoru ayrı (engine), UI şablonları ayrı (templates)
-- Kullanıcı verisi (progress, wrongs, favorites) tamamen kullanıcı alt koleksiyonlarında
+### 1. UI Loader (`ui-loader.js`)
+Sayfaların "iskeletini" yönetir.
+- Her sayfa yüklendiğinde çalışır.
+- `header-placeholder` ve `sidebar-placeholder` alanlarına HTML enjekte eder.
+- Kullanıcı giriş yapmışsa profil resmini ve ismini header'a yazar.
+- Admin ise gizli menüleri açar.
 
-## Güvenlik İlkesi
-- Frontend guard: UX amaçlı (asıl güvenlik değil)
-- Firestore Rules: asıl kilit
-- Admin rolü custom claims ile
+### 2. Role Guard (`role-guard.js`)
+Sayfa güvenliğinden sorumludur.
+- `requireAdminOrEditor()`: Admin paneli gibi sayfaları korur.
+- `protectPage()`: Standart sayfaları korur (Login olmamışsa atar).
+- Kullanıcı `pending` durumundaysa içeri almaz.
+
+### 3. Admin Paneli Yapısı
+Admin paneli (`/admin/index.html`) bir SPA (Single Page Application) gibi davranır.
+- Sol menüdeki linkler `#users`, `#content` gibi hash değişimlerini tetikler.
+- `admin-page.js` bu hash değişimini dinler ve ilgili modülü (`modules/admin/users.js` vb.) yükler.
+- Bu sayede sayfa yenilenmeden sekmeler arası geçiş yapılır.
+
+## Backend (Firebase)
+- **Auth:** Kimlik doğrulama ve Custom Claims (admin=true) yönetimi.
+- **Firestore:** Veritabanı.
+- **Functions:** Hassas işlemler (Kullanıcı silme, Rol atama) için Node.js backend.
+- **Hosting:** Statik dosyaların sunumu.
+
+## Güvenlik Katmanları
+1. **UI Guard:** JS ile yönlendirme (UX için).
+2. **Firestore Rules:** Veri okuma/yazma güvenliği (Asıl güvenlik).
+3. **Cloud Functions:** Admin yetkisi gerektiren işlemler için sunucu tarafı kontrolü.

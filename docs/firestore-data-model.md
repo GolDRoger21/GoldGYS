@@ -1,69 +1,60 @@
+# Firestore Veri Modeli (Güncel)
 
-# Firestore Veri Modeli (Stage 5)
+## 1. Kullanıcılar ve Yetki
+### `users/{uid}`
+- `uid`: string
+- `email`: string
+- `displayName`: string
+- `photoURL`: string
+- `role`: "student" | "editor" | "admin"
+- `status`: "pending" | "active" | "rejected" | "suspended"
+- `createdAt`: timestamp
+- `lastLoginAt`: timestamp
+- **Alt Koleksiyonlar:**
+  - `progress`: { topicId, completedTests, scoreAvg }
+  - `wrongs`: { questionId, count, lastAttempt }
+  - `favorites`: { questionId, addedAt }
+  - `exam_results`: { examId, score, correct, wrong, date }
 
-## Koleksiyonlar
+## 2. İçerik Yönetimi
+### `topics/{topicId}`
+- `title`: string
+- `category`: "ortak" | "alan"
+- `order`: number
+- `isActive`: boolean
+- `description`: string
+- **Alt Koleksiyon:** `lessons/{lessonId}`
+  - `title`: string
+  - `contentHTML`: string (veya materials array)
+  - `order`: number
+  - `isActive`: boolean
 
-### topics
-- id (string)
-- title
-- category: ortak | alan
-- order
-- isActive
+### `questions/{questionId}`
+- `text`: string
+- `options`: array [{id: "A", text: "..."}]
+- `correctOption`: "A" | "B" ...
+- `category`: string (Konu adı)
+- `difficulty`: number (1-5)
+- `solution`: { analiz, dayanak, hap, tuzak }
+- `legislationRef`: { code, article } (Kanun maddesi)
+- `isActive`: boolean
+- `isFlaggedForReview`: boolean
 
-### lessons
-- id
-- topicId
-- title
-- contentHTML
-- order
-- isActive
+### `exams/{examId}`
+- `title`: string
+- `duration`: number (dakika)
+- `totalQuestions`: number
+- `questionsSnapshot`: array (Soruların kopyası)
+- `isActive`: boolean
+- `createdAt`: timestamp
 
-### tests
-- id
-- topicId
-- title
-- questionCount
-- duration (optional)
-- isActive
+## 3. Sistem ve Loglar
+### `reports/{reportId}`
+- `userId`: string
+- `questionId`: string
+- `description`: string
+- `status`: "pending" | "resolved"
+- `type`: "error" | "suggestion"
 
-### questions
-- id
-- testId
-- text
-- options[]
-- correct
-- solution{dayanak, analiz, tuzak, hap}
-- difficulty
-- isActive
-
-### exams
-- id
-- title
-- duration
-- totalQuestions
-- isActive
-
-### users/{uid}
-- role: student | admin
-- createdAt
-
-### users/{uid}/progress
-- topicId
-- completedTests
-- scoreAvg
-
-### users/{uid}/wrongs
-- questionId
-- testId
-- createdAt
-
-### users/{uid}/favorites
-- questionId
-- testId
-- createdAt
-
-### reports
-- questionId
-- userId
-- message
-- status
+### `stats/daily_users`
+- `YYYY-MM-DD`: number (Günlük kayıt sayısı)

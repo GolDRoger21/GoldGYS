@@ -1,13 +1,17 @@
-# Stage Plan
+# Geliştirme Planı (Stage Plan)
 
-- Stage 0: Proje çerçevesi (bu paket)
-- Stage 1: HTML templates + partials (layout + sayfa iskeletleri)
-- Stage 2: app.css + app-shell.js + UI helpers
-- Stage 3: firebase.json/.firebaserc + firebase init dosyaları
-- Stage 4: Auth + Guards + Role sistemi
-- Stage 5: Firestore veri modeli + demo seed
-- Stage 6: Test motoru + progress kaydı
-- Stage 7: Deneme motoru (timer, autosave)
-- Stage 8: Yanlışlarım/Favoriler/Raporlar
-- Stage 9: Admin panel
-- Stage 10: Rules + indexes + ölçek & maliyet
+- [x] **Stage 0:** Proje iskeleti ve Git kurulumu.
+- [x] **Stage 1:** HTML Şablonları ve Partials yapısı.
+- [x] **Stage 2:** CSS Token sistemi ve Layout.
+- [x] **Stage 3:** Firebase Config ve Hosting ayarları.
+- [x] **Stage 4:** Auth Sistemi (Login, Logout, Role Guard, Pending Status).
+- [x] **Stage 5:** Firestore Veri Modeli ve Seed verileri.
+- [ ] **Stage 6:** Test Motoru (Test Engine) - *Sırada*
+- [ ] **Stage 7:** Deneme Sınavı Motoru (Süre, Kayıt).
+- [ ] **Stage 8:** Kullanıcı İstatistikleri (Yanlışlar, Favoriler).
+- [x] **Stage 9:** Admin Paneli (Kullanıcı ve İçerik Yönetimi).
+- [x] **Stage 10:** Güvenlik Kuralları (Firestore Rules) ve Deploy.
+
+## Şu Anki Durum
+Admin paneli, Üyelik sistemi ve Veritabanı altyapısı tamamlandı. Güvenlik kuralları yazıldı.
+Sırada **Test Motoru**'nun frontend tarafında canlandırılması ve kullanıcıların soru çözmeye başlaması var.
