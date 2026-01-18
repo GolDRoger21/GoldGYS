@@ -8,9 +8,9 @@ export function initImporterPage() {
         <div class="section-header">
             <div>
                 <h2>📥 Toplu Soru Yükleme</h2>
-                <p class="text-muted">Excel dosyasından binlerce soruyu tek seferde yükleyin.</p>
+                <p class="text-muted">Excel veya JSON dosyasından binlerce soruyu tek seferde yükleyin.</p>
             </div>
-            <button onclick="downloadTemplate()" class="btn btn-outline-primary">📄 Şablon İndir</button>
+            <button onclick="downloadTemplate()" class="btn btn-outline-primary">📄 Excel Şablonu İndir</button>
         </div>
 
         <div class="row">
@@ -18,7 +18,7 @@ export function initImporterPage() {
                 <div class="card p-5 text-center border-dashed" style="border: 2px dashed var(--border-color); cursor:pointer;" onclick="document.getElementById('fileInput').click()">
                     <div style="font-size: 3rem; margin-bottom: 10px;">📂</div>
                     <h5>Dosya Seç veya Sürükle</h5>
-                    <p class="text-muted small">.xlsx veya .json formatında</p>
+                    <p class="text-muted small">.json (Önerilen) veya .xlsx formatında</p>
                     <input type="file" id="fileInput" accept=".json, .xlsx, .xls" style="display: none;">
                 </div>
                 
@@ -56,25 +56,51 @@ let parsedQuestions = [];
 async function handleFileSelect(event) {
     const file = event.target.files[0];
     if (!file) return;
+
     log(`Dosya okunuyor: ${file.name}`);
+    parsedQuestions = []; // Önceki veriyi temizle
 
     try {
-        const data = await file.arrayBuffer();
-        const workbook = XLSX.read(data);
-        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-        parsedQuestions = convertExcelData(XLSX.utils.sheet_to_json(firstSheet));
+        if (file.name.endsWith('.json')) {
+            // JSON Dosyası İşleme
+            const text = await file.text();
+            const jsonData = JSON.parse(text);
+
+            if (Array.isArray(jsonData)) {
+                // JSON verisi zaten bizim formatımızda ise direkt kullan
+                // Ancak her ihtimale karşı eksik alanları tamamlayalım
+                parsedQuestions = jsonData.map(q => ({
+                    ...q,
+                    isActive: true,
+                    isFlaggedForReview: false,
+                    createdAt: serverTimestamp()
+                }));
+                log(`JSON'dan ${parsedQuestions.length} soru okundu.`, "success");
+            } else {
+                throw new Error("JSON dosyası bir dizi (array) içermelidir.");
+            }
+        } else {
+            // Excel Dosyası İşleme
+            const data = await file.arrayBuffer();
+            const workbook = XLSX.read(data);
+            const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+            const rawData = XLSX.utils.sheet_to_json(firstSheet);
+            parsedQuestions = convertExcelData(rawData);
+            log(`Excel'den ${parsedQuestions.length} satır okundu.`, "success");
+        }
+
         validateAndPreview();
-    } catch (error) { log(`Hata: ${error.message}`, "error"); }
+
+    } catch (error) {
+        console.error(error);
+        log(`Hata: ${error.message}`, "error");
+    }
 }
 
-// --- GÜNCELLENECEK FONKSİYON: Excel Verisini Dönüştürme ---
+// Excel Verisini Dönüştürme (Sadece Excel için kullanılır)
 function convertExcelData(rawData) {
     return rawData.map(row => {
-        // Excel sütun isimleri (Esnek yapı)
-        const type = row['Tip'] || row['type'] || 'standard';
-
-        // Öncülleri ayır (Excel'de "I. ..., II. ..." şeklinde tek hücrede veya ayrı sütunlarda olabilir)
-        // Basitlik için Excel'de "Onculler" sütununda alt alta satırlarla veya özel bir ayraçla (|) geldiğini varsayalım.
+        // Öncülleri ayır
         let onculler = [];
         if (row['Onculler']) {
             onculler = row['Onculler'].split('|').map(s => s.trim());
@@ -83,7 +109,7 @@ function convertExcelData(rawData) {
         return {
             category: row['Kategori'] || row['category'] || 'Genel',
             difficulty: parseInt(row['Zorluk'] || row['difficulty']) || 3,
-            type: type,
+            type: row['Tip'] || row['type'] || 'standard',
             text: row['Soru Metni'] || row['text'],
             questionRoot: row['Soru Koku'] || row['questionRoot'] || null,
             onculler: onculler,
@@ -97,7 +123,6 @@ function convertExcelData(rawData) {
             ],
             correctOption: (row['Doğru Cevap'] || row['correctOption'] || '').toUpperCase(),
 
-            // Detaylı Çözüm Objesi
             solution: {
                 analiz: row['Çözüm Analiz'] || row['analiz'] || '',
                 dayanakText: row['Mevzuat Dayanak'] || row['dayanak'] || '',
@@ -105,14 +130,10 @@ function convertExcelData(rawData) {
                 tuzak: row['Sınav Tuzağı'] || row['tuzak'] || ''
             },
 
-            // Mevzuat Referansı Objesi
             legislationRef: {
                 code: String(row['Kanun No'] || row['code'] || ''),
-                name: row['Kanun Adı'] || row['legName'] || '',
                 article: String(row['Madde No'] || row['article'] || '')
             },
-
-            tags: (row['Etiketler'] || '').split(',').map(t => t.trim()).filter(Boolean),
 
             isActive: true,
             isFlaggedForReview: false,
@@ -127,14 +148,17 @@ function validateAndPreview() {
     let validCount = 0;
 
     parsedQuestions.forEach((q, index) => {
+        // Basit doğrulama: Soru metni ve doğru cevap var mı?
         const isValid = q.text && q.correctOption;
         if (isValid) validCount++;
+
+        const shortText = q.text ? (q.text.length > 50 ? q.text.substring(0, 50) + '...' : q.text) : '---';
 
         table.innerHTML += `
             <tr style="${!isValid ? 'background:rgba(255,0,0,0.1)' : ''}">
                 <td>${index + 1}</td>
-                <td>${q.category}</td>
-                <td>${q.text?.substring(0, 30)}...</td>
+                <td>${q.category || '-'}</td>
+                <td title="${q.text}">${shortText}</td>
                 <td>${isValid ? '✅' : '❌'}</td>
             </tr>
         `;
@@ -142,24 +166,63 @@ function validateAndPreview() {
 
     document.getElementById('previewCard').style.display = 'block';
     const btn = document.getElementById('btnStartImport');
-    btn.disabled = validCount === 0;
-    btn.innerText = `🚀 ${validCount} Soruyu Yükle`;
+
+    if (validCount > 0) {
+        btn.disabled = false;
+        btn.innerText = `🚀 ${validCount} Soruyu Yükle`;
+        log(`${validCount} geçerli soru bulundu. Yüklemeye hazır.`, "success");
+    } else {
+        btn.disabled = true;
+        btn.innerText = "Yüklenecek Soru Yok";
+        log("Geçerli soru bulunamadı. Lütfen dosya formatını kontrol edin.", "error");
+    }
 }
 
 async function startBatchImport() {
-    if (!confirm("Yükleme başlatılsın mı?")) return;
-    const batch = writeBatch(db);
-    parsedQuestions.forEach(q => {
-        const docRef = doc(collection(db, "questions"));
-        batch.set(docRef, q);
-    });
+    if (!confirm(`${parsedQuestions.length} soruyu veritabanına yüklemek istiyor musunuz?`)) return;
+
+    const btn = document.getElementById('btnStartImport');
+    btn.disabled = true;
+    btn.innerText = "Yükleniyor...";
+
     try {
-        await batch.commit();
-        log("✅ Başarıyla Yüklendi!", "success");
-        alert("İşlem tamamlandı.");
+        // Firestore Batch limiti 500'dür. Büyük dosyaları parçalayalım.
+        const batchSize = 450;
+        const chunks = [];
+
+        for (let i = 0; i < parsedQuestions.length; i += batchSize) {
+            chunks.push(parsedQuestions.slice(i, i + batchSize));
+        }
+
+        log(`Toplam ${chunks.length} paket halinde yüklenecek...`);
+
+        for (let i = 0; i < chunks.length; i++) {
+            const batch = writeBatch(db);
+            const chunk = chunks[i];
+
+            chunk.forEach(q => {
+                const docRef = doc(collection(db, "questions"));
+                batch.set(docRef, q);
+            });
+
+            await batch.commit();
+            log(`Paket ${i + 1}/${chunks.length} yüklendi (${chunk.length} soru).`, "success");
+        }
+
+        log("✅ TÜM İŞLEMLER BAŞARIYLA TAMAMLANDI!", "success");
+        alert("Yükleme tamamlandı.");
+
+        // Temizlik
         document.getElementById('previewCard').style.display = 'none';
+        document.getElementById('fileInput').value = '';
+        parsedQuestions = [];
+
+    } catch (e) {
+        console.error(e);
+        log("Yükleme sırasında hata: " + e.message, "error");
+        btn.disabled = false;
+        btn.innerText = "Tekrar Dene";
     }
-    catch (e) { log("Hata: " + e.message, "error"); }
 }
 
 function log(msg, type = "info") {
@@ -170,7 +233,20 @@ function log(msg, type = "info") {
 }
 
 window.downloadTemplate = () => {
-    const ws = XLSX.utils.json_to_sheet([{ "Kategori": "Genel", "Soru Metni": "Soru?", "A": "Cevap A", "Doğru Cevap": "A", "Çözüm": "Açıklama", "Kanun No": "5271", "Madde No": "1" }]);
-    const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Sablon");
+    const ws = XLSX.utils.json_to_sheet([{
+        "Kategori": "Genel",
+        "Soru Metni": "Soru?",
+        "A": "Cevap A",
+        "B": "Cevap B",
+        "C": "Cevap C",
+        "D": "Cevap D",
+        "E": "Cevap E",
+        "Doğru Cevap": "A",
+        "Çözüm Analiz": "Açıklama",
+        "Kanun No": "5271",
+        "Madde No": "1"
+    }]);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Sablon");
     XLSX.writeFile(wb, "Soru_Sablonu.xlsx");
 };
