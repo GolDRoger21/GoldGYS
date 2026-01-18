@@ -439,17 +439,18 @@
       }
     }
 
-    /* --- VIDEO MODAL DÜZELTMELERİ --- */
-    /* --- VIDEO MODAL (Z-INDEX DÜZELTMESİ) --- */
+    /* --- VIDEO MODAL (KESİN ÇÖZÜM) --- */
     #videoModal {
       position: fixed;
       top: 0;
       left: 0;
-      width: 100%;
-      height: 100%;
+      width: 100vw;
+      /* Viewport Width */
+      height: 100vh;
+      /* Viewport Height */
       background: rgba(0, 0, 0, 0.95);
-      /* KRİTİK: Viewer Overlay (9999)'dan çok daha yüksek olmalı */
-      z-index: 20000 !important;
+      z-index: 2147483647 !important;
+      /* Tarayıcının izin verdiği en yüksek değer */
       display: none;
       justify-content: center;
       align-items: center;
@@ -599,19 +600,6 @@
     </div>
     <div class="viewer-body" id="viewerContent">
       <!-- Liste veya İçerik Buraya Gelecek -->
-    </div>
-  </div>
-
-  <!-- Video Modal (TAM EKRAN) -->
-  <!-- Video Modal (TAM EKRAN) -->
-  <div id="videoModal">
-    <!-- Kapatma butonu wrapper dışına alındı -->
-    <button class="video-close-btn" onclick="closeVideo()">
-      <span>✕</span> Kapat
-    </button>
-
-    <div class="video-wrapper-modal">
-      <div id="videoPlayer" style="width:100%; height:100%;"></div>
     </div>
   </div>
 
@@ -768,57 +756,8 @@
       }, 300);
     };
 
-    // --- İÇERİK OYNATMA VE OTOMATİK DÜZELTME ---
+    // --- İÇERİK OYNATMA ---
 
-    // 1. Akıllı İçerik Onarıcı Fonksiyon
-    function processHtmlContent(htmlString) {
-      // HTML'i geçici bir DOM nesnesine çevir
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(htmlString, 'text/html');
-
-      // A) RESİMLERİ ONAR
-      const images = doc.querySelectorAll('img');
-      images.forEach(img => {
-        // Boş src varsa sil
-        if (!img.src || img.src === window.location.href) {
-          img.remove();
-          return;
-        }
-
-        // HTTP -> HTTPS Zorlaması (Güvenlik için)
-        if (img.src.startsWith('http://')) {
-          img.src = img.src.replace('http://', 'https://');
-        }
-
-        // Hata durumunda çalışacak inline kod ekle (Self-Healing)
-        // Resim yüklenemezse (404), konsol hatasını engelleyemeyiz ama
-        // kullanıcıya kırık ikon yerine şık bir placeholder gösterebiliriz veya gizleyebiliriz.
-        img.setAttribute('onerror', "this.onerror=null; this.style.display='none';");
-
-        // Stil iyileştirmesi (Taşmaları engelle)
-        img.style.maxWidth = '100%';
-        img.style.height = 'auto';
-        img.style.borderRadius = '8px';
-        img.style.marginTop = '10px';
-      });
-
-      // B) LİNKLERİ ONAR
-      const links = doc.querySelectorAll('a');
-      links.forEach(link => {
-        // Linkleri yeni sekmede açmaya zorla
-        link.setAttribute('target', '_blank');
-        link.setAttribute('rel', 'noopener noreferrer');
-
-        // Link metni yoksa URL'i metin yap
-        if (!link.innerText.trim()) {
-          link.innerText = "Bağlantıyı Görüntüle";
-        }
-      });
-
-      return doc.body.innerHTML;
-    }
-
-    // 2. Güncellenmiş Oynatma Fonksiyonu
     window.playContent = (item) => {
       const content = document.getElementById('viewerContent');
       const title = document.getElementById('viewerTitle');
@@ -884,19 +823,37 @@
             </div>`;
       }
       else if (item.type === 'html') {
-        // --- BURADA OTOMATİK DÜZELTME DEVREYE GİRİYOR ---
-        const safeHtml = processHtmlContent(item.url);
+        // --- IFRAME ÇÖZÜMÜ (NOTLARI ORİJİNAL HALİYLE GÖSTERİR) ---
 
-        html = `
-            <div class="note-reader-content" style="max-width:800px; margin:0 auto;">
-                ${safeHtml}
-            </div>
-            <div class="text-center mt-5" style="padding-bottom: 50px;">
-                <button class="btn btn-success btn-lg" onclick="markComplete('${item.id}'); openViewer('html');">
-                    ✅ Okudum, Tamamla
-                </button>
-            </div>
+        // 1. Iframe Oluştur
+        const iframe = document.createElement('iframe');
+        iframe.style.width = '100%';
+        iframe.style.height = '80vh'; // Ekranın %80'ini kaplasın
+        iframe.style.border = 'none';
+        iframe.style.borderRadius = '12px';
+        iframe.style.backgroundColor = '#fff';
+        iframe.style.boxShadow = '0 4px 20px rgba(0,0,0,0.1)';
+
+        // 2. Tamamla Butonu
+        const btnDiv = document.createElement('div');
+        btnDiv.className = 'text-center mt-3';
+        btnDiv.style.paddingBottom = '50px';
+        btnDiv.innerHTML = `
+            <button class="btn btn-success btn-lg" onclick="markComplete('${item.id}'); openViewer('html');">
+                ✅ Okudum, Tamamla
+            </button>
         `;
+
+        // 3. İçeriği Temizle ve Ekle
+        content.innerHTML = '';
+        content.appendChild(iframe);
+        content.appendChild(btnDiv);
+
+        // 4. Iframe İçine HTML'i Yaz (Tailwind ve Fontlar çalışsın diye)
+        const doc = iframe.contentWindow.document;
+        doc.open();
+        doc.write(item.url); // item.url içinde raw HTML var
+        doc.close();
       }
       else if (item.type === 'test') {
         window.location.href = item.url;
@@ -936,6 +893,17 @@
     };
 
   </script>
+
+  <!-- Video Modal (TAM EKRAN) - EN SONDA OLMALI -->
+  <div id="videoModal">
+    <button class="video-close-btn" onclick="closeVideo()">
+      <span>✕</span> Kapat
+    </button>
+    <div class="video-wrapper-modal">
+      <div id="videoPlayer" style="width:100%; height:100%;"></div>
+    </div>
+  </div>
+
 </body>
 
 </html>
