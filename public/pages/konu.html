@@ -311,39 +311,136 @@
       font-weight: bold;
     }
 
-    /* HTML Not Okuyucu (Tam Ekran Hissi) */
+    /* --- HTML NOT OKUYUCU (PREMIUM TASARIM) --- */
     .note-reader-content {
-      font-size: 1.2rem;
-      line-height: 1.8;
-      color: var(--text-main);
-      font-family: 'Georgia', serif;
-      /* Okuma için serif */
-      background: transparent;
-      /* Kart görünümü kaldırıldı, kağıt hissi */
-      padding: 0;
-      border: none;
-      box-shadow: none;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      /* Modern font */
+      font-size: 1.05rem;
+      line-height: 1.7;
+      color: #334155;
+      /* Koyu gri, göz yormaz */
+      background: #ffffff;
+      padding: 40px;
+      border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+      margin-bottom: 30px;
     }
 
+    /* Başlıklar - Gemini Tarzı */
     .note-reader-content h1,
-    .note-reader-content h2,
-    .note-reader-content h3 {
-      font-family: var(--font-family-sans);
-      color: var(--color-primary);
-      margin-top: 1.5em;
+    .note-reader-content h2 {
+      color: #1e293b;
+      font-weight: 800;
+      margin-top: 2rem;
+      margin-bottom: 1rem;
+      letter-spacing: -0.5px;
+      position: relative;
     }
 
+    .note-reader-content h1 {
+      font-size: 2rem;
+      border-bottom: 2px solid #e2e8f0;
+      padding-bottom: 10px;
+    }
+
+    .note-reader-content h2 {
+      font-size: 1.5rem;
+    }
+
+    /* Alt Başlıklar - Renkli İkon Hissi */
+    .note-reader-content h3 {
+      font-size: 1.2rem;
+      color: var(--color-primary);
+      /* Gold rengi */
+      font-weight: 700;
+      margin-top: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Paragraflar */
+    .note-reader-content p {
+      margin-bottom: 1.2rem;
+    }
+
+    /* Listeler - Temiz Görünüm */
     .note-reader-content ul,
     .note-reader-content ol {
+      margin-bottom: 1.5rem;
       padding-left: 20px;
-      margin-bottom: 1em;
+      background: #f8fafc;
+      /* Hafif gri arka plan */
+      padding: 20px 20px 20px 40px;
+      border-radius: 12px;
+      border: 1px solid #e2e8f0;
     }
 
     .note-reader-content li {
-      margin-bottom: 0.5em;
+      margin-bottom: 0.5rem;
+      padding-left: 5px;
+    }
+
+    /* Vurgulu Alanlar (Callout Boxes) */
+    .note-reader-content blockquote {
+      background: rgba(212, 175, 55, 0.1);
+      /* Gold hafif zemin */
+      border-left: 4px solid var(--color-primary);
+      margin: 20px 0;
+      padding: 20px;
+      border-radius: 0 8px 8px 0;
+      font-style: italic;
+      color: #0f172a;
+    }
+
+    .note-reader-content strong {
+      color: #0f172a;
+      font-weight: 700;
+    }
+
+    /* Tablolar */
+    .note-reader-content table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 25px 0;
+      font-size: 0.95rem;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    .note-reader-content th {
+      background-color: #1e293b;
+      color: white;
+      padding: 12px 15px;
+      text-align: left;
+    }
+
+    .note-reader-content td {
+      border-bottom: 1px solid #e2e8f0;
+      padding: 12px 15px;
+      background: white;
+    }
+
+    /* Resimler */
+    .note-reader-content img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 12px;
+      margin: 20px 0;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Mobil Uyum */
+    @media (max-width: 768px) {
+      .note-reader-content {
+        padding: 20px;
+        font-size: 1rem;
+      }
     }
 
     /* --- VIDEO MODAL DÜZELTMELERİ --- */
+    /* --- VIDEO MODAL (Z-INDEX DÜZELTMESİ) --- */
     #videoModal {
       position: fixed;
       top: 0;
@@ -351,8 +448,8 @@
       width: 100%;
       height: 100%;
       background: rgba(0, 0, 0, 0.95);
-      /* Tam siyah yerine çok koyu opak */
-      z-index: 3000;
+      /* KRİTİK: Viewer Overlay (9999)'dan çok daha yüksek olmalı */
+      z-index: 20000 !important;
       display: none;
       justify-content: center;
       align-items: center;
