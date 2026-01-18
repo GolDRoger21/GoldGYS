@@ -5,10 +5,10 @@ import * as XLSX from "https://cdn.sheetjs.com/xlsx-latest/package/xlsx.mjs";
 
 export function initImporterPage() {
     console.log("Toplu Yükleme Modülü Başlatılıyor...");
-    
+
     // DÜZELTME: Artık Soru Bankası'nı ezmemesi için kendi section'ını kullanıyor
-    const container = document.getElementById('section-importer'); 
-    
+    const container = document.getElementById('section-importer');
+
     if (!container) {
         console.error("Importer section bulunamadı! (HTML'de #section-importer var mı kontrol edin)");
         return;
@@ -66,9 +66,9 @@ export function initImporterPage() {
     const startBtn = document.getElementById('btnStartImport');
     const dlBtn = document.getElementById('btnDownloadTemplate');
 
-    if(fileInp) fileInp.addEventListener('change', handleFileSelect);
-    if(startBtn) startBtn.addEventListener('click', startBatchImport);
-    if(dlBtn) dlBtn.addEventListener('click', downloadTemplate);
+    if (fileInp) fileInp.addEventListener('change', handleFileSelect);
+    if (startBtn) startBtn.addEventListener('click', startBatchImport);
+    if (dlBtn) dlBtn.addEventListener('click', downloadTemplate);
 }
 
 // --- YARDIMCI FONKSİYONLAR ---
@@ -78,7 +78,7 @@ async function handleFileSelect(event) {
     const file = event.target.files[0];
     if (!file) return;
     log(`Dosya seçildi: ${file.name}`);
-    
+
     try {
         if (file.name.endsWith('.json')) {
             const text = await file.text();
@@ -94,59 +94,95 @@ async function handleFileSelect(event) {
     } catch (error) { log(`Hata: ${error.message}`, "error"); }
 }
 
+// --- GÜNCELLENECEK FONKSİYON: Excel Verisini Dönüştürme ---
 function convertExcelData(rawData) {
-    return rawData.map(row => ({
-        text: row['Soru Metni'] || row['text'],
-        category: row['Kategori'] || row['category'] || 'Genel',
-        type: 'standard',
-        difficulty: 3,
-        options: [
-            { id: 'A', text: row['A'] || '' }, { id: 'B', text: row['B'] || '' },
-            { id: 'C', text: row['C'] || '' }, { id: 'D', text: row['D'] || '' },
-            { id: 'E', text: row['E'] || '' }
-        ],
-        correctOption: row['Doğru Cevap'] || row['correctOption'],
-        solution: { analiz: row['Çözüm Analiz'] || '' },
-        legislationRef: { code: row['Kanun No'] || '', article: row['Madde No'] || '' },
-        tags: [], isFlaggedForReview: false, isActive: true
-    }));
+    return rawData.map(row => {
+        // Excel sütun isimleri (Esnek yapı)
+        const type = row['Tip'] || row['type'] || 'standard';
+
+        // Öncülleri ayır (Excel'de "I. ..., II. ..." şeklinde tek hücrede veya ayrı sütunlarda olabilir)
+        // Basitlik için Excel'de "Onculler" sütununda alt alta satırlarla veya özel bir ayraçla (|) geldiğini varsayalım.
+        let onculler = [];
+        if (row['Onculler']) {
+            onculler = row['Onculler'].split('|').map(s => s.trim());
+        }
+
+        return {
+            category: row['Kategori'] || row['category'] || 'Genel',
+            difficulty: parseInt(row['Zorluk'] || row['difficulty']) || 3,
+            type: type,
+            text: row['Soru Metni'] || row['text'],
+            questionRoot: row['Soru Koku'] || row['questionRoot'] || null,
+            onculler: onculler,
+
+            options: [
+                { id: 'A', text: row['A'] || '' },
+                { id: 'B', text: row['B'] || '' },
+                { id: 'C', text: row['C'] || '' },
+                { id: 'D', text: row['D'] || '' },
+                { id: 'E', text: row['E'] || '' }
+            ],
+            correctOption: (row['Doğru Cevap'] || row['correctOption'] || '').toUpperCase(),
+
+            // Detaylı Çözüm Objesi
+            solution: {
+                analiz: row['Çözüm Analiz'] || row['analiz'] || '',
+                dayanakText: row['Mevzuat Dayanak'] || row['dayanak'] || '',
+                hap: row['Hap Bilgi'] || row['hap'] || '',
+                tuzak: row['Sınav Tuzağı'] || row['tuzak'] || ''
+            },
+
+            // Mevzuat Referansı Objesi
+            legislationRef: {
+                code: String(row['Kanun No'] || row['code'] || ''),
+                name: row['Kanun Adı'] || row['legName'] || '',
+                article: String(row['Madde No'] || row['article'] || '')
+            },
+
+            tags: (row['Etiketler'] || '').split(',').map(t => t.trim()).filter(Boolean),
+
+            isActive: true,
+            isFlaggedForReview: false,
+            createdAt: serverTimestamp()
+        };
+    });
 }
 
 function validateAndPreview() {
     const table = document.getElementById('previewTableBody');
-    if(!table) return;
-    
+    if (!table) return;
+
     table.innerHTML = '';
     let validCount = 0;
-    
+
     parsedQuestions.forEach((q, index) => {
         const isValid = q.text && q.correctOption;
-        if(isValid) validCount++;
-        
+        if (isValid) validCount++;
+
         // Tablo satırı
         const tr = document.createElement('tr');
-        if(!isValid) tr.style.background = 'rgba(255,0,0,0.1)';
+        if (!isValid) tr.style.background = 'rgba(255,0,0,0.1)';
         tr.innerHTML = `
-            <td>${index+1}</td>
+            <td>${index + 1}</td>
             <td>${q.category}</td>
-            <td>${q.text?.substring(0,30)}...</td>
-            <td>${isValid?'✅':'❌'}</td>
+            <td>${q.text?.substring(0, 30)}...</td>
+            <td>${isValid ? '✅' : '❌'}</td>
         `;
         table.appendChild(tr);
     });
 
     const card = document.getElementById('previewCard');
     const btn = document.getElementById('btnStartImport');
-    
-    if(card) card.style.display = 'block';
-    if(btn) {
+
+    if (card) card.style.display = 'block';
+    if (btn) {
         btn.disabled = validCount === 0;
         btn.innerText = `🚀 ${validCount} Soruyu Yükle`;
     }
 }
 
 async function startBatchImport() {
-    if(!confirm("Yükleme başlatılsın mı?")) return;
+    if (!confirm("Yükleme başlatılsın mı?")) return;
     const batch = writeBatch(db);
     parsedQuestions.forEach(q => {
         q.createdAt = serverTimestamp();
@@ -154,20 +190,20 @@ async function startBatchImport() {
         const docRef = doc(collection(db, "questions"));
         batch.set(docRef, q);
     });
-    try { 
-        await batch.commit(); 
-        log("✅ Başarıyla Yüklendi!", "success"); 
+    try {
+        await batch.commit();
+        log("✅ Başarıyla Yüklendi!", "success");
         alert("İşlem tamamlandı.");
         // Temizlik
         parsedQuestions = [];
         document.getElementById('previewCard').style.display = 'none';
-    } 
-    catch(e) { log("Hata: " + e.message, "error"); }
+    }
+    catch (e) { log("Hata: " + e.message, "error"); }
 }
 
-function log(msg, type="info") {
+function log(msg, type = "info") {
     const area = document.getElementById('importLog');
-    if(!area) return;
+    if (!area) return;
     const color = type === 'error' ? '#ef4444' : (type === 'success' ? '#10b981' : '#9ca3af');
     area.innerHTML += `<div style="color:${color}">> ${msg}</div>`;
     area.scrollTop = area.scrollHeight;

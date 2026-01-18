@@ -60,11 +60,6 @@ function renderProgressChart(results) {
     const chartData = [...results].reverse();
     const ctx = document.getElementById('progressChart').getContext('2d');
 
-    // Tema renklerini al
-    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-    const gridColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
-    const textColor = isDark ? '#94A3B8' : '#64748B';
-
     new Chart(ctx, {
         type: 'line',
         data: {
@@ -84,20 +79,9 @@ function renderProgressChart(results) {
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false }
-            },
+            plugins: { legend: { display: false } },
             scales: {
-                y: {
-                    beginAtZero: true,
-                    max: 100,
-                    grid: { color: gridColor },
-                    ticks: { color: textColor }
-                },
-                x: {
-                    grid: { display: false },
-                    ticks: { color: textColor }
-                }
+                y: { beginAtZero: true, max: 100 }
             }
         }
     });
@@ -123,8 +107,6 @@ function renderTopicChart(results) {
     });
 
     const ctx = document.getElementById('topicChart').getContext('2d');
-    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-    const textColor = isDark ? '#94A3B8' : '#64748B';
 
     new Chart(ctx, {
         type: 'radar',
@@ -143,13 +125,7 @@ function renderTopicChart(results) {
             responsive: true,
             maintainAspectRatio: false,
             scales: {
-                r: {
-                    angleLines: { color: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' },
-                    grid: { color: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' },
-                    pointLabels: { color: textColor, font: { size: 12 } },
-                    suggestedMin: 0,
-                    suggestedMax: 100
-                }
+                r: { suggestedMin: 0, suggestedMax: 100 }
             }
         }
     });

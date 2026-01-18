@@ -258,22 +258,20 @@ export async function openQuestionEditor(questionId = null) {
         title.innerText = "Soruyu Düzenle";
         document.getElementById('editQuestionId').value = questionId;
         
-        // Veriyi Getir
         try {
             const docSnap = await getDoc(doc(db, "questions", questionId));
             if (docSnap.exists()) {
                 const data = docSnap.data();
                 
-                // Temel Alanlar
+                // 1. Temel Alanlar
                 document.getElementById('inpCategory').value = data.category || '';
                 document.getElementById('inpDifficulty').value = data.difficulty || 3;
                 document.getElementById('inpType').value = data.type || 'standard';
                 document.getElementById('inpText').value = data.text || '';
                 document.getElementById('inpTags').value = data.tags ? data.tags.join(', ') : '';
                 
-                // Seçenekler
+                // 2. Seçenekler (Array yapısına uygun)
                 if(Array.isArray(data.options)) {
-                    // Array formatındaysa (yeni yapı)
                     const map = {};
                     data.options.forEach(o => map[o.id] = o.text);
                     document.getElementById('inpOptA').value = map['A'] || '';
@@ -281,33 +279,26 @@ export async function openQuestionEditor(questionId = null) {
                     document.getElementById('inpOptC').value = map['C'] || '';
                     document.getElementById('inpOptD').value = map['D'] || '';
                     document.getElementById('inpOptE').value = map['E'] || '';
-                } else {
-                    // Eski map yapısı
-                    document.getElementById('inpOptA').value = data.options?.A || '';
-                    document.getElementById('inpOptB').value = data.options?.B || '';
-                    document.getElementById('inpOptC').value = data.options?.C || '';
-                    document.getElementById('inpOptD').value = data.options?.D || '';
-                    document.getElementById('inpOptE').value = data.options?.E || '';
                 }
                 
                 document.getElementById('inpCorrect').value = data.correctOption;
 
-                // Öncüllü Soru Verileri
+                // 3. Öncüllü Soru Verileri
                 if(data.type === 'oncullu') {
                     currentOnculler = data.onculler || [];
                     document.getElementById('inpQuestionRoot').value = data.questionRoot || '';
                     renderOnculler();
                 }
-                toggleQuestionType();
+                toggleQuestionType(); // Arayüzü güncelle
 
-                // Çözüm Verileri
+                // 4. Detaylı Çözüm (Map yapısı)
                 const sol = data.solution || {};
                 document.getElementById('inpSolAnaliz').value = sol.analiz || '';
                 document.getElementById('inpSolDayanak').value = sol.dayanakText || '';
                 document.getElementById('inpSolHap').value = sol.hap || '';
                 document.getElementById('inpSolTuzak').value = sol.tuzak || '';
 
-                // Mevzuat Verileri
+                // 5. Mevzuat Referansı (Map yapısı - İleride filtreleme için kritik)
                 const leg = data.legislationRef || {};
                 document.getElementById('inpLegCode').value = leg.code || '';
                 document.getElementById('inpLegName').value = leg.name || '';
@@ -332,48 +323,51 @@ async function handleSaveQuestion(e) {
     e.preventDefault();
     const id = document.getElementById('editQuestionId').value;
     
-    // Veri Yapısını Oluştur (Verdiğin JSON formatına birebir uygun)
+    // JSON Yapısına Birebir Uygun Obje Oluşturma
     const questionData = {
-        category: document.getElementById('inpCategory').value,
-        difficulty: parseInt(document.getElementById('inpDifficulty').value),
+        // Temel Bilgiler
+        category: document.getElementById('inpCategory').value.trim(),
+        difficulty: parseInt(document.getElementById('inpDifficulty').value) || 3,
         type: document.getElementById('inpType').value,
-        text: document.getElementById('inpText').value,
+        text: document.getElementById('inpText').value.trim(),
         tags: document.getElementById('inpTags').value.split(',').map(t => t.trim()).filter(Boolean),
-        isActive: true,
-        isFlaggedForReview: false,
         
-        // Seçenekleri Array Olarak Kaydet (Frontend ile uyumlu)
+        // Durum Bilgileri
+        isActive: true,
+        isFlaggedForReview: false, // Mevzuat değişikliğinde true olacak
+        
+        // Seçenekler (Array of Maps)
         options: [
-            { id: "A", text: document.getElementById('inpOptA').value },
-            { id: "B", text: document.getElementById('inpOptB').value },
-            { id: "C", text: document.getElementById('inpOptC').value },
-            { id: "D", text: document.getElementById('inpOptD').value },
-            { id: "E", text: document.getElementById('inpOptE').value }
+            { id: "A", text: document.getElementById('inpOptA').value.trim() },
+            { id: "B", text: document.getElementById('inpOptB').value.trim() },
+            { id: "C", text: document.getElementById('inpOptC').value.trim() },
+            { id: "D", text: document.getElementById('inpOptD').value.trim() },
+            { id: "E", text: document.getElementById('inpOptE').value.trim() }
         ],
         correctOption: document.getElementById('inpCorrect').value,
         
-        // Gelişmiş Çözüm Objesi
+        // Detaylı Çözüm (Map)
         solution: {
-            analiz: document.getElementById('inpSolAnaliz').value,
-            dayanakText: document.getElementById('inpSolDayanak').value,
-            hap: document.getElementById('inpSolHap').value,
-            tuzak: document.getElementById('inpSolTuzak').value
+            analiz: document.getElementById('inpSolAnaliz').value.trim(),
+            dayanakText: document.getElementById('inpSolDayanak').value.trim(),
+            hap: document.getElementById('inpSolHap').value.trim(),
+            tuzak: document.getElementById('inpSolTuzak').value.trim()
         },
         
-        // Mevzuat Referansı
+        // Mevzuat Referansı (Map - Filtreleme için kritik)
         legislationRef: {
-            code: document.getElementById('inpLegCode').value,
-            name: document.getElementById('inpLegName').value,
-            article: document.getElementById('inpLegArt').value
+            code: document.getElementById('inpLegCode').value.trim(), // Örn: "5271"
+            name: document.getElementById('inpLegName').value.trim(), // Örn: "Ceza Muhakemesi Kanunu"
+            article: document.getElementById('inpLegArt').value.trim() // Örn: "231"
         },
         
         updatedAt: serverTimestamp()
     };
 
-    // Öncüllü ise ek alanları ekle
+    // Öncüllü Soru Kontrolü
     if (questionData.type === 'oncullu') {
-        questionData.onculler = currentOnculler;
-        questionData.questionRoot = document.getElementById('inpQuestionRoot').value;
+        questionData.onculler = currentOnculler; // Global array'den al
+        questionData.questionRoot = document.getElementById('inpQuestionRoot').value.trim();
     } else {
         questionData.onculler = [];
         questionData.questionRoot = null;
@@ -389,7 +383,7 @@ async function handleSaveQuestion(e) {
             alert("Yeni soru başarıyla eklendi.");
         }
         closeModal();
-        loadQuestions(); // Listeyi yenile
+        loadQuestions();
     } catch (error) {
         console.error("Kaydetme hatası:", error);
         alert("Hata: " + error.message);

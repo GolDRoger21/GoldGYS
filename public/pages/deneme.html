@@ -225,174 +225,57 @@
 
     <script type="module">
         import { protectPage } from '/js/role-guard.js';
-        import { TestEngine } from '/js/test-engine.js'; // Senin yazdığın motor
+        import { TestEngine } from '/js/test-engine.js';
         import { db, auth } from '/js/firebase-config.js';
-        import { doc, getDoc, collection, getDocs, query, where, documentId, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        protectPage(); // Giriş kontrolü
+        protectPage();
 
-        let examTimer;
-        let totalSeconds = 0;
-        let engine; // TestEngine instance'ı
-        let currentExamData = null;
-
-        document.addEventListener('DOMContentLoaded', initExam);
-
-        async function initExam() {
+        document.addEventListener('DOMContentLoaded', async () => {
             const urlParams = new URLSearchParams(window.location.search);
             const examId = urlParams.get('id');
 
             if (!examId) {
-                // ID yoksa genel soru havuzundan rastgele 20 soru getir (Hızlı Test Modu)
-                alert("Deneme ID bulunamadı, Hızlı Test modu açılıyor.");
-                await loadRandomTest();
+                alert("Deneme ID bulunamadı.");
+                window.location.href = 'denemeler.html';
                 return;
             }
 
             try {
-                // 1. Sınav Bilgisini Çek
+                // 1. Sınav Verisini Çek
                 const examRef = doc(db, "exams", examId);
                 const examSnap = await getDoc(examRef);
 
-                if (!examSnap.exists()) {
-                    throw new Error("Sınav bulunamadı!");
-                }
+                if (!examSnap.exists()) throw new Error("Sınav bulunamadı!");
 
-                currentExamData = { id: examSnap.id, ...examSnap.data() };
-                setupExamUI(currentExamData);
+                const examData = examSnap.data();
 
-                // 2. Soruları Getir
-                // exams koleksiyonunda questionIds dizisi varsa onları çek
-                let questions = [];
-                if (currentExamData.questionIds && currentExamData.questionIds.length > 0) {
-                    // Firestore 'in' sorgusu en fazla 10 eleman kabul eder, bu yüzden 10'arlı paketler halinde çekmeliyiz
-                    // Veya basitlik için tüm soruları çekip filtreleyebiliriz (küçük veride)
-                    // Şimdilik 10 tanesi ile örnek yapalım:
-                    const qQuery = query(collection(db, "questions"), where(documentId(), 'in', currentExamData.questionIds.slice(0, 10)));
-                    const qSnap = await getDocs(qQuery);
-                    qSnap.forEach(doc => questions.push({ id: doc.id, ...doc.data() }));
-                } else {
-                    // Soru ID'leri yoksa rastgele çek (Fallback)
-                    console.warn("Sınavda tanımlı soru ID'leri yok, rastgele çekiliyor.");
-                    const qSnap = await getDocs(query(collection(db, "questions"), where("isActive", "==", true))); // Limit eklenebilir
-                    qSnap.forEach(doc => questions.push({ id: doc.id, ...doc.data() }));
-                }
+                // UI Güncelle
+                document.getElementById('examTitle').innerText = examData.title;
+                document.getElementById('examMeta').innerText = `Süre: ${examData.duration} dk | Soru: ${examData.totalQuestions}`;
 
-                // 3. Motoru Başlat
+                // 2. Test Motorunu Başlat (Sınav Modunda)
+                // Not: Sorular 'questionsSnapshot' içinde saklı
+                const engine = new TestEngine('quizContainer', examData.questionsSnapshot, {
+                    examId: examId,
+                    mode: 'exam', // Zorunlu Sınav Modu
+                    duration: examData.duration
+                });
+
                 document.getElementById('loader').style.display = 'none';
-                if (questions.length === 0) {
-                    document.getElementById('quizContainer').innerHTML = "<div class='alert alert-warning'>Bu denemeye henüz soru eklenmemiş.</div>";
-                    return;
-                }
 
-                engine = new TestEngine('quizContainer', questions);
-
-                // Sayaç Başlat
-                startTimer(currentExamData.duration || 60); // Varsayılan 60 dk
+                // Bitir Butonu
+                document.getElementById('btnFinishExam').addEventListener('click', () => {
+                    if (confirm("Sınavı bitirmek istediğinize emin misiniz?")) {
+                        engine.finishTest();
+                    }
+                });
 
             } catch (error) {
                 console.error(error);
-                alert("Sınav yüklenirken hata: " + error.message);
-                window.location.href = '/pages/denemeler.html';
-            }
-        }
-
-        async function loadRandomTest() {
-            // ID olmadan gelindiyse rastgele soru yükle
-            // ... (Benzer mantık)
-        }
-
-        function setupExamUI(data) {
-            document.getElementById('examTitle').innerText = data.title;
-            document.getElementById('examMeta').innerText = `Süre: ${data.duration} dk | Kategori: Genel`;
-        }
-
-        function startTimer(durationMinutes) {
-            let time = durationMinutes * 60;
-            const display = document.getElementById('timerDisplay');
-
-            examTimer = setInterval(() => {
-                const minutes = Math.floor(time / 60);
-                let seconds = time % 60;
-                seconds = seconds < 10 ? '0' + seconds : seconds;
-                display.textContent = `${minutes}:${seconds}`;
-
-                if (time <= 0) {
-                    clearInterval(examTimer);
-                    finishExam(true); // Süre bitti
-                } else if (time === 300) { // Son 5 dk uyarısı
-                    display.style.color = 'red';
-                    display.style.animation = 'pulse 1s infinite';
-                }
-                time--;
-            }, 1000);
-        }
-
-        // Sınavı Bitir Butonu
-        document.getElementById('btnFinishExam').addEventListener('click', () => {
-            if (confirm("Sınavı bitirmek ve sonuçları kaydetmek istiyor musunuz?")) {
-                finishExam(false);
+                alert("Hata: " + error.message);
             }
         });
-
-        async function finishExam(isTimeout) {
-            clearInterval(examTimer);
-
-            // 1. Sonuçları Hesapla (TestEngine verisinden)
-            // Not: TestEngine.answers objesi { qId: { isCorrect: bool, selected: 'A' } } şeklindedir
-            const answers = engine.answers || {};
-            const totalQuestions = engine.questions.length;
-            const correctCount = Object.values(answers).filter(a => a.isCorrect).length;
-            const wrongCount = Object.values(answers).filter(a => !a.isCorrect).length;
-            const emptyCount = totalQuestions - (correctCount + wrongCount);
-            const score = Math.round((correctCount / totalQuestions) * 100);
-
-            // 2. Modalı Göster
-            document.getElementById('resultCorrect').innerText = correctCount;
-            document.getElementById('resultWrong').innerText = wrongCount;
-            document.getElementById('resultScore').innerText = score;
-
-            let msg = "Tebrikler!";
-            if (score < 50) msg = "Daha fazla çalışmalısın.";
-            else if (score < 80) msg = "İyi gidiyorsun, biraz daha tekrar.";
-            else msg = "Mükemmel performans!";
-
-            if (isTimeout) msg = "Süre doldu! " + msg;
-            document.getElementById('resultMessage').innerText = msg;
-
-            document.getElementById('resultModal').style.display = 'flex';
-
-            // 3. Veritabanına Kaydet
-            if (auth.currentUser) {
-                try {
-                    await addDoc(collection(db, `users/${auth.currentUser.uid}/exam_results`), {
-                        examId: currentExamData ? currentExamData.id : 'quick_test',
-                        examTitle: currentExamData ? currentExamData.title : 'Hızlı Test',
-                        score: score,
-                        correct: correctCount,
-                        wrong: wrongCount,
-                        empty: emptyCount,
-                        totalQuestions: totalQuestions,
-                        date: serverTimestamp(),
-                        answers: answers // Detaylı analiz için hangi şıkkı işaretlediğini de sakla
-                    });
-                    // console.log("Sonuç kaydedildi.");
-                } catch (e) {
-                    console.error("Sonuç kaydetme hatası:", e);
-                }
-            }
-        }
-
-        // CSS Animasyonu (Pulse)
-        const style = document.createElement('style');
-        style.innerHTML = `
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.5; }
-            100% { opacity: 1; }
-        }
-    `;
-        document.head.appendChild(style);
     </script>
 </body>
 

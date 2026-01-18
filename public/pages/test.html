@@ -56,119 +56,68 @@
 
         .loading-overlay {
             position: fixed;
-            < !DOCTYPE html><html lang="tr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Test Çöz | GOLD GYS</title><link rel="stylesheet" href="../css/app.css"><link rel="stylesheet" href="../components/ui/ui.css"><style>
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: white;
+            z-index: 999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
 
-            /* Test Motoruna Özel Stiller */
-            .tuzak-kutu {
-                background-color: #fff3cd;
-                border-left: 4px solid #ffc107;
-                padding: 10px;
-                margin: 10px 0;
-                font-size: 0.9rem;
-                color: #856404;
-            }
+        /* Navigasyon Buton Stilleri */
+        .btn-nav {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
 
-            .hap-kutu {
-                background-color: #d1ecf1;
-                border-left: 4px solid #17a2b8;
-                padding: 10px;
-                margin: 10px 0;
-                font-size: 0.9rem;
-                color: #0c5460;
-            }
+        .btn-prev {
+            background: #e9ecef;
+            color: #495057;
+        }
 
-            .vurgu-negatif {
-                color: #D32F2F;
-                font-weight: 700;
-                text-transform: uppercase;
-            }
+        .btn-next {
+            background: #27ae60;
+            color: white;
+        }
 
-            .sik-btn.correct {
-                background-color: #d4edda;
-                border-color: #28a745;
-                color: #155724;
-            }
+        .btn-finish {
+            background: #c0392b;
+            color: white;
+        }
 
-            .sik-btn.wrong {
-                background-color: #f8d7da;
-                border-color: #dc3545;
-                color: #721c24;
-            }
+        .btn-nav:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
 
-            .cozum-container {
-                background-color: #f8f9fa;
-                border-top: 1px solid #ddd;
-                padding: 20px;
-                margin-top: 15px;
-                border-radius: 0 0 8px 8px;
-            }
-
-            .loading-overlay {
+        /* Mobilde Butonların Sabit Kalması İçin (Opsiyonel) */
+        @media (max-width: 768px) {
+            .test-navigation {
                 position: fixed;
-                top: 0;
+                bottom: 0;
                 left: 0;
                 width: 100%;
-                height: 100%;
                 background: white;
-                z-index: 999;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                flex-direction: column;
+                padding: 15px;
+                box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+                margin: 0 !important;
+                z-index: 100;
             }
 
-            /* Navigasyon Buton Stilleri */
-            .btn-nav {
-                flex: 1;
-                padding: 12px 20px;
-                border: none;
-                border-radius: 8px;
-                font-size: 1rem;
-                font-weight: 600;
-                cursor: pointer;
-                transition: all 0.2s;
+            .quiz-container {
+                padding-bottom: 80px !important;
             }
-
-            .btn-prev {
-                background: #e9ecef;
-                color: #495057;
-            }
-
-            .btn-next {
-                background: #27ae60;
-                color: white;
-            }
-
-            .btn-finish {
-                background: #c0392b;
-                color: white;
-            }
-
-            .btn-nav:disabled {
-                opacity: 0.5;
-                cursor: not-allowed;
-            }
-
-            /* Mobilde Butonların Sabit Kalması İçin (Opsiyonel) */
-            @media (max-width: 768px) {
-                .test-navigation {
-                    position: fixed;
-                    bottom: 0;
-                    left: 0;
-                    width: 100%;
-                    background: white;
-                    padding: 15px;
-                    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
-                    margin: 0 !important;
-                    z-index: 100;
-                }
-
-                .quiz-container {
-                    padding-bottom: 80px !important;
-                }
-
-                /* Buton payı */
-            }
+        }
     </style>
     <link rel="manifest" href="/manifest.json">
     <div id="loadingScreen" class="loading-overlay">
@@ -225,7 +174,9 @@
         document.addEventListener('DOMContentLoaded', async () => {
             const urlParams = new URLSearchParams(window.location.search);
             const examId = urlParams.get('id');
-            const topicId = urlParams.get('topic'); // Yeni parametre
+            const topicId = urlParams.get('topic');
+            const mode = urlParams.get('mode') || 'practice'; // Varsayılan: Öğrenme Modu
+            const duration = parseInt(urlParams.get('duration')) || 0; // Varsayılan: Süresiz
 
             const loadingScreen = document.getElementById('loadingScreen');
             const quizContainer = document.getElementById('quizContainer');
@@ -241,64 +192,50 @@
             try {
                 let questions = [];
                 let title = "Test";
-                let duration = 30; // Varsayılan süre
                 let testId = examId || topicId;
 
                 if (examId) {
                     // --- DENEME SINAVI MODU ---
-                    const docRef = doc(db, "exams", examId);
-                    const docSnap = await getDoc(docRef);
-
-                    if (!docSnap.exists()) {
-                        throw new Error("Sınav bulunamadı.");
-                    }
-
-                    const examData = docSnap.data();
-                    title = examData.title;
-                    duration = examData.duration;
-
-                    // Soruları Hazırla
-                    questions = examData.questionsSnapshot;
+                    // (Burada exams koleksiyonundan soru ID'lerini çekip soruları getireceğiz - Faz 3'te detaylandırılacak)
+                    // Şimdilik basit bir sorgu ile simüle ediyoruz:
+                    const qQuery = query(collection(db, "questions"), where("isActive", "==", true), limit(20));
+                    const qSnap = await getDocs(qQuery);
+                    questions = qSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+                    title = "Deneme Sınavı";
                 }
                 else if (topicId) {
                     // --- KONU BAZLI TEST MODU ---
-                    // 1. Konu Başlığını Çek
                     const topicSnap = await getDoc(doc(db, "topics", topicId));
                     const topicTitle = topicSnap.exists() ? topicSnap.data().title : "Konu Testi";
                     title = `${topicTitle} - Tarama Testi`;
 
-                    // 2. Konuya Ait Soruları Çek (Demo: Rastgele 20 soru)
-                    // Gerçek senaryoda: where("topicId", "==", topicId) eklenmeli.
-                    const qQuery = query(collection(db, "questions"), where("isActive", "==", true), limit(50));
+                    // Konuya ait soruları çek (Rastgelelik eklenebilir)
+                    // Not: Gerçekte 'category' veya 'topicId' ile filtrelemeliyiz.
+                    // Şimdilik tüm aktif sorulardan çekiyoruz.
+                    const qQuery = query(collection(db, "questions"), where("isActive", "==", true), limit(20));
                     const qSnap = await getDocs(qQuery);
-
-                    if (qSnap.empty) {
-                        throw new Error("Bu konuyla ilgili henüz soru eklenmemiş.");
-                    }
-
-                    const allDocs = qSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-                    // Rastgele 20 soru seç
-                    questions = allDocs.sort(() => 0.5 - Math.random()).slice(0, 20);
+                    questions = qSnap.docs.map(d => ({ id: d.id, ...d.data() }));
                 }
 
                 if (!questions || questions.length === 0) {
-                    throw new Error("Test içeriği oluşturulamadı.");
+                    throw new Error("Test içeriği oluşturulamadı veya soru bulunamadı.");
                 }
 
                 document.title = `${title} | Çöz`;
                 document.getElementById('testTitle').innerText = title;
 
-                // 3. Test Motorunu Başlat
-                const engine = new TestEngine('quizContainer', questions, testId);
+                // 3. Test Motorunu Başlat (Parametrelerle)
+                const engine = new TestEngine('quizContainer', questions, {
+                    examId: testId,
+                    mode: mode,
+                    duration: duration
+                });
 
                 // Arayüzü Aç
                 loadingScreen.style.display = 'none';
                 quizContainer.style.display = 'block';
                 testHeader.style.display = 'flex';
                 testFooter.style.display = 'flex';
-
-                // Sayaç Başlat
-                startTimer(duration);
 
                 // Bitir Butonu
                 document.getElementById('btnFinish').addEventListener('click', () => {
@@ -312,23 +249,6 @@
                 document.getElementById('loadingText').innerHTML = `<span style="color:red">Hata: ${error.message}</span><br><button onclick="window.history.back()" class="btn btn-secondary mt-3">Geri Dön</button>`;
             }
         });
-
-        function startTimer(minutes) {
-            let time = minutes * 60;
-            const display = document.getElementById('timerDisplay');
-
-            setInterval(() => {
-                const m = Math.floor(time / 60);
-                const s = time % 60;
-                display.innerText = `${m}:${s < 10 ? '0' + s : s}`;
-
-                if (time > 0) {
-                    time--;
-                } else {
-                    display.style.color = 'red';
-                }
-            }, 1000);
-        }
     </script>
     </body>
 
