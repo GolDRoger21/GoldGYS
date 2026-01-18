@@ -434,7 +434,8 @@ async function loadQuestions() {
     const cat = document.getElementById('filterCategory').value;
     const status = document.getElementById('filterStatus').value;
 
-    let q = query(collection(db, "questions"), orderBy("updatedAt", "desc"), limit(50));
+    // updatedAt yerine createdAt kullanıyoruz ki yeni yüklenenler en üstte görünsün
+    let q = query(collection(db, "questions"), orderBy("createdAt", "desc"), limit(50));
 
     if (status === 'flagged') q = query(collection(db, "questions"), where("isFlaggedForReview", "==", true));
 

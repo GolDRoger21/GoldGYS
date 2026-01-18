@@ -73,7 +73,8 @@ async function handleFileSelect(event) {
                     ...q,
                     isActive: true,
                     isFlaggedForReview: false,
-                    createdAt: serverTimestamp()
+                    createdAt: serverTimestamp(),
+                    updatedAt: serverTimestamp()
                 }));
                 log(`JSON'dan ${parsedQuestions.length} soru okundu.`, "success");
             } else {
@@ -137,7 +138,8 @@ function convertExcelData(rawData) {
 
             isActive: true,
             isFlaggedForReview: false,
-            createdAt: serverTimestamp()
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
         };
     });
 }
