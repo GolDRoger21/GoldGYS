@@ -203,6 +203,47 @@
                     questions = qSnap.docs.map(d => ({ id: d.id, ...d.data() }));
                     title = "Deneme Sınavı";
                 }
+
+                // --- YENİ: CUSTOM MOD (Yanlışlar/Favoriler İçin) ---
+                else if (mode === 'custom' && urlParams.get('source') === 'local') {
+                    const storedData = localStorage.getItem('customTestQuestions');
+                    if (storedData) {
+                        const rawQuestions = JSON.parse(storedData);
+
+                        // Eğer soruların sadece ID'si varsa, veritabanından detaylarını çekmemiz gerekebilir.
+                        // Ancak TestEngine'de "saveWrongAnswer" fonksiyonunda metni de kaydetmiştik.
+                        // Yine de en güncel hali için ID'lerden çekmek daha sağlıklıdır.
+
+                        // ID listesini çıkar
+                        const ids = rawQuestions.map(q => q.questionId || q.id);
+
+                        // Firestore 'in' sorgusu (Max 10 limitine takılmamak için döngü veya promise.all)
+                        // Basitlik için: Eğer metin varsa direkt kullan, yoksa çek.
+                        // Biz şimdilik localStorage'daki veriyi kullanacağız, eksikse kullanıcıya uyarı veririz.
+
+                        questions = rawQuestions.map(q => ({
+                            id: q.questionId || q.id,
+                            text: q.text || "Soru metni bulunamadı",
+                            options: q.options || [], // Eğer options yoksa bu sorun olur!
+                            correctOption: q.correctOption,
+                            solution: q.solution || {},
+                            type: q.type || 'standard',
+                            category: q.category
+                        }));
+
+                        // EĞER options yoksa (ki wrongs koleksiyonunda tutmuyoruz), mecburen DB'den çekmeliyiz.
+                        // Bu yüzden en sağlamı ID'leri alıp DB'den çekmektir.
+                        if (ids.length > 0) {
+                            // Firestore'dan güncel verileri çek (Batch mantığı gerekebilir ama şimdilik 10'arlı çekelim)
+                            // Basit çözüm: Tek tek çek (Performans düşük ama güvenli)
+                            const promises = ids.map(id => getDoc(doc(db, "questions", id)));
+                            const docs = await Promise.all(promises);
+                            questions = docs.filter(d => d.exists()).map(d => ({ id: d.id, ...d.data() }));
+                        }
+
+                        title = "Özel Test (Yanlışlar/Favoriler)";
+                    }
+                }
                 else if (topicId) {
                     // --- KONU BAZLI TEST MODU ---
                     const topicSnap = await getDoc(doc(db, "topics", topicId));

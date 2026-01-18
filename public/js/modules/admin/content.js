@@ -9,7 +9,47 @@ let currentOnculler = [];
 
 export function initContentPage() {
     renderContentInterface();
+    loadDynamicCategories(); // <--- YENİ: Kategorileri veritabanından çek
     loadQuestions();
+}
+
+// Kategorileri Firestore'dan Çeken Fonksiyon
+async function loadDynamicCategories() {
+    const dataList = document.getElementById('categoryList');
+    const filterSelect = document.getElementById('filterCategory');
+
+    if (!dataList || !filterSelect) return;
+
+    try {
+        // Konuları isme göre sıralı getir
+        const q = query(collection(db, "topics"), orderBy("title", "asc"));
+        const snapshot = await getDocs(q);
+
+        // Mevcut seçenekleri temizle (Varsayılanlar kalsın istiyorsan burayı silme)
+        dataList.innerHTML = '';
+
+        // Filtre select'ini temizle ama "Tümü" seçeneğini koru
+        filterSelect.innerHTML = '<option value="">Tüm Kategoriler</option>';
+
+        snapshot.forEach(doc => {
+            const topic = doc.data();
+            const title = topic.title;
+
+            // 1. Soru Ekleme Formundaki Liste
+            const option = document.createElement('option');
+            option.value = title;
+            dataList.appendChild(option);
+
+            // 2. Filtreleme Select Kutusu
+            const selectOption = document.createElement('option');
+            selectOption.value = title;
+            selectOption.innerText = title;
+            filterSelect.appendChild(selectOption);
+        });
+
+    } catch (error) {
+        console.error("Kategoriler yüklenirken hata:", error);
+    }
 }
 
 function renderContentInterface() {
@@ -33,12 +73,9 @@ function renderContentInterface() {
                     <input type="text" id="searchQuestion" class="form-control" placeholder="Soru metni veya ID ara...">
                 </div>
                 <div class="col-md-3">
+                    <!-- Dinamik olarak dolacak -->
                     <select id="filterCategory" class="form-control">
-                        <option value="">Tüm Kategoriler</option>
-                        <option value="Ceza Muhakemesi Hukuku">Ceza Muhakemesi</option>
-                        <option value="Anayasa Hukuku">Anayasa</option>
-                        <option value="İdare Hukuku">İdare Hukuku</option>
-                        <option value="Devlet Memurları Kanunu">DMK</option>
+                        <option value="">Yükleniyor...</option>
                     </select>
                 </div>
                 <div class="col-md-3">
@@ -54,7 +91,7 @@ function renderContentInterface() {
             </div>
         </div>
 
-        <!-- Soru Listesi (Grid Yerine Tablo) -->
+        <!-- Soru Listesi -->
         <div class="card">
             <div class="table-responsive">
                 <table class="admin-table">
@@ -73,9 +110,6 @@ function renderContentInterface() {
                     </tbody>
                 </table>
             </div>
-            <div class="p-3 text-center">
-                <button id="btnLoadMore" class="btn btn-sm btn-outline-secondary">Daha Fazla Yükle</button>
-            </div>
         </div>
 
         <!-- Soru Ekleme/Düzenleme Modalı -->
@@ -92,13 +126,10 @@ function renderContentInterface() {
                     <!-- Üst Bilgiler -->
                     <div class="row mb-3">
                         <div class="col-md-6">
-                            <label class="form-label">Kategori</label>
-                            <input type="text" id="inpCategory" class="form-control" list="categoryList" required>
-                            <datalist id="categoryList">
-                                <option value="Ceza Muhakemesi Hukuku">
-                                <option value="Anayasa Hukuku">
-                                <option value="İdare Hukuku">
-                            </datalist>
+                            <label class="form-label">Kategori (Konu)</label>
+                            <input type="text" id="inpCategory" class="form-control" list="categoryList" placeholder="Konu seçin veya yazın..." required>
+                            <!-- Dinamik Datalist -->
+                            <datalist id="categoryList"></datalist>
                         </div>
                         <div class="col-md-3">
                             <label class="form-label">Zorluk (1-5)</label>
@@ -129,12 +160,6 @@ function renderContentInterface() {
                     <div class="mb-3">
                         <label class="form-label">Soru Metni</label>
                         <textarea id="inpText" class="form-control" rows="3" required></textarea>
-                    </div>
-
-                    <!-- Etiketler -->
-                    <div class="mb-3">
-                         <label class="form-label">Etiketler (Virgül ile ayırın)</label>
-                         <input type="text" id="inpTags" class="form-control" placeholder="Örn: zor, 2024, soru-bankasi">
                     </div>
 
                     <!-- Seçenekler -->
@@ -249,146 +274,99 @@ function renderOnculler() {
     ).join('');
 }
 
-// --- GÜNCELLENECEK FONKSİYON 1: Formu Doldurma ---
-export async function openQuestionEditor(questionId = null) {
+export async function openQuestionEditor(id = null) {
     modalElement.style.display = 'flex';
-    const title = document.getElementById('modalTitle');
     questionForm.reset();
     currentOnculler = [];
     renderOnculler();
+    document.getElementById('modalTitle').innerText = id ? "Soruyu Düzenle" : "Yeni Soru Ekle";
+    document.getElementById('editQuestionId').value = id || "";
 
-    if (questionId) {
-        title.innerText = "Soruyu Düzenle";
-        document.getElementById('editQuestionId').value = questionId;
+    if (id) {
+        const docSnap = await getDoc(doc(db, "questions", id));
+        if (docSnap.exists()) {
+            const data = docSnap.data();
+            document.getElementById('inpCategory').value = data.category || '';
+            document.getElementById('inpDifficulty').value = data.difficulty || 3;
+            document.getElementById('inpType').value = data.type || 'standard';
+            document.getElementById('inpText').value = data.text || '';
 
-        try {
-            const docSnap = await getDoc(doc(db, "questions", questionId));
-            if (docSnap.exists()) {
-                const data = docSnap.data();
+            // Seçenekler
+            const opts = data.options || [];
+            const map = {};
+            opts.forEach(o => map[o.id] = o.text);
+            ['A', 'B', 'C', 'D', 'E'].forEach(k => document.getElementById(`inpOpt${k}`).value = map[k] || '');
+            document.getElementById('inpCorrect').value = data.correctOption;
 
-                // 1. Temel Alanlar
-                document.getElementById('inpCategory').value = data.category || '';
-                document.getElementById('inpDifficulty').value = data.difficulty || 3;
-                document.getElementById('inpType').value = data.type || 'standard';
-                document.getElementById('inpText').value = data.text || '';
-                document.getElementById('inpTags').value = data.tags ? data.tags.join(', ') : '';
-
-                // 2. Seçenekler (Array yapısına uygun)
-                if (Array.isArray(data.options)) {
-                    const map = {};
-                    data.options.forEach(o => map[o.id] = o.text);
-                    document.getElementById('inpOptA').value = map['A'] || '';
-                    document.getElementById('inpOptB').value = map['B'] || '';
-                    document.getElementById('inpOptC').value = map['C'] || '';
-                    document.getElementById('inpOptD').value = map['D'] || '';
-                    document.getElementById('inpOptE').value = map['E'] || '';
-                }
-
-                document.getElementById('inpCorrect').value = data.correctOption;
-
-                // 3. Öncüllü Soru Verileri
-                if (data.type === 'oncullu') {
-                    currentOnculler = data.onculler || [];
-                    document.getElementById('inpQuestionRoot').value = data.questionRoot || '';
-                    renderOnculler();
-                }
-                toggleQuestionType(); // Arayüzü güncelle
-
-                // 4. Detaylı Çözüm (Map yapısı)
-                const sol = data.solution || {};
-                document.getElementById('inpSolAnaliz').value = sol.analiz || '';
-                document.getElementById('inpSolDayanak').value = sol.dayanakText || '';
-                document.getElementById('inpSolHap').value = sol.hap || '';
-                document.getElementById('inpSolTuzak').value = sol.tuzak || '';
-
-                // 5. Mevzuat Referansı (Map yapısı - İleride filtreleme için kritik)
-                const leg = data.legislationRef || {};
-                document.getElementById('inpLegCode').value = leg.code || '';
-                document.getElementById('inpLegName').value = leg.name || '';
-                document.getElementById('inpLegArt').value = leg.article || '';
+            // Öncüller
+            if (data.type === 'oncullu') {
+                currentOnculler = data.onculler || [];
+                document.getElementById('inpQuestionRoot').value = data.questionRoot || '';
+                renderOnculler();
             }
-        } catch (e) {
-            console.error("Hata:", e);
+            toggleQuestionType();
+
+            // Çözüm & Mevzuat
+            const sol = data.solution || {};
+            document.getElementById('inpSolAnaliz').value = sol.analiz || '';
+            document.getElementById('inpSolDayanak').value = sol.dayanakText || '';
+            document.getElementById('inpSolHap').value = sol.hap || '';
+            document.getElementById('inpSolTuzak').value = sol.tuzak || '';
+
+            const leg = data.legislationRef || {};
+            document.getElementById('inpLegCode').value = leg.code || '';
+            document.getElementById('inpLegName').value = leg.name || '';
+            document.getElementById('inpLegArt').value = leg.article || '';
         }
     } else {
-        title.innerText = "Yeni Soru Ekle";
-        document.getElementById('editQuestionId').value = "";
         toggleQuestionType();
     }
 }
 
 function closeModal() { modalElement.style.display = 'none'; }
 
-// --- GÜNCELLENECEK FONKSİYON 2: Kaydetme ---
 async function handleSaveQuestion(e) {
     e.preventDefault();
     const id = document.getElementById('editQuestionId').value;
 
-    // JSON Yapısına Birebir Uygun Obje Oluşturma
-    const questionData = {
-        // Temel Bilgiler
+    const data = {
         category: document.getElementById('inpCategory').value.trim(),
-        difficulty: parseInt(document.getElementById('inpDifficulty').value) || 3,
+        difficulty: parseInt(document.getElementById('inpDifficulty').value),
         type: document.getElementById('inpType').value,
         text: document.getElementById('inpText').value.trim(),
-        tags: document.getElementById('inpTags').value.split(',').map(t => t.trim()).filter(Boolean),
-
-        // Durum Bilgileri
-        isActive: true,
-        isFlaggedForReview: false, // Mevzuat değişikliğinde true olacak
-
-        // Seçenekler (Array of Maps)
-        options: [
-            { id: "A", text: document.getElementById('inpOptA').value.trim() },
-            { id: "B", text: document.getElementById('inpOptB').value.trim() },
-            { id: "C", text: document.getElementById('inpOptC').value.trim() },
-            { id: "D", text: document.getElementById('inpOptD').value.trim() },
-            { id: "E", text: document.getElementById('inpOptE').value.trim() }
-        ],
+        options: ['A', 'B', 'C', 'D', 'E'].map(k => ({ id: k, text: document.getElementById(`inpOpt${k}`).value.trim() })),
         correctOption: document.getElementById('inpCorrect').value,
-
-        // Detaylı Çözüm (Map)
         solution: {
             analiz: document.getElementById('inpSolAnaliz').value.trim(),
             dayanakText: document.getElementById('inpSolDayanak').value.trim(),
             hap: document.getElementById('inpSolHap').value.trim(),
             tuzak: document.getElementById('inpSolTuzak').value.trim()
         },
-
-        // Mevzuat Referansı (Map - Filtreleme için kritik)
         legislationRef: {
-            code: document.getElementById('inpLegCode').value.trim(), // Örn: "5271"
-            name: document.getElementById('inpLegName').value.trim(), // Örn: "Ceza Muhakemesi Kanunu"
-            article: document.getElementById('inpLegArt').value.trim() // Örn: "231"
+            code: document.getElementById('inpLegCode').value.trim(),
+            name: document.getElementById('inpLegName').value.trim(),
+            article: document.getElementById('inpLegArt').value.trim()
         },
-
+        isActive: true,
+        isFlaggedForReview: false,
         updatedAt: serverTimestamp()
     };
 
-    // Öncüllü Soru Kontrolü
-    if (questionData.type === 'oncullu') {
-        questionData.onculler = currentOnculler; // Global array'den al
-        questionData.questionRoot = document.getElementById('inpQuestionRoot').value.trim();
-    } else {
-        questionData.onculler = [];
-        questionData.questionRoot = null;
+    if (data.type === 'oncullu') {
+        data.onculler = currentOnculler;
+        data.questionRoot = document.getElementById('inpQuestionRoot').value.trim();
     }
 
     try {
-        if (id) {
-            await updateDoc(doc(db, "questions", id), questionData);
-            alert("Soru başarıyla güncellendi.");
-        } else {
-            questionData.createdAt = serverTimestamp();
-            await addDoc(collection(db, "questions"), questionData);
-            alert("Yeni soru başarıyla eklendi.");
+        if (id) await updateDoc(doc(db, "questions", id), data);
+        else {
+            data.createdAt = serverTimestamp();
+            await addDoc(collection(db, "questions"), data);
         }
         closeModal();
         loadQuestions();
-    } catch (error) {
-        console.error("Kaydetme hatası:", error);
-        alert("Hata: " + error.message);
-    }
+        alert("Kaydedildi.");
+    } catch (e) { alert("Hata: " + e.message); }
 }
 
 async function loadQuestions() {

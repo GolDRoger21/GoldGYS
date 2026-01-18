@@ -5,106 +5,109 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Yanlışlarım | GOLD GYS</title>
-  <link rel="stylesheet" href="../styles/tokens.css">
-  <link rel="stylesheet" href="../css/layout.css">
-  <link rel="stylesheet" href="../css/dashboard.css">
+  <link rel="stylesheet" href="../css/app.css">
+  <link rel="stylesheet" href="../components/ui/ui.css">
   <style>
-    .mistake-card {
-      background: var(--bg-surface);
-      border-left: 4px solid var(--color-danger);
-      border-radius: var(--radius-md);
+    .mistakes-container {
+      max-width: 800px;
+      margin: 0 auto;
       padding: 20px;
-      margin-bottom: 16px;
-      box-shadow: var(--shadow-sm);
+    }
+
+    .mistake-card {
+      background: white;
+      border-left: 4px solid #e74c3c;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
       transition: transform 0.2s;
     }
 
     .mistake-card:hover {
-      transform: translateX(4px);
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
     }
 
     .mistake-meta {
       display: flex;
       justify-content: space-between;
-      font-size: 0.85rem;
-      color: var(--text-muted);
-      margin-bottom: 8px;
+      color: #7f8c8d;
+      font-size: 0.9rem;
+      margin-bottom: 10px;
     }
 
     .mistake-text {
+      font-size: 1.1rem;
       font-weight: 500;
-      margin-bottom: 12px;
-      color: var(--text-main);
+      color: #2c3e50;
+      margin-bottom: 15px;
     }
 
     .btn-retry {
-      background: rgba(239, 68, 68, 0.1);
-      color: var(--color-danger);
-      border: 1px solid rgba(239, 68, 68, 0.2);
-      padding: 6px 12px;
-      border-radius: 4px;
-      font-size: 0.85rem;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .btn-retry:hover {
-      background: var(--color-danger);
+      background: #e74c3c;
       color: white;
-    }
-
-    .filter-bar {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 20px;
-      overflow-x: auto;
-      padding-bottom: 5px;
-    }
-
-    .filter-chip {
-      padding: 6px 16px;
+      border: none;
+      padding: 8px 20px;
       border-radius: 20px;
-      background: var(--bg-surface);
-      border: 1px solid var(--border-color);
-      color: var(--text-muted);
       cursor: pointer;
-      white-space: nowrap;
       font-size: 0.9rem;
     }
 
+    .category-filters {
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      padding-bottom: 10px;
+      margin-bottom: 20px;
+    }
+
+    .filter-chip {
+      padding: 6px 15px;
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 20px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
     .filter-chip.active {
-      background: var(--color-primary);
-      color: var(--text-on-gold);
-      border-color: var(--color-primary);
+      background: #e74c3c;
+      color: white;
+      border-color: #e74c3c;
     }
   </style>
   <link rel="manifest" href="/manifest.json">
 </head>
 
-<body>
-  <script type="module">
-    import { initLayout } from '../js/ui-loader.js';
-    document.addEventListener('DOMContentLoaded', () => initLayout());
-  </script>
+<body class="bg-light">
 
-  <div class="dashboard-container">
-    <div class="section-header">
-      <div>
-        <h2>⚠️ Hata Analizi ve Tekrar</h2>
-        <p class="text-muted">Yanlış yaptığınız soruları tekrar çözerek pekiştirin.</p>
-      </div>
-      <button id="btnSolveAllMistakes" class="btn btn-primary">Tümünü Test Olarak Çöz</button>
+  <!-- Header Gelecek (ui-loader ile) -->
+  <div id="header-placeholder"></div>
+
+  <main class="mistakes-container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h2 class="heading-2 m-0">Hatalı Cevaplarım</h2>
+      <button id="btnSolveAllMistakes" class="btn btn-warning">📝 Tümünü Test Olarak Çöz</button>
     </div>
 
-    <div class="filter-bar" id="categoryFilters">
-      <div class="filter-chip active" data-cat="all">Tümü</div>
-      <!-- Kategoriler JS ile gelecek -->
+    <div class="category-filters" id="categoryFilters">
+      <!-- Dinamik Flteler -->
     </div>
 
     <div id="mistakesList">
-      <div class="card p-4 text-center">Yükleniyor...</div>
+      <div class="text-center p-5">
+        <div class="spinner-border text-primary" role="status"></div>
+        <p class="mt-2 text-muted">Hatalarınız analiz ediliyor...</p>
+      </div>
     </div>
-  </div>
+  </main>
+
+  <!-- UI Loader -->
+  <script type="module">
+    import { loadHeader } from '../js/ui-loader.js';
+    loadHeader();
+  </script>
 
   <script type="module">
     import { db, auth } from '../js/firebase-config.js';
@@ -117,56 +120,48 @@
       onAuthStateChanged(auth, async (user) => {
         if (user) loadMistakes(user.uid);
       });
+
+      // TEST BAŞLATMA BUTONU
+      document.getElementById('btnSolveAllMistakes').addEventListener('click', () => {
+        if (allMistakes.length === 0) return alert("Çözülecek yanlış soru yok.");
+
+        // Soruları localStorage'a kaydet ve test sayfasına git
+        // (URL'de çok fazla ID taşımak sorun olabilir, bu yüzden storage kullanıyoruz)
+        localStorage.setItem('customTestQuestions', JSON.stringify(allMistakes));
+        window.location.href = '/pages/test.html?mode=custom&source=local';
+      });
     });
 
     async function loadMistakes(uid) {
       const list = document.getElementById('mistakesList');
       try {
-        // Kullanıcının 'wrongs' koleksiyonunu çek (test-engine.js buraya yazmalı)
-        // Not: Şu anki test-engine.js sadece exam_results'a yazıyor. 
-        // Geliştirme: test-engine.js'i wrongs koleksiyonuna da yazacak şekilde güncelleyeceğiz.
-        // Şimdilik demo veri ile yapıyı kuralım.
+        // Kullanıcının yanlışlarını çek
+        const q = query(collection(db, `users/${uid}/wrongs`), orderBy('lastAttempt', 'desc'));
+        const snapshot = await getDocs(q);
 
-        // Gerçek veri için: const q = query(collection(db, `users/${uid}/wrongs`), orderBy('date', 'desc'));
-        // const snapshot = await getDocs(q);
-
-        // Demo Veri (Sistem boşsa görebilmek için)
-        allMistakes = [
-          { id: '1', text: 'Anayasa Mahkemesi kaç üyeden oluşur?', category: 'Anayasa', date: new Date() },
-          { id: '2', text: 'Memurlara verilen disiplin cezaları nelerdir?', category: 'DMK', date: new Date() }
-        ];
-
-        // URL'den kategori parametresini al
-        const urlParams = new URLSearchParams(window.location.search);
-        const filterCategory = urlParams.get('category'); // Örn: "Ceza Muhakemesi Kanunu"
-
-        // Eğer filterCategory varsa, sadece o kategoriye ait olanları filtrele
-        if (filterCategory) {
-          const decodedCat = decodeURIComponent(filterCategory);
-          // Kategori alanı demo veride birebir tutmadığı için basit bir check yapıyoruz.
-          // Gerçekte tam eşleşme veya 'contains' mantığı kurulabilir.
-          // Şimdilik demo verideki 'Anayasa' vb. ile eşleşmesi zor olabilir, 
-          // ama mantık olarak filtreleme kodunu ekliyoruz.
-          // allMistakes = allMistakes.filter(m => m.category === decodedCat);
-
-          // Demo amaçlı: Filtre gelirse hepsini gösterip kullanıcıya filtre seçildiğini hissettirelim
-          // (Gerçek hayatta burası DB sorgusu veya array filter olmalı)
-          console.log("Filtrelenen Kategori:", decodedCat);
+        if (snapshot.empty) {
+          list.innerHTML = '<div class="card p-4 text-center text-muted">Harika! Hiç yanlışınız yok.</div>';
+          return;
         }
+
+        allMistakes = [];
+        snapshot.forEach(docSnap => {
+          // Veriyi test motoruna uygun formata getir
+          const data = docSnap.data();
+          allMistakes.push({ id: data.questionId || docSnap.id, ...data });
+        });
 
         renderMistakes(allMistakes);
         setupFilters();
 
-        // Filtre çubuğunda ilgili kategoriyi aktif yap
+        // URL'den gelen kategori filtresini kontrol et
+        const urlParams = new URLSearchParams(window.location.search);
+        const filterCategory = urlParams.get('category');
+
         if (filterCategory) {
-          setTimeout(() => {
-            const decodedCat = decodeURIComponent(filterCategory);
-            // Burada basit bir eşleşme arıyoruz, demo verideki kategoriler ile
-            // URL'den gelen kategori ismi uyuşmayabilir (Örn: "Anayasa Hukuku" vs "Anayasa")
-            // Bu yüzden 'contains' mantığı veya exact match deneyebiliriz.
-            const chip = Array.from(document.querySelectorAll('.filter-chip')).find(c => c.textContent.includes(decodedCat) || decodedCat.includes(c.textContent));
-            if (chip) chip.click();
-          }, 500);
+          const decodedCat = decodeURIComponent(filterCategory);
+          const chip = Array.from(document.querySelectorAll('.filter-chip')).find(c => c.dataset.cat === decodedCat);
+          if (chip) chip.click();
         }
 
       } catch (error) {
@@ -178,23 +173,22 @@
     function renderMistakes(data) {
       const list = document.getElementById('mistakesList');
       if (data.length === 0) {
-        list.innerHTML = '<div class="card p-4 text-center text-muted">Harika! Hiç yanlışınız yok.</div>';
+        list.innerHTML = '<div class="text-center p-4 text-muted">Bu kategoride yanlış soru yok.</div>';
         return;
       }
-
       list.innerHTML = '';
+
       data.forEach(item => {
         const div = document.createElement('div');
         div.className = 'mistake-card';
         div.innerHTML = `
                     <div class="mistake-meta">
-                        <span>${item.category}</span>
-                        <span>${item.date.toLocaleDateString('tr-TR')}</span>
+                        <span>${item.category || 'Genel'}</span>
+                        <span>${item.lastAttempt ? new Date(item.lastAttempt.seconds * 1000).toLocaleDateString('tr-TR') : '-'}</span>
                     </div>
-                    <div class="mistake-text">${item.text}</div>
+                    <div class="mistake-text">${item.text || 'Soru metni yüklenemedi...'}</div>
                     <div class="d-flex justify-content-between align-items-center">
-                        <small class="text-muted">Doğru Cevap: <strong>Görüntüle</strong></small>
-                        <button class="btn-retry" onclick="alert('Bu özellik test motoruna bağlanacak')">Tekrar Çöz</button>
+                        <small class="text-muted text-danger">Yanlış Sayısı: ${item.count || 1}</small>
                     </div>
                 `;
         list.appendChild(div);
@@ -202,10 +196,8 @@
     }
 
     function setupFilters() {
-      // Kategorileri çıkar ve filtreleri oluştur
-      const categories = ['all', ...new Set(allMistakes.map(m => m.category))];
+      const categories = ['all', ...new Set(allMistakes.map(m => m.category || 'Genel'))];
       const container = document.getElementById('categoryFilters');
-
       container.innerHTML = categories.map(cat =>
         `<div class="filter-chip ${cat === 'all' ? 'active' : ''}" data-cat="${cat}">${cat === 'all' ? 'Tümü' : cat}</div>`
       ).join('');
@@ -215,7 +207,7 @@
           container.querySelector('.active').classList.remove('active');
           chip.classList.add('active');
           const cat = chip.dataset.cat;
-          const filtered = cat === 'all' ? allMistakes : allMistakes.filter(m => m.category === cat);
+          const filtered = cat === 'all' ? allMistakes : allMistakes.filter(m => (m.category || 'Genel') === cat);
           renderMistakes(filtered);
         });
       });
