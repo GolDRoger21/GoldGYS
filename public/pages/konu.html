@@ -557,6 +557,38 @@
         display: none;
       }
     }
+
+    /* --- BOŞ DURUM (EMPTY STATE) STİLLERİ --- */
+    .empty-state-card {
+      background: var(--bg-surface);
+      border: 2px dashed var(--border-color);
+      /* Kesikli çizgi */
+      border-radius: 16px;
+      padding: 30px;
+      text-align: center;
+      color: var(--text-muted);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .empty-state-card .material-icons {
+      font-size: 2.5rem;
+      opacity: 0.5;
+      color: var(--text-muted);
+    }
+
+    .empty-resource-item {
+      padding: 15px 20px;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      font-style: italic;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(0, 0, 0, 0.02);
+    }
   </style>
 </head>
 
@@ -728,13 +760,11 @@
         const lesson = doc.data();
         if (lesson.materials) {
           lesson.materials.forEach(mat => {
-            // ID yoksa oluştur
             const matId = mat.id || `${doc.id}_${Math.random().toString(36).substr(2, 9)}`;
             const item = { ...mat, id: matId, lessonTitle: lesson.title };
 
-            allMaterials.push(item); // İlerleme hesabı için havuza at
+            allMaterials.push(item);
 
-            // TİP KONTROLÜ VE DAĞITIM
             if (item.type === 'test') {
               renderTestCard(item, testsContainer);
               testIds.push(item.id);
@@ -744,6 +774,22 @@
           });
         }
       });
+
+      // --- TESTLER BOŞSA UYARI GÖSTER ---
+      if (testIds.length === 0) {
+        testsContainer.innerHTML = `
+                <div class="empty-state-card">
+                    <span class="material-icons">quiz</span>
+                    <span>Bu konuya ait henüz test eklenmemiştir.</span>
+                </div>
+            `;
+        // "Tümünü Sıfırla" butonunu gizle
+        const resetBtn = document.querySelector('.btn-reset-all');
+        if (resetBtn) resetBtn.style.display = 'none';
+      } else {
+        const resetBtn = document.querySelector('.btn-reset-all');
+        if (resetBtn) resetBtn.style.display = 'flex';
+      }
 
       renderResourceGroups(groups);
       updateProgressBar();
@@ -795,7 +841,8 @@
 
       Object.keys(groups).forEach(key => {
         const group = groups[key];
-        if (group.items.length === 0) return;
+
+        // ARTIK BOŞ OLSA BİLE GİZLEMİYORUZ (return satırı kaldırıldı)
 
         const groupDiv = document.createElement('div');
         groupDiv.className = 'resource-group';
@@ -819,22 +866,33 @@
         const body = document.createElement('div');
         body.className = 'resource-body';
 
-        group.items.forEach(item => {
-          const isDone = userProgress[item.id];
-          const itemDiv = document.createElement('div');
-          itemDiv.className = 'resource-item';
-
-          // Tıklama olayları: İkona basınca toggle, yazıya basınca aç
-          itemDiv.innerHTML = `
-                    <div style="flex:1; display:flex; align-items:center; gap:10px;" onclick="openContent('${encodeURIComponent(JSON.stringify(item))}')">
-                        <span class="res-name">${item.title}</span>
-                    </div>
-                    <div class="status-toggle ${isDone ? 'completed' : ''}" onclick="toggleMaterialStatus('${item.id}', this, event)">
-                        <span class="material-icons" style="font-size:16px;">check</span>
+        // --- İÇERİK KONTROLÜ ---
+        if (group.items.length === 0) {
+          // İçerik yoksa bilgilendirme mesajı
+          body.innerHTML = `
+                    <div class="empty-resource-item">
+                        <span class="material-icons" style="font-size:18px;">info</span>
+                        Henüz bu kategoride içerik eklenmedi.
                     </div>
                 `;
-          body.appendChild(itemDiv);
-        });
+        } else {
+          // İçerik varsa listele
+          group.items.forEach(item => {
+            const isDone = userProgress[item.id];
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'resource-item';
+
+            itemDiv.innerHTML = `
+                        <div style="flex:1; display:flex; align-items:center; gap:10px;" onclick="openContent('${encodeURIComponent(JSON.stringify(item))}')">
+                            <span class="res-name">${item.title}</span>
+                        </div>
+                        <div class="status-toggle ${isDone ? 'completed' : ''}" onclick="toggleMaterialStatus('${item.id}', this, event)">
+                            <span class="material-icons" style="font-size:16px;">check</span>
+                        </div>
+                    `;
+            body.appendChild(itemDiv);
+          });
+        }
 
         groupDiv.appendChild(header);
         groupDiv.appendChild(body);
