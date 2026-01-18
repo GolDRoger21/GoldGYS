@@ -1,30 +1,29 @@
 import { db } from "../../firebase-config.js";
 import {
-    collection, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, serverTimestamp, query, orderBy, where, writeBatch, limit
+    collection, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, serverTimestamp, query, orderBy, where, limit
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+// --- GLOBAL DEĞİŞKENLER ---
 let modalElement = null;
-let topicForm = null;
-let currentLessons = []; // Dersler ve Testler karışık
-let activeLessonId = null;
-let questionPool = []; // Soru havuzu
-let selectedQuestions = []; // Test soruları
-let currentMaterials = []; // Ders materyalleri
-let allTopicsCache = []; // Filtreleme için cache
+let currentContents = []; // Dersler ve Testler
+let activeContentId = null; // Düzenlenen içerik ID'si
+let selectedQuestions = []; // O anki testin soruları
+let currentMaterials = []; // O anki dersin materyalleri
+let allTopicsCache = []; // Konu listesi cache
 
 export function initTopicsPage() {
     renderTopicsInterface();
     loadTopics();
 }
 
-// --- ARAYÜZ ---
+// --- ARAYÜZ (HTML) ---
 function renderTopicsInterface() {
     const container = document.getElementById('section-topics');
     container.innerHTML = `
         <div class="section-header">
             <div>
                 <h2>📚 Müfredat ve İçerik Stüdyosu</h2>
-                <p class="text-muted">Konuları, dersleri, testleri ve materyalleri yönetin.</p>
+                <p class="text-muted">Konuları yönetin, test sihirbazı ile hızlıca sınav oluşturun.</p>
             </div>
             <div class="d-flex gap-2">
                 <button class="btn btn-warning" onclick="window.openTrashModal()">🗑️ Çöp Kutusu</button>
@@ -46,7 +45,7 @@ function renderTopicsInterface() {
                     </select>
                 </div>
                 <div class="col-md-5 text-end">
-                    <small class="text-muted" id="topicCountBadge">0 Konu Listelendi</small>
+                    <small class="text-muted" id="topicCountBadge">Yükleniyor...</small>
                 </div>
             </div>
         </div>
@@ -57,12 +56,12 @@ function renderTopicsInterface() {
                 <table class="admin-table">
                     <thead>
                         <tr>
-                            <th>Sıra</th>
+                            <th style="width:50px">Sıra</th>
                             <th>Konu Başlığı</th>
                             <th>Kategori</th>
-                            <th>İçerik Sayısı</th>
+                            <th>İçerik</th>
                             <th>Durum</th>
-                            <th>İşlemler</th>
+                            <th style="width:150px">İşlemler</th>
                         </tr>
                     </thead>
                     <tbody id="topicsTableBody"></tbody>
@@ -70,7 +69,7 @@ function renderTopicsInterface() {
             </div>
         </div>
 
-        <!-- EDİTÖR MODALI -->
+        <!-- ANA EDİTÖR MODALI -->
         <div id="topicModal" class="modal-overlay" style="display:none;">
             <div class="modal-content admin-modal-content" style="max-width: 1200px; height: 95vh; display:flex; flex-direction:column;">
                 <div class="modal-header">
@@ -78,81 +77,140 @@ function renderTopicsInterface() {
                     <button id="btnCloseTopicModal" class="close-btn">&times;</button>
                 </div>
                 
-                <div class="modal-body-scroll" style="flex:1; display: grid; grid-template-columns: 300px 1fr; gap: 0; padding:0; overflow:hidden;">
+                <div class="modal-body-scroll" style="flex:1; display: grid; grid-template-columns: 320px 1fr; gap: 0; padding:0; overflow:hidden;">
                     
                     <!-- SOL KOLON: İçerik Ağacı -->
                     <div class="lessons-sidebar" style="border-right: 1px solid var(--border-color); background: var(--bg-body); padding: 20px; overflow-y: auto;">
                         <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h5 class="mb-0">İçerikler</h5>
+                            <h6 class="mb-0 fw-bold">İçerik Listesi</h6>
                             <div class="dropdown">
                                 <button class="btn btn-sm btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">+ Ekle</button>
                                 <ul class="dropdown-menu">
                                     <li><a class="dropdown-item" href="#" onclick="addNewContentUI('lesson')">📄 Ders Notu</a></li>
-                                    <li><a class="dropdown-item" href="#" onclick="addNewContentUI('test')">📝 Test</a></li>
+                                    <li><a class="dropdown-item" href="#" onclick="addNewContentUI('test')">📝 Test / Sınav</a></li>
                                 </ul>
                             </div>
                         </div>
                         <div id="lessonsListContainer" class="lessons-nav sortable-list"></div>
                     </div>
 
-                    <!-- SAĞ KOLON: Editör -->
-                    <div class="editor-area" style="padding: 20px; overflow-y: auto;">
+                    <!-- SAĞ KOLON: Editör Alanı -->
+                    <div class="editor-area" style="padding: 25px; overflow-y: auto; background: #fff;">
                         
-                        <!-- 1. Ana Konu Ayarları -->
+                        <!-- 1. Ana Konu Ayarları (Varsayılan) -->
                         <div id="topicMetaPanel">
-                            <h4 class="mb-4 border-bottom pb-2">Ana Konu Ayarları</h4>
+                            <h5 class="mb-4 pb-2 border-bottom text-primary">Ana Konu Ayarları</h5>
                             <form id="topicMetaForm">
                                 <input type="hidden" id="editTopicId">
-                                <div class="row">
-                                    <div class="col-md-8 mb-3"><label>Başlık</label><input type="text" id="inpTopicTitle" class="form-control"></div>
-                                    <div class="col-md-4 mb-3"><label>Sıra</label><input type="number" id="inpTopicOrder" class="form-control"></div>
-                                    <div class="col-md-6 mb-3"><label>Kategori</label><select id="inpTopicCategory" class="form-control"><option value="ortak">Ortak</option><option value="alan">Alan</option></select></div>
-                                    <div class="col-md-6 mb-3"><label>Durum</label><select id="inpTopicStatus" class="form-control"><option value="true">Aktif</option><option value="false">Pasif</option></select></div>
-                                    <div class="col-12 mb-3"><label>Açıklama</label><textarea id="inpTopicDesc" class="form-control" rows="3"></textarea></div>
+                                <div class="row g-3">
+                                    <div class="col-md-9">
+                                        <label class="form-label">Konu Başlığı</label>
+                                        <input type="text" id="inpTopicTitle" class="form-control" required>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label">Sıra No</label>
+                                        <input type="number" id="inpTopicOrder" class="form-control" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Kategori</label>
+                                        <select id="inpTopicCategory" class="form-control">
+                                            <option value="ortak">Ortak Konular</option>
+                                            <option value="alan">Alan Konuları</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Durum</label>
+                                        <select id="inpTopicStatus" class="form-control">
+                                            <option value="true">✅ Aktif</option>
+                                            <option value="false">❌ Pasif</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="form-label">Açıklama</label>
+                                        <textarea id="inpTopicDesc" class="form-control" rows="3"></textarea>
+                                    </div>
                                 </div>
-                                <button type="button" id="btnSaveMeta" class="btn btn-success float-end">Kaydet</button>
+                                <div class="mt-4 text-end">
+                                    <button type="button" id="btnSaveMeta" class="btn btn-success px-4">Ana Konuyu Kaydet</button>
+                                </div>
                             </form>
                         </div>
 
-                        <!-- 2. Ders/Test Editörü -->
-                        <div id="lessonEditorPanel" style="display:none;">
+                        <!-- 2. İçerik Editörü (Ders/Test) -->
+                        <div id="contentEditorPanel" style="display:none;">
                             <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
-                                <h4 class="mb-0" id="editorTitle">İçerik Düzenle</h4>
+                                <h5 class="mb-0 text-primary" id="editorTitle">İçerik Düzenle</h5>
                                 <div>
-                                    <button class="btn btn-sm btn-danger" onclick="deleteCurrentContent()">Sil</button>
-                                    <button class="btn btn-sm btn-success" onclick="saveCurrentContent()">Kaydet</button>
+                                    <button class="btn btn-sm btn-outline-danger me-2" onclick="deleteCurrentContent()">🗑️ Sil</button>
+                                    <button class="btn btn-sm btn-success" onclick="saveCurrentContent()">💾 Kaydet</button>
                                 </div>
                             </div>
 
-                            <div class="row mb-3">
-                                <div class="col-md-8"><label>Başlık</label><input type="text" id="inpLessonTitle" class="form-control"></div>
-                                <div class="col-md-4"><label>Tür</label><input type="text" id="inpLessonType" class="form-control" disabled></div>
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-8">
+                                    <label class="form-label">Başlık</label>
+                                    <input type="text" id="inpContentTitle" class="form-control" placeholder="Örn: Anayasa Madde 1-20 Testi">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Tür</label>
+                                    <input type="text" id="inpContentType" class="form-control" disabled>
+                                </div>
                             </div>
 
-                            <!-- TEST ÖZEL ALANI -->
-                            <div id="testQuestionsArea" style="display:none;">
-                                <div class="card bg-light p-3 mb-3">
-                                    <div class="d-flex justify-content-between align-items-center mb-2">
-                                        <h6 class="m-0">Test Soruları (<span id="qCount">0</span>)</h6>
-                                        <button class="btn btn-sm btn-primary" onclick="openQuestionSelector()">+ Soru Seç</button>
+                            <!-- TEST EDİTÖRÜ -->
+                            <div id="testEditorArea" style="display:none;">
+                                <!-- Sihirbaz Paneli -->
+                                <div class="card bg-light border-primary mb-4">
+                                    <div class="card-body">
+                                        <h6 class="card-title text-primary mb-3">⚡ Otomatik Test Sihirbazı</h6>
+                                        <div class="row g-2 align-items-end">
+                                            <div class="col-md-3">
+                                                <label class="small text-muted">Kanun No</label>
+                                                <input type="text" id="wizLegCode" class="form-control form-control-sm" placeholder="Örn: 5271">
+                                            </div>
+                                            <div class="col-md-2">
+                                                <label class="small text-muted">Başlangıç Md.</label>
+                                                <input type="number" id="wizStartArt" class="form-control form-control-sm">
+                                            </div>
+                                            <div class="col-md-2">
+                                                <label class="small text-muted">Bitiş Md.</label>
+                                                <input type="number" id="wizEndArt" class="form-control form-control-sm">
+                                            </div>
+                                            <div class="col-md-2">
+                                                <label class="small text-muted">Soru Sayısı</label>
+                                                <input type="number" id="wizLimit" class="form-control form-control-sm" value="15">
+                                            </div>
+                                            <div class="col-md-3">
+                                                <button class="btn btn-sm btn-primary w-100" onclick="runTestWizard()">Soruları Getir</button>
+                                            </div>
+                                        </div>
+                                        <small class="text-muted mt-2 d-block">* Belirtilen aralıktaki soruları bulur ve madde sırasına göre dizer.</small>
                                     </div>
-                                    <div id="selectedQuestionsList" class="sortable-list bg-white border rounded p-2" style="min-height:100px;"></div>
+                                </div>
+
+                                <!-- Soru Listesi -->
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <h6 class="m-0">Test Soruları (<span id="qCount">0</span>)</h6>
+                                    <button class="btn btn-sm btn-outline-secondary" onclick="openQuestionSelector()">+ Manuel Soru Ekle</button>
+                                </div>
+                                <div id="selectedQuestionsList" class="list-group sortable-list border bg-white" style="min-height: 100px;">
+                                    <!-- Sorular buraya -->
                                 </div>
                             </div>
 
-                            <!-- DERS ÖZEL ALANI (MATERYALLER) -->
-                            <div id="lessonMaterialsArea" style="display:none;">
+                            <!-- DERS NOTU EDİTÖRÜ -->
+                            <div id="lessonEditorArea" style="display:none;">
                                 <div class="d-flex justify-content-between align-items-center mb-3">
-                                    <label class="mb-0 font-weight-bold">Materyaller</label>
+                                    <label class="fw-bold">Materyaller</label>
                                     <div class="btn-group">
-                                        <button class="btn btn-sm btn-secondary" onclick="addMaterial('pdf')">+ PDF</button>
-                                        <button class="btn btn-sm btn-secondary" onclick="addMaterial('video')">+ Video</button>
-                                        <button class="btn btn-sm btn-secondary" onclick="addMaterial('podcast')">+ Podcast</button>
-                                        <button class="btn btn-sm btn-secondary" onclick="addMaterial('html')">+ Not</button>
+                                        <button class="btn btn-sm btn-outline-secondary" onclick="addMaterial('pdf')">+ PDF</button>
+                                        <button class="btn btn-sm btn-outline-secondary" onclick="addMaterial('video')">+ Video</button>
+                                        <button class="btn btn-sm btn-outline-secondary" onclick="addMaterial('html')">+ Not</button>
                                     </div>
                                 </div>
                                 <div id="materialsList" class="materials-container"></div>
                             </div>
+
                         </div>
 
                     </div>
@@ -160,7 +218,7 @@ function renderTopicsInterface() {
             </div>
         </div>
 
-        <!-- SORU SEÇİCİ MODALI -->
+        <!-- MANUEL SORU SEÇİCİ MODALI -->
         <div id="questionSelectorModal" class="modal-overlay" style="display:none; z-index: 2100;">
             <div class="modal-content admin-modal-content" style="max-width: 800px; height: 80vh;">
                 <div class="modal-header">
@@ -168,7 +226,10 @@ function renderTopicsInterface() {
                     <button onclick="document.getElementById('questionSelectorModal').style.display='none'" class="close-btn">&times;</button>
                 </div>
                 <div class="modal-body-scroll">
-                    <input type="text" id="searchPool" class="form-control mb-3" placeholder="Soru ara...">
+                    <div class="input-group mb-3">
+                        <input type="text" id="searchPool" class="form-control" placeholder="Soru metni veya Kanun No ara...">
+                        <button class="btn btn-outline-secondary" onclick="filterQuestionPool()">Ara</button>
+                    </div>
                     <div id="poolList" class="list-group"></div>
                 </div>
             </div>
@@ -191,13 +252,15 @@ function renderTopicsInterface() {
         </div>
     `;
 
-    // CSS Ekle
+    // CSS
     const style = document.createElement('style');
     style.innerHTML = `
-        .lessons-nav .nav-item { padding: 10px; border-radius: 6px; cursor: pointer; margin-bottom: 5px; border: 1px solid transparent; transition: all 0.2s; }
-        .lessons-nav .nav-item:hover { background: var(--bg-hover); }
+        .lessons-nav .nav-item { padding: 10px; border-radius: 6px; cursor: pointer; margin-bottom: 5px; border: 1px solid transparent; transition: all 0.2s; background: #fff; }
+        .lessons-nav .nav-item:hover { background: var(--bg-hover); border-color: var(--border-color); }
         .lessons-nav .nav-item.active { background: rgba(212, 175, 55, 0.1); border-color: var(--color-primary); color: var(--color-primary); font-weight: 600; }
-        .material-row { background: var(--bg-body); border: 1px solid var(--border-color); padding: 15px; border-radius: 8px; margin-bottom: 10px; display: grid; grid-template-columns: 40px 1fr auto; gap: 15px; align-items: start; }
+        .material-row { background: #fff; border: 1px solid var(--border-color); padding: 15px; border-radius: 8px; margin-bottom: 10px; display: grid; grid-template-columns: 40px 1fr auto; gap: 15px; align-items: start; }
+        .q-item { cursor: grab; }
+        .q-item:active { cursor: grabbing; }
     `;
     document.head.appendChild(style);
 
@@ -206,13 +269,11 @@ function renderTopicsInterface() {
 
 function bindEvents() {
     modalElement = document.getElementById('topicModal');
-    topicForm = document.getElementById('topicMetaForm');
 
     document.getElementById('btnNewTopic').addEventListener('click', () => openTopicEditor());
     document.getElementById('btnCloseTopicModal').addEventListener('click', () => modalElement.style.display = 'none');
     document.getElementById('btnSaveMeta').addEventListener('click', handleSaveTopicMeta);
 
-    // Arama ve Filtreleme
     document.getElementById('searchTopic').addEventListener('input', filterTopics);
     document.getElementById('filterCategory').addEventListener('change', filterTopics);
     document.getElementById('searchPool').addEventListener('input', filterQuestionPool);
@@ -232,12 +293,14 @@ function bindEvents() {
     window.restoreItem = restoreItem;
     window.permanentDelete = permanentDelete;
     window.softDeleteTopic = softDeleteTopic;
+    window.runTestWizard = runTestWizard;
+    window.filterQuestionPool = filterQuestionPool;
 }
 
-// --- LİSTELEME VE FİLTRELEME ---
+// --- LİSTELEME ---
 async function loadTopics() {
     const tbody = document.getElementById('topicsTableBody');
-    tbody.innerHTML = '<tr><td colspan="6">Yükleniyor...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="6" class="text-center">Yükleniyor...</td></tr>';
 
     try {
         const q = query(collection(db, "topics"), orderBy("order", "asc"));
@@ -246,7 +309,7 @@ async function loadTopics() {
         allTopicsCache = [];
         snapshot.forEach(doc => {
             const data = doc.data();
-            if (data.status !== 'deleted') { // Çöp kutusundakileri gösterme
+            if (data.status !== 'deleted') {
                 allTopicsCache.push({ id: doc.id, ...data });
             }
         });
@@ -255,7 +318,7 @@ async function loadTopics() {
 
     } catch (error) {
         console.error(error);
-        tbody.innerHTML = `<tr><td colspan="6" class="text-danger">Hata: ${error.message}</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" class="text-danger text-center">Hata: ${error.message}</td></tr>`;
     }
 }
 
@@ -300,7 +363,7 @@ function filterTopics() {
 async function openTopicEditor(id = null) {
     modalElement.style.display = 'flex';
     document.getElementById('lessonsListContainer').innerHTML = '';
-    document.getElementById('lessonEditorPanel').style.display = 'none';
+    document.getElementById('contentEditorPanel').style.display = 'none';
     document.getElementById('topicMetaPanel').style.display = 'block';
 
     if (id) {
@@ -317,23 +380,23 @@ async function openTopicEditor(id = null) {
         }
     } else {
         document.getElementById('editTopicId').value = "";
-        topicForm.reset();
+        document.getElementById('topicMetaForm').reset();
     }
 }
 
 async function loadContents(topicId) {
     const container = document.getElementById('lessonsListContainer');
-    container.innerHTML = 'Yükleniyor...';
+    container.innerHTML = '<div class="text-center p-2">Yükleniyor...</div>';
 
     const q = query(collection(db, `topics/${topicId}/lessons`), orderBy("order", "asc"));
     const snapshot = await getDocs(q);
 
     container.innerHTML = '';
-    currentLessons = [];
+    currentContents = [];
 
     snapshot.forEach(doc => {
         const data = { id: doc.id, ...doc.data() };
-        currentLessons.push(data);
+        currentContents.push(data);
 
         const icon = data.type === 'test' ? '📝' : '📄';
         const div = document.createElement('div');
@@ -343,154 +406,153 @@ async function loadContents(topicId) {
         container.appendChild(div);
     });
 
-    // SortableJS
+    // SortableJS ile sıralama
     if (typeof Sortable !== 'undefined') {
         new Sortable(container, {
             animation: 150,
-            onEnd: function (evt) { console.log("Sıralama değişti"); }
+            onEnd: function (evt) {
+                // Sıralama değiştiğinde order'ları güncelle (İleride DB'ye yazılabilir)
+                console.log("Sıralama değişti");
+            }
         });
     }
 }
 
 function selectContent(id) {
-    activeLessonId = id;
-    const content = currentLessons.find(c => c.id === id);
+    activeContentId = id;
+    const content = currentContents.find(c => c.id === id);
 
     document.getElementById('topicMetaPanel').style.display = 'none';
-    document.getElementById('lessonEditorPanel').style.display = 'block';
+    document.getElementById('contentEditorPanel').style.display = 'block';
 
-    document.getElementById('inpLessonTitle').value = content.title;
-    document.getElementById('inpLessonType').value = content.type || 'lesson';
+    document.getElementById('inpContentTitle').value = content.title;
+    document.getElementById('inpContentType').value = content.type || 'lesson';
 
     if (content.type === 'test') {
-        document.getElementById('testQuestionsArea').style.display = 'block';
-        document.getElementById('lessonMaterialsArea').style.display = 'none';
+        document.getElementById('testEditorArea').style.display = 'block';
+        document.getElementById('lessonEditorArea').style.display = 'none';
         selectedQuestions = content.questions || [];
         renderSelectedQuestions();
     } else {
-        document.getElementById('testQuestionsArea').style.display = 'none';
-        document.getElementById('lessonMaterialsArea').style.display = 'block';
+        document.getElementById('testEditorArea').style.display = 'none';
+        document.getElementById('lessonEditorArea').style.display = 'block';
         currentMaterials = content.materials || [];
         renderMaterials();
     }
 }
 
 function addNewContentUI(type) {
-    activeLessonId = null;
+    activeContentId = null;
     document.getElementById('topicMetaPanel').style.display = 'none';
-    document.getElementById('lessonEditorPanel').style.display = 'block';
+    document.getElementById('contentEditorPanel').style.display = 'block';
 
-    document.getElementById('inpLessonTitle').value = "";
-    document.getElementById('inpLessonType').value = type;
+    document.getElementById('inpContentTitle').value = "";
+    document.getElementById('inpContentType').value = type;
 
     if (type === 'test') {
-        document.getElementById('testQuestionsArea').style.display = 'block';
-        document.getElementById('lessonMaterialsArea').style.display = 'none';
+        document.getElementById('testEditorArea').style.display = 'block';
+        document.getElementById('lessonEditorArea').style.display = 'none';
         selectedQuestions = [];
         renderSelectedQuestions();
     } else {
-        document.getElementById('testQuestionsArea').style.display = 'none';
-        document.getElementById('lessonMaterialsArea').style.display = 'block';
+        document.getElementById('testEditorArea').style.display = 'none';
+        document.getElementById('lessonEditorArea').style.display = 'block';
         currentMaterials = [];
         renderMaterials();
     }
 }
 
-// --- MATERYAL YÖNETİMİ (DERS İÇİN) ---
-function addMaterial(type) {
-    currentMaterials.push({
-        id: Date.now(),
-        type: type,
-        title: '',
-        url: '',
-        desc: ''
-    });
-    renderMaterials();
-}
+// --- TEST SİHİRBAZI (YENİ) ---
+async function runTestWizard() {
+    const code = document.getElementById('wizLegCode').value.trim();
+    const start = parseInt(document.getElementById('wizStartArt').value);
+    const end = parseInt(document.getElementById('wizEndArt').value);
+    const limitVal = parseInt(document.getElementById('wizLimit').value) || 15;
 
-function removeMaterial(id) {
-    currentMaterials = currentMaterials.filter(m => m.id !== id);
-    renderMaterials();
-}
+    if (!code) return alert("Lütfen Kanun No giriniz.");
 
-function renderMaterials() {
-    const container = document.getElementById('materialsList');
-    container.innerHTML = '';
+    // Firestore'dan soruları çek
+    // Not: Firestore'da range sorgusu için 'legislationRef.article'ın sayı olması gerekir.
+    // Ancak biz string tutuyoruz. Bu yüzden client-side filtreleme yapacağız.
+    // Performans için 'legislationRef.code' ile filtreleyip çekiyoruz.
 
-    currentMaterials.forEach(mat => {
-        const div = document.createElement('div');
-        div.className = 'material-row';
+    try {
+        const q = query(collection(db, "questions"), where("legislationRef.code", "==", code), where("isActive", "==", true));
+        const snapshot = await getDocs(q);
 
-        let icon = '📄';
-        if (mat.type === 'video') icon = '▶️';
-        if (mat.type === 'podcast') icon = '🎧';
-        if (mat.type === 'html') icon = '📝';
+        let candidates = [];
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            const artNo = parseInt(data.legislationRef?.article);
 
-        let placeholder = 'URL';
-        if (mat.type === 'video') placeholder = 'YouTube Linki';
-
-        div.innerHTML = `
-            <div class="mat-icon" style="font-size:1.5rem;">${icon}</div>
-            <div class="mat-content d-grid gap-2">
-                <div class="d-flex justify-content-between">
-                    <input type="text" class="form-control form-control-sm mat-title" placeholder="Başlık" value="${mat.title}">
-                </div>
-                ${mat.type === 'html'
-                ? `<textarea class="form-control form-control-sm mat-url" rows="3" placeholder="İçerik...">${mat.url}</textarea>`
-                : `<input type="text" class="form-control form-control-sm mat-url" placeholder="${placeholder}" value="${mat.url}">`
+            // Madde aralığı kontrolü
+            if (!isNaN(artNo)) {
+                if ((!start || artNo >= start) && (!end || artNo <= end)) {
+                    candidates.push({ id: doc.id, ...data, articleNo: artNo });
+                }
             }
-            </div>
-            <button class="btn btn-sm btn-danger" onclick="removeMaterial(${mat.id})">X</button>
-        `;
+        });
 
-        // Binding
-        div.querySelector('.mat-title').addEventListener('input', (e) => mat.title = e.target.value);
-        div.querySelector('.mat-url').addEventListener('input', (e) => mat.url = e.target.value);
+        // Madde numarasına göre sırala
+        candidates.sort((a, b) => a.articleNo - b.articleNo);
 
-        container.appendChild(div);
-    });
+        // Limite göre kes
+        const selected = candidates.slice(0, limitVal);
+
+        if (selected.length === 0) return alert("Kriterlere uygun soru bulunamadı.");
+
+        // Mevcut listeye ekle
+        selectedQuestions = [...selectedQuestions, ...selected];
+        renderSelectedQuestions();
+        alert(`${selected.length} soru eklendi.`);
+
+    } catch (e) {
+        console.error(e);
+        alert("Hata: " + e.message);
+    }
 }
 
-// --- SORU YÖNETİMİ (TEST İÇİN) ---
+// --- SORU YÖNETİMİ ---
 async function openQuestionSelector() {
     document.getElementById('questionSelectorModal').style.display = 'flex';
-    const list = document.getElementById('poolList');
-    list.innerHTML = 'Yükleniyor...';
-
-    const q = query(collection(db, "questions"), where("isActive", "==", true), limit(50));
-    const snap = await getDocs(q);
-
-    questionPool = [];
-    snap.forEach(doc => questionPool.push({ id: doc.id, ...doc.data() }));
-
-    renderQuestionPool();
+    filterQuestionPool(); // İlk yükleme
 }
 
-function renderQuestionPool() {
+async function filterQuestionPool() {
     const list = document.getElementById('poolList');
     const search = document.getElementById('searchPool').value.toLowerCase();
+    list.innerHTML = 'Yükleniyor...';
 
+    // Basit arama (Client-side cache kullanılabilir ama şimdilik direkt sorgu)
+    // Performans için limitli sorgu
+    let q = query(collection(db, "questions"), where("isActive", "==", true), limit(50));
+
+    // Eğer arama varsa tümünü çekip filtrelemek gerekebilir (Firestore text search yok)
+    // Şimdilik 50 tane çekip gösteriyoruz.
+
+    const snap = await getDocs(q);
     list.innerHTML = '';
-    questionPool.forEach(q => {
-        if (search && !q.text.toLowerCase().includes(search)) return;
 
-        const isSelected = selectedQuestions.some(sq => sq.id === q.id);
+    snap.forEach(doc => {
+        const q = doc.data();
+        // Arama filtresi (Basit)
+        if (search && !q.text.toLowerCase().includes(search) && !q.legislationRef?.code?.includes(search)) return;
+
+        const isSelected = selectedQuestions.some(sq => sq.id === doc.id);
 
         const item = document.createElement('button');
         item.className = `list-group-item list-group-item-action ${isSelected ? 'disabled' : ''}`;
         item.innerHTML = `
             <div class="d-flex justify-content-between">
+                <small class="fw-bold">${q.legislationRef?.code || 'Genel'} / Md.${q.legislationRef?.article || '-'}</small>
                 <small>${q.category}</small>
-                <small>${q.legislationRef?.code || ''}</small>
             </div>
-            <div>${q.text.substring(0, 60)}...</div>
+            <div class="text-truncate">${q.text}</div>
         `;
-        if (!isSelected) item.onclick = () => addQuestionToTest(q);
+        if (!isSelected) item.onclick = () => addQuestionToTest({ id: doc.id, ...q });
         list.appendChild(item);
     });
 }
-
-function filterQuestionPool() { renderQuestionPool(); }
 
 function addQuestionToTest(question) {
     selectedQuestions.push(question);
@@ -510,27 +572,79 @@ function renderSelectedQuestions() {
     list.innerHTML = '';
     selectedQuestions.forEach((q, i) => {
         const div = document.createElement('div');
-        div.className = 'd-flex justify-content-between align-items-center p-2 border-bottom bg-white mb-1';
+        div.className = 'list-group-item d-flex justify-content-between align-items-center q-item';
         div.innerHTML = `
-            <span>${i + 1}. ${q.text.substring(0, 40)}...</span>
+            <div class="text-truncate me-2">
+                <span class="fw-bold me-2">${i + 1}.</span>
+                <span class="badge bg-light text-dark border me-1">${q.legislationRef?.article || '?'}</span>
+                ${q.text}
+            </div>
             <button class="btn btn-sm btn-danger py-0" onclick="removeQuestionFromTest(${i})">×</button>
         `;
         list.appendChild(div);
     });
+
+    // SortableJS
+    if (typeof Sortable !== 'undefined') {
+        new Sortable(list, {
+            animation: 150,
+            onEnd: function (evt) {
+                // Array sırasını güncellemek gerekir (Şimdilik görsel)
+            }
+        });
+    }
 }
 
-// --- KAYDETME VE SİLME ---
+// --- MATERYAL YÖNETİMİ ---
+function addMaterial(type) {
+    currentMaterials.push({ id: Date.now(), type, title: '', url: '' });
+    renderMaterials();
+}
+
+function removeMaterial(id) {
+    currentMaterials = currentMaterials.filter(m => m.id !== id);
+    renderMaterials();
+}
+
+function renderMaterials() {
+    const container = document.getElementById('materialsList');
+    container.innerHTML = '';
+
+    currentMaterials.forEach(mat => {
+        const div = document.createElement('div');
+        div.className = 'material-row';
+        let icon = mat.type === 'video' ? '▶️' : (mat.type === 'pdf' ? '📄' : '📝');
+
+        div.innerHTML = `
+            <div style="font-size:1.5rem;">${icon}</div>
+            <div class="d-grid gap-2">
+                <input type="text" class="form-control form-control-sm mat-title" placeholder="Başlık" value="${mat.title}">
+                ${mat.type === 'html'
+                ? `<textarea class="form-control form-control-sm mat-url" rows="2" placeholder="İçerik...">${mat.url}</textarea>`
+                : `<input type="text" class="form-control form-control-sm mat-url" placeholder="URL" value="${mat.url}">`
+            }
+            </div>
+            <button class="btn btn-sm btn-danger" onclick="removeMaterial(${mat.id})">X</button>
+        `;
+
+        div.querySelector('.mat-title').addEventListener('input', (e) => mat.title = e.target.value);
+        div.querySelector('.mat-url').addEventListener('input', (e) => mat.url = e.target.value);
+        container.appendChild(div);
+    });
+}
+
+// --- KAYDETME ---
 async function saveCurrentContent() {
     const topicId = document.getElementById('editTopicId').value;
-    const title = document.getElementById('inpLessonTitle').value;
-    const type = document.getElementById('inpLessonType').value;
+    const title = document.getElementById('inpContentTitle').value;
+    const type = document.getElementById('inpContentType').value;
 
     if (!topicId || !title) return alert("Başlık gerekli.");
 
     const data = {
         title,
         type,
-        order: currentLessons.length + 1,
+        order: currentContents.length + 1,
         isActive: true,
         updatedAt: serverTimestamp()
     };
@@ -541,7 +655,8 @@ async function saveCurrentContent() {
             text: q.text,
             options: q.options,
             correctOption: q.correctOption,
-            solution: q.solution
+            solution: q.solution,
+            legislationRef: q.legislationRef
         }));
         data.qCount = selectedQuestions.length;
     } else {
@@ -549,8 +664,8 @@ async function saveCurrentContent() {
     }
 
     try {
-        if (activeLessonId) {
-            await updateDoc(doc(db, `topics/${topicId}/lessons`, activeLessonId), data);
+        if (activeContentId) {
+            await updateDoc(doc(db, `topics/${topicId}/lessons`, activeContentId), data);
         } else {
             data.createdAt = serverTimestamp();
             await addDoc(collection(db, `topics/${topicId}/lessons`), data);
@@ -564,9 +679,9 @@ async function deleteCurrentContent() {
     if (!confirm("Silmek istediğinize emin misiniz?")) return;
     const topicId = document.getElementById('editTopicId').value;
     try {
-        await deleteDoc(doc(db, `topics/${topicId}/lessons`, activeLessonId));
+        await deleteDoc(doc(db, `topics/${topicId}/lessons`, activeContentId));
         loadContents(topicId);
-        document.getElementById('lessonEditorPanel').style.display = 'none';
+        document.getElementById('contentEditorPanel').style.display = 'none';
         document.getElementById('topicMetaPanel').style.display = 'block';
     } catch (e) { alert("Hata: " + e.message); }
 }
@@ -601,10 +716,7 @@ async function handleSaveTopicMeta() {
 async function softDeleteTopic(id) {
     if (!confirm("Bu konuyu çöp kutusuna taşımak istiyor musunuz?")) return;
     try {
-        await updateDoc(doc(db, "topics", id), {
-            status: 'deleted',
-            deletedAt: serverTimestamp()
-        });
+        await updateDoc(doc(db, "topics", id), { status: 'deleted', deletedAt: serverTimestamp() });
         loadTopics();
     } catch (e) { alert("Hata: " + e.message); }
 }
