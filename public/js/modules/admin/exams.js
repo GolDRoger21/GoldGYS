@@ -119,79 +119,109 @@ function renderInterface() {
 }
 
 // --- AKILLI ALGORİTMA ---
+import { EXAM_RULES } from "../../data/exam-rules.js";
+
+// --- AKILLI ALGORİTMA ---
 async function generateQuestions() {
     const logArea = document.getElementById('generationLog');
     const tbody = document.getElementById('previewQuestionsBody');
     const saveBtn = document.getElementById('btnSaveExam');
 
     generatedQuestionsCache = [];
-    logArea.innerHTML = '🚀 Başlatılıyor...<br>';
+    logArea.innerHTML = '🚀 Başlatılıyor (Akıllı Mod)...<br>';
     tbody.innerHTML = '';
     saveBtn.disabled = true;
 
     try {
         // 1. Tüm Aktif Soruları Çek
-        // Not: Büyük veride bu işlem Cloud Function ile yapılmalıdır. Şimdilik client-side.
         const qSnapshot = await getDocs(query(collection(db, "questions"), where("isActive", "==", true)));
 
-        // Soruları Havuza At
-        const pool = {};
+        // Soruları Havuza At (Kategoriden bağımsız düz liste)
+        const allQuestions = [];
         qSnapshot.forEach(doc => {
-            const d = doc.data();
-            const cat = d.category || 'Genel';
-            if (!pool[cat]) pool[cat] = [];
-            pool[cat].push({ id: doc.id, ...d });
+            allQuestions.push({ id: doc.id, ...doc.data() });
         });
 
-        logArea.innerHTML += `📦 ${qSnapshot.size} aktif soru tarandı.<br>----------------<br>`;
+        logArea.innerHTML += `📦 ${allQuestions.length} aktif soru tarandı.<br>----------------<br>`;
+        const selectedIds = new Set();
 
-        // 2. Şablona Göre Seçim Yap
-        for (const [targetCat, targetCount] of Object.entries(EXAM_TEMPLATE)) {
-            let candidates = [];
+        // Helper: Soru derse uygun mu?
+        const isMatch = (q, lesson) => {
+            if (!q.legislationRef) return false;
+            const qCode = q.legislationRef.code;
+            const qArt = parseInt(q.legislationRef.article);
 
-            // Havuzdaki kategorilerden, hedef kategori ismini İÇERENLERİ bul
-            // Örn: "Anayasa" arıyorsak "Anayasa Hukuku", "TC Anayasası" vb. gelir.
-            Object.keys(pool).forEach(poolCat => {
-                if (poolCat.includes(targetCat) || targetCat.includes(poolCat)) {
-                    candidates = candidates.concat(pool[poolCat]);
+            // Kod Eşleşmeli
+            if (qCode !== lesson.legislationCode) return false;
+
+            // Aralık Kontrolü
+            if (lesson.articleRange === "ALL") return true;
+            if (typeof lesson.articleRange === 'string' && lesson.articleRange.includes('-')) {
+                const [start, end] = lesson.articleRange.split('-').map(Number);
+                return qArt >= start && qArt <= end;
+            }
+            return false;
+        };
+
+        // 2. EXAM_RULES (Müfredat) Üzerinden İlerle
+        for (const topicRule of EXAM_RULES) {
+            let topicSelectedCount = 0;
+            logArea.innerHTML += `<strong>📌 ${topicRule.title}</strong> (Hedef: ${topicRule.totalQuestionTarget})<br>`;
+
+            // A. Ders (Lesson) Bazlı Seçim
+            if (topicRule.lessons && topicRule.lessons.length > 0) {
+                for (const lesson of topicRule.lessons) {
+                    if (lesson.qTarget > 0) {
+                        // Bu derse uygun soruları bul
+                        const candidates = allQuestions.filter(q =>
+                            !selectedIds.has(q.id) && isMatch(q, lesson)
+                        );
+
+                        // Rastgele Seç
+                        const picked = candidates.sort(() => 0.5 - Math.random()).slice(0, lesson.qTarget);
+
+                        picked.forEach(q => {
+                            generatedQuestionsCache.push(q);
+                            selectedIds.add(q.id);
+                        });
+                        topicSelectedCount += picked.length;
+                        logArea.innerHTML += `&nbsp;&nbsp;↳ ${lesson.title}: ${picked.length}/${lesson.qTarget}<br>`;
+                    }
                 }
-            });
-
-            // Yeterli soru var mı?
-            if (candidates.length < targetCount) {
-                logArea.innerHTML += `<span class="text-danger">⚠️ ${targetCat}: ${candidates.length}/${targetCount} (Eksik)</span><br>`;
-            } else {
-                logArea.innerHTML += `<span class="text-success">✅ ${targetCat}: ${targetCount} OK</span><br>`;
             }
 
-            // Rastgele Karıştır ve Seç
-            const selected = candidates.sort(() => 0.5 - Math.random()).slice(0, targetCount);
-            generatedQuestionsCache = generatedQuestionsCache.concat(selected);
+            // B. Eksikleri Tamamla (Konu Bazlı Fallback)
+            if (topicSelectedCount < topicRule.totalQuestionTarget) {
+                const needed = topicRule.totalQuestionTarget - topicSelectedCount;
+                // Konu başlığı eşleşen veya kategori eşleşen boştaki sorular
+                const extras = allQuestions.filter(q =>
+                    !selectedIds.has(q.id) &&
+                    (q.category === topicRule.title || q.category.includes(topicRule.title))
+                );
+
+                const pickedExtras = extras.sort(() => 0.5 - Math.random()).slice(0, needed);
+                pickedExtras.forEach(q => {
+                    generatedQuestionsCache.push(q);
+                    selectedIds.add(q.id);
+                });
+
+                if (pickedExtras.length > 0) {
+                    logArea.innerHTML += `&nbsp;&nbsp;⚠️ Ek Takviye: ${pickedExtras.length} soru<br>`;
+                }
+            }
         }
 
-        // 3. Eksikleri Tamamla (Hedef 80)
-        if (generatedQuestionsCache.length < 80) {
-            const needed = 80 - generatedQuestionsCache.length;
-            logArea.innerHTML += `----------------<br>ℹ️ Hedef 80 için ${needed} rastgele soru ekleniyor...<br>`;
+        // 3. Genel Kontrol ve Tablo
+        // ... (Eski koddaki 80 soruya tamamlama ve tablo render kısmı buraya eklenebilir veya mevcut koddaki gibi bırakılabilir)
+        // Ancak burada EXAM_RULES kullandığımız için "Object.entries(EXAM_TEMPLATE)" döngüsü kalktı.
 
-            // Seçilmemiş sorulardan bir havuz oluştur
-            const selectedIds = new Set(generatedQuestionsCache.map(q => q.id));
-            let remainingPool = [];
-            Object.values(pool).flat().forEach(q => {
-                if (!selectedIds.has(q.id)) remainingPool.push(q);
-            });
-
-            const extras = remainingPool.sort(() => 0.5 - Math.random()).slice(0, needed);
-            generatedQuestionsCache = generatedQuestionsCache.concat(extras);
-        }
-
-        // 4. Tabloyu Doldur
+        // Tabloyu Doldur
         generatedQuestionsCache.forEach((q, i) => {
             tbody.innerHTML += `<tr><td>${i + 1}</td><td>${q.category}</td><td>${q.text.substring(0, 40)}...</td></tr>`;
         });
 
         document.getElementById('qCountBadge').innerText = `${generatedQuestionsCache.length} Soru`;
-        logArea.innerHTML += `<br><strong>🎉 Deneme Hazır!</strong>`;
+        logArea.innerHTML += `<br><strong>🎉 Deneme Hazır! Toplam: ${generatedQuestionsCache.length}</strong>`;
         logArea.scrollTop = logArea.scrollHeight;
 
         if (generatedQuestionsCache.length > 0) saveBtn.disabled = false;
