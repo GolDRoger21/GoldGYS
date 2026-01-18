@@ -10,6 +10,8 @@
   <link rel="stylesheet" href="../styles/tokens.css">
   <link rel="stylesheet" href="../css/layout.css">
   <link rel="stylesheet" href="../css/dashboard.css">
+  <!-- Material Icons (Notlardaki ikonlar için şart) -->
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
   <style>
     /* --- PREMIUM HUB TASARIMI (V3) --- */
     .hub-container {
@@ -478,6 +480,206 @@
         font-size: 0.9rem;
       }
     }
+
+    /* --- HTML NOT UYUMLULUK KATMANI (TAILWIND & CUSTOM SİMÜLASYONU) --- */
+
+    /* Not Okuyucu Genel Ayarları */
+    .note-reader-content {
+      font-family: 'Source Sans Pro', 'Inter', sans-serif;
+      color: #1e293b;
+      line-height: 1.7;
+    }
+
+    /* Material Icons Düzeltmesi */
+    .note-reader-content .material-icons {
+      font-family: 'Material Icons';
+      font-weight: normal;
+      font-style: normal;
+      font-size: 24px;
+      display: inline-block;
+      line-height: 1;
+      text-transform: none;
+      letter-spacing: normal;
+      word-wrap: normal;
+      white-space: nowrap;
+      direction: ltr;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+
+    /* Özel Kart Yapısı (.kart) */
+    .note-reader-content .kart {
+      background: #ffffff;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      border-left: 5px solid #2563EB;
+      /* Varsayılan mavi */
+      background-image: repeating-linear-gradient(white, white 22px, #f8fafc 23px);
+    }
+
+    .note-reader-content .kart-baslik {
+      font-family: 'Nunito Sans', sans-serif;
+      font-weight: 800;
+      color: #2563EB;
+      display: flex;
+      align-items: center;
+      font-size: 1.25rem;
+      margin-bottom: 1rem;
+    }
+
+    /* Temel Layout Sınıfları (Tailwind Benzeri) */
+    .note-reader-content .flex {
+      display: flex;
+    }
+
+    .note-reader-content .flex-col {
+      flex-direction: column;
+    }
+
+    .note-reader-content .items-center {
+      align-items: center;
+    }
+
+    .note-reader-content .justify-between {
+      justify-content: space-between;
+    }
+
+    .note-reader-content .justify-center {
+      justify-content: center;
+    }
+
+    .note-reader-content .gap-2 {
+      gap: 0.5rem;
+    }
+
+    .note-reader-content .gap-3 {
+      gap: 0.75rem;
+    }
+
+    .note-reader-content .space-y-3>*+* {
+      margin-top: 0.75rem;
+    }
+
+    .note-reader-content .space-y-4>*+* {
+      margin-top: 1rem;
+    }
+
+    /* Grid Sistemi */
+    .note-reader-content .grid {
+      display: grid;
+      gap: 1rem;
+    }
+
+    @media (min-width: 768px) {
+      .note-reader-content .md\:grid-cols-2 {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .note-reader-content .md\:col-span-2 {
+        grid-column: span 2;
+      }
+    }
+
+    /* Renk ve Dekorasyon Sınıfları */
+    .note-reader-content .bg-slate-50 {
+      background-color: #f8fafc;
+    }
+
+    .note-reader-content .bg-slate-100 {
+      background-color: #f1f5f9;
+    }
+
+    .note-reader-content .text-slate-700 {
+      color: #334155;
+    }
+
+    .note-reader-content .text-blue-600 {
+      color: #2563EB;
+    }
+
+    .note-reader-content .text-blue-500 {
+      color: #3B82F6;
+    }
+
+    .note-reader-content .text-green-600 {
+      color: #16a34a;
+    }
+
+    .note-reader-content .text-red-600 {
+      color: #dc2626;
+    }
+
+    .note-reader-content .text-orange-600 {
+      color: #ea580c;
+    }
+
+    .note-reader-content .text-yellow-600 {
+      color: #ca8a04;
+    }
+
+    .note-reader-content .text-purple-600 {
+      color: #9333ea;
+    }
+
+    .note-reader-content .font-bold {
+      font-weight: 700;
+    }
+
+    .note-reader-content .font-extrabold {
+      font-weight: 800;
+    }
+
+    .note-reader-content .text-xl {
+      font-size: 1.25rem;
+    }
+
+    .note-reader-content .text-3xl {
+      font-size: 1.875rem;
+    }
+
+    .note-reader-content .rounded-lg {
+      border-radius: 0.5rem;
+    }
+
+    .note-reader-content .rounded-md {
+      border-radius: 0.375rem;
+    }
+
+    .note-reader-content .p-3 {
+      padding: 0.75rem;
+    }
+
+    .note-reader-content .p-4 {
+      padding: 1rem;
+    }
+
+    .note-reader-content .mb-4 {
+      margin-bottom: 1rem;
+    }
+
+    .note-reader-content .mt-8 {
+      margin-top: 2rem;
+    }
+
+    /* Özel Kutular (Mnemonic vb.) */
+    .note-reader-content .mnemonic {
+      background-color: #f0fdf4;
+      padding: 1rem;
+      border-left: 4px solid #10b981;
+      border-radius: 0 8px 8px 0;
+      margin-top: 1rem;
+      font-style: italic;
+    }
+
+    .note-reader-content mark {
+      background-color: #fef9c3;
+      color: #713f12;
+      padding: 0.1rem 0.3rem;
+      border-radius: 0.25rem;
+      font-weight: 600;
+    }
   </style>
 </head>
 
@@ -790,8 +992,8 @@
         // Not: item.url veritabanında HTML içeriğini tutuyor olmalı.
         const cleanHtml = DOMPurify.sanitize(item.url, {
           USE_PROFILES: { html: true },
-          ADD_TAGS: ['iframe'], // Eğer not içinde youtube embed varsa izin ver
-          ADD_ATTR: ['allow', 'allowfullscreen', 'frameborder', 'scrolling']
+          ADD_TAGS: ['iframe', 'style'], // Style etiketine izin ver (Notun kendi CSS'i varsa)
+          ADD_ATTR: ['allow', 'allowfullscreen', 'frameborder', 'scrolling', 'class', 'style', 'target']
         });
 
         // 2. İçeriği Bas
