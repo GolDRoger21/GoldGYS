@@ -2,15 +2,19 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // --- Yardımcı Fonksiyonlar ---
+    // --- YARDIMCI FONKSİYONLAR ---
+    
+    // Kullanıcı giriş yapmış mı?
     function signedIn() {
       return request.auth != null;
     }
     
+    // İşlem yapan kişi, dokümanın sahibi mi?
     function isSelf(uid) {
       return signedIn() && request.auth.uid == uid;
     }
 
+    // Admin mi? (Önce Token'a bakar - Maliyet: 0, Yoksa DB'ye bakar - Maliyet: 1)
     function isAdmin() {
       return signedIn() && (
         (request.auth.token.keys().hasAny(['admin']) && request.auth.token.admin == true) || 
@@ -18,76 +22,92 @@ service cloud.firestore {
       );
     }
     
+    // Editör veya Admin mi?
     function isEditor() {
       return isAdmin() || (
-        signedIn() && 
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'editor'
+        signedIn() && (
+          (request.auth.token.keys().hasAny(['editor']) && request.auth.token.editor == true) ||
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'editor'
+        )
       );
     }
 
-    // İstatistik Okuma İzni (Sadece Adminler)
+    // --- İSTATİSTİKLER (stats) ---
     match /stats/{docId} {
-      allow read: if request.auth != null && (request.auth.token.admin == true || request.auth.token.role == 'admin');
+      allow read: if isAdmin();
       allow write: if false; // Sadece Cloud Functions yazabilir
     }
 
     // --- KULLANICILAR (users) ---
     match /users/{uid} {
-      // Okuma: Kişi kendisi ise veya Admin ise okuyabilir
+      // Okuma: Kişi kendisi veya Admin
       allow read: if isSelf(uid) || isAdmin();
       
-      // Oluşturma (Yeni Üyelik):
-      // 1. Kişi kendisi olmalı
-      // 2. Rolü 'user' olarak gelmeli
-      // 3. Statüsü 'pending' (onay bekliyor) olarak gelmeli
+      // Oluşturma (Kayıt): Rol 'user' ve statü 'pending' olmalı
       allow create: if isSelf(uid) 
                     && request.resource.data.role == 'user'
                     && request.resource.data.status == 'pending';
       
       // Güncelleme: 
       // Admin her şeyi güncelleyebilir.
-      // Kullanıcı sadece profil resmi ve adını güncelleyebilir.
-      // updatedAt alanına da izin veriyoruz ki timestamp güncellemeleri patlamasın.
+      // Kullanıcı sadece profil alanlarını güncelleyebilir (Rol veya Statü değiştiremez!)
       allow update: if isAdmin() ||
         (
           isSelf(uid) && 
           request.resource.data.diff(resource.data).affectedKeys()
-            .hasOnly(['displayName', 'photoURL', 'email', 'lastLoginAt', 'updatedAt'])
+            .hasOnly(['displayName', 'photoURL', 'email', 'lastLoginAt', 'updatedAt', 'ad', 'soyad', 'phone', 'title', 'targetExam'])
         );
       
       allow delete: if isAdmin();
       
+      // Kullanıcı Alt Koleksiyonları (progress, wrongs, favorites, exam_results)
       match /{subcollection=**} {
          allow read, write: if isSelf(uid) || isAdmin();
       }
     }
 
-    // --- SİSTEM & DİĞER KOLEKSİYONLAR ---
+    // --- İÇERİK YÖNETİMİ ---
+
+    // Sistem Ayarları
     match /system/{docId} {
       allow read: if signedIn();
       allow write: if isAdmin();
     }
 
+    // Konular (Topics) ve Altındaki Dersler (Lessons)
     match /topics/{topicId} {
       allow read: if signedIn();
       allow write: if isEditor();
+      
+      // Dersler (topics/{id}/lessons/{lessonId})
+      match /lessons/{lessonId} {
+        allow read: if signedIn();
+        allow write: if isEditor();
+      }
     }
 
+    // Sınavlar (Exams)
     match /exams/{examId} {
       allow read: if signedIn();
       allow write: if isEditor();
     }
     
+    // Sorular (Questions)
     match /questions/{questionId} {
       allow read: if signedIn();
       allow write: if isEditor();
     }
 
+    // Raporlar (Reports)
     match /reports/{reportId} {
+      // Her üye rapor oluşturabilir
       allow create: if signedIn();
+      // Sadece editörler okuyup güncelleyebilir
       allow read, update, delete: if isEditor();
     }
 
+    // --- GÜVENLİK AĞI (Catch-all) ---
+    // Yukarıdaki kurallara uymayan her şeyi sadece Admin yapabilir.
     match /{document=**} {
       allow read, write: if isAdmin();
     }
