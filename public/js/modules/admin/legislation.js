@@ -1,70 +1,83 @@
 import { db } from "../../firebase-config.js";
-import { collection, query, where, getDocs, writeBatch, doc, getCountFromServer } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import {
+    collection, query, where, getDocs, writeBatch, doc, getCountFromServer, orderBy
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-let currentQuestions = [];
+let currentAffectedQuestions = [];
 
 export async function initLegislationPage() {
-    console.log("Mevzuat modülü başlatıldı.");
-    renderLegislationInterface();
-    updateStats();
+    renderInterface();
+    updateDashboardStats();
 }
 
-function renderLegislationInterface() {
+function renderInterface() {
     const container = document.getElementById('section-legislation');
     if (!container) return;
 
     container.innerHTML = `
         <div class="section-header">
             <div>
-                <h2>⚖️ Mevzuat Değişiklik Yönetimi</h2>
-                <p class="text-muted">Değişen kanun maddelerine bağlı soruları tespit edin ve güncelleyin.</p>
+                <h2>⚖️ Mevzuat Takip ve Etki Analizi</h2>
+                <p class="text-muted">Kanun değişikliklerinden etkilenen soruları tespit edin ve toplu işlem yapın.</p>
             </div>
         </div>
         
+        <!-- İstatistik Paneli -->
         <div class="row mb-4">
             <div class="col-md-4">
-                <div class="card bg-dark text-white text-center p-4" style="border: 1px solid var(--border-color);">
-                    <h3 id="flaggedCount" class="text-warning display-4 font-weight-bold" style="font-size: 2.5rem; margin: 10px 0;">0</h3>
-                    <small class="text-muted">İncelenmesi Gereken Soru</small>
+                <div class="card bg-warning text-dark p-3 h-100">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h3 class="m-0" id="flaggedCount">0</h3>
+                            <small>İncelenmesi Gereken Soru</small>
+                        </div>
+                        <span style="font-size: 2rem;">⚠️</span>
+                    </div>
+                    <button class="btn btn-sm btn-light mt-3" onclick="loadFlaggedQuestions()">Listele →</button>
                 </div>
             </div>
             <div class="col-md-8">
-                <div class="card p-4">
-                    <h4>🔍 Etki Analizi</h4>
-                    <p class="text-muted text-sm mb-3">Örn: 5271 sayılı kanunun 231. maddesi değiştiyse, bu maddeye atıf yapan tüm soruları bul.</p>
-                    <div class="row">
-                        <div class="col-md-4 form-group">
-                            <label>Kanun No</label>
-                            <input type="text" id="legCode" class="form-control" placeholder="Örn: 5271">
+                <div class="card p-4 h-100 border-primary">
+                    <h5 class="text-primary mb-3">🔍 Değişiklik Tarayıcı</h5>
+                    <div class="row g-2 align-items-end">
+                        <div class="col-md-4">
+                            <label class="form-label small text-muted">Kanun No / Kod</label>
+                            <input type="text" id="searchLegCode" class="form-control" placeholder="Örn: 5271">
                         </div>
-                        <div class="col-md-4 form-group">
-                            <label>Madde No</label>
-                            <input type="text" id="legArticle" class="form-control" placeholder="Örn: 231">
+                        <div class="col-md-4">
+                            <label class="form-label small text-muted">Madde No</label>
+                            <input type="text" id="searchLegArticle" class="form-control" placeholder="Örn: 231">
                         </div>
-                        <div class="col-md-4 form-group" style="display:flex; align-items:flex-end;">
-                            <button id="btnFindAffected" class="btn btn-primary w-100">🔎 Etkilenenleri Bul</button>
+                        <div class="col-md-4">
+                            <button id="btnAnalyze" class="btn btn-primary w-100">
+                                <span class="icon">🔎</span> Etkilenenleri Bul
+                            </button>
                         </div>
                     </div>
-                    <div class="mt-2 text-right">
-                        <button id="btnShowFlagged" class="btn btn-sm btn-outline-warning">⚠️ Mevcut İşaretlileri Gör</button>
-                    </div>
+                    <small class="text-muted mt-2 d-block">
+                        * Resmi Gazete'de değişen maddeyi girerek ilgili tüm soruları bulabilirsiniz.
+                    </small>
                 </div>
             </div>
         </div>
 
-        <div id="affectedQuestionsArea" class="card" style="display:none;">
-            <div class="card-header d-flex justify-content-between align-items-center mb-3 p-3 border-bottom">
-                <h4 class="m-0">Arama Sonuçları</h4>
-                <button id="btnMarkAllReview" class="btn btn-danger">🚨 Tümünü "İncelenecek" İşaretle</button>
+        <!-- Sonuç Listesi -->
+        <div id="resultsArea" class="card" style="display:none;">
+            <div class="card-header d-flex justify-content-between align-items-center p-3 bg-light">
+                <h5 class="m-0">Arama Sonuçları (<span id="resultCount">0</span>)</h5>
+                <div class="btn-group">
+                    <button class="btn btn-sm btn-outline-danger" onclick="applyBulkAction('deactivate')">🚫 Toplu Pasife Al</button>
+                    <button class="btn btn-sm btn-outline-warning" onclick="applyBulkAction('flag')">🚩 'İncelenecek' İşaretle</button>
+                </div>
             </div>
-            <div class="table-responsive p-3">
+            <div class="table-responsive">
                 <table class="admin-table">
                     <thead>
                         <tr>
                             <th>ID</th>
                             <th>Kategori</th>
+                            <th>Mevzuat Ref.</th>
                             <th>Soru Özeti</th>
-                            <th>Mevzuat</th>
                             <th>Durum</th>
                             <th>İşlem</th>
                         </tr>
@@ -75,126 +88,162 @@ function renderLegislationInterface() {
         </div>
     `;
 
-    document.getElementById('btnFindAffected').addEventListener('click', findAffectedQuestions);
-    document.getElementById('btnMarkAllReview').addEventListener('click', markAllAsFlagged);
-    document.getElementById('btnShowFlagged').addEventListener('click', loadFlaggedQuestions);
+    // Event Listeners
+    document.getElementById('btnAnalyze').addEventListener('click', findAffectedQuestions);
+
+    // Global Fonksiyonlar
+    window.loadFlaggedQuestions = loadFlaggedQuestions;
+    window.applyBulkAction = applyBulkAction;
 }
 
-async function updateStats() {
+// --- İŞLEVLER ---
+
+async function updateDashboardStats() {
     try {
+        // İncelenmesi gereken (flagged) soru sayısını çek
         const q = query(collection(db, "questions"), where("isFlaggedForReview", "==", true));
         const snapshot = await getCountFromServer(q);
-        const el = document.getElementById('flaggedCount');
-        if (el) el.innerText = snapshot.data().count;
-    } catch (e) { console.warn(e); }
+        document.getElementById('flaggedCount').innerText = snapshot.data().count;
+    } catch (e) { console.warn("İstatistik hatası:", e); }
 }
 
 async function findAffectedQuestions() {
-    const code = document.getElementById('legCode').value.trim();
-    const article = document.getElementById('legArticle').value.trim();
-    const tableBody = document.getElementById('legislationTableBody');
-    const area = document.getElementById('affectedQuestionsArea');
+    const code = document.getElementById('searchLegCode').value.trim();
+    const article = document.getElementById('searchLegArticle').value.trim();
+    const resultsArea = document.getElementById('resultsArea');
+    const tbody = document.getElementById('legislationTableBody');
 
-    if (!code || !article) return alert("Lütfen Kanun No ve Madde No giriniz.");
+    if (!code) return alert("Lütfen en azından Kanun Numarası giriniz.");
 
-    if (tableBody) tableBody.innerHTML = '<tr><td colspan="6" class="text-center">Veritabanı taranıyor...</td></tr>';
-    if (area) area.style.display = 'block';
+    tbody.innerHTML = '<tr><td colspan="6" class="text-center">Veritabanı taranıyor...</td></tr>';
+    resultsArea.style.display = 'block';
 
     try {
-        // İç içe obje sorgusu (legislationRef.code)
-        const q = query(
-            collection(db, "questions"),
-            where("legislationRef.code", "==", code),
-            where("legislationRef.article", "==", article)
-        );
+        // Sorgu Oluştur
+        let constraints = [
+            where("legislationRef.code", "==", code)
+        ];
 
+        if (article) {
+            constraints.push(where("legislationRef.article", "==", article));
+        }
+
+        const q = query(collection(db, "questions"), ...constraints);
         const snapshot = await getDocs(q);
-        currentQuestions = [];
+
+        currentAffectedQuestions = [];
+        tbody.innerHTML = '';
+        document.getElementById('resultCount').innerText = snapshot.size;
 
         if (snapshot.empty) {
-            tableBody.innerHTML = '<tr><td colspan="6" class="text-center">Bu maddeye bağlı soru bulunamadı.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">Bu kriterlere uygun soru bulunamadı.</td></tr>';
             return;
         }
 
-        tableBody.innerHTML = '';
-        snapshot.forEach(docSnap => {
-            const data = docSnap.data();
-            currentQuestions.push({ id: docSnap.id, ...data });
-            renderRow(docSnap.id, data, tableBody);
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            currentAffectedQuestions.push({ id: doc.id, ...data });
+
+            const statusBadge = data.isActive
+                ? '<span class="badge bg-success">Aktif</span>'
+                : '<span class="badge bg-secondary">Pasif</span>';
+
+            const flagBadge = data.isFlaggedForReview
+                ? '<span class="badge bg-warning text-dark">İncelenecek</span>'
+                : '';
+
+            tbody.innerHTML += `
+                <tr>
+                    <td><small>${doc.id.substring(0, 5)}</small></td>
+                    <td>${data.category}</td>
+                    <td><span class="badge bg-light text-dark border">${data.legislationRef?.code} / Md.${data.legislationRef?.article}</span></td>
+                    <td title="${data.text}">${data.text.substring(0, 50)}...</td>
+                    <td>${statusBadge} ${flagBadge}</td>
+                    <td>
+                        <button class="btn btn-sm btn-primary" onclick="window.openQuestionEditor('${doc.id}')">Düzenle</button>
+                    </td>
+                </tr>
+            `;
         });
 
     } catch (error) {
         console.error(error);
-        tableBody.innerHTML = `<tr><td colspan="6" class="text-danger">Hata: ${error.message}</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" class="text-danger">Hata: ${error.message}</td></tr>`;
     }
 }
 
 async function loadFlaggedQuestions() {
-    const area = document.getElementById('affectedQuestionsArea');
-    const tableBody = document.getElementById('legislationTableBody');
+    const resultsArea = document.getElementById('resultsArea');
+    const tbody = document.getElementById('legislationTableBody');
 
-    area.style.display = 'block';
-    tableBody.innerHTML = '<tr><td colspan="6" class="text-center">Yükleniyor...</td></tr>';
+    resultsArea.style.display = 'block';
+    tbody.innerHTML = '<tr><td colspan="6" class="text-center">Yükleniyor...</td></tr>';
 
     const q = query(collection(db, "questions"), where("isFlaggedForReview", "==", true));
     const snapshot = await getDocs(q);
 
-    currentQuestions = [];
-    tableBody.innerHTML = '';
+    currentAffectedQuestions = [];
+    tbody.innerHTML = '';
+    document.getElementById('resultCount').innerText = snapshot.size;
 
     if (snapshot.empty) {
-        tableBody.innerHTML = '<tr><td colspan="6" class="text-center">İncelenmesi gereken soru yok.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center">İncelenmesi gereken soru yok.</td></tr>';
         return;
     }
 
-    snapshot.forEach(docSnap => {
-        currentQuestions.push({ id: docSnap.id, ...docSnap.data() });
-        renderRow(docSnap.id, docSnap.data(), tableBody);
+    snapshot.forEach(doc => {
+        const data = doc.data();
+        currentAffectedQuestions.push({ id: doc.id, ...data });
+
+        tbody.innerHTML += `
+            <tr>
+                <td><small>${doc.id.substring(0, 5)}</small></td>
+                <td>${data.category}</td>
+                <td>${data.legislationRef?.code || '-'}</td>
+                <td>${data.text.substring(0, 50)}...</td>
+                <td><span class="badge bg-warning text-dark">İncelenecek</span></td>
+                <td>
+                    <button class="btn btn-sm btn-primary" onclick="window.openQuestionEditor('${doc.id}')">Düzenle</button>
+                </td>
+            </tr>
+        `;
     });
 }
 
-function renderRow(id, data, container) {
-    const isFlagged = data.isFlaggedForReview;
-    const row = document.createElement('tr');
-    row.innerHTML = `
-        <td><small>${id.substring(0, 6)}</small></td>
-        <td>${data.category || '-'}</td>
-        <td>${data.text ? data.text.substring(0, 40) + '...' : '-'}</td>
-        <td>
-            <span class="badge" style="background:var(--bg-hover);">${data.legislationRef?.code || '?'} / ${data.legislationRef?.article || '?'}</span>
-        </td>
-        <td>
-            ${isFlagged
-            ? '<span class="badge" style="background:#f59e0b; color:#000;">⚠️ İncelenecek</span>'
-            : '<span class="badge" style="background:#10b981; color:#fff;">✅ Güncel</span>'}
-        </td>
-        <td>
-            <button class="btn btn-sm btn-primary" onclick="window.openQuestionEditor('${id}')">✏️</button>
-        </td>
-    `;
-    container.appendChild(row);
-}
+async function applyBulkAction(actionType) {
+    if (currentAffectedQuestions.length === 0) return alert("İşlem yapılacak soru yok.");
 
-async function markAllAsFlagged() {
-    if (currentQuestions.length === 0) return;
-    if (!confirm(`${currentQuestions.length} soruyu "İncelenmesi Gerekiyor" olarak işaretlemek ve pasife almak istiyor musunuz?`)) return;
+    let confirmMsg = "";
+    let updateData = {};
 
-    const batch = writeBatch(db);
+    if (actionType === 'deactivate') {
+        confirmMsg = `${currentAffectedQuestions.length} soruyu YAYINDAN KALDIRMAK (Pasife almak) istiyor musunuz?`;
+        updateData = { isActive: false, isFlaggedForReview: true }; // Hem pasife al hem işaretle
+    } else if (actionType === 'flag') {
+        confirmMsg = `${currentAffectedQuestions.length} soruyu "İncelenecek" olarak işaretlemek istiyor musunuz? (Yayında kalmaya devam eder)`;
+        updateData = { isFlaggedForReview: true };
+    }
 
-    currentQuestions.forEach(q => {
-        const docRef = doc(db, "questions", q.id);
-        batch.update(docRef, {
-            isFlaggedForReview: true,
-            isActive: false // Güvenlik için yayından kaldır
-        });
-    });
+    if (!confirm(confirmMsg)) return;
 
     try {
+        // Firestore Batch (Max 500 işlem)
+        const batch = writeBatch(db);
+
+        currentAffectedQuestions.forEach(q => {
+            const docRef = doc(db, "questions", q.id);
+            batch.update(docRef, updateData);
+        });
+
         await batch.commit();
-        alert("İşlem başarılı! Sorular işaretlendi ve yayından kaldırıldı.");
-        updateStats();
-        findAffectedQuestions(); // Listeyi yenile
+        alert("Toplu işlem başarıyla tamamlandı.");
+
+        // Listeyi yenile
+        findAffectedQuestions();
+        updateDashboardStats();
+
     } catch (error) {
-        alert("Hata: " + error.message);
+        console.error(error);
+        alert("İşlem sırasında hata oluştu: " + error.message);
     }
 }
