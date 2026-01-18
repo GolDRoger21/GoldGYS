@@ -327,7 +327,7 @@ function bindEvents() {
     window.saveCurrentContent = saveCurrentContent;
     window.deleteCurrentContent = deleteCurrentContent;
     window.openQuestionSelector = openQuestionSelector;
-    window.addQuestionToTest = addQuestionToTest;
+
     window.removeQuestionFromTest = removeQuestionFromTest;
     window.addMaterial = addMaterial;
     window.removeMaterial = removeMaterial;
