@@ -2,6 +2,7 @@ import { db } from "../../firebase-config.js";
 import {
     collection, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, serverTimestamp, query, orderBy, limit, where
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { findTopicByLegislation } from "../../data/legislation-map.js";
 
 let modalElement = null;
 let questionForm = null;
@@ -239,9 +240,23 @@ function renderContentInterface() {
     document.getElementById('btnAddOncul').addEventListener('click', addOncul);
     questionForm.addEventListener('submit', handleSaveQuestion);
 
-    window.openQuestionEditorInternal = openQuestionEditor;
     window.removeOnculInternal = removeOncul;
     window.closeModal = closeModal;
+
+    // Auto-Select Listener
+    const autoSelectHandler = () => {
+        const code = document.getElementById('inpLegCode').value.trim();
+        const art = document.getElementById('inpLegArt').value.trim();
+        if (code) {
+            const match = findTopicByLegislation(code, art);
+            if (match) {
+                document.getElementById('inpCategory').value = match.topic;
+                // Optional: Show feedback "Otomatik seçildi: X"
+            }
+        }
+    };
+    document.getElementById('inpLegCode').addEventListener('blur', autoSelectHandler);
+    document.getElementById('inpLegArt').addEventListener('blur', autoSelectHandler);
 }
 
 // --- İŞLEVLER ---
