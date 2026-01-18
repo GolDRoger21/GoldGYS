@@ -155,6 +155,29 @@ function renderTopicsInterface() {
                                     <label class="form-label">Tür</label>
                                     <input type="text" id="inpContentType" class="form-control" disabled>
                                 </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Sıra No</label>
+                                    <input type="number" id="inpContentOrder" class="form-control" min="1">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Durum</label>
+                                    <select id="inpContentStatus" class="form-control">
+                                        <option value="true">✅ Aktif</option>
+                                        <option value="false">❌ Pasif</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Tahmini Süre (dk)</label>
+                                    <input type="number" id="inpContentDuration" class="form-control" min="1" placeholder="Örn: 20">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Etiketler</label>
+                                    <input type="text" id="inpContentTags" class="form-control" placeholder="örn: anayasa, temel">
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label">Kısa Özet</label>
+                                    <textarea id="inpContentSummary" class="form-control" rows="2" placeholder="İçerik özeti..."></textarea>
+                                </div>
                             </div>
 
                             <!-- TEST EDİTÖRÜ -->
@@ -205,6 +228,7 @@ function renderTopicsInterface() {
                                     <div class="btn-group">
                                         <button class="btn btn-sm btn-outline-secondary" onclick="addMaterial('pdf')">+ PDF</button>
                                         <button class="btn btn-sm btn-outline-secondary" onclick="addMaterial('video')">+ Video</button>
+                                        <button class="btn btn-sm btn-outline-secondary" onclick="addMaterial('podcast')">+ Podcast</button>
                                         <button class="btn btn-sm btn-outline-secondary" onclick="addMaterial('html')">+ Not</button>
                                     </div>
                                 </div>
@@ -399,9 +423,16 @@ async function loadContents(topicId) {
         currentContents.push(data);
 
         const icon = data.type === 'test' ? '📝' : '📄';
+        const statusBadge = data.isActive === false ? '<span class="badge bg-light text-dark border">Pasif</span>' : '<span class="badge bg-success">Aktif</span>';
         const div = document.createElement('div');
         div.className = 'nav-item d-flex justify-content-between align-items-center p-2 border-bottom';
-        div.innerHTML = `<span>${icon} ${data.title}</span> <small class="text-muted">#${data.order}</small>`;
+        div.innerHTML = `
+            <div class="d-flex flex-column">
+                <span>${icon} ${data.title}</span>
+                <small class="text-muted">#${data.order || '-'}</small>
+            </div>
+            ${statusBadge}
+        `;
         div.onclick = () => selectContent(data.id);
         container.appendChild(div);
     });
@@ -427,6 +458,11 @@ function selectContent(id) {
 
     document.getElementById('inpContentTitle').value = content.title;
     document.getElementById('inpContentType').value = content.type || 'lesson';
+    document.getElementById('inpContentOrder').value = content.order || '';
+    document.getElementById('inpContentStatus').value = content.isActive === false ? 'false' : 'true';
+    document.getElementById('inpContentDuration').value = content.duration || '';
+    document.getElementById('inpContentTags').value = Array.isArray(content.tags) ? content.tags.join(', ') : (content.tags || '');
+    document.getElementById('inpContentSummary').value = content.summary || '';
 
     if (content.type === 'test') {
         document.getElementById('testEditorArea').style.display = 'block';
@@ -448,6 +484,11 @@ function addNewContentUI(type) {
 
     document.getElementById('inpContentTitle').value = "";
     document.getElementById('inpContentType').value = type;
+    document.getElementById('inpContentOrder').value = currentContents.length + 1;
+    document.getElementById('inpContentStatus').value = 'true';
+    document.getElementById('inpContentDuration').value = '';
+    document.getElementById('inpContentTags').value = '';
+    document.getElementById('inpContentSummary').value = '';
 
     if (type === 'test') {
         document.getElementById('testEditorArea').style.display = 'block';
@@ -597,7 +638,7 @@ function renderSelectedQuestions() {
 
 // --- MATERYAL YÖNETİMİ ---
 function addMaterial(type) {
-    currentMaterials.push({ id: Date.now(), type, title: '', url: '' });
+    currentMaterials.push({ id: Date.now(), type, title: '', url: '', duration: '', description: '' });
     renderMaterials();
 }
 
@@ -613,7 +654,7 @@ function renderMaterials() {
     currentMaterials.forEach(mat => {
         const div = document.createElement('div');
         div.className = 'material-row';
-        let icon = mat.type === 'video' ? '▶️' : (mat.type === 'pdf' ? '📄' : '📝');
+        let icon = mat.type === 'video' ? '▶️' : (mat.type === 'pdf' ? '📄' : (mat.type === 'podcast' ? '🎧' : '📝'));
 
         div.innerHTML = `
             <div style="font-size:1.5rem;">${icon}</div>
@@ -623,12 +664,22 @@ function renderMaterials() {
                 ? `<textarea class="form-control form-control-sm mat-url" rows="2" placeholder="İçerik...">${mat.url}</textarea>`
                 : `<input type="text" class="form-control form-control-sm mat-url" placeholder="URL" value="${mat.url}">`
             }
+                <div class="row g-2">
+                    <div class="col-md-4">
+                        <input type="number" class="form-control form-control-sm mat-duration" placeholder="Süre (dk)" value="${mat.duration || ''}">
+                    </div>
+                    <div class="col-md-8">
+                        <input type="text" class="form-control form-control-sm mat-desc" placeholder="Kısa açıklama" value="${mat.description || ''}">
+                    </div>
+                </div>
             </div>
             <button class="btn btn-sm btn-danger" onclick="removeMaterial(${mat.id})">X</button>
         `;
 
         div.querySelector('.mat-title').addEventListener('input', (e) => mat.title = e.target.value);
         div.querySelector('.mat-url').addEventListener('input', (e) => mat.url = e.target.value);
+        div.querySelector('.mat-duration').addEventListener('input', (e) => mat.duration = e.target.value);
+        div.querySelector('.mat-desc').addEventListener('input', (e) => mat.description = e.target.value);
         container.appendChild(div);
     });
 }
@@ -638,14 +689,21 @@ async function saveCurrentContent() {
     const topicId = document.getElementById('editTopicId').value;
     const title = document.getElementById('inpContentTitle').value;
     const type = document.getElementById('inpContentType').value;
+    const orderInput = parseInt(document.getElementById('inpContentOrder').value);
+    const tagsInput = document.getElementById('inpContentTags').value;
+    const existingContent = currentContents.find(c => c.id === activeContentId);
+    const fallbackOrder = existingContent?.order ?? (currentContents.length + 1);
 
     if (!topicId || !title) return alert("Başlık gerekli.");
 
     const data = {
         title,
         type,
-        order: currentContents.length + 1,
-        isActive: true,
+        order: Number.isNaN(orderInput) ? fallbackOrder : orderInput,
+        isActive: document.getElementById('inpContentStatus').value === 'true',
+        duration: document.getElementById('inpContentDuration').value || '',
+        summary: document.getElementById('inpContentSummary').value || '',
+        tags: tagsInput ? tagsInput.split(',').map(tag => tag.trim()).filter(Boolean) : [],
         updatedAt: serverTimestamp()
     };
 
