@@ -6,7 +6,10 @@
     "ignore": [
       "firebase.json",
       "**/.*",
-      "**/node_modules/**"
+      "**/node_modules/**",
+      "**/serviceAccountKey.json",
+      "**/*.log",
+      "**/.DS_Store"
     ]
   }
 }
