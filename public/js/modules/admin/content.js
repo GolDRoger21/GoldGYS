@@ -211,6 +211,12 @@ function bindEvents() {
     window.openTrashModal = openTrashModal;
     window.restoreQuestion = restoreQuestion;
     window.permanentDeleteQuestion = permanentDeleteQuestion;
+
+    // Editörü dışarı açtık (Topics modülü için)
+    window.QuestionBank = {
+        openEditor: openQuestionEditor,
+        refreshList: loadQuestions
+    };
 }
 
 // --- VERİ YÖNETİMİ ---
@@ -335,34 +341,39 @@ async function permanentDeleteQuestion(id) {
 
 // Kategorileri Firestore'dan Çek
 async function loadDynamicCategories() {
-    const dataList = document.getElementById('categoryList');
     const filterSelect = document.getElementById('filterCategory');
+    const dataList = document.getElementById('categoryList'); // Modal içindeki input için
 
-    if (!dataList || !filterSelect) return;
+    if (!filterSelect) return; // Hata almamak için güvenlik
 
     try {
+        // Sadece başlıkları değil, id'leri de alabiliriz ama şimdilik başlık yeterli
         const q = query(collection(db, "topics"), orderBy("title", "asc"));
         const snapshot = await getDocs(q);
 
-        dataList.innerHTML = '';
+        // Önce temizle
         filterSelect.innerHTML = '<option value="">Tüm Kategoriler</option>';
+        if (dataList) dataList.innerHTML = '';
 
         snapshot.forEach(doc => {
             const topic = doc.data();
-            const title = topic.title;
 
-            const option = document.createElement('option');
-            option.value = title;
-            dataList.appendChild(option);
+            // Filtre Select için
+            const opt = document.createElement('option');
+            opt.value = topic.title; // Veritabanında category alanında title mı tutuyorsun ID mi? Koduna göre Title.
+            opt.innerText = topic.title;
+            filterSelect.appendChild(opt);
 
-            const selectOption = document.createElement('option');
-            selectOption.value = title;
-            selectOption.innerText = title;
-            filterSelect.appendChild(selectOption);
+            // Modal Input Datalist için
+            if (dataList) {
+                const listOpt = document.createElement('option');
+                listOpt.value = topic.title;
+                dataList.appendChild(listOpt);
+            }
         });
 
     } catch (error) {
-        console.error("Kategoriler yüklenirken hata:", error);
+        console.error("Kategoriler yüklenemedi:", error);
     }
 }
 

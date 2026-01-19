@@ -16,7 +16,12 @@ let state = {
     tempQuestions: [],
     poolQuestions: [],
     legislationList: new Set(),
-    sortable: null // Sürükle bırak instance
+    sortable: null, // Sürükle bırak instance
+    sidebarTab: 'lesson', // 'lesson' veya 'test' (Sidebar sekmesi için)
+    poolFilters: {        // Gelişmiş soru havuzu filtresi için
+        difficulty: '',
+        text: ''
+    }
 };
 
 // ============================================================
@@ -43,8 +48,13 @@ export function initTopicsPage() {
             add: addToTestPaper,
             remove: removeFromTestPaper,
             auto: autoGenerateTest,
-            editQ: openQuickEdit, // Yeni
-            saveQ: saveQuickEdit, // Yeni
+            fullEdit: (id) => {
+                if (window.QuestionBank && window.QuestionBank.openEditor) {
+                    window.QuestionBank.openEditor(id);
+                } else {
+                    alert("Soru Bankası modülü yüklenmedi. Sayfayı yenileyin.");
+                }
+            },
             closeQ: () => document.getElementById('quickEditModal').style.display = 'none'
         },
         trash: { open: openTrash, restore: restoreItem, purge: purgeItem },
@@ -208,31 +218,33 @@ function renderMainInterface() {
                                         <div class="wizard-col">
                                             <div class="wizard-header">1. FİLTRELEME</div>
                                             <div class="wizard-body">
-                                                <div class="form-group">
-                                                    <label>Soru Kaynağı</label>
-                                                    <input type="text" id="wizSourceDisplay" class="form-control mb-2" readonly style="background:var(--bg-body); font-weight:bold;">
-                                                    <input type="hidden" id="wizLegislation">
+                                                <label class="small text-muted">Mevzuat / Kaynak</label>
+                                                <input type="text" id="wizSourceDisplay" class="form-control mb-2" readonly style="background:var(--bg-body); font-weight:bold;">
+                                                <input type="hidden" id="wizLegislation">
+                                                
+                                                <label class="small text-muted">Madde Aralığı</label>
+                                                <div class="d-flex gap-2 mb-2">
+                                                    <input type="number" id="wizStart" class="form-control" placeholder="Baş">
+                                                    <input type="number" id="wizEnd" class="form-control" placeholder="Son">
                                                 </div>
-                                                <div class="form-group">
-                                                    <label>Madde Aralığı</label>
-                                                    <div class="d-flex gap-2">
-                                                        <input type="number" id="wizStart" class="form-control" placeholder="Baş">
-                                                        <input type="number" id="wizEnd" class="form-control" placeholder="Son">
-                                                    </div>
-                                                </div>
+
+                                                <label class="small text-muted">Detay Filtre</label>
+                                                <select id="wizDifficulty" class="form-control mb-2">
+                                                    <option value="">Tüm Zorluklar</option>
+                                                    <option value="1">1 - Çok Kolay</option>
+                                                    <option value="3">3 - Orta</option>
+                                                    <option value="5">5 - Çok Zor</option>
+                                                </select>
+                                                <input type="text" id="wizSearchText" class="form-control mb-3" placeholder="Soru içinde ara...">
+
                                                 <button class="btn btn-primary w-100 mb-3" onclick="window.Studio.wizard.search()">
-                                                    🔍 Soruları Getir
+                                                    🔍 Filtrele ve Getir
                                                 </button>
                                                 
                                                 <hr class="border-color">
-                                                
-                                                <div class="p-3 bg-hover rounded border border-color">
-                                                    <strong class="text-gold d-block mb-2">🤖 Otomatik Oluştur</strong>
-                                                    <p class="small text-muted mb-2">Seçili kaynaktan rastgele 15 soru seçer.</p>
-                                                    <button class="btn btn-warning btn-sm w-100" onclick="window.Studio.wizard.auto()">
-                                                        Otomatik Doldur
-                                                    </button>
-                                                </div>
+                                                <button class="btn btn-warning btn-sm w-100" onclick="window.Studio.wizard.auto()">
+                                                     ⚡ Otomatik 15 Soru Seç
+                                                </button>
                                             </div>
                                         </div>
 
@@ -249,7 +261,7 @@ function renderMainInterface() {
                                                             <tr>
                                                                 <th width="50">Md.</th>
                                                                 <th>Soru Metni</th>
-                                                                <th width="80">İşlem</th>
+                                                                <th width="100">İşlem</th>
                                                             </tr>
                                                         </thead>
                                                         <tbody id="poolList">
@@ -447,41 +459,43 @@ async function loadLessons(topicId) {
 function renderContentNav() {
     const list = document.getElementById('contentListNav');
 
-    // Gruplama
-    const materials = state.currentLessons.filter(l => l.type !== 'test');
-    const tests = state.currentLessons.filter(l => l.type === 'test');
+    // Filtreleme
+    const items = state.currentLessons.filter(l =>
+        state.sidebarTab === 'test' ? l.type === 'test' : l.type !== 'test'
+    );
 
-    const renderItem = (l) => `
+    // Sekme HTML'i
+    const tabsHtml = `
+        <div class="studio-tabs d-flex border-bottom mb-2">
+            <button class="btn btn-sm flex-fill ${state.sidebarTab === 'lesson' ? 'btn-primary' : 'btn-light'}" 
+                onclick="window.Studio.switchTab('lesson')">📄 Dersler</button>
+            <button class="btn btn-sm flex-fill ${state.sidebarTab === 'test' ? 'btn-warning' : 'btn-light'}" 
+                onclick="window.Studio.switchTab('test')">📝 Testler</button>
+        </div>
+    `;
+
+    // Liste HTML'i
+    const listHtml = items.length ? items.map(l => `
         <div class="content-nav-item ${state.activeLessonId === l.id ? 'active' : ''}" 
              onclick="window.Studio.selectContent('${l.id}')">
             <span class="nav-item-icon">${l.type === 'test' ? '📝' : '📄'}</span>
             <div class="nav-item-meta">
-                <div class="nav-item-title">${l.title}</div>
-                <div class="nav-item-sub">Sıra: ${l.order}</div>
+                <div class="nav-item-title text-truncate">${l.title}</div>
+                <div class="nav-item-sub d-flex justify-content-between">
+                    <span>Sıra: ${l.order}</span>
+                    <span>${l.type === 'test' ? (l.qCount || 0) + ' Soru' : ''}</span>
+                </div>
             </div>
         </div>
-    `;
+    `).join('') : '<div class="text-center text-muted p-3">Bu kategoride içerik yok.</div>';
 
-    list.innerHTML = `
-        <div class="sidebar-group open">
-            <div class="sidebar-group-header" onclick="window.Studio.toggleGroup(this)">
-                <span>DERS MATERYALLERİ (${materials.length})</span> <span>▼</span>
-            </div>
-            <div class="sidebar-group-body p-2">
-                ${materials.length ? materials.map(renderItem).join('') : '<small class="text-muted p-2 d-block">Yok</small>'}
-            </div>
-        </div>
-        
-        <div class="sidebar-group open">
-            <div class="sidebar-group-header" onclick="window.Studio.toggleGroup(this)">
-                <span>KONU TESTLERİ (${tests.length})</span> <span>▼</span>
-            </div>
-            <div class="sidebar-group-body p-2">
-                ${tests.length ? tests.map(renderItem).join('') : '<small class="text-muted p-2 d-block">Yok</small>'}
-            </div>
-        </div>
-    `;
+    list.innerHTML = tabsHtml + '<div class="content-list-scroll">' + listHtml + '</div>';
 }
+
+window.Studio.switchTab = (tab) => {
+    state.sidebarTab = tab;
+    renderContentNav();
+};
 
 function toggleSidebarGroup(header) {
     header.parentElement.classList.toggle('open');
@@ -611,10 +625,17 @@ async function saveContent() {
     let title = document.getElementById('inpContentTitle').value;
 
     // Otomatik Başlık
-    if (!title && state.activeLessonType === 'test') {
-        const topic = state.allTopics.find(t => t.id === state.activeTopicId);
-        const count = state.currentLessons.filter(l => l.type === 'test').length + 1;
-        title = `${topic.title} - Test ${count}`;
+    if (!title) {
+        if (state.activeLessonType === 'test') {
+            // Mevcut testleri say
+            const testCount = state.currentLessons.filter(l => l.type === 'test').length;
+            // Eğer yeni bir test ise (id yoksa) testCount + 1, düzenlemeyse mevcut sırası
+            const nextNum = state.activeLessonId ? testCount : (testCount + 1);
+            title = `Konu Tarama Testi - ${nextNum}`;
+        } else {
+            title = `Ders Notu - ${state.currentLessons.length + 1}`;
+        }
+        // Input'a da yaz ki kullanıcı görsün
         document.getElementById('inpContentTitle').value = title;
     }
 
@@ -705,31 +726,42 @@ async function searchQuestions() {
     const code = document.getElementById('wizLegislation').value;
     const s = parseInt(document.getElementById('wizStart').value);
     const e = parseInt(document.getElementById('wizEnd').value);
+
+    // Yeni filtreler
+    const diff = document.getElementById('wizDifficulty').value;
+    const textSearch = document.getElementById('wizSearchText').value.toLowerCase();
+
     const list = document.getElementById('poolList');
-
-    if (!code) return;
-
     list.innerHTML = '<tr><td colspan="3" class="text-center p-3">Aranıyor...</td></tr>';
 
-    // İKİLİ ARAMA: Hem Kanun Kodu hem Kategori
+    // Not: Firestore'da karmaşık "OR" sorguları zordur. 
+    // Tümünü çekip client-side filtrelemek bu ölçekte (admin paneli için) daha performanslı ve esnektir.
     const q1 = query(collection(db, "questions"), where("legislationRef.code", "==", code));
-    const q2 = query(collection(db, "questions"), where("category", "==", code));
 
-    const [snap1, snap2] = await Promise.all([getDocs(q1), getDocs(q2)]);
+    const snap = await getDocs(q1);
+    let arr = [];
 
-    const mergedDocs = new Map();
-    snap1.forEach(d => mergedDocs.set(d.id, d));
-    snap2.forEach(d => mergedDocs.set(d.id, d));
-
-    const arr = [];
-    mergedDocs.forEach(doc => {
+    snap.forEach(doc => {
         const d = doc.data();
-        const art = parseInt(d.legislationRef?.article);
-        if ((!s || art >= s) && (!e || art <= e)) {
-            arr.push({ id: doc.id, ...d, artNo: art || 0 });
-        }
+        if (d.isDeleted) return; // Silinenleri alma
+
+        const art = parseInt(d.legislationRef?.article) || 0;
+
+        // --- CLIENT SIDE FILTRELEME ---
+        // 1. Madde Aralığı
+        if (s && art < s) return;
+        if (e && art > e) return;
+
+        // 2. Zorluk
+        if (diff && d.difficulty != diff) return;
+
+        // 3. Metin Arama
+        if (textSearch && !d.text.toLowerCase().includes(textSearch)) return;
+
+        arr.push({ id: doc.id, ...d, artNo: art });
     });
 
+    // Sıralama (Madde No'ya göre)
     arr.sort((a, b) => a.artNo - b.artNo);
     state.poolQuestions = arr;
 
@@ -749,13 +781,15 @@ function renderPoolList() {
         const isAdded = state.tempQuestions.some(x => x.id === q.id);
         return `
             <tr class="pool-row ${isAdded ? 'added' : ''}">
-                <td><strong>${q.artNo}</strong></td>
+                <td><span class="badge bg-light text-dark border">Md.${q.artNo}</span></td>
                 <td>
-                    <div class="text-truncate" style="max-width:200px;" title="${q.text}">${q.text}</div>
+                    <div class="text-truncate small" style="max-width:180px;" title="${q.text}">${q.text}</div>
                 </td>
                 <td>
-                    <button class="btn btn-sm btn-outline-primary p-1" onclick="window.Studio.wizard.editQ('${q.id}')" title="Düzenle">✏️</button>
-                    <button class="btn btn-sm btn-success p-1" onclick="window.Studio.wizard.add('${q.id}')" ${isAdded ? 'disabled' : ''}>+</button>
+                    <div class="btn-group">
+                        <button class="btn btn-sm btn-outline-secondary" onclick="window.Studio.wizard.fullEdit('${q.id}')" title="Detaylı Düzenle">🛠️</button>
+                        <button class="btn btn-sm btn-success" onclick="window.Studio.wizard.add('${q.id}')" ${isAdded ? 'disabled' : ''}>+</button>
+                    </div>
                 </td>
             </tr>
         `;
@@ -782,14 +816,20 @@ function renderTestPaper() {
     document.getElementById('paperCount').innerText = state.tempQuestions.length;
 
     list.innerHTML = state.tempQuestions.map((q, i) => `
-        <div class="q-paper-item" data-id="${q.id}">
-            <div class="q-paper-number">${i + 1}.</div>
-            <div style="flex:1; overflow:hidden;">
-                <div class="small fw-bold text-primary">Md. ${q.artNo}</div>
-                <div class="text-truncate text-muted small">${q.text}</div>
+        <div class="q-paper-item d-flex align-items-center p-2 mb-1 border rounded bg-white" data-id="${q.id}">
+            <div class="fw-bold me-2 text-muted" style="width:20px;">${i + 1}.</div>
+            <div class="flex-fill overflow-hidden">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-warning text-dark" style="font-size:10px;">Md.${q.artNo}</span>
+                    <span class="badge bg-info text-dark" style="font-size:10px;">Zorluk: ${q.difficulty || '-'}</span>
+                </div>
+                <div class="text-truncate small mt-1">${q.text}</div>
             </div>
-            <button class="btn btn-sm text-danger p-0" onclick="window.Studio.wizard.remove(${i})">&times;</button>
-        </div>
+            <div class="d-flex gap-1 ms-2">
+                 <button class="btn btn-sm btn-outline-primary py-0 px-2" onclick="window.Studio.wizard.fullEdit('${q.id}')">🛠️</button>
+                 <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="window.Studio.wizard.remove(${i})">&times;</button>
+            </div>
+            <div class="ms-2 text-muted" style="cursor:move;">☰</div> </div>
     `).join('');
 
     // Sortable (Sürükle Bırak)
