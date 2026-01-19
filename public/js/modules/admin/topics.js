@@ -113,6 +113,10 @@ async function openEditor(id = null) {
     state.activeTopicId = id;
     state.sidebarTab = 'lesson';
 
+    // Tab butonlarını resetle
+    document.getElementById('tabLesson').classList.add('active');
+    document.getElementById('tabTest').classList.remove('active');
+
     if (id) {
         const t = state.allTopics.find(x => x.id === id);
         document.getElementById('editTopicId').value = id;
@@ -121,16 +125,22 @@ async function openEditor(id = null) {
         document.getElementById('inpTopicCategory').value = t.category;
         document.getElementById('inpTopicStatus').value = t.isActive;
 
+        document.getElementById('activeTopicTitleDisplay').innerText = t.title; // BAŞLIK GÜNCELLEME
+
         state.autoFilter = t.title;
         await loadLessons(id);
 
-        if (state.currentLessons.length > 0) selectContentItem(state.currentLessons[0].id);
-        else showMetaEditor();
+        // İçerik varsa ilkini seçme, yoksa "Empty State" göster
+        document.getElementById('emptyState').style.display = 'flex';
+        document.getElementById('metaEditor').style.display = 'none';
+        document.getElementById('contentEditor').style.display = 'none';
     } else {
         document.getElementById('editTopicId').value = "";
         document.getElementById('inpTopicTitle').value = "";
         document.getElementById('inpTopicOrder').value = state.allTopics.length + 1;
         document.getElementById('contentListNav').innerHTML = '';
+
+        document.getElementById('activeTopicTitleDisplay').innerText = "Yeni Konu Oluşturuluyor...";
         showMetaEditor();
     }
 }
@@ -216,27 +226,40 @@ function selectContentItem(id) {
     renderContentNav();
 }
 
+// UI State Yönetimi Güncellemesi
 function prepareEditorUI(type) {
+    // Tüm ekranları gizle
+    document.getElementById('emptyState').style.display = 'none';
     document.getElementById('metaEditor').style.display = 'none';
-    document.getElementById('contentEditor').style.display = 'flex';
+    document.getElementById('contentEditor').style.display = 'flex'; // Flex ile aç
 
     const badge = document.getElementById('editorBadge');
+
     if (type === 'test') {
-        badge.innerText = "TEST"; badge.className = "badge bg-warning text-dark";
+        badge.innerText = "TEST EDİTÖRÜ";
+        badge.className = "badge bg-warning text-dark";
         document.getElementById('wsLessonMode').style.display = 'none';
-        document.getElementById('wsTestMode').style.display = 'flex';
+        document.getElementById('wsTestMode').style.display = 'flex'; // Split view için flex
     } else {
-        badge.innerText = "DERS"; badge.className = "badge bg-primary";
-        document.getElementById('wsLessonMode').style.display = 'block';
+        badge.innerText = "DERS EDİTÖRÜ";
+        badge.className = "badge bg-primary";
+        document.getElementById('wsLessonMode').style.display = 'block'; // Normal akış
         document.getElementById('wsTestMode').style.display = 'none';
     }
 }
 
+// Konu Ayarlarını Açma
 function showMetaEditor() {
-    document.getElementById('metaEditor').style.display = 'block';
+    document.getElementById('emptyState').style.display = 'none';
     document.getElementById('contentEditor').style.display = 'none';
+    document.getElementById('metaEditor').style.display = 'flex'; // Flex ile ortala
+
     state.activeLessonId = null;
     document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+
+    // Aktif konu başlığını header'da güncelle
+    const topicTitle = document.getElementById('inpTopicTitle').value;
+    document.getElementById('activeTopicTitleDisplay').innerText = topicTitle || "Yeni Konu";
 }
 
 // --- SAVE & HELPERS ---
@@ -313,15 +336,26 @@ async function deleteContent() {
 function addMaterialUI(type) { state.tempMaterials.push({ id: Date.now(), type, title: '', url: '' }); renderMaterials(); }
 function removeMaterialUI(id) { state.tempMaterials = state.tempMaterials.filter(m => m.id !== id); renderMaterials(); }
 function updateMaterialItem(id, field, val) { const item = state.tempMaterials.find(m => m.id === id); if (item) item[field] = val; }
+// Materyal Render Fonksiyonu (Daha temiz HTML)
 function renderMaterials() {
-    document.getElementById('materialsContainer').innerHTML = state.tempMaterials.map(m => `
-        <div class="material-row">
-            <div style="font-size:1.5rem;">${m.type === 'video' ? '🎥' : m.type === 'podcast' ? '🎙️' : m.type === 'pdf' ? '📄' : '📝'}</div>
-            <div style="flex:1;">
-                <input type="text" class="form-control mb-1" placeholder="Başlık" value="${m.title}" oninput="window.Studio.updateMat(${m.id},'title',this.value)">
-                ${m.type === 'html' ? `<textarea class="form-control" placeholder="İçerik" oninput="window.Studio.updateMat(${m.id},'url',this.value)">${m.url}</textarea>` : `<input type="text" class="form-control" placeholder="URL" value="${m.url}" oninput="window.Studio.updateMat(${m.id},'url',this.value)">`}
+    const container = document.getElementById('materialsContainer');
+    if (state.tempMaterials.length === 0) {
+        container.innerHTML = '<div class="text-center text-muted p-4 border dashed rounded">Henüz materyal eklenmedi. Yukarıdan seçin.</div>';
+        return;
+    }
+
+    container.innerHTML = state.tempMaterials.map(m => `
+        <div class="material-item">
+            <div class="mat-icon">${m.type === 'video' ? '🎥' : m.type === 'podcast' ? '🎙️' : m.type === 'pdf' ? '📄' : '📝'}</div>
+            <div class="mat-content">
+                <input type="text" class="form-control fw-bold" placeholder="Materyal Başlığı" value="${m.title}" oninput="window.Studio.updateMat(${m.id},'title',this.value)">
+                ${m.type === 'html'
+            ? `<textarea class="form-control font-monospace small" rows="2" placeholder="İçerik / HTML Kodu" oninput="window.Studio.updateMat(${m.id},'url',this.value)">${m.url}</textarea>`
+            : `<input type="text" class="form-control small text-muted" placeholder="URL / Dosya Yolu" value="${m.url}" oninput="window.Studio.updateMat(${m.id},'url',this.value)">`}
             </div>
-            <button class="btn btn-sm text-danger" onclick="window.Studio.removeMat(${m.id})">×</button>
+            <button class="btn btn-outline-danger btn-sm" onclick="window.Studio.removeMat(${m.id})" title="Kaldır">
+                <span style="font-size:1.2rem;">&times;</span>
+            </button>
         </div>
     `).join('');
 }
@@ -359,22 +393,33 @@ async function searchQuestions() {
     renderPoolList();
 }
 
+// Test Havuzu Render Fonksiyonu (Kompakt Kartlar)
 function renderPoolList() {
     const list = document.getElementById('poolList');
     document.getElementById('poolCount').innerText = state.poolQuestions.length;
 
-    if (state.poolQuestions.length === 0) { list.innerHTML = '<div class="empty-state-box">Sonuç yok.</div>'; return; }
+    if (state.poolQuestions.length === 0) {
+        list.innerHTML = '<div class="text-center text-muted mt-5 small">Bu filtreye uygun soru bulunamadı.</div>';
+        return;
+    }
 
     list.innerHTML = state.poolQuestions.map(q => {
         const isAdded = state.tempQuestions.some(x => x.id === q.id);
+        const shortText = q.text.length > 60 ? q.text.substring(0, 60) + '...' : q.text;
+
         return `
-            <div class="question-card" style="${isAdded ? 'opacity:0.5; background:#f0fdf4' : ''}">
-                <div class="qc-number">${q.artNo}</div>
-                <div class="qc-content"><div class="qc-text">${q.text}</div></div>
-                <div class="qc-actions">
-                    <button class="btn btn-sm btn-outline-secondary py-0" onclick="window.Studio.wizard.fullEdit('${q.id}')">✏️</button>
-                    <button class="btn btn-sm btn-success py-0" onclick="window.Studio.wizard.add('${q.id}')" ${isAdded ? 'disabled' : ''}>+</button>
+            <div class="mini-q-card ${isAdded ? 'bg-light border-success' : ''}" onclick="window.Studio.wizard.fullEdit('${q.id}')">
+                <div class="d-flex justify-content-between mb-1">
+                    <span class="badge bg-secondary" style="font-size:0.7em">Md. ${q.artNo}</span>
+                    ${isAdded ? '<span class="text-success small fw-bold">Eklendi</span>' : ''}
                 </div>
+                <div class="text-dark small">${shortText}</div>
+                
+                <button class="q-action-btn btn-add-q" 
+                    onclick="event.stopPropagation(); window.Studio.wizard.add('${q.id}')" 
+                    ${isAdded ? 'disabled style="opacity:0.5"' : ''} title="Teste Ekle">
+                    <span>+</span>
+                </button>
             </div>`;
     }).join('');
 }
@@ -390,18 +435,35 @@ function removeFromTestPaper(i) {
     state.tempQuestions.splice(i, 1);
     renderTestPaper(); renderPoolList();
 }
+// Test Kağıdı Render Fonksiyonu
 function renderTestPaper() {
     const list = document.getElementById('paperList');
-    document.getElementById('paperCount').innerText = state.tempQuestions.length;
+    document.getElementById('paperCount').innerText = `${state.tempQuestions.length} Soru`;
 
-    if (state.tempQuestions.length === 0) { list.innerHTML = '<div class="empty-state-box">Kağıt boş.</div>'; return; }
+    if (state.tempQuestions.length === 0) {
+        list.innerHTML = '<div class="empty-selection bg-white"><div class="empty-icon">📝</div><p>Test kağıdı boş.</p></div>';
+        return;
+    }
 
-    list.innerHTML = state.tempQuestions.map((q, i) => `
-        <div class="question-card">
-            <div class="qc-number">${i + 1}.</div>
-            <div class="qc-content"><div class="qc-text">${q.text}</div></div>
-            <div class="qc-actions"><button class="btn btn-sm btn-danger py-0" onclick="window.Studio.wizard.remove(${i})">×</button></div>
-        </div>`).join('');
+    list.innerHTML = state.tempQuestions.map((q, i) => {
+        const shortText = q.text.length > 80 ? q.text.substring(0, 80) + '...' : q.text;
+        return `
+        <div class="mini-q-card">
+            <div class="d-flex gap-2">
+                <span class="fw-bold text-primary">${i + 1}.</span>
+                <div class="flex-grow-1">
+                    <div class="text-dark small mb-1">${shortText}</div>
+                    <div class="d-flex gap-2">
+                         <span class="badge bg-light text-muted border" style="font-size:0.7em">${q.legislationRef?.code || '?'}</span>
+                    </div>
+                </div>
+            </div>
+            <button class="q-action-btn btn-remove-q" 
+                onclick="event.stopPropagation(); window.Studio.wizard.remove(${i})" title="Çıkar">
+                <span>&times;</span>
+            </button>
+        </div>`
+    }).join('');
 }
 function autoGenerateTest() {
     if (state.poolQuestions.length === 0) return alert("Arama yapın.");
