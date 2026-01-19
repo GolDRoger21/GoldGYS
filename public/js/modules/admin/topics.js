@@ -1,7 +1,7 @@
-import { db } from "../../firebase-config.js";
 import {
     collection, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, serverTimestamp, query, orderBy, where, limit, writeBatch
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { openQuestionEditor } from './content.js';
 
 // ============================================================
 // --- GLOBAL STATE ---
@@ -48,12 +48,9 @@ export function initTopicsPage() {
             add: addToTestPaper,
             remove: removeFromTestPaper,
             auto: autoGenerateTest,
+            auto: autoGenerateTest,
             fullEdit: (id) => {
-                if (window.QuestionBank && window.QuestionBank.openEditor) {
-                    window.QuestionBank.openEditor(id);
-                } else {
-                    alert("Soru Bankası modülü yüklenmedi. Sayfayı yenileyin.");
-                }
+                openQuestionEditor(id);
             },
             closeQ: () => document.getElementById('quickEditModal').style.display = 'none'
         },
@@ -462,40 +459,55 @@ async function loadLessons(topicId) {
     renderContentNav();
 }
 
+// renderContentNav Fonksiyonunu KOMPLE DEĞİŞTİR:
 function renderContentNav() {
     const list = document.getElementById('contentListNav');
+    const isTestTab = state.sidebarTab === 'test';
 
-    // Filtreleme
-    const items = state.currentLessons.filter(l =>
-        state.sidebarTab === 'test' ? l.type === 'test' : l.type !== 'test'
-    );
-
-    // Sekme HTML'i
+    // 1. Sekmeler (Tabs)
     const tabsHtml = `
-        <div class="studio-tabs d-flex border-bottom mb-2">
-            <button class="btn btn-sm flex-fill ${state.sidebarTab === 'lesson' ? 'btn-primary' : 'btn-light'}" 
-                onclick="window.Studio.switchTab('lesson')">📄 Dersler</button>
-            <button class="btn btn-sm flex-fill ${state.sidebarTab === 'test' ? 'btn-warning' : 'btn-light'}" 
-                onclick="window.Studio.switchTab('test')">📝 Testler</button>
+        <div class="studio-tabs">
+            <div class="tab-item ${!isTestTab ? 'active' : ''}" onclick="window.Studio.switchTab('lesson')">
+                📄 Dersler
+            </div>
+            <div class="tab-item ${isTestTab ? 'active' : ''}" onclick="window.Studio.switchTab('test')">
+                📝 Testler
+            </div>
         </div>
     `;
 
-    // Liste HTML'i
-    const listHtml = items.length ? items.map(l => `
-        <div class="content-nav-item ${state.activeLessonId === l.id ? 'active' : ''}" 
-             onclick="window.Studio.selectContent('${l.id}')">
-            <span class="nav-item-icon">${l.type === 'test' ? '📝' : '📄'}</span>
-            <div class="nav-item-meta">
-                <div class="nav-item-title text-truncate">${l.title}</div>
-                <div class="nav-item-sub d-flex justify-content-between">
+    // 2. Liste İçeriği
+    const filteredItems = state.currentLessons.filter(l => isTestTab ? l.type === 'test' : l.type !== 'test');
+
+    let listHtml = '';
+    if (filteredItems.length === 0) {
+        listHtml = `<div class="empty-state-small">Bu kategoride henüz içerik yok. <br> <button class="btn-link" onclick="window.Studio.newContent('${isTestTab ? 'test' : 'lesson'}')">+ Yeni Ekle</button></div>`;
+    } else {
+        listHtml = filteredItems.map(l => `
+            <div class="nav-item ${state.activeLessonId === l.id ? 'active' : ''}" onclick="window.Studio.selectContent('${l.id}')">
+                <div class="nav-item-row">
+                    <span class="nav-icon">${l.type === 'test' ? '📝' : '📄'}</span>
+                    <span class="nav-title">${l.title}</span>
+                </div>
+                <div class="nav-meta">
                     <span>Sıra: ${l.order}</span>
-                    <span>${l.type === 'test' ? (l.qCount || 0) + ' Soru' : ''}</span>
+                    ${l.type === 'test' ? `<span class="badge-mini">${l.qCount || 0} Soru</span>` : ''}
                 </div>
             </div>
-        </div>
-    `).join('') : '<div class="text-center text-muted p-3">Bu kategoride içerik yok.</div>';
+        `).join('');
+    }
 
-    list.innerHTML = tabsHtml + '<div class="content-list-scroll">' + listHtml + '</div>';
+    // 3. Alt Butonlar (Sekmeye göre değişir)
+    const bottomActions = `
+        <div class="sidebar-footer">
+            <button class="btn btn-primary w-100 mb-2" onclick="window.Studio.newContent('${isTestTab ? 'test' : 'lesson'}')">
+                ${isTestTab ? '➕ Yeni Test Oluştur' : '➕ Yeni Ders Notu'}
+            </button>
+            ${!isTestTab ? `<button class="btn btn-outline-secondary w-100 btn-sm" onclick="window.Studio.settings()">⚙️ Konu Ayarları</button>` : ''}
+        </div>
+    `;
+
+    list.innerHTML = tabsHtml + `<div class="nav-list-scroll">${listHtml}</div>` + bottomActions;
 }
 
 function toggleSidebarGroup(header) {
@@ -816,21 +828,34 @@ function renderTestPaper() {
     const list = document.getElementById('paperList');
     document.getElementById('paperCount').innerText = state.tempQuestions.length;
 
+    if (state.tempQuestions.length === 0) {
+        list.innerHTML = `
+            <div class="empty-paper-state">
+                <div class="icon">📝</div>
+                <p>Test kağıdı boş.</p>
+                <small>Soldaki havuzdan soru ekleyin veya otomatik oluşturun.</small>
+            </div>`;
+        return;
+    }
+
     list.innerHTML = state.tempQuestions.map((q, i) => `
-        <div class="q-paper-item d-flex align-items-center p-2 mb-1 border rounded bg-white" data-id="${q.id}">
-            <div class="fw-bold me-2 text-muted" style="width:20px;">${i + 1}.</div>
-            <div class="flex-fill overflow-hidden">
-                <div class="d-flex align-items-center gap-2">
-                    <span class="badge bg-warning text-dark" style="font-size:10px;">Md.${q.artNo}</span>
-                    <span class="badge bg-info text-dark" style="font-size:10px;">Zorluk: ${q.difficulty || '-'}</span>
+        <div class="question-card" data-id="${q.id}">
+            <div class="qc-left">
+                <div class="qc-handle">⋮⋮</div>
+                <div class="qc-number">${i + 1}</div>
+            </div>
+            <div class="qc-body">
+                <div class="qc-meta">
+                    <span class="badge-outline">Md. ${q.artNo}</span>
+                    <span class="badge-outline ${q.difficulty > 3 ? 'danger' : 'success'}">Seviye ${q.difficulty || 3}</span>
                 </div>
-                <div class="text-truncate small mt-1">${q.text}</div>
+                <div class="qc-text" title="${q.text}">${q.text}</div>
             </div>
-            <div class="d-flex gap-1 ms-2">
-                 <button class="btn btn-sm btn-outline-primary py-0 px-2" onclick="window.Studio.wizard.fullEdit('${q.id}')">🛠️</button>
-                 <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="window.Studio.wizard.remove(${i})">&times;</button>
+            <div class="qc-actions">
+                <button class="btn-icon edit" onclick="window.Studio.wizard.fullEdit('${q.id}')" title="Düzenle">✏️</button>
+                <button class="btn-icon delete" onclick="window.Studio.wizard.remove(${i})" title="Çıkar">🗑️</button>
             </div>
-            <div class="ms-2 text-muted" style="cursor:move;">☰</div> </div>
+        </div>
     `).join('');
 
     // Sortable (Sürükle Bırak)

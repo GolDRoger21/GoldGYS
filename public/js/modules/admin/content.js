@@ -1,7 +1,8 @@
-import { db } from "../../firebase-config.js";
 import {
     collection, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, serverTimestamp, query, orderBy, limit, where, writeBatch
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+let isEditorInitialized = false;
 
 let modalElement = null;
 let questionForm = null;
@@ -459,9 +460,14 @@ function renderOnculler() {
     ).join('');
 }
 
-function closeModal() { modalElement.style.display = 'none'; }
+function closeModal() { if (modalElement) modalElement.style.display = 'none'; }
 
-async function openQuestionEditor(id = null) {
+export async function openQuestionEditor(id = null) {
+    ensureQuestionEditorReady(); // Önce modalın var olduğundan emin ol
+
+    modalElement = document.getElementById('questionModal');
+    questionForm = document.getElementById('questionForm');
+
     modalElement.style.display = 'flex';
     questionForm.reset();
     currentOnculler = [];
@@ -555,4 +561,122 @@ async function handleSaveQuestion(e) {
         loadQuestions();
         alert("Kaydedildi.");
     } catch (e) { alert("Hata: " + e.message); }
+}
+
+// 1. Modalı Oluşturan ve Eventleri Bağlayan Fonksiyon (YENİ)
+export function ensureQuestionEditorReady() {
+    if (isEditorInitialized && document.getElementById('questionModal')) return;
+
+    // Eğer sayfa Soru Bankası değilse ve Modal yoksa, HTML'i body'ye ekle
+    if (!document.getElementById('questionModal')) {
+        const modalHtml = `
+            <div id="questionModal" class="modal-overlay" style="display:none; z-index: 9999;">
+                <div class="modal-content admin-modal-content" style="max-width: 900px;">
+                    <div class="modal-header">
+                         <h3 id="modalTitle">Soru Düzenle</h3>
+                         <button type="button" class="close-btn" onclick="document.getElementById('questionModal').style.display='none'">&times;</button>
+                    </div>
+                    <form id="questionForm" class="modal-body-scroll">
+                        <input type="hidden" id="editQuestionId">
+                        
+                        <!-- Mevzuat (Otomatik) -->
+                        <div class="card p-3 mb-3 bg-light border-primary">
+                            <h6 class="text-primary" style="margin-top:0;">⚖️ Mevzuat Bağlantısı</h6>
+                            <div class="row g-2">
+                                <div class="col-md-4"><input type="text" id="inpLegCode" class="form-control" placeholder="Kanun No (Örn: 2577)"></div>
+                                <div class="col-md-4"><input type="number" id="inpLegArticle" class="form-control" placeholder="Madde No"></div>
+                                <div class="col-md-4"><button type="button" id="btnAutoDetect" class="btn btn-outline-primary w-100">Konuyu Bul</button></div>
+                            </div>
+                            <small class="text-muted" id="autoDetectResult"></small>
+                        </div>
+
+                        <!-- Ana Bilgiler -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label>Kategori</label>
+                                <input type="text" id="inpCategory" class="form-control" list="categoryList" required>
+                                <datalist id="categoryList"></datalist>
+                            </div>
+                            <div class="col-md-3">
+                                <label>Zorluk (1-5)</label>
+                                <input type="number" id="inpDifficulty" class="form-control" min="1" max="5" value="3">
+                            </div>
+                            <div class="col-md-3">
+                                <label>Tip</label>
+                                <select id="inpType" class="form-control">
+                                    <option value="standard">Standart</option>
+                                    <option value="oncullu">Öncüllü</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Öncüllü Alanı -->
+                        <div id="onculluArea" class="card p-3 mb-3 bg-light" style="display:none;">
+                            <label class="fw-bold">Öncüller</label>
+                            <div id="oncullerList" class="mb-2"></div>
+                            <div class="input-group mb-2">
+                                <input type="text" id="inpNewOncul" class="form-control" placeholder="Öncül ekle...">
+                                <button type="button" id="btnAddOncul" class="btn btn-secondary">Ekle</button>
+                            </div>
+                            <input type="text" id="inpQuestionRoot" class="form-control" placeholder="Soru Kökü (Örn: Hangileri doğrudur?)">
+                        </div>
+
+                        <!-- Soru Metni -->
+                        <div class="mb-3">
+                            <label>Soru Metni</label>
+                            <textarea id="inpText" class="form-control" rows="3" required></textarea>
+                        </div>
+
+                        <!-- Şıklar -->
+                        <div class="row g-2 mb-3">
+                            <div class="col-md-6"><input type="text" id="inpOptA" class="form-control" placeholder="A)" required></div>
+                            <div class="col-md-6"><input type="text" id="inpOptB" class="form-control" placeholder="B)" required></div>
+                            <div class="col-md-6"><input type="text" id="inpOptC" class="form-control" placeholder="C)" required></div>
+                            <div class="col-md-6"><input type="text" id="inpOptD" class="form-control" placeholder="D)" required></div>
+                            <div class="col-md-6"><input type="text" id="inpOptE" class="form-control" placeholder="E)" required></div>
+                            <div class="col-md-6">
+                                <select id="inpCorrect" class="form-control bg-success text-white" required>
+                                    <option value="" disabled selected>Doğru Cevap</option>
+                                    <option value="A">A</option>
+                                    <option value="B">B</option>
+                                    <option value="C">C</option>
+                                    <option value="D">D</option>
+                                    <option value="E">E</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Çözüm -->
+                        <div class="card p-3 mb-3 border-info">
+                            <h5 class="text-info">💡 Çözüm</h5>
+                            <textarea id="inpSolAnaliz" class="form-control mb-2" rows="2" placeholder="Analiz"></textarea>
+                            <div class="row g-2">
+                                <div class="col-md-6"><input type="text" id="inpSolDayanak" class="form-control" placeholder="Dayanak"></div>
+                                <div class="col-md-6"><input type="text" id="inpSolHap" class="form-control" placeholder="Hap Bilgi"></div>
+                                <div class="col-12"><input type="text" id="inpSolTuzak" class="form-control" placeholder="Sınav Tuzağı"></div>
+                            </div>
+                        </div>
+
+                        <div class="text-end mt-3">
+                            <button type="button" class="btn btn-secondary" onclick="document.getElementById('questionModal').style.display='none'">İptal</button>
+                            <button type="submit" class="btn btn-success">Kaydet</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+        // Event Listener'ları manuel bağla
+        const form = document.getElementById('questionForm');
+        form.addEventListener('submit', handleSaveQuestion);
+
+        document.getElementById('btnAutoDetect')?.addEventListener('click', autoDetectTopic);
+        document.getElementById('btnAddOncul')?.addEventListener('click', addOncul);
+        document.getElementById('inpType')?.addEventListener('change', toggleQuestionType);
+
+        // Kategorileri yükle (Select box için)
+        loadDynamicCategories();
+    }
+    isEditorInitialized = true;
 }
