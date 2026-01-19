@@ -33,7 +33,7 @@ export function initTopicsPage() {
         settings: showMetaEditor,
         saveMeta: saveTopicMeta,
         newContent: createNewContent,
-        select: selectContentItem,
+        selectContent: selectContentItem,
         saveContent: saveContent,
         deleteContent: deleteContent,
         addMat: addMaterialUI,
@@ -211,14 +211,11 @@ function renderMainInterface() {
                                     <span class="badge bg-secondary" id="editorBadge">DERS</span>
                                     <input type="text" id="inpContentTitle" class="editor-title-input" placeholder="İçerik Başlığı...">
                                 </div>
-                                <div class="d-flex align-items-center gap-2">
-                                    <input type="number" id="inpContentOrder" class="form-control form-control-sm bg-dark text-white border-secondary text-center" 
-                                        style="width:60px" placeholder="#" title="Sıralama">
-                                    
-                                    <div style="width:1px; height:20px; background:var(--border-color); margin:0 10px;"></div>
-                                    
+                                <div class="editor-actions">
+                                    <input type="number" id="inpContentOrder" class="form-control form-control-sm" placeholder="#" title="Sıralama">
+                                    <div style="width:1px; height:20px; background:var(--border-color);"></div>
                                     <button class="btn btn-danger btn-sm" onclick="window.Studio.deleteContent()">Sil</button>
-                                    <button class="btn btn-success btn-sm px-3" onclick="window.Studio.saveContent()">Kaydet</button>
+                                    <button class="btn btn-success btn-sm" onclick="window.Studio.saveContent()">Kaydet</button>
                                 </div>
                             </div>
 
@@ -625,26 +622,31 @@ function renderMaterials() {
 
 async function fetchLegislationCodes() {
     const select = document.getElementById('wizLegislation');
-    if (!select) return; // Modal kapalıysa dur
+    if (!select) return;
 
-    // Cache varsa kullan
     if (state.legislationCache) {
         populateLegislationSelect();
         return;
     }
 
     try {
-        // Gerçek veritabanından çek
-        const q = query(collection(db, "questions"), limit(1000));
+        // Tüm soruları çekmek yerine, sadece legislationRef alanını çekmek daha performanslı olurdu ama
+        // Firestore'da "select" sorgusu client SDK'da yok. 
+        // Bu yüzden limit'i artırıyoruz veya tümünü çekiyoruz.
+        // Admin paneli olduğu için 5000 makul bir sınır.
+        const q = query(collection(db, "questions"), orderBy("createdAt", "desc"), limit(5000));
         const snap = await getDocs(q);
 
         const codes = new Set();
-        // Standartlar
-        ['2709', '657', '5271', '5237', '2577'].forEach(c => codes.add(c));
+        // Standart Kodlar (Her zaman bulunsun)
+        const standards = ["2709", "657", "5271", "5237", "2577", "4483", "3628", "5018", "4982", "3071", "7201"];
+        standards.forEach(c => codes.add(c));
 
         snap.forEach(doc => {
-            const code = doc.data().legislationRef?.code;
-            if (code) codes.add(code);
+            const d = doc.data();
+            if (d.legislationRef && d.legislationRef.code) {
+                codes.add(d.legislationRef.code);
+            }
         });
 
         state.legislationCache = Array.from(codes).sort();

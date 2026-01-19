@@ -471,7 +471,7 @@ textarea.form-control {
 
 /* SOL PANEL (SIDEBAR) */
 .studio-sidebar {
-    background-color: rgba(15, 23, 42, 0.6);
+    background-color: var(--bg-surface);
     border-right: 1px solid var(--border-color);
     display: flex;
     flex-direction: column;
@@ -546,7 +546,7 @@ textarea.form-control {
 
 .content-nav-item:hover {
     background-color: var(--bg-hover);
-    border-color: var(--border-subtle);
+    color: var(--text-main);
 }
 
 .content-nav-item.active {
@@ -601,6 +601,20 @@ textarea.form-control {
     padding: 0 30px;
     flex-shrink: 0;
     z-index: 10;
+}
+
+.editor-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.editor-actions input[type="number"] {
+    width: 70px;
+    text-align: center;
+    background: var(--bg-input);
+    color: var(--text-main);
+    border: 1px solid var(--border-color);
 }
 
 .editor-title-input {
