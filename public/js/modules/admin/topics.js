@@ -61,6 +61,12 @@ export function initTopicsPage() {
         toggleGroup: toggleSidebarGroup // Yeni
     };
 
+    // TAB DEĞİŞTİRME FONKSİYONU (Init içinde tanımlanmalı)
+    window.Studio.switchTab = (tab) => {
+        state.sidebarTab = tab;
+        renderContentNav();
+    };
+
     loadTopics();
 }
 
@@ -491,11 +497,6 @@ function renderContentNav() {
 
     list.innerHTML = tabsHtml + '<div class="content-list-scroll">' + listHtml + '</div>';
 }
-
-window.Studio.switchTab = (tab) => {
-    state.sidebarTab = tab;
-    renderContentNav();
-};
 
 function toggleSidebarGroup(header) {
     header.parentElement.classList.toggle('open');
