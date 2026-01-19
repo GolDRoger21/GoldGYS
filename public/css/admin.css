@@ -308,8 +308,9 @@
 
 /* SOL SIDEBAR */
 .studio-sidebar {
-    width: 320px;
-    /* Genişlik */
+    width: clamp(280px, 28vw, 420px);
+    min-width: 260px;
+    max-width: 440px;
     background: #fff;
     border-right: 1px solid #e2e8f0;
     display: flex;
@@ -323,6 +324,16 @@
     background: #fff;
     border-bottom: 1px solid #e2e8f0;
     z-index: 2;
+}
+
+.sidebar-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.sidebar-actions .btn-primary {
+    flex: 1;
 }
 
 .nav-list-scroll {
@@ -355,6 +366,9 @@
     gap: 15px;
     z-index: 5;
     flex-shrink: 0;
+    flex-wrap: wrap;
+    position: sticky;
+    top: 0;
 }
 
 .editor-title-group {
@@ -366,6 +380,7 @@
     padding: 5px 10px;
     border-radius: 6px;
     border: 1px solid #e2e8f0;
+    min-width: 220px;
 }
 
 .editor-title-input {
@@ -381,6 +396,8 @@
     display: flex;
     align-items: center;
     gap: 8px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
 }
 
 .editor-workspace {
@@ -520,9 +537,8 @@
 .nav-title {
     font-weight: 600;
     color: #334155;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    white-space: normal;
+    word-break: break-word;
 }
 
 .nav-meta {
@@ -603,6 +619,11 @@
     color: #475569;
     background: #fff;
     transition: all 0.2s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    min-height: 88px;
 }
 
 .btn-mat:hover {
