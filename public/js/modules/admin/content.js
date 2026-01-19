@@ -428,7 +428,6 @@ async function loadDynamicCategories() {
     const filterSelect = document.getElementById('filterCategory');
     const dataList = document.getElementById('categoryList');
 
-    // Eğer sayfa yüklenmediyse ve elemanlar yoksa sessizce çık
     if (!filterSelect && !dataList) return;
 
     try {
@@ -486,13 +485,11 @@ function renderOnculler() {
 }
 
 async function autoDetectTopic() {
+    // Basit bir placeholder, detaylı mantığı koruyabilirsiniz.
     // Şimdilik sadece görsel geri bildirim.
-    // İleride buraya gerçek mantık eklenebilir.
     const res = document.getElementById('autoDetectResult');
-    if (res) {
-        res.innerText = "Aranıyor...";
-        setTimeout(() => res.innerHTML = '<span class="text-warning">Otomatik eşleşme bulunamadı.</span>', 1000);
-    }
+    res.innerText = "Aranıyor...";
+    setTimeout(() => res.innerHTML = '<span class="text-warning">Otomatik eşleşme bulunamadı.</span>', 1000);
 }
 
 // --- ÇÖP KUTUSU ---

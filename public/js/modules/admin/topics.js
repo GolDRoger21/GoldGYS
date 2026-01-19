@@ -5,6 +5,9 @@ import {
 import { openQuestionEditor } from './content.js';
 import { UI_SHELL, renderNavItem } from './topics.ui.js'; // UI Modülünü Import Ettik
 
+// ============================================================
+// --- GLOBAL STATE ---
+// ============================================================
 let state = {
     allTopics: [],
     currentLessons: [],
@@ -18,6 +21,9 @@ let state = {
     autoFilter: ''
 };
 
+// ============================================================
+// --- INIT ---
+// ============================================================
 export function initTopicsPage() {
     console.log("🚀 Studio Pro: Logic Module Loaded");
 
@@ -25,7 +31,7 @@ export function initTopicsPage() {
     const container = document.getElementById('section-topics');
     if (container) container.innerHTML = UI_SHELL;
 
-    // 2. Global Erişim
+    // 2. Global Erişim (window objesine fonksiyonları ata)
     window.Studio = {
         open: openEditor,
         close: () => document.getElementById('topicModal').style.display = 'none',
@@ -55,7 +61,9 @@ export function initTopicsPage() {
     loadTopics();
 }
 
+// ============================================================
 // --- VERİ YÖNETİMİ ---
+// ============================================================
 async function loadTopics() {
     const tbody = document.getElementById('topicsTableBody');
     if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center p-3">Yükleniyor...</td></tr>';
@@ -96,7 +104,9 @@ function renderTopicsTable() {
     `).join('') : '<tr><td colspan="6" class="text-center p-4">Kayıt bulunamadı.</td></tr>';
 }
 
+// ============================================================
 // --- STUDIO FONKSİYONLARI ---
+// ============================================================
 
 async function openEditor(id = null) {
     document.getElementById('topicModal').style.display = 'flex';
@@ -143,6 +153,7 @@ function renderContentNav() {
     const list = document.getElementById('contentListNav');
     const isTest = state.sidebarTab === 'test';
 
+    // Tab butonlarını güncelle (Aktif class'ı)
     document.querySelectorAll('.studio-tabs .tab-item').forEach((el, idx) => {
         el.classList.toggle('active', (isTest ? idx === 1 : idx === 0));
     });
@@ -155,6 +166,7 @@ function renderContentNav() {
     }
 
     // UI dosyasından gelen render fonksiyonunu kullanıyoruz
+    // DİKKAT: renderNavItem fonksiyonunu topics.ui.js'den import ettiğinden emin ol
     list.innerHTML = items.map(l => renderNavItem(l, isTest, state.activeLessonId)).join('');
 }
 
