@@ -27,7 +27,6 @@ export function initTopicsPage() {
     renderMainInterface();
 
     // 2. Global Fonksiyonları Dışarı Aç (HTML'den erişim için)
-    // HATA DÜZELTİLDİ: Fonksiyon isimleri aşağıdakilerle birebir eşleştirildi.
     window.Studio = {
         open: openEditor,
         close: closeModal,
@@ -48,8 +47,8 @@ export function initTopicsPage() {
         wizard: {
             heatmap: renderHeatmap,
             query: runQuery,
-            addQ: addQuestionToTest,      // Düzeltildi: addQuestion -> addQuestionToTest
-            removeQ: removeQuestionFromTest // Düzeltildi: removeQuestion -> removeQuestionFromTest
+            addQ: addQuestionToTest,
+            removeQ: removeQuestionFromTest
         }
     };
 
@@ -120,6 +119,7 @@ function renderMainInterface() {
             </div>
         </div>
 
+        <!-- STUDIO MODAL -->
         <div id="topicModal" class="modal-overlay" style="display:none;">
             <div class="admin-modal-content">
                 
@@ -132,6 +132,7 @@ function renderMainInterface() {
 
                 <div class="studio-layout">
                     
+                    <!-- SOL PANEL -->
                     <div class="studio-sidebar">
                         <div class="quick-actions">
                             <div class="action-card" onclick="window.Studio.newContent('lesson')">
@@ -152,8 +153,10 @@ function renderMainInterface() {
                         </div>
                     </div>
 
+                    <!-- SAĞ PANEL -->
                     <div class="studio-editor">
                         
+                        <!-- A. KONU AYARLARI -->
                         <div id="metaEditor" class="editor-workspace">
                             <div class="studio-card" style="max-width:800px; margin:0 auto;">
                                 <h4 class="mb-4 text-gold" style="border-bottom:1px solid var(--border-color); padding-bottom:10px;">
@@ -200,6 +203,7 @@ function renderMainInterface() {
                             </div>
                         </div>
 
+                        <!-- B. İÇERİK EDİTÖRÜ -->
                         <div id="contentEditor" style="display:none; flex-direction:column; height:100%;">
                             
                             <div class="editor-toolbar">
@@ -220,6 +224,7 @@ function renderMainInterface() {
 
                             <div class="editor-workspace p-0 bg-dark">
                                 
+                                <!-- 1. DERS NOTU MODU -->
                                 <div id="wsLessonMode" class="p-4" style="max-width:1000px; margin:0 auto;">
                                     <div class="d-flex justify-content-center gap-2 mb-4">
                                         <button class="btn btn-sm btn-secondary" onclick="window.Studio.addMat('html')">📝 Metin</button>
@@ -230,6 +235,7 @@ function renderMainInterface() {
                                     <div id="materialsContainer"></div>
                                 </div>
 
+                                <!-- 2. TEST SİHİRBAZI MODU -->
                                 <div id="wsTestMode" class="h-100 p-3" style="display:none;">
                                     <div class="wizard-layout">
                                         
@@ -407,7 +413,7 @@ function renderContentNav() {
     const list = document.getElementById('contentListNav');
     list.innerHTML = state.currentLessons.map(l => `
         <div class="content-nav-item ${state.activeLessonId === l.id ? 'active' : ''}" 
-             onclick="window.Studio.selectContent('${l.id}')">
+             onclick="window.Studio.select('${l.id}')">
             <span class="nav-item-icon">${l.type === 'test' ? '📝' : '📄'}</span>
             <div class="nav-item-meta">
                 <div class="nav-item-title">${l.title}</div>
