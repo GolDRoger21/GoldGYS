@@ -13,34 +13,36 @@ let state = {
     activeLessonId: null,
     activeLessonType: 'lesson',
     tempMaterials: [],
-    tempQuestions: [],
-    legislationList: new Set() // Mevzuat kodlarını burada toplayacağız
+    tempQuestions: [], // Test kağıdındaki sorular
+    poolQuestions: [], // Havuzdaki sorular (Arama sonucu)
+    legislationList: new Set()
 };
 
 // ============================================================
 // --- INIT ---
 // ============================================================
 export function initTopicsPage() {
-    console.log("🚀 Studio Pro v3 (Auto-Gen) Başlatılıyor...");
+    console.log("🚀 Studio Pro v4 (Fixed) Başlatılıyor...");
     renderMainInterface();
 
     // Global API (HTML'den erişim için)
     window.Studio = {
         open: openEditor,
         close: () => document.getElementById('topicModal').style.display = 'none',
+        settings: showMetaEditor, // Düzeltildi: Artık state'e buradan erişecek
         saveMeta: saveTopicMeta,
         newContent: createNewContent,
-        selectContent: selectContentItem, // İsim düzeltildi
+        selectContent: selectContentItem,
         saveContent: saveContent,
         deleteContent: deleteContent,
         addMat: addMaterialUI,
         removeMat: removeMaterialUI,
         updateMat: updateMaterialItem,
         wizard: {
-            analyze: analyzeLegislation,
-            addQ: addQuestionToTest,
-            removeQ: removeQuestionFromTest,
-            autoGenerate: openAutoGenerator // Yeni Özellik
+            search: searchQuestions,
+            add: addToTestPaper,
+            remove: removeFromTestPaper,
+            auto: autoGenerateTest
         },
         trash: { open: openTrash, restore: restoreItem, purge: purgeItem }
     };
@@ -59,7 +61,7 @@ function renderMainInterface() {
         <div class="section-header">
             <div>
                 <h2>📚 Müfredat ve İçerik Stüdyosu</h2>
-                <p class="text-muted">Konuları yönetin, ders notları ekleyin ve otomatik testler oluşturun.</p>
+                <p class="text-muted">Konuları yönetin, ders notları ekleyin ve profesyonel testler oluşturun.</p>
             </div>
             <div class="d-flex gap-2">
                 <button class="btn btn-secondary" onclick="window.Studio.trash.open()">🗑️ Çöp Kutusu</button>
@@ -67,6 +69,26 @@ function renderMainInterface() {
             </div>
         </div>
 
+        <!-- Arama ve Filtreleme -->
+        <div class="card mb-4 p-3 border-0 shadow-sm">
+            <div class="row g-2 align-items-center">
+                <div class="col-md-5">
+                    <input type="text" id="searchTopic" class="form-control" placeholder="Konu başlığı ara..." oninput="filterTopics()">
+                </div>
+                <div class="col-md-3">
+                    <select id="filterCategory" class="form-select" onchange="filterTopics()">
+                        <option value="all">Tüm Kategoriler</option>
+                        <option value="ortak">Ortak Konular</option>
+                        <option value="alan">Alan Konuları</option>
+                    </select>
+                </div>
+                <div class="col-md-4 text-end">
+                    <span class="badge bg-secondary" id="topicCountBadge">Yükleniyor...</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Liste -->
         <div class="card">
             <div class="table-responsive">
                 <table class="admin-table">
@@ -106,7 +128,7 @@ function renderMainInterface() {
                         <div id="contentListNav"></div>
 
                         <div class="mt-auto pt-3 border-top border-color">
-                            <button class="btn btn-outline w-100 btn-sm" onclick="window.Studio.open(state.activeTopicId, true)">⚙️ Konu Ayarları</button>
+                            <button class="btn btn-secondary w-100 btn-sm" onclick="window.Studio.settings()">⚙️ Konu Ayarları</button>
                         </div>
                     </div>
 
@@ -169,47 +191,70 @@ function renderMainInterface() {
                                 <!-- 1. DERS NOTU MODU -->
                                 <div id="wsLessonMode" class="p-4" style="max-width:1000px; margin:0 auto;">
                                     <div class="d-flex justify-content-center gap-2 mb-4">
-                                        <button class="btn btn-sm btn-outline" onclick="window.Studio.addMat('html')">+ Metin</button>
-                                        <button class="btn btn-sm btn-outline" onclick="window.Studio.addMat('pdf')">+ PDF</button>
-                                        <button class="btn btn-sm btn-outline" onclick="window.Studio.addMat('video')">+ Video</button>
+                                        <button class="btn btn-sm btn-secondary" onclick="window.Studio.addMat('html')">+ Metin</button>
+                                        <button class="btn btn-sm btn-secondary" onclick="window.Studio.addMat('pdf')">+ PDF</button>
+                                        <button class="btn btn-sm btn-secondary" onclick="window.Studio.addMat('video')">+ Video</button>
+                                        <button class="btn btn-sm btn-secondary" onclick="window.Studio.addMat('podcast')">+ Podcast</button>
                                     </div>
                                     <div id="materialsContainer"></div>
                                 </div>
 
-                                <!-- 2. TEST SİHİRBAZI MODU -->
+                                <!-- 2. TEST SİHİRBAZI MODU (3 Sütunlu) -->
                                 <div id="wsTestMode" class="h-100 p-3" style="display:none;">
-                                    <div class="wizard-layout">
+                                    <div class="wizard-grid">
                                         
-                                        <!-- Sol: Kaynak -->
-                                        <div class="wizard-pool">
-                                            <div class="wizard-header">1. SORU HAVUZU</div>
-                                            <div class="p-3 border-bottom border-color">
-                                                <label class="small text-muted mb-1">Mevzuat Kaynağı</label>
-                                                <select id="wizLegislation" class="form-control mb-2" onchange="window.Studio.wizard.analyze()">
-                                                    <option value="">Seçiniz...</option>
-                                                </select>
-                                                
-                                                <div id="autoGenBox" class="mt-3 p-2 bg-hover rounded border border-color" style="display:none;">
-                                                    <div class="d-flex justify-content-between align-items-center mb-2">
-                                                        <strong class="text-gold">🤖 Otomatik Test Robotu</strong>
+                                        <!-- Sol: Filtreler -->
+                                        <div class="wizard-col">
+                                            <div class="wizard-header">1. FİLTRELEME</div>
+                                            <div class="wizard-body">
+                                                <div class="form-group">
+                                                    <label>Mevzuat Kaynağı</label>
+                                                    <select id="wizLegislation" class="form-select">
+                                                        <option value="">Yükleniyor...</option>
+                                                    </select>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label>Madde Aralığı</label>
+                                                    <div class="d-flex gap-2">
+                                                        <input type="number" id="wizStart" class="form-control" placeholder="Baş">
+                                                        <input type="number" id="wizEnd" class="form-control" placeholder="Son">
                                                     </div>
-                                                    <p class="small text-muted mb-2">Bu mevzuata ait tüm soruları 15'erli testlere bölüp otomatik oluşturur.</p>
-                                                    <button class="btn btn-warning btn-sm w-100" onclick="window.Studio.wizard.autoGenerate()">
-                                                        Otomatik Oluştur ve Kaydet
+                                                </div>
+                                                <button class="btn btn-primary w-100 mb-3" onclick="window.Studio.wizard.search()">
+                                                    🔍 Soruları Getir
+                                                </button>
+                                                
+                                                <hr class="border-color">
+                                                
+                                                <div class="p-3 bg-hover rounded border border-color">
+                                                    <strong class="text-gold d-block mb-2">🤖 Otomatik Oluştur</strong>
+                                                    <p class="small text-muted mb-2">Seçili mevzuattan rastgele 15 soru seçer.</p>
+                                                    <button class="btn btn-warning btn-sm w-100" onclick="window.Studio.wizard.auto()">
+                                                        Otomatik Doldur
                                                     </button>
                                                 </div>
                                             </div>
-                                            <div id="questionPoolList" class="wizard-body"></div>
+                                        </div>
+
+                                        <!-- Orta: Soru Havuzu -->
+                                        <div class="wizard-col">
+                                            <div class="wizard-header">
+                                                <span>2. SORU HAVUZU</span>
+                                                <span class="badge bg-secondary" id="poolCount">0</span>
+                                            </div>
+                                            <div id="poolList" class="wizard-body">
+                                                <div class="text-center text-muted mt-5">Soldan filtre seçip arama yapın.</div>
+                                            </div>
                                         </div>
 
                                         <!-- Sağ: Test Kağıdı -->
                                         <div class="wizard-col">
-                                            <div class="wizard-header d-flex justify-content-between">
-                                                <span>2. TEST KAĞIDI</span>
-                                                <span class="badge bg-primary" id="testCountBadge">0</span>
+                                            <div class="wizard-header">
+                                                <span>3. TEST KAĞIDI</span>
+                                                <span class="badge bg-primary" id="paperCount">0</span>
                                             </div>
-                                            <div id="testPaperList" class="wizard-body">
-                                                <div class="text-center text-muted mt-5">Manuel seçim için soldan soru ekleyin.</div>
+                                            <div id="paperList" class="wizard-body">
+                                                <div class="text-center text-muted mt-5">Havuzdan soru ekleyin.</div>
                                             </div>
                                         </div>
 
@@ -240,49 +285,55 @@ function renderMainInterface() {
 
 async function loadTopics() {
     const tbody = document.getElementById('topicsTableBody');
-    tbody.innerHTML = '<tr><td colspan="6" class="text-center p-3">Yükleniyor...</td></tr>';
+    if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center p-3">Yükleniyor...</td></tr>';
 
     const q = query(collection(db, "topics"), orderBy("order", "asc"));
     const snap = await getDocs(q);
 
     state.allTopics = [];
-    state.legislationList.clear(); // Listeyi temizle
-
     snap.forEach(doc => {
         const d = doc.data();
         if (d.status !== 'deleted') {
             state.allTopics.push({ id: doc.id, ...d });
-
-            // Mevzuat kodlarını topla (Seed verisinden gelen lessons içinden)
-            if (d.lessons && Array.isArray(d.lessons)) {
-                d.lessons.forEach(l => {
-                    if (l.legislationCode) state.legislationList.add(l.legislationCode);
-                });
-            }
         }
     });
 
-    // Standart kodları da ekle (Garanti olsun)
-    ["2709", "657", "5271", "5237", "2577", "4483", "3628", "5018", "4982", "3071", "7201"].forEach(c => state.legislationList.add(c));
-
-    renderTopicList();
+    window.filterTopics();
 }
 
-function renderTopicList() {
+window.filterTopics = () => {
+    const search = document.getElementById('searchTopic') ? document.getElementById('searchTopic').value.toLowerCase() : '';
+    const cat = document.getElementById('filterCategory') ? document.getElementById('filterCategory').value : 'all';
     const tbody = document.getElementById('topicsTableBody');
-    tbody.innerHTML = state.allTopics.map(t => `
+    const badge = document.getElementById('topicCountBadge');
+
+    if (!tbody) return;
+
+    const filtered = state.allTopics.filter(t =>
+        (cat === 'all' || t.category === cat) &&
+        (t.title || '').toLowerCase().includes(search)
+    );
+
+    if (badge) badge.innerText = `${filtered.length} Kayıt`;
+
+    if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted p-4">Kayıt bulunamadı.</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = filtered.map(t => `
         <tr>
             <td>${t.order}</td>
             <td><strong>${t.title}</strong></td>
             <td><span class="badge bg-dark border border-secondary">${t.category}</span></td>
-            <td>${t.lessonCount || 0}</td>
+            <td>${t.lessonCount || 0} İçerik</td>
             <td>${t.isActive ? '<span class="text-success">Yayında</span>' : '<span class="text-muted">Taslak</span>'}</td>
             <td class="text-end">
                 <button class="btn btn-sm btn-primary" onclick="window.Studio.open('${t.id}')">Stüdyo</button>
             </td>
         </tr>
     `).join('');
-}
+};
 
 // ============================================================
 // --- STUDIO MANTIĞI ---
@@ -294,7 +345,7 @@ async function openEditor(id = null, forceSettings = false) {
     state.activeTopicId = id;
 
     // Mevzuat listesini doldur
-    populateLegislationSelect();
+    fetchLegislationCodes();
 
     if (id) {
         const topic = state.allTopics.find(t => t.id === id);
@@ -371,6 +422,7 @@ async function saveTopicMeta() {
             await updateDoc(doc(db, "topics", id), data);
         } else {
             data.createdAt = serverTimestamp();
+            data.status = 'active';
             data.lessonCount = 0;
             const ref = await addDoc(collection(db, "topics"), data);
             state.activeTopicId = ref.id;
@@ -393,6 +445,7 @@ function createNewContent(type) {
     renderContentNav();
 
     document.getElementById('inpContentTitle').value = "";
+    document.getElementById('inpContentTitle').focus();
     document.getElementById('inpContentOrder').value = state.currentLessons.length + 1;
 
     const badge = document.getElementById('editorBadge');
@@ -435,9 +488,6 @@ function selectContentItem(id) {
         document.getElementById('wsTestMode').style.display = 'block';
         state.tempQuestions = item.questions || [];
         renderTestPaper();
-
-        // Eğer test ise, mevzuat seçimi için dropdown'ı hazırla
-        // (Otomatik seçtirmek zor çünkü testin hangi mevzuattan olduğu veride yoksa bilemeyiz)
     } else {
         badge.innerText = "DERS";
         badge.className = "badge bg-primary";
@@ -512,7 +562,7 @@ function renderMaterials() {
     const container = document.getElementById('materialsContainer');
     container.innerHTML = state.tempMaterials.map(m => `
         <div class="material-row">
-            <div class="h4 m-0">${m.type === 'video' ? '▶️' : '📄'}</div>
+            <div class="h4 m-0">${m.type === 'video' ? '▶️' : m.type === 'podcast' ? '🎧' : m.type === 'pdf' ? '📄' : '📝'}</div>
             <div style="flex:1;">
                 <div class="d-flex justify-content-between mb-1">
                     <span class="badge bg-secondary">${m.type.toUpperCase()}</span>
@@ -530,146 +580,139 @@ function renderMaterials() {
 }
 
 // ============================================================
-// --- TEST SİHİRBAZI & OTOMATİK ÜRETİM ---
+// --- TEST SİHİRBAZI (GELİŞMİŞ) ---
 // ============================================================
 
-function populateLegislationSelect() {
+async function fetchLegislationCodes() {
     const select = document.getElementById('wizLegislation');
     if (!select) return;
 
+    if (state.legislationList.size > 0) {
+        populateLegislationSelect();
+        return;
+    }
+
+    try {
+        // 5000 soruya kadar tara (Daha geniş kapsam)
+        const q = query(collection(db, "questions"), orderBy("createdAt", "desc"), limit(5000));
+        const snap = await getDocs(q);
+
+        const codes = new Set();
+        // Standartlar
+        ["2709", "657", "5271", "5237", "2577", "4483", "3628", "5018", "4982", "3071", "7201"].forEach(c => codes.add(c));
+
+        snap.forEach(doc => {
+            const code = doc.data().legislationRef?.code;
+            if (code) codes.add(code);
+        });
+
+        state.legislationList = codes;
+        populateLegislationSelect();
+
+    } catch (e) { console.error("Mevzuat çekilemedi", e); }
+}
+
+function populateLegislationSelect() {
+    const select = document.getElementById('wizLegislation');
     const sorted = Array.from(state.legislationList).sort();
     select.innerHTML = '<option value="">Seçiniz...</option>' +
         sorted.map(c => `<option value="${c}">${c} Sayılı Kanun</option>`).join('');
 }
 
-async function analyzeLegislation() {
+async function searchQuestions() {
     const code = document.getElementById('wizLegislation').value;
-    const list = document.getElementById('questionPoolList');
-    const autoBox = document.getElementById('autoGenBox');
+    const s = parseInt(document.getElementById('wizStart').value);
+    const e = parseInt(document.getElementById('wizEnd').value);
+    const list = document.getElementById('poolList');
 
-    if (!code) {
-        list.innerHTML = '';
-        autoBox.style.display = 'none';
-        return;
-    }
+    if (!code) return alert("Mevzuat seçiniz");
 
-    list.innerHTML = '<div class="text-center p-3">Sorular taranıyor...</div>';
+    list.innerHTML = '<div class="text-center mt-4">Aranıyor...</div>';
 
-    // Seçilen kanuna ait TÜM soruları çek
     const q = query(collection(db, "questions"), where("legislationRef.code", "==", code));
     const snap = await getDocs(q);
 
-    const questions = [];
-    snap.forEach(doc => {
-        const d = doc.data();
-        questions.push({
-            id: doc.id,
-            ...d,
-            artNo: parseInt(d.legislationRef?.article || 0)
-        });
+    const arr = [];
+    snap.forEach(d => {
+        const art = parseInt(d.data().legislationRef?.article);
+        if (!isNaN(art) && (!s || art >= s) && (!e || art <= e)) {
+            arr.push({ id: d.id, ...d.data(), artNo: art });
+        }
     });
 
-    // Madde numarasına göre sırala
-    questions.sort((a, b) => a.artNo - b.artNo);
+    arr.sort((a, b) => a.artNo - b.artNo);
+    state.poolQuestions = arr;
 
-    // Global değişkene at (Otomatik üretim için)
-    window.currentPool = questions;
+    renderPoolList();
+}
 
-    // Otomatik Üretim Kutusunu Göster
-    autoBox.style.display = 'block';
+function renderPoolList() {
+    const list = document.getElementById('poolList');
+    document.getElementById('poolCount').innerText = state.poolQuestions.length;
 
-    // Listeyi Göster
-    list.innerHTML = questions.map(q => {
+    if (state.poolQuestions.length === 0) {
+        list.innerHTML = '<div class="text-center mt-4 text-muted">Soru bulunamadı.</div>';
+        return;
+    }
+
+    list.innerHTML = state.poolQuestions.map(q => {
         const isAdded = state.tempQuestions.some(x => x.id === q.id);
         return `
-            <div class="q-select-item" onclick="window.Studio.wizard.addQ('${q.id}')" style="${isAdded ? 'opacity:0.5; pointer-events:none;' : ''}">
-                <div class="d-flex justify-content-between">
+            <div class="q-pool-item ${isAdded ? 'added' : ''}" onclick="window.Studio.wizard.add('${q.id}')">
+                <div class="q-meta">
                     <strong>Md. ${q.artNo}</strong>
-                    ${isAdded ? '✅' : ''}
+                    ${isAdded ? '✅ Eklendi' : ''}
                 </div>
-                <div class="text-truncate text-muted small">${q.text}</div>
-                <textarea id="raw_${q.id}" style="display:none;">${JSON.stringify(q)}</textarea>
+                <div class="q-text">${q.text}</div>
             </div>
         `;
     }).join('');
 }
 
-// --- YENİ: OTOMATİK TEST ÜRETİCİ ---
-async function openAutoGenerator() {
-    const pool = window.currentPool;
-    if (!pool || pool.length === 0) return alert("Soru bulunamadı.");
-
-    const code = document.getElementById('wizLegislation').value;
-    const batchSize = 15; // Her testte kaç soru olacak
-    const totalTests = Math.ceil(pool.length / batchSize);
-
-    if (!confirm(`${pool.length} soru bulundu.\nBu sorulardan ${totalTests} adet sıralı test oluşturulacak.\nOnaylıyor musunuz?`)) return;
-
-    try {
-        const topicId = state.activeTopicId;
-        let currentOrder = state.currentLessons.length + 1;
-
-        // Batch işlemi (Firestore batch limiti 500, biz burada her test için ayrı işlem yapacağız güvenli olsun)
-        for (let i = 0; i < totalTests; i++) {
-            const start = i * batchSize;
-            const end = start + batchSize;
-            const chunk = pool.slice(start, end);
-
-            // Test Başlığı: "657 DMK - Test 1 (Md. 1-20)"
-            const startArt = chunk[0].artNo;
-            const endArt = chunk[chunk.length - 1].artNo;
-            const title = `${code} Sayılı Kanun - Test ${i + 1} (Md. ${startArt}-${endArt})`;
-
-            await addDoc(collection(db, `topics/${topicId}/lessons`), {
-                title: title,
-                type: 'test',
-                order: currentOrder++,
-                isActive: true,
-                questions: chunk,
-                qCount: chunk.length,
-                createdAt: serverTimestamp()
-            });
-        }
-
-        // Konu sayacını güncelle
-        await updateDoc(doc(db, "topics", topicId), { lessonCount: currentOrder - 1 });
-
-        alert(`✅ Başarıyla ${totalTests} test oluşturuldu!`);
-        loadLessons(topicId); // Listeyi yenile
-
-    } catch (e) {
-        console.error(e);
-        alert("Hata oluştu: " + e.message);
+function addToTestPaper(id) {
+    const q = state.poolQuestions.find(x => x.id === id);
+    if (q && !state.tempQuestions.some(x => x.id === id)) {
+        state.tempQuestions.push(q);
+        renderTestPaper();
+        renderPoolList(); // Güncelle (Disable etmek için)
     }
 }
 
-function addQuestionToTest(id) {
-    const raw = document.getElementById(`raw_${id}`).value;
-    state.tempQuestions.push(JSON.parse(raw));
-    renderTestPaper();
-    analyzeLegislation(); // Listeyi güncelle
-}
-
-function removeQuestionFromTest(idx) {
+function removeFromTestPaper(idx) {
     state.tempQuestions.splice(idx, 1);
     renderTestPaper();
-    analyzeLegislation();
+    renderPoolList(); // Güncelle (Enable etmek için)
 }
 
 function renderTestPaper() {
-    const list = document.getElementById('testPaperList');
-    document.getElementById('testCountBadge').innerText = `${state.tempQuestions.length}`;
+    const list = document.getElementById('paperList');
+    document.getElementById('paperCount').innerText = state.tempQuestions.length;
 
     list.innerHTML = state.tempQuestions.map((q, i) => `
-        <div class="d-flex gap-2 border-bottom border-color py-2 align-items-center">
-            <span class="text-primary fw-bold">${i + 1}.</span>
+        <div class="q-paper-item">
+            <div class="q-paper-number">${i + 1}.</div>
             <div style="flex:1; overflow:hidden;">
-                <div class="small fw-bold">Md. ${q.artNo}</div>
+                <div class="small fw-bold text-primary">Md. ${q.artNo}</div>
                 <div class="text-truncate text-muted small">${q.text}</div>
             </div>
-            <button class="btn btn-sm text-danger" onclick="window.Studio.wizard.removeQ(${i})">&times;</button>
+            <button class="btn btn-sm text-danger p-0" onclick="window.Studio.wizard.remove(${i})">&times;</button>
         </div>
     `).join('');
+}
+
+function autoGenerateTest() {
+    if (state.poolQuestions.length === 0) return alert("Önce arama yapın.");
+
+    // Rastgele 15 soru seç
+    const shuffled = [...state.poolQuestions].sort(() => 0.5 - Math.random());
+    const selected = shuffled.slice(0, 15);
+
+    // Madde sırasına diz
+    selected.sort((a, b) => a.artNo - b.artNo);
+
+    state.tempQuestions = selected;
+    renderTestPaper();
+    renderPoolList();
 }
 
 // --- ÇÖP KUTUSU ---
