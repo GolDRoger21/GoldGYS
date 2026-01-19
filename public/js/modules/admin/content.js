@@ -26,7 +26,7 @@ export function initContentPage() {
  * Hem Content sayfasında hem Topics sayfasında aynı modalı kullanmamızı sağlar.
  */
 export function ensureQuestionEditorReady() {
-    // Eğer modal zaten sayfada varsa tekrar oluşturma, sadece eventleri tazele
+    // Eğer modal zaten sayfada varsa tekrar oluşturma
     if (document.getElementById('questionModal')) {
         return;
     }
@@ -135,6 +135,12 @@ export function ensureQuestionEditorReady() {
     loadDynamicCategories();
 
     isEditorInitialized = true;
+
+    // Global Erişim İçin
+    window.QuestionBank = {
+        openEditor: openQuestionEditor,
+        refreshList: loadQuestions
+    };
 }
 
 // Bu fonksiyon dışarıdan (Topics.js'den) çağrılabilir ve export edilir
@@ -144,10 +150,14 @@ export async function openQuestionEditor(id = null) {
     const modal = document.getElementById('questionModal');
     const form = document.getElementById('questionForm');
 
-    if (!modal) return;
+    // Güvenlik: Eğer modal hala yoksa (çok düşük ihtimal ama) işlemi durdur
+    if (!modal || !form) {
+        console.error("Modal yüklenemedi. Sayfayı yenileyin.");
+        return;
+    }
 
     modal.style.display = 'flex';
-    if (form) form.reset();
+    form.reset();
 
     currentOnculler = [];
     renderOnculler();
@@ -277,6 +287,9 @@ function renderContentInterface() {
         </div>
     `;
 
+    // Modal HTML'ini yükle (Sayfa render edildiğinde)
+    ensureQuestionEditorReady();
+
     // Sayfa içi butonları bağla
     bindPageEvents();
 }
@@ -295,7 +308,7 @@ function bindPageEvents() {
     window.permanentDeleteQuestion = permanentDeleteQuestion;
     window.softDeleteQuestion = softDeleteQuestion;
 
-    // Editörü dışarı aç (Topics modülü için bu global referans önemli)
+    // Editörü dışarı aç (Topics modülü için)
     window.QuestionBank = {
         openEditor: openQuestionEditor,
         refreshList: loadQuestions
@@ -415,6 +428,7 @@ async function loadDynamicCategories() {
     const filterSelect = document.getElementById('filterCategory');
     const dataList = document.getElementById('categoryList');
 
+    // Eğer sayfa yüklenmediyse ve elemanlar yoksa sessizce çık
     if (!filterSelect && !dataList) return;
 
     try {
