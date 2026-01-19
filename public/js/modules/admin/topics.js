@@ -36,7 +36,7 @@ export function initTopicsPage() {
         close: () => document.getElementById('topicModal').style.display = 'none',
         settings: showMetaEditor,
         saveMeta: saveTopicMeta,
-        newContent: createNewContent,
+        newContent: createNewContent, // Parametresiz çalışacak şekilde güncellendi
         selectContent: selectContentItem,
         saveContent: saveContent,
         deleteContent: deleteContent,
@@ -141,7 +141,7 @@ function renderMainInterface() {
                                 <div class="tab-item" onclick="window.Studio.switchTab('test')">📝 Testler</div>
                             </div>
                             <div class="sidebar-actions">
-                                <button class="btn btn-primary btn-sm w-100" style="grid-column: span 2;" onclick="window.Studio.newContent(state.sidebarTab)">
+                                <button class="btn btn-primary btn-sm w-100" style="grid-column: span 2;" onclick="window.Studio.newContent()">
                                     ➕ Yeni Ekle
                                 </button>
                                 <button class="btn btn-secondary btn-sm" onclick="window.Studio.settings()" title="Konu Ayarları">⚙️</button>
@@ -342,11 +342,8 @@ window.filterTopics = () => {
 
 // Otomatik Filtre Değerini Belirle
 function getFilterValueForTopic(topicId, topicTitle) {
-    // 1. Önce başlık içinde sayı var mı diye bak (Örn: "657 DMK" -> "657")
     const match = topicTitle.match(/(\d+)/);
     if (match) return match[0];
-
-    // 2. Sayı yoksa başlığı olduğu gibi döndür (Örn: "İnkılap Tarihi")
     return topicTitle;
 }
 
@@ -447,7 +444,7 @@ async function saveTopicMeta() {
         order: parseInt(document.getElementById('inpTopicOrder').value) || 0,
         category: document.getElementById('inpTopicCategory').value,
         isActive: document.getElementById('inpTopicStatus').value === 'true',
-        updatedAt: serverTimestamp() // Eksikti, eklendi
+        updatedAt: serverTimestamp()
     };
 
     try {
@@ -469,11 +466,14 @@ async function saveTopicMeta() {
 // --- İÇERİK YÖNETİMİ ---
 
 function createNewContent(type) {
+    // Tip gönderilmediyse mevcut aktif tab'ı kullan
+    const contentType = type || state.sidebarTab;
+
     if (!state.activeTopicId) return alert("Önce konuyu kaydedin.");
     state.activeLessonId = null;
-    state.activeLessonType = type;
+    state.activeLessonType = contentType;
 
-    prepareEditorUI(type);
+    prepareEditorUI(contentType);
     document.getElementById('inpContentTitle').value = "";
     document.getElementById('inpContentTitle').focus();
     document.getElementById('inpContentOrder').value = state.currentLessons.length + 1;
@@ -482,7 +482,7 @@ function createNewContent(type) {
     state.tempMaterials = [];
     state.tempQuestions = [];
 
-    if (type === 'lesson') renderMaterials();
+    if (contentType === 'lesson') renderMaterials();
     else {
         renderTestPaper();
         // Otomatik filtre
@@ -566,7 +566,7 @@ async function saveContent() {
         type: state.activeLessonType,
         order: parseInt(document.getElementById('inpContentOrder').value) || 0,
         isActive: true,
-        updatedAt: serverTimestamp() // Eksikti, eklendi
+        updatedAt: serverTimestamp()
     };
 
     if (state.activeLessonType === 'test') {
@@ -804,7 +804,6 @@ async function openTrash() {
     tbody.innerHTML = '<tr><td>Yükleniyor...</td></tr>';
 
     // Silinen KONULARI getir (status == deleted)
-    // NOT: content.js'deki trashModal sorular içindi. Bu topics trashModal.
     const q = query(collection(db, "topics"), where("status", "==", "deleted"));
     const snap = await getDocs(q);
 
