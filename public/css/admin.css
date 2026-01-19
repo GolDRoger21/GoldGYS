@@ -608,198 +608,122 @@ textarea.form-control {
 }
 
 /* ==========================================================================
-   GOLD GYS - STUDIO PRO ARAYÜZ STİLLERİ (FINAL)
+   GOLD GYS - STUDIO PRO ARAYÜZ (GÜNCELLENMİŞ)
    ========================================================================== */
 
-/* --- 1. MODAL YAPISI (TAM EKRAN & SABİT) --- */
+/* Modalın Kendisi */
 #topicModal .admin-modal-content {
     width: 95vw;
-    height: 92vh;
-    max-width: 1800px;
+    height: 90vh;
+    max-width: 1600px;
     background-color: var(--bg-body);
-    /* Koyu Lacivert Zemin */
     border: 1px solid var(--border-color);
-    box-shadow: 0 0 40px rgba(0, 0, 0, 0.7);
     display: flex;
     flex-direction: column;
     padding: 0;
-    /* İç padding'i sıfırla */
     overflow: hidden;
-    /* Dış scrollu engelle */
-    border-radius: var(--radius-lg);
 }
 
-/* Modal Header */
-#topicModal .modal-header {
-    height: 64px;
+/* Header */
+.studio-header {
+    height: 60px;
     background-color: var(--bg-surface);
-    /* Daha açık lacivert */
     border-bottom: 1px solid var(--border-color);
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 24px;
-    flex-shrink: 0;
+    padding: 0 20px;
 }
 
-#topicModal .modal-title-group h3 {
-    margin: 0;
-    color: var(--text-main);
+.studio-title {
     font-family: var(--font-family-serif);
-    letter-spacing: 0.5px;
+    font-size: 1.2rem;
+    color: var(--text-main);
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 
-#topicModal .modal-title-group .badge {
-    background: linear-gradient(135deg, var(--color-primary), #b8860b);
-    color: #000;
-    font-weight: 700;
-    font-size: 0.7rem;
-    padding: 4px 8px;
-    border-radius: 4px;
-    margin-left: 10px;
-    vertical-align: middle;
-}
-
-/* --- 2. GRID SİSTEMİ (SOL PANEL | SAĞ PANEL) --- */
-.studio-grid {
+/* Ana Yerleşim (Grid) */
+.studio-layout {
     display: grid;
-    grid-template-columns: 320px 1fr;
-    /* Sol sabit, sağ esnek */
-    height: calc(100% - 64px);
-    /* Header hariç tüm alan */
+    grid-template-columns: 280px 1fr;
+    height: calc(100% - 60px);
     overflow: hidden;
 }
 
-/* --- 3. SOL SIDEBAR (NAVİGASYON) --- */
+/* Sol Sidebar */
 .studio-sidebar {
-    background-color: rgba(15, 23, 42, 0.6);
-    /* Hafif transparan */
+    background-color: var(--bg-surface);
     border-right: 1px solid var(--border-color);
     display: flex;
     flex-direction: column;
-    padding: 20px;
+    padding: 15px;
     overflow-y: auto;
 }
 
-/* Hızlı Ekle Kartları (Side-by-Side) */
-.quick-actions {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    margin-bottom: 24px;
-}
-
-.action-card {
-    background: var(--bg-surface);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-md);
-    padding: 16px 10px;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-}
-
-.action-card:hover {
-    border-color: var(--color-primary);
-    transform: translateY(-2px);
-    background: var(--bg-hover);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-}
-
-.action-card i {
-    font-size: 1.4rem;
+.sidebar-section-title {
+    font-size: 0.75rem;
+    text-transform: uppercase;
     color: var(--text-muted);
+    font-weight: 700;
+    margin: 15px 0 8px;
+    letter-spacing: 0.5px;
 }
 
-.action-card span {
-    font-size: 0.8rem;
-    font-weight: 600;
-    color: var(--text-main);
-}
-
-.action-card:hover i {
-    color: var(--color-primary);
-}
-
-/* İçerik Listesi */
-.content-nav-item {
+/* İçerik Listesi Öğeleri */
+.content-item {
+    padding: 10px 12px;
+    margin-bottom: 5px;
+    border-radius: var(--radius-md);
+    cursor: pointer;
     display: flex;
     align-items: center;
-    padding: 12px;
-    margin-bottom: 8px;
-    border-radius: var(--radius-md);
-    background-color: transparent;
-    border: 1px solid transparent;
-    cursor: pointer;
+    gap: 10px;
+    color: var(--text-muted);
     transition: all 0.2s;
-    color: var(--text-muted);
+    border: 1px solid transparent;
 }
 
-.content-nav-item:hover {
+.content-item:hover {
     background-color: var(--bg-hover);
     color: var(--text-main);
 }
 
-.content-nav-item.active {
+.content-item.active {
     background-color: rgba(212, 175, 55, 0.1);
-    border: 1px solid var(--color-primary);
+    border-color: var(--color-primary);
     color: var(--color-primary);
 }
 
-.nav-item-icon {
-    margin-right: 12px;
+.content-icon {
     font-size: 1.1rem;
 }
 
-.nav-item-meta {
-    flex: 1;
-    overflow: hidden;
-}
-
-.nav-item-title {
-    font-weight: 600;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    font-size: 0.9rem;
-}
-
-.nav-item-sub {
-    font-size: 0.75rem;
-    opacity: 0.7;
-}
-
-/* --- 4. SAĞ EDİTÖR ALANI --- */
-.studio-main {
+/* Sağ Editör Alanı */
+.studio-editor {
     background-color: var(--bg-body);
     display: flex;
     flex-direction: column;
-    position: relative;
+    height: 100%;
     overflow: hidden;
 }
 
-/* Editör Toolbar (Sticky Header) */
 .editor-toolbar {
-    height: 64px;
+    height: 60px;
     border-bottom: 1px solid var(--border-color);
-    background: rgba(30, 41, 59, 0.95);
-    backdrop-filter: blur(8px);
+    background-color: var(--bg-surface);
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    padding: 0 30px;
-    flex-shrink: 0;
+    justify-content: space-between;
+    padding: 0 20px;
 }
 
 .editor-title-input {
     background: transparent;
     border: none;
-    font-size: 1.2rem;
-    font-weight: 700;
+    font-size: 1.1rem;
+    font-weight: 600;
     color: var(--text-main);
     width: 100%;
     outline: none;
@@ -810,144 +734,94 @@ textarea.form-control {
     opacity: 0.5;
 }
 
-/* Scrollable Workspace */
-.workspace {
+.editor-workspace {
     flex: 1;
     overflow-y: auto;
-    padding: 40px;
+    padding: 30px;
 }
 
-.workspace-inner {
-    max-width: 900px;
-    margin: 0 auto;
+/* Form Kartları */
+.studio-card {
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 25px;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow-sm);
 }
 
-/* Materyal Kartları */
-.material-item {
+/* Materyal Listesi */
+.material-row {
     display: flex;
+    gap: 15px;
+    background: var(--bg-body);
+    border: 1px solid var(--border-color);
+    padding: 15px;
+    border-radius: var(--radius-md);
+    margin-bottom: 10px;
     align-items: flex-start;
-    gap: 16px;
+}
+
+/* Test Sihirbazı */
+.wizard-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    height: 100%;
+}
+
+.wizard-col {
     background: var(--bg-surface);
     border: 1px solid var(--border-color);
-    padding: 20px;
     border-radius: var(--radius-lg);
-    margin-bottom: 16px;
-    transition: 0.2s;
-}
-
-.material-item:hover {
-    border-color: var(--text-muted);
-}
-
-.material-icon {
-    width: 48px;
-    height: 48px;
-    border-radius: 12px;
     display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.5rem;
-    flex-shrink: 0;
-}
-
-.type-pdf {
-    background: rgba(239, 68, 68, 0.2);
-    color: #ef4444;
-}
-
-.type-video {
-    background: rgba(245, 158, 11, 0.2);
-    color: #f59e0b;
-}
-
-.type-html {
-    background: rgba(59, 130, 246, 0.2);
-    color: #3b82f6;
-}
-
-.type-podcast {
-    background: rgba(139, 92, 246, 0.2);
-    color: #8b5cf6;
-}
-
-/* Test Sihirbazı Layout */
-.wizard-layout {
-    display: grid;
-    grid-template-columns: 350px 1fr;
-    gap: 0;
-    height: 100%;
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-lg);
+    flex-direction: column;
     overflow: hidden;
 }
 
-.wizard-pool {
-    background: var(--bg-surface);
-    border-right: 1px solid var(--border-color);
-    display: flex;
-    flex-direction: column;
+.wizard-header {
+    padding: 15px;
+    border-bottom: 1px solid var(--border-color);
+    background: var(--bg-hover);
+    font-weight: 600;
+    color: var(--text-main);
 }
 
-.wizard-paper {
-    background: var(--bg-body);
-    display: flex;
-    flex-direction: column;
-}
-
-/* Input Group Fix */
-.custom-input-group {
-    display: flex;
-    gap: 8px;
-}
-
-.custom-input-group input {
+.wizard-body {
     flex: 1;
+    overflow-y: auto;
+    padding: 15px;
 }
 
-/* Question Items */
-.q-item {
-    padding: 12px;
+/* Soru Listesi Öğesi */
+.q-select-item {
+    padding: 10px;
     border-bottom: 1px solid var(--border-color);
     cursor: pointer;
     font-size: 0.9rem;
-    transition: 0.2s;
 }
 
-.q-item:hover {
-    background: var(--bg-hover);
+.q-select-item:hover {
+    background-color: var(--bg-hover);
 }
 
-.q-item strong {
+.q-select-item strong {
     color: var(--color-primary);
 }
 
 /* Responsive */
 @media (max-width: 1024px) {
-    .studio-grid {
-        grid-template-columns: 260px 1fr;
-    }
-}
-
-@media (max-width: 768px) {
-    .studio-grid {
+    .studio-layout {
         grid-template-columns: 1fr;
     }
 
     .studio-sidebar {
-        height: auto;
-        max-height: 300px;
-        border-right: none;
-        border-bottom: 1px solid var(--border-color);
+        display: none;
+        /* Mobilde sidebar gizlenebilir veya toggle yapılabilir */
     }
 
-    .wizard-layout {
+    .wizard-container {
         grid-template-columns: 1fr;
         grid-template-rows: 1fr 1fr;
-    }
-
-    #topicModal .admin-modal-content {
-        width: 100%;
-        height: 100%;
-        border-radius: 0;
     }
 }
