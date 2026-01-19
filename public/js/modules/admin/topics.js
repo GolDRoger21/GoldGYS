@@ -3,6 +3,32 @@ import {
     collection, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, serverTimestamp, query, orderBy, where, limit, writeBatch
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+// Konu ID'si veya Başlığı ile Mevzuat/Kategori Eşleşmesi
+const TOPIC_MAPPING = {
+    "topic_anayasa": "2709",
+    "topic_dmk_657": "657",
+    "topic_cmk": "5271",
+    "topic_hmk": "6100",
+    "topic_iyuk": "2577",
+    "topic_tebligat": "7201",
+    "topic_infaz": "5275",
+    "topic_ataturk_inkilap": "İnkılap Tarihi", // Kategori adı olarak aranacak
+    "topic_dil_iletisim_etik": "Etik",
+    "topic_resmi_yazisma": "Resmi Yazışma"
+};
+
+function getFilterValueForTopic(topicId, topicTitle) {
+    // 1. Önce ID eşleşmesine bak
+    if (TOPIC_MAPPING[topicId]) return TOPIC_MAPPING[topicId];
+
+    // 2. Yoksa başlık içinde ara (Örn: "657 Sayılı..." -> "657")
+    const match = topicTitle.match(/(\d+)/);
+    if (match) return match[0];
+
+    // 3. Hiçbiri yoksa başlığın kendisini döndür (Kategori araması için)
+    return topicTitle;
+}
+
 // ============================================================
 // --- GLOBAL STATE ---
 // ============================================================
@@ -355,6 +381,9 @@ async function openEditor(id = null, forceSettings = false) {
         document.getElementById('inpTopicCategory').value = topic.category;
         document.getElementById('inpTopicStatus').value = topic.isActive.toString();
 
+        // YENİ: Otomatik Filtre Değerini Belirle
+        state.autoFilter = getFilterValueForTopic(id, topic.title);
+
         await loadLessons(id);
 
         if (forceSettings || state.currentLessons.length === 0) {
@@ -456,6 +485,23 @@ function createNewContent(type) {
         document.getElementById('wsTestMode').style.display = 'block';
         state.tempQuestions = [];
         renderTestPaper();
+
+        // YENİ: Otomatik Seçim ve Arama
+        setTimeout(() => {
+            const select = document.getElementById('wizLegislation');
+            if (select && state.autoFilter) {
+                // Eğer listede varsa seç, yoksa yeni option ekle
+                let exists = Array.from(select.options).some(o => o.value === state.autoFilter);
+                if (!exists) {
+                    const opt = new Option(`${state.autoFilter} (Otomatik)`, state.autoFilter);
+                    select.add(opt);
+                }
+                select.value = state.autoFilter;
+
+                // Otomatik aramayı başlat
+                window.Studio.wizard.search();
+            }
+        }, 500); // Dropdown dolması için kısa bir gecikme
     } else {
         badge.innerText = "DERS";
         badge.className = "badge bg-primary";
@@ -620,23 +666,35 @@ function populateLegislationSelect() {
 }
 
 async function searchQuestions() {
-    const code = document.getElementById('wizLegislation').value;
+    const filterVal = document.getElementById('wizLegislation').value;
     const s = parseInt(document.getElementById('wizStart').value);
     const e = parseInt(document.getElementById('wizEnd').value);
     const list = document.getElementById('poolList');
 
-    if (!code) return alert("Mevzuat seçiniz");
+    if (!filterVal) return alert("Kaynak seçiniz");
 
     list.innerHTML = '<div class="text-center mt-4">Aranıyor...</div>';
 
-    const q = query(collection(db, "questions"), where("legislationRef.code", "==", code));
-    const snap = await getDocs(q);
+    // İKİLİ ARAMA: Hem Kanun Kodu hem Kategori
+    // Not: Firestore'da "OR" sorgusu için "in" kullanılır ama farklı alanlarda OR zordur.
+    // Bu yüzden iki ayrı sorgu yapıp birleştireceğiz (Client-side merge).
+
+    const q1 = query(collection(db, "questions"), where("legislationRef.code", "==", filterVal));
+    const q2 = query(collection(db, "questions"), where("category", "==", filterVal));
+
+    const [snap1, snap2] = await Promise.all([getDocs(q1), getDocs(q2)]);
+
+    const mergedDocs = new Map();
+    snap1.forEach(d => mergedDocs.set(d.id, d));
+    snap2.forEach(d => mergedDocs.set(d.id, d));
 
     const arr = [];
-    snap.forEach(d => {
-        const art = parseInt(d.data().legislationRef?.article);
-        if (!isNaN(art) && (!s || art >= s) && (!e || art <= e)) {
-            arr.push({ id: d.id, ...d.data(), artNo: art });
+    mergedDocs.forEach(doc => {
+        const d = doc.data();
+        const art = parseInt(d.legislationRef?.article);
+        // Filtreleme mantığı...
+        if ((!s || art >= s) && (!e || art <= e)) {
+            arr.push({ id: doc.id, ...d, artNo: art || 0 });
         }
     });
 
