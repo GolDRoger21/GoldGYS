@@ -792,3 +792,111 @@ textarea.form-control {
         grid-template-rows: 1fr 1fr;
     }
 }
+
+/* --- GELİŞMİŞ SIDEBAR (AKORDİYON) --- */
+.sidebar-group {
+    margin-bottom: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+}
+
+.sidebar-group-header {
+    padding: 10px 15px;
+    background: var(--bg-hover);
+    font-weight: 700;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    user-select: none;
+}
+
+.sidebar-group-header:hover {
+    color: var(--text-main);
+}
+
+.sidebar-group-body {
+    display: none;
+    /* Varsayılan kapalı */
+    background: var(--bg-surface);
+}
+
+.sidebar-group.open .sidebar-group-body {
+    display: block;
+}
+
+/* --- SORU HAVUZU TABLOSU --- */
+.pool-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+}
+
+.pool-table th {
+    text-align: left;
+    padding: 8px;
+    background: var(--bg-input);
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    border-bottom: 2px solid var(--border-color);
+}
+
+.pool-table td {
+    padding: 8px;
+    border-bottom: 1px solid var(--border-color);
+    vertical-align: top;
+}
+
+.pool-table tr:hover {
+    background-color: var(--bg-hover);
+}
+
+.pool-row.added {
+    opacity: 0.5;
+    background: rgba(16, 185, 129, 0.1);
+}
+
+/* --- SÜRÜKLE BIRAK (SORTABLE) --- */
+.q-paper-item {
+    cursor: grab;
+    /* Tutma imleci */
+}
+
+.q-paper-item:active {
+    cursor: grabbing;
+}
+
+.sortable-ghost {
+    opacity: 0.4;
+    background: var(--color-primary);
+}
+
+/* --- HIZLI DÜZENLEME MODALI (NESTED) --- */
+.quick-edit-modal {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 600px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    z-index: 3000;
+    /* Studio modalının üstünde */
+    display: none;
+    flex-direction: column;
+}
+
+.quick-edit-header {
+    padding: 15px;
+    background: var(--color-warning);
+    color: #000;
+    font-weight: bold;
+    display: flex;
+    justify-content: space-between;
+}

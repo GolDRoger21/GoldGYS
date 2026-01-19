@@ -3,32 +3,6 @@ import {
     collection, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, serverTimestamp, query, orderBy, where, limit, writeBatch
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// Konu ID'si veya Başlığı ile Mevzuat/Kategori Eşleşmesi
-const TOPIC_MAPPING = {
-    "topic_anayasa": "2709",
-    "topic_dmk_657": "657",
-    "topic_cmk": "5271",
-    "topic_hmk": "6100",
-    "topic_iyuk": "2577",
-    "topic_tebligat": "7201",
-    "topic_infaz": "5275",
-    "topic_ataturk_inkilap": "İnkılap Tarihi", // Kategori adı olarak aranacak
-    "topic_dil_iletisim_etik": "Etik",
-    "topic_resmi_yazisma": "Resmi Yazışma"
-};
-
-function getFilterValueForTopic(topicId, topicTitle) {
-    // 1. Önce ID eşleşmesine bak
-    if (TOPIC_MAPPING[topicId]) return TOPIC_MAPPING[topicId];
-
-    // 2. Yoksa başlık içinde ara (Örn: "657 Sayılı..." -> "657")
-    const match = topicTitle.match(/(\d+)/);
-    if (match) return match[0];
-
-    // 3. Hiçbiri yoksa başlığın kendisini döndür (Kategori araması için)
-    return topicTitle;
-}
-
 // ============================================================
 // --- GLOBAL STATE ---
 // ============================================================
@@ -39,23 +13,23 @@ let state = {
     activeLessonId: null,
     activeLessonType: 'lesson',
     tempMaterials: [],
-    tempQuestions: [], // Test kağıdındaki sorular
-    poolQuestions: [], // Havuzdaki sorular (Arama sonucu)
-    legislationList: new Set()
+    tempQuestions: [],
+    poolQuestions: [],
+    legislationList: new Set(),
+    sortable: null // Sürükle bırak instance
 };
 
 // ============================================================
 // --- INIT ---
 // ============================================================
 export function initTopicsPage() {
-    console.log("🚀 Studio Pro v4 (Fixed) Başlatılıyor...");
+    console.log("🚀 Studio Pro v5 (Ultimate) Başlatılıyor...");
     renderMainInterface();
 
-    // Global API (HTML'den erişim için)
     window.Studio = {
         open: openEditor,
         close: () => document.getElementById('topicModal').style.display = 'none',
-        settings: showMetaEditor, // Düzeltildi: Artık state'e buradan erişecek
+        settings: showMetaEditor,
         saveMeta: saveTopicMeta,
         newContent: createNewContent,
         selectContent: selectContentItem,
@@ -68,9 +42,13 @@ export function initTopicsPage() {
             search: searchQuestions,
             add: addToTestPaper,
             remove: removeFromTestPaper,
-            auto: autoGenerateTest
+            auto: autoGenerateTest,
+            editQ: openQuickEdit, // Yeni
+            saveQ: saveQuickEdit, // Yeni
+            closeQ: () => document.getElementById('quickEditModal').style.display = 'none'
         },
-        trash: { open: openTrash, restore: restoreItem, purge: purgeItem }
+        trash: { open: openTrash, restore: restoreItem, purge: purgeItem },
+        toggleGroup: toggleSidebarGroup // Yeni
     };
 
     loadTopics();
@@ -95,7 +73,6 @@ function renderMainInterface() {
             </div>
         </div>
 
-        <!-- Arama ve Filtreleme -->
         <div class="card mb-4 p-3 border-0 shadow-sm">
             <div class="row g-2 align-items-center">
                 <div class="col-md-5">
@@ -114,7 +91,6 @@ function renderMainInterface() {
             </div>
         </div>
 
-        <!-- Liste -->
         <div class="card">
             <div class="table-responsive">
                 <table class="admin-table">
@@ -150,11 +126,10 @@ function renderMainInterface() {
                             <button class="btn btn-warning btn-sm" style="color:#000" onclick="window.Studio.newContent('test')">📝 Test Oluştur</button>
                         </div>
                         
-                        <div class="sidebar-section-title">İÇERİK AKIŞI</div>
-                        <div id="contentListNav"></div>
+                        <div id="contentListNav"></div> <!-- Akordiyon buraya gelecek -->
 
                         <div class="mt-auto pt-3 border-top border-color">
-                            <button class="btn btn-secondary w-100 btn-sm" onclick="window.Studio.settings()">⚙️ Konu Ayarları</button>
+                            <button class="btn btn-outline w-100 btn-sm" onclick="window.Studio.settings()">⚙️ Konu Ayarları</button>
                         </div>
                     </div>
 
@@ -202,7 +177,7 @@ function renderMainInterface() {
                             <div class="editor-toolbar">
                                 <div class="editor-title-group">
                                     <span class="badge bg-secondary" id="editorBadge">DERS</span>
-                                    <input type="text" id="inpContentTitle" class="editor-title-input" placeholder="Başlık giriniz...">
+                                    <input type="text" id="inpContentTitle" class="editor-title-input" placeholder="Başlık giriniz (Boşsa otomatik atanır)...">
                                 </div>
                                 <div class="editor-actions">
                                     <input type="number" id="inpContentOrder" placeholder="Sıra" title="Sıralama">
@@ -217,10 +192,10 @@ function renderMainInterface() {
                                 <!-- 1. DERS NOTU MODU -->
                                 <div id="wsLessonMode" class="p-4" style="max-width:1000px; margin:0 auto;">
                                     <div class="d-flex justify-content-center gap-2 mb-4">
-                                        <button class="btn btn-sm btn-secondary" onclick="window.Studio.addMat('html')">+ Metin</button>
-                                        <button class="btn btn-sm btn-secondary" onclick="window.Studio.addMat('pdf')">+ PDF</button>
-                                        <button class="btn btn-sm btn-secondary" onclick="window.Studio.addMat('video')">+ Video</button>
-                                        <button class="btn btn-sm btn-secondary" onclick="window.Studio.addMat('podcast')">+ Podcast</button>
+                                        <button class="btn btn-sm btn-outline" onclick="window.Studio.addMat('html')">+ Metin</button>
+                                        <button class="btn btn-sm btn-outline" onclick="window.Studio.addMat('pdf')">+ PDF</button>
+                                        <button class="btn btn-sm btn-outline" onclick="window.Studio.addMat('video')">+ Video</button>
+                                        <button class="btn btn-sm btn-outline" onclick="window.Studio.addMat('podcast')">+ Podcast</button>
                                     </div>
                                     <div id="materialsContainer"></div>
                                 </div>
@@ -234,49 +209,58 @@ function renderMainInterface() {
                                             <div class="wizard-header">1. FİLTRELEME</div>
                                             <div class="wizard-body">
                                                 <div class="form-group">
-                                                    <label class="small text-muted mb-1">Soru Kaynağı (Otomatik Seçildi)</label>
+                                                    <label>Soru Kaynağı</label>
                                                     <input type="text" id="wizSourceDisplay" class="form-control mb-2" readonly style="background:var(--bg-body); font-weight:bold;">
-                                                    <input type="hidden" id="wizLegislation"> <!-- Değer burada tutulacak -->
+                                                    <input type="hidden" id="wizLegislation">
                                                 </div>
-                                                
                                                 <div class="form-group">
-                                                    <label class="small text-muted mb-1">Madde / Konu Aralığı</label>
+                                                    <label>Madde Aralığı</label>
                                                     <div class="d-flex gap-2">
                                                         <input type="number" id="wizStart" class="form-control" placeholder="Baş">
                                                         <input type="number" id="wizEnd" class="form-control" placeholder="Son">
                                                     </div>
                                                 </div>
-
-                                                <div class="d-grid gap-2 mt-3">
-                                                    <button class="btn btn-primary" onclick="window.Studio.wizard.search()">
-                                                        🔍 Soruları Listele (Manuel)
-                                                    </button>
-                                                    
-                                                    <div class="vr-separator w-100 my-2" style="height:1px; background:var(--border-color);"></div>
-                                                    
-                                                    <button class="btn btn-warning" onclick="window.Studio.wizard.auto()">
-                                                        🤖 Otomatik Test Oluştur (15 Soru)
+                                                <button class="btn btn-primary w-100 mb-3" onclick="window.Studio.wizard.search()">
+                                                    🔍 Soruları Getir
+                                                </button>
+                                                
+                                                <hr class="border-color">
+                                                
+                                                <div class="p-3 bg-hover rounded border border-color">
+                                                    <strong class="text-gold d-block mb-2">🤖 Otomatik Oluştur</strong>
+                                                    <p class="small text-muted mb-2">Seçili kaynaktan rastgele 15 soru seçer.</p>
+                                                    <button class="btn btn-warning btn-sm w-100" onclick="window.Studio.wizard.auto()">
+                                                        Otomatik Doldur
                                                     </button>
                                                 </div>
-                                                
-                                                <p class="text-muted small mt-2 text-center">
-                                                    * Otomatik mod, bu kaynaktan rastgele 15 soru seçip testi tamamlar.
-                                                </p>
                                             </div>
                                         </div>
 
-                                        <!-- Orta: Soru Havuzu -->
+                                        <!-- Orta: Soru Havuzu (Tablo) -->
                                         <div class="wizard-col">
                                             <div class="wizard-header">
                                                 <span>2. SORU HAVUZU</span>
                                                 <span class="badge bg-secondary" id="poolCount">0</span>
                                             </div>
-                                            <div id="poolList" class="wizard-body">
-                                                <div class="text-center text-muted mt-5">Soldan filtre seçip arama yapın.</div>
+                                            <div class="wizard-body p-0">
+                                                <div class="table-responsive">
+                                                    <table class="pool-table">
+                                                        <thead>
+                                                            <tr>
+                                                                <th width="50">Md.</th>
+                                                                <th>Soru Metni</th>
+                                                                <th width="80">İşlem</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody id="poolList">
+                                                            <tr><td colspan="3" class="text-center p-4 text-muted">Arama yapın.</td></tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
                                             </div>
                                         </div>
 
-                                        <!-- Sağ: Test Kağıdı -->
+                                        <!-- Sağ: Test Kağıdı (Sortable) -->
                                         <div class="wizard-col">
                                             <div class="wizard-header">
                                                 <span>3. TEST KAĞIDI</span>
@@ -295,6 +279,33 @@ function renderMainInterface() {
 
                     </div>
                 </div>
+                
+                <!-- HIZLI DÜZENLEME MODALI -->
+                <div id="quickEditModal" class="quick-edit-modal">
+                    <div class="quick-edit-header">
+                        <span>Hızlı Düzenleme</span>
+                        <button class="close-btn" style="font-size:1rem;" onclick="window.Studio.wizard.closeQ()">✕</button>
+                    </div>
+                    <div class="p-3">
+                        <input type="hidden" id="qeId">
+                        <div class="form-group">
+                            <label>Soru Metni</label>
+                            <textarea id="qeText" class="form-control" rows="3"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Doğru Cevap</label>
+                            <select id="qeCorrect" class="form-control">
+                                <option value="A">A</option><option value="B">B</option>
+                                <option value="C">C</option><option value="D">D</option><option value="E">E</option>
+                            </select>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <button class="btn btn-danger btn-sm" onclick="alert('Silme özelliği ana panelden yapılmalıdır.')">Sil</button>
+                            <button class="btn btn-success btn-sm" onclick="window.Studio.wizard.saveQ()">Güncelle</button>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
         
@@ -368,13 +379,31 @@ window.filterTopics = () => {
 // --- STUDIO MANTIĞI ---
 // ============================================================
 
+// Konu ID'si veya Başlığı ile Mevzuat/Kategori Eşleşmesi
+const TOPIC_MAPPING = {
+    "topic_anayasa": "2709",
+    "topic_dmk_657": "657",
+    "topic_cmk": "5271",
+    "topic_hmk": "6100",
+    "topic_iyuk": "2577",
+    "topic_tebligat": "7201",
+    "topic_infaz": "5275",
+    "topic_ataturk_inkilap": "İnkılap Tarihi",
+    "topic_dil_iletisim_etik": "Etik",
+    "topic_resmi_yazisma": "Resmi Yazışma"
+};
+
+function getFilterValueForTopic(topicId, topicTitle) {
+    if (TOPIC_MAPPING[topicId]) return TOPIC_MAPPING[topicId];
+    const match = topicTitle.match(/(\d+)/);
+    if (match) return match[0];
+    return topicTitle;
+}
+
 async function openEditor(id = null, forceSettings = false) {
     document.getElementById('topicModal').style.display = 'flex';
     document.getElementById('contentListNav').innerHTML = '';
     state.activeTopicId = id;
-
-    // Mevzuat listesini doldur
-    fetchLegislationCodes();
 
     if (id) {
         const topic = state.allTopics.find(t => t.id === id);
@@ -384,7 +413,7 @@ async function openEditor(id = null, forceSettings = false) {
         document.getElementById('inpTopicCategory').value = topic.category;
         document.getElementById('inpTopicStatus').value = topic.isActive.toString();
 
-        // YENİ: Otomatik Filtre Değerini Belirle
+        // Otomatik Filtre Değerini Belirle
         state.autoFilter = getFilterValueForTopic(id, topic.title);
 
         await loadLessons(id);
@@ -417,7 +446,12 @@ async function loadLessons(topicId) {
 
 function renderContentNav() {
     const list = document.getElementById('contentListNav');
-    list.innerHTML = state.currentLessons.map(l => `
+
+    // Gruplama
+    const materials = state.currentLessons.filter(l => l.type !== 'test');
+    const tests = state.currentLessons.filter(l => l.type === 'test');
+
+    const renderItem = (l) => `
         <div class="content-nav-item ${state.activeLessonId === l.id ? 'active' : ''}" 
              onclick="window.Studio.selectContent('${l.id}')">
             <span class="nav-item-icon">${l.type === 'test' ? '📝' : '📄'}</span>
@@ -426,14 +460,39 @@ function renderContentNav() {
                 <div class="nav-item-sub">Sıra: ${l.order}</div>
             </div>
         </div>
-    `).join('');
+    `;
+
+    list.innerHTML = `
+        <div class="sidebar-group open">
+            <div class="sidebar-group-header" onclick="window.Studio.toggleGroup(this)">
+                <span>DERS MATERYALLERİ (${materials.length})</span> <span>▼</span>
+            </div>
+            <div class="sidebar-group-body p-2">
+                ${materials.length ? materials.map(renderItem).join('') : '<small class="text-muted p-2 d-block">Yok</small>'}
+            </div>
+        </div>
+        
+        <div class="sidebar-group open">
+            <div class="sidebar-group-header" onclick="window.Studio.toggleGroup(this)">
+                <span>KONU TESTLERİ (${tests.length})</span> <span>▼</span>
+            </div>
+            <div class="sidebar-group-body p-2">
+                ${tests.length ? tests.map(renderItem).join('') : '<small class="text-muted p-2 d-block">Yok</small>'}
+            </div>
+        </div>
+    `;
+}
+
+function toggleSidebarGroup(header) {
+    header.parentElement.classList.toggle('open');
 }
 
 function showMetaEditor() {
     document.getElementById('metaEditor').style.display = 'block';
     document.getElementById('contentEditor').style.display = 'none';
     state.activeLessonId = null;
-    renderContentNav();
+    // Active class temizle
+    document.querySelectorAll('.content-nav-item').forEach(el => el.classList.remove('active'));
 }
 
 async function saveTopicMeta() {
@@ -474,7 +533,9 @@ function createNewContent(type) {
 
     document.getElementById('metaEditor').style.display = 'none';
     document.getElementById('contentEditor').style.display = 'flex';
-    renderContentNav();
+
+    // Active class temizle
+    document.querySelectorAll('.content-nav-item').forEach(el => el.classList.remove('active'));
 
     document.getElementById('inpContentTitle').value = "";
     document.getElementById('inpContentTitle').focus();
@@ -489,18 +550,14 @@ function createNewContent(type) {
         state.tempQuestions = [];
         renderTestPaper();
 
-        // YENİ: Kaynağı Otomatik Belirle ve Kilitle
+        // Otomatik Kaynak Seçimi
         setTimeout(() => {
-            // state.autoFilter değeri openEditor'da belirlenmişti (Örn: "2709" veya "İnkılap Tarihi")
             const sourceVal = state.autoFilter || "Genel";
-
-            // UI Güncelle
-            document.getElementById('wizSourceDisplay').value = sourceVal; // Kullanıcıya görünen
-            document.getElementById('wizLegislation').value = sourceVal;   // Arkada kullanılan
-
-            // Otomatik aramayı başlat (Kullanıcı beklemesin)
+            document.getElementById('wizSourceDisplay').value = sourceVal;
+            document.getElementById('wizLegislation').value = sourceVal;
             window.Studio.wizard.search();
         }, 300);
+
     } else {
         badge.innerText = "DERS";
         badge.className = "badge bg-primary";
@@ -523,7 +580,7 @@ function selectContentItem(id) {
     document.getElementById('inpContentTitle').value = item.title;
     document.getElementById('inpContentOrder').value = item.order;
 
-    renderContentNav();
+    renderContentNav(); // Re-render to update active class
 
     const badge = document.getElementById('editorBadge');
     if (state.activeLessonType === 'test') {
@@ -533,6 +590,13 @@ function selectContentItem(id) {
         document.getElementById('wsTestMode').style.display = 'block';
         state.tempQuestions = item.questions || [];
         renderTestPaper();
+
+        // Kaynak Seçimi
+        const sourceVal = state.autoFilter || "Genel";
+        document.getElementById('wizSourceDisplay').value = sourceVal;
+        document.getElementById('wizLegislation').value = sourceVal;
+        window.Studio.wizard.search();
+
     } else {
         badge.innerText = "DERS";
         badge.className = "badge bg-primary";
@@ -544,7 +608,16 @@ function selectContentItem(id) {
 }
 
 async function saveContent() {
-    const title = document.getElementById('inpContentTitle').value;
+    let title = document.getElementById('inpContentTitle').value;
+
+    // Otomatik Başlık
+    if (!title && state.activeLessonType === 'test') {
+        const topic = state.allTopics.find(t => t.id === state.activeTopicId);
+        const count = state.currentLessons.filter(l => l.type === 'test').length + 1;
+        title = `${topic.title} - Test ${count}`;
+        document.getElementById('inpContentTitle').value = title;
+    }
+
     if (!title) return alert("Başlık giriniz.");
 
     const data = {
@@ -628,58 +701,19 @@ function renderMaterials() {
 // --- TEST SİHİRBAZI (GELİŞMİŞ) ---
 // ============================================================
 
-async function fetchLegislationCodes() {
-    const select = document.getElementById('wizLegislation');
-    if (!select) return;
-
-    if (state.legislationList.size > 0) {
-        populateLegislationSelect();
-        return;
-    }
-
-    try {
-        // 5000 soruya kadar tara (Daha geniş kapsam)
-        const q = query(collection(db, "questions"), orderBy("createdAt", "desc"), limit(5000));
-        const snap = await getDocs(q);
-
-        const codes = new Set();
-        // Standartlar
-        ["2709", "657", "5271", "5237", "2577", "4483", "3628", "5018", "4982", "3071", "7201"].forEach(c => codes.add(c));
-
-        snap.forEach(doc => {
-            const code = doc.data().legislationRef?.code;
-            if (code) codes.add(code);
-        });
-
-        state.legislationList = codes;
-        populateLegislationSelect();
-
-    } catch (e) { console.error("Mevzuat çekilemedi", e); }
-}
-
-function populateLegislationSelect() {
-    const select = document.getElementById('wizLegislation');
-    const sorted = Array.from(state.legislationList).sort();
-    select.innerHTML = '<option value="">Seçiniz...</option>' +
-        sorted.map(c => `<option value="${c}">${c} Sayılı Kanun</option>`).join('');
-}
-
 async function searchQuestions() {
-    const filterVal = document.getElementById('wizLegislation').value;
+    const code = document.getElementById('wizLegislation').value;
     const s = parseInt(document.getElementById('wizStart').value);
     const e = parseInt(document.getElementById('wizEnd').value);
     const list = document.getElementById('poolList');
 
-    if (!filterVal) return alert("Kaynak seçiniz");
+    if (!code) return;
 
-    list.innerHTML = '<div class="text-center mt-4">Aranıyor...</div>';
+    list.innerHTML = '<tr><td colspan="3" class="text-center p-3">Aranıyor...</td></tr>';
 
     // İKİLİ ARAMA: Hem Kanun Kodu hem Kategori
-    // Not: Firestore'da "OR" sorgusu için "in" kullanılır ama farklı alanlarda OR zordur.
-    // Bu yüzden iki ayrı sorgu yapıp birleştireceğiz (Client-side merge).
-
-    const q1 = query(collection(db, "questions"), where("legislationRef.code", "==", filterVal));
-    const q2 = query(collection(db, "questions"), where("category", "==", filterVal));
+    const q1 = query(collection(db, "questions"), where("legislationRef.code", "==", code));
+    const q2 = query(collection(db, "questions"), where("category", "==", code));
 
     const [snap1, snap2] = await Promise.all([getDocs(q1), getDocs(q2)]);
 
@@ -691,7 +725,6 @@ async function searchQuestions() {
     mergedDocs.forEach(doc => {
         const d = doc.data();
         const art = parseInt(d.legislationRef?.article);
-        // Filtreleme mantığı...
         if ((!s || art >= s) && (!e || art <= e)) {
             arr.push({ id: doc.id, ...d, artNo: art || 0 });
         }
@@ -708,20 +741,23 @@ function renderPoolList() {
     document.getElementById('poolCount').innerText = state.poolQuestions.length;
 
     if (state.poolQuestions.length === 0) {
-        list.innerHTML = '<div class="text-center mt-4 text-muted">Soru bulunamadı.</div>';
+        list.innerHTML = '<tr><td colspan="3" class="text-center p-3 text-muted">Soru bulunamadı.</td></tr>';
         return;
     }
 
     list.innerHTML = state.poolQuestions.map(q => {
         const isAdded = state.tempQuestions.some(x => x.id === q.id);
         return `
-            <div class="q-pool-item ${isAdded ? 'added' : ''}" onclick="window.Studio.wizard.add('${q.id}')">
-                <div class="q-meta">
-                    <strong>Md. ${q.artNo}</strong>
-                    ${isAdded ? '✅ Eklendi' : ''}
-                </div>
-                <div class="q-text">${q.text}</div>
-            </div>
+            <tr class="pool-row ${isAdded ? 'added' : ''}">
+                <td><strong>${q.artNo}</strong></td>
+                <td>
+                    <div class="text-truncate" style="max-width:200px;" title="${q.text}">${q.text}</div>
+                </td>
+                <td>
+                    <button class="btn btn-sm btn-outline-primary p-1" onclick="window.Studio.wizard.editQ('${q.id}')" title="Düzenle">✏️</button>
+                    <button class="btn btn-sm btn-success p-1" onclick="window.Studio.wizard.add('${q.id}')" ${isAdded ? 'disabled' : ''}>+</button>
+                </td>
+            </tr>
         `;
     }).join('');
 }
@@ -731,14 +767,14 @@ function addToTestPaper(id) {
     if (q && !state.tempQuestions.some(x => x.id === id)) {
         state.tempQuestions.push(q);
         renderTestPaper();
-        renderPoolList(); // Güncelle (Disable etmek için)
+        renderPoolList();
     }
 }
 
 function removeFromTestPaper(idx) {
     state.tempQuestions.splice(idx, 1);
     renderTestPaper();
-    renderPoolList(); // Güncelle (Enable etmek için)
+    renderPoolList();
 }
 
 function renderTestPaper() {
@@ -746,7 +782,7 @@ function renderTestPaper() {
     document.getElementById('paperCount').innerText = state.tempQuestions.length;
 
     list.innerHTML = state.tempQuestions.map((q, i) => `
-        <div class="q-paper-item">
+        <div class="q-paper-item" data-id="${q.id}">
             <div class="q-paper-number">${i + 1}.</div>
             <div style="flex:1; overflow:hidden;">
                 <div class="small fw-bold text-primary">Md. ${q.artNo}</div>
@@ -755,34 +791,60 @@ function renderTestPaper() {
             <button class="btn btn-sm text-danger p-0" onclick="window.Studio.wizard.remove(${i})">&times;</button>
         </div>
     `).join('');
+
+    // Sortable (Sürükle Bırak)
+    if (window.Sortable) {
+        new Sortable(list, {
+            animation: 150,
+            ghostClass: 'sortable-ghost',
+            onEnd: function (evt) {
+                const item = state.tempQuestions.splice(evt.oldIndex, 1)[0];
+                state.tempQuestions.splice(evt.newIndex, 0, item);
+                renderTestPaper(); // Sıralamayı güncelle
+            }
+        });
+    }
 }
 
-async function autoGenerateTest() {
-    // Eğer havuz boşsa önce aramayı çalıştır
-    if (state.poolQuestions.length === 0) {
-        await searchQuestions();
-    }
+function autoGenerateTest() {
+    if (state.poolQuestions.length === 0) return alert("Önce arama yapın.");
 
-    if (state.poolQuestions.length === 0) return alert("Bu kriterlere uygun soru bulunamadı.");
-
-    // Mevcut test kağıdını temizle (İsteğe bağlı, üstüne eklemek istersen bu satırı sil)
-    state.tempQuestions = [];
-
-    // Rastgele 15 soru seç (Fisher-Yates Shuffle)
-    const shuffled = [...state.poolQuestions];
-    for (let i = shuffled.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-    }
-
+    const shuffled = [...state.poolQuestions].sort(() => 0.5 - Math.random());
     const selected = shuffled.slice(0, 15);
-
-    // Seçilenleri Madde Numarasına Göre Sırala (Pedagojik olarak daha doğru)
-    selected.sort((a, b) => (a.artNo || 0) - (b.artNo || 0));
+    selected.sort((a, b) => a.artNo - b.artNo);
 
     state.tempQuestions = selected;
     renderTestPaper();
-    renderPoolList(); // Havuzdaki "Eklendi" işaretlerini güncelle
+    renderPoolList();
+}
+
+// --- HIZLI DÜZENLEME ---
+function openQuickEdit(id) {
+    const q = state.poolQuestions.find(x => x.id === id);
+    if (!q) return;
+
+    document.getElementById('qeId').value = id;
+    document.getElementById('qeText').value = q.text;
+    document.getElementById('qeCorrect').value = q.correctOption;
+    document.getElementById('quickEditModal').style.display = 'flex';
+}
+
+async function saveQuickEdit() {
+    const id = document.getElementById('qeId').value;
+    const text = document.getElementById('qeText').value;
+    const correct = document.getElementById('qeCorrect').value;
+
+    try {
+        await updateDoc(doc(db, "questions", id), { text, correctOption: correct });
+
+        // Yerel veriyi güncelle
+        const q = state.poolQuestions.find(x => x.id === id);
+        if (q) { q.text = text; q.correctOption = correct; }
+
+        renderPoolList();
+        document.getElementById('quickEditModal').style.display = 'none';
+        alert("Soru güncellendi.");
+    } catch (e) { alert(e.message); }
 }
 
 // --- ÇÖP KUTUSU ---
