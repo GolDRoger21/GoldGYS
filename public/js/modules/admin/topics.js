@@ -1,3 +1,4 @@
+import { db } from "../../firebase-config.js"; // EKLENDİ
 import {
     collection, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, serverTimestamp, query, orderBy, where, limit, writeBatch
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -21,7 +22,8 @@ let state = {
     poolFilters: {        // Gelişmiş soru havuzu filtresi için
         difficulty: '',
         text: ''
-    }
+    },
+    autoFilter: '' // Otomatik mevzuat filtresi
 };
 
 // ============================================================
@@ -48,17 +50,21 @@ export function initTopicsPage() {
             add: addToTestPaper,
             remove: removeFromTestPaper,
             auto: autoGenerateTest,
-            auto: autoGenerateTest,
+
+            // Content.js'deki global editörü açar
             fullEdit: (id) => {
-                openQuestionEditor(id);
-            },
-            closeQ: () => document.getElementById('quickEditModal').style.display = 'none'
+                if (window.QuestionBank && window.QuestionBank.openEditor) {
+                    window.QuestionBank.openEditor(id);
+                } else {
+                    openQuestionEditor(id);
+                }
+            }
         },
         trash: { open: openTrash, restore: restoreItem, purge: purgeItem },
-        toggleGroup: toggleSidebarGroup // Yeni
+        toggleGroup: toggleSidebarGroup
     };
 
-    // TAB DEĞİŞTİRME FONKSİYONU (Init içinde tanımlanmalı)
+    // TAB DEĞİŞTİRME FONKSİYONU
     window.Studio.switchTab = (tab) => {
         state.sidebarTab = tab;
         renderContentNav();
@@ -122,9 +128,8 @@ function renderMainInterface() {
             </div>
         </div>
 
-        <!-- STUDIO MODAL -->
         <div id="topicModal" class="modal-overlay" style="display:none;">
-            <div class="admin-modal-content">
+            <div class="admin-modal-content" style="width:95%; max-width:1400px; height:90vh;">
                 
                 <div class="studio-header">
                     <div class="studio-title"><span class="icon">⚡</span> İçerik Stüdyosu</div>
@@ -132,24 +137,19 @@ function renderMainInterface() {
                 </div>
 
                 <div class="studio-layout">
-                    <!-- SOL PANEL -->
                     <div class="studio-sidebar">
                         <div class="d-grid gap-2 mb-3">
                             <button class="btn btn-secondary btn-sm" onclick="window.Studio.newContent('lesson')">📄 Ders Notu</button>
                             <button class="btn btn-warning btn-sm" style="color:#000" onclick="window.Studio.newContent('test')">📝 Test Oluştur</button>
                         </div>
                         
-                        <div id="contentListNav"></div> <!-- Akordiyon buraya gelecek -->
-
-                        <div class="mt-auto pt-3 border-top border-color">
+                        <div id="contentListNav"></div> <div class="mt-auto pt-3 border-top border-color">
                             <button class="btn btn-outline w-100 btn-sm" onclick="window.Studio.settings()">⚙️ Konu Ayarları</button>
                         </div>
                     </div>
 
-                    <!-- SAĞ PANEL -->
                     <div class="studio-editor">
                         
-                        <!-- A. KONU AYARLARI -->
                         <div id="metaEditor" class="editor-workspace">
                             <div class="studio-card" style="max-width:800px; margin:0 auto;">
                                 <h3 class="mb-4">Konu Bilgileri</h3>
@@ -184,7 +184,6 @@ function renderMainInterface() {
                             </div>
                         </div>
 
-                        <!-- B. İÇERİK EDİTÖRÜ -->
                         <div id="contentEditor" style="display:none; flex-direction:column; height:100%;">
                             
                             <div class="editor-toolbar">
@@ -202,7 +201,6 @@ function renderMainInterface() {
 
                             <div class="editor-workspace p-0">
                                 
-                                <!-- 1. DERS NOTU MODU -->
                                 <div id="wsLessonMode" class="p-4" style="max-width:1000px; margin:0 auto;">
                                     <div class="d-flex justify-content-center gap-2 mb-4">
                                         <button class="btn btn-sm btn-outline" onclick="window.Studio.addMat('html')">+ Metin</button>
@@ -213,11 +211,9 @@ function renderMainInterface() {
                                     <div id="materialsContainer"></div>
                                 </div>
 
-                                <!-- 2. TEST SİHİRBAZI MODU (3 Sütunlu) -->
                                 <div id="wsTestMode" class="h-100 p-3" style="display:none;">
                                     <div class="wizard-grid">
                                         
-                                        <!-- Sol: Filtreler -->
                                         <div class="wizard-col">
                                             <div class="wizard-header">1. FİLTRELEME</div>
                                             <div class="wizard-body">
@@ -251,7 +247,6 @@ function renderMainInterface() {
                                             </div>
                                         </div>
 
-                                        <!-- Orta: Soru Havuzu (Tablo) -->
                                         <div class="wizard-col">
                                             <div class="wizard-header">
                                                 <span>2. SORU HAVUZU</span>
@@ -275,7 +270,6 @@ function renderMainInterface() {
                                             </div>
                                         </div>
 
-                                        <!-- Sağ: Test Kağıdı (Sortable) -->
                                         <div class="wizard-col">
                                             <div class="wizard-header">
                                                 <span>3. TEST KAĞIDI</span>
@@ -295,36 +289,9 @@ function renderMainInterface() {
                     </div>
                 </div>
                 
-                <!-- HIZLI DÜZENLEME MODALI -->
-                <div id="quickEditModal" class="quick-edit-modal">
-                    <div class="quick-edit-header">
-                        <span>Hızlı Düzenleme</span>
-                        <button class="close-btn" style="font-size:1rem;" onclick="window.Studio.wizard.closeQ()">✕</button>
-                    </div>
-                    <div class="p-3">
-                        <input type="hidden" id="qeId">
-                        <div class="form-group">
-                            <label>Soru Metni</label>
-                            <textarea id="qeText" class="form-control" rows="3"></textarea>
-                        </div>
-                        <div class="form-group">
-                            <label>Doğru Cevap</label>
-                            <select id="qeCorrect" class="form-control">
-                                <option value="A">A</option><option value="B">B</option>
-                                <option value="C">C</option><option value="D">D</option><option value="E">E</option>
-                            </select>
-                        </div>
-                        <div class="d-flex justify-content-between">
-                            <button class="btn btn-danger btn-sm" onclick="alert('Silme özelliği ana panelden yapılmalıdır.')">Sil</button>
-                            <button class="btn btn-success btn-sm" onclick="window.Studio.wizard.saveQ()">Güncelle</button>
-                        </div>
-                    </div>
-                </div>
-
             </div>
         </div>
         
-        <!-- Çöp Kutusu Modal -->
         <div id="trashModal" class="modal-overlay" style="display:none;">
             <div class="admin-modal-content" style="max-width:600px; height:auto; max-height:80vh;">
                 <div class="modal-header"><h3>Çöp Kutusu</h3><button class="close-btn" onclick="document.getElementById('trashModal').style.display='none'">&times;</button></div>
@@ -394,24 +361,13 @@ window.filterTopics = () => {
 // --- STUDIO MANTIĞI ---
 // ============================================================
 
-// Konu ID'si veya Başlığı ile Mevzuat/Kategori Eşleşmesi
-const TOPIC_MAPPING = {
-    "topic_anayasa": "2709",
-    "topic_dmk_657": "657",
-    "topic_cmk": "5271",
-    "topic_hmk": "6100",
-    "topic_iyuk": "2577",
-    "topic_tebligat": "7201",
-    "topic_infaz": "5275",
-    "topic_ataturk_inkilap": "İnkılap Tarihi",
-    "topic_dil_iletisim_etik": "Etik",
-    "topic_resmi_yazisma": "Resmi Yazışma"
-};
-
+// Otomatik Filtre Değerini Belirle
 function getFilterValueForTopic(topicId, topicTitle) {
-    if (TOPIC_MAPPING[topicId]) return TOPIC_MAPPING[topicId];
+    // 1. Önce başlık içinde sayı var mı diye bak (Örn: "657 DMK" -> "657")
     const match = topicTitle.match(/(\d+)/);
     if (match) return match[0];
+
+    // 2. Sayı yoksa başlığı olduğu gibi döndür (Örn: "İnkılap Tarihi")
     return topicTitle;
 }
 
@@ -459,12 +415,10 @@ async function loadLessons(topicId) {
     renderContentNav();
 }
 
-// renderContentNav Fonksiyonunu KOMPLE DEĞİŞTİR:
 function renderContentNav() {
     const list = document.getElementById('contentListNav');
     const isTestTab = state.sidebarTab === 'test';
 
-    // 1. Sekmeler (Tabs)
     const tabsHtml = `
         <div class="studio-tabs">
             <div class="tab-item ${!isTestTab ? 'active' : ''}" onclick="window.Studio.switchTab('lesson')">
@@ -476,7 +430,6 @@ function renderContentNav() {
         </div>
     `;
 
-    // 2. Liste İçeriği
     const filteredItems = state.currentLessons.filter(l => isTestTab ? l.type === 'test' : l.type !== 'test');
 
     let listHtml = '';
@@ -497,7 +450,6 @@ function renderContentNav() {
         `).join('');
     }
 
-    // 3. Alt Butonlar (Sekmeye göre değişir)
     const bottomActions = `
         <div class="sidebar-footer">
             <button class="btn btn-primary w-100 mb-2" onclick="window.Studio.newContent('${isTestTab ? 'test' : 'lesson'}')">
@@ -518,7 +470,6 @@ function showMetaEditor() {
     document.getElementById('metaEditor').style.display = 'block';
     document.getElementById('contentEditor').style.display = 'none';
     state.activeLessonId = null;
-    // Active class temizle
     document.querySelectorAll('.content-nav-item').forEach(el => el.classList.remove('active'));
 }
 
@@ -561,7 +512,6 @@ function createNewContent(type) {
     document.getElementById('metaEditor').style.display = 'none';
     document.getElementById('contentEditor').style.display = 'flex';
 
-    // Active class temizle
     document.querySelectorAll('.content-nav-item').forEach(el => el.classList.remove('active'));
 
     document.getElementById('inpContentTitle').value = "";
@@ -577,7 +527,6 @@ function createNewContent(type) {
         state.tempQuestions = [];
         renderTestPaper();
 
-        // Otomatik Kaynak Seçimi
         setTimeout(() => {
             const sourceVal = state.autoFilter || "Genel";
             document.getElementById('wizSourceDisplay').value = sourceVal;
@@ -607,7 +556,7 @@ function selectContentItem(id) {
     document.getElementById('inpContentTitle').value = item.title;
     document.getElementById('inpContentOrder').value = item.order;
 
-    renderContentNav(); // Re-render to update active class
+    renderContentNav();
 
     const badge = document.getElementById('editorBadge');
     if (state.activeLessonType === 'test') {
@@ -618,7 +567,6 @@ function selectContentItem(id) {
         state.tempQuestions = item.questions || [];
         renderTestPaper();
 
-        // Kaynak Seçimi
         const sourceVal = state.autoFilter || "Genel";
         document.getElementById('wizSourceDisplay').value = sourceVal;
         document.getElementById('wizLegislation').value = sourceVal;
@@ -637,18 +585,14 @@ function selectContentItem(id) {
 async function saveContent() {
     let title = document.getElementById('inpContentTitle').value;
 
-    // Otomatik Başlık
     if (!title) {
         if (state.activeLessonType === 'test') {
-            // Mevcut testleri say
             const testCount = state.currentLessons.filter(l => l.type === 'test').length;
-            // Eğer yeni bir test ise (id yoksa) testCount + 1, düzenlemeyse mevcut sırası
             const nextNum = state.activeLessonId ? testCount : (testCount + 1);
             title = `Konu Tarama Testi - ${nextNum}`;
         } else {
             title = `Ders Notu - ${state.currentLessons.length + 1}`;
         }
-        // Input'a da yaz ki kullanıcı görsün
         document.getElementById('inpContentTitle').value = title;
     }
 
@@ -678,7 +622,6 @@ async function saveContent() {
             await updateDoc(doc(db, "topics", state.activeTopicId), { lessonCount: state.currentLessons.length + 1 });
         }
 
-        // Görsel Geri Bildirim
         const btn = document.querySelector('#contentEditor .btn-success');
         const old = btn.innerHTML;
         btn.innerHTML = '✓';
@@ -732,7 +675,7 @@ function renderMaterials() {
 }
 
 // ============================================================
-// --- TEST SİHİRBAZI (GELİŞMİŞ) ---
+// --- TEST SİHİRBAZI ---
 // ============================================================
 
 async function searchQuestions() {
@@ -740,15 +683,12 @@ async function searchQuestions() {
     const s = parseInt(document.getElementById('wizStart').value);
     const e = parseInt(document.getElementById('wizEnd').value);
 
-    // Yeni filtreler
     const diff = document.getElementById('wizDifficulty').value;
     const textSearch = document.getElementById('wizSearchText').value.toLowerCase();
 
     const list = document.getElementById('poolList');
     list.innerHTML = '<tr><td colspan="3" class="text-center p-3">Aranıyor...</td></tr>';
 
-    // Not: Firestore'da karmaşık "OR" sorguları zordur. 
-    // Tümünü çekip client-side filtrelemek bu ölçekte (admin paneli için) daha performanslı ve esnektir.
     const q1 = query(collection(db, "questions"), where("legislationRef.code", "==", code));
 
     const snap = await getDocs(q1);
@@ -756,25 +696,18 @@ async function searchQuestions() {
 
     snap.forEach(doc => {
         const d = doc.data();
-        if (d.isDeleted) return; // Silinenleri alma
+        if (d.isDeleted) return;
 
         const art = parseInt(d.legislationRef?.article) || 0;
 
-        // --- CLIENT SIDE FILTRELEME ---
-        // 1. Madde Aralığı
         if (s && art < s) return;
         if (e && art > e) return;
-
-        // 2. Zorluk
         if (diff && d.difficulty != diff) return;
-
-        // 3. Metin Arama
         if (textSearch && !d.text.toLowerCase().includes(textSearch)) return;
 
         arr.push({ id: doc.id, ...d, artNo: art });
     });
 
-    // Sıralama (Madde No'ya göre)
     arr.sort((a, b) => a.artNo - b.artNo);
     state.poolQuestions = arr;
 
@@ -858,7 +791,6 @@ function renderTestPaper() {
         </div>
     `).join('');
 
-    // Sortable (Sürükle Bırak)
     if (window.Sortable) {
         new Sortable(list, {
             animation: 150,
@@ -866,7 +798,7 @@ function renderTestPaper() {
             onEnd: function (evt) {
                 const item = state.tempQuestions.splice(evt.oldIndex, 1)[0];
                 state.tempQuestions.splice(evt.newIndex, 0, item);
-                renderTestPaper(); // Sıralamayı güncelle
+                renderTestPaper();
             }
         });
     }
@@ -882,35 +814,6 @@ function autoGenerateTest() {
     state.tempQuestions = selected;
     renderTestPaper();
     renderPoolList();
-}
-
-// --- HIZLI DÜZENLEME ---
-function openQuickEdit(id) {
-    const q = state.poolQuestions.find(x => x.id === id);
-    if (!q) return;
-
-    document.getElementById('qeId').value = id;
-    document.getElementById('qeText').value = q.text;
-    document.getElementById('qeCorrect').value = q.correctOption;
-    document.getElementById('quickEditModal').style.display = 'flex';
-}
-
-async function saveQuickEdit() {
-    const id = document.getElementById('qeId').value;
-    const text = document.getElementById('qeText').value;
-    const correct = document.getElementById('qeCorrect').value;
-
-    try {
-        await updateDoc(doc(db, "questions", id), { text, correctOption: correct });
-
-        // Yerel veriyi güncelle
-        const q = state.poolQuestions.find(x => x.id === id);
-        if (q) { q.text = text; q.correctOption = correct; }
-
-        renderPoolList();
-        document.getElementById('quickEditModal').style.display = 'none';
-        alert("Soru güncellendi.");
-    } catch (e) { alert(e.message); }
 }
 
 // --- ÇÖP KUTUSU ---
