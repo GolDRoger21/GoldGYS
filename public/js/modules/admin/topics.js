@@ -23,13 +23,11 @@ let state = {
 export function initTopicsPage() {
     console.log("🚀 Studio Pro Başlatılıyor...");
 
-    // HTML İskeletini Oluştur
+    // 1. Önce Arayüzü Çiz
     renderMainInterface();
 
-    // Konu Listesini Çek
-    loadTopics();
-
-    // HTML'den erişilebilmesi için Window'a bağla (ÖNEMLİ)
+    // 2. Global Fonksiyonları Dışarı Aç (HTML'den erişim için)
+    // HATA DÜZELTİLDİ: Fonksiyon isimleri aşağıdakilerle birebir eşleştirildi.
     window.Studio = {
         open: openEditor,
         close: closeModal,
@@ -50,14 +48,18 @@ export function initTopicsPage() {
         wizard: {
             heatmap: renderHeatmap,
             query: runQuery,
-            addQ: addQuestion,
-            removeQ: removeQuestion
+            addQ: addQuestionToTest,      // Düzeltildi: addQuestion -> addQuestionToTest
+            removeQ: removeQuestionFromTest // Düzeltildi: removeQuestion -> removeQuestionFromTest
         }
     };
+
+    // 3. Verileri Yükle
+    loadTopics();
 }
 
 function closeModal() {
-    document.getElementById('topicModal').style.display = 'none';
+    const modal = document.getElementById('topicModal');
+    if (modal) modal.style.display = 'none';
 }
 
 // ============================================================
@@ -85,7 +87,21 @@ function renderMainInterface() {
 
         <div class="card p-0 overflow-hidden border-0 shadow-sm">
             <div class="p-3 border-bottom border-color bg-surface">
-                <input type="text" id="searchTopic" class="form-control" placeholder="Konu başlığı ara..." oninput="filterTopics()">
+                <div class="row g-2">
+                    <div class="col-md-4">
+                        <input type="text" id="searchTopic" class="form-control" placeholder="Konu başlığı ara..." oninput="filterTopics()">
+                    </div>
+                    <div class="col-md-3">
+                        <select id="filterCategory" class="form-control" onchange="filterTopics()">
+                            <option value="all">Tüm Kategoriler</option>
+                            <option value="ortak">Ortak Konular</option>
+                            <option value="alan">Alan Konuları</option>
+                        </select>
+                    </div>
+                    <div class="col-md-5 text-end align-self-center">
+                        <span class="badge bg-secondary" id="topicCountBadge">Yükleniyor...</span>
+                    </div>
+                </div>
             </div>
             <div class="table-responsive">
                 <table class="admin-table table-hover">
@@ -158,14 +174,14 @@ function renderMainInterface() {
                                         </div>
                                         <div class="col-md-5 form-group">
                                             <label>Kategori</label>
-                                            <select id="inpTopicCategory" class="form-select">
+                                            <select id="inpTopicCategory" class="form-control">
                                                 <option value="ortak">Ortak Konular</option>
                                                 <option value="alan">Alan Konuları</option>
                                             </select>
                                         </div>
                                         <div class="col-md-4 form-group">
                                             <label>Durum</label>
-                                            <select id="inpTopicStatus" class="form-select">
+                                            <select id="inpTopicStatus" class="form-control">
                                                 <option value="true">Yayında (Aktif)</option>
                                                 <option value="false">Taslak (Pasif)</option>
                                             </select>
@@ -220,7 +236,7 @@ function renderMainInterface() {
                                         <div class="wizard-pool">
                                             <div class="wizard-header">1. SORU HAVUZU</div>
                                             <div class="p-3 border-bottom border-color">
-                                                <select id="wizLegislation" class="form-select form-select-sm mb-2" onchange="window.Studio.wizard.heatmap(this.value)">
+                                                <select id="wizLegislation" class="form-control form-control-sm mb-2" onchange="window.Studio.wizard.heatmap(this.value)">
                                                     <option value="">Mevzuat Yükleniyor...</option>
                                                 </select>
                                                 
@@ -278,7 +294,7 @@ function renderMainInterface() {
 
 async function loadTopics() {
     const tbody = document.getElementById('topicsTableBody');
-    tbody.innerHTML = '<tr><td colspan="6" class="text-center p-3">Yükleniyor...</td></tr>';
+    if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center p-3">Yükleniyor...</td></tr>';
 
     try {
         const q = query(collection(db, "topics"), orderBy("order", "asc"));
@@ -291,18 +307,24 @@ async function loadTopics() {
             }
         });
 
-        // Helper fonksiyonu window'a atadık ki HTML'den çağrılabilsin
-        window.filterTopics();
+        window.filterTopics(); // Helper çağrısı
     } catch (e) { console.error(e); }
 }
 
 window.filterTopics = () => {
-    const search = document.getElementById('searchTopic').value.toLowerCase();
+    const search = document.getElementById('searchTopic') ? document.getElementById('searchTopic').value.toLowerCase() : '';
+    const cat = document.getElementById('filterCategory') ? document.getElementById('filterCategory').value : 'all';
     const tbody = document.getElementById('topicsTableBody');
+    const badge = document.getElementById('topicCountBadge');
+
+    if (!tbody) return;
 
     const filtered = state.allTopics.filter(t =>
+        (cat === 'all' || t.category === cat) &&
         (t.title || '').toLowerCase().includes(search)
     );
+
+    if (badge) badge.innerText = `${filtered.length} Kayıt`;
 
     if (filtered.length === 0) {
         tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted p-4">Kayıt bulunamadı.</td></tr>';
@@ -314,7 +336,7 @@ window.filterTopics = () => {
             <td>${t.order}</td>
             <td><strong>${t.title}</strong></td>
             <td><span class="badge bg-dark border border-secondary">${t.category}</span></td>
-            <td>${t.lessonCount || 0}</td>
+            <td>${t.lessonCount || 0} İçerik</td>
             <td>${t.isActive ? '<span class="text-success">● Yayında</span>' : '<span class="text-muted">○ Taslak</span>'}</td>
             <td class="text-end">
                 <button class="btn btn-sm btn-primary" onclick="window.Studio.open('${t.id}')">Stüdyo</button>
@@ -531,7 +553,7 @@ async function saveContent() {
         } else {
             data.createdAt = serverTimestamp();
             await addDoc(collection(db, `topics/${state.activeTopicId}/lessons`), data);
-            // Sayaç güncelle (Opsiyonel)
+            // Sayaç güncelle
             await updateDoc(doc(db, "topics", state.activeTopicId), { lessonCount: state.currentLessons.length + 1 });
         }
 
@@ -606,7 +628,7 @@ async function fetchLegislationCodes() {
     }
 
     try {
-        // Gerçek veritabanından çek (Son 1000 soruyu tara)
+        // Gerçek veritabanından çek
         const q = query(collection(db, "questions"), limit(1000));
         const snap = await getDocs(q);
 
