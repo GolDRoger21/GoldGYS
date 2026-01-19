@@ -234,31 +234,34 @@ function renderMainInterface() {
                                             <div class="wizard-header">1. FİLTRELEME</div>
                                             <div class="wizard-body">
                                                 <div class="form-group">
-                                                    <label>Mevzuat Kaynağı</label>
-                                                    <select id="wizLegislation" class="form-select">
-                                                        <option value="">Yükleniyor...</option>
-                                                    </select>
+                                                    <label class="small text-muted mb-1">Soru Kaynağı (Otomatik Seçildi)</label>
+                                                    <input type="text" id="wizSourceDisplay" class="form-control mb-2" readonly style="background:var(--bg-body); font-weight:bold;">
+                                                    <input type="hidden" id="wizLegislation"> <!-- Değer burada tutulacak -->
                                                 </div>
+                                                
                                                 <div class="form-group">
-                                                    <label>Madde Aralığı</label>
+                                                    <label class="small text-muted mb-1">Madde / Konu Aralığı</label>
                                                     <div class="d-flex gap-2">
                                                         <input type="number" id="wizStart" class="form-control" placeholder="Baş">
                                                         <input type="number" id="wizEnd" class="form-control" placeholder="Son">
                                                     </div>
                                                 </div>
-                                                <button class="btn btn-primary w-100 mb-3" onclick="window.Studio.wizard.search()">
-                                                    🔍 Soruları Getir
-                                                </button>
-                                                
-                                                <hr class="border-color">
-                                                
-                                                <div class="p-3 bg-hover rounded border border-color">
-                                                    <strong class="text-gold d-block mb-2">🤖 Otomatik Oluştur</strong>
-                                                    <p class="small text-muted mb-2">Seçili mevzuattan rastgele 15 soru seçer.</p>
-                                                    <button class="btn btn-warning btn-sm w-100" onclick="window.Studio.wizard.auto()">
-                                                        Otomatik Doldur
+
+                                                <div class="d-grid gap-2 mt-3">
+                                                    <button class="btn btn-primary" onclick="window.Studio.wizard.search()">
+                                                        🔍 Soruları Listele (Manuel)
+                                                    </button>
+                                                    
+                                                    <div class="vr-separator w-100 my-2" style="height:1px; background:var(--border-color);"></div>
+                                                    
+                                                    <button class="btn btn-warning" onclick="window.Studio.wizard.auto()">
+                                                        🤖 Otomatik Test Oluştur (15 Soru)
                                                     </button>
                                                 </div>
+                                                
+                                                <p class="text-muted small mt-2 text-center">
+                                                    * Otomatik mod, bu kaynaktan rastgele 15 soru seçip testi tamamlar.
+                                                </p>
                                             </div>
                                         </div>
 
@@ -486,22 +489,18 @@ function createNewContent(type) {
         state.tempQuestions = [];
         renderTestPaper();
 
-        // YENİ: Otomatik Seçim ve Arama
+        // YENİ: Kaynağı Otomatik Belirle ve Kilitle
         setTimeout(() => {
-            const select = document.getElementById('wizLegislation');
-            if (select && state.autoFilter) {
-                // Eğer listede varsa seç, yoksa yeni option ekle
-                let exists = Array.from(select.options).some(o => o.value === state.autoFilter);
-                if (!exists) {
-                    const opt = new Option(`${state.autoFilter} (Otomatik)`, state.autoFilter);
-                    select.add(opt);
-                }
-                select.value = state.autoFilter;
+            // state.autoFilter değeri openEditor'da belirlenmişti (Örn: "2709" veya "İnkılap Tarihi")
+            const sourceVal = state.autoFilter || "Genel";
 
-                // Otomatik aramayı başlat
-                window.Studio.wizard.search();
-            }
-        }, 500); // Dropdown dolması için kısa bir gecikme
+            // UI Güncelle
+            document.getElementById('wizSourceDisplay').value = sourceVal; // Kullanıcıya görünen
+            document.getElementById('wizLegislation').value = sourceVal;   // Arkada kullanılan
+
+            // Otomatik aramayı başlat (Kullanıcı beklemesin)
+            window.Studio.wizard.search();
+        }, 300);
     } else {
         badge.innerText = "DERS";
         badge.className = "badge bg-primary";
@@ -758,19 +757,32 @@ function renderTestPaper() {
     `).join('');
 }
 
-function autoGenerateTest() {
-    if (state.poolQuestions.length === 0) return alert("Önce arama yapın.");
+async function autoGenerateTest() {
+    // Eğer havuz boşsa önce aramayı çalıştır
+    if (state.poolQuestions.length === 0) {
+        await searchQuestions();
+    }
 
-    // Rastgele 15 soru seç
-    const shuffled = [...state.poolQuestions].sort(() => 0.5 - Math.random());
+    if (state.poolQuestions.length === 0) return alert("Bu kriterlere uygun soru bulunamadı.");
+
+    // Mevcut test kağıdını temizle (İsteğe bağlı, üstüne eklemek istersen bu satırı sil)
+    state.tempQuestions = [];
+
+    // Rastgele 15 soru seç (Fisher-Yates Shuffle)
+    const shuffled = [...state.poolQuestions];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+
     const selected = shuffled.slice(0, 15);
 
-    // Madde sırasına diz
-    selected.sort((a, b) => a.artNo - b.artNo);
+    // Seçilenleri Madde Numarasına Göre Sırala (Pedagojik olarak daha doğru)
+    selected.sort((a, b) => (a.artNo || 0) - (b.artNo || 0));
 
     state.tempQuestions = selected;
     renderTestPaper();
-    renderPoolList();
+    renderPoolList(); // Havuzdaki "Eklendi" işaretlerini güncelle
 }
 
 // --- ÇÖP KUTUSU ---
