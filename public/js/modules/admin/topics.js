@@ -1,4 +1,4 @@
-import { db } from "../../firebase-config.js"; // EKLENDİ
+import { db } from "../../firebase-config.js";
 import {
     collection, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, serverTimestamp, query, orderBy, where, limit, writeBatch
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -16,10 +16,8 @@ let state = {
     tempMaterials: [],
     tempQuestions: [],
     poolQuestions: [],
-    legislationList: new Set(),
-    sortable: null, // Sürükle bırak instance
-    sidebarTab: 'lesson', // 'lesson' veya 'test' (Sidebar sekmesi için)
-    poolFilters: {        // Gelişmiş soru havuzu filtresi için
+    sidebarTab: 'lesson', // 'lesson' | 'test'
+    poolFilters: {
         difficulty: '',
         text: ''
     },
@@ -50,9 +48,8 @@ export function initTopicsPage() {
             add: addToTestPaper,
             remove: removeFromTestPaper,
             auto: autoGenerateTest,
-
-            // Content.js'deki global editörü açar
             fullEdit: (id) => {
+                // Content.js'deki global editörü açar
                 if (window.QuestionBank && window.QuestionBank.openEditor) {
                     window.QuestionBank.openEditor(id);
                 } else {
@@ -138,48 +135,40 @@ function renderMainInterface() {
 
                 <div class="studio-layout">
                     <div class="studio-sidebar">
-                        <div class="d-grid gap-2 mb-3">
-                            <button class="btn btn-secondary btn-sm" onclick="window.Studio.newContent('lesson')">📄 Ders Notu</button>
-                            <button class="btn btn-warning btn-sm" style="color:#000" onclick="window.Studio.newContent('test')">📝 Test Oluştur</button>
-                        </div>
-                        
-                        <div id="contentListNav"></div> <div class="mt-auto pt-3 border-top border-color">
-                            <button class="btn btn-outline w-100 btn-sm" onclick="window.Studio.settings()">⚙️ Konu Ayarları</button>
-                        </div>
-                    </div>
+                        <div id="contentListNav"></div> </div>
 
                     <div class="studio-editor">
                         
                         <div id="metaEditor" class="editor-workspace">
-                            <div class="studio-card" style="max-width:800px; margin:0 auto;">
-                                <h3 class="mb-4">Konu Bilgileri</h3>
+                            <div class="studio-card" style="max-width:600px; margin:40px auto;">
+                                <h3 class="mb-4 text-center">Konu Ayarları</h3>
                                 <form id="topicMetaForm" onsubmit="event.preventDefault(); window.Studio.saveMeta();">
                                     <input type="hidden" id="editTopicId">
-                                    <div class="form-group">
-                                        <label>Konu Başlığı</label>
+                                    <div class="mb-3">
+                                        <label class="form-label">Konu Başlığı</label>
                                         <input type="text" id="inpTopicTitle" class="form-control" required>
                                     </div>
-                                    <div class="row">
-                                        <div class="col-md-6 form-group">
-                                            <label>Sıra No</label>
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label">Sıra No</label>
                                             <input type="number" id="inpTopicOrder" class="form-control">
                                         </div>
-                                        <div class="col-md-6 form-group">
-                                            <label>Kategori</label>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Kategori</label>
                                             <select id="inpTopicCategory" class="form-control">
                                                 <option value="ortak">Ortak Konular</option>
                                                 <option value="alan">Alan Konuları</option>
                                             </select>
                                         </div>
                                     </div>
-                                    <div class="form-group">
-                                        <label>Durum</label>
+                                    <div class="mb-3">
+                                        <label class="form-label">Durum</label>
                                         <select id="inpTopicStatus" class="form-control">
                                             <option value="true">Yayında</option>
                                             <option value="false">Taslak</option>
                                         </select>
                                     </div>
-                                    <button type="submit" class="btn btn-primary w-100 mt-3">Kaydet</button>
+                                    <button type="submit" class="btn btn-primary w-100">Kaydet</button>
                                 </form>
                             </div>
                         </div>
@@ -189,7 +178,7 @@ function renderMainInterface() {
                             <div class="editor-toolbar">
                                 <div class="editor-title-group">
                                     <span class="badge bg-secondary" id="editorBadge">DERS</span>
-                                    <input type="text" id="inpContentTitle" class="editor-title-input" placeholder="Başlık giriniz (Boşsa otomatik atanır)...">
+                                    <input type="text" id="inpContentTitle" class="editor-title-input" placeholder="Başlık giriniz...">
                                 </div>
                                 <div class="editor-actions">
                                     <input type="number" id="inpContentOrder" placeholder="Sıra" title="Sıralama">
@@ -201,24 +190,23 @@ function renderMainInterface() {
 
                             <div class="editor-workspace p-0">
                                 
-                                <div id="wsLessonMode" class="p-4" style="max-width:1000px; margin:0 auto;">
+                                <div id="wsLessonMode" class="p-4" style="max-width:900px; margin:0 auto;">
                                     <div class="d-flex justify-content-center gap-2 mb-4">
-                                        <button class="btn btn-sm btn-outline" onclick="window.Studio.addMat('html')">+ Metin</button>
-                                        <button class="btn btn-sm btn-outline" onclick="window.Studio.addMat('pdf')">+ PDF</button>
-                                        <button class="btn btn-sm btn-outline" onclick="window.Studio.addMat('video')">+ Video</button>
-                                        <button class="btn btn-sm btn-outline" onclick="window.Studio.addMat('podcast')">+ Podcast</button>
+                                        <button class="btn btn-sm btn-outline-dark" onclick="window.Studio.addMat('html')">+ Metin</button>
+                                        <button class="btn btn-sm btn-outline-dark" onclick="window.Studio.addMat('pdf')">+ PDF</button>
+                                        <button class="btn btn-sm btn-outline-dark" onclick="window.Studio.addMat('video')">+ Video</button>
                                     </div>
                                     <div id="materialsContainer"></div>
                                 </div>
 
-                                <div id="wsTestMode" class="h-100 p-3" style="display:none;">
+                                <div id="wsTestMode" class="h-100 p-0" style="display:none;">
                                     <div class="wizard-grid">
                                         
-                                        <div class="wizard-col">
+                                        <div class="wizard-col bg-light">
                                             <div class="wizard-header">1. FİLTRELEME</div>
                                             <div class="wizard-body">
                                                 <label class="small text-muted">Mevzuat / Kaynak</label>
-                                                <input type="text" id="wizSourceDisplay" class="form-control mb-2" readonly style="background:var(--bg-body); font-weight:bold;">
+                                                <input type="text" id="wizSourceDisplay" class="form-control mb-2" readonly style="background:#fff; font-weight:bold;">
                                                 <input type="hidden" id="wizLegislation">
                                                 
                                                 <label class="small text-muted">Madde Aralığı</label>
@@ -259,7 +247,7 @@ function renderMainInterface() {
                                                             <tr>
                                                                 <th width="50">Md.</th>
                                                                 <th>Soru Metni</th>
-                                                                <th width="100">İşlem</th>
+                                                                <th width="80">İşlem</th>
                                                             </tr>
                                                         </thead>
                                                         <tbody id="poolList">
@@ -270,7 +258,7 @@ function renderMainInterface() {
                                             </div>
                                         </div>
 
-                                        <div class="wizard-col">
+                                        <div class="wizard-col bg-light">
                                             <div class="wizard-header">
                                                 <span>3. TEST KAĞIDI</span>
                                                 <span class="badge bg-primary" id="paperCount">0</span>
@@ -288,12 +276,11 @@ function renderMainInterface() {
 
                     </div>
                 </div>
-                
             </div>
         </div>
         
         <div id="trashModal" class="modal-overlay" style="display:none;">
-            <div class="admin-modal-content" style="max-width:600px; height:auto; max-height:80vh;">
+            <div class="admin-modal-content" style="max-width:600px;">
                 <div class="modal-header"><h3>Çöp Kutusu</h3><button class="close-btn" onclick="document.getElementById('trashModal').style.display='none'">&times;</button></div>
                 <div class="modal-body-scroll"><table class="admin-table"><tbody id="trashTableBody"></tbody></table></div>
             </div>
@@ -399,6 +386,8 @@ async function openEditor(id = null, forceSettings = false) {
         document.getElementById('editTopicId').value = "";
         document.getElementById('inpTopicOrder').value = state.allTopics.length + 1;
         showMetaEditor();
+        // Yeni konu açınca boş liste göster
+        renderContentNav();
     }
 }
 
@@ -419,6 +408,7 @@ function renderContentNav() {
     const list = document.getElementById('contentListNav');
     const isTestTab = state.sidebarTab === 'test';
 
+    // 1. Sekmeler (Tabs)
     const tabsHtml = `
         <div class="studio-tabs">
             <div class="tab-item ${!isTestTab ? 'active' : ''}" onclick="window.Studio.switchTab('lesson')">
@@ -430,11 +420,12 @@ function renderContentNav() {
         </div>
     `;
 
+    // 2. Liste İçeriği
     const filteredItems = state.currentLessons.filter(l => isTestTab ? l.type === 'test' : l.type !== 'test');
 
     let listHtml = '';
     if (filteredItems.length === 0) {
-        listHtml = `<div class="empty-state-small">Bu kategoride henüz içerik yok. <br> <button class="btn-link" onclick="window.Studio.newContent('${isTestTab ? 'test' : 'lesson'}')">+ Yeni Ekle</button></div>`;
+        listHtml = `<div class="empty-state-small text-center text-muted p-3">Bu kategoride içerik yok.<br><small>Aşağıdan yeni ekleyebilirsiniz.</small></div>`;
     } else {
         listHtml = filteredItems.map(l => `
             <div class="nav-item ${state.activeLessonId === l.id ? 'active' : ''}" onclick="window.Studio.selectContent('${l.id}')">
@@ -450,6 +441,7 @@ function renderContentNav() {
         `).join('');
     }
 
+    // 3. Alt Butonlar (Sekmeye göre değişir)
     const bottomActions = `
         <div class="sidebar-footer">
             <button class="btn btn-primary w-100 mb-2" onclick="window.Studio.newContent('${isTestTab ? 'test' : 'lesson'}')">
@@ -470,7 +462,7 @@ function showMetaEditor() {
     document.getElementById('metaEditor').style.display = 'block';
     document.getElementById('contentEditor').style.display = 'none';
     state.activeLessonId = null;
-    document.querySelectorAll('.content-nav-item').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
 }
 
 async function saveTopicMeta() {
@@ -512,7 +504,7 @@ function createNewContent(type) {
     document.getElementById('metaEditor').style.display = 'none';
     document.getElementById('contentEditor').style.display = 'flex';
 
-    document.querySelectorAll('.content-nav-item').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
 
     document.getElementById('inpContentTitle').value = "";
     document.getElementById('inpContentTitle').focus();
@@ -691,27 +683,31 @@ async function searchQuestions() {
 
     const q1 = query(collection(db, "questions"), where("legislationRef.code", "==", code));
 
-    const snap = await getDocs(q1);
-    let arr = [];
+    try {
+        const snap = await getDocs(q1);
+        let arr = [];
 
-    snap.forEach(doc => {
-        const d = doc.data();
-        if (d.isDeleted) return;
+        snap.forEach(doc => {
+            const d = doc.data();
+            if (d.isDeleted) return;
 
-        const art = parseInt(d.legislationRef?.article) || 0;
+            const art = parseInt(d.legislationRef?.article) || 0;
 
-        if (s && art < s) return;
-        if (e && art > e) return;
-        if (diff && d.difficulty != diff) return;
-        if (textSearch && !d.text.toLowerCase().includes(textSearch)) return;
+            if (s && art < s) return;
+            if (e && art > e) return;
+            if (diff && d.difficulty != diff) return;
+            if (textSearch && !d.text.toLowerCase().includes(textSearch)) return;
 
-        arr.push({ id: doc.id, ...d, artNo: art });
-    });
+            arr.push({ id: doc.id, ...d, artNo: art });
+        });
 
-    arr.sort((a, b) => a.artNo - b.artNo);
-    state.poolQuestions = arr;
-
-    renderPoolList();
+        arr.sort((a, b) => a.artNo - b.artNo);
+        state.poolQuestions = arr;
+        renderPoolList();
+    } catch (err) {
+        console.error(err);
+        list.innerHTML = '<tr><td colspan="3" class="text-center p-3 text-danger">Hata: ' + err.message + '</td></tr>';
+    }
 }
 
 function renderPoolList() {
