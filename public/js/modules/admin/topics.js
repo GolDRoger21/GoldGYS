@@ -23,6 +23,22 @@ let state = {
     autoFilter: ''
 };
 
+function toggleMetaDrawer(open = true) {
+    const drawer = document.getElementById('metaDrawer');
+    const backdrop = document.getElementById('metaDrawerBackdrop');
+    if (!drawer || !backdrop) return;
+
+    if (open) {
+        drawer.classList.add('open');
+        backdrop.classList.add('open');
+        drawer.setAttribute('aria-hidden', 'false');
+    } else {
+        drawer.classList.remove('open');
+        backdrop.classList.remove('open');
+        drawer.setAttribute('aria-hidden', 'true');
+    }
+}
+
 // ============================================================
 // --- INIT ---
 // ============================================================
@@ -46,6 +62,7 @@ export function initTopicsPage() {
         removeMat: removeMaterialUI,
         updateMat: updateMaterialItem,
         previewMat: setMaterialView,
+        matDnD: { start: matDragStart, over: matDragOver, leave: matDragLeave, drop: matDrop, end: matDragEnd },
         switchTab: switchTabHandler,
         wizard: {
             search: searchQuestions,
@@ -162,7 +179,7 @@ async function openEditor(id = null) {
         // İçerik seçilene kadar boş durum kalsın
         document.getElementById('emptyState').style.display = 'flex';
         document.getElementById('contentEditor').style.display = 'none';
-        toggleMetaDrawer(false);
+        if (typeof toggleMetaDrawer === 'function') toggleMetaDrawer(false);
     } else {
         // Yeni Konu Modu
         document.getElementById('editTopicId').value = "";
@@ -276,7 +293,7 @@ function selectContentItem(id) {
 function prepareEditorUI(type) {
     document.getElementById('emptyState').style.display = 'none';
     document.getElementById('contentEditor').style.display = 'flex';
-    toggleMetaDrawer(false);
+    if (typeof toggleMetaDrawer === 'function') toggleMetaDrawer(false);
 
     const badge = document.getElementById('editorBadge');
     if (type === 'test') {
@@ -300,7 +317,7 @@ function showMetaEditor() {
     const topicTitle = document.getElementById('inpTopicTitle')?.value || "";
     document.getElementById('activeTopicTitleDisplay').innerText = topicTitle || (state.activeTopicId ? "Konu" : "Yeni Konu");
 
-    toggleMetaDrawer(true);
+    if (typeof toggleMetaDrawer === 'function') toggleMetaDrawer(true);
 }
 
 // --- SAVE OPERATIONS ---
@@ -329,6 +346,22 @@ async function saveTopicMeta() {
         alert("Konu ayarları kaydedildi.");
         loadTopics();
     } catch (e) { alert(e.message); }
+}
+
+function validateMaterialsBeforeSave() {
+    // Only for lesson mode
+    const errs = [];
+    const mats = state.tempMaterials || [];
+    mats.forEach((m, idx) => {
+        const n = idx + 1;
+        const url = String(m.url || '').trim();
+        if (m.type === 'html') {
+            if (!url) errs.push(`Materyal #${n} (Metin): içerik boş.`);
+        } else {
+            if (!url) errs.push(`Materyal #${n} (${m.type.toUpperCase()}): URL boş.`);
+        }
+    });
+    return errs;
 }
 
 async function saveContent() {
@@ -439,6 +472,54 @@ function setMaterialView(id, view) {
             prev.innerHTML = html ? sanitizeHTML(html) : '<div class="muted">Önizleme için içerik girin.</div>';
         }
     }
+}
+
+// Material Drag & Drop
+function matCleanupDnD() {
+    state._matDragIndex = null;
+    document.querySelectorAll('.mat-card.mat-dragging').forEach(el => el.classList.remove('mat-dragging'));
+    document.querySelectorAll('.mat-card.mat-over').forEach(el => el.classList.remove('mat-over'));
+}
+
+function matDragStart(index, ev) {
+    state._matDragIndex = index;
+    try { ev.dataTransfer.setData('text/plain', String(index)); } catch (e) { }
+    const card = ev.currentTarget;
+    if (card) card.classList.add('mat-dragging');
+}
+
+function matDragOver(index, ev) {
+    ev.preventDefault();
+    const card = ev.currentTarget;
+    if (card) card.classList.add('mat-over');
+}
+
+function matDragLeave(ev) {
+    const card = ev.currentTarget;
+    if (card) card.classList.remove('mat-over');
+}
+
+function matDrop(toIndex, ev) {
+    ev.preventDefault();
+    const fromIndex = (state._matDragIndex ?? parseInt(ev.dataTransfer.getData('text/plain')));
+    if (isNaN(fromIndex) || fromIndex === toIndex) {
+        matCleanupDnD();
+        return;
+    }
+    const item = state.tempMaterials.splice(fromIndex, 1)[0];
+    state.tempMaterials.splice(toIndex, 0, item);
+
+    // Recompute material order (1..n)
+    state.tempMaterials.forEach((m, i) => m.order = i + 1);
+
+    matCleanupDnD();
+    renderMaterials();
+}
+
+function matDragEnd(ev) {
+    const card = ev.currentTarget;
+    if (card) card.classList.remove('mat-dragging');
+    matCleanupDnD();
 }
 
 // --- MATERIAL HELPERS ---

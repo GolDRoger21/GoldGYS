@@ -1044,3 +1044,70 @@
     padding: 2px 6px;
     border-radius: 6px;
 }
+
+/* ======================================================================
+   3.5 STUDIO PRO v2.4 - Toolbar Layout + Full Width Lesson Workspace
+   ====================================================================== */
+
+/* Toolbar should behave like a header and never collapse into content */
+.editor-toolbar {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    box-shadow: 0 1px 0 rgba(15, 23, 42, 0.08);
+    flex-wrap: nowrap;
+}
+
+.editor-title-group {
+    min-width: 0;
+}
+
+.editor-title-input {
+    min-width: 240px;
+}
+
+.editor-actions {
+    flex-shrink: 0;
+}
+
+/* Lesson workspace should fill available width */
+#wsLessonMode.form-container {
+    max-width: none;
+    width: 100%;
+    margin: 0;
+    padding: 24px;
+}
+
+/* Optional: give the add-material area a full-canvas feel */
+#wsLessonMode .add-mat-grid {
+    max-width: 1100px;
+}
+
+#wsLessonMode .material-list {
+    max-width: 1100px;
+}
+
+/* On very wide screens keep content comfortable but not squeezed */
+@media (min-width: 1200px) {
+
+    #wsLessonMode .add-mat-grid,
+    #wsLessonMode .material-list {
+        margin-left: auto;
+        margin-right: auto;
+    }
+}
+
+/* ======================================================================
+   3.6 STUDIO PRO v2.5 - Material Drag & Drop
+   ====================================================================== */
+.material-list .mat-card[draggable="true"] summary {
+    cursor: grab;
+}
+
+.material-list .mat-card.mat-dragging {
+    opacity: 0.6;
+}
+
+.material-list .mat-card.mat-over {
+    outline: 2px solid rgba(212, 175, 55, 0.55);
+}
