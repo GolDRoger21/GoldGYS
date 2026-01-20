@@ -354,7 +354,9 @@
       snapshot.forEach(doc => {
         const item = { id: doc.id, ...doc.data() };
 
-        if (item.type === 'test') {
+        const isTest = item.type === 'test' || (Array.isArray(item.questions) && item.questions.length > 0) || Number.isFinite(item.qCount);
+
+        if (isTest) {
           testCount += 1;
           // Test Kartı
           const qCount = item.qCount || (item.questions ? item.questions.length : 0);
