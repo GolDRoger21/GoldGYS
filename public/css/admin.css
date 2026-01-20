@@ -784,3 +784,188 @@
         border-radius: 0;
     }
 }
+
+/* ======================================================================
+   3.1 STUDIO PRO v2 - DRAWER (Konu Ayarlari) + UX FIXES
+   ====================================================================== */
+
+/* Studio container needs stacking context for drawer */
+.studio-modal-container {
+    position: relative;
+}
+
+/* Drawer Backdrop (inside Studio modal) */
+.drawer-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.45);
+    backdrop-filter: blur(2px);
+    z-index: 40;
+    display: none;
+}
+
+/* Drawer Panel */
+.drawer {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 420px;
+    max-width: 92vw;
+    background: #ffffff;
+    border-left: 1px solid var(--border-color);
+    box-shadow: -10px 0 30px rgba(0, 0, 0, 0.20);
+    transform: translateX(100%);
+    transition: transform 0.22s ease;
+    z-index: 50;
+    display: flex;
+    flex-direction: column;
+}
+
+.drawer.open {
+    transform: translateX(0);
+}
+
+.drawer-backdrop.open {
+    display: block;
+}
+
+.drawer-header {
+    height: 60px;
+    min-height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 18px;
+    border-bottom: 1px solid var(--border-color);
+    background: #fff;
+}
+
+.drawer-title {
+    font-weight: 800;
+    color: #0f172a;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.drawer-body {
+    padding: 18px;
+    overflow-y: auto;
+    flex: 1;
+    background: #f8fafc;
+}
+
+.drawer-footer {
+    padding: 14px 18px;
+    border-top: 1px solid var(--border-color);
+    background: #fff;
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+/* Make sidebar footer buttons equal height */
+.sidebar-footer .btn {
+    height: 38px;
+}
+
+/* Empty state CTA */
+.empty-selection .empty-actions {
+    margin-top: 14px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+/* --- Lesson materials: use <details> accordion cards --- */
+.material-list .mat-card {
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    background: #fff;
+    overflow: hidden;
+    margin-bottom: 10px;
+}
+
+.material-list .mat-card summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 12px 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    user-select: none;
+}
+
+.material-list .mat-card summary::-webkit-details-marker {
+    display: none;
+}
+
+.material-list .mat-card .mat-sum-left {
+    width: 40px;
+    height: 40px;
+    background: #f1f5f9;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+
+.material-list .mat-card .mat-sum-mid {
+    flex: 1;
+    min-width: 0;
+}
+
+.material-list .mat-card .mat-sum-title {
+    font-weight: 700;
+    color: #0f172a;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.material-list .mat-card .mat-sum-sub {
+    font-size: 0.75rem;
+    color: #64748b;
+    margin-top: 2px;
+}
+
+.material-list .mat-card .mat-sum-actions {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.material-list .mat-card .mat-body {
+    padding: 12px;
+    border-top: 1px solid #e2e8f0;
+    background: #f8fafc;
+}
+
+.material-list .mat-card .mat-body .form-control {
+    background: #fff;
+}
+
+/* Test filter header tiny stats */
+.ts-stats {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin: 8px 0 10px;
+}
+
+.ts-stats .badge-mini {
+    background: #eef2ff;
+    color: #4338ca;
+}
+
+/* Responsive: drawer becomes full width on small screens */
+@media (max-width: 768px) {
+    .drawer {
+        width: 100%;
+    }
+}

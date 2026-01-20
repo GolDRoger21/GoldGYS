@@ -36,7 +36,7 @@ export function initTopicsPage() {
     window.Studio = {
         open: openEditor,
         close: () => document.getElementById('topicModal').style.display = 'none',
-        settings: showMetaEditor,
+        settings: (open = true) => toggleMetaDrawer(open),
         saveMeta: saveTopicMeta,
         newContent: createNewContent,
         selectContent: selectContentItem,
@@ -127,10 +127,10 @@ async function openEditor(id = null) {
         state.autoFilter = t.title;
         await loadLessons(id);
 
-        // İçerik varsa ilkini seçme, yoksa "Empty State" göster
+        // İçerik seçilene kadar boş durum kalsın
         document.getElementById('emptyState').style.display = 'flex';
-        document.getElementById('metaEditor').style.display = 'none';
         document.getElementById('contentEditor').style.display = 'none';
+        toggleMetaDrawer(false);
     } else {
         // Yeni Konu Modu
         document.getElementById('editTopicId').value = "";
@@ -139,6 +139,9 @@ async function openEditor(id = null) {
         document.getElementById('contentListNav').innerHTML = '';
 
         document.getElementById('activeTopicTitleDisplay').innerText = "Yeni Konu Oluşturuluyor...";
+        // Yeni konu için önce ayarları doldurt
+        document.getElementById('emptyState').style.display = 'flex';
+        document.getElementById('contentEditor').style.display = 'none';
         showMetaEditor();
     }
 }
@@ -166,6 +169,10 @@ function switchTabHandler(tab) {
         btnLesson.classList.remove('active');
         btnTest.classList.add('active');
     }
+
+    // Footer buton etiketi
+    const btn = document.getElementById('sidebarNewContentBtn');
+    if (btn) btn.innerHTML = tab === 'test' ? '➕ Yeni Test' : '➕ Yeni Ders';
 
     renderContentNav();
 }
@@ -202,7 +209,8 @@ function createNewContent(type) {
     else {
         renderTestPaper();
         // Test modunda filtreleri sıfırla veya varsayılanı getir
-        document.getElementById('wizLegislation').value = state.autoFilter || "";
+        const leg = document.getElementById('wizLegislation'); if (leg) leg.value = state.autoFilter || "";
+        const tc = document.getElementById('wizTargetCount'); if (tc && !tc.value) tc.value = 15;
         document.getElementById('poolList').innerHTML = '<div class="text-center mt-5 small text-muted">Aramaya başlamak için<br>kriterleri giriniz.</div>';
     }
 
@@ -235,8 +243,8 @@ function selectContentItem(id) {
 
 function prepareEditorUI(type) {
     document.getElementById('emptyState').style.display = 'none';
-    document.getElementById('metaEditor').style.display = 'none';
     document.getElementById('contentEditor').style.display = 'flex';
+    toggleMetaDrawer(false);
 
     const badge = document.getElementById('editorBadge');
     if (type === 'test') {
@@ -253,15 +261,14 @@ function prepareEditorUI(type) {
 }
 
 function showMetaEditor() {
-    document.getElementById('emptyState').style.display = 'none';
-    document.getElementById('contentEditor').style.display = 'none';
-    document.getElementById('metaEditor').style.display = 'flex';
-
+    // Drawer sadece konu ayarlarını açar; editör alanını yok etmez.
     state.activeLessonId = null;
     document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
 
-    const topicTitle = document.getElementById('inpTopicTitle').value;
-    document.getElementById('activeTopicTitleDisplay').innerText = topicTitle || "Yeni Konu";
+    const topicTitle = document.getElementById('inpTopicTitle')?.value || "";
+    document.getElementById('activeTopicTitleDisplay').innerText = topicTitle || (state.activeTopicId ? "Konu" : "Yeni Konu");
+
+    toggleMetaDrawer(true);
 }
 
 // --- SAVE OPERATIONS ---
@@ -447,7 +454,7 @@ function autoGenerateTest() {
 }
 
 function performSmartSelection() {
-    const targetCount = 15;
+    const targetCount = parseInt(document.getElementById('wizTargetCount')?.value) || 15;
     let pool = [...state.poolQuestions];
 
     // Mükerrer Kontrolü (Kağıtta zaten varsa ekleme)
@@ -497,7 +504,7 @@ function performSmartSelection() {
 
 function renderPoolList() {
     const list = document.getElementById('poolList');
-    document.getElementById('poolCount').innerText = state.poolQuestions.length;
+    const pc = document.getElementById('poolCount'); if (pc) pc.innerText = state.poolQuestions.length;
 
     if (state.poolQuestions.length === 0) {
         list.innerHTML = '<div class="text-center text-muted mt-5 small">Bu filtreye uygun soru bulunamadı.</div>';

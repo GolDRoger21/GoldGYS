@@ -5,7 +5,7 @@ export const UI_SHELL = `
             <p class="text-muted">Müfredat, ders notları ve test yönetimi.</p>
         </div>
         <div class="d-flex gap-2">
-            <button class="btn btn-secondary" onclick="window.openTrashModal()">🗑️ Çöp Kutusu</button>
+            <button class="btn btn-secondary" onclick="window.Studio.trash.open()">🗑️ Çöp Kutusu</button>
             <button class="btn btn-primary" onclick="window.Studio.open()">➕ Yeni Konu Ekle</button>
         </div>
     </div>
@@ -51,10 +51,10 @@ export const UI_SHELL = `
         </div>
     </div>
 
-    <!-- STUDIO MODAL (FULL SCREEN FIX) -->
+    <!-- STUDIO MODAL -->
     <div id="topicModal" class="modal-overlay" style="display:none;">
         <div class="studio-modal-container">
-            
+
             <!-- Header -->
             <div class="studio-header">
                 <div class="d-flex align-items-center gap-3">
@@ -66,11 +66,9 @@ export const UI_SHELL = `
             </div>
 
             <div class="studio-layout">
-                
-                <!-- 1. SOL SIDEBAR -->
+
+                <!-- SOL SIDEBAR -->
                 <div class="studio-sidebar">
-                    
-                    <!-- A. Üst Kısım: Studio Tabs -->
                     <div class="sidebar-header-modern">
                         <div class="studio-tabs">
                             <div class="tab-item active" id="tabLesson" onclick="window.Studio.switchTab('lesson')">
@@ -82,72 +80,35 @@ export const UI_SHELL = `
                         </div>
                     </div>
 
-                    <!-- B. Orta Kısım: Liste -->
-                    <div id="contentListNav" class="nav-list-scroll">
-                        <!-- JS ile doldurulacak -->
-                    </div>
+                    <div id="contentListNav" class="nav-list-scroll"></div>
 
-                    <!-- C. Alt Kısım: Footer -->
                     <div class="sidebar-footer">
-                        <button class="btn btn-dark w-100 btn-sm" onclick="window.Studio.newContent()">
-                            ➕ Yeni İçerik
+                        <button id="sidebarNewContentBtn" class="btn btn-dark w-100 btn-sm" onclick="window.Studio.newContent()">
+                            ➕ Yeni Ders
                         </button>
-                        <button class="btn btn-light border btn-sm px-3" onclick="window.Studio.settings()" title="Konu Ayarları">
+                        <button class="btn btn-light border btn-sm px-3" onclick="window.Studio.settings(true)" title="Konu Ayarları">
                             ⚙️
                         </button>
                     </div>
                 </div>
 
-                <!-- 2. SAĞ EDİTÖR ALANI -->
+                <!-- SAĞ EDİTÖR -->
                 <div class="studio-editor">
-                    
+
                     <!-- BOŞ DURUM -->
                     <div id="emptyState" class="empty-selection">
                         <div class="empty-icon">👈</div>
                         <h3>İçerik Seçin veya Oluşturun</h3>
-                        <p class="text-muted">Soldaki menüden işlem yapmak istediğiniz içeriği seçin.</p>
-                    </div>
-
-                    <!-- META EDİTÖR (Konu Ayarları) -->
-                    <div id="metaEditor" class="editor-workspace" style="display:none; align-items:center; justify-content:center;">
-                         <div class="card border-0 shadow-sm p-4" style="width:100%; max-width:500px;">
-                            <h4 class="mb-4 border-bottom pb-2">Konu Ayarları</h4>
-                            <form onsubmit="event.preventDefault(); window.Studio.saveMeta();">
-                                <input type="hidden" id="editTopicId">
-                                <div class="mb-3">
-                                    <label class="form-label fw-bold small text-muted">KONU BAŞLIĞI</label>
-                                    <input type="text" id="inpTopicTitle" class="form-control form-control-lg" required>
-                                </div>
-                                <div class="row mb-3">
-                                    <div class="col-6">
-                                        <label class="form-label fw-bold small text-muted">SIRA NO</label>
-                                        <input type="number" id="inpTopicOrder" class="form-control">
-                                    </div>
-                                    <div class="col-6">
-                                        <label class="form-label fw-bold small text-muted">KATEGORİ</label>
-                                        <select id="inpTopicCategory" class="form-select">
-                                            <option value="ortak">Ortak Konular</option>
-                                            <option value="alan">Alan Konuları</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="mb-4">
-                                    <label class="form-label fw-bold small text-muted">YAYIN DURUMU</label>
-                                    <select id="inpTopicStatus" class="form-select">
-                                        <option value="true">🟢 Yayında (Aktif)</option>
-                                        <option value="false">⚪ Taslak (Pasif)</option>
-                                    </select>
-                                </div>
-                                <div class="d-grid">
-                                    <button class="btn btn-primary">Değişiklikleri Kaydet</button>
-                                </div>
-                            </form>
+                        <p class="text-muted">Soldaki menüden ders/test seçin veya yeni içerik oluşturun.</p>
+                        <div class="empty-actions">
+                            <button class="btn btn-secondary btn-sm" onclick="window.Studio.newContent()">➕ Yeni İçerik</button>
+                            <button class="btn btn-primary btn-sm" onclick="window.Studio.settings(true)">⚙️ Konu Ayarları</button>
                         </div>
                     </div>
 
                     <!-- İÇERİK EDİTÖRÜ -->
                     <div id="contentEditor" class="content-editor-layout" style="display:none;">
-                        
+
                         <!-- Toolbar -->
                         <div class="editor-toolbar">
                             <div class="editor-title-group">
@@ -166,7 +127,7 @@ export const UI_SHELL = `
 
                         <!-- Workspace -->
                         <div class="editor-workspace" style="padding:0;">
-                            
+
                             <!-- DERS MODU -->
                             <div id="wsLessonMode" class="form-container" style="padding:30px;">
                                 <div class="mb-4">
@@ -184,12 +145,17 @@ export const UI_SHELL = `
 
                             <!-- TEST MODU (SPLIT VIEW) -->
                             <div id="wsTestMode" class="test-studio-layout" style="display:none;">
-                                
+
                                 <!-- SOL: FİLTRE PANELİ -->
                                 <div class="ts-sidebar">
                                     <div class="ts-filter-header">
-                                        <h6 class="fw-bold mb-3 text-primary">Soru Havuzu</h6>
-                                        
+                                        <h6 class="fw-bold mb-2 text-primary">Soru Havuzu</h6>
+
+                                        <div class="ts-stats">
+                                            <span class="filter-label m-0" style="text-transform:none; letter-spacing:0;">Sonuç</span>
+                                            <span id="poolCount" class="badge-mini">0</span>
+                                        </div>
+
                                         <div class="mb-2">
                                             <span class="filter-label">Mevzuat Kodu</span>
                                             <input type="text" id="wizLegislation" class="form-control form-control-sm fw-bold" placeholder="Örn: 5271">
@@ -206,6 +172,22 @@ export const UI_SHELL = `
                                             </div>
                                         </div>
 
+                                        <div class="filter-row">
+                                            <div class="flex-fill">
+                                                <span class="filter-label">Zorluk</span>
+                                                <select id="wizDifficulty" class="form-select form-select-sm">
+                                                    <option value="">Dengeli (Önerilen)</option>
+                                                    <option value="1">Kolay</option>
+                                                    <option value="3">Orta</option>
+                                                    <option value="5">Zor</option>
+                                                </select>
+                                            </div>
+                                            <div style="width:120px;">
+                                                <span class="filter-label">Sayı</span>
+                                                <input type="number" id="wizTargetCount" class="form-control form-control-sm fw-bold" value="15" min="1" max="100">
+                                            </div>
+                                        </div>
+
                                         <div class="mb-3">
                                             <div class="input-group input-group-sm">
                                                 <input type="text" id="wizSearchText" class="form-control" placeholder="Metin ara...">
@@ -215,11 +197,11 @@ export const UI_SHELL = `
 
                                         <div class="d-grid gap-2">
                                             <button class="btn btn-warning btn-sm fw-bold" onclick="window.Studio.wizard.auto()">
-                                                ⚡ Otomatik Test (15)
+                                                ⚡ Otomatik Test
                                             </button>
                                         </div>
                                     </div>
-                                    
+
                                     <div id="poolList" class="ts-list-body bg-light">
                                         <div class="text-center text-muted mt-5 small">
                                             Filtreleri doldurup<br>aramaya başlayın.
@@ -241,9 +223,51 @@ export const UI_SHELL = `
                     </div>
                 </div>
             </div>
+
+            <!-- META DRAWER (Konu Ayarları) -->
+            <div id="metaDrawerBackdrop" class="drawer-backdrop" onclick="window.Studio.settings(false)"></div>
+            <aside id="metaDrawer" class="drawer" aria-hidden="true">
+                <div class="drawer-header">
+                    <div class="drawer-title">⚙️ Konu Ayarları</div>
+                    <button class="btn btn-icon" onclick="window.Studio.settings(false)" title="Kapat">&times;</button>
+                </div>
+                <div class="drawer-body">
+                    <form onsubmit="event.preventDefault(); window.Studio.saveMeta();">
+                        <input type="hidden" id="editTopicId">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-muted">KONU BAŞLIĞI</label>
+                            <input type="text" id="inpTopicTitle" class="form-control form-control-lg" required>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-6">
+                                <label class="form-label fw-bold small text-muted">SIRA NO</label>
+                                <input type="number" id="inpTopicOrder" class="form-control">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label fw-bold small text-muted">KATEGORİ</label>
+                                <select id="inpTopicCategory" class="form-select">
+                                    <option value="ortak">Ortak Konular</option>
+                                    <option value="alan">Alan Konuları</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-bold small text-muted">YAYIN DURUMU</label>
+                            <select id="inpTopicStatus" class="form-select">
+                                <option value="true">🟢 Yayında (Aktif)</option>
+                                <option value="false">⚪ Taslak (Pasif)</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-primary w-100">Değişiklikleri Kaydet</button>
+                    </form>
+                </div>
+                <div class="drawer-footer">
+                    <button class="btn btn-secondary btn-sm" onclick="window.Studio.settings(false)">Kapat</button>
+                </div>
+            </aside>
         </div>
     </div>
-    
+
     <!-- TRASH MODAL -->
     <div id="trashModal" class="modal-overlay" style="display:none;">
         <div class="admin-modal-content" style="max-width:600px;">
