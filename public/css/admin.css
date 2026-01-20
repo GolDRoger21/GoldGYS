@@ -610,3 +610,64 @@
         border-bottom: 1px solid #e2e8f0;
     }
 }
+
+/* --- STUDIO LAYOUT DÜZELTMELERİ --- */
+
+/* 1. Editörün Ana Kapsayıcısı (Dikey Yerleşim Zorlama) */
+.content-editor-layout {
+    display: flex;
+    flex-direction: column;
+    /* Alt alta dizilim */
+    height: 100%;
+    /* Tüm yüksekliği kapla */
+    overflow: hidden;
+    /* Dışarı taşmayı engelle */
+    width: 100%;
+    /* Tam genişlik */
+}
+
+/* 2. Toolbar Düzeni (Üst Bar) */
+.editor-toolbar {
+    height: 70px;
+    /* Yüksekliği sabitledik */
+    min-height: 70px;
+    background-color: #ffffff;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    /* Sol ve Sağ olarak ayır */
+    padding: 0 24px;
+    gap: 16px;
+    z-index: 10;
+    flex-shrink: 0;
+    /* Küçülmesini engelle */
+    width: 100%;
+}
+
+/* 3. Sağ Üst Köşe Buton Grubu */
+.editor-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+/* 4. İçerik Alanı (Kalan Boşluğu Doldurur) */
+.editor-workspace {
+    flex: 1;
+    /* Kalan tüm yüksekliği al */
+    overflow-y: auto;
+    /* Sadece burası kaydırılabilir olsun */
+    padding: 0;
+    position: relative;
+    background: #f8fafc;
+}
+
+/* Form Container İyileştirmesi */
+.form-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 30px;
+    width: 100%;
+}

@@ -1,6 +1,5 @@
 /* DOSYA: public/js/modules/admin/topics.ui.js */
 
-// Ana İskelet (Main Shell)
 export const UI_SHELL = `
     <div class="section-header">
         <div>
@@ -136,16 +135,20 @@ export const UI_SHELL = `
                         </div>
                     </div>
 
-                    <!-- 3. İÇERİK EDİTÖRÜ (DERS & TEST) -->
-                    <div id="contentEditor" class="d-flex flex-column h-100" style="display:none;">
+                    <!-- 3. İÇERİK EDİTÖRÜ (DÜZELTİLEN KISIM) -->
+                    <!-- DİKKAT: Burada .content-editor-layout sınıfını kullanıyoruz -->
+                    <div id="contentEditor" class="content-editor-layout" style="display:none;">
                         
-                        <!-- Toolbar -->
+                        <!-- Toolbar (Üstte Sabit) -->
                         <div class="editor-toolbar">
+                            <!-- Sol: Başlık Alanı -->
                             <div class="editor-title-group">
                                 <span class="badge bg-secondary" id="editorBadge">DERS</span>
                                 <input type="text" id="inpContentTitle" class="editor-title-input" placeholder="İçerik Başlığı Giriniz...">
                             </div>
-                            <div class="d-flex align-items-center gap-2">
+                            
+                            <!-- Sağ: Butonlar (editor-actions sınıfı ile) -->
+                            <div class="editor-actions">
                                 <div class="input-group input-group-sm" style="width: 100px;">
                                     <span class="input-group-text">Sıra</span>
                                     <input type="number" id="inpContentOrder" class="form-control">
@@ -156,13 +159,13 @@ export const UI_SHELL = `
                             </div>
                         </div>
 
-                        <!-- Workspace -->
+                        <!-- Workspace (Altta, Kaydırılabilir) -->
                         <div class="editor-workspace">
                             
                             <!-- A) DERS MODU -->
                             <div id="wsLessonMode" class="form-container">
-                                <div>
-                                    <label class="form-label fw-bold text-muted small mb-3">İÇERİK MATERYALLERİ</label>
+                                <div class="mb-4">
+                                    <label class="form-label fw-bold text-muted small mb-3">YENİ MATERYAL EKLE</label>
                                     <div class="add-mat-grid">
                                         <div class="add-mat-btn" onclick="window.Studio.addMat('html')"><i>📝</i> Metin</div>
                                         <div class="add-mat-btn" onclick="window.Studio.addMat('pdf')"><i>📄</i> PDF</div>
@@ -170,6 +173,8 @@ export const UI_SHELL = `
                                         <div class="add-mat-btn" onclick="window.Studio.addMat('podcast')"><i>🎙️</i> Podcast</div>
                                     </div>
                                 </div>
+                                
+                                <label class="form-label fw-bold text-muted small mb-2">EKLENEN MATERYALLER</label>
                                 <div id="materialsContainer" class="material-list">
                                     <!-- Materyaller JS ile buraya -->
                                 </div>
@@ -238,7 +243,7 @@ export const UI_SHELL = `
     </div>
 `;
 
-// Liste Öğesi HTML Oluşturucu
+// Liste Öğesi HTML Oluşturucu (Aynı Kalabilir)
 export const renderNavItem = (l, isTestTab, activeId) => `
     <div class="nav-item ${activeId === l.id ? 'active' : ''}" onclick="window.Studio.selectContent('${l.id}')">
         <div class="d-flex justify-content-between align-items-center mb-1">
