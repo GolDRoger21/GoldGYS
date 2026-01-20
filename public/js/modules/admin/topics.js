@@ -49,6 +49,7 @@ export function initTopicsPage() {
         selectContent: selectContentItem,
         saveContent: saveContent,
         deleteContent: deleteContent,
+        promoteToSubtopic: promoteToSubtopic,
 
         // Materyal İşlemleri
         addMat: addMaterialUI,
@@ -524,6 +525,59 @@ async function deleteContent() {
         });
         loadLessons(state.activeTopicId);
         showMetaEditor(); // Ana ekrana dön
+    }
+}
+
+async function promoteToSubtopic(id, ev) {
+    ev?.stopPropagation();
+    const item = state.currentLessons.find(x => x.id === id);
+    if (!item) return;
+    if (!state.activeTopicId) return alert("Önce üst konuyu seçin.");
+
+    const parentTopic = state.allTopics.find(t => t.id === state.activeTopicId);
+    const confirmMsg = `"${item.title}" içeriğini alt konuya dönüştürmek istiyor musunuz?\nBu işlem yeni bir konu oluşturur ve mevcut içeriği taşır.`;
+    if (!confirm(confirmMsg)) return;
+
+    try {
+        const topicPayload = {
+            title: item.title,
+            description: '',
+            order: item.order || 0,
+            category: parentTopic?.category || 'ortak',
+            isActive: true,
+            status: 'active',
+            parentId: state.activeTopicId,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
+        };
+        const topicRef = await addDoc(collection(db, "topics"), topicPayload);
+
+        const lessonPayload = {
+            title: item.title,
+            type: item.type || 'lesson',
+            order: item.order || 1,
+            isActive: true,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
+        };
+
+        if (lessonPayload.type === 'test') {
+            lessonPayload.questions = item.questions || [];
+            lessonPayload.qCount = item.qCount || (item.questions ? item.questions.length : 0);
+            lessonPayload.legislationCode = item.legislationCode || '';
+        } else {
+            lessonPayload.materials = item.materials || [];
+        }
+
+        await addDoc(collection(db, `topics/${topicRef.id}/lessons`), lessonPayload);
+        await deleteDoc(doc(db, `topics/${state.activeTopicId}/lessons`, id));
+
+        alert("Alt konu oluşturuldu ve içerik taşındı.");
+        loadLessons(state.activeTopicId);
+        loadTopics();
+    } catch (e) {
+        console.error(e);
+        alert(`Alt konu oluşturulamadı: ${e.message}`);
     }
 }
 

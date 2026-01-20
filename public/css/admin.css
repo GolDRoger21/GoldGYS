@@ -483,6 +483,7 @@
     font-size: 0.75rem;
     color: #94a3b8;
     margin-top: 2px;
+    gap: 8px;
 }
 
 .badge-mini {
@@ -492,6 +493,23 @@
     border-radius: 4px;
     font-size: 10px;
     font-weight: 600;
+}
+
+.nav-action-btn {
+    border: 1px solid #e2e8f0;
+    background: #fff;
+    color: #64748b;
+    border-radius: 6px;
+    padding: 0 6px;
+    font-size: 0.7rem;
+    line-height: 1.4;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.nav-action-btn:hover {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
 }
 
 /* Sidebar Footer */

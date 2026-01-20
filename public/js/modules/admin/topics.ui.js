@@ -273,6 +273,7 @@ export const renderNavItem = (l, isTestTab, activeId) => `
                 <div class="nav-meta">
                     <span>Sıra: ${l.order}</span>
                     ${isTestTab ? `<span class="badge-mini">${l.qCount || 0} Soru</span>` : ''}
+                    <button class="nav-action-btn" onclick="window.Studio.promoteToSubtopic('${l.id}', event)" title="Alt konu yap">↳</button>
                 </div>
             </div>
         </div>
