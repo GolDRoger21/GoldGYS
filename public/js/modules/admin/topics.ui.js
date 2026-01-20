@@ -140,8 +140,11 @@ export const UI_SHELL = `
                             <div id="wsTestMode" class="test-studio-layout" style="display:none;">
                                 <div class="ts-sidebar">
                                      <div class="ts-filter-header">
-                                        <h6 class="fw-bold mb-3 text-primary">Soru Havuzu</h6>
-                                        <div class="mb-2"><input type="text" id="wizLegislation" class="form-control form-control-sm" placeholder="Mevzuat Kodu (Örn: 5271)"></div>
+                                        <div class="d-flex align-items-center justify-content-between mb-2">
+                                            <h6 class="fw-bold text-primary m-0">Soru Havuzu</h6>
+                                            <span id="topicPoolBadge" class="badge bg-light text-dark border small">Konu: —</span>
+                                        </div>
+                                        <div class="mb-2"><input type="text" id="wizLegislation" class="form-control form-control-sm" placeholder="Mevzuat Kodu (Opsiyonel)"></div>
                                         <div class="filter-row">
                                             <input type="number" id="wizStart" class="form-control form-control-sm" placeholder="Başlangıç Md.">
                                             <input type="number" id="wizEnd" class="form-control form-control-sm" placeholder="Bitiş Md.">
@@ -150,11 +153,11 @@ export const UI_SHELL = `
                                             <select id="wizDifficulty" class="form-select form-select-sm"><option value="">Tüm Zorluklar</option><option value="1">Kolay</option><option value="3">Orta</option><option value="5">Zor</option></select>
                                             <input type="number" id="wizTargetCount" class="form-control form-control-sm" value="15" placeholder="Adet">
                                         </div>
-                                        <div class="input-group input-group-sm mb-2">
-                                            <input type="text" id="wizSearchText" class="form-control" placeholder="Kelime ara...">
-                                            <button class="btn btn-dark" onclick="window.Studio.wizard.search()">🔍</button>
+                                        <input type="text" id="wizSearchText" class="form-control form-control-sm mb-2" placeholder="Kelime ara...">
+                                        <div class="ts-action-row">
+                                            <button class="btn btn-dark btn-sm w-100" onclick="window.Studio.wizard.search()">🔍 Filtrele</button>
+                                            <button class="btn btn-warning btn-sm w-100 fw-bold" onclick="window.Studio.wizard.auto()">⚡ Otomatik Test Oluştur</button>
                                         </div>
-                                        <button class="btn btn-warning btn-sm w-100 fw-bold" onclick="window.Studio.wizard.auto()">⚡ Otomatik Test Oluştur</button>
                                      </div>
                                      <div id="poolList" class="ts-list-body bg-light"></div>
                                 </div>
@@ -184,6 +187,10 @@ export const UI_SHELL = `
                         <div class="mb-3">
                             <label class="form-label fw-bold small text-muted">KONU BAŞLIĞI</label>
                             <input type="text" id="inpTopicTitle" class="form-control form-control-lg" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-muted">KONU AÇIKLAMASI</label>
+                            <textarea id="inpTopicDescription" class="form-control" rows="3" placeholder="Kısa konu açıklaması girin..."></textarea>
                         </div>
                         <div class="row mb-3">
                             <div class="col-6">

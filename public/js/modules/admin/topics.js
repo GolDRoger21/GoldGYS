@@ -14,6 +14,7 @@ let state = {
     allTopics: [],
     currentLessons: [],
     activeTopicId: null,
+    activeTopicTitle: '',
     activeLessonId: null,
     activeLessonType: 'lesson',
     tempMaterials: [],
@@ -175,6 +176,7 @@ function renderTopicsTable() {
 async function openEditor(id = null) {
     document.getElementById('topicModal').style.display = 'flex';
     state.activeTopicId = id;
+    state.activeTopicTitle = '';
 
     // Varsayılan olarak Dersler sekmesini aç
     switchTabHandler('lesson');
@@ -185,12 +187,15 @@ async function openEditor(id = null) {
         if (t) {
             document.getElementById('editTopicId').value = id;
             document.getElementById('inpTopicTitle').value = t.title;
+            document.getElementById('inpTopicDescription').value = t.description || '';
             document.getElementById('inpTopicOrder').value = t.order;
             document.getElementById('inpTopicCategory').value = t.category;
             document.getElementById('inpTopicStatus').value = t.isActive;
 
             document.getElementById('activeTopicTitleDisplay').innerText = t.title;
+            state.activeTopicTitle = t.title;
             state.autoFilter = t.title;
+            syncTopicFilterBadge();
             await loadLessons(id);
         }
 
@@ -202,10 +207,12 @@ async function openEditor(id = null) {
         // Yeni Konu Modu
         document.getElementById('editTopicId').value = "";
         document.getElementById('inpTopicTitle').value = "";
+        document.getElementById('inpTopicDescription').value = "";
         document.getElementById('inpTopicOrder').value = state.allTopics.length + 1;
         document.getElementById('contentListNav').innerHTML = '';
 
         document.getElementById('activeTopicTitleDisplay').innerText = "Yeni Konu Oluşturuluyor...";
+        syncTopicFilterBadge();
 
         document.getElementById('emptyState').style.display = 'flex';
         document.getElementById('contentEditor').style.display = 'none';
@@ -251,6 +258,12 @@ function switchTabHandler(tab) {
     renderContentNav();
 }
 
+function syncTopicFilterBadge() {
+    const badge = document.getElementById('topicPoolBadge');
+    if (!badge) return;
+    badge.innerText = `Konu: ${state.activeTopicTitle || '—'}`;
+}
+
 function renderContentNav() {
     const list = document.getElementById('contentListNav');
     if (!list) return;
@@ -293,8 +306,13 @@ function createNewContent(type) {
         renderTestPaper();
         // Filtreleri sıfırla
         const leg = document.getElementById('wizLegislation'); if (leg) leg.value = "";
+        syncTopicFilterBadge();
         const pl = document.getElementById('poolList');
-        if (pl) pl.innerHTML = '<div class="text-center mt-5 small text-muted">Aramaya başlamak için<br>kriterleri giriniz.</div>';
+        if (state.activeTopicTitle) {
+            searchQuestions();
+        } else if (pl) {
+            pl.innerHTML = '<div class="text-center mt-5 small text-muted">Aramaya başlamak için<br>kriterleri giriniz.</div>';
+        }
     }
 
     // Listeyi temizle (seçili yok)
@@ -322,6 +340,10 @@ function selectContentItem(id) {
         renderTestPaper();
         const leg = document.getElementById('wizLegislation');
         if (leg) leg.value = item.legislationCode || "";
+        syncTopicFilterBadge();
+        if (state.activeTopicTitle) {
+            searchQuestions();
+        }
     }
     renderContentNav();
 }
@@ -364,6 +386,7 @@ async function saveTopicMeta() {
 
     const data = {
         title,
+        description: document.getElementById('inpTopicDescription').value.trim(),
         order: parseInt(document.getElementById('inpTopicOrder').value) || 0,
         category: document.getElementById('inpTopicCategory').value,
         isActive: document.getElementById('inpTopicStatus').value === 'true',
@@ -378,6 +401,8 @@ async function saveTopicMeta() {
             state.activeTopicId = ref.id;
             document.getElementById('editTopicId').value = ref.id;
         }
+        state.activeTopicTitle = title;
+        syncTopicFilterBadge();
         alert("Konu ayarları kaydedildi.");
         loadTopics();
     } catch (e) { alert(e.message); }
@@ -642,13 +667,19 @@ function matDragEnd(ev) {
 
 async function searchQuestions() {
     const code = document.getElementById('wizLegislation').value.trim();
-    if (!code) return alert("Lütfen bir Mevzuat Kodu girin (Örn: 5271).");
+    const topicTitle = state.activeTopicTitle || '';
+    if (!topicTitle && !code) return alert("Lütfen bir Mevzuat Kodu girin (Örn: 5271).");
 
     const poolList = document.getElementById('poolList');
     if (poolList) poolList.innerHTML = '<div class="text-center p-4"><div class="spinner-border text-primary" role="status"></div><br>Sorular Taranıyor...</div>';
 
     try {
-        const q = query(collection(db, "questions"), where("legislationRef.code", "==", code));
+        let q = query(collection(db, "questions"));
+        if (topicTitle) {
+            q = query(collection(db, "questions"), where("category", "==", topicTitle));
+        } else if (code) {
+            q = query(collection(db, "questions"), where("legislationRef.code", "==", code));
+        }
         const snap = await getDocs(q);
 
         const startArt = parseInt(document.getElementById('wizStart').value) || 0;
@@ -672,6 +703,7 @@ async function searchQuestions() {
             }
 
             if (txtFilter && !d.text.toLowerCase().includes(txtFilter)) return;
+            if (code && d.legislationRef?.code !== code) return;
 
             filteredArr.push({ id: doc.id, ...d, artNo: isNaN(artNo) ? 99999 : artNo });
         });
@@ -688,7 +720,8 @@ async function searchQuestions() {
 
 function autoGenerateTest() {
     if (state.poolQuestions.length === 0) {
-        if (document.getElementById('wizLegislation').value) {
+        const hasLeg = document.getElementById('wizLegislation').value;
+        if (state.activeTopicTitle || hasLeg) {
             searchQuestions().then(() => {
                 if (state.poolQuestions.length > 0) performSmartSelection();
                 else alert("Kriterlere uygun soru bulunamadı.");
@@ -793,6 +826,7 @@ function renderTestPaper() {
                 <div class="qc-text">${shortText}</div>
             </div>
             <div class="qc-actions">
+                <button class="btn-icon" style="background:#e0f2fe; color:#075985;" onclick="event.stopPropagation(); window.Studio.wizard.fullEdit('${q.id}')" title="Düzenle">✏️</button>
                 <button class="btn-icon delete" onclick="event.stopPropagation(); window.Studio.wizard.remove(${i})" title="Çıkar">🗑️</button>
             </div>
         </div>`;
