@@ -93,6 +93,68 @@
       margin-bottom: 15px;
     }
 
+    .subtopic-section {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 30px;
+    }
+
+    .subtopic-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    .subtopic-card {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding: 16px;
+      border-radius: 14px;
+      border: 1px solid var(--border-color);
+      text-decoration: none;
+      color: var(--text-main);
+      background: #fff;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    }
+
+    .subtopic-card:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-sm);
+      border-color: var(--color-primary);
+    }
+
+    .subtopic-title {
+      font-size: 1rem;
+      font-weight: 700;
+      margin: 0;
+    }
+
+    .subtopic-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 6px;
+    }
+
+    .subtopic-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .subtopic-actions .btn {
+      flex: 1;
+    }
+
+    .subtopic-meta {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
     @media (max-width: 900px) {
       .content-container {
         grid-template-columns: 1fr;
@@ -129,6 +191,14 @@
     <!-- SOL KOLON -->
     <div class="main-section">
 
+      <div id="subtopicSection" class="subtopic-section" style="display:none;">
+        <h2 style="margin:0;">Alt Başlıklar</h2>
+        <p class="text-muted" style="margin-top:6px;">Bu ana konu altında ilgili alt başlıkları seçerek ders notları ve testlere erişebilirsiniz.</p>
+        <div id="subtopicList" class="subtopic-grid"></div>
+        <div id="subtopicLoading" class="text-muted small mt-3" style="display:none;">Alt başlıklar yükleniyor...</div>
+      </div>
+
+      <div id="topicContentSection">
       <!-- YENİ: AKILLI ÇALIŞMA MODU -->
       <div class="study-mode-card">
         <h2 style="margin:0; font-size:1.5rem;">🚀 Serbest Çalışma Modu</h2>
@@ -159,11 +229,13 @@
       <h3 style="border-left:4px solid var(--color-primary); padding-left:10px; margin-bottom:20px;">📝 Konu Testleri
       </h3>
       <div id="testsList">Yükleniyor...</div>
+      </div>
 
     </div>
 
     <!-- SAĞ KOLON: DERS NOTLARI -->
-    <div class="side-section">
+    <div class="side-section" id="topicMaterialsSection">
+      <div id="materials"></div>
       <h3 style="border-left:4px solid var(--color-success); padding-left:10px; margin-bottom:20px;">📚 Ders Notları
       </h3>
       <div id="materialsList"></div>
@@ -186,8 +258,10 @@
 
       onAuthStateChanged(auth, async (user) => {
         if (user) {
-          await loadTopicData();
-          await loadQuestionCount();
+          const hasSubtopics = await loadTopicData();
+          if (!hasSubtopics) {
+            await loadQuestionCount();
+          }
         }
       });
     });
@@ -201,6 +275,27 @@
         document.getElementById('topicTitle').innerText = data.title;
         document.title = `${data.title} | Çalışma`;
       }
+
+      const subtopicQuery = query(
+        collection(db, "topics"),
+        where("parentId", "==", currentTopicId),
+        where("isActive", "==", true),
+        orderBy("order", "asc")
+      );
+      const subtopicSnap = await getDocs(subtopicQuery);
+      const subtopics = [];
+      subtopicSnap.forEach(doc => {
+        subtopics.push({ id: doc.id, ...doc.data() });
+      });
+
+      if (subtopics.length) {
+        await renderSubtopics(subtopics);
+        return true;
+      }
+
+      document.getElementById('subtopicSection').style.display = 'none';
+      document.getElementById('topicContentSection').style.display = 'block';
+      document.getElementById('topicMaterialsSection').style.display = 'block';
 
       // Dersler ve Testler (Subcollection)
       const q = query(collection(db, `topics/${currentTopicId}/lessons`), orderBy("order", "asc"));
@@ -288,6 +383,53 @@
 
       if (testsContainer.innerHTML === '') testsContainer.innerHTML = '<p class="text-muted">Bu konuda test bulunamadı.</p>';
       if (materialsContainer.innerHTML === '') materialsContainer.innerHTML = '<p class="text-muted">Ders notu eklenmemiş.</p>';
+
+      return false;
+    }
+
+    async function renderSubtopics(subtopics) {
+      const section = document.getElementById('subtopicSection');
+      const list = document.getElementById('subtopicList');
+      const loading = document.getElementById('subtopicLoading');
+      if (!section || !list) return;
+
+      section.style.display = 'block';
+      document.getElementById('topicContentSection').style.display = 'none';
+      document.getElementById('topicMaterialsSection').style.display = 'none';
+
+      if (loading) loading.style.display = 'block';
+
+      const subtopicCards = await Promise.all(subtopics.map(async (subtopic) => {
+        const lessonQuery = query(collection(db, `topics/${subtopic.id}/lessons`), orderBy("order", "asc"));
+        const lessonSnap = await getDocs(lessonQuery);
+        let lessonCount = 0;
+        let testCount = 0;
+        lessonSnap.forEach(doc => {
+          const item = doc.data();
+          if (item?.status === 'deleted' || item?.isDeleted) return;
+          if (item?.type === 'test') testCount += 1;
+          else lessonCount += 1;
+        });
+
+        return `
+          <div class="subtopic-card">
+            <h4 class="subtopic-title">${subtopic.title}</h4>
+            <span class="subtopic-meta">Sıra: ${subtopic.order || '-'}</span>
+            <span class="subtopic-meta">${subtopic.description || 'Konu açıklaması bulunmuyor.'}</span>
+            <div class="subtopic-badges">
+              <span class="badge bg-light text-dark border">📄 ${lessonCount} Not</span>
+              <span class="badge bg-light text-dark border">📝 ${testCount} Test</span>
+            </div>
+            <div class="subtopic-actions">
+              <a class="btn btn-sm btn-outline-primary" href="/pages/konu.html?id=${subtopic.id}">Konuya Git</a>
+              <a class="btn btn-sm btn-dark" href="/pages/konu.html?id=${subtopic.id}#materials">Notlar/Testler</a>
+            </div>
+          </div>
+        `;
+      }));
+
+      list.innerHTML = subtopicCards.join('');
+      if (loading) loading.style.display = 'none';
     }
 
     async function loadQuestionCount() {
