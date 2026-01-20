@@ -506,20 +506,25 @@ function renderPoolList() {
 
     list.innerHTML = state.poolQuestions.map(q => {
         const isAdded = state.tempQuestions.some(x => x.id === q.id);
-        const shortText = q.text.length > 60 ? q.text.substring(0, 60) + '...' : q.text;
+        const cleanText = q.text ? q.text.replace(/<[^>]*>?/gm, '') : '';
+        const shortText = cleanText.length > 60 ? cleanText.substring(0, 60) + '...' : cleanText;
 
         return `
-            <div class="mini-q-card ${isAdded ? 'bg-light border-success' : ''}" onclick="window.Studio.wizard.fullEdit('${q.id}')">
-                <div class="d-flex justify-content-between mb-1">
-                    <span class="badge bg-secondary" style="font-size:0.7em">Md. ${q.artNo}</span>
-                    ${isAdded ? '<span class="text-success small fw-bold">Eklendi</span>' : ''}
+            <div class="question-card ${isAdded ? 'bg-light' : ''}" style="cursor:pointer; border-left: 3px solid ${isAdded ? '#22c55e' : 'transparent'}" onclick="window.Studio.wizard.fullEdit('${q.id}')">
+                <div class="qc-body">
+                    <div class="qc-meta">
+                        <span class="badge-outline">Md. ${q.artNo || '?'}</span>
+                        ${isAdded ? '<span style="color:#22c55e; font-weight:bold; font-size:10px;">EKLENDİ</span>' : ''}
+                    </div>
+                    <div class="qc-text" style="font-size:0.8rem;">${shortText}</div>
                 </div>
-                <div class="text-dark small">${shortText}</div>
-                <button class="q-action-btn btn-add-q" 
-                    onclick="event.stopPropagation(); window.Studio.wizard.add('${q.id}')" 
-                    ${isAdded ? 'disabled style="opacity:0.5"' : ''} title="Teste Ekle">
-                    <span>+</span>
-                </button>
+                <div class="qc-actions">
+                    <button class="btn-icon" style="background:#dcfce7; color:#166534;" 
+                        onclick="event.stopPropagation(); window.Studio.wizard.add('${q.id}')" 
+                        ${isAdded ? 'disabled style="opacity:0.5"' : ''} title="Teste Ekle">
+                        +
+                    </button>
+                </div>
             </div>`;
     }).join('');
 }
@@ -542,19 +547,19 @@ function renderTestPaper() {
 
     list.innerHTML = state.tempQuestions.map((q, i) => {
         // Metni temizle ve kısalt
-        const cleanText = q.text.replace(/<[^>]*>?/gm, '');
-        const shortText = cleanText.length > 120 ? cleanText.substring(0, 120) + '...' : cleanText;
+        const cleanText = q.text ? q.text.replace(/<[^>]*>?/gm, '') : '';
+        const shortText = cleanText.length > 100 ? cleanText.substring(0, 100) + '...' : cleanText;
 
-        // Zorluk seviyesi badge rengi
+        // Zorluk seviyesi badge
         let diffBadge = '';
-        if (q.difficulty <= 2) diffBadge = '<span class="badge-outline success">Kolay</span>';
-        else if (q.difficulty === 3) diffBadge = '<span class="badge-outline warning" style="color:#f59e0b; border-color:#f59e0b">Orta</span>';
-        else diffBadge = '<span class="badge-outline danger">Zor</span>';
+        if (q.difficulty <= 2) diffBadge = '<span class="badge-outline" style="color:#16a34a; border-color:#16a34a">Kolay</span>';
+        else if (q.difficulty === 3) diffBadge = '<span class="badge-outline" style="color:#d97706; border-color:#d97706">Orta</span>';
+        else diffBadge = '<span class="badge-outline" style="color:#dc2626; border-color:#dc2626">Zor</span>';
 
         return `
         <div class="question-card">
             <div class="qc-left">
-                <span class="qc-handle" title="Sıralamak için sürükle (Yakında)">:::</span>
+                <span class="qc-handle" title="Sıralamak için sürükle">:::</span>
                 <span class="qc-number">${i + 1}</span>
             </div>
             <div class="qc-body">
@@ -566,12 +571,8 @@ function renderTestPaper() {
                 <div class="qc-text" title="${cleanText}">${shortText}</div>
             </div>
             <div class="qc-actions">
-                <button class="btn-icon edit" onclick="window.Studio.wizard.fullEdit('${q.id}')" title="Düzenle">
-                    ✏️
-                </button>
-                <button class="btn-icon delete" onclick="event.stopPropagation(); window.Studio.wizard.remove(${i})" title="Çıkar">
-                    🗑️
-                </button>
+                <button class="btn-icon edit" onclick="window.Studio.wizard.fullEdit('${q.id}')" title="Düzenle">✏️</button>
+                <button class="btn-icon delete" onclick="event.stopPropagation(); window.Studio.wizard.remove(${i})" title="Çıkar">🗑️</button>
             </div>
         </div>`;
     }).join('');
