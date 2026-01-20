@@ -326,8 +326,8 @@
       const contentStatus = await loadTopicContent();
       const hasContent = contentStatus.totalCount > 0;
 
-      document.getElementById('topicContentSection').style.display = hasContent ? 'block' : 'none';
-      document.getElementById('topicMaterialsSection').style.display = hasContent ? 'block' : 'none';
+      document.getElementById('topicContentSection').style.display = 'block';
+      document.getElementById('topicMaterialsSection').style.display = 'block';
 
       const subtopicNote = document.getElementById('subtopicEmptyNote');
       if (subtopicNote) {
@@ -428,8 +428,33 @@
       });
 
 
-      if (testsContainer.innerHTML === '') testsContainer.innerHTML = '<p class="text-muted">Bu konuda test bulunamadı.</p>';
-      if (materialsContainer.innerHTML === '') materialsContainer.innerHTML = '<p class="text-muted">Ders notu eklenmemiş.</p>';
+      if (testsContainer.innerHTML === '') {
+        testsContainer.innerHTML = `
+          <div class="test-card">
+            <strong>Henüz test bulunmuyor</strong>
+            <div class="text-muted small mt-1">Bu konu için hazırlanan testler yakında eklenecektir.</div>
+          </div>
+        `;
+      }
+
+      if (materialsContainer.innerHTML === '') {
+        const emptyMaterials = [
+          { icon: '🎥', title: 'Videolu Dersler', message: 'Bu konuda henüz videolu ders bulunmuyor.' },
+          { icon: '🎧', title: 'Podcast', message: 'Podcast içerikleri en kısa zamanda eklenecektir.' },
+          { icon: '📄', title: 'PDF Notları', message: 'PDF notları için içerik hazırlığı sürüyor.' },
+          { icon: '📰', title: 'HTML Notları', message: 'HTML notları yakında paylaşılacaktır.' }
+        ];
+
+        materialsContainer.innerHTML = emptyMaterials.map((item) => `
+          <div class="test-card">
+            <div class="d-flex align-items-center" style="gap:10px;">
+              <span style="font-size:1.3rem;">${item.icon}</span>
+              <strong>${item.title}</strong>
+            </div>
+            <div class="text-muted small mt-2">${item.message} En kısa zamanda güncellenecektir.</div>
+          </div>
+        `).join('');
+      }
 
       return { testCount, materialCount, totalCount: testCount + materialCount };
     }
