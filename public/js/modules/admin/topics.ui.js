@@ -115,6 +115,7 @@ export const UI_SHELL = `
                                 <input type="text" id="inpContentTitle" class="editor-title-input" placeholder="İçerik Başlığı Giriniz...">
                             </div>
                             <div class="editor-actions">
+                                <span id="saveIndicator" class="save-indicator">—</span>
                                 <div class="input-group input-group-sm me-2" style="width: 100px;">
                                     <span class="input-group-text">Sıra</span>
                                     <input type="number" id="inpContentOrder" class="form-control">

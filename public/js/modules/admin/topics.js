@@ -21,6 +21,12 @@ let state = {
     poolQuestions: [], // Arama sonuçları
     sidebarTab: 'lesson',
     autoFilter: ''
+    ,
+    _autosaveTimer: null,
+    _autosaveTimer2: null,
+    _autosaveBound: false,
+    _isDirty: false,
+    _isSaving: false
 };
 
 function toggleMetaDrawer(open = true) {
@@ -37,6 +43,7 @@ function toggleMetaDrawer(open = true) {
         backdrop.classList.remove('open');
         drawer.setAttribute('aria-hidden', 'true');
     }
+    scheduleAutosave();
 }
 
 // ============================================================
@@ -239,7 +246,7 @@ function renderContentNav() {
 }
 
 function createNewContent(type) {
-    if (!state.activeTopicId) return alert("Lütfen önce konuyu kaydedin.");
+    if (!state.activeTopicId) return if (!silent) alert("Lütfen önce konuyu kaydedin.");
 
     // Eğer type parametresi gelmezse, aktif tab'a göre belirle
     const contentType = type || state.sidebarTab;
@@ -255,6 +262,8 @@ function createNewContent(type) {
     state.tempQuestions = [];
 
     if (contentType === 'lesson') renderMaterials();
+    scheduleAutosave();
+    scheduleAutosave();
     else {
         renderTestPaper();
         // Test modunda filtreleri sıfırla veya varsayılanı getir
@@ -325,7 +334,7 @@ function showMetaEditor() {
 async function saveTopicMeta() {
     const id = document.getElementById('editTopicId').value;
     const title = document.getElementById('inpTopicTitle').value;
-    if (!title) return alert("Başlık giriniz.");
+    if (!title) return if (!silent) alert("Başlık giriniz.");
 
     const data = {
         title,
@@ -343,9 +352,9 @@ async function saveTopicMeta() {
             state.activeTopicId = ref.id;
             document.getElementById('editTopicId').value = ref.id;
         }
-        alert("Konu ayarları kaydedildi.");
+        if (!silent) alert("Konu ayarları kaydedildi.");
         loadTopics();
-    } catch (e) { alert(e.message); }
+    } catch (e) { if (!silent) alert(e.message); }
 }
 
 function validateMaterialsBeforeSave() {
@@ -364,7 +373,55 @@ function validateMaterialsBeforeSave() {
     return errs;
 }
 
-async function saveContent() {
+// Autosave (debounced)
+function setSaveIndicator(stateName, text) {
+    const el = document.getElementById('saveIndicator');
+    if (!el) return;
+    el.classList.remove('saving', 'saved', 'error');
+    if (stateName) el.classList.add(stateName);
+    el.innerText = text || '—';
+}
+
+function ensureSaveIndicator() {
+    const actions = document.querySelector('.editor-actions');
+    if (!actions) return;
+    if (document.getElementById('saveIndicator')) return;
+
+    const span = document.createElement('span');
+    span.id = 'saveIndicator';
+    span.className = 'save-indicator';
+    span.innerText = '—';
+    actions.prepend(span);
+}
+
+function scheduleAutosave() {
+    state._isDirty = true;
+    setSaveIndicator('', 'Değişiklik var');
+    // only if editor open
+    if (!state.activeTopicId || !state.activeLessonId) return;
+
+    clearTimeout(state._autosaveTimer);
+    state._autosaveTimer = setTimeout(async () => {
+        try {
+            state._isSaving = true;
+            setSaveIndicator('saving', 'Kaydediliyor…');
+            await saveContent(true); // silent
+            state._isSaving = false;
+            state._isDirty = false;
+            setSaveIndicator('saved', 'Kaydedildi');
+            clearTimeout(state._autosaveTimer2);
+            state._autosaveTimer2 = setTimeout(() => setSaveIndicator('', '—'), 1200);
+        } catch (e) {
+            console.error(e);
+            state._isSaving = false;
+            state._isDirty = true;
+            setSaveIndicator('error', 'Hata');
+        }
+    }, 1600);
+}
+
+async function saveContent(silent = false) {
+    state._isSaving = true;
     let title = document.getElementById('inpContentTitle').value.trim();
     if (!title) {
         title = state.activeLessonType === 'test' ? 'Yeni Test' : 'Yeni Ders';
@@ -402,7 +459,7 @@ async function saveContent() {
         setTimeout(() => btn.innerHTML = oldText, 1500);
 
         loadLessons(state.activeTopicId);
-    } catch (e) { alert(e.message); }
+    } catch (e) { if (!silent) alert(e.message); }
 }
 
 async function deleteContent() {
@@ -514,6 +571,7 @@ function matDrop(toIndex, ev) {
 
     matCleanupDnD();
     renderMaterials();
+    scheduleAutosave();
 }
 
 function matDragEnd(ev) {
@@ -580,7 +638,7 @@ function cleanupDnD() {
 
 async function searchQuestions() {
     const code = document.getElementById('wizLegislation').value.trim();
-    if (!code) return alert("Lütfen bir Mevzuat Kodu girin (Örn: 5271).");
+    if (!code) return if (!silent) alert("Lütfen bir Mevzuat Kodu girin (Örn: 5271).");
 
     const poolList = document.getElementById('poolList');
     poolList.innerHTML = '<div class="text-center p-4"><div class="spinner-border text-primary" role="status"></div><br>Sorular Taranıyor...</div>';
@@ -643,11 +701,11 @@ function autoGenerateTest() {
         if (document.getElementById('wizLegislation').value) {
             searchQuestions().then(() => {
                 if (state.poolQuestions.length > 0) performSmartSelection();
-                else alert("Kriterlere uygun soru bulunamadı.");
+                else if (!silent) alert("Kriterlere uygun soru bulunamadı.");
             });
             return;
         } else {
-            return alert("Lütfen önce Mevzuat Kodu girin.");
+            return if (!silent) alert("Lütfen önce Mevzuat Kodu girin.");
         }
     } else {
         performSmartSelection();
@@ -662,7 +720,7 @@ function performSmartSelection() {
     const addedIds = new Set(state.tempQuestions.map(q => q.id));
     pool = pool.filter(q => !addedIds.has(q.id));
 
-    if (pool.length === 0) return alert("Havuzdaki tüm sorular zaten eklendi.");
+    if (pool.length === 0) return if (!silent) alert("Havuzdaki tüm sorular zaten eklendi.");
 
     let selection = [];
     const difficultyMode = document.getElementById('wizDifficulty').value;
@@ -819,7 +877,7 @@ async function openTrash() {
 // ============================================================
 
 async function openContentTrash() {
-    if (!state.activeTopicId) return alert("Önce bir konu seçin.");
+    if (!state.activeTopicId) return if (!silent) alert("Önce bir konu seçin.");
     const modal = document.getElementById('contentTrashModal');
     if (!modal) return;
     modal.style.display = 'flex';
@@ -915,7 +973,7 @@ async function purgeAllDeletedContent() {
         ids.push(d.id);
     });
 
-    if (ids.length === 0) return alert("Kalıcı silinecek içerik yok.");
+    if (ids.length === 0) return if (!silent) alert("Kalıcı silinecek içerik yok.");
 
     // Batch delete (chunked)
     const { writeBatch } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
