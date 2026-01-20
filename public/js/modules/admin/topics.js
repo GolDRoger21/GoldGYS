@@ -1,9 +1,11 @@
+/* DOSYA: public/js/modules/admin/topics.js */
+
 import { db } from "../../firebase-config.js";
 import {
     collection, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, serverTimestamp, query, orderBy, where, limit
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { openQuestionEditor } from './content.js';
-import { UI_SHELL, renderNavItem } from './topics.ui.js'; // UI Modülünü Import Ettik
+import { UI_SHELL, renderNavItem } from './topics.ui.js';
 
 // ============================================================
 // --- GLOBAL STATE ---
@@ -27,11 +29,10 @@ let state = {
 export function initTopicsPage() {
     console.log("🚀 Studio Pro: Logic Module Loaded");
 
-    // 1. HTML'i Yükle (UI dosyasından)
     const container = document.getElementById('section-topics');
     if (container) container.innerHTML = UI_SHELL;
 
-    // 2. Global Erişim (window objesine fonksiyonları ata)
+    // Window fonksiyonlarını bağla
     window.Studio = {
         open: openEditor,
         close: () => document.getElementById('topicModal').style.display = 'none',
@@ -68,14 +69,18 @@ async function loadTopics() {
     const tbody = document.getElementById('topicsTableBody');
     if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center p-3">Yükleniyor...</td></tr>';
 
-    const q = query(collection(db, "topics"), orderBy("order", "asc"));
-    const snap = await getDocs(q);
-    state.allTopics = [];
-    snap.forEach(doc => { if (doc.data().status !== 'deleted') state.allTopics.push({ id: doc.id, ...doc.data() }); });
-    renderTopicsTable();
+    try {
+        const q = query(collection(db, "topics"), orderBy("order", "asc"));
+        const snap = await getDocs(q);
+        state.allTopics = [];
+        snap.forEach(doc => { if (doc.data().status !== 'deleted') state.allTopics.push({ id: doc.id, ...doc.data() }); });
+        renderTopicsTable();
+    } catch (e) {
+        console.error(e);
+        if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger p-3">Veri yüklenemedi.</td></tr>';
+    }
 }
 
-// Global Filter Fonksiyonu (HTML'den çağrılıyor)
 window.filterTopics = renderTopicsTable;
 
 function renderTopicsTable() {
@@ -113,7 +118,6 @@ async function openEditor(id = null) {
     state.activeTopicId = id;
     state.sidebarTab = 'lesson';
 
-    // Tab butonlarını resetle
     document.getElementById('tabLesson').classList.add('active');
     document.getElementById('tabTest').classList.remove('active');
 
@@ -124,13 +128,11 @@ async function openEditor(id = null) {
         document.getElementById('inpTopicOrder').value = t.order;
         document.getElementById('inpTopicCategory').value = t.category;
         document.getElementById('inpTopicStatus').value = t.isActive;
-
-        document.getElementById('activeTopicTitleDisplay').innerText = t.title; // BAŞLIK GÜNCELLEME
+        document.getElementById('activeTopicTitleDisplay').innerText = t.title;
 
         state.autoFilter = t.title;
         await loadLessons(id);
 
-        // İçerik varsa ilkini seçme, yoksa "Empty State" göster
         document.getElementById('emptyState').style.display = 'flex';
         document.getElementById('metaEditor').style.display = 'none';
         document.getElementById('contentEditor').style.display = 'none';
@@ -139,7 +141,6 @@ async function openEditor(id = null) {
         document.getElementById('inpTopicTitle').value = "";
         document.getElementById('inpTopicOrder').value = state.allTopics.length + 1;
         document.getElementById('contentListNav').innerHTML = '';
-
         document.getElementById('activeTopicTitleDisplay').innerText = "Yeni Konu Oluşturuluyor...";
         showMetaEditor();
     }
@@ -163,9 +164,8 @@ function renderContentNav() {
     const list = document.getElementById('contentListNav');
     const isTest = state.sidebarTab === 'test';
 
-    // Tab butonlarını güncelle (Aktif class'ı)
-    document.querySelectorAll('.studio-tabs .tab-item').forEach((el, idx) => {
-        el.classList.toggle('active', (isTest ? idx === 1 : idx === 0));
+    document.querySelectorAll('.studio-sidebar .segment-btn').forEach((el) => {
+        el.classList.toggle('active', el.id === (isTest ? 'tabTest' : 'tabLesson'));
     });
 
     const items = state.currentLessons.filter(l => isTest ? l.type === 'test' : l.type !== 'test');
@@ -174,9 +174,6 @@ function renderContentNav() {
         list.innerHTML = `<div class="text-center p-4 text-muted small">Bu kategoride içerik yok.<br>Yukarıdan ekleyin.</div>`;
         return;
     }
-
-    // UI dosyasından gelen render fonksiyonunu kullanıyoruz
-    // DİKKAT: renderNavItem fonksiyonunu topics.ui.js'den import ettiğinden emin ol
     list.innerHTML = items.map(l => renderNavItem(l, isTest, state.activeLessonId)).join('');
 }
 
@@ -198,6 +195,7 @@ function createNewContent(type) {
     else {
         renderTestPaper();
         document.getElementById('wizLegislation').value = state.autoFilter || "";
+        document.getElementById('poolList').innerHTML = '<div class="text-center text-muted p-4">Arama yapın...</div>';
     }
 
     document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
@@ -221,43 +219,39 @@ function selectContentItem(id) {
         state.tempQuestions = item.questions || [];
         renderTestPaper();
         document.getElementById('wizLegislation').value = item.legislationCode || state.autoFilter || "";
-        document.getElementById('poolList').innerHTML = '<div class="empty-state-box">Filtreleyin...</div>';
+        document.getElementById('poolList').innerHTML = '<div class="text-center text-muted p-4">Diğer sorular için arama yapın.</div>';
     }
     renderContentNav();
 }
 
-// UI State Yönetimi Güncellemesi
 function prepareEditorUI(type) {
-    // Tüm ekranları gizle
     document.getElementById('emptyState').style.display = 'none';
     document.getElementById('metaEditor').style.display = 'none';
-    document.getElementById('contentEditor').style.display = 'flex'; // Flex ile aç
+    document.getElementById('contentEditor').style.display = 'flex';
 
     const badge = document.getElementById('editorBadge');
 
     if (type === 'test') {
-        badge.innerText = "TEST EDİTÖRÜ";
+        badge.innerText = "TEST";
         badge.className = "badge bg-warning text-dark";
         document.getElementById('wsLessonMode').style.display = 'none';
-        document.getElementById('wsTestMode').style.display = 'flex'; // Split view için flex
+        document.getElementById('wsTestMode').style.setProperty('display', 'flex', 'important');
     } else {
-        badge.innerText = "DERS EDİTÖRÜ";
+        badge.innerText = "DERS";
         badge.className = "badge bg-primary";
-        document.getElementById('wsLessonMode').style.display = 'block'; // Normal akış
-        document.getElementById('wsTestMode').style.display = 'none';
+        document.getElementById('wsLessonMode').style.display = 'block';
+        document.getElementById('wsTestMode').style.setProperty('display', 'none', 'important');
     }
 }
 
-// Konu Ayarlarını Açma
 function showMetaEditor() {
     document.getElementById('emptyState').style.display = 'none';
     document.getElementById('contentEditor').style.display = 'none';
-    document.getElementById('metaEditor').style.display = 'flex'; // Flex ile ortala
+    document.getElementById('metaEditor').style.display = 'flex';
 
     state.activeLessonId = null;
     document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
 
-    // Aktif konu başlığını header'da güncelle
     const topicTitle = document.getElementById('inpTopicTitle').value;
     document.getElementById('activeTopicTitleDisplay').innerText = topicTitle || "Yeni Konu";
 }
@@ -336,50 +330,44 @@ async function deleteContent() {
 function addMaterialUI(type) { state.tempMaterials.push({ id: Date.now(), type, title: '', url: '' }); renderMaterials(); }
 function removeMaterialUI(id) { state.tempMaterials = state.tempMaterials.filter(m => m.id !== id); renderMaterials(); }
 function updateMaterialItem(id, field, val) { const item = state.tempMaterials.find(m => m.id === id); if (item) item[field] = val; }
-// Materyal Render Fonksiyonu (Daha temiz HTML)
+
 function renderMaterials() {
     const container = document.getElementById('materialsContainer');
     if (state.tempMaterials.length === 0) {
-        container.innerHTML = '<div class="text-center text-muted p-4 border dashed rounded">Henüz materyal eklenmedi. Yukarıdan seçin.</div>';
+        container.innerHTML = '<div class="text-center text-muted p-4 border dashed rounded">Henüz materyal eklenmedi.</div>';
         return;
     }
-
     container.innerHTML = state.tempMaterials.map(m => `
         <div class="material-item">
             <div class="mat-icon">${m.type === 'video' ? '🎥' : m.type === 'podcast' ? '🎙️' : m.type === 'pdf' ? '📄' : '📝'}</div>
-            <div class="mat-content">
-                <input type="text" class="form-control fw-bold" placeholder="Materyal Başlığı" value="${m.title}" oninput="window.Studio.updateMat(${m.id},'title',this.value)">
+            <div class="mat-content flex-grow-1">
+                <input type="text" class="form-control form-control-sm fw-bold mb-1" placeholder="Başlık" value="${m.title}" oninput="window.Studio.updateMat(${m.id},'title',this.value)">
                 ${m.type === 'html'
-            ? `<textarea class="form-control font-monospace small" rows="2" placeholder="İçerik / HTML Kodu" oninput="window.Studio.updateMat(${m.id},'url',this.value)">${m.url}</textarea>`
-            : `<input type="text" class="form-control small text-muted" placeholder="URL / Dosya Yolu" value="${m.url}" oninput="window.Studio.updateMat(${m.id},'url',this.value)">`}
+            ? `<textarea class="form-control form-control-sm font-monospace" rows="2" placeholder="İçerik" oninput="window.Studio.updateMat(${m.id},'url',this.value)">${m.url}</textarea>`
+            : `<input type="text" class="form-control form-control-sm text-muted" placeholder="URL" value="${m.url}" oninput="window.Studio.updateMat(${m.id},'url',this.value)">`}
             </div>
-            <button class="btn btn-outline-danger btn-sm" onclick="window.Studio.removeMat(${m.id})" title="Kaldır">
-                <span style="font-size:1.2rem;">&times;</span>
-            </button>
+            <button class="btn btn-outline-danger btn-sm border-0" onclick="window.Studio.removeMat(${m.id})">&times;</button>
         </div>
     `).join('');
 }
 
 // ============================================================
-// --- GELİŞMİŞ ALGORİTMA VE SORGULAMA ---
+// --- TEST & SORU HAVUZU MANTIĞI ---
 // ============================================================
 
 async function searchQuestions() {
     const code = document.getElementById('wizLegislation').value.trim();
-    if (!code) return alert("Lütfen bir Mevzuat Kodu (Örn: 5271) girin.");
+    if (!code) return alert("Lütfen bir Mevzuat Kodu girin.");
 
-    document.getElementById('poolList').innerHTML = '<div class="text-center p-4"><div class="spinner-border text-primary" role="status"></div><br>Sorular Getiriliyor...</div>';
+    document.getElementById('poolList').innerHTML = '<div class="text-center p-4"><div class="spinner-border text-primary spinner-border-sm"></div></div>';
 
     try {
-        // 1. ADIM: Firestore'dan sadece Kanun Koduna göre çek (Client-side filtreleme daha güvenli)
-        // Çünkü "Madde No" string ("1", "10", "2") olarak saklanıyor olabilir, bu da sorgu hatası yaratır.
         const q = query(collection(db, "questions"), where("legislationRef.code", "==", code));
         const snap = await getDocs(q);
 
-        // Filtre Değerlerini Al
         const startArt = parseInt(document.getElementById('wizStart').value) || 0;
         const endArt = parseInt(document.getElementById('wizEnd').value) || 99999;
-        const diffFilter = document.getElementById('wizDifficulty').value; // Boş ise hepsi
+        const diffFilter = document.getElementById('wizDifficulty').value;
         const txtFilter = document.getElementById('wizSearchText').value.toLowerCase();
 
         let filteredArr = [];
@@ -387,197 +375,94 @@ async function searchQuestions() {
         snap.forEach(doc => {
             const d = doc.data();
             if (d.isDeleted) return;
-
-            // Güvenli Madde No Çevirimi (String -> Integer)
-            // Eğer madde "Geçici 1" gibi ise 0 veya NaN dönebilir, bunları sona atabiliriz.
             const artRaw = d.legislationRef?.article;
             const artNo = parseInt(artRaw);
 
-            // A. Madde Aralığı Filtresi (Eğer sayısal bir değerse)
-            if (!isNaN(artNo)) {
-                if (artNo < startArt || artNo > endArt) return;
-            }
-
-            // B. Zorluk Filtresi (Eğer seçildiyse)
+            if (!isNaN(artNo) && (artNo < startArt || artNo > endArt)) return;
             if (diffFilter) {
-                // Seçilen zorluk seviyesi ve civarını al (Örn: 3 seçilirse 3 gelir)
-                // "1" seçilirse kolaylar (1-2), "5" seçilirse zorlar (4-5)
                 if (diffFilter === "1" && d.difficulty > 2) return;
                 if (diffFilter === "3" && d.difficulty !== 3) return;
                 if (diffFilter === "5" && d.difficulty < 4) return;
             }
-
-            // C. Metin Arama
             if (txtFilter && !d.text.toLowerCase().includes(txtFilter)) return;
-
             filteredArr.push({ id: doc.id, ...d, artNo: isNaN(artNo) ? 99999 : artNo });
         });
 
-        // Küçükten büyüğe madde numarasına göre sırala
         filteredArr.sort((a, b) => a.artNo - b.artNo);
-
         state.poolQuestions = filteredArr;
+        document.getElementById('poolCount').innerText = filteredArr.length;
         renderPoolList();
 
     } catch (error) {
-        console.error("Sorgu Hatası:", error);
-        document.getElementById('poolList').innerHTML = `<div class="text-center text-danger p-3">Hata: ${error.message}</div>`;
+        console.error("Hata:", error);
+        document.getElementById('poolList').innerHTML = `<div class="text-center text-danger p-2 small">${error.message}</div>`;
     }
 }
 
-// Akıllı Test Oluşturucu
 function autoGenerateTest() {
     if (state.poolQuestions.length === 0) {
-        // Eğer havuz boşsa, mevcut filtrelerle otomatik arama yap
         if (document.getElementById('wizLegislation').value) {
             searchQuestions().then(() => {
-                // Arama bitince tekrar çağır (Recursive değil, one-off)
                 if (state.poolQuestions.length > 0) performSmartSelection();
-                else alert("Kriterlere uygun soru bulunamadı.");
+                else alert("Soru bulunamadı.");
             });
-            return;
         } else {
-            return alert("Lütfen önce Mevzuat Kodu girin ve filtreleyin.");
+            alert("Mevzuat kodu girin.");
         }
     } else {
         performSmartSelection();
     }
 }
 
-// Algoritmanın Kalbi
 function performSmartSelection() {
     const targetCount = 15;
     let pool = [...state.poolQuestions];
-
-    // Zaten ekli olanları havuzdan çıkar (Mükerrer önleme)
     const addedIds = new Set(state.tempQuestions.map(q => q.id));
     pool = pool.filter(q => !addedIds.has(q.id));
 
-    if (pool.length === 0) return alert("Havuzdaki tüm sorular zaten eklendi.");
+    if (pool.length === 0) return alert("Tüm sorular zaten ekli.");
 
-    let selection = [];
-    const difficultyMode = document.getElementById('wizDifficulty').value;
-
-    if (!difficultyMode) {
-        // --- DENGELİ DAĞILIM MODU (Eğer zorluk seçilmediyse) ---
-        // Hedef: %20 Kolay, %60 Orta, %20 Zor
-        const easy = pool.filter(q => q.difficulty <= 2);
-        const medium = pool.filter(q => q.difficulty === 3);
-        const hard = pool.filter(q => q.difficulty >= 4);
-
-        const countEasy = Math.ceil(targetCount * 0.2);
-        const countHard = Math.ceil(targetCount * 0.2);
-        const countMedium = targetCount - countEasy - countHard;
-
-        // Shuffle ve Seç
-        selection = [
-            ...easy.sort(() => 0.5 - Math.random()).slice(0, countEasy),
-            ...medium.sort(() => 0.5 - Math.random()).slice(0, countMedium),
-            ...hard.sort(() => 0.5 - Math.random()).slice(0, countHard)
-        ];
-
-        // Eğer kota dolmadıysa (örneğin hiç zor soru yoksa), kalanlardan rastgele tamamla
-        if (selection.length < targetCount) {
-            const currentIds = new Set(selection.map(q => q.id));
-            const remaining = pool.filter(q => !currentIds.has(q.id));
-            const needed = targetCount - selection.length;
-            selection = [...selection, ...remaining.sort(() => 0.5 - Math.random()).slice(0, needed)];
-        }
-
-    } else {
-        // --- SPESİFİK ZORLUK MODU ---
-        // Direkt filtrelenmiş havuzdan rastgele seç
-        selection = pool.sort(() => 0.5 - Math.random()).slice(0, targetCount);
-    }
-
-    // Seçilenleri Madde Numarasına Göre Sırala (Pedagojik Akış)
+    let selection = pool.sort(() => 0.5 - Math.random()).slice(0, targetCount);
     selection.sort((a, b) => a.artNo - b.artNo);
 
-    // Ekle
     state.tempQuestions = [...state.tempQuestions, ...selection];
-
-    // UI Güncelle
     renderTestPaper();
-    renderPoolList(); // Eklendi etiketlerini güncellemek için
-
-    // Kullanıcıya bilgi ver
-    const actualAdded = selection.length;
-    // Toast veya basit log (Opsiyonel)
-    console.log(`${actualAdded} soru akıllı algoritma ile eklendi.`);
+    renderPoolList();
 }
-
-async function openTrash() {
-    const modal = document.getElementById('trashModal');
-    if (!modal) return;
-    modal.style.display = 'flex';
-    const tbody = document.getElementById('trashTableBody');
-    tbody.innerHTML = '<tr><td>Yükleniyor...</td></tr>';
-
-    const q = query(collection(db, "topics"), where("status", "==", "deleted"));
-    const snap = await getDocs(q);
-
-    if (snap.empty) { tbody.innerHTML = '<tr><td colspan="2">Boş</td></tr>'; return; }
-    tbody.innerHTML = snap.docs.map(d => `<tr><td>${d.data().title}</td><td class="text-end"><button class="btn btn-success btn-sm" onclick="window.Studio.trash.restore('${d.id}')">Geri</button></td></tr>`).join('');
-}
-async function restoreItem(id) { await updateDoc(doc(db, "topics", id), { status: 'active' }); openTrash(); loadTopics(); }
-async function purgeItem(id) { }
-// ============================================================
-// --- EKSİK FONKSİYONLAR (Test Editörü / Wizard) ---
-// ============================================================
 
 function addToTestPaper(id) {
     const question = state.poolQuestions.find(q => q.id === id);
-    if (!question) return;
-
-    // Zaten ekli mi kontrolü
-    if (state.tempQuestions.some(q => q.id === id)) {
-        alert("Bu soru zaten teste ekli.");
-        return;
-    }
-
+    if (!question || state.tempQuestions.some(q => q.id === id)) return;
     state.tempQuestions.push(question);
-
-    // Soruları madde numarasına göre sırala (Pedagojik akış için)
     state.tempQuestions.sort((a, b) => (a.artNo || 0) - (b.artNo || 0));
-
     renderTestPaper();
-    renderPoolList(); // Ekle butonunun durumunu güncellemek için
+    renderPoolList();
 }
 
 function removeFromTestPaper(id) {
     state.tempQuestions = state.tempQuestions.filter(q => q.id !== id);
     renderTestPaper();
-    renderPoolList(); // Ekle butonunu geri getirmek için
+    renderPoolList();
 }
 
 function renderTestPaper() {
-    // UI_SHELL içerisindeki liste ID'si 'testQuestionsList' varsayıldı. 
-    // Eğer HTML'de farklıysa burayı düzeltin.
     const container = document.getElementById('testQuestionsList');
-    const countDisplay = document.getElementById('testQuestionCount'); // Varsa sayaç ID'si
-
+    const countDisplay = document.getElementById('testQuestionCount');
     if (countDisplay) countDisplay.innerText = `${state.tempQuestions.length} Soru`;
 
-    if (!container) {
-        console.warn("Element #testQuestionsList bulunamadı (topics.ui.js kontrol edilmeli)");
-        return;
-    }
-
     if (state.tempQuestions.length === 0) {
-        container.innerHTML = '<div class="text-center text-muted p-3 border dashed rounded">Henüz soru eklenmedi.</div>';
+        container.innerHTML = '<div class="text-center text-muted p-4 small">Henüz soru eklenmedi.</div>';
         return;
     }
 
     container.innerHTML = state.tempQuestions.map((q, index) => `
-        <div class="d-flex justify-content-between align-items-center border-bottom py-2">
-            <div style="flex:1; overflow:hidden;">
-                <span class="fw-bold small text-muted me-2">${index + 1}.</span>
-                <span class="badge bg-light text-dark border me-1">${q.legislationRef?.code || '?'} Md:${q.legislationRef?.article || '?'}</span>
-                <span class="small text-truncate d-inline-block align-bottom" style="max-width:70%;">${q.text}</span>
+        <div class="material-item p-2 mb-1" style="font-size:0.9rem;">
+            <div style="width:25px; font-weight:bold; color:#64748b;">${index + 1}.</div>
+            <div style="flex:1;">
+                <span class="badge bg-light text-dark border me-1">Md.${q.legislationRef?.article || '?'}</span>
+                <span class="text-dark">${q.text.substring(0, 60)}...</span>
             </div>
-            <button class="btn btn-sm btn-link text-danger p-0 ms-2" onclick="window.Studio.wizard.remove('${q.id}')" title="Çıkar">
-                <span style="font-size:1.2rem;">&times;</span>
-            </button>
+            <button class="btn btn-sm text-danger p-0" onclick="window.Studio.wizard.remove('${q.id}')">&times;</button>
         </div>
     `).join('');
 }
@@ -587,32 +472,39 @@ function renderPoolList() {
     if (!list) return;
 
     if (!state.poolQuestions || state.poolQuestions.length === 0) {
-        list.innerHTML = '<div class="text-center p-3 text-muted">Kriterlere uygun soru bulunamadı.</div>';
+        list.innerHTML = '<div class="text-center p-3 text-muted small">Sonuç yok.</div>';
         return;
     }
 
     list.innerHTML = state.poolQuestions.map(q => {
         const isAdded = state.tempQuestions.some(x => x.id === q.id);
-
-        // Buton durumu: Ekliyse pasif ve yeşil, değilse aktif ve mavi
-        const btnHtml = isAdded
-            ? `<button class="btn btn-sm btn-success disabled" style="opacity:0.6;"><i class="bi bi-check"></i> Ekli</button>`
-            : `<button class="btn btn-sm btn-outline-primary" onclick="window.Studio.wizard.add('${q.id}')">Ekle</button>`;
+        const btn = isAdded
+            ? `<button class="btn btn-sm btn-light text-success disabled p-1" style="font-size:0.7rem;">Ekli</button>`
+            : `<button class="btn btn-sm btn-outline-primary p-1" style="font-size:0.7rem;" onclick="window.Studio.wizard.add('${q.id}')">Ekle</button>`;
 
         return `
-        <div class="card mb-2 shadow-sm question-pool-item border-${isAdded ? 'success' : 'light'}">
-            <div class="card-body p-2 d-flex justify-content-between align-items-center">
-                <div style="flex:1; padding-right:10px;">
-                    <div class="d-flex align-items-center mb-1">
-                        <span class="badge bg-secondary me-2" style="font-size:0.7rem;">Md. ${q.legislationRef?.article}</span>
-                        <span class="text-muted small" style="font-size:0.7rem;">Zorluk: ${q.difficulty || '-'}</span>
-                    </div>
-                    <div class="text-truncate-2 small text-dark">${q.text}</div>
+        <div class="material-item p-2 mb-1" style="border-left: 3px solid ${isAdded ? '#10b981' : '#e2e8f0'};">
+            <div style="flex:1;">
+                <div class="d-flex align-items-center mb-1">
+                    <span class="badge bg-secondary me-2" style="font-size:0.65rem;">Md. ${q.legislationRef?.article}</span>
+                    <span class="text-muted" style="font-size:0.7rem;">${q.difficulty === 1 ? 'Kolay' : q.difficulty === 5 ? 'Zor' : 'Orta'}</span>
                 </div>
-                <div style="flex-shrink:0;">
-                    ${btnHtml}
-                </div>
+                <div class="text-truncate small" style="max-width:200px;">${q.text}</div>
             </div>
+            ${btn}
         </div>`;
     }).join('');
 }
+
+async function openTrash() {
+    const modal = document.getElementById('trashModal');
+    modal.style.display = 'flex';
+    const tbody = document.getElementById('trashTableBody');
+    tbody.innerHTML = '<tr><td>Yükleniyor...</td></tr>';
+    const q = query(collection(db, "topics"), where("status", "==", "deleted"));
+    const snap = await getDocs(q);
+    if (snap.empty) { tbody.innerHTML = '<tr><td colspan="2">Boş</td></tr>'; return; }
+    tbody.innerHTML = snap.docs.map(d => `<tr><td>${d.data().title}</td><td class="text-end"><button class="btn btn-success btn-sm" onclick="window.Studio.trash.restore('${d.id}')">Geri</button></td></tr>`).join('');
+}
+async function restoreItem(id) { await updateDoc(doc(db, "topics", id), { status: 'active' }); openTrash(); loadTopics(); }
+async function purgeItem(id) { }
