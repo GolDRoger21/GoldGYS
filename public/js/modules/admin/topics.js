@@ -155,10 +155,10 @@ async function loadLessons(topicId) {
 function switchTabHandler(tab) {
     state.sidebarTab = tab;
 
-    // Segmented Control Görsel Güncelleme
     const btnLesson = document.getElementById('tabLesson');
     const btnTest = document.getElementById('tabTest');
 
+    // CSS'te .active sınıfı tanımlı, onu kullanıyoruz
     if (tab === 'lesson') {
         btnLesson.classList.add('active');
         btnTest.classList.remove('active');
@@ -526,31 +526,54 @@ function renderPoolList() {
 
 function renderTestPaper() {
     const list = document.getElementById('paperList');
-    document.getElementById('paperCount').innerText = `${state.tempQuestions.length} Soru`;
+    const countEl = document.getElementById('paperCount');
+
+    if (countEl) countEl.innerText = `${state.tempQuestions.length} Soru`;
 
     if (state.tempQuestions.length === 0) {
-        list.innerHTML = '<div class="empty-selection bg-white"><div class="empty-icon">📝</div><p>Test kağıdı boş.</p></div>';
+        list.innerHTML = `
+            <div class="empty-paper-state">
+                <div class="icon">📝</div>
+                <h5>Test Kağıdı Boş</h5>
+                <p>Soldaki panelden filtreleme yaparak soru ekleyin veya otomatik oluşturucuyu kullanın.</p>
+            </div>`;
         return;
     }
 
     list.innerHTML = state.tempQuestions.map((q, i) => {
-        const shortText = q.text.length > 80 ? q.text.substring(0, 80) + '...' : q.text;
+        // Metni temizle ve kısalt
+        const cleanText = q.text.replace(/<[^>]*>?/gm, '');
+        const shortText = cleanText.length > 120 ? cleanText.substring(0, 120) + '...' : cleanText;
+
+        // Zorluk seviyesi badge rengi
+        let diffBadge = '';
+        if (q.difficulty <= 2) diffBadge = '<span class="badge-outline success">Kolay</span>';
+        else if (q.difficulty === 3) diffBadge = '<span class="badge-outline warning" style="color:#f59e0b; border-color:#f59e0b">Orta</span>';
+        else diffBadge = '<span class="badge-outline danger">Zor</span>';
+
         return `
-        <div class="mini-q-card">
-            <div class="d-flex gap-2">
-                <span class="fw-bold text-primary">${i + 1}.</span>
-                <div class="flex-grow-1">
-                    <div class="text-dark small mb-1">${shortText}</div>
-                    <div class="d-flex gap-2">
-                         <span class="badge bg-light text-muted border" style="font-size:0.7em">Md. ${q.artNo}</span>
-                    </div>
-                </div>
+        <div class="question-card">
+            <div class="qc-left">
+                <span class="qc-handle" title="Sıralamak için sürükle (Yakında)">:::</span>
+                <span class="qc-number">${i + 1}</span>
             </div>
-            <button class="q-action-btn btn-remove-q" 
-                onclick="event.stopPropagation(); window.Studio.wizard.remove(${i})" title="Çıkar">
-                <span>&times;</span>
-            </button>
-        </div>`
+            <div class="qc-body">
+                <div class="qc-meta">
+                    <span class="badge-outline">Md. ${q.artNo || '?'}</span>
+                    ${diffBadge}
+                    <span class="badge-outline" style="border:none; color:#94a3b8">${q.category || 'Genel'}</span>
+                </div>
+                <div class="qc-text" title="${cleanText}">${shortText}</div>
+            </div>
+            <div class="qc-actions">
+                <button class="btn-icon edit" onclick="window.Studio.wizard.fullEdit('${q.id}')" title="Düzenle">
+                    ✏️
+                </button>
+                <button class="btn-icon delete" onclick="event.stopPropagation(); window.Studio.wizard.remove(${i})" title="Çıkar">
+                    🗑️
+                </button>
+            </div>
+        </div>`;
     }).join('');
 }
 

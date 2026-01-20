@@ -74,13 +74,13 @@ export const UI_SHELL = `
                     
                     <!-- A. Üst Kısım: Segmented Tabs (Dersler | Testler) -->
                     <div class="sidebar-header-modern">
-                        <div class="segmented-control">
-                            <button class="segment-btn active" id="tabLesson" onclick="window.Studio.switchTab('lesson')">
+                        <div class="studio-tabs">
+                            <div class="tab-item active" id="tabLesson" onclick="window.Studio.switchTab('lesson')">
                                 📄 Ders Notları
-                            </button>
-                            <button class="segment-btn" id="tabTest" onclick="window.Studio.switchTab('test')">
+                            </div>
+                            <div class="tab-item" id="tabTest" onclick="window.Studio.switchTab('test')">
                                 📝 Testler
-                            </button>
+                            </div>
                         </div>
                     </div>
 
