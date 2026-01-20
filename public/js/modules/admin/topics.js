@@ -246,7 +246,7 @@ function renderContentNav() {
 }
 
 function createNewContent(type) {
-    if (!state.activeTopicId) return if (!silent) alert("Lütfen önce konuyu kaydedin.");
+    if (!state.activeTopicId) { alert("Lütfen önce konuyu kaydedin."); return; }
 
     // Eğer type parametresi gelmezse, aktif tab'a göre belirle
     const contentType = type || state.sidebarTab;
@@ -334,7 +334,7 @@ function showMetaEditor() {
 async function saveTopicMeta() {
     const id = document.getElementById('editTopicId').value;
     const title = document.getElementById('inpTopicTitle').value;
-    if (!title) return if (!silent) alert("Başlık giriniz.");
+    if (!title) return alert("Başlık giriniz.");
 
     const data = {
         title,
@@ -352,9 +352,9 @@ async function saveTopicMeta() {
             state.activeTopicId = ref.id;
             document.getElementById('editTopicId').value = ref.id;
         }
-        if (!silent) alert("Konu ayarları kaydedildi.");
+        alert("Konu ayarları kaydedildi.");
         loadTopics();
-    } catch (e) { if (!silent) alert(e.message); }
+    } catch (e) { alert(e.message); }
 }
 
 function validateMaterialsBeforeSave() {
@@ -638,7 +638,7 @@ function cleanupDnD() {
 
 async function searchQuestions() {
     const code = document.getElementById('wizLegislation').value.trim();
-    if (!code) return if (!silent) alert("Lütfen bir Mevzuat Kodu girin (Örn: 5271).");
+    if (!code) return alert("Lütfen bir Mevzuat Kodu girin (Örn: 5271).");
 
     const poolList = document.getElementById('poolList');
     poolList.innerHTML = '<div class="text-center p-4"><div class="spinner-border text-primary" role="status"></div><br>Sorular Taranıyor...</div>';
@@ -701,11 +701,11 @@ function autoGenerateTest() {
         if (document.getElementById('wizLegislation').value) {
             searchQuestions().then(() => {
                 if (state.poolQuestions.length > 0) performSmartSelection();
-                else if (!silent) alert("Kriterlere uygun soru bulunamadı.");
+                else alert("Kriterlere uygun soru bulunamadı.");
             });
             return;
         } else {
-            return if (!silent) alert("Lütfen önce Mevzuat Kodu girin.");
+            return alert("Lütfen önce Mevzuat Kodu girin.");
         }
     } else {
         performSmartSelection();
@@ -720,7 +720,7 @@ function performSmartSelection() {
     const addedIds = new Set(state.tempQuestions.map(q => q.id));
     pool = pool.filter(q => !addedIds.has(q.id));
 
-    if (pool.length === 0) return if (!silent) alert("Havuzdaki tüm sorular zaten eklendi.");
+    if (pool.length === 0) return alert("Havuzdaki tüm sorular zaten eklendi.");
 
     let selection = [];
     const difficultyMode = document.getElementById('wizDifficulty').value;
@@ -877,7 +877,7 @@ async function openTrash() {
 // ============================================================
 
 async function openContentTrash() {
-    if (!state.activeTopicId) return if (!silent) alert("Önce bir konu seçin.");
+    if (!state.activeTopicId) return alert("Önce bir konu seçin.");
     const modal = document.getElementById('contentTrashModal');
     if (!modal) return;
     modal.style.display = 'flex';
@@ -973,7 +973,7 @@ async function purgeAllDeletedContent() {
         ids.push(d.id);
     });
 
-    if (ids.length === 0) return if (!silent) alert("Kalıcı silinecek içerik yok.");
+    if (ids.length === 0) return alert("Kalıcı silinecek içerik yok.");
 
     // Batch delete (chunked)
     const { writeBatch } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
