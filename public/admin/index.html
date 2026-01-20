@@ -6,176 +6,143 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Yönetim Paneli | GOLD GYS</title>
 
-    <!-- Fontlar -->
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap"
         rel="stylesheet">
 
-    <!-- CSS Dosyaları (Sıralama Önemli) -->
     <link rel="stylesheet" href="../styles/tokens.css">
+    <link rel="stylesheet" href="../css/app.css">
     <link rel="stylesheet" href="../css/layout.css">
     <link rel="stylesheet" href="../css/admin.css">
 
-    <link rel="icon"
-        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230F172A'/><text x='50' y='70' font-family='serif' font-size='60' fill='%23D4AF37' text-anchor='middle' font-weight='bold'>G</text></svg>">
+    <link rel="icon" type="image/png" href="../icons/favicon.png">
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
-        /* Sayfa yüklenirken içeriğin titremesini engelle */
+        /* Sayfa yüklenirken beyaz ekran sorunu yaşamamak için */
         body {
-            visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        body.loaded {
+            opacity: 1;
         }
     </style>
-    <link rel="manifest" href="/manifest.json">
 </head>
 
-<body>
+<body class="admin-body">
 
-    <!-- UI Loader: Layout ve Admin Kontrolleri -->
+    <div id="pageLoader"
+        style="position:fixed; inset:0; background:#fff; z-index:99999; display:flex; justify-content:center; align-items:center;">
+        <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+            <span class="visually-hidden">Yükleniyor...</span>
+        </div>
+    </div>
+
     <script type="module">
         import { initLayout } from '../js/ui-loader.js';
-        document.addEventListener('DOMContentLoaded', () => {
-            // Admin sayfasında olduğumuzu belirtiyoruz
-            initLayout();
+        document.addEventListener('DOMContentLoaded', async () => {
+            await initLayout(); // Header ve Sidebar'ı yükler
+            document.body.classList.add('loaded'); // Sayfayı göster
+            document.getElementById('pageLoader').style.display = 'none'; // Loader'ı gizle
         });
     </script>
 
-    <!-- Admin İçerik Container -->
-    <!-- NOT: Header ve Sidebar ui-loader tarafından otomatik eklenecek -->
-    <div class="content-wrapper">
+    <div class="admin-layout">
 
-        <section id="section-dashboard" class="admin-section">
-            <div class="dashboard-header">
-                <div>
-                    <h2>Genel Bakış</h2>
-                    <p class="text-muted">Sistem durumunu ve son aktiviteleri buradan takip edebilirsiniz.</p>
-                </div>
-                <div class="date-display" id="currentDateDisplay"></div>
-            </div>
+        <main class="content">
 
-            <div class="stats-grid" id="statsGrid">
-                <div class="card">
-                    <p>Veriler yükleniyor...</p>
-                </div>
-            </div>
+            <div id="mainContainer">
 
-            <div class="dashboard-charts-row">
-                <div class="chart-container card">
-                    <div class="card-header-flex">
-                        <h3>📈 Son 7 Gün Üye Katılımı</h3>
+                <section id="section-dashboard" class="admin-section">
+                    <div class="dashboard-header">
+                        <div>
+                            <h2>Genel Bakış</h2>
+                            <p class="text-muted">Sistem durumunu ve son aktiviteleri buradan takip edebilirsiniz.</p>
+                        </div>
+                        <div class="date-display" id="currentDateDisplay"></div>
                     </div>
-                    <div class="chart-wrapper">
-                        <canvas id="usersChart"></canvas>
-                    </div>
-                </div>
 
-                <div class="quick-actions-container">
-                    <div class="card action-card">
-                        <h3>⚡ Hızlı İşlemler</h3>
-                        <div class="action-buttons">
-                            <button onclick="window.location.hash='content'" class="btn-action">
-                                <span class="icon">➕</span> Soru Ekle
-                            </button>
-                            <button onclick="window.location.hash='users'" class="btn-action">
-                                <span class="icon">🔍</span> Üye Ara
-                            </button>
+                    <div class="stats-grid" id="statsGrid">
+                        <div class="card p-4">
+                            <p>İstatistikler yükleniyor...</p>
                         </div>
                     </div>
 
-                    <div class="card donut-card">
-                        <h3>📚 Soru Dağılımı</h3>
-                        <div class="chart-wrapper-small">
-                            <canvas id="questionsChart"></canvas>
+                    <div class="dashboard-charts-row">
+                        <div class="chart-container card">
+                            <h3>📈 Son 7 Gün Üye Katılımı</h3>
+                            <div class="chart-wrapper"><canvas id="usersChart"></canvas></div>
+                        </div>
+                        <div class="quick-actions-container">
+                            <div class="card action-card">
+                                <h3>⚡ Hızlı İşlemler</h3>
+                                <div class="action-buttons">
+                                    <button onclick="window.location.hash='topics'" class="btn-action">📑 İçerik
+                                        Stüdyosu</button>
+                                    <button onclick="window.location.hash='content'" class="btn-action">📚 Soru
+                                        Bankası</button>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </div>
-            </div>
+                </section>
 
-            <div class="dashboard-tables-row">
-                <div class="card table-card">
-                    <div class="card-header-flex">
-                        <h3>👥 Son Üyeler</h3>
-                        <a href="#users" class="btn-text">Tümünü Gör →</a>
+                <section id="section-users" class="admin-section" style="display:none;">
+                    <div class="section-header">
+                        <h2>👥 Üye Yönetimi</h2>
                     </div>
-                    <div class="table-responsive">
-                        <tbody id="recentUsersTable"></tbody>
+                    <div id="usersTableContainer" class="card p-0">
+                        <div class="p-4">Yükleniyor...</div>
                     </div>
-                </div>
+                </section>
 
-                <div class="card table-card">
-                    <div class="card-header-flex">
-                        <h3>🚩 Son Bildirimler</h3>
-                        <a href="#reports" class="btn-text">Tümünü Gör →</a>
+                <section id="section-topics" class="admin-section" style="display:none;">
+                    <div class="text-center p-5">
+                        <div class="spinner-border text-primary" role="status"></div>
+                        <p class="mt-2 text-muted">Stüdyo Yükleniyor...</p>
                     </div>
-                    <div class="table-responsive">
-                        <tbody id="recentReportsTable"></tbody>
+                </section>
+
+                <section id="section-content" class="admin-section" style="display:none;">
+                    <div class="section-header">
+                        <h2>📚 Soru Bankası</h2>
                     </div>
-                </div>
-            </div>
-        </section>
+                    <div class="card p-0">
+                        <div class="table-responsive">
+                            <table class="admin-table">
+                                <tbody id="questionsTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
 
-        <!-- Diğer Sectionlar (Users, Content, vb.) -->
-        <section id="section-users" class="admin-section" style="display: none;">
-            <div class="section-header">
-                <h2>Üye Yönetimi</h2>
-            </div>
-            <div class="card">
-                <div class="table-responsive">
-                    <table class="admin-table">
-                        <thead>
-                            <tr>
-                                <th>Kullanıcı</th>
-                                <th>Email</th>
-                                <th>Rol</th>
-                                <th>Kayıt Tarihi</th>
-                                <th>İşlemler</th>
-                            </tr>
-                        </thead>
-                        <tbody id="usersTableBody"></tbody>
-                    </table>
-                </div>
-            </div>
-        </section>
+                <section id="section-exams" class="admin-section" style="display:none;">
+                    <div class="section-header">
+                        <h2>📝 Deneme Sınavları</h2>
+                    </div>
+                    <div class="card p-4 text-center text-muted">Deneme modülü hazırlanıyor...</div>
+                </section>
 
-        <!-- Konu Yönetimi Section -->
-        <section id="section-topics" class="admin-section" style="display: none;">
-            <!-- İçerik topics.js tarafından doldurulacak -->
-        </section>
+                <section id="section-importer" class="admin-section" style="display:none;">
+                    <div class="section-header">
+                        <h2>📥 Toplu İçe Aktar</h2>
+                    </div>
+                    <div class="card p-4">JSON/Excel yükleme alanı...</div>
+                </section>
 
-        <!-- Soru Bankası Section (Eski Content) -->
-        <section id="section-content" class="admin-section" style="display: none;">
-            <div class="section-header">
-                <h2>📚 Soru Bankası</h2>
-            </div>
-            <div class="card">
-                <div class="content-forms">
-                    <div id="questionsListGrid"></div>
-                </div>
-            </div>
-        </section>
+                <section id="section-reports" class="admin-section" style="display:none;">
+                    <div class="section-header">
+                        <h2>🚩 Hata Bildirimleri</h2>
+                    </div>
+                    <div id="reportsList" class="card p-0"></div>
+                </section>
 
-        <section id="section-reports" class="admin-section" style="display: none;">
-            <div class="section-header">
-                <h2>Hata Bildirimleri</h2>
             </div>
-            <div class="card">
-                <div id="reportsList"></div>
-            </div>
-        </section>
-
-        <section id="section-legislation" class="admin-section" style="display: none;">
-            <div class="section-header">
-                <h2>⚖️ Mevzuat Değişiklik Yönetimi</h2>
-            </div>
-            <div class="card">
-                <p class="text-muted">Mevzuat değişikliklerini buradan yönetebilirsiniz.</p>
-            </div>
-        </section>
-
-        <section id="section-exams" class="admin-section" style="display: none;"></section>
-        <section id="section-importer" class="admin-section" style="display: none;"></section>
-
+        </main>
     </div>
 
     <script type="module" src="../js/admin-page.js"></script>
