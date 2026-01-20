@@ -27,7 +27,8 @@ let state = {
     _isDirty: false,
     _isSaving: false,
     _matDragIndex: null,
-    _dragIndex: null
+    _dragIndex: null,
+    _isNormalizing: false
 };
 
 // ============================================================
@@ -103,6 +104,38 @@ function closeEditor() {
     document.getElementById('topicModal').style.display = 'none';
 }
 
+function closeModalById(id) {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+}
+
+function sortTopicsByOrder(a, b) {
+    const orderDiff = (a.order ?? 0) - (b.order ?? 0);
+    if (orderDiff !== 0) return orderDiff;
+    return (a.title || '').localeCompare(b.title || '', 'tr');
+}
+
+function buildTopicHierarchy(topics) {
+    const byParent = new Map();
+    topics.forEach(t => {
+        const key = t.parentId || null;
+        if (!byParent.has(key)) byParent.set(key, []);
+        byParent.get(key).push(t);
+    });
+    for (const list of byParent.values()) {
+        list.sort(sortTopicsByOrder);
+    }
+    return { roots: byParent.get(null) || [], byParent };
+}
+
+function getNextOrderForParent(parentId, excludeId = null) {
+    const siblingOrders = state.allTopics
+        .filter(t => (t.parentId || null) === (parentId || null) && t.id !== excludeId)
+        .map(t => t.order || 0);
+    const maxOrder = siblingOrders.length ? Math.max(...siblingOrders) : 0;
+    return maxOrder + 1;
+}
+
 function toggleMetaDrawer(open = true) {
     const drawer = document.getElementById('metaDrawer');
     const backdrop = document.getElementById('metaDrawerBackdrop');
@@ -144,6 +177,11 @@ async function loadTopics() {
             const d = doc.data();
             if (d.status !== 'deleted') state.allTopics.push({ id: doc.id, ...d });
         });
+        const didNormalize = await normalizeTopicOrders(state.allTopics);
+        if (didNormalize) {
+            await loadTopics();
+            return;
+        }
         renderTopicsTable();
         updateParentOptions(state.activeTopicId);
     } catch (e) {
@@ -165,20 +203,44 @@ function renderTopicsTable() {
         (cat === 'all' || t.category === cat) &&
         (t.title || '').toLowerCase().includes(search)
     );
+    const visibleIds = new Set(filtered.map(t => t.id));
+    filtered.forEach(t => {
+        if (t.parentId) visibleIds.add(t.parentId);
+    });
+    const visibleTopics = state.allTopics.filter(t => visibleIds.has(t.id));
     const topicMap = new Map(state.allTopics.map(t => [t.id, t]));
+    const { roots, byParent } = buildTopicHierarchy(visibleTopics);
+    const rows = [];
+
+    roots.forEach((parent, parentIndex) => {
+        rows.push({ topic: parent, depth: 0, displayOrder: `${parentIndex + 1}` });
+        const children = byParent.get(parent.id) || [];
+        children.forEach((child, childIndex) => {
+            rows.push({
+                topic: child,
+                depth: 1,
+                displayOrder: `${parentIndex + 1}.${childIndex + 1}`
+            });
+        });
+    });
 
     const badge = document.getElementById('topicCountBadge');
-    if (badge) badge.innerText = `${filtered.length} Kayıt`;
+    if (badge) badge.innerText = `${rows.length} Kayıt`;
 
-    tbody.innerHTML = filtered.length ? filtered.map(t => `
-        <tr>
-            <td>${t.order}</td>
-            <td><strong>${t.title}</strong></td>
-            <td>${t.parentId ? (topicMap.get(t.parentId)?.title || '-') : '-'}</td>
-            <td><span class="badge bg-light border text-dark">${t.category}</span></td>
-            <td>${t.lessonCount || 0}</td>
-            <td>${t.isActive ? '<span class="text-success">Yayında</span>' : '<span class="text-muted">Taslak</span>'}</td>
-            <td class="text-end"><button class="btn btn-sm btn-primary" onclick="window.Studio.open('${t.id}')">Stüdyo</button></td>
+    tbody.innerHTML = rows.length ? rows.map(({ topic, depth, displayOrder }) => `
+        <tr class="topic-row ${depth ? 'topic-row-child' : 'topic-row-parent'}">
+            <td>${displayOrder}</td>
+            <td>
+                <div class="topic-title ${depth ? 'topic-title-child' : ''}">
+                    ${depth ? '<span class="topic-branch">↳</span>' : ''}
+                    <strong>${topic.title}</strong>
+                </div>
+            </td>
+            <td>${topic.parentId ? (topicMap.get(topic.parentId)?.title || '-') : '-'}</td>
+            <td><span class="badge bg-light border text-dark">${topic.category}</span></td>
+            <td>${topic.lessonCount || 0}</td>
+            <td>${topic.isActive ? '<span class="text-success">Yayında</span>' : '<span class="text-muted">Taslak</span>'}</td>
+            <td class="text-end"><button class="btn btn-sm btn-primary" onclick="window.Studio.open('${topic.id}')">Stüdyo</button></td>
         </tr>
     `).join('') : '<tr><td colspan="7" class="text-center p-4">Kayıt bulunamadı.</td></tr>';
 }
@@ -188,6 +250,8 @@ function renderTopicsTable() {
 // ============================================================
 
 async function openEditor(id = null) {
+    closeModalById('trashModal');
+    closeModalById('contentTrashModal');
     document.getElementById('topicModal').style.display = 'flex';
     state.activeTopicId = id;
     state.activeTopicTitle = '';
@@ -224,7 +288,7 @@ async function openEditor(id = null) {
         document.getElementById('editTopicId').value = "";
         document.getElementById('inpTopicTitle').value = "";
         document.getElementById('inpTopicDescription').value = "";
-        document.getElementById('inpTopicOrder').value = state.allTopics.length + 1;
+        document.getElementById('inpTopicOrder').value = getNextOrderForParent(null);
         updateParentOptions(null);
         document.getElementById('inpTopicParent').value = '';
         document.getElementById('contentListNav').innerHTML = '';
@@ -403,6 +467,7 @@ async function saveTopicMeta() {
     if (!title) return alert("Başlık giriniz.");
     const rawParentId = document.getElementById('inpTopicParent').value;
     const parentId = rawParentId && rawParentId !== id ? rawParentId : null;
+    const existing = id ? state.allTopics.find(t => t.id === id) : null;
 
     const data = {
         title,
@@ -413,6 +478,11 @@ async function saveTopicMeta() {
         parentId,
         updatedAt: serverTimestamp()
     };
+    if (!id) {
+        data.order = getNextOrderForParent(parentId);
+    } else if (existing && (existing.parentId || null) !== (parentId || null)) {
+        data.order = getNextOrderForParent(parentId, id);
+    }
 
     try {
         if (id) await updateDoc(doc(db, "topics", id), data);
@@ -539,10 +609,11 @@ async function promoteToSubtopic(id, ev) {
     if (!confirm(confirmMsg)) return;
 
     try {
+        const nextOrder = getNextOrderForParent(state.activeTopicId);
         const topicPayload = {
             title: item.title,
             description: '',
-            order: item.order || 0,
+            order: nextOrder,
             category: parentTopic?.category || 'ortak',
             isActive: true,
             status: 'active',
@@ -954,6 +1025,8 @@ function qDragEnd(ev) {
 // ============================================================
 
 async function openTrash() {
+    closeModalById('topicModal');
+    closeModalById('contentTrashModal');
     const modal = document.getElementById('trashModal');
     const tbody = document.getElementById('trashTableBody');
     if (!modal) return;
@@ -974,6 +1047,7 @@ async function restoreItem(id) { await updateDoc(doc(db, "topics", id), { status
 // İçerik Çöp Kutusu
 async function openContentTrash() {
     if (!state.activeTopicId) return alert("Önce bir konu seçin.");
+    closeModalById('trashModal');
     const modal = document.getElementById('contentTrashModal');
     const tbody = document.getElementById('contentTrashTableBody');
     if (!modal) return;
@@ -1032,4 +1106,41 @@ async function purgeAllDeletedContent() {
     if (!state.activeTopicId || !confirm("Tümünü kalıcı sil?")) return;
     // Batch silme işlemi yapılabilir, şimdilik basit tutuyoruz
     alert("Bu işlem toplu silme gerektirir, güvenlik nedeniyle şimdilik devre dışı.");
+}
+
+async function normalizeTopicOrders(topics) {
+    if (state._isNormalizing) return false;
+    const updates = [];
+    const { roots, byParent } = buildTopicHierarchy(topics);
+
+    roots.forEach((topic, index) => {
+        const desiredOrder = index + 1;
+        if ((topic.order || 0) !== desiredOrder) {
+            updates.push({ id: topic.id, order: desiredOrder });
+        }
+        const children = byParent.get(topic.id) || [];
+        children.forEach((child, childIndex) => {
+            const childOrder = childIndex + 1;
+            if ((child.order || 0) !== childOrder) {
+                updates.push({ id: child.id, order: childOrder });
+            }
+        });
+    });
+
+    if (updates.length === 0) return false;
+    state._isNormalizing = true;
+    try {
+        await Promise.all(updates.map(update =>
+            updateDoc(doc(db, "topics", update.id), {
+                order: update.order,
+                updatedAt: serverTimestamp()
+            })
+        ));
+        return true;
+    } catch (e) {
+        console.error("Sıralama güncellenirken hata:", e);
+        return false;
+    } finally {
+        state._isNormalizing = false;
+    }
 }
