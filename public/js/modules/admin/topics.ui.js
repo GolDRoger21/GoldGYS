@@ -1,6 +1,43 @@
 /* DOSYA: public/js/modules/admin/topics.ui.js */
 
 export const UI_SHELL = `
+    <div class="section-header">
+        <h2>📑 Konu Yönetimi</h2>
+        <div class="d-flex gap-2">
+            <button class="btn btn-primary btn-sm" onclick="window.Studio.open()">➕ Yeni Konu</button>
+            <button class="btn btn-outline-secondary btn-sm" onclick="window.Studio.trash.open()">🗑️ Çöp Kutusu</button>
+        </div>
+    </div>
+
+    <div class="card p-0">
+        <div class="p-3 border-bottom d-flex flex-wrap gap-2 align-items-center justify-content-between">
+            <div class="d-flex flex-wrap gap-2 align-items-center">
+                <input type="text" id="searchTopic" class="form-control form-control-sm" placeholder="Konu ara..." oninput="window.filterTopics()">
+                <select id="filterCategory" class="form-select form-select-sm" onchange="window.filterTopics()">
+                    <option value="all">Tüm Kategoriler</option>
+                    <option value="ortak">Ortak Konular</option>
+                    <option value="alan">Alan Konuları</option>
+                </select>
+            </div>
+            <span id="topicCountBadge" class="badge bg-light text-dark border">0 Kayıt</span>
+        </div>
+        <div class="table-responsive">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Sıra</th>
+                        <th>Konu</th>
+                        <th>Kategori</th>
+                        <th>İçerik</th>
+                        <th>Durum</th>
+                        <th class="text-end">İşlem</th>
+                    </tr>
+                </thead>
+                <tbody id="topicsTableBody"></tbody>
+            </table>
+        </div>
+    </div>
+
     <div id="topicModal" class="modal-overlay" style="display:none;">
         <div class="studio-modal-container">
 
