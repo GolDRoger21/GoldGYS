@@ -350,6 +350,25 @@
     color: var(--color-danger);
 }
 
+.topic-row-child td {
+    background: #f8fafc;
+}
+
+.topic-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.topic-title-child {
+    padding-left: 16px;
+}
+
+.topic-branch {
+    color: #94a3b8;
+    font-weight: 600;
+}
+
 
 /* ==========================================================================
    3. STUDIO PRO UI (LAYOUT VE DÜZEN DÜZELTMELERİ)
