@@ -23,6 +23,7 @@
 - `order`: number
 - `isActive`: boolean
 - `description`: string
+- `parentId`: string | null (opsiyonel, alt konu ilişkisi için)
 - **Alt Koleksiyon:** `lessons/{lessonId}`
   - `title`: string
   - `contentHTML`: string (veya materials array)

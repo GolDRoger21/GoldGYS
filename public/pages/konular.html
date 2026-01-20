@@ -85,6 +85,39 @@
       gap: 24px;
     }
 
+    .subtopic-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 16px;
+    }
+
+    .subtopic-link {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: var(--bg-hover);
+      text-decoration: none;
+      color: var(--text-main);
+      font-weight: 600;
+      font-size: 0.9rem;
+      border: 1px solid transparent;
+      transition: all 0.2s ease;
+    }
+
+    .subtopic-link:hover {
+      border-color: var(--border-color);
+      background: var(--bg-surface);
+    }
+
+    .subtopic-meta {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
     /* Modern Konu Kartı */
     .topic-card {
       background: var(--bg-surface);
@@ -255,9 +288,9 @@
         <input type="text" id="searchInput" placeholder="Konu veya ders ara...">
       </div>
       <div class="tabs">
-        <button class="tab-btn active" onclick="filterTopics('all')">Tümü</button>
-        <button class="tab-btn" onclick="filterTopics('ortak')">Ortak</button>
-        <button class="tab-btn" onclick="filterTopics('alan')">Alan</button>
+        <button class="tab-btn active" data-category="all" onclick="filterTopics('all', event)">Tümü</button>
+        <button class="tab-btn" data-category="ortak" onclick="filterTopics('ortak', event)">Ortak</button>
+        <button class="tab-btn" data-category="alan" onclick="filterTopics('alan', event)">Alan</button>
       </div>
     </div>
 
@@ -325,16 +358,39 @@
       }
     }
 
-    function renderTopics(topics) {
+    function renderTopics(topics, options = {}) {
+      const { category = 'all', search = '' } = options;
       const container = document.getElementById('topicsContainer');
+      const searchTerm = search.trim().toLowerCase();
+      const childrenByParent = new Map();
 
-      if (topics.length === 0) {
+      topics.forEach(t => {
+        if (t.parentId) {
+          const list = childrenByParent.get(t.parentId) || [];
+          list.push(t);
+          childrenByParent.set(t.parentId, list);
+        }
+      });
+
+      const parents = topics.filter(t => !t.parentId);
+      const visibleParents = parents.filter(parent => {
+        if (category !== 'all' && parent.category !== category) return false;
+        const children = (childrenByParent.get(parent.id) || []).filter(child =>
+          category === 'all' || child.category === category
+        );
+        const parentMatches = !searchTerm || parent.title.toLowerCase().includes(searchTerm);
+        const matchingChildren = searchTerm ? children.filter(child => child.title.toLowerCase().includes(searchTerm)) : children;
+        if (searchTerm && !parentMatches && matchingChildren.length === 0) return false;
+        return true;
+      });
+
+      if (visibleParents.length === 0) {
         container.innerHTML = '<div class="text-center p-5 text-muted" style="grid-column: 1/-1;">Aradığınız kriterde konu bulunamadı.</div>';
         return;
       }
 
       container.innerHTML = '';
-      topics.forEach(t => {
+      visibleParents.forEach(t => {
         // İkon Belirleme (Kategoriye veya başlığa göre)
         let icon = '📚';
         if (t.title.includes('Anayasa')) icon = '⚖️';
@@ -342,6 +398,15 @@
         if (t.title.includes('İdare')) icon = '🏛️';
         if (t.title.includes('Yazışma')) icon = '✍️';
         if (t.title.includes('Tebligat')) icon = '📩';
+
+        const allChildren = (childrenByParent.get(t.id) || []).filter(child =>
+          category === 'all' || child.category === category
+        );
+        const parentMatches = !searchTerm || t.title.toLowerCase().includes(searchTerm);
+        const matchingChildren = searchTerm
+          ? allChildren.filter(child => child.title.toLowerCase().includes(searchTerm))
+          : allChildren;
+        const childrenToShow = searchTerm && !parentMatches ? matchingChildren : allChildren;
 
         // İstatistikler
         const stats = userStats[t.id] || { solved: 0, correct: 0, total: t.totalQuestionTarget || 100 };
@@ -352,15 +417,18 @@
         card.href = `/pages/konu.html?id=${t.id}`;
         card.className = 'topic-card';
 
-        card.innerHTML = `
-                    <div class="card-header-row">
-                        <div class="topic-icon">${icon}</div>
-                        <span class="topic-badge badge-${t.category}">${t.category === 'ortak' ? 'Ortak' : 'Alan'}</span>
+        const subtopicsHtml = childrenToShow.length ? `
+                    <div class="subtopic-list">
+                        ${childrenToShow.map(child => `
+                            <a class="subtopic-link" href="/pages/konu.html?id=${child.id}">
+                                <span>${child.title}</span>
+                                <span class="subtopic-meta">Sıra ${child.order || '-'}</span>
+                            </a>
+                        `).join('')}
                     </div>
-                    
-                    <h3 class="topic-title">${t.title}</h3>
-                    <p class="topic-desc">${t.description || 'Konu açıklaması bulunmuyor.'}</p>
-                    
+                ` : '';
+
+        const statsHtml = childrenToShow.length ? '' : `
                     <div class="stats-row">
                         <div class="stat-item">
                             <span class="stat-val stat-total">${stats.solved} / ${stats.total}</span>
@@ -376,35 +444,38 @@
                         <div class="progress-fill" style="width: ${progress}%"></div>
                     </div>
                 `;
+
+        card.innerHTML = `
+                    <div class="card-header-row">
+                        <div class="topic-icon">${icon}</div>
+                        <span class="topic-badge badge-${t.category}">${t.category === 'ortak' ? 'Ortak' : 'Alan'}</span>
+                    </div>
+                    
+                    <h3 class="topic-title">${t.title}</h3>
+                    <p class="topic-desc">${t.description || 'Konu açıklaması bulunmuyor.'}</p>
+                    ${subtopicsHtml}
+                    ${statsHtml}
+                `;
         container.appendChild(card);
       });
     }
 
     // Filtreleme Fonksiyonu (Global)
-    window.filterTopics = (category) => {
+    window.filterTopics = (category, ev) => {
       // Tab butonlarını güncelle
       document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-      event.target.classList.add('active');
+      if (ev?.target) ev.target.classList.add('active');
 
       const search = document.getElementById('searchInput').value.toLowerCase();
-
-      const filtered = allTopics.filter(t => {
-        const matchCat = category === 'all' || t.category === category;
-        const matchSearch = t.title.toLowerCase().includes(search);
-        return matchCat && matchSearch;
-      });
-
-      renderTopics(filtered);
+      renderTopics(allTopics, { category, search });
     };
 
     // Arama Dinleyicisi
     document.getElementById('searchInput').addEventListener('input', (e) => {
       const activeTab = document.querySelector('.tab-btn.active');
-      // Mevcut kategori filtresini koruyarak arama yap
-      // (Basitlik için şimdilik 'all' üzerinden arama yapıyoruz, geliştirilebilir)
+      const category = activeTab?.dataset?.category || 'all';
       const search = e.target.value.toLowerCase();
-      const filtered = allTopics.filter(t => t.title.toLowerCase().includes(search));
-      renderTopics(filtered);
+      renderTopics(allTopics, { category, search });
     });
   </script>
 </body>

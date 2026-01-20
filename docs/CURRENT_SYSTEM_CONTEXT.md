@@ -22,7 +22,7 @@
 - **Güvenlik:** Hem Firestore Rules hem de Frontend Guard ile korunur.
 
 ## 4. Veri Akışı (Firestore)
-- **İçerik:** `topics` -> `lessons` (alt koleksiyon). `questions` (havuz). `exams` (denemeler).
+- **İçerik:** `topics` (opsiyonel `parentId` ile alt konu ilişkisi) -> `lessons` (alt koleksiyon). `questions` (havuz). `exams` (denemeler).
 - **Kullanıcı:** `users/{uid}` altında `progress`, `wrongs`, `favorites` alt koleksiyonları.
 - **Admin:** `reports` (hata bildirimleri), `stats` (sistem sayaçları).
 
