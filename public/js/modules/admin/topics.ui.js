@@ -69,36 +69,48 @@ export const UI_SHELL = `
 
             <div class="studio-layout">
                 
-                <!-- SOL SIDEBAR (NAVIGASYON) -->
+                <!-- 1. SOL SIDEBAR (YENİ TASARIM) -->
                 <div class="studio-sidebar">
-                    <div class="sidebar-controls">
-                        <div class="d-flex gap-2 mb-3">
-                            <button class="btn btn-outline-primary btn-sm flex-fill active" id="tabLesson" onclick="window.Studio.switchTab('lesson')">📄 Dersler</button>
-                            <button class="btn btn-outline-warning btn-sm flex-fill" id="tabTest" onclick="window.Studio.switchTab('test')">📝 Testler</button>
-                        </div>
-                        <div class="d-flex gap-2">
-                             <button class="btn btn-dark btn-sm flex-fill" onclick="window.Studio.newContent()">
-                                ➕ Yeni İçerik
+                    
+                    <!-- A. Üst Kısım: Segmented Tabs -->
+                    <div class="sidebar-header-modern">
+                        <div class="segmented-control">
+                            <button class="segment-btn active" id="tabLesson" onclick="window.Studio.switchTab('lesson')">
+                                📄 Ders Notları
                             </button>
-                            <button class="btn btn-light border btn-sm" onclick="window.Studio.settings()" title="Konu Ayarları">⚙️</button>
+                            <button class="segment-btn" id="tabTest" onclick="window.Studio.switchTab('test')">
+                                📝 Testler
+                            </button>
                         </div>
                     </div>
+
+                    <!-- B. Orta Kısım: Liste -->
                     <div id="contentListNav" class="nav-list-scroll">
-                        <!-- Liste Elemanları Buraya -->
+                        <!-- JS ile doldurulacak -->
+                    </div>
+
+                    <!-- C. Alt Kısım: Sabit Aksiyonlar -->
+                    <div class="sidebar-footer">
+                        <button class="btn btn-dark w-100 btn-sm" onclick="window.Studio.newContent()">
+                            ➕ Yeni İçerik
+                        </button>
+                        <button class="btn btn-light border btn-sm" onclick="window.Studio.settings()" title="Konu Ayarları">
+                            ⚙️
+                        </button>
                     </div>
                 </div>
 
-                <!-- SAĞ EDİTÖR ALANI -->
+                <!-- 2. SAĞ EDİTÖR ALANI -->
                 <div class="studio-editor">
                     
-                    <!-- 1. BOŞ DURUM (Initial State) -->
+                    <!-- BOŞ DURUM -->
                     <div id="emptyState" class="empty-selection">
                         <div class="empty-icon">👈</div>
                         <h3>İçerik Seçin veya Oluşturun</h3>
-                        <p>Düzenlemek için soldaki listeden bir öğe seçin.</p>
+                        <p>Soldaki menüden işlem yapmak istediğiniz içeriği seçin.</p>
                     </div>
 
-                    <!-- 2. KONU METADATA EDİTÖRÜ -->
+                    <!-- META EDİTÖR -->
                     <div id="metaEditor" class="editor-workspace" style="display:none; align-items:center; justify-content:center;">
                         <div class="card border-0 shadow-sm p-4" style="width:100%; max-width:500px;">
                             <h4 class="mb-4 border-bottom pb-2">Konu Ayarları</h4>
@@ -135,19 +147,14 @@ export const UI_SHELL = `
                         </div>
                     </div>
 
-                    <!-- 3. İÇERİK EDİTÖRÜ (DÜZELTİLEN KISIM) -->
-                    <!-- DİKKAT: Burada .content-editor-layout sınıfını kullanıyoruz -->
+                    <!-- İÇERİK EDİTÖRÜ -->
                     <div id="contentEditor" class="content-editor-layout" style="display:none;">
                         
-                        <!-- Toolbar (Üstte Sabit) -->
                         <div class="editor-toolbar">
-                            <!-- Sol: Başlık Alanı -->
                             <div class="editor-title-group">
                                 <span class="badge bg-secondary" id="editorBadge">DERS</span>
                                 <input type="text" id="inpContentTitle" class="editor-title-input" placeholder="İçerik Başlığı Giriniz...">
                             </div>
-                            
-                            <!-- Sağ: Butonlar (editor-actions sınıfı ile) -->
                             <div class="editor-actions">
                                 <div class="input-group input-group-sm" style="width: 100px;">
                                     <span class="input-group-text">Sıra</span>
@@ -159,12 +166,11 @@ export const UI_SHELL = `
                             </div>
                         </div>
 
-                        <!-- Workspace (Altta, Kaydırılabilir) -->
                         <div class="editor-workspace">
                             
-                            <!-- A) DERS MODU -->
+                            <!-- DERS MODU -->
                             <div id="wsLessonMode" class="form-container">
-                                <div class="mb-4">
+                                <div>
                                     <label class="form-label fw-bold text-muted small mb-3">YENİ MATERYAL EKLE</label>
                                     <div class="add-mat-grid">
                                         <div class="add-mat-btn" onclick="window.Studio.addMat('html')"><i>📝</i> Metin</div>
@@ -173,61 +179,87 @@ export const UI_SHELL = `
                                         <div class="add-mat-btn" onclick="window.Studio.addMat('podcast')"><i>🎙️</i> Podcast</div>
                                     </div>
                                 </div>
-                                
                                 <label class="form-label fw-bold text-muted small mb-2">EKLENEN MATERYALLER</label>
-                                <div id="materialsContainer" class="material-list">
-                                    <!-- Materyaller JS ile buraya -->
-                                </div>
+                                <div id="materialsContainer" class="material-list"></div>
                             </div>
 
-                            <!-- B) TEST MODU (SPLIT VIEW) -->
+                            <!-- TEST MODU (YENİLENMİŞ FİLTRE YAPISI) -->
                             <div id="wsTestMode" class="test-studio-layout" style="display:none;">
                                 
-                                <!-- SOL: HAVUZ & FİLTRE -->
                                 <div class="ts-sidebar">
                                     <div class="ts-filter-header">
-                                        <h6 class="fw-bold mb-3">Soru Havuzu</h6>
-                                        <div class="d-flex flex-column gap-2">
-                                            <input type="text" id="wizLegislation" class="form-control form-control-sm" placeholder="Mevzuat Kodu (Örn: 5271)">
-                                            <div class="input-group input-group-sm">
-                                                <input type="text" id="wizSearchText" class="form-control" placeholder="Metin Ara...">
-                                                <button class="btn btn-primary" onclick="window.Studio.wizard.search()">🔍</button>
+                                        <h6 class="fw-bold mb-3 text-primary">Soru Filtreleme</h6>
+                                        
+                                        <!-- Mevzuat Kodu -->
+                                        <div class="mb-2">
+                                            <span class="filter-label">Mevzuat / Kanun Kodu</span>
+                                            <input type="text" id="wizLegislation" class="form-control form-control-sm fw-bold" placeholder="Örn: 5271">
+                                        </div>
+
+                                        <!-- Madde Aralığı -->
+                                        <div class="filter-row">
+                                            <div class="flex-fill">
+                                                <span class="filter-label">Başlangıç Md.</span>
+                                                <input type="number" id="wizStart" class="form-control form-control-sm" placeholder="1">
                                             </div>
-                                            <div class="d-flex justify-content-between align-items-center mt-1">
-                                                <small class="text-muted"><span id="poolCount">0</span> soru bulundu</small>
-                                                <button class="btn btn-link btn-sm p-0 text-decoration-none" onclick="window.Studio.wizard.auto()">⚡ Rastgele 10 Ekle</button>
+                                            <div class="flex-fill">
+                                                <span class="filter-label">Bitiş Md.</span>
+                                                <input type="number" id="wizEnd" class="form-control form-control-sm" placeholder="Max">
                                             </div>
                                         </div>
+
+                                        <!-- Zorluk ve Metin -->
+                                        <div class="mb-2">
+                                            <span class="filter-label">Zorluk Seviyesi</span>
+                                            <select id="wizDifficulty" class="form-select form-select-sm">
+                                                <option value="">Karışık (Dengeli Dağılım)</option>
+                                                <option value="1">Kolay (1-2)</option>
+                                                <option value="3">Orta (3)</option>
+                                                <option value="5">Zor (4-5)</option>
+                                            </select>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <div class="input-group input-group-sm">
+                                                <input type="text" id="wizSearchText" class="form-control" placeholder="Soru metni ara...">
+                                                <button class="btn btn-dark" onclick="window.Studio.wizard.search()">🔍 Getir</button>
+                                            </div>
+                                        </div>
+
+                                        <div class="d-grid gap-2">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <small class="text-muted fw-bold"><span id="poolCount">0</span> soru havuzda</small>
+                                            </div>
+                                            <button class="btn btn-warning btn-sm fw-bold" onclick="window.Studio.wizard.auto()">
+                                                ⚡ Otomatik Test Oluştur (15)
+                                            </button>
+                                        </div>
                                     </div>
+                                    
                                     <div id="poolList" class="ts-list-body bg-light">
                                         <div class="text-center text-muted mt-5 small">
-                                            Mevzuat kodu girip<br>aramaya başlayın.
+                                            Yukarıdaki filtreleri kullanıp<br>soru havuzunu getirin.
                                         </div>
                                     </div>
                                 </div>
 
-                                <!-- SAĞ: SEÇİLENLER -->
                                 <div class="ts-main">
                                     <div class="ts-filter-header d-flex justify-content-between align-items-center bg-white">
-                                        <h6 class="fw-bold m-0 text-primary">Test Kağıdı</h6>
+                                        <h6 class="fw-bold m-0 text-primary">Hazırlanan Test</h6>
                                         <span class="badge bg-primary rounded-pill" id="paperCount">0 Soru</span>
                                     </div>
-                                    <div id="paperList" class="ts-list-body">
-                                        <!-- Seçilenler Buraya -->
-                                    </div>
+                                    <div id="paperList" class="ts-list-body"></div>
                                 </div>
 
                             </div>
-
                         </div>
                     </div>
-
                 </div>
             </div>
         </div>
     </div>
     
-    <!-- TRASH MODAL -->
+    <!-- TRASH MODAL (Aynı) -->
     <div id="trashModal" class="modal-overlay" style="display:none;">
         <div class="admin-modal-content" style="max-width:600px;">
             <div class="modal-header">
@@ -243,7 +275,7 @@ export const UI_SHELL = `
     </div>
 `;
 
-// Liste Öğesi HTML Oluşturucu (Aynı Kalabilir)
+// Liste Öğesi (Aynı)
 export const renderNavItem = (l, isTestTab, activeId) => `
     <div class="nav-item ${activeId === l.id ? 'active' : ''}" onclick="window.Studio.selectContent('${l.id}')">
         <div class="d-flex justify-content-between align-items-center mb-1">

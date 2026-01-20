@@ -360,116 +360,150 @@ function renderMaterials() {
     `).join('');
 }
 
+// ============================================================
+// --- GELİŞMİŞ ALGORİTMA VE SORGULAMA ---
+// ============================================================
+
 async function searchQuestions() {
     const code = document.getElementById('wizLegislation').value.trim();
-    if (!code) return alert("Mevzuat kodu girin.");
+    if (!code) return alert("Lütfen bir Mevzuat Kodu (Örn: 5271) girin.");
 
-    document.getElementById('poolList').innerHTML = '<div class="text-center p-4">Aranıyor...</div>';
+    document.getElementById('poolList').innerHTML = '<div class="text-center p-4"><div class="spinner-border text-primary" role="status"></div><br>Sorular Getiriliyor...</div>';
 
-    const q = query(collection(db, "questions"), where("legislationRef.code", "==", code));
-    const snap = await getDocs(q);
+    try {
+        // 1. ADIM: Firestore'dan sadece Kanun Koduna göre çek (Client-side filtreleme daha güvenli)
+        // Çünkü "Madde No" string ("1", "10", "2") olarak saklanıyor olabilir, bu da sorgu hatası yaratır.
+        const q = query(collection(db, "questions"), where("legislationRef.code", "==", code));
+        const snap = await getDocs(q);
 
-    const s = parseInt(document.getElementById('wizStart').value);
-    const e = parseInt(document.getElementById('wizEnd').value);
-    const diff = document.getElementById('wizDifficulty').value;
-    const txt = document.getElementById('wizSearchText').value.toLowerCase();
+        // Filtre Değerlerini Al
+        const startArt = parseInt(document.getElementById('wizStart').value) || 0;
+        const endArt = parseInt(document.getElementById('wizEnd').value) || 99999;
+        const diffFilter = document.getElementById('wizDifficulty').value; // Boş ise hepsi
+        const txtFilter = document.getElementById('wizSearchText').value.toLowerCase();
 
-    let arr = [];
-    snap.forEach(doc => {
-        const d = doc.data();
-        if (d.isDeleted) return;
-        const art = parseInt(d.legislationRef?.article) || 0;
+        let filteredArr = [];
 
-        if (s && art < s) return;
-        if (e && art > e) return;
-        if (diff && d.difficulty != diff) return;
-        if (txt && !d.text.toLowerCase().includes(txt)) return;
+        snap.forEach(doc => {
+            const d = doc.data();
+            if (d.isDeleted) return;
 
-        arr.push({ id: doc.id, ...d, artNo: art });
-    });
+            // Güvenli Madde No Çevirimi (String -> Integer)
+            // Eğer madde "Geçici 1" gibi ise 0 veya NaN dönebilir, bunları sona atabiliriz.
+            const artRaw = d.legislationRef?.article;
+            const artNo = parseInt(artRaw);
 
-    arr.sort((a, b) => a.artNo - b.artNo);
-    state.poolQuestions = arr;
-    renderPoolList();
-}
+            // A. Madde Aralığı Filtresi (Eğer sayısal bir değerse)
+            if (!isNaN(artNo)) {
+                if (artNo < startArt || artNo > endArt) return;
+            }
 
-// Test Havuzu Render Fonksiyonu (Kompakt Kartlar)
-function renderPoolList() {
-    const list = document.getElementById('poolList');
-    document.getElementById('poolCount').innerText = state.poolQuestions.length;
+            // B. Zorluk Filtresi (Eğer seçildiyse)
+            if (diffFilter) {
+                // Seçilen zorluk seviyesi ve civarını al (Örn: 3 seçilirse 3 gelir)
+                // "1" seçilirse kolaylar (1-2), "5" seçilirse zorlar (4-5)
+                if (diffFilter === "1" && d.difficulty > 2) return;
+                if (diffFilter === "3" && d.difficulty !== 3) return;
+                if (diffFilter === "5" && d.difficulty < 4) return;
+            }
 
-    if (state.poolQuestions.length === 0) {
-        list.innerHTML = '<div class="text-center text-muted mt-5 small">Bu filtreye uygun soru bulunamadı.</div>';
-        return;
-    }
+            // C. Metin Arama
+            if (txtFilter && !d.text.toLowerCase().includes(txtFilter)) return;
 
-    list.innerHTML = state.poolQuestions.map(q => {
-        const isAdded = state.tempQuestions.some(x => x.id === q.id);
-        const shortText = q.text.length > 60 ? q.text.substring(0, 60) + '...' : q.text;
+            filteredArr.push({ id: doc.id, ...d, artNo: isNaN(artNo) ? 99999 : artNo });
+        });
 
-        return `
-            <div class="mini-q-card ${isAdded ? 'bg-light border-success' : ''}" onclick="window.Studio.wizard.fullEdit('${q.id}')">
-                <div class="d-flex justify-content-between mb-1">
-                    <span class="badge bg-secondary" style="font-size:0.7em">Md. ${q.artNo}</span>
-                    ${isAdded ? '<span class="text-success small fw-bold">Eklendi</span>' : ''}
-                </div>
-                <div class="text-dark small">${shortText}</div>
-                
-                <button class="q-action-btn btn-add-q" 
-                    onclick="event.stopPropagation(); window.Studio.wizard.add('${q.id}')" 
-                    ${isAdded ? 'disabled style="opacity:0.5"' : ''} title="Teste Ekle">
-                    <span>+</span>
-                </button>
-            </div>`;
-    }).join('');
-}
+        // Küçükten büyüğe madde numarasına göre sırala
+        filteredArr.sort((a, b) => a.artNo - b.artNo);
 
-function addToTestPaper(id) {
-    const q = state.poolQuestions.find(x => x.id === id);
-    if (q && !state.tempQuestions.some(x => x.id === id)) {
-        state.tempQuestions.push(q);
-        renderTestPaper(); renderPoolList();
+        state.poolQuestions = filteredArr;
+        renderPoolList();
+
+    } catch (error) {
+        console.error("Sorgu Hatası:", error);
+        document.getElementById('poolList').innerHTML = `<div class="text-center text-danger p-3">Hata: ${error.message}</div>`;
     }
 }
-function removeFromTestPaper(i) {
-    state.tempQuestions.splice(i, 1);
-    renderTestPaper(); renderPoolList();
-}
-// Test Kağıdı Render Fonksiyonu
-function renderTestPaper() {
-    const list = document.getElementById('paperList');
-    document.getElementById('paperCount').innerText = `${state.tempQuestions.length} Soru`;
 
-    if (state.tempQuestions.length === 0) {
-        list.innerHTML = '<div class="empty-selection bg-white"><div class="empty-icon">📝</div><p>Test kağıdı boş.</p></div>';
-        return;
-    }
-
-    list.innerHTML = state.tempQuestions.map((q, i) => {
-        const shortText = q.text.length > 80 ? q.text.substring(0, 80) + '...' : q.text;
-        return `
-        <div class="mini-q-card">
-            <div class="d-flex gap-2">
-                <span class="fw-bold text-primary">${i + 1}.</span>
-                <div class="flex-grow-1">
-                    <div class="text-dark small mb-1">${shortText}</div>
-                    <div class="d-flex gap-2">
-                         <span class="badge bg-light text-muted border" style="font-size:0.7em">${q.legislationRef?.code || '?'}</span>
-                    </div>
-                </div>
-            </div>
-            <button class="q-action-btn btn-remove-q" 
-                onclick="event.stopPropagation(); window.Studio.wizard.remove(${i})" title="Çıkar">
-                <span>&times;</span>
-            </button>
-        </div>`
-    }).join('');
-}
+// Akıllı Test Oluşturucu
 function autoGenerateTest() {
-    if (state.poolQuestions.length === 0) return alert("Arama yapın.");
-    const shuffled = [...state.poolQuestions].sort(() => 0.5 - Math.random()).slice(0, 15).sort((a, b) => a.artNo - b.artNo);
-    state.tempQuestions = shuffled;
-    renderTestPaper(); renderPoolList();
+    if (state.poolQuestions.length === 0) {
+        // Eğer havuz boşsa, mevcut filtrelerle otomatik arama yap
+        if (document.getElementById('wizLegislation').value) {
+            searchQuestions().then(() => {
+                // Arama bitince tekrar çağır (Recursive değil, one-off)
+                if (state.poolQuestions.length > 0) performSmartSelection();
+                else alert("Kriterlere uygun soru bulunamadı.");
+            });
+            return;
+        } else {
+            return alert("Lütfen önce Mevzuat Kodu girin ve filtreleyin.");
+        }
+    } else {
+        performSmartSelection();
+    }
+}
+
+// Algoritmanın Kalbi
+function performSmartSelection() {
+    const targetCount = 15;
+    let pool = [...state.poolQuestions];
+
+    // Zaten ekli olanları havuzdan çıkar (Mükerrer önleme)
+    const addedIds = new Set(state.tempQuestions.map(q => q.id));
+    pool = pool.filter(q => !addedIds.has(q.id));
+
+    if (pool.length === 0) return alert("Havuzdaki tüm sorular zaten eklendi.");
+
+    let selection = [];
+    const difficultyMode = document.getElementById('wizDifficulty').value;
+
+    if (!difficultyMode) {
+        // --- DENGELİ DAĞILIM MODU (Eğer zorluk seçilmediyse) ---
+        // Hedef: %20 Kolay, %60 Orta, %20 Zor
+        const easy = pool.filter(q => q.difficulty <= 2);
+        const medium = pool.filter(q => q.difficulty === 3);
+        const hard = pool.filter(q => q.difficulty >= 4);
+
+        const countEasy = Math.ceil(targetCount * 0.2);
+        const countHard = Math.ceil(targetCount * 0.2);
+        const countMedium = targetCount - countEasy - countHard;
+
+        // Shuffle ve Seç
+        selection = [
+            ...easy.sort(() => 0.5 - Math.random()).slice(0, countEasy),
+            ...medium.sort(() => 0.5 - Math.random()).slice(0, countMedium),
+            ...hard.sort(() => 0.5 - Math.random()).slice(0, countHard)
+        ];
+
+        // Eğer kota dolmadıysa (örneğin hiç zor soru yoksa), kalanlardan rastgele tamamla
+        if (selection.length < targetCount) {
+            const currentIds = new Set(selection.map(q => q.id));
+            const remaining = pool.filter(q => !currentIds.has(q.id));
+            const needed = targetCount - selection.length;
+            selection = [...selection, ...remaining.sort(() => 0.5 - Math.random()).slice(0, needed)];
+        }
+
+    } else {
+        // --- SPESİFİK ZORLUK MODU ---
+        // Direkt filtrelenmiş havuzdan rastgele seç
+        selection = pool.sort(() => 0.5 - Math.random()).slice(0, targetCount);
+    }
+
+    // Seçilenleri Madde Numarasına Göre Sırala (Pedagojik Akış)
+    selection.sort((a, b) => a.artNo - b.artNo);
+
+    // Ekle
+    state.tempQuestions = [...state.tempQuestions, ...selection];
+
+    // UI Güncelle
+    renderTestPaper();
+    renderPoolList(); // Eklendi etiketlerini güncellemek için
+
+    // Kullanıcıya bilgi ver
+    const actualAdded = selection.length;
+    // Toast veya basit log (Opsiyonel)
+    console.log(`${actualAdded} soru akıllı algoritma ile eklendi.`);
 }
 
 async function openTrash() {
