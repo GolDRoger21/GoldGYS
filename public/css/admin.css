@@ -251,7 +251,8 @@
     width: 100%;
     height: 100%;
     background: rgba(0, 0, 0, 0.85);
-    z-index: 99999 !important;
+    /* [FIX] z-index removed !important to allow stacking */
+    z-index: 1000;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -269,6 +270,21 @@
     border: 1px solid var(--border-color);
     width: 100%;
     max-width: 600px;
+    position: relative;
+    /* [FIX] Animasyon */
+    animation: modalSlideIn 0.2s ease-out;
+}
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .modal-header {
@@ -309,12 +325,14 @@
     max-height: 100% !important;
     padding: 0 !important;
     overflow: hidden !important;
-    /* Dış scrollu kapat */
     display: flex;
     flex-direction: column;
     border-radius: 12px;
     background: #fff;
     box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+    position: relative;
+    /* [FIX] z-index context */
+    isolation: isolate;
 }
 
 /* Header sabit yükseklik */
@@ -334,9 +352,7 @@
 .studio-layout {
     display: flex;
     flex: 1;
-    /* Kalan tüm yüksekliği kapla */
     height: calc(100% - 60px);
-    /* Header hariç yükseklik */
     overflow: hidden;
 }
 
@@ -393,7 +409,6 @@
 .nav-list-scroll {
     flex: 1;
     overflow-y: auto;
-    /* Sadece liste kaydırılsın */
     padding: 10px;
 }
 
@@ -415,7 +430,6 @@
 
 .nav-item.active {
     background: #fffbeb;
-    /* Light Gold Tint */
     border-color: var(--color-primary);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
@@ -484,6 +498,10 @@
     padding: 0 20px;
     background: #fff;
     flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    flex-wrap: nowrap;
 }
 
 .editor-title-group {
@@ -491,6 +509,7 @@
     align-items: center;
     gap: 10px;
     flex: 1;
+    min-width: 0;
 }
 
 .editor-title-input {
@@ -499,6 +518,7 @@
     font-weight: 600;
     width: 100%;
     max-width: 400px;
+    min-width: 200px;
     padding: 5px;
     background: transparent;
     color: #1e293b;
@@ -513,6 +533,7 @@
     display: flex;
     align-items: center;
     gap: 10px;
+    flex-shrink: 0;
 }
 
 /* Editör İçerik Alanı (Scrollable) */
@@ -523,12 +544,19 @@
     background: #f8fafc;
 }
 
-/* Form Container (Ders Modu İçin) */
+/* Form Container */
 .form-container {
     max-width: 800px;
     margin: 0 auto;
     padding: 30px;
     width: 100%;
+}
+
+#wsLessonMode.form-container {
+    max-width: none;
+    width: 100%;
+    margin: 0;
+    padding: 24px;
 }
 
 /* --- TEST STÜDYOSU (SPLIT VIEW) --- */
@@ -568,7 +596,6 @@
     padding: 15px;
 }
 
-/* Filtre Elemanları */
 .filter-label {
     font-size: 0.75rem;
     font-weight: 700;
@@ -703,6 +730,8 @@
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 12px;
+    max-width: 1100px;
+    margin: 0 auto;
 }
 
 .add-mat-btn {
@@ -732,69 +761,145 @@
     font-style: normal;
 }
 
-.material-item {
-    background: #fff;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    padding: 12px;
-    display: flex;
-    gap: 12px;
-    align-items: center;
-    margin-bottom: 8px;
+/* --- MATERIAL LIST (ACCORDION STYLE) --- */
+.material-list {
+    max-width: 1100px;
+    margin: 0 auto;
 }
 
-.mat-icon {
+.mat-card {
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    background: #fff;
+    overflow: hidden;
+    margin-bottom: 10px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.mat-card:hover {
+    border-color: #cbd5e1;
+}
+
+/* Dragging visual states */
+.mat-card.mat-dragging {
+    opacity: 0.6;
+    border-style: dashed;
+    border-color: var(--color-primary);
+}
+
+.mat-card.mat-over {
+    outline: 2px solid rgba(212, 175, 55, 0.55);
+}
+
+.mat-card summary {
+    list-style: none;
+    cursor: grab;
+    padding: 12px 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    user-select: none;
+    background: #fff;
+}
+
+.mat-card summary::-webkit-details-marker {
+    display: none;
+}
+
+.mat-card .mat-sum-left {
     width: 40px;
     height: 40px;
     background: #f1f5f9;
-    border-radius: 8px;
+    border-radius: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.25rem;
+    font-size: 1.2rem;
+    flex-shrink: 0;
 }
 
-.mat-content {
+.mat-card .mat-sum-mid {
     flex: 1;
+    min-width: 0;
 }
 
-/* --- RESPONSIVE --- */
-@media (max-width: 1024px) {
-
-    .studio-layout,
-    .test-studio-layout {
-        flex-direction: column;
-    }
-
-    .studio-sidebar,
-    .ts-sidebar {
-        width: 100%;
-        height: auto;
-        border-right: none;
-        border-bottom: 1px solid #e2e8f0;
-    }
-
-    .nav-list-scroll {
-        max-height: 250px;
-    }
-
-    .studio-modal-container {
-        width: 100% !important;
-        height: 100% !important;
-        border-radius: 0;
-    }
+.mat-card .mat-sum-title {
+    font-weight: 700;
+    color: #0f172a;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-/* ======================================================================
-   3.1 STUDIO PRO v2 - DRAWER (Konu Ayarlari) + UX FIXES
-   ====================================================================== */
-
-/* Studio container needs stacking context for drawer */
-.studio-modal-container {
-    position: relative;
+.mat-card .mat-sum-sub {
+    font-size: 0.75rem;
+    color: #64748b;
+    margin-top: 2px;
 }
 
-/* Drawer Backdrop (inside Studio modal) */
+.mat-card .mat-sum-actions {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.mat-card .mat-body {
+    padding: 12px;
+    border-top: 1px solid #e2e8f0;
+    background: #f8fafc;
+}
+
+.mat-card .mat-body .form-control {
+    background: #fff;
+}
+
+/* HTML Materyal Tabs */
+.mat-tabs {
+    display: inline-flex;
+    background: #e2e8f0;
+    padding: 3px;
+    border-radius: 10px;
+    gap: 4px;
+}
+
+.mat-tab {
+    border: none;
+    background: transparent;
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #64748b;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.mat-tab.active {
+    background: #fff;
+    color: #0f172a;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+
+.mat-preview {
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    background: #ffffff;
+    padding: 12px;
+    min-height: 140px;
+}
+
+.mat-preview .muted {
+    color: #94a3b8;
+    font-size: 0.85rem;
+}
+
+.mat-preview code {
+    background: #f1f5f9;
+    padding: 2px 6px;
+    border-radius: 6px;
+}
+
+/* --- DRAWER (Konu Ayarlari) --- */
 .drawer-backdrop {
     position: absolute;
     inset: 0;
@@ -804,7 +909,6 @@
     display: none;
 }
 
-/* Drawer Panel */
 .drawer {
     position: absolute;
     top: 0;
@@ -865,256 +969,7 @@
     justify-content: flex-end;
 }
 
-/* Make sidebar footer buttons equal height */
-.sidebar-footer .btn {
-    height: 38px;
-}
-
-/* Empty state CTA */
-.empty-selection .empty-actions {
-    margin-top: 14px;
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    justify-content: center;
-}
-
-/* --- Lesson materials: use <details> accordion cards --- */
-.material-list .mat-card {
-    border: 1px solid #e2e8f0;
-    border-radius: 10px;
-    background: #fff;
-    overflow: hidden;
-    margin-bottom: 10px;
-}
-
-.material-list .mat-card summary {
-    list-style: none;
-    cursor: pointer;
-    padding: 12px 12px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    user-select: none;
-}
-
-.material-list .mat-card summary::-webkit-details-marker {
-    display: none;
-}
-
-.material-list .mat-card .mat-sum-left {
-    width: 40px;
-    height: 40px;
-    background: #f1f5f9;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.2rem;
-    flex-shrink: 0;
-}
-
-.material-list .mat-card .mat-sum-mid {
-    flex: 1;
-    min-width: 0;
-}
-
-.material-list .mat-card .mat-sum-title {
-    font-weight: 700;
-    color: #0f172a;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.material-list .mat-card .mat-sum-sub {
-    font-size: 0.75rem;
-    color: #64748b;
-    margin-top: 2px;
-}
-
-.material-list .mat-card .mat-sum-actions {
-    display: flex;
-    gap: 6px;
-    align-items: center;
-}
-
-.material-list .mat-card .mat-body {
-    padding: 12px;
-    border-top: 1px solid #e2e8f0;
-    background: #f8fafc;
-}
-
-.material-list .mat-card .mat-body .form-control {
-    background: #fff;
-}
-
-/* Test filter header tiny stats */
-.ts-stats {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    margin: 8px 0 10px;
-}
-
-.ts-stats .badge-mini {
-    background: #eef2ff;
-    color: #4338ca;
-}
-
-/* Responsive: drawer becomes full width on small screens */
-@media (max-width: 768px) {
-    .drawer {
-        width: 100%;
-    }
-}
-
-/* ======================================================================
-   3.2 STUDIO PRO v2.1 - Drag & Drop (Test Kağıdı)
-   ====================================================================== */
-.question-card[draggable="true"] {
-    cursor: grab;
-}
-
-.question-card.dragging {
-    opacity: 0.55;
-}
-
-.question-card.drag-over {
-    border-color: var(--color-primary);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-}
-
-.qc-handle {
-    cursor: grab;
-}
-
-/* ======================================================================
-   3.3 STUDIO PRO v2.2 - Content Trash Modal
-   ====================================================================== */
-#contentTrashModal {
-    z-index: 100000 !important;
-}
-
-/* ======================================================================
-   3.4 STUDIO PRO v2.3 - HTML Materyal Edit/Preview Tabs
-   ====================================================================== */
-.mat-tabs {
-    display: inline-flex;
-    background: #e2e8f0;
-    padding: 3px;
-    border-radius: 10px;
-    gap: 4px;
-}
-
-.mat-tab {
-    border: none;
-    background: transparent;
-    padding: 6px 10px;
-    border-radius: 8px;
-    font-size: 0.78rem;
-    font-weight: 700;
-    color: #64748b;
-    cursor: pointer;
-    transition: all 0.15s ease;
-}
-
-.mat-tab.active {
-    background: #fff;
-    color: #0f172a;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
-}
-
-.mat-preview {
-    border: 1px solid #e2e8f0;
-    border-radius: 10px;
-    background: #ffffff;
-    padding: 12px;
-    min-height: 140px;
-}
-
-.mat-preview .muted {
-    color: #94a3b8;
-    font-size: 0.85rem;
-}
-
-.mat-preview code {
-    background: #f1f5f9;
-    padding: 2px 6px;
-    border-radius: 6px;
-}
-
-/* ======================================================================
-   3.5 STUDIO PRO v2.4 - Toolbar Layout + Full Width Lesson Workspace
-   ====================================================================== */
-
-/* Toolbar should behave like a header and never collapse into content */
-.editor-toolbar {
-    position: sticky;
-    top: 0;
-    z-index: 20;
-    box-shadow: 0 1px 0 rgba(15, 23, 42, 0.08);
-    flex-wrap: nowrap;
-}
-
-.editor-title-group {
-    min-width: 0;
-}
-
-.editor-title-input {
-    min-width: 240px;
-}
-
-.editor-actions {
-    flex-shrink: 0;
-}
-
-/* Lesson workspace should fill available width */
-#wsLessonMode.form-container {
-    max-width: none;
-    width: 100%;
-    margin: 0;
-    padding: 24px;
-}
-
-/* Optional: give the add-material area a full-canvas feel */
-#wsLessonMode .add-mat-grid {
-    max-width: 1100px;
-}
-
-#wsLessonMode .material-list {
-    max-width: 1100px;
-}
-
-/* On very wide screens keep content comfortable but not squeezed */
-@media (min-width: 1200px) {
-
-    #wsLessonMode .add-mat-grid,
-    #wsLessonMode .material-list {
-        margin-left: auto;
-        margin-right: auto;
-    }
-}
-
-/* ======================================================================
-   3.6 STUDIO PRO v2.5 - Material Drag & Drop
-   ====================================================================== */
-.material-list .mat-card[draggable="true"] summary {
-    cursor: grab;
-}
-
-.material-list .mat-card.mat-dragging {
-    opacity: 0.6;
-}
-
-.material-list .mat-card.mat-over {
-    outline: 2px solid rgba(212, 175, 55, 0.55);
-}
-
-/* ======================================================================
-   3.7 STUDIO PRO v2.6 - Autosave Indicator
-   ====================================================================== */
+/* Save Indicator */
 .save-indicator {
     display: inline-flex;
     align-items: center;
@@ -1141,4 +996,41 @@
 .save-indicator.error {
     border-color: rgba(239, 68, 68, 0.35);
     color: #dc2626;
+}
+
+/* --- RESPONSIVE --- */
+@media (max-width: 1024px) {
+
+    .studio-layout,
+    .test-studio-layout {
+        flex-direction: column;
+    }
+
+    .studio-sidebar,
+    .ts-sidebar {
+        width: 100%;
+        height: auto;
+        border-right: none;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .nav-list-scroll {
+        max-height: 250px;
+    }
+
+    .studio-modal-container {
+        width: 100% !important;
+        height: 100% !important;
+        border-radius: 0;
+    }
+}
+
+@media (max-width: 768px) {
+    .drawer {
+        width: 100%;
+    }
+
+    .add-mat-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
 }

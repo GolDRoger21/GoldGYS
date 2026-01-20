@@ -4,6 +4,8 @@ import { db } from "../../firebase-config.js";
 import {
     collection, getDocs, doc, addDoc, updateDoc, deleteDoc, serverTimestamp, query, orderBy, where
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+// Eğer content.js yoksa veya hata veriyorsa bu importu geçici olarak kaldırabiliriz, 
+// ancak question editor entegrasyonu için gereklidir.
 import { openQuestionEditor } from './content.js';
 import { UI_SHELL, renderNavItem } from './topics.ui.js';
 
@@ -20,13 +22,13 @@ let state = {
     tempQuestions: [], // Test kağıdındaki sorular
     poolQuestions: [], // Arama sonuçları
     sidebarTab: 'lesson',
-    autoFilter: ''
-    ,
+    autoFilter: '',
     _autosaveTimer: null,
     _autosaveTimer2: null,
-    _autosaveBound: false,
     _isDirty: false,
-    _isSaving: false
+    _isSaving: false,
+    _matDragIndex: null,
+    _dragIndex: null
 };
 
 function toggleMetaDrawer(open = true) {
@@ -43,7 +45,6 @@ function toggleMetaDrawer(open = true) {
         backdrop.classList.remove('open');
         drawer.setAttribute('aria-hidden', 'true');
     }
-    scheduleAutosave();
 }
 
 // ============================================================
@@ -69,8 +70,18 @@ export function initTopicsPage() {
         removeMat: removeMaterialUI,
         updateMat: updateMaterialItem,
         previewMat: setMaterialView,
-        matDnD: { start: matDragStart, over: matDragOver, leave: matDragLeave, drop: matDrop, end: matDragEnd },
         switchTab: switchTabHandler,
+
+        // Materyal Drag & Drop
+        matDnD: {
+            start: matDragStart,
+            over: matDragOver,
+            leave: matDragLeave,
+            drop: matDrop,
+            end: matDragEnd
+        },
+
+        // Test Wizard (Soru İşlemleri)
         wizard: {
             search: searchQuestions,
             add: addToTestPaper,
@@ -100,6 +111,7 @@ export function initTopicsPage() {
                     cleanupDnD();
                     return;
                 }
+                // Array move
                 const item = state.tempQuestions.splice(fromIndex, 1)[0];
                 state.tempQuestions.splice(toIndex, 0, item);
                 cleanupDnD();
@@ -107,8 +119,10 @@ export function initTopicsPage() {
             },
 
             fullEdit: (id) => {
+                // Eğer QuestionBank modülü yüklü ise onu kullan, yoksa content.js'dekini
                 if (window.QuestionBank?.openEditor) window.QuestionBank.openEditor(id);
-                else openQuestionEditor(id);
+                else if (typeof openQuestionEditor === 'function') openQuestionEditor(id);
+                else alert("Soru düzenleyici modülü yüklenemedi.");
             }
         },
         trash: { open: openTrash, restore: restoreItem },
@@ -125,11 +139,19 @@ async function loadTopics() {
     const tbody = document.getElementById('topicsTableBody');
     if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center p-3">Yükleniyor...</td></tr>';
 
-    const q = query(collection(db, "topics"), orderBy("order", "asc"));
-    const snap = await getDocs(q);
-    state.allTopics = [];
-    snap.forEach(doc => { if (doc.data().status !== 'deleted') state.allTopics.push({ id: doc.id, ...doc.data() }); });
-    renderTopicsTable();
+    try {
+        const q = query(collection(db, "topics"), orderBy("order", "asc"));
+        const snap = await getDocs(q);
+        state.allTopics = [];
+        snap.forEach(doc => {
+            const d = doc.data();
+            if (d.status !== 'deleted') state.allTopics.push({ id: doc.id, ...d });
+        });
+        renderTopicsTable();
+    } catch (e) {
+        console.error("Konular yüklenirken hata:", e);
+        if (tbody) tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger">Hata: ${e.message}</td></tr>`;
+    }
 }
 
 window.filterTopics = renderTopicsTable;
@@ -146,7 +168,8 @@ function renderTopicsTable() {
         (t.title || '').toLowerCase().includes(search)
     );
 
-    document.getElementById('topicCountBadge').innerText = `${filtered.length} Kayıt`;
+    const badge = document.getElementById('topicCountBadge');
+    if (badge) badge.innerText = `${filtered.length} Kayıt`;
 
     tbody.innerHTML = filtered.length ? filtered.map(t => `
         <tr>
@@ -173,15 +196,17 @@ async function openEditor(id = null) {
 
     if (id) {
         const t = state.allTopics.find(x => x.id === id);
-        document.getElementById('editTopicId').value = id;
-        document.getElementById('inpTopicTitle').value = t.title;
-        document.getElementById('inpTopicOrder').value = t.order;
-        document.getElementById('inpTopicCategory').value = t.category;
-        document.getElementById('inpTopicStatus').value = t.isActive;
+        if (t) {
+            document.getElementById('editTopicId').value = id;
+            document.getElementById('inpTopicTitle').value = t.title;
+            document.getElementById('inpTopicOrder').value = t.order;
+            document.getElementById('inpTopicCategory').value = t.category;
+            document.getElementById('inpTopicStatus').value = t.isActive;
 
-        document.getElementById('activeTopicTitleDisplay').innerText = t.title;
-        state.autoFilter = t.title;
-        await loadLessons(id);
+            document.getElementById('activeTopicTitleDisplay').innerText = t.title;
+            state.autoFilter = t.title;
+            await loadLessons(id);
+        }
 
         // İçerik seçilene kadar boş durum kalsın
         document.getElementById('emptyState').style.display = 'flex';
@@ -203,11 +228,17 @@ async function openEditor(id = null) {
 }
 
 async function loadLessons(topicId) {
-    document.getElementById('contentListNav').innerHTML = '<div class="text-center p-2 small text-muted">Yükleniyor...</div>';
+    const listNav = document.getElementById('contentListNav');
+    if (listNav) listNav.innerHTML = '<div class="text-center p-2 small text-muted">Yükleniyor...</div>';
+
     const q = query(collection(db, `topics/${topicId}/lessons`), orderBy("order", "asc"));
     const snap = await getDocs(q);
     state.currentLessons = [];
-    snap.forEach(d => { const data = d.data(); if (data?.status === 'deleted' || data?.isDeleted) return; state.currentLessons.push({ id: d.id, ...data }); });
+    snap.forEach(d => {
+        const data = d.data();
+        if (data?.status === 'deleted' || data?.isDeleted) return;
+        state.currentLessons.push({ id: d.id, ...data });
+    });
     renderContentNav();
 }
 
@@ -219,11 +250,11 @@ function switchTabHandler(tab) {
 
     // CSS'te .active sınıfı tanımlı, onu kullanıyoruz
     if (tab === 'lesson') {
-        btnLesson.classList.add('active');
-        btnTest.classList.remove('active');
+        btnLesson?.classList.add('active');
+        btnTest?.classList.remove('active');
     } else {
-        btnLesson.classList.remove('active');
-        btnTest.classList.add('active');
+        btnLesson?.classList.remove('active');
+        btnTest?.classList.add('active');
     }
 
     // Footer buton etiketi
@@ -235,6 +266,8 @@ function switchTabHandler(tab) {
 
 function renderContentNav() {
     const list = document.getElementById('contentListNav');
+    if (!list) return;
+
     const isTest = state.sidebarTab === 'test';
     const items = state.currentLessons.filter(l => isTest ? l.type === 'test' : l.type !== 'test');
 
@@ -245,6 +278,9 @@ function renderContentNav() {
     list.innerHTML = items.map(l => renderNavItem(l, isTest, state.activeLessonId)).join('');
 }
 
+// -------------------------------------------------------------
+// [FIXED] createNewContent fonksiyonundaki syntax hatası düzeltildi
+// -------------------------------------------------------------
 function createNewContent(type) {
     if (!state.activeTopicId) { alert("Lütfen önce konuyu kaydedin."); return; }
 
@@ -261,16 +297,19 @@ function createNewContent(type) {
     state.tempMaterials = [];
     state.tempQuestions = [];
 
-    if (contentType === 'lesson') renderMaterials();
-    scheduleAutosave();
-    scheduleAutosave();
-    else {
+    // [FIXED LOGIC]
+    if (contentType === 'lesson') {
+        renderMaterials();
+    } else {
         renderTestPaper();
         // Test modunda filtreleri sıfırla veya varsayılanı getir
         const leg = document.getElementById('wizLegislation'); if (leg) leg.value = state.autoFilter || "";
         const tc = document.getElementById('wizTargetCount'); if (tc && !tc.value) tc.value = 15;
-        document.getElementById('poolList').innerHTML = '<div class="text-center mt-5 small text-muted">Aramaya başlamak için<br>kriterleri giriniz.</div>';
+        const pl = document.getElementById('poolList');
+        if (pl) pl.innerHTML = '<div class="text-center mt-5 small text-muted">Aramaya başlamak için<br>kriterleri giriniz.</div>';
     }
+
+    scheduleAutosave();
 
     // Listedeki aktifliği kaldır
     document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
@@ -293,8 +332,8 @@ function selectContentItem(id) {
     } else {
         state.tempQuestions = item.questions || [];
         renderTestPaper();
-        document.getElementById('wizLegislation').value = item.legislationCode || state.autoFilter || "";
-        // Havuzu sıfırlama, kullanıcı belki aramaya devam etmek ister
+        const leg = document.getElementById('wizLegislation');
+        if (leg) leg.value = item.legislationCode || state.autoFilter || "";
     }
     renderContentNav();
 }
@@ -357,22 +396,6 @@ async function saveTopicMeta() {
     } catch (e) { alert(e.message); }
 }
 
-function validateMaterialsBeforeSave() {
-    // Only for lesson mode
-    const errs = [];
-    const mats = state.tempMaterials || [];
-    mats.forEach((m, idx) => {
-        const n = idx + 1;
-        const url = String(m.url || '').trim();
-        if (m.type === 'html') {
-            if (!url) errs.push(`Materyal #${n} (Metin): içerik boş.`);
-        } else {
-            if (!url) errs.push(`Materyal #${n} (${m.type.toUpperCase()}): URL boş.`);
-        }
-    });
-    return errs;
-}
-
 // Autosave (debounced)
 function setSaveIndicator(stateName, text) {
     const el = document.getElementById('saveIndicator');
@@ -382,23 +405,11 @@ function setSaveIndicator(stateName, text) {
     el.innerText = text || '—';
 }
 
-function ensureSaveIndicator() {
-    const actions = document.querySelector('.editor-actions');
-    if (!actions) return;
-    if (document.getElementById('saveIndicator')) return;
-
-    const span = document.createElement('span');
-    span.id = 'saveIndicator';
-    span.className = 'save-indicator';
-    span.innerText = '—';
-    actions.prepend(span);
-}
-
 function scheduleAutosave() {
     state._isDirty = true;
     setSaveIndicator('', 'Değişiklik var');
     // only if editor open
-    if (!state.activeTopicId || !state.activeLessonId) return;
+    if (!state.activeTopicId) return; // Lesson ID olmayabilir (yeni kayıt)
 
     clearTimeout(state._autosaveTimer);
     state._autosaveTimer = setTimeout(async () => {
@@ -425,11 +436,11 @@ async function saveContent(silent = false) {
     let title = document.getElementById('inpContentTitle').value.trim();
     if (!title) {
         title = state.activeLessonType === 'test' ? 'Yeni Test' : 'Yeni Ders';
-        document.getElementById('inpContentTitle').value = title;
+        // document.getElementById('inpContentTitle').value = title; // Otomatik doldurmasın, placeholder kalsın
     }
 
     const data = {
-        title,
+        title: title || (state.activeLessonType === 'test' ? 'Yeni Test' : 'Yeni Ders'),
         type: state.activeLessonType,
         order: parseInt(document.getElementById('inpContentOrder').value) || 0,
         isActive: true,
@@ -445,21 +456,27 @@ async function saveContent(silent = false) {
     }
 
     try {
-        if (state.activeLessonId) await updateDoc(doc(db, `topics/${state.activeTopicId}/lessons`, state.activeLessonId), data);
-        else {
+        if (state.activeLessonId) {
+            await updateDoc(doc(db, `topics/${state.activeTopicId}/lessons`, state.activeLessonId), data);
+        } else {
             data.createdAt = serverTimestamp();
-            await addDoc(collection(db, `topics/${state.activeTopicId}/lessons`), data);
-            // Konu ders sayısını artır (opsiyonel)
+            const ref = await addDoc(collection(db, `topics/${state.activeTopicId}/lessons`), data);
+            state.activeLessonId = ref.id; // ID'yi state'e al ki sonraki update'ler buraya gelsin
         }
 
-        // Basit feedback
-        const btn = document.querySelector('#contentEditor .btn-success');
-        const oldText = btn.innerHTML;
-        btn.innerHTML = '✅ Kaydedildi';
-        setTimeout(() => btn.innerHTML = oldText, 1500);
+        // Basit feedback (Eğer silent değilse)
+        if (!silent) {
+            const btn = document.querySelector('#contentEditor .btn-success');
+            if (btn) {
+                const oldText = btn.innerHTML;
+                btn.innerHTML = '✅ Kaydedildi';
+                setTimeout(() => btn.innerHTML = oldText, 1500);
+            }
+        }
 
+        // Listeyi yenile ama seçimi bozma
         loadLessons(state.activeTopicId);
-    } catch (e) { if (!silent) alert(e.message); }
+    } catch (e) { if (!silent) alert(e.message); throw e; }
 }
 
 async function deleteContent() {
@@ -471,18 +488,13 @@ async function deleteContent() {
 }
 
 function sanitizeHTML(unsafeHtml) {
-    // Minimal, dependency-free sanitizer for admin preview.
-    // Removes script/style/iframe/object/embed and dangerous attributes.
     try {
         const tpl = document.createElement('template');
         tpl.innerHTML = String(unsafeHtml || '');
-
         const blocked = tpl.content.querySelectorAll('script,style,iframe,object,embed,link,meta');
         blocked.forEach(n => n.remove());
-
         const all = tpl.content.querySelectorAll('*');
         all.forEach(el => {
-            // remove inline event handlers and JS URLs
             [...el.attributes].forEach(attr => {
                 const name = attr.name.toLowerCase();
                 const value = String(attr.value || '');
@@ -492,46 +504,24 @@ function sanitizeHTML(unsafeHtml) {
                 }
             });
         });
-
         return tpl.innerHTML;
     } catch (e) {
-        // Fallback: escape
-        return String(unsafeHtml || '')
-            .replaceAll('&', '&amp;')
-            .replaceAll('<', '&lt;')
-            .replaceAll('>', '&gt;');
+        return String(unsafeHtml || '').replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
     }
 }
 
 function setMaterialView(id, view) {
     const item = state.tempMaterials.find(m => m.id === id);
     if (!item) return;
-    item.view = view;
+    item.view = view; // 'edit' | 'preview'
 
-    const btnEdit = document.getElementById(`matTabEdit_${id}`);
-    const btnPrev = document.getElementById(`matTabPrev_${id}`);
-    const wrapEdit = document.getElementById(`matEdit_${id}`);
-    const wrapPrev = document.getElementById(`matPrev_${id}`);
-
-    if (btnEdit && btnPrev) {
-        btnEdit.classList.toggle('active', view === 'edit');
-        btnPrev.classList.toggle('active', view === 'preview');
-    }
-    if (wrapEdit && wrapPrev) {
-        wrapEdit.style.display = view === 'edit' ? 'block' : 'none';
-        wrapPrev.style.display = view === 'preview' ? 'block' : 'none';
-    }
-
-    if (view === 'preview') {
-        const prev = document.getElementById(`matPrevBox_${id}`);
-        if (prev) {
-            const html = (item.url || '').trim();
-            prev.innerHTML = html ? sanitizeHTML(html) : '<div class="muted">Önizleme için içerik girin.</div>';
-        }
-    }
+    // UI Update
+    renderMaterials(); // Basitçe yeniden render et, DOM manipülasyonu ile uğraşmayalım şimdilik
 }
 
-// Material Drag & Drop
+// -------------------------------------------------------------
+// [FIXED] Material Drag & Drop Fonksiyonları
+// -------------------------------------------------------------
 function matCleanupDnD() {
     state._matDragIndex = null;
     document.querySelectorAll('.mat-card.mat-dragging').forEach(el => el.classList.remove('mat-dragging'));
@@ -563,10 +553,11 @@ function matDrop(toIndex, ev) {
         matCleanupDnD();
         return;
     }
+    // Array move
     const item = state.tempMaterials.splice(fromIndex, 1)[0];
     state.tempMaterials.splice(toIndex, 0, item);
 
-    // Recompute material order (1..n)
+    // Sıralamayı (order) güncelle
     state.tempMaterials.forEach((m, i) => m.order = i + 1);
 
     matCleanupDnD();
@@ -581,47 +572,122 @@ function matDragEnd(ev) {
 }
 
 // --- MATERIAL HELPERS ---
-function addMaterialUI(type) { state.tempMaterials.push({ id: Date.now(), type, title: '', url: '' }); renderMaterials(); }
-function removeMaterialUI(id) { state.tempMaterials = state.tempMaterials.filter(m => m.id !== id); renderMaterials(); }
+function addMaterialUI(type) {
+    state.tempMaterials.push({
+        id: Date.now(),
+        type,
+        title: '',
+        url: '',
+        view: 'edit',
+        order: state.tempMaterials.length + 1
+    });
+    renderMaterials();
+    scheduleAutosave();
+}
+function removeMaterialUI(id) {
+    state.tempMaterials = state.tempMaterials.filter(m => m.id !== id);
+    renderMaterials();
+    scheduleAutosave();
+}
 function updateMaterialItem(id, field, val) {
     const item = state.tempMaterials.find(m => m.id === id);
     if (!item) return;
     item[field] = val;
+    scheduleAutosave();
 
-    // Live preview update for HTML materials
-    if (item.type === 'html' && field === 'url') {
-        const prev = document.getElementById(`matPrevBox_${id}`);
-        if (prev && (item.view === 'preview')) {
-            const html = String(val || '').trim();
-            prev.innerHTML = html ? sanitizeHTML(html) : '<div class="muted">Önizleme için içerik girin.</div>';
-        }
-    }
-
-    // Update summary title without full rerender (best-effort)
+    // Eğer başlık güncelleniyorsa summary kısmını anlık güncelle (renderMaterials yapmadan)
     if (field === 'title') {
-        const sumTitle = document.getElementById(`matSumTitle_${id}`);
-        if (sumTitle) sumTitle.textContent = String(val || '').trim() || 'Başlıksız';
+        const titleEl = document.getElementById(`matTitle_${id}`);
+        if (titleEl) titleEl.innerText = val || '(Başlıksız)';
     }
 }
 
+// -------------------------------------------------------------
+// [FIXED] renderMaterials - CSS ile uyumlu <details> yapısı
+// -------------------------------------------------------------
 function renderMaterials() {
     const container = document.getElementById('materialsContainer');
+    if (!container) return;
+
     if (state.tempMaterials.length === 0) {
         container.innerHTML = '<div class="text-center text-muted p-4 border dashed rounded bg-light">Henüz materyal eklenmedi.</div>';
         return;
     }
-    container.innerHTML = state.tempMaterials.map(m => `
-        <div class="material-item">
-            <div class="mat-icon">${m.type === 'video' ? '🎥' : m.type === 'podcast' ? '🎙️' : m.type === 'pdf' ? '📄' : '📝'}</div>
-            <div class="mat-content">
-                <input type="text" class="form-control fw-bold" placeholder="Materyal Başlığı" value="${m.title}" oninput="window.Studio.updateMat(${m.id},'title',this.value)">
-                ${m.type === 'html'
-            ? `<textarea class="form-control font-monospace small" rows="2" placeholder="İçerik / HTML Kodu" oninput="window.Studio.updateMat(${m.id},'url',this.value)">${m.url}</textarea>`
-            : `<input type="text" class="form-control small text-muted" placeholder="URL / Dosya Yolu" value="${m.url}" oninput="window.Studio.updateMat(${m.id},'url',this.value)">`}
+
+    container.innerHTML = state.tempMaterials.map((m, i) => {
+        const icon = m.type === 'video' ? '🎥' : m.type === 'podcast' ? '🎙️' : m.type === 'pdf' ? '📄' : '📝';
+        const isHtml = m.type === 'html';
+        const viewMode = m.view || 'edit'; // 'edit' or 'preview'
+
+        let contentArea = '';
+
+        if (isHtml) {
+            // HTML Materyal: Edit / Preview Tabları
+            contentArea = `
+                <div class="mb-2">
+                    <div class="mat-tabs">
+                        <button class="mat-tab ${viewMode === 'edit' ? 'active' : ''}" onclick="window.Studio.previewMat(${m.id}, 'edit')">Düzenle</button>
+                        <button class="mat-tab ${viewMode === 'preview' ? 'active' : ''}" onclick="window.Studio.previewMat(${m.id}, 'preview')">Önizle</button>
+                    </div>
+                </div>
+            `;
+
+            if (viewMode === 'edit') {
+                contentArea += `
+                    <textarea class="form-control font-monospace small" rows="4" 
+                        placeholder="İçerik / HTML Kodu" 
+                        oninput="window.Studio.updateMat(${m.id},'url',this.value)">${m.url}</textarea>
+                `;
+            } else {
+                const safeHtml = sanitizeHTML(m.url);
+                contentArea += `
+                    <div class="mat-preview">${safeHtml || '<span class="text-muted">İçerik yok.</span>'}</div>
+                `;
+            }
+        } else {
+            // Diğerleri (Standart Input)
+            contentArea = `
+                <input type="text" class="form-control small text-muted" 
+                    placeholder="URL / Dosya Yolu" 
+                    value="${m.url}" 
+                    oninput="window.Studio.updateMat(${m.id},'url',this.value)">
+            `;
+        }
+
+        return `
+        <details class="mat-card" draggable="true" 
+            ondragstart="window.Studio.matDnD.start(${i}, event)" 
+            ondragover="window.Studio.matDnD.over(${i}, event)" 
+            ondragleave="window.Studio.matDnD.leave(event)" 
+            ondrop="window.Studio.matDnD.drop(${i}, event)" 
+            ondragend="window.Studio.matDnD.end(event)" open>
+            
+            <summary>
+                <div class="mat-sum-left">${icon}</div>
+                <div class="mat-sum-mid">
+                    <div class="mat-sum-title" id="matTitle_${m.id}">${m.title || '(Başlıksız)'}</div>
+                    <div class="mat-sum-sub">${m.type.toUpperCase()} - Sıra: ${m.order || (i + 1)}</div>
+                </div>
+                <div class="mat-sum-actions">
+                    <button class="btn btn-outline-danger btn-sm" onclick="window.Studio.removeMat(${m.id})">Sil</button>
+                </div>
+            </summary>
+            
+            <div class="mat-body">
+                <div class="mb-2">
+                    <label class="form-label small fw-bold text-muted">BAŞLIK</label>
+                    <input type="text" class="form-control fw-bold" 
+                        value="${m.title}" 
+                        oninput="window.Studio.updateMat(${m.id},'title',this.value)">
+                </div>
+                <div>
+                    <label class="form-label small fw-bold text-muted">İÇERİK / URL</label>
+                    ${contentArea}
+                </div>
             </div>
-            <button class="btn btn-outline-danger btn-sm" onclick="window.Studio.removeMat(${m.id})">&times;</button>
-        </div>
-    `).join('');
+        </details>
+        `;
+    }).join('');
 }
 
 // DnD helpers
@@ -635,13 +701,12 @@ function cleanupDnD() {
 // --- GELİŞMİŞ ALGORİTMA VE SORGULAMA ---
 // ============================================================
 
-
 async function searchQuestions() {
     const code = document.getElementById('wizLegislation').value.trim();
     if (!code) return alert("Lütfen bir Mevzuat Kodu girin (Örn: 5271).");
 
     const poolList = document.getElementById('poolList');
-    poolList.innerHTML = '<div class="text-center p-4"><div class="spinner-border text-primary" role="status"></div><br>Sorular Taranıyor...</div>';
+    if (poolList) poolList.innerHTML = '<div class="text-center p-4"><div class="spinner-border text-primary" role="status"></div><br>Sorular Taranıyor...</div>';
 
     try {
         // 1. Firestore'dan sadece koda göre çek
@@ -661,7 +726,6 @@ async function searchQuestions() {
             if (d.isDeleted) return;
 
             // Madde No Dönüşümü (Güvenli)
-            // String "12/A" veya "Geçici 1" gibi değerler gelebilir, parseInt sadece baştaki sayıyı alır.
             const artNo = parseInt(d.legislationRef?.article);
 
             // A. Madde Aralığı
@@ -691,7 +755,7 @@ async function searchQuestions() {
 
     } catch (error) {
         console.error("Sorgu Hatası:", error);
-        poolList.innerHTML = `<div class="text-center text-danger p-3">Hata: ${error.message}</div>`;
+        if (poolList) poolList.innerHTML = `<div class="text-center text-danger p-3">Hata: ${error.message}</div>`;
     }
 }
 
@@ -759,10 +823,13 @@ function performSmartSelection() {
     state.tempQuestions = [...state.tempQuestions, ...selection];
     renderTestPaper();
     renderPoolList(); // "Eklendi" etiketlerini güncelle
+    scheduleAutosave();
 }
 
 function renderPoolList() {
     const list = document.getElementById('poolList');
+    if (!list) return;
+
     const pc = document.getElementById('poolCount'); if (pc) pc.innerText = state.poolQuestions.length;
 
     if (state.poolQuestions.length === 0) {
@@ -798,6 +865,7 @@ function renderPoolList() {
 function renderTestPaper() {
     const list = document.getElementById('paperList');
     const countEl = document.getElementById('paperCount');
+    if (!list) return;
 
     if (countEl) countEl.innerText = `${state.tempQuestions.length} Soru`;
 
@@ -812,18 +880,22 @@ function renderTestPaper() {
     }
 
     list.innerHTML = state.tempQuestions.map((q, i) => {
-        // Metni temizle ve kısalt
         const cleanText = q.text ? q.text.replace(/<[^>]*>?/gm, '') : '';
         const shortText = cleanText.length > 100 ? cleanText.substring(0, 100) + '...' : cleanText;
 
-        // Zorluk seviyesi badge
         let diffBadge = '';
         if (q.difficulty <= 2) diffBadge = '<span class="badge-outline" style="color:#16a34a; border-color:#16a34a">Kolay</span>';
         else if (q.difficulty === 3) diffBadge = '<span class="badge-outline" style="color:#d97706; border-color:#d97706">Orta</span>';
         else diffBadge = '<span class="badge-outline" style="color:#dc2626; border-color:#dc2626">Zor</span>';
 
         return `
-        <div class="question-card" draggable="true" ondragstart="window.Studio.wizard.dragStart(${i},event)" ondragover="window.Studio.wizard.dragOver(${i},event)" ondragleave="window.Studio.wizard.dragLeave(event)" ondrop="window.Studio.wizard.drop(${i},event)" ondragend="window.Studio.wizard.dragEnd(event)">
+        <div class="question-card" draggable="true" 
+            ondragstart="window.Studio.wizard.dragStart(${i},event)" 
+            ondragover="window.Studio.wizard.dragOver(${i},event)" 
+            ondragleave="window.Studio.wizard.dragLeave(event)" 
+            ondrop="window.Studio.wizard.drop(${i},event)" 
+            ondragend="window.Studio.wizard.dragEnd(event)">
+            
             <div class="qc-left">
                 <span class="qc-handle" title="Sıralamak için sürükle">:::</span>
                 <span class="qc-number">${i + 1}</span>
@@ -848,13 +920,17 @@ function addToTestPaper(id) {
     const q = state.poolQuestions.find(x => x.id === id);
     if (q && !state.tempQuestions.some(x => x.id === id)) {
         state.tempQuestions.push(q);
-        renderTestPaper(); renderPoolList();
+        renderTestPaper();
+        renderPoolList();
+        scheduleAutosave();
     }
 }
 
 function removeFromTestPaper(i) {
     state.tempQuestions.splice(i, 1);
-    renderTestPaper(); renderPoolList();
+    renderTestPaper();
+    renderPoolList();
+    scheduleAutosave();
 }
 
 // Trash
@@ -975,9 +1051,7 @@ async function purgeAllDeletedContent() {
 
     if (ids.length === 0) return alert("Kalıcı silinecek içerik yok.");
 
-    // Batch delete (chunked)
-    const { writeBatch } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
-    // Note: writeBatch already imported in old file? not in current v3. We'll avoid dynamic import and just delete sequentially for now.
+    // Silme işlemi
     for (const id of ids) {
         await deleteDoc(doc(db, `topics/${state.activeTopicId}/lessons`, id));
     }

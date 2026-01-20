@@ -1,6 +1,8 @@
+/* DOSYA: public/js/modules/admin/content.js */
+
 import { db } from "../../firebase-config.js";
 import {
-    collection, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, serverTimestamp, query, orderBy, limit, where, writeBatch
+    collection, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, serverTimestamp, query, orderBy, limit, where
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 let isEditorInitialized = false;
@@ -11,7 +13,7 @@ let currentOnculler = [];
 // ============================================================
 export function initContentPage() {
     renderContentInterface();
-    // Modal HTML'ini sayfaya ekle (Eğer yoksa)
+    // Modal HTML'ini sayfaya ekle
     ensureQuestionEditorReady();
     loadDynamicCategories();
     loadQuestions(); // Varsayılan: Aktif sorular
@@ -32,10 +34,10 @@ export function ensureQuestionEditorReady() {
     }
 
     const modalHtml = `
-        <div id="questionModal" class="modal-overlay" style="display:none; z-index: 10000;">
-            <div class="modal-content admin-modal-content" style="max-width: 900px; max-height: 95vh; display:flex; flex-direction:column;">
+        <div id="questionModal" class="modal-overlay" style="display:none; z-index: 100005;">
+            <div class="admin-modal-content" style="max-width: 900px; max-height: 95vh; display:flex; flex-direction:column;">
                 <div class="modal-header">
-                    <h3 id="modalTitle">Soru Düzenle</h3>
+                    <h5 class="m-0" id="modalTitle">Soru Düzenle</h5>
                     <button type="button" class="close-btn" onclick="document.getElementById('questionModal').style.display='none'">&times;</button>
                 </div>
                 <form id="questionForm" class="modal-body-scroll" style="flex:1; overflow-y:auto; padding:20px;">
@@ -44,8 +46,8 @@ export function ensureQuestionEditorReady() {
                     <div class="card p-3 mb-3 bg-light border-start border-4 border-primary">
                         <h6 class="text-primary m-0 mb-2">⚖️ Mevzuat Bağlantısı</h6>
                         <div class="row g-2">
-                            <div class="col-md-4"><input type="text" id="inpLegCode" class="form-control" placeholder="Kanun No (Örn: 2577)"></div>
-                            <div class="col-md-4"><input type="number" id="inpLegArticle" class="form-control" placeholder="Madde No"></div>
+                            <div class="col-md-4"><input type="text" id="inpLegCode" class="form-control fw-bold" placeholder="Kanun No (Örn: 5271)"></div>
+                            <div class="col-md-4"><input type="text" id="inpLegArticle" class="form-control fw-bold" placeholder="Madde No"></div>
                             <div class="col-md-4"><button type="button" id="btnAutoDetect" class="btn btn-outline-primary w-100">Konuyu Bul</button></div>
                         </div>
                         <small class="text-muted" id="autoDetectResult"></small>
@@ -53,17 +55,23 @@ export function ensureQuestionEditorReady() {
 
                     <div class="row mb-3">
                         <div class="col-md-6">
-                            <label class="form-label">Kategori</label>
+                            <label class="form-label small fw-bold text-muted">KATEGORİ</label>
                             <input type="text" id="inpCategory" class="form-control" list="categoryList" required>
                             <datalist id="categoryList"></datalist>
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label">Zorluk (1-5)</label>
-                            <input type="number" id="inpDifficulty" class="form-control" min="1" max="5" value="3">
+                            <label class="form-label small fw-bold text-muted">ZORLUK (1-5)</label>
+                            <select id="inpDifficulty" class="form-select">
+                                <option value="1">1 - Çok Kolay</option>
+                                <option value="2">2 - Kolay</option>
+                                <option value="3" selected>3 - Orta</option>
+                                <option value="4">4 - Zor</option>
+                                <option value="5">5 - Çok Zor</option>
+                            </select>
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label">Tip</label>
-                            <select id="inpType" class="form-control">
+                            <label class="form-label small fw-bold text-muted">TİP</label>
+                            <select id="inpType" class="form-select">
                                 <option value="standard">Standart</option>
                                 <option value="oncullu">Öncüllü</option>
                             </select>
@@ -71,30 +79,30 @@ export function ensureQuestionEditorReady() {
                     </div>
 
                     <div id="onculluArea" class="card p-3 mb-3 bg-light" style="display:none;">
-                        <label class="fw-bold">Öncüller</label>
+                        <label class="fw-bold mb-2">Öncüller</label>
                         <div id="oncullerList" class="mb-2"></div>
                         <div class="input-group mb-2">
                             <input type="text" id="inpNewOncul" class="form-control" placeholder="Öncül ekle...">
                             <button type="button" id="btnAddOncul" class="btn btn-secondary">Ekle</button>
                         </div>
-                        <input type="text" id="inpQuestionRoot" class="form-control" placeholder="Soru Kökü (Örn: Hangileri doğrudur?)">
+                        <input type="text" id="inpQuestionRoot" class="form-control fw-bold" placeholder="Soru Kökü (Örn: Hangileri doğrudur?)">
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label">Soru Metni</label>
-                        <textarea id="inpText" class="form-control" rows="3" required></textarea>
+                        <label class="form-label small fw-bold text-muted">SORU METNİ</label>
+                        <textarea id="inpText" class="form-control" rows="4" required></textarea>
                     </div>
 
                     <div class="row g-2 mb-3">
-                        <div class="col-md-6"><div class="input-group"><span class="input-group-text">A</span><input type="text" id="inpOptA" class="form-control" required></div></div>
-                        <div class="col-md-6"><div class="input-group"><span class="input-group-text">B</span><input type="text" id="inpOptB" class="form-control" required></div></div>
-                        <div class="col-md-6"><div class="input-group"><span class="input-group-text">C</span><input type="text" id="inpOptC" class="form-control" required></div></div>
-                        <div class="col-md-6"><div class="input-group"><span class="input-group-text">D</span><input type="text" id="inpOptD" class="form-control" required></div></div>
-                        <div class="col-md-6"><div class="input-group"><span class="input-group-text">E</span><input type="text" id="inpOptE" class="form-control" required></div></div>
+                        <div class="col-md-6"><div class="input-group"><span class="input-group-text fw-bold">A</span><input type="text" id="inpOptA" class="form-control" required></div></div>
+                        <div class="col-md-6"><div class="input-group"><span class="input-group-text fw-bold">B</span><input type="text" id="inpOptB" class="form-control" required></div></div>
+                        <div class="col-md-6"><div class="input-group"><span class="input-group-text fw-bold">C</span><input type="text" id="inpOptC" class="form-control" required></div></div>
+                        <div class="col-md-6"><div class="input-group"><span class="input-group-text fw-bold">D</span><input type="text" id="inpOptD" class="form-control" required></div></div>
+                        <div class="col-md-6"><div class="input-group"><span class="input-group-text fw-bold">E</span><input type="text" id="inpOptE" class="form-control" required></div></div>
                         <div class="col-md-6">
-                            <select id="inpCorrect" class="form-control bg-success text-white fw-bold" required>
+                            <select id="inpCorrect" class="form-select bg-success text-white fw-bold" required>
                                 <option value="" disabled selected>Doğru Cevap Seç</option>
-                                <option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option><option value="E">E</option>
+                                <option value="A">A Şıkkı</option><option value="B">B Şıkkı</option><option value="C">C Şıkkı</option><option value="D">D Şıkkı</option><option value="E">E Şıkkı</option>
                             </select>
                         </div>
                     </div>
@@ -121,17 +129,12 @@ export function ensureQuestionEditorReady() {
     document.body.insertAdjacentHTML('beforeend', modalHtml);
 
     // Modal içindeki eventleri bağla
-    const btnAuto = document.getElementById('btnAutoDetect');
-    const btnAddOncul = document.getElementById('btnAddOncul');
-    const inpType = document.getElementById('inpType');
-    const form = document.getElementById('questionForm');
+    document.getElementById('btnAutoDetect').onclick = autoDetectTopic;
+    document.getElementById('btnAddOncul').onclick = addOncul;
+    document.getElementById('inpType').onchange = toggleQuestionType;
+    document.getElementById('questionForm').onsubmit = handleSaveQuestion;
 
-    if (btnAuto) btnAuto.onclick = autoDetectTopic;
-    if (btnAddOncul) btnAddOncul.onclick = addOncul;
-    if (inpType) inpType.onchange = toggleQuestionType;
-    if (form) form.onsubmit = handleSaveQuestion;
-
-    // Kategorileri yükle (Select box için)
+    // Kategorileri yükle
     loadDynamicCategories();
 
     isEditorInitialized = true;
@@ -150,11 +153,7 @@ export async function openQuestionEditor(id = null) {
     const modal = document.getElementById('questionModal');
     const form = document.getElementById('questionForm');
 
-    // Güvenlik: Eğer modal hala yoksa (çok düşük ihtimal ama) işlemi durdur
-    if (!modal || !form) {
-        console.error("Modal yüklenemedi. Sayfayı yenileyin.");
-        return;
-    }
+    if (!modal || !form) return;
 
     modal.style.display = 'flex';
     form.reset();
@@ -169,6 +168,11 @@ export async function openQuestionEditor(id = null) {
     if (titleEl) titleEl.innerText = id ? "Soruyu Düzenle" : "Yeni Soru Ekle";
     if (idEl) idEl.value = id || "";
     if (resEl) resEl.innerText = "";
+
+    // Varsayılanlar
+    document.getElementById('inpDifficulty').value = 3;
+    document.getElementById('inpType').value = 'standard';
+    toggleQuestionType();
 
     if (id) {
         try {
@@ -200,9 +204,8 @@ export async function openQuestionEditor(id = null) {
                     renderOnculler();
                 }
 
-                // Tip değişikliğini tetikle (Öncüllü/Standart geçişi için)
-                const typeEvent = new Event('change');
-                document.getElementById('inpType').dispatchEvent(typeEvent);
+                // Tip değişikliğini tetikle
+                toggleQuestionType();
 
                 const sol = data.solution || {};
                 document.getElementById('inpSolAnaliz').value = sol.analiz || '';
@@ -211,11 +214,6 @@ export async function openQuestionEditor(id = null) {
                 document.getElementById('inpSolTuzak').value = sol.tuzak || '';
             }
         } catch (e) { console.error("Soru yüklenemedi", e); }
-    } else {
-        // Yeni soru eklerken varsayılan tetikleme
-        const typeEvent = new Event('change');
-        const typeEl = document.getElementById('inpType');
-        if (typeEl) typeEl.dispatchEvent(typeEvent);
     }
 }
 
@@ -232,23 +230,22 @@ function renderContentInterface() {
             <div><h2>📚 Soru Bankası Yönetimi</h2><p class="text-muted">Soruları ekleyin, düzenleyin veya arşivleyin.</p></div>
             <div class="d-flex gap-2">
                 <button class="btn btn-warning" onclick="window.openTrashModal()">🗑️ Çöp Kutusu</button>
-                <button class="btn btn-secondary" onclick="document.querySelector('[data-tab=\\'importer\\']').click()">📥 Toplu Yükle</button>
                 <button id="btnNewQuestion" class="btn btn-primary">➕ Yeni Soru</button>
             </div>
         </div>
         
-        <div class="card mb-4 p-3">
+        <div class="card mb-4 p-3 border-0 shadow-sm">
             <div class="row g-3">
                 <div class="col-md-4">
                     <input type="text" id="searchQuestion" class="form-control" placeholder="Soru metni, ID veya Kanun No ara...">
                 </div>
                 <div class="col-md-3">
-                    <select id="filterCategory" class="form-control">
+                    <select id="filterCategory" class="form-select">
                         <option value="">Tüm Kategoriler</option>
                     </select>
                 </div>
                 <div class="col-md-3">
-                    <select id="filterStatus" class="form-control">
+                    <select id="filterStatus" class="form-select">
                         <option value="active">✅ Aktif Sorular</option>
                         <option value="flagged">⚠️ İncelenecekler</option>
                     </select>
@@ -259,10 +256,10 @@ function renderContentInterface() {
             </div>
         </div>
 
-        <div class="card">
+        <div class="card p-0 border-0 shadow-sm overflow-hidden">
             <div class="table-responsive">
-                <table class="admin-table">
-                    <thead>
+                <table class="admin-table table-hover">
+                    <thead class="bg-light">
                         <tr>
                             <th style="width:50px">ID</th>
                             <th>Kategori / Mevzuat</th>
@@ -279,10 +276,18 @@ function renderContentInterface() {
             </div>
         </div>
         
-        <div id="trashModal" class="modal-overlay" style="display:none;">
-            <div class="modal-content admin-modal-content">
-                <div class="modal-header"><h3>🗑️ Çöp Kutusu</h3><button onclick="document.getElementById('trashModal').style.display='none'" class="close-btn">&times;</button></div>
-                <div class="modal-body-scroll"><table class="admin-table"><tbody id="trashTableBody"></tbody></table></div>
+        <div id="trashModal" class="modal-overlay" style="display:none; z-index: 100010;">
+            <div class="admin-modal-content" style="max-width:800px;">
+                <div class="modal-header">
+                    <h5 class="m-0">🗑️ Çöp Kutusu</h5>
+                    <button onclick="document.getElementById('trashModal').style.display='none'" class="close-btn">&times;</button>
+                </div>
+                <div class="modal-body-scroll">
+                    <table class="admin-table">
+                        <thead><tr><th>Soru</th><th>Silinme Tarihi</th><th class="text-end">İşlem</th></tr></thead>
+                        <tbody id="trashTableBody"></tbody>
+                    </table>
+                </div>
             </div>
         </div>
     `;
@@ -307,20 +312,15 @@ function bindPageEvents() {
     window.restoreQuestion = restoreQuestion;
     window.permanentDeleteQuestion = permanentDeleteQuestion;
     window.softDeleteQuestion = softDeleteQuestion;
-
-    // Editörü dışarı aç (Topics modülü için)
-    window.QuestionBank = {
-        openEditor: openQuestionEditor,
-        refreshList: loadQuestions
-    };
 }
 
 // --- VERİ YÖNETİMİ ---
 
 async function loadQuestions() {
     const tbody = document.getElementById('questionsTableBody');
-    if (!tbody) return;
-    tbody.innerHTML = '<tr><td colspan="6" class="text-center">Yükleniyor...</td></tr>';
+    if (!tbody) return; // Tablo yoksa (belki stüdyo sayfasındayız) çık
+
+    tbody.innerHTML = '<tr><td colspan="6" class="text-center p-4">Yükleniyor...</td></tr>';
 
     const cat = document.getElementById('filterCategory')?.value;
     const status = document.getElementById('filterStatus')?.value;
@@ -337,8 +337,8 @@ async function loadQuestions() {
         snap.forEach(doc => {
             const d = doc.data();
 
-            // Client-side Filtreleme (Firestore'da karmaşık OR/AND sorguları zor olduğu için)
-            if (d.isDeleted === true) return; // Çöp kutusundakileri listede gösterme
+            // Client-side Filtreleme
+            if (d.isDeleted === true) return;
             if (status === 'flagged' && !d.isFlaggedForReview) return;
             if (cat && d.category !== cat) return;
 
@@ -353,13 +353,13 @@ async function loadQuestions() {
             count++;
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td><small>${doc.id.substring(0, 5)}</small></td>
+                <td><small class="text-muted">${doc.id.substring(0, 5)}</small></td>
                 <td>
-                    <div>${d.category || '-'}</div>
+                    <div class="fw-bold">${d.category || '-'}</div>
                     <small class="text-muted">${d.legislationRef?.code || '-'} / Md.${d.legislationRef?.article || '-'}</small>
                 </td>
                 <td title="${d.text}">${(d.text || '').substring(0, 60)}...</td>
-                <td><span class="badge bg-secondary">${d.type === 'oncullu' ? 'Öncüllü' : 'Std'}</span></td>
+                <td><span class="badge bg-light text-dark border">${d.type === 'oncullu' ? 'Öncüllü' : 'Std'}</span></td>
                 <td>${d.isFlaggedForReview ? '<span class="badge bg-warning text-dark">İncelenecek</span>' : '<span class="badge bg-success">Aktif</span>'}</td>
                 <td>
                     <button class="btn btn-sm btn-primary" onclick="window.QuestionBank.openEditor('${doc.id}')">✏️</button>
@@ -369,7 +369,7 @@ async function loadQuestions() {
             tbody.appendChild(tr);
         });
 
-        if (count === 0) tbody.innerHTML = '<tr><td colspan="6" class="text-center">Kriterlere uygun soru bulunamadı.</td></tr>';
+        if (count === 0) tbody.innerHTML = '<tr><td colspan="6" class="text-center p-4">Kriterlere uygun soru bulunamadı.</td></tr>';
 
     } catch (e) { console.error(e); }
 }
@@ -415,7 +415,13 @@ async function handleSaveQuestion(e) {
 
         document.getElementById('questionModal').style.display = 'none';
 
-        // Eğer soru bankası sayfasındaysak listeyi yenile
+        // Eğer stüdyodaysak ve havuz listesi açıksa orayı yenile
+        if (window.Studio && window.Studio.wizard && document.getElementById('poolList')) {
+            // Wizard aramasını tetikle (eğer açıksa)
+            // window.Studio.wizard.search(); // Otomatik yenileme istenirse açılabilir
+        }
+
+        // Eğer Soru Bankası sayfasındaysak listeyi yenile
         if (document.getElementById('questionsTableBody')) loadQuestions();
 
         alert("Kaydedildi.");
@@ -459,7 +465,8 @@ async function loadDynamicCategories() {
 
 function toggleQuestionType() {
     const type = document.getElementById('inpType').value;
-    document.getElementById('onculluArea').style.display = type === 'oncullu' ? 'block' : 'none';
+    const area = document.getElementById('onculluArea');
+    if (area) area.style.display = type === 'oncullu' ? 'block' : 'none';
 }
 
 function addOncul() {
@@ -476,7 +483,9 @@ function removeOncul(index) {
 }
 
 function renderOnculler() {
-    document.getElementById('oncullerList').innerHTML = currentOnculler.map((t, i) =>
+    const list = document.getElementById('oncullerList');
+    if (!list) return;
+    list.innerHTML = currentOnculler.map((t, i) =>
         `<div class="d-flex justify-content-between align-items-center bg-white p-2 mb-1 border rounded">
             <span>${t}</span>
             <button type="button" class="btn btn-sm btn-danger py-0" onclick="window.removeOnculInternal(${i})">×</button>
@@ -485,11 +494,11 @@ function renderOnculler() {
 }
 
 async function autoDetectTopic() {
-    // Basit bir placeholder, detaylı mantığı koruyabilirsiniz.
-    // Şimdilik sadece görsel geri bildirim.
     const res = document.getElementById('autoDetectResult');
-    res.innerText = "Aranıyor...";
-    setTimeout(() => res.innerHTML = '<span class="text-warning">Otomatik eşleşme bulunamadı.</span>', 1000);
+    if (res) {
+        res.innerText = "Aranıyor...";
+        setTimeout(() => res.innerHTML = '<span class="text-warning">Otomatik eşleşme bulunamadı.</span>', 1000);
+    }
 }
 
 // --- ÇÖP KUTUSU ---
@@ -512,31 +521,33 @@ async function openTrashModal() {
     const tbody = document.getElementById('trashTableBody');
     if (!modal) return;
     modal.style.display = 'flex';
-    tbody.innerHTML = '<tr><td colspan="3">Yükleniyor...</td></tr>';
+    if (tbody) tbody.innerHTML = '<tr><td colspan="3">Yükleniyor...</td></tr>';
 
     const q = query(collection(db, "questions"), where("isDeleted", "==", true), orderBy("deletedAt", "desc"));
     const snap = await getDocs(q);
 
-    tbody.innerHTML = '';
-    if (snap.empty) {
-        tbody.innerHTML = '<tr><td colspan="3">Çöp kutusu boş.</td></tr>';
-        return;
-    }
+    if (tbody) {
+        tbody.innerHTML = '';
+        if (snap.empty) {
+            tbody.innerHTML = '<tr><td colspan="3" class="text-center p-3">Çöp kutusu boş.</td></tr>';
+            return;
+        }
 
-    snap.forEach(doc => {
-        const d = doc.data();
-        const date = d.deletedAt ? new Date(d.deletedAt.seconds * 1000).toLocaleDateString() : '-';
-        tbody.innerHTML += `
-            <tr>
-                <td>${(d.text || '').substring(0, 50)}...</td>
-                <td>${date}</td>
-                <td>
-                    <button class="btn btn-sm btn-success" onclick="window.restoreQuestion('${doc.id}')">Geri Al</button>
-                    <button class="btn btn-sm btn-danger" onclick="window.permanentDeleteQuestion('${doc.id}')">Yok Et</button>
-                </td>
-            </tr>
-        `;
-    });
+        snap.forEach(doc => {
+            const d = doc.data();
+            const date = d.deletedAt ? new Date(d.deletedAt.seconds * 1000).toLocaleDateString() : '-';
+            tbody.innerHTML += `
+                <tr>
+                    <td>${(d.text || '').substring(0, 50)}...</td>
+                    <td>${date}</td>
+                    <td class="text-end">
+                        <button class="btn btn-sm btn-success" onclick="window.restoreQuestion('${doc.id}')">Geri Al</button>
+                        <button class="btn btn-sm btn-danger" onclick="window.permanentDeleteQuestion('${doc.id}')">Yok Et</button>
+                    </td>
+                </tr>
+            `;
+        });
+    }
 }
 
 async function restoreQuestion(id) {
