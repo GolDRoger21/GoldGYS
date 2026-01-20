@@ -118,12 +118,22 @@ function toggleMetaDrawer(open = true) {
     }
 }
 
+function updateParentOptions(currentId = null) {
+    const select = document.getElementById('inpTopicParent');
+    if (!select) return;
+    const options = state.allTopics
+        .filter(t => t.status !== 'deleted' && t.id !== currentId)
+        .map(t => `<option value="${t.id}">${t.title}</option>`)
+        .join('');
+    select.innerHTML = `<option value="">Üst konu yok</option>${options}`;
+}
+
 // ============================================================
 // --- KONU LİSTESİ (ANA EKRAN) ---
 // ============================================================
 async function loadTopics() {
     const tbody = document.getElementById('topicsTableBody');
-    if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center p-3">Yükleniyor...</td></tr>';
+    if (tbody) tbody.innerHTML = '<tr><td colspan="7" class="text-center p-3">Yükleniyor...</td></tr>';
 
     try {
         const q = query(collection(db, "topics"), orderBy("order", "asc"));
@@ -134,9 +144,10 @@ async function loadTopics() {
             if (d.status !== 'deleted') state.allTopics.push({ id: doc.id, ...d });
         });
         renderTopicsTable();
+        updateParentOptions(state.activeTopicId);
     } catch (e) {
         console.error("Konular yüklenirken hata:", e);
-        if (tbody) tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger">Hata: ${e.message}</td></tr>`;
+        if (tbody) tbody.innerHTML = `<tr><td colspan="7" class="text-center text-danger">Hata: ${e.message}</td></tr>`;
     }
 }
 
@@ -153,6 +164,7 @@ function renderTopicsTable() {
         (cat === 'all' || t.category === cat) &&
         (t.title || '').toLowerCase().includes(search)
     );
+    const topicMap = new Map(state.allTopics.map(t => [t.id, t]));
 
     const badge = document.getElementById('topicCountBadge');
     if (badge) badge.innerText = `${filtered.length} Kayıt`;
@@ -161,12 +173,13 @@ function renderTopicsTable() {
         <tr>
             <td>${t.order}</td>
             <td><strong>${t.title}</strong></td>
+            <td>${t.parentId ? (topicMap.get(t.parentId)?.title || '-') : '-'}</td>
             <td><span class="badge bg-light border text-dark">${t.category}</span></td>
             <td>${t.lessonCount || 0}</td>
             <td>${t.isActive ? '<span class="text-success">Yayında</span>' : '<span class="text-muted">Taslak</span>'}</td>
             <td class="text-end"><button class="btn btn-sm btn-primary" onclick="window.Studio.open('${t.id}')">Stüdyo</button></td>
         </tr>
-    `).join('') : '<tr><td colspan="6" class="text-center p-4">Kayıt bulunamadı.</td></tr>';
+    `).join('') : '<tr><td colspan="7" class="text-center p-4">Kayıt bulunamadı.</td></tr>';
 }
 
 // ============================================================
@@ -191,6 +204,8 @@ async function openEditor(id = null) {
             document.getElementById('inpTopicOrder').value = t.order;
             document.getElementById('inpTopicCategory').value = t.category;
             document.getElementById('inpTopicStatus').value = t.isActive;
+            updateParentOptions(id);
+            document.getElementById('inpTopicParent').value = t.parentId || '';
 
             document.getElementById('activeTopicTitleDisplay').innerText = t.title;
             state.activeTopicTitle = t.title;
@@ -209,6 +224,8 @@ async function openEditor(id = null) {
         document.getElementById('inpTopicTitle').value = "";
         document.getElementById('inpTopicDescription').value = "";
         document.getElementById('inpTopicOrder').value = state.allTopics.length + 1;
+        updateParentOptions(null);
+        document.getElementById('inpTopicParent').value = '';
         document.getElementById('contentListNav').innerHTML = '';
 
         document.getElementById('activeTopicTitleDisplay').innerText = "Yeni Konu Oluşturuluyor...";
@@ -383,6 +400,8 @@ async function saveTopicMeta() {
     const id = document.getElementById('editTopicId').value;
     const title = document.getElementById('inpTopicTitle').value;
     if (!title) return alert("Başlık giriniz.");
+    const rawParentId = document.getElementById('inpTopicParent').value;
+    const parentId = rawParentId && rawParentId !== id ? rawParentId : null;
 
     const data = {
         title,
@@ -390,6 +409,7 @@ async function saveTopicMeta() {
         order: parseInt(document.getElementById('inpTopicOrder').value) || 0,
         category: document.getElementById('inpTopicCategory').value,
         isActive: document.getElementById('inpTopicStatus').value === 'true',
+        parentId,
         updatedAt: serverTimestamp()
     };
 

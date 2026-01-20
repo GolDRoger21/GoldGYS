@@ -27,6 +27,7 @@ export const UI_SHELL = `
                     <tr>
                         <th>Sıra</th>
                         <th>Konu</th>
+                        <th>Üst Konu</th>
                         <th>Kategori</th>
                         <th>İçerik</th>
                         <th>Durum</th>
@@ -191,6 +192,12 @@ export const UI_SHELL = `
                         <div class="mb-3">
                             <label class="form-label fw-bold small text-muted">KONU AÇIKLAMASI</label>
                             <textarea id="inpTopicDescription" class="form-control" rows="3" placeholder="Kısa konu açıklaması girin..."></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-muted">ÜST KONU (OPSİYONEL)</label>
+                            <select id="inpTopicParent" class="form-select">
+                                <option value="">Üst konu yok</option>
+                            </select>
                         </div>
                         <div class="row mb-3">
                             <div class="col-6">
