@@ -996,3 +996,51 @@
 #contentTrashModal {
     z-index: 100000 !important;
 }
+
+/* ======================================================================
+   3.4 STUDIO PRO v2.3 - HTML Materyal Edit/Preview Tabs
+   ====================================================================== */
+.mat-tabs {
+    display: inline-flex;
+    background: #e2e8f0;
+    padding: 3px;
+    border-radius: 10px;
+    gap: 4px;
+}
+
+.mat-tab {
+    border: none;
+    background: transparent;
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #64748b;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.mat-tab.active {
+    background: #fff;
+    color: #0f172a;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+
+.mat-preview {
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    background: #ffffff;
+    padding: 12px;
+    min-height: 140px;
+}
+
+.mat-preview .muted {
+    color: #94a3b8;
+    font-size: 0.85rem;
+}
+
+.mat-preview code {
+    background: #f1f5f9;
+    padding: 2px 6px;
+    border-radius: 6px;
+}

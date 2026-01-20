@@ -45,6 +45,7 @@ export function initTopicsPage() {
         addMat: addMaterialUI,
         removeMat: removeMaterialUI,
         updateMat: updateMaterialItem,
+        previewMat: setMaterialView,
         switchTab: switchTabHandler,
         wizard: {
             search: searchQuestions,
@@ -379,10 +380,90 @@ async function deleteContent() {
     }
 }
 
+function sanitizeHTML(unsafeHtml) {
+    // Minimal, dependency-free sanitizer for admin preview.
+    // Removes script/style/iframe/object/embed and dangerous attributes.
+    try {
+        const tpl = document.createElement('template');
+        tpl.innerHTML = String(unsafeHtml || '');
+
+        const blocked = tpl.content.querySelectorAll('script,style,iframe,object,embed,link,meta');
+        blocked.forEach(n => n.remove());
+
+        const all = tpl.content.querySelectorAll('*');
+        all.forEach(el => {
+            // remove inline event handlers and JS URLs
+            [...el.attributes].forEach(attr => {
+                const name = attr.name.toLowerCase();
+                const value = String(attr.value || '');
+                if (name.startsWith('on')) el.removeAttribute(attr.name);
+                if ((name === 'href' || name === 'src') && value.trim().toLowerCase().startsWith('javascript:')) {
+                    el.removeAttribute(attr.name);
+                }
+            });
+        });
+
+        return tpl.innerHTML;
+    } catch (e) {
+        // Fallback: escape
+        return String(unsafeHtml || '')
+            .replaceAll('&', '&amp;')
+            .replaceAll('<', '&lt;')
+            .replaceAll('>', '&gt;');
+    }
+}
+
+function setMaterialView(id, view) {
+    const item = state.tempMaterials.find(m => m.id === id);
+    if (!item) return;
+    item.view = view;
+
+    const btnEdit = document.getElementById(`matTabEdit_${id}`);
+    const btnPrev = document.getElementById(`matTabPrev_${id}`);
+    const wrapEdit = document.getElementById(`matEdit_${id}`);
+    const wrapPrev = document.getElementById(`matPrev_${id}`);
+
+    if (btnEdit && btnPrev) {
+        btnEdit.classList.toggle('active', view === 'edit');
+        btnPrev.classList.toggle('active', view === 'preview');
+    }
+    if (wrapEdit && wrapPrev) {
+        wrapEdit.style.display = view === 'edit' ? 'block' : 'none';
+        wrapPrev.style.display = view === 'preview' ? 'block' : 'none';
+    }
+
+    if (view === 'preview') {
+        const prev = document.getElementById(`matPrevBox_${id}`);
+        if (prev) {
+            const html = (item.url || '').trim();
+            prev.innerHTML = html ? sanitizeHTML(html) : '<div class="muted">Önizleme için içerik girin.</div>';
+        }
+    }
+}
+
 // --- MATERIAL HELPERS ---
 function addMaterialUI(type) { state.tempMaterials.push({ id: Date.now(), type, title: '', url: '' }); renderMaterials(); }
 function removeMaterialUI(id) { state.tempMaterials = state.tempMaterials.filter(m => m.id !== id); renderMaterials(); }
-function updateMaterialItem(id, field, val) { const item = state.tempMaterials.find(m => m.id === id); if (item) item[field] = val; }
+function updateMaterialItem(id, field, val) {
+    const item = state.tempMaterials.find(m => m.id === id);
+    if (!item) return;
+    item[field] = val;
+
+    // Live preview update for HTML materials
+    if (item.type === 'html' && field === 'url') {
+        const prev = document.getElementById(`matPrevBox_${id}`);
+        if (prev && (item.view === 'preview')) {
+            const html = String(val || '').trim();
+            prev.innerHTML = html ? sanitizeHTML(html) : '<div class="muted">Önizleme için içerik girin.</div>';
+        }
+    }
+
+    // Update summary title without full rerender (best-effort)
+    if (field === 'title') {
+        const sumTitle = document.getElementById(`matSumTitle_${id}`);
+        if (sumTitle) sumTitle.textContent = String(val || '').trim() || 'Başlıksız';
+    }
+}
 
 function renderMaterials() {
     const container = document.getElementById('materialsContainer');
