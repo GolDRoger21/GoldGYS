@@ -51,12 +51,43 @@ export function initTopicsPage() {
             add: addToTestPaper,
             remove: removeFromTestPaper,
             auto: autoGenerateTest,
+
+            dragStart: (index, ev) => {
+                try { ev.dataTransfer.setData('text/plain', String(index)); } catch (e) { }
+                state._dragIndex = index;
+                const card = ev.currentTarget;
+                if (card) card.classList.add('dragging');
+            },
+            dragOver: (index, ev) => {
+                ev.preventDefault();
+                const card = ev.currentTarget;
+                if (card) card.classList.add('drag-over');
+            },
+            dragEnd: (ev) => { const card = ev.currentTarget; if (card) card.classList.remove('dragging'); cleanupDnD(); },
+            dragLeave: (ev) => {
+                const card = ev.currentTarget;
+                if (card) card.classList.remove('drag-over');
+            },
+            drop: (toIndex, ev) => {
+                ev.preventDefault();
+                const fromIndex = (state._dragIndex ?? parseInt(ev.dataTransfer.getData('text/plain')));
+                if (isNaN(fromIndex) || fromIndex === toIndex) {
+                    cleanupDnD();
+                    return;
+                }
+                const item = state.tempQuestions.splice(fromIndex, 1)[0];
+                state.tempQuestions.splice(toIndex, 0, item);
+                cleanupDnD();
+                renderTestPaper();
+            },
+
             fullEdit: (id) => {
                 if (window.QuestionBank?.openEditor) window.QuestionBank.openEditor(id);
                 else openQuestionEditor(id);
             }
         },
-        trash: { open: openTrash, restore: restoreItem }
+        trash: { open: openTrash, restore: restoreItem },
+        contentTrash: { open: openContentTrash, restore: restoreContentItem, purgeAll: purgeAllDeletedContent, purgeOne: purgeOneDeletedContent }
     };
 
     loadTopics();
@@ -151,7 +182,7 @@ async function loadLessons(topicId) {
     const q = query(collection(db, `topics/${topicId}/lessons`), orderBy("order", "asc"));
     const snap = await getDocs(q);
     state.currentLessons = [];
-    snap.forEach(d => state.currentLessons.push({ id: d.id, ...d.data() }));
+    snap.forEach(d => { const data = d.data(); if (data?.status === 'deleted' || data?.isDeleted) return; state.currentLessons.push({ id: d.id, ...data }); });
     renderContentNav();
 }
 
@@ -342,7 +373,7 @@ async function saveContent() {
 
 async function deleteContent() {
     if (state.activeLessonId && confirm("Bu içeriği silmek istediğinize emin misiniz?")) {
-        await deleteDoc(doc(db, `topics/${state.activeTopicId}/lessons`, state.activeLessonId));
+        await updateDoc(doc(db, `topics/${state.activeTopicId}/lessons`, state.activeLessonId), { status: 'deleted', isActive: false, deletedAt: serverTimestamp(), updatedAt: serverTimestamp() });
         loadLessons(state.activeTopicId);
         showMetaEditor();
     }
@@ -373,9 +404,17 @@ function renderMaterials() {
     `).join('');
 }
 
+// DnD helpers
+function cleanupDnD() {
+    state._dragIndex = null;
+    document.querySelectorAll('.question-card.dragging').forEach(el => el.classList.remove('dragging'));
+    document.querySelectorAll('.question-card.drag-over').forEach(el => el.classList.remove('drag-over'));
+}
+
 // ============================================================
 // --- GELİŞMİŞ ALGORİTMA VE SORGULAMA ---
 // ============================================================
+
 
 async function searchQuestions() {
     const code = document.getElementById('wizLegislation').value.trim();
@@ -564,7 +603,7 @@ function renderTestPaper() {
         else diffBadge = '<span class="badge-outline" style="color:#dc2626; border-color:#dc2626">Zor</span>';
 
         return `
-        <div class="question-card">
+        <div class="question-card" draggable="true" ondragstart="window.Studio.wizard.dragStart(${i},event)" ondragover="window.Studio.wizard.dragOver(${i},event)" ondragleave="window.Studio.wizard.dragLeave(event)" ondrop="window.Studio.wizard.drop(${i},event)" ondragend="window.Studio.wizard.dragEnd(event)">
             <div class="qc-left">
                 <span class="qc-handle" title="Sıralamak için sürükle">:::</span>
                 <span class="qc-number">${i + 1}</span>
@@ -611,6 +650,119 @@ async function openTrash() {
 
     if (snap.empty) { tbody.innerHTML = '<tr><td colspan="2">Çöp kutusu boş</td></tr>'; return; }
     tbody.innerHTML = snap.docs.map(d => `<tr><td>${d.data().title}</td><td class="text-end"><button class="btn btn-success btn-sm" onclick="window.Studio.trash.restore('${d.id}')">Geri Al</button></td></tr>`).join('');
+}
+
+// ============================================================
+// --- CONTENT TRASH (LESSONS/TESTS) ---
+// ============================================================
+
+async function openContentTrash() {
+    if (!state.activeTopicId) return alert("Önce bir konu seçin.");
+    const modal = document.getElementById('contentTrashModal');
+    if (!modal) return;
+    modal.style.display = 'flex';
+
+    const isTest = state.sidebarTab === 'test';
+    const label = document.getElementById('contentTrashModeLabel');
+    if (label) label.innerText = isTest ? 'Test' : 'Ders';
+
+    const tbody = document.getElementById('contentTrashTableBody');
+    if (tbody) tbody.innerHTML = '<tr><td colspan="4" class="p-3">Yükleniyor...</td></tr>';
+
+    try {
+        const q = query(
+            collection(db, `topics/${state.activeTopicId}/lessons`),
+            where("status", "==", "deleted"),
+            orderBy("updatedAt", "desc")
+        );
+        const snap = await getDocs(q);
+
+        const rows = [];
+        snap.forEach(d => {
+            const data = d.data();
+            const type = data.type || 'lesson';
+            // Sekmeye göre filtre
+            if (isTest && type !== 'test') return;
+            if (!isTest && type === 'test') return;
+            rows.push({ id: d.id, ...data });
+        });
+
+        if (!tbody) return;
+
+        if (rows.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-muted">Bu sekmede silinmiş içerik yok.</td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = rows.map(r => `
+            <tr>
+                <td><strong>${(r.title || '(başlıksız)').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</strong></td>
+                <td class="text-center">${r.order ?? ''}</td>
+                <td class="text-center">
+                    <span class="badge bg-light text-dark border">${r.type === 'test' ? 'Test' : 'Ders'}</span>
+                </td>
+                <td class="text-end">
+                    <button class="btn btn-success btn-sm" onclick="window.Studio.contentTrash.restore('${r.id}')">Geri Al</button>
+                    <button class="btn btn-danger btn-sm" onclick="window.Studio.contentTrash.purgeOne('${r.id}')">Kalıcı Sil</button>
+                </td>
+            </tr>
+        `).join('');
+
+    } catch (e) {
+        console.error(e);
+        if (tbody) tbody.innerHTML = `<tr><td colspan="4" class="p-3 text-danger">Hata: ${e.message}</td></tr>`;
+    }
+}
+
+async function restoreContentItem(id) {
+    if (!state.activeTopicId) return;
+    await updateDoc(doc(db, `topics/${state.activeTopicId}/lessons`, id), {
+        status: 'active',
+        isActive: true,
+        deletedAt: null,
+        updatedAt: serverTimestamp()
+    });
+    await loadLessons(state.activeTopicId);
+    await openContentTrash();
+}
+
+async function purgeOneDeletedContent(id) {
+    if (!state.activeTopicId) return;
+    if (!confirm("Bu içerik kalıcı olarak silinecek. Emin misiniz?")) return;
+    await deleteDoc(doc(db, `topics/${state.activeTopicId}/lessons`, id));
+    await openContentTrash();
+}
+
+async function purgeAllDeletedContent() {
+    if (!state.activeTopicId) return;
+    const isTest = state.sidebarTab === 'test';
+    if (!confirm(`Bu sekmede silinen tüm ${isTest ? 'test' : 'ders'} içerikleri kalıcı olarak silinecek. Emin misiniz?`)) return;
+
+    const q = query(
+        collection(db, `topics/${state.activeTopicId}/lessons`),
+        where("status", "==", "deleted")
+    );
+    const snap = await getDocs(q);
+
+    const ids = [];
+    snap.forEach(d => {
+        const data = d.data();
+        const type = data.type || 'lesson';
+        if (isTest && type !== 'test') return;
+        if (!isTest && type === 'test') return;
+        ids.push(d.id);
+    });
+
+    if (ids.length === 0) return alert("Kalıcı silinecek içerik yok.");
+
+    // Batch delete (chunked)
+    const { writeBatch } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
+    // Note: writeBatch already imported in old file? not in current v3. We'll avoid dynamic import and just delete sequentially for now.
+    for (const id of ids) {
+        await deleteDoc(doc(db, `topics/${state.activeTopicId}/lessons`, id));
+    }
+
+    await openContentTrash();
 }
 
 async function restoreItem(id) { await updateDoc(doc(db, "topics", id), { status: 'active' }); openTrash(); loadTopics(); }

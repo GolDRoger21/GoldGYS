@@ -969,3 +969,30 @@
         width: 100%;
     }
 }
+
+/* ======================================================================
+   3.2 STUDIO PRO v2.1 - Drag & Drop (Test Kağıdı)
+   ====================================================================== */
+.question-card[draggable="true"] {
+    cursor: grab;
+}
+
+.question-card.dragging {
+    opacity: 0.55;
+}
+
+.question-card.drag-over {
+    border-color: var(--color-primary);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+.qc-handle {
+    cursor: grab;
+}
+
+/* ======================================================================
+   3.3 STUDIO PRO v2.2 - Content Trash Modal
+   ====================================================================== */
+#contentTrashModal {
+    z-index: 100000 !important;
+}

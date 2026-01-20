@@ -86,9 +86,8 @@ export const UI_SHELL = `
                         <button id="sidebarNewContentBtn" class="btn btn-dark w-100 btn-sm" onclick="window.Studio.newContent()">
                             ➕ Yeni Ders
                         </button>
-                        <button class="btn btn-light border btn-sm px-3" onclick="window.Studio.settings(true)" title="Konu Ayarları">
-                            ⚙️
-                        </button>
+                        <button class="btn btn-light border btn-sm px-3" onclick="window.Studio.settings(true)" title="Konu Ayarları">⚙️</button>
+                        <button class="btn btn-light border btn-sm px-3" onclick="window.Studio.contentTrash.open()" title="Silinen İçerikler">🗑️</button>
                     </div>
                 </div>
 
@@ -265,6 +264,38 @@ export const UI_SHELL = `
                     <button class="btn btn-secondary btn-sm" onclick="window.Studio.settings(false)">Kapat</button>
                 </div>
             </aside>
+
+
+<!-- CONTENT TRASH MODAL (LESSON/TEST) -->
+<div id="contentTrashModal" class="modal-overlay" style="display:none;">
+    <div class="admin-modal-content" style="max-width:720px;">
+        <div class="modal-header">
+            <h5 class="m-0">🗑️ Silinen İçerikler</h5>
+            <button onclick="document.getElementById('contentTrashModal').style.display='none'" class="close-btn">&times;</button>
+        </div>
+        <div class="modal-body-scroll p-0">
+            <div class="p-3 border-bottom bg-white d-flex align-items-center justify-content-between">
+                <div class="small text-muted">
+                    Aktif sekmeye göre listelenir: <strong id="contentTrashModeLabel">Ders</strong>
+                </div>
+                <button class="btn btn-danger btn-sm" onclick="window.Studio.contentTrash.purgeAll()" title="Silinenleri kalıcı sil">
+                    Kalıcı Sil (Hepsi)
+                </button>
+            </div>
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Başlık</th>
+                        <th style="width:90px" class="text-center">Sıra</th>
+                        <th style="width:120px" class="text-center">Tür</th>
+                        <th style="width:200px" class="text-end">İşlem</th>
+                    </tr>
+                </thead>
+                <tbody id="contentTrashTableBody"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
         </div>
     </div>
 
