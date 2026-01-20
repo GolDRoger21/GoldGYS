@@ -227,8 +227,6 @@ export const UI_SHELL = `
                                             </div>
                                         </div>
 
-                                        <hr class="my-2">
-
                                         <div class="d-grid gap-2">
                                             <div class="d-flex justify-content-between align-items-center">
                                                 <small class="text-muted fw-bold"><span id="poolCount">0</span> soru havuzda</small>
@@ -248,7 +246,7 @@ export const UI_SHELL = `
 
                                 <div class="ts-main">
                                     <div class="ts-filter-header d-flex justify-content-between align-items-center bg-white">
-                                        <h6 class="fw-bold m-0 text-primary">Test Kağıdı</h6>
+                                        <h6 class="fw-bold m-0 text-primary">Hazırlanan Test</h6>
                                         <span class="badge bg-primary rounded-pill" id="paperCount">0 Soru</span>
                                     </div>
                                     <div id="paperList" class="ts-list-body"></div>
