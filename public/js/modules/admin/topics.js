@@ -521,3 +521,98 @@ async function openTrash() {
 }
 async function restoreItem(id) { await updateDoc(doc(db, "topics", id), { status: 'active' }); openTrash(); loadTopics(); }
 async function purgeItem(id) { }
+// ============================================================
+// --- EKSİK FONKSİYONLAR (Test Editörü / Wizard) ---
+// ============================================================
+
+function addToTestPaper(id) {
+    const question = state.poolQuestions.find(q => q.id === id);
+    if (!question) return;
+
+    // Zaten ekli mi kontrolü
+    if (state.tempQuestions.some(q => q.id === id)) {
+        alert("Bu soru zaten teste ekli.");
+        return;
+    }
+
+    state.tempQuestions.push(question);
+
+    // Soruları madde numarasına göre sırala (Pedagojik akış için)
+    state.tempQuestions.sort((a, b) => (a.artNo || 0) - (b.artNo || 0));
+
+    renderTestPaper();
+    renderPoolList(); // Ekle butonunun durumunu güncellemek için
+}
+
+function removeFromTestPaper(id) {
+    state.tempQuestions = state.tempQuestions.filter(q => q.id !== id);
+    renderTestPaper();
+    renderPoolList(); // Ekle butonunu geri getirmek için
+}
+
+function renderTestPaper() {
+    // UI_SHELL içerisindeki liste ID'si 'testQuestionsList' varsayıldı. 
+    // Eğer HTML'de farklıysa burayı düzeltin.
+    const container = document.getElementById('testQuestionsList');
+    const countDisplay = document.getElementById('testQuestionCount'); // Varsa sayaç ID'si
+
+    if (countDisplay) countDisplay.innerText = `${state.tempQuestions.length} Soru`;
+
+    if (!container) {
+        console.warn("Element #testQuestionsList bulunamadı (topics.ui.js kontrol edilmeli)");
+        return;
+    }
+
+    if (state.tempQuestions.length === 0) {
+        container.innerHTML = '<div class="text-center text-muted p-3 border dashed rounded">Henüz soru eklenmedi.</div>';
+        return;
+    }
+
+    container.innerHTML = state.tempQuestions.map((q, index) => `
+        <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+            <div style="flex:1; overflow:hidden;">
+                <span class="fw-bold small text-muted me-2">${index + 1}.</span>
+                <span class="badge bg-light text-dark border me-1">${q.legislationRef?.code || '?'} Md:${q.legislationRef?.article || '?'}</span>
+                <span class="small text-truncate d-inline-block align-bottom" style="max-width:70%;">${q.text}</span>
+            </div>
+            <button class="btn btn-sm btn-link text-danger p-0 ms-2" onclick="window.Studio.wizard.remove('${q.id}')" title="Çıkar">
+                <span style="font-size:1.2rem;">&times;</span>
+            </button>
+        </div>
+    `).join('');
+}
+
+function renderPoolList() {
+    const list = document.getElementById('poolList');
+    if (!list) return;
+
+    if (!state.poolQuestions || state.poolQuestions.length === 0) {
+        list.innerHTML = '<div class="text-center p-3 text-muted">Kriterlere uygun soru bulunamadı.</div>';
+        return;
+    }
+
+    list.innerHTML = state.poolQuestions.map(q => {
+        const isAdded = state.tempQuestions.some(x => x.id === q.id);
+
+        // Buton durumu: Ekliyse pasif ve yeşil, değilse aktif ve mavi
+        const btnHtml = isAdded
+            ? `<button class="btn btn-sm btn-success disabled" style="opacity:0.6;"><i class="bi bi-check"></i> Ekli</button>`
+            : `<button class="btn btn-sm btn-outline-primary" onclick="window.Studio.wizard.add('${q.id}')">Ekle</button>`;
+
+        return `
+        <div class="card mb-2 shadow-sm question-pool-item border-${isAdded ? 'success' : 'light'}">
+            <div class="card-body p-2 d-flex justify-content-between align-items-center">
+                <div style="flex:1; padding-right:10px;">
+                    <div class="d-flex align-items-center mb-1">
+                        <span class="badge bg-secondary me-2" style="font-size:0.7rem;">Md. ${q.legislationRef?.article}</span>
+                        <span class="text-muted small" style="font-size:0.7rem;">Zorluk: ${q.difficulty || '-'}</span>
+                    </div>
+                    <div class="text-truncate-2 small text-dark">${q.text}</div>
+                </div>
+                <div style="flex-shrink:0;">
+                    ${btnHtml}
+                </div>
+            </div>
+        </div>`;
+    }).join('');
+}
