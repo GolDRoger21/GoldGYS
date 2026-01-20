@@ -12,12 +12,13 @@
   <style>
     /* --- YENİ STİLLER --- */
     .study-mode-card {
-      background: linear-gradient(135deg, #2c3e50, #34495e);
-      color: white;
+      background: var(--bg-surface);
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
       border-radius: 16px;
       padding: 25px;
       margin-bottom: 30px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      box-shadow: var(--shadow-md);
       position: relative;
       overflow: hidden;
     }
@@ -28,7 +29,7 @@
       right: -20px;
       bottom: -20px;
       font-size: 10rem;
-      opacity: 0.1;
+      opacity: 0.08;
       transform: rotate(-15deg);
     }
 
@@ -40,9 +41,9 @@
     }
 
     .mode-btn {
-      background: rgba(255, 255, 255, 0.1);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      color: white;
+      background: var(--bg-hover);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
       padding: 15px;
       border-radius: 12px;
       cursor: pointer;
@@ -55,14 +56,22 @@
     }
 
     .mode-btn:hover {
-      background: rgba(255, 255, 255, 0.2);
+      background: var(--bg-surface);
       transform: translateY(-3px);
+      box-shadow: var(--shadow-sm);
     }
 
     .mode-btn.active {
       background: var(--color-primary);
       border-color: var(--color-primary);
-      color: #000;
+      color: var(--text-on-gold);
+    }
+
+    .mode-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      box-shadow: none;
+      transform: none;
     }
 
     .mode-icon {
@@ -117,7 +126,7 @@
       border: 1px solid var(--border-color);
       text-decoration: none;
       color: var(--text-main);
-      background: #fff;
+      background: var(--bg-surface);
       transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
     }
 
@@ -138,6 +147,22 @@
       flex-wrap: wrap;
       gap: 6px;
       margin-top: 6px;
+    }
+
+    .subtopic-badge {
+      background: var(--bg-hover);
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+      font-weight: 600;
+    }
+
+    .section-note {
+      margin-top: 10px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px dashed var(--border-color);
+      background: var(--bg-hover);
+      color: var(--text-muted);
     }
 
     .subtopic-actions {
@@ -194,6 +219,9 @@
       <div id="subtopicSection" class="subtopic-section" style="display:none;">
         <h2 style="margin:0;">Alt Başlıklar</h2>
         <p class="text-muted" style="margin-top:6px;">Bu ana konu altında ilgili alt başlıkları seçerek ders notları ve testlere erişebilirsiniz.</p>
+        <div id="subtopicEmptyNote" class="section-note" style="display:none;">
+          Bu ana başlıkta doğrudan içerik bulunmuyor. İlerlemek için alt başlıklardan birini seç.
+        </div>
         <div id="subtopicList" class="subtopic-grid"></div>
         <div id="subtopicLoading" class="text-muted small mt-3" style="display:none;">Alt başlıklar yükleniyor...</div>
       </div>
@@ -202,7 +230,7 @@
       <!-- YENİ: AKILLI ÇALIŞMA MODU -->
       <div class="study-mode-card">
         <h2 style="margin:0; font-size:1.5rem;">🚀 Serbest Çalışma Modu</h2>
-        <p style="opacity:0.8; margin-top:5px;">Bu konuya ait <strong id="totalQCount">0</strong> soruyu dilediğin gibi
+        <p id="studyModeStatus" style="opacity:0.8; margin-top:5px;">Bu konuya ait <strong id="totalQCount">0</strong> soruyu dilediğin gibi
           çöz.</p>
 
         <div class="mode-options">
@@ -258,10 +286,8 @@
 
       onAuthStateChanged(auth, async (user) => {
         if (user) {
-          const hasSubtopics = await loadTopicData();
-          if (!hasSubtopics) {
-            await loadQuestionCount();
-          }
+          await loadTopicData();
+          await loadQuestionCount();
         }
       });
     });
@@ -288,15 +314,30 @@
         subtopics.push({ id: doc.id, ...doc.data() });
       });
 
-      if (subtopics.length) {
+      const hasSubtopics = subtopics.length > 0;
+      const subtopicSection = document.getElementById('subtopicSection');
+      if (hasSubtopics) {
         await renderSubtopics(subtopics);
-        return true;
+        if (subtopicSection) subtopicSection.style.display = 'block';
+      } else if (subtopicSection) {
+        subtopicSection.style.display = 'none';
       }
 
-      document.getElementById('subtopicSection').style.display = 'none';
-      document.getElementById('topicContentSection').style.display = 'block';
-      document.getElementById('topicMaterialsSection').style.display = 'block';
+      const contentStatus = await loadTopicContent();
+      const hasContent = contentStatus.totalCount > 0;
 
+      document.getElementById('topicContentSection').style.display = hasContent ? 'block' : 'none';
+      document.getElementById('topicMaterialsSection').style.display = hasContent ? 'block' : 'none';
+
+      const subtopicNote = document.getElementById('subtopicEmptyNote');
+      if (subtopicNote) {
+        subtopicNote.style.display = hasSubtopics && !hasContent ? 'block' : 'none';
+      }
+
+      return hasSubtopics;
+    }
+
+    async function loadTopicContent() {
       // Dersler ve Testler (Subcollection)
       const q = query(collection(db, `topics/${currentTopicId}/lessons`), orderBy("order", "asc"));
       const snapshot = await getDocs(q);
@@ -307,10 +348,14 @@
       testsContainer.innerHTML = '';
       materialsContainer.innerHTML = '';
 
+      let testCount = 0;
+      let materialCount = 0;
+
       snapshot.forEach(doc => {
         const item = { id: doc.id, ...doc.data() };
 
         if (item.type === 'test') {
+          testCount += 1;
           // Test Kartı
           const qCount = item.qCount || (item.questions ? item.questions.length : 0);
           testsContainer.innerHTML += `
@@ -327,6 +372,7 @@
         } else {
           // Ders Notu / Materyal (Listeleme)
           if (item.materials && item.materials.length > 0) {
+            materialCount += item.materials.length;
             // Alt materyalleri listele
             item.materials.forEach(mat => {
               let icon = '📝';
@@ -367,6 +413,7 @@
                   `;
             });
           } else {
+            materialCount += 1;
             // Eski tip tekil ders notu (veya materyali olmayan başlık)
             materialsContainer.innerHTML += `
                   <div class="test-card" style="border-left:4px solid var(--color-success);">
@@ -384,7 +431,7 @@
       if (testsContainer.innerHTML === '') testsContainer.innerHTML = '<p class="text-muted">Bu konuda test bulunamadı.</p>';
       if (materialsContainer.innerHTML === '') materialsContainer.innerHTML = '<p class="text-muted">Ders notu eklenmemiş.</p>';
 
-      return false;
+      return { testCount, materialCount, totalCount: testCount + materialCount };
     }
 
     async function renderSubtopics(subtopics) {
@@ -392,10 +439,6 @@
       const list = document.getElementById('subtopicList');
       const loading = document.getElementById('subtopicLoading');
       if (!section || !list) return;
-
-      section.style.display = 'block';
-      document.getElementById('topicContentSection').style.display = 'none';
-      document.getElementById('topicMaterialsSection').style.display = 'none';
 
       if (loading) loading.style.display = 'block';
 
@@ -417,8 +460,8 @@
             <span class="subtopic-meta">Sıra: ${subtopic.order || '-'}</span>
             <span class="subtopic-meta">${subtopic.description || 'Konu açıklaması bulunmuyor.'}</span>
             <div class="subtopic-badges">
-              <span class="badge bg-light text-dark border">📄 ${lessonCount} Not</span>
-              <span class="badge bg-light text-dark border">📝 ${testCount} Test</span>
+              <span class="badge subtopic-badge">📄 ${lessonCount} Not</span>
+              <span class="badge subtopic-badge">📝 ${testCount} Test</span>
             </div>
             <div class="subtopic-actions">
               <a class="btn btn-sm btn-outline-primary" href="/pages/konu.html?id=${subtopic.id}">Konuya Git</a>
@@ -436,16 +479,38 @@
       // Bu konuya ait toplam soru sayısını bul (Kategoriye göre)
       // Not: Firestore'da 'count' sorgusu maliyetlidir, cache kullanılabilir.
       // Şimdilik basit sorgu:
+      if (!topicTitle) return;
       const q = query(collection(db, "questions"), where("category", "==", topicTitle), where("isActive", "==", true));
       const snap = await getDocs(q); // Sadece count alacağız
-      document.getElementById('totalQCount').innerText = snap.size;
+      updateStudyModeState(snap.size);
+    }
+
+    function updateStudyModeState(questionCount) {
+      const status = document.getElementById('studyModeStatus');
+      const modeButtons = document.querySelectorAll('.mode-btn');
+      const hasQuestions = questionCount > 0;
+      const topicContentSection = document.getElementById('topicContentSection');
+
+      modeButtons.forEach((btn) => {
+        btn.disabled = !hasQuestions;
+      });
+
+      if (topicContentSection && hasQuestions) {
+        topicContentSection.style.display = 'block';
+      }
+
+      if (status) {
+        status.innerHTML = hasQuestions
+          ? `Bu konuya ait <strong id="totalQCount">${questionCount}</strong> soruyu dilediğin gibi çöz.`
+          : 'Bu konu için henüz aktif soru bulunmuyor. Alt başlıkları kontrol edebilir veya daha sonra tekrar deneyebilirsin.';
+      }
     }
 
     // Global Fonksiyon
     window.startSmartTest = (mode) => {
       // Test sayfasına yönlendir, parametreleri gönder
       // mode: random, order, wrongs, favorites
-      window.location.href = `/ pages / test.html ? topic = ${currentTopicId}& mode=smart & filter=${mode}`;
+      window.location.href = `/pages/test.html?topic=${encodeURIComponent(currentTopicId)}&mode=smart&filter=${encodeURIComponent(mode)}`;
     };
 
   </script>
