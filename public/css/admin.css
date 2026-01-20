@@ -215,7 +215,7 @@
     box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.2);
 }
 
-/* --- 2. MODAL SİSTEMİ (KRİTİK Z-INDEX DÜZELTMESİ) --- */
+/* --- 2. MODAL SİSTEMİ (GENEL) --- */
 .modal-overlay {
     position: fixed;
     top: 0;

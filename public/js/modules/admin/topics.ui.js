@@ -69,10 +69,10 @@ export const UI_SHELL = `
 
             <div class="studio-layout">
                 
-                <!-- 1. SOL SIDEBAR (YENİ MODERN TASARIM) -->
+                <!-- 1. SOL SIDEBAR (PROFESYONEL MENÜ YAPISI) -->
                 <div class="studio-sidebar">
                     
-                    <!-- A. Üst Kısım: Segmented Tabs -->
+                    <!-- A. Üst Kısım: Segmented Tabs (Dersler | Testler) -->
                     <div class="sidebar-header-modern">
                         <div class="segmented-control">
                             <button class="segment-btn active" id="tabLesson" onclick="window.Studio.switchTab('lesson')">
@@ -84,7 +84,7 @@ export const UI_SHELL = `
                         </div>
                     </div>
 
-                    <!-- B. Orta Kısım: Liste -->
+                    <!-- B. Orta Kısım: Liste (Scroll Edilebilir) -->
                     <div id="contentListNav" class="nav-list-scroll">
                         <!-- JS ile doldurulacak -->
                     </div>
@@ -110,7 +110,7 @@ export const UI_SHELL = `
                         <p class="text-muted">Soldaki menüden işlem yapmak istediğiniz içeriği seçin.</p>
                     </div>
 
-                    <!-- META EDİTÖR -->
+                    <!-- META EDİTÖR (Konu Ayarları) -->
                     <div id="metaEditor" class="editor-workspace" style="display:none; align-items:center; justify-content:center;">
                          <div class="card border-0 shadow-sm p-4" style="width:100%; max-width:500px;">
                             <h4 class="mb-4 border-bottom pb-2">Konu Ayarları</h4>
@@ -187,6 +187,7 @@ export const UI_SHELL = `
                             <!-- TEST MODU (GELİŞMİŞ FİLTRE YAPISI) -->
                             <div id="wsTestMode" class="test-studio-layout" style="display:none;">
                                 
+                                <!-- SOL: FİLTRE PANELİ -->
                                 <div class="ts-sidebar">
                                     <div class="ts-filter-header">
                                         <h6 class="fw-bold mb-3 text-primary">Soru Filtreleme</h6>
@@ -227,6 +228,8 @@ export const UI_SHELL = `
                                             </div>
                                         </div>
 
+                                        <hr class="my-2">
+
                                         <div class="d-grid gap-2">
                                             <div class="d-flex justify-content-between align-items-center">
                                                 <small class="text-muted fw-bold"><span id="poolCount">0</span> soru havuzda</small>
@@ -244,9 +247,10 @@ export const UI_SHELL = `
                                     </div>
                                 </div>
 
+                                <!-- SAĞ: TEST KAĞIDI -->
                                 <div class="ts-main">
                                     <div class="ts-filter-header d-flex justify-content-between align-items-center bg-white">
-                                        <h6 class="fw-bold m-0 text-primary">Hazırlanan Test</h6>
+                                        <h6 class="fw-bold m-0 text-primary">Test Kağıdı</h6>
                                         <span class="badge bg-primary rounded-pill" id="paperCount">0 Soru</span>
                                     </div>
                                     <div id="paperList" class="ts-list-body"></div>
