@@ -53,7 +53,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         window.openQuestionEditor = ContentModule.openQuestionEditor;
         window.AdminReports = ReportsModule.AdminReports;
 
-        initTheme();
         initInteractions(role);
 
         const initialTab = window.location.hash.substring(1) || 'dashboard';
@@ -66,19 +65,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 // --- DİĞER FONKSİYONLAR (Aynı kalabilir) ---
-function initTheme() {
-    const themeToggle = document.querySelector('[data-theme-toggle]');
-    const body = document.body;
-    const savedTheme = localStorage.getItem('theme');
-    if (savedTheme === 'light') body.classList.add('light-mode');
-    if (themeToggle) {
-        themeToggle.addEventListener('click', () => {
-            body.classList.toggle('light-mode');
-            localStorage.setItem('theme', body.classList.contains('light-mode') ? 'light' : 'dark');
-        });
-    }
-}
-
 function activateTab(tabId, role) {
     const tabLink = document.querySelector(`.nav-item[data-tab="${tabId}"]`);
     if (tabLink && tabLink.closest('.admin-only') && role !== 'admin') {
