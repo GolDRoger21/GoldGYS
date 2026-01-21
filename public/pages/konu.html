@@ -284,9 +284,11 @@
       currentTopicId = urlParams.get('id');
       if (!currentTopicId) return window.location.href = '/pages/konular.html';
 
+      await loadTopicData();
+      await loadQuestionCount();
+
       onAuthStateChanged(auth, async (user) => {
         if (user) {
-          await loadTopicData();
           await loadQuestionCount();
         }
       });
@@ -338,10 +340,6 @@
     }
 
     async function loadTopicContent() {
-      // Dersler ve Testler (Subcollection)
-      const q = query(collection(db, `topics/${currentTopicId}/lessons`), orderBy("order", "asc"));
-      const snapshot = await getDocs(q);
-
       const testsContainer = document.getElementById('testsList');
       const materialsContainer = document.getElementById('materialsList');
 
@@ -351,83 +349,106 @@
       let testCount = 0;
       let materialCount = 0;
 
-      snapshot.forEach(doc => {
-        const item = { id: doc.id, ...doc.data() };
+      try {
+        // Dersler ve Testler (Subcollection)
+        const q = query(collection(db, `topics/${currentTopicId}/lessons`), orderBy("order", "asc"));
+        const snapshot = await getDocs(q);
 
-        const isTest = item.type === 'test' || (Array.isArray(item.questions) && item.questions.length > 0) || Number.isFinite(item.qCount);
+        snapshot.forEach(doc => {
+          const item = { id: doc.id, ...doc.data() };
 
-        if (isTest) {
-          testCount += 1;
-          // Test Kartı
-          const qCount = item.qCount || (item.questions ? item.questions.length : 0);
-          testsContainer.innerHTML += `
-                    <div class="test-card">
-                        <div style="display:flex; justify-content:space-between;">
-                            <strong>${item.title}</strong>
-                            <span class="badge bg-light text-dark">${qCount} Soru</span>
-                        </div>
-                        <div style="margin-top:10px; display:flex; gap:10px;">
-                            <a href="/pages/test.html?id=${item.id}&topic=${currentTopicId}&mode=practice" class="btn btn-sm btn-outline-primary w-100">Çöz</a>
-                        </div>
-                    </div>
-                `;
-        } else {
-          // Ders Notu / Materyal (Listeleme)
-          if (item.materials && item.materials.length > 0) {
-            materialCount += item.materials.length;
-            // Alt materyalleri listele
-            item.materials.forEach(mat => {
-              let icon = '📝';
-              let bgClass = 'bg-light';
-              let btnText = 'İncele';
-              let btnAction = `window.open('${mat.url}', '_blank')`;
-              let badge = '';
+          if (item?.status === 'deleted' || item?.isDeleted || item?.isActive === false) return;
 
-              if (mat.type === 'video') {
-                icon = '▶️'; bgClass = 'bg-warning-subtle'; btnText = 'İzle';
-                badge = `<span class="badge bg-dark text-white ms-2">${mat.duration || '?'} dk</span>`;
-              }
-              else if (mat.type === 'podcast') {
-                icon = '🎧'; bgClass = 'bg-purple-subtle'; btnText = 'Dinle';
-                badge = `<span class="badge bg-secondary text-white ms-2">${mat.duration || '?'} dk</span>`;
-              }
-              else if (mat.type === 'pdf') {
-                icon = '📄'; bgClass = 'bg-danger-subtle'; btnText = 'İndir';
-              }
-              else if (mat.type === 'html') {
-                icon = '📰'; bgClass = 'bg-success-subtle'; btnText = 'Oku';
-              }
+          const isTest = item.type === 'test' || (Array.isArray(item.questions) && item.questions.length > 0) || Number.isFinite(item.qCount);
 
-              materialsContainer.innerHTML += `
-                      <div class="test-card ${bgClass}" style="border-left:4px solid var(--color-primary);">
-                          <div class="d-flex justify-content-between align-items-start">
-                              <div>
-                                  <div class="d-flex align-items-center">
-                                      <span style="font-size:1.2rem; margin-right:8px;">${icon}</span>
-                                      <strong>${mat.title || item.title}</strong>
-                                      ${badge}
-                                  </div>
-                                  <small class="text-muted d-block mt-1">${mat.description || item.summary || ''}</small>
-                              </div>
+          if (isTest) {
+            testCount += 1;
+            // Test Kartı
+            const qCount = item.qCount || (item.questions ? item.questions.length : 0);
+            testsContainer.innerHTML += `
+                      <div class="test-card">
+                          <div style="display:flex; justify-content:space-between;">
+                              <strong>${item.title}</strong>
+                              <span class="badge bg-light text-dark">${qCount} Soru</span>
                           </div>
-                          <button class="btn btn-sm btn-dark w-100 mt-2" onclick="${btnAction}">${btnText}</button>
+                          <div style="margin-top:10px; display:flex; gap:10px;">
+                              <a href="/pages/test.html?id=${item.id}&topic=${currentTopicId}&mode=practice" class="btn btn-sm btn-outline-primary w-100">Çöz</a>
+                          </div>
                       </div>
                   `;
-            });
           } else {
-            materialCount += 1;
-            // Eski tip tekil ders notu (veya materyali olmayan başlık)
-            materialsContainer.innerHTML += `
-                  <div class="test-card" style="border-left:4px solid var(--color-success);">
-                      <strong>${item.title}</strong>
-                      <div class="text-muted small mt-1">${item.summary || ''}</div>
-                      ${item.tags ? item.tags.map(t => `<span class="badge bg-secondary me-1">${t}</span>`).join('') : ''}
-                      <button class="btn btn-sm btn-light w-100 mt-2">İncele</button>
-                  </div>
-              `;
+            // Ders Notu / Materyal (Listeleme)
+            if (item.materials && item.materials.length > 0) {
+              materialCount += item.materials.length;
+              // Alt materyalleri listele
+              item.materials.forEach(mat => {
+                let icon = '📝';
+                let bgClass = 'bg-light';
+                let btnText = 'İncele';
+                let btnAction = `window.open('${mat.url}', '_blank')`;
+                let badge = '';
+
+                if (mat.type === 'video') {
+                  icon = '▶️'; bgClass = 'bg-warning-subtle'; btnText = 'İzle';
+                  badge = `<span class="badge bg-dark text-white ms-2">${mat.duration || '?'} dk</span>`;
+                }
+                else if (mat.type === 'podcast') {
+                  icon = '🎧'; bgClass = 'bg-purple-subtle'; btnText = 'Dinle';
+                  badge = `<span class="badge bg-secondary text-white ms-2">${mat.duration || '?'} dk</span>`;
+                }
+                else if (mat.type === 'pdf') {
+                  icon = '📄'; bgClass = 'bg-danger-subtle'; btnText = 'İndir';
+                }
+                else if (mat.type === 'html') {
+                  icon = '📰'; bgClass = 'bg-success-subtle'; btnText = 'Oku';
+                }
+
+                materialsContainer.innerHTML += `
+                        <div class="test-card ${bgClass}" style="border-left:4px solid var(--color-primary);">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <div class="d-flex align-items-center">
+                                        <span style="font-size:1.2rem; margin-right:8px;">${icon}</span>
+                                        <strong>${mat.title || item.title}</strong>
+                                        ${badge}
+                                    </div>
+                                    <small class="text-muted d-block mt-1">${mat.description || item.summary || ''}</small>
+                                </div>
+                            </div>
+                            <button class="btn btn-sm btn-dark w-100 mt-2" onclick="${btnAction}">${btnText}</button>
+                        </div>
+                    `;
+              });
+            } else {
+              materialCount += 1;
+              // Eski tip tekil ders notu (veya materyali olmayan başlık)
+              materialsContainer.innerHTML += `
+                    <div class="test-card" style="border-left:4px solid var(--color-success);">
+                        <strong>${item.title}</strong>
+                        <div class="text-muted small mt-1">${item.summary || ''}</div>
+                        ${item.tags ? item.tags.map(t => `<span class="badge bg-secondary me-1">${t}</span>`).join('') : ''}
+                        <button class="btn btn-sm btn-light w-100 mt-2">İncele</button>
+                    </div>
+                `;
+            }
           }
-        }
-      });
+        });
+      } catch (error) {
+        console.error('Konu içerikleri yüklenemedi:', error);
+        testsContainer.innerHTML = `
+          <div class="test-card">
+            <strong>Testler yüklenemedi</strong>
+            <div class="text-muted small mt-1">Lütfen sayfayı yenileyip tekrar deneyin.</div>
+          </div>
+        `;
+        materialsContainer.innerHTML = `
+          <div class="test-card">
+            <strong>Ders notları yüklenemedi</strong>
+            <div class="text-muted small mt-1">Lütfen sayfayı yenileyip tekrar deneyin.</div>
+          </div>
+        `;
+        return { testCount, materialCount, totalCount: 0 };
+      }
 
 
       if (testsContainer.innerHTML === '') {
