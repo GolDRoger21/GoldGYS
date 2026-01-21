@@ -231,6 +231,10 @@ export class TestEngine {
             this.saveWrongAnswer(questionId, question);
         }
 
+        if (isCorrect && auth.currentUser) {
+            this.clearWrongAnswer(questionId);
+        }
+
         this.updateCounters();
     }
 
@@ -444,6 +448,10 @@ export class TestEngine {
 
             await Promise.all(batchPromises);
 
+            const correctAnswers = Object.keys(this.answers).filter(qId => this.answers[qId].isCorrect);
+            const clearPromises = correctAnswers.map(qId => this.clearWrongAnswer(qId));
+            await Promise.all(clearPromises);
+
         } catch (e) {
             console.error("Sonuç kaydetme hatası:", e);
         }
@@ -465,6 +473,16 @@ export class TestEngine {
                 examId: this.examId
             }, { merge: true });
         } catch (e) { console.error("Yanlış soru kaydı hatası:", e); }
+    }
+
+    async clearWrongAnswer(qId) {
+        if (!auth.currentUser) return;
+        try {
+            const ref = doc(db, `users/${auth.currentUser.uid}/wrongs/${qId}`);
+            await deleteDoc(ref);
+        } catch (e) {
+            console.error("Yanlış soru temizleme hatası:", e);
+        }
     }
 
     updateCounters() {

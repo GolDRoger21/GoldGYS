@@ -5,212 +5,541 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Yanlışlarım | GOLD GYS</title>
-  <link rel="stylesheet" href="../css/app.css">
-  <link rel="stylesheet" href="../components/ui/ui.css">
+  <link rel="stylesheet" href="../styles/tokens.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/dashboard.css">
   <style>
-    .mistakes-container {
-      max-width: 800px;
-      margin: 0 auto;
-      padding: 20px;
+    body {
+      visibility: hidden;
+    }
+
+    .mistakes-hero {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 24px;
+    }
+
+    .mistakes-hero h2 {
+      margin: 0 0 6px;
+    }
+
+    .mistakes-hero p {
+      margin: 0;
+      color: var(--text-muted);
+    }
+
+    .mistakes-hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .mistakes-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .mistake-stat-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 18px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .mistake-stat-card strong {
+      font-size: 1.6rem;
+      display: block;
+      margin-top: 4px;
+      color: var(--text-primary);
+    }
+
+    .mistake-stat-card small {
+      color: var(--text-muted);
+    }
+
+    .mistakes-filters {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .filter-group label {
+      display: block;
+      font-size: 0.85rem;
+      margin-bottom: 6px;
+      color: var(--text-muted);
+    }
+
+    .filter-group input,
+    .filter-group select {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-color);
+      background: var(--bg-input);
+      color: var(--text-primary);
+    }
+
+    .filter-actions {
+      display: flex;
+      align-items: flex-end;
+      gap: 10px;
+    }
+
+    .category-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .category-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .category-card h4 {
+      margin: 0;
+      font-size: 1rem;
+    }
+
+    .category-meta {
+      display: flex;
+      justify-content: space-between;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+    }
+
+    .category-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .mistake-list {
+      display: grid;
+      gap: 16px;
     }
 
     .mistake-card {
-      background: white;
-      border-left: 4px solid #e74c3c;
-      border-radius: 8px;
-      padding: 20px;
-      margin-bottom: 20px;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-      transition: transform 0.2s;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 18px;
+      box-shadow: var(--shadow-sm);
     }
 
-    .mistake-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-    }
-
-    .mistake-meta {
+    .mistake-card-header {
       display: flex;
       justify-content: space-between;
-      color: #7f8c8d;
-      font-size: 0.9rem;
-      margin-bottom: 10px;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
     }
 
-    .mistake-text {
-      font-size: 1.1rem;
-      font-weight: 500;
-      color: #2c3e50;
-      margin-bottom: 15px;
+    .badge-category {
+      background: rgba(212, 175, 55, 0.15);
+      color: var(--color-primary);
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 600;
     }
 
-    .btn-retry {
-      background: #e74c3c;
-      color: white;
-      border: none;
-      padding: 8px 20px;
-      border-radius: 20px;
-      cursor: pointer;
-      font-size: 0.9rem;
+    .mistake-card p {
+      margin: 0 0 12px;
+      color: var(--text-primary);
     }
 
-    .category-filters {
+    .mistake-card-footer {
       display: flex;
-      gap: 10px;
-      overflow-x: auto;
-      padding-bottom: 10px;
-      margin-bottom: 20px;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      color: var(--text-muted);
+      font-size: 0.85rem;
     }
 
-    .filter-chip {
-      padding: 6px 15px;
-      background: white;
-      border: 1px solid #ddd;
-      border-radius: 20px;
-      cursor: pointer;
-      white-space: nowrap;
-    }
-
-    .filter-chip.active {
-      background: #e74c3c;
-      color: white;
-      border-color: #e74c3c;
+    .empty-state {
+      text-align: center;
+      padding: 32px;
+      border-radius: var(--radius-md);
+      border: 1px dashed var(--border-color);
+      color: var(--text-muted);
     }
   </style>
   <link rel="manifest" href="/manifest.json">
 </head>
 
-<body class="bg-light">
-
-  <!-- Header Gelecek (ui-loader ile) -->
-  <div id="header-placeholder"></div>
-
-  <main class="mistakes-container">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-      <h2 class="heading-2 m-0">Hatalı Cevaplarım</h2>
-      <button id="btnSolveAllMistakes" class="btn btn-warning">📝 Tümünü Test Olarak Çöz</button>
-    </div>
-
-    <div class="category-filters" id="categoryFilters">
-      <!-- Dinamik Flteler -->
-    </div>
-
-    <div id="mistakesList">
-      <div class="text-center p-5">
-        <div class="spinner-border text-primary" role="status"></div>
-        <p class="mt-2 text-muted">Hatalarınız analiz ediliyor...</p>
-      </div>
-    </div>
-  </main>
-
-  <!-- UI Loader -->
+<body>
   <script type="module">
-    import { loadHeader } from '../js/ui-loader.js';
-    loadHeader();
+    import { initLayout } from '../js/ui-loader.js';
+    document.addEventListener('DOMContentLoaded', () => initLayout());
   </script>
+
+  <div class="dashboard-container">
+    <section class="mistakes-hero">
+      <div>
+        <h2>Yanlışlarım</h2>
+        <p>Yanlış yaptığın soruları konuya göre filtrele, tekrar çöz ve başarıya dönüştür.</p>
+      </div>
+      <div class="mistakes-hero-actions">
+        <button class="btn btn-primary" id="btnSolveAllExam">🎯 Karma Test (Sınav)</button>
+        <button class="btn btn-outline-primary" id="btnSolveAllPractice">📖 Karma Öğrenme</button>
+      </div>
+    </section>
+
+    <section class="mistakes-stats">
+      <div class="mistake-stat-card">
+        <span class="text-muted">Toplam Yanlış</span>
+        <strong id="totalMistakes">0</strong>
+        <small id="totalMistakesHint">Veriler yükleniyor</small>
+      </div>
+      <div class="mistake-stat-card">
+        <span class="text-muted">Aktif Konu</span>
+        <strong id="totalCategories">0</strong>
+        <small>Yanlış bulunan konu sayısı</small>
+      </div>
+      <div class="mistake-stat-card">
+        <span class="text-muted">Son Yanlış</span>
+        <strong id="lastAttempt">-</strong>
+        <small>En son yanlış deneme tarihi</small>
+      </div>
+    </section>
+
+    <section class="mistakes-filters">
+      <div class="filter-group">
+        <label for="categorySelect">Konu Filtresi</label>
+        <select id="categorySelect">
+          <option value="all">Tümü</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label for="searchInput">Sorularda Ara</label>
+        <input type="search" id="searchInput" placeholder="Örn: Anayasa, Ceza...">
+      </div>
+      <div class="filter-group">
+        <label for="sortSelect">Sıralama</label>
+        <select id="sortSelect">
+          <option value="recent">En yeni yanlış</option>
+          <option value="oldest">En eski yanlış</option>
+          <option value="count">En çok tekrar</option>
+          <option value="category">Konu adına göre</option>
+        </select>
+      </div>
+      <div class="filter-actions">
+        <button class="btn btn-secondary" id="btnClearFilters">Filtreleri Temizle</button>
+      </div>
+    </section>
+
+    <section>
+      <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <h3 class="m-0">Konu Bazlı Tekrar</h3>
+        <small class="text-muted">Konu kartından öğrenme veya sınav modunu başlatabilirsin.</small>
+      </div>
+      <div class="category-grid" id="categoryCards"></div>
+    </section>
+
+    <section>
+      <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <h3 class="m-0">Filtrelenen Sorular</h3>
+        <small class="text-muted" id="filteredCount">0 soru</small>
+      </div>
+      <div class="mistake-list" id="mistakesList">
+        <div class="card p-4 text-center">Hatalarınız analiz ediliyor...</div>
+      </div>
+    </section>
+  </div>
 
   <script type="module">
     import { db, auth } from '../js/firebase-config.js';
-    import { collection, getDocs, query, orderBy, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { showToast } from '../js/notifications.js';
+    import { collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
     import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-    let allMistakes = [];
+    const state = {
+      allMistakes: [],
+      filteredMistakes: [],
+      selectedCategory: 'all',
+      searchTerm: '',
+      sort: 'recent'
+    };
+
+    const ui = {
+      totalMistakes: document.getElementById('totalMistakes'),
+      totalMistakesHint: document.getElementById('totalMistakesHint'),
+      totalCategories: document.getElementById('totalCategories'),
+      lastAttempt: document.getElementById('lastAttempt'),
+      categorySelect: document.getElementById('categorySelect'),
+      searchInput: document.getElementById('searchInput'),
+      sortSelect: document.getElementById('sortSelect'),
+      categoryCards: document.getElementById('categoryCards'),
+      mistakesList: document.getElementById('mistakesList'),
+      filteredCount: document.getElementById('filteredCount'),
+      btnSolveAllExam: document.getElementById('btnSolveAllExam'),
+      btnSolveAllPractice: document.getElementById('btnSolveAllPractice'),
+      btnClearFilters: document.getElementById('btnClearFilters')
+    };
 
     document.addEventListener('DOMContentLoaded', () => {
       onAuthStateChanged(auth, async (user) => {
-        if (user) loadMistakes(user.uid);
+        if (user) {
+          await loadMistakes(user.uid);
+        }
       });
 
-      // TEST BAŞLATMA BUTONU
-      document.getElementById('btnSolveAllMistakes').addEventListener('click', () => {
-        if (allMistakes.length === 0) return alert("Çözülecek yanlış soru yok.");
+      ui.categorySelect.addEventListener('change', (event) => {
+        state.selectedCategory = event.target.value;
+        applyFilters();
+      });
 
-        // Soruları localStorage'a kaydet ve test sayfasına git
-        // (URL'de çok fazla ID taşımak sorun olabilir, bu yüzden storage kullanıyoruz)
-        localStorage.setItem('customTestQuestions', JSON.stringify(allMistakes));
-        window.location.href = '/pages/test.html?mode=custom&source=local';
+      ui.searchInput.addEventListener('input', (event) => {
+        state.searchTerm = event.target.value.trim().toLowerCase();
+        applyFilters();
+      });
+
+      ui.sortSelect.addEventListener('change', (event) => {
+        state.sort = event.target.value;
+        applyFilters();
+      });
+
+      ui.btnClearFilters.addEventListener('click', () => {
+        state.selectedCategory = 'all';
+        state.searchTerm = '';
+        state.sort = 'recent';
+        ui.categorySelect.value = 'all';
+        ui.searchInput.value = '';
+        ui.sortSelect.value = 'recent';
+        applyFilters();
+      });
+
+      ui.btnSolveAllExam.addEventListener('click', () => {
+        startCustomTest(state.allMistakes.map(m => m.questionId), 'Yanlışlarım - Karma Test', 'exam');
+      });
+
+      ui.btnSolveAllPractice.addEventListener('click', () => {
+        startCustomTest(state.allMistakes.map(m => m.questionId), 'Yanlışlarım - Karma Öğrenme', 'practice');
       });
     });
 
     async function loadMistakes(uid) {
-      const list = document.getElementById('mistakesList');
+      ui.mistakesList.innerHTML = '<div class="card p-4 text-center">Hatalarınız analiz ediliyor...</div>';
       try {
-        // Kullanıcının yanlışlarını çek
         const q = query(collection(db, `users/${uid}/wrongs`), orderBy('lastAttempt', 'desc'));
         const snapshot = await getDocs(q);
 
         if (snapshot.empty) {
-          list.innerHTML = '<div class="card p-4 text-center text-muted">Harika! Hiç yanlışınız yok.</div>';
+          state.allMistakes = [];
+          renderEmptyState();
           return;
         }
 
-        allMistakes = [];
-        snapshot.forEach(docSnap => {
-          // Veriyi test motoruna uygun formata getir
+        state.allMistakes = snapshot.docs.map(docSnap => {
           const data = docSnap.data();
-          allMistakes.push({ id: data.questionId || docSnap.id, ...data });
+          return {
+            id: docSnap.id,
+            questionId: data.questionId || docSnap.id,
+            text: data.text || 'Soru metni yüklenemedi...',
+            category: data.category || 'Genel',
+            count: data.count || 1,
+            lastAttempt: data.lastAttempt || null
+          };
         });
 
-        renderMistakes(allMistakes);
-        setupFilters();
-
-        // URL'den gelen kategori filtresini kontrol et
-        const urlParams = new URLSearchParams(window.location.search);
-        const filterCategory = urlParams.get('category');
-
-        if (filterCategory) {
-          const decodedCat = decodeURIComponent(filterCategory);
-          const chip = Array.from(document.querySelectorAll('.filter-chip')).find(c => c.dataset.cat === decodedCat);
-          if (chip) chip.click();
-        }
+        populateCategorySelect();
+        renderCategoryCards();
+        applyFilters();
+        updateSummary();
 
       } catch (error) {
         console.error(error);
-        list.innerHTML = '<div class="text-danger">Veriler alınamadı.</div>';
+        ui.mistakesList.innerHTML = '<div class="text-danger">Veriler alınamadı.</div>';
       }
     }
 
-    function renderMistakes(data) {
-      const list = document.getElementById('mistakesList');
-      if (data.length === 0) {
-        list.innerHTML = '<div class="text-center p-4 text-muted">Bu kategoride yanlış soru yok.</div>';
+    function renderEmptyState() {
+      ui.totalMistakes.textContent = '0';
+      ui.totalMistakesHint.textContent = 'Harika! Şu an yanlışın yok.';
+      ui.totalCategories.textContent = '0';
+      ui.lastAttempt.textContent = '-';
+      ui.categoryCards.innerHTML = '<div class="empty-state">Hiç yanlış soru bulunamadı.</div>';
+      ui.mistakesList.innerHTML = '<div class="empty-state">Yanlış yaptığın soru yok, böyle devam! 🎉</div>';
+      ui.filteredCount.textContent = '0 soru';
+    }
+
+    function populateCategorySelect() {
+      const categories = ['all', ...new Set(state.allMistakes.map(m => m.category))];
+      ui.categorySelect.innerHTML = categories.map(cat => {
+        return `<option value="${cat}">${cat === 'all' ? 'Tümü' : cat}</option>`;
+      }).join('');
+    }
+
+    function updateSummary() {
+      const total = state.allMistakes.length;
+      const categoryCount = new Set(state.allMistakes.map(m => m.category)).size;
+      const latest = state.allMistakes[0]?.lastAttempt;
+
+      ui.totalMistakes.textContent = total;
+      ui.totalMistakesHint.textContent = total > 0 ? `${total} soruda tekrar fırsatın var.` : 'Harika! Şu an yanlışın yok.';
+      ui.totalCategories.textContent = categoryCount;
+      ui.lastAttempt.textContent = latest ? formatDate(latest) : '-';
+    }
+
+    function renderCategoryCards() {
+      if (state.allMistakes.length === 0) {
+        ui.categoryCards.innerHTML = '<div class="empty-state">Konu kartı oluşturulacak veri bulunamadı.</div>';
         return;
       }
-      list.innerHTML = '';
 
-      data.forEach(item => {
-        const div = document.createElement('div');
-        div.className = 'mistake-card';
-        div.innerHTML = `
-                    <div class="mistake-meta">
-                        <span>${item.category || 'Genel'}</span>
-                        <span>${item.lastAttempt ? new Date(item.lastAttempt.seconds * 1000).toLocaleDateString('tr-TR') : '-'}</span>
-                    </div>
-                    <div class="mistake-text">${item.text || 'Soru metni yüklenemedi...'}</div>
-                    <div class="d-flex justify-content-between align-items-center">
-                        <small class="text-muted text-danger">Yanlış Sayısı: ${item.count || 1}</small>
-                    </div>
-                `;
-        list.appendChild(div);
+      const categoryMap = new Map();
+      state.allMistakes.forEach(item => {
+        const entry = categoryMap.get(item.category) || { total: 0, lastAttempt: null, ids: [] };
+        entry.total += 1;
+        entry.ids.push(item.questionId);
+        if (!entry.lastAttempt || compareDate(item.lastAttempt, entry.lastAttempt) > 0) {
+          entry.lastAttempt = item.lastAttempt;
+        }
+        categoryMap.set(item.category, entry);
+      });
+
+      ui.categoryCards.innerHTML = Array.from(categoryMap.entries()).map(([category, data]) => {
+        return `
+          <div class="category-card">
+            <div>
+              <h4>${category}</h4>
+              <div class="category-meta">
+                <span>${data.total} soru</span>
+                <span>${data.lastAttempt ? formatDate(data.lastAttempt) : '-'}</span>
+              </div>
+            </div>
+            <div class="category-actions">
+              <button class="btn btn-outline-primary" data-category="${category}" data-mode="practice">📖 Öğrenme</button>
+              <button class="btn btn-primary" data-category="${category}" data-mode="exam">🎯 Sınav</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      ui.categoryCards.querySelectorAll('button').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const category = btn.dataset.category;
+          const mode = btn.dataset.mode;
+          const ids = state.allMistakes.filter(m => m.category === category).map(m => m.questionId);
+          startCustomTest(ids, `${category} - Yanlışlarım`, mode);
+        });
       });
     }
 
-    function setupFilters() {
-      const categories = ['all', ...new Set(allMistakes.map(m => m.category || 'Genel'))];
-      const container = document.getElementById('categoryFilters');
-      container.innerHTML = categories.map(cat =>
-        `<div class="filter-chip ${cat === 'all' ? 'active' : ''}" data-cat="${cat}">${cat === 'all' ? 'Tümü' : cat}</div>`
-      ).join('');
+    function applyFilters() {
+      let data = [...state.allMistakes];
 
-      container.querySelectorAll('.filter-chip').forEach(chip => {
-        chip.addEventListener('click', () => {
-          container.querySelector('.active').classList.remove('active');
-          chip.classList.add('active');
-          const cat = chip.dataset.cat;
-          const filtered = cat === 'all' ? allMistakes : allMistakes.filter(m => (m.category || 'Genel') === cat);
-          renderMistakes(filtered);
+      if (state.selectedCategory !== 'all') {
+        data = data.filter(item => item.category === state.selectedCategory);
+      }
+
+      if (state.searchTerm) {
+        data = data.filter(item => {
+          return item.text.toLowerCase().includes(state.searchTerm) || item.category.toLowerCase().includes(state.searchTerm);
+        });
+      }
+
+      if (state.sort === 'recent') {
+        data.sort((a, b) => compareDate(b.lastAttempt, a.lastAttempt));
+      } else if (state.sort === 'oldest') {
+        data.sort((a, b) => compareDate(a.lastAttempt, b.lastAttempt));
+      } else if (state.sort === 'count') {
+        data.sort((a, b) => (b.count || 0) - (a.count || 0));
+      } else if (state.sort === 'category') {
+        data.sort((a, b) => a.category.localeCompare(b.category));
+      }
+
+      state.filteredMistakes = data;
+      renderMistakeList();
+    }
+
+    function renderMistakeList() {
+      const data = state.filteredMistakes;
+      ui.filteredCount.textContent = `${data.length} soru`;
+
+      if (data.length === 0) {
+        ui.mistakesList.innerHTML = '<div class="empty-state">Bu filtrelerle eşleşen yanlış bulunamadı.</div>';
+        return;
+      }
+
+      ui.mistakesList.innerHTML = data.map(item => {
+        return `
+          <div class="mistake-card" id="mistake-${item.questionId}">
+            <div class="mistake-card-header">
+              <span class="badge-category">${item.category}</span>
+              <span>${formatDate(item.lastAttempt)}</span>
+            </div>
+            <p>${item.text}</p>
+            <div class="mistake-card-footer">
+              <span>Yanlış sayısı: ${item.count}</span>
+              <button class="btn btn-outline-primary" data-question="${item.questionId}">Tekrar Çöz</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      ui.mistakesList.querySelectorAll('button[data-question]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const id = btn.dataset.question;
+          startCustomTest([id], 'Yanlışlarım - Tekrar Sorusu', 'practice');
         });
       });
+    }
+
+    function startCustomTest(ids, title, mode) {
+      const filteredIds = ids.filter(Boolean);
+      if (filteredIds.length === 0) {
+        showToast('Çözülecek yanlış soru bulunamadı.', 'warning');
+        return;
+      }
+
+      localStorage.setItem('customTestQuestionIds', JSON.stringify(filteredIds));
+      localStorage.setItem('customTestTitle', title);
+      localStorage.removeItem('customTestQuestions');
+      window.location.href = `/pages/test.html?mode=custom&source=local&testMode=${mode}`;
+    }
+
+    function formatDate(timestamp) {
+      if (!timestamp) return '-';
+      const date = timestamp.seconds ? new Date(timestamp.seconds * 1000) : new Date(timestamp);
+      return date.toLocaleDateString('tr-TR');
+    }
+
+    function compareDate(a, b) {
+      if (!a && !b) return 0;
+      if (!a) return -1;
+      if (!b) return 1;
+      const dateA = a.seconds ? a.seconds * 1000 : new Date(a).getTime();
+      const dateB = b.seconds ? b.seconds * 1000 : new Date(b).getTime();
+      return dateA - dateB;
     }
   </script>
 </body>
