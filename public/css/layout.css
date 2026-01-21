@@ -391,7 +391,7 @@ body.sidebar-collapsed .nav-label {
 }
 
 .bg-light {
-    background-color: rgba(148, 163, 184, 0.18);
+    background-color: var(--bg-hover);
 }
 
 .bg-dark {
@@ -420,6 +420,10 @@ body.sidebar-collapsed .nav-label {
 
 .text-dark {
     color: #0f172a;
+}
+
+[data-theme="dark"] .text-dark {
+    color: var(--text-main);
 }
 
 .text-white {
