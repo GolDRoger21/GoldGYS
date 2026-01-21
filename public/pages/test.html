@@ -9,49 +9,230 @@
     <link rel="stylesheet" href="../components/ui/ui.css">
 
     <style>
+        body.test-body {
+            background: #f1f5f9;
+            color: #0f172a;
+        }
+
         /* Test Motoruna Özel Stiller */
-        .tuzak-kutu {
-            background-color: #fff3cd;
-            border-left: 4px solid #ffc107;
-            padding: 10px;
-            margin: 10px 0;
-            font-size: 0.9rem;
-            color: #856404;
+        .soru-kart {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
         }
 
-        .hap-kutu {
-            background-color: #d1ecf1;
-            border-left: 4px solid #17a2b8;
-            padding: 10px;
-            margin: 10px 0;
-            font-size: 0.9rem;
-            color: #0c5460;
+        .kart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
         }
 
-        .vurgu-negatif {
-            color: #D32F2F;
+        .soru-badge {
+            background: #e2e8f0;
+            color: #1e293b;
+            padding: 4px 12px;
+            border-radius: 999px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .kart-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-icon {
+            background: #f8fafc;
+            border: 1px solid #cbd5f5;
+            color: #1e293b;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .btn-icon.active {
+            background: #fde68a;
+            border-color: #f59e0b;
+        }
+
+        .soru-metni {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+
+        .soru-kok-vurgu {
+            font-weight: 600;
+            margin-top: 12px;
+        }
+
+        .oncullu-liste {
+            list-style: none;
+            padding: 16px;
+            margin: 0 0 16px 0;
+            background: #f8fafc;
+            border-radius: 10px;
+            border-left: 4px solid #38bdf8;
+        }
+
+        .oncullu-liste li {
+            padding: 6px 0;
+            border-bottom: 1px dashed #e2e8f0;
+        }
+
+        .oncullu-liste li:last-child {
+            border-bottom: none;
+        }
+
+        .oncul-no {
+            display: inline-block;
+            width: 28px;
             font-weight: 700;
-            text-transform: uppercase;
+            color: #0f172a;
+        }
+
+        .siklar-wrapper {
+            margin-top: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .sik-btn {
+            display: flex;
+            width: 100%;
+            align-items: center;
+            padding: 12px 14px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            background: #ffffff;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: left;
+            gap: 12px;
+        }
+
+        .sik-btn:hover:not(.disabled) {
+            border-color: #38bdf8;
+            background: #f0f9ff;
+        }
+
+        .sik-btn.selected {
+            border-color: #3b82f6;
+            background: #e0f2fe;
         }
 
         .sik-btn.correct {
-            background-color: #d4edda;
-            border-color: #28a745;
-            color: #155724;
+            border-color: #16a34a;
+            background: #dcfce7;
+            color: #14532d;
         }
 
         .sik-btn.wrong {
-            background-color: #f8d7da;
-            border-color: #dc3545;
-            color: #721c24;
+            border-color: #ef4444;
+            background: #fee2e2;
+            color: #7f1d1d;
+        }
+
+        .sik-btn.disabled {
+            cursor: not-allowed;
+            opacity: 0.9;
+        }
+
+        .sik-harf {
+            width: 32px;
+            height: 32px;
+            background: #e2e8f0;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .sik-metin {
+            flex: 1;
+        }
+
+        .result-icon {
+            margin-left: 8px;
+            font-weight: 800;
+        }
+
+        .correct-ghost {
+            border-color: #22c55e;
+            background: rgba(34, 197, 94, 0.08);
         }
 
         .cozum-container {
-            background-color: #f8f9fa;
-            border-top: 1px solid #ddd;
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
             padding: 20px;
-            margin-top: 15px;
-            border-radius: 0 0 8px 8px;
+            margin-top: 18px;
+            border-radius: 12px;
+        }
+
+        .cozum-header {
+            font-weight: 700;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .mevzuat-badge {
+            background: #eef2ff;
+            border: 1px solid #c7d2fe;
+            padding: 10px 12px;
+            border-radius: 10px;
+            margin-bottom: 12px;
+            color: #3730a3;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .dayanak-kutu {
+            background: #fff7ed;
+            border-left: 4px solid #fb923c;
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 8px;
+        }
+
+        .ipucu-grid {
+            display: grid;
+            gap: 12px;
+            margin-top: 12px;
+        }
+
+        .tuzak-kutu {
+            background-color: #fffbeb;
+            border-left: 4px solid #f59e0b;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            color: #92400e;
+        }
+
+        .hap-kutu {
+            background-color: #ecfeff;
+            border-left: 4px solid #06b6d4;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            color: #155e75;
         }
 
         .loading-overlay {
@@ -68,103 +249,96 @@
             flex-direction: column;
         }
 
-        /* Navigasyon Buton Stilleri */
-        .btn-nav {
-            flex: 1;
-            padding: 12px 20px;
-            border: none;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .btn-prev {
-            background: #e9ecef;
-            color: #495057;
-        }
-
-        .btn-next {
-            background: #27ae60;
-            color: white;
-        }
-
-        .btn-finish {
-            background: #c0392b;
-            color: white;
-        }
-
-        .btn-nav:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        /* Mobilde Butonların Sabit Kalması İçin (Opsiyonel) */
         @media (max-width: 768px) {
-            .test-navigation {
-                position: fixed;
-                bottom: 0;
-                left: 0;
-                width: 100%;
-                background: white;
-                padding: 15px;
-                box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
-                margin: 0 !important;
-                z-index: 100;
+            #testHeader {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+
+            #testHeader .score-board {
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+
+            .soru-kart {
+                padding: 18px;
             }
 
             .quiz-container {
-                padding-bottom: 80px !important;
+                margin: 12px auto;
+                padding: 0 12px;
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(6px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
             }
         }
     </style>
     <link rel="manifest" href="/manifest.json">
-    <div id="loadingScreen" class="loading-overlay">
-        <div class="spinner-border text-success mb-3" role="status" style="width: 3rem; height: 3rem;"></div>
-        <h3 id="loadingText">Sınav Hazırlanıyor...</h3>
-    </div>
+    </head>
 
-    <header class="header-sticky"
-        style="position: sticky; top: 0; background: white; z-index: 100; padding: 15px; border-bottom: 3px solid #27ae60; display: none; justify-content: space-between; align-items: center;"
-        id="testHeader">
-        <div class="test-title" id="testTitle" style="font-weight:700; color:#2c3e50;">Deneme Sınavı</div>
-        <div class="score-board" style="display: flex; gap: 15px; font-weight: bold;">
-            <div class="score-item" style="color:#27ae60">D: <span id="trueVal">0</span></div>
-            <div class="score-item" style="color:#c0392b">Y: <span id="falseVal">0</span></div>
-            <div class="score-item" style="color:#34495e">K: <span id="remainVal">--</span></div>
-            <div class="score-item" style="color:#e67e22">⏱ <span id="timerDisplay">00:00</span></div>
+    <body class="test-body">
+        <div id="loadingScreen" class="loading-overlay">
+            <div class="spinner-border text-success mb-3" role="status" style="width: 3rem; height: 3rem;"></div>
+            <h3 id="loadingText">Sınav Hazırlanıyor...</h3>
         </div>
-    </header>
 
-    <main class="quiz-container" id="quizContainer"
-        style="max-width: 800px; margin: 20px auto; padding: 0 15px; display:none;">
-    </main>
-
-    <div class="footer-static" id="testFooter"
-        style="display: none; justify-content: center; gap: 10px; padding: 20px 0; margin-top: 40px; border-top: 1px solid #ddd; background-color: #f8f9fa;">
-        <button id="btnFinish" class="btn-action"
-            style="padding: 10px 30px; background-color: #27ae60; color: white; border: none; border-radius: 6px; cursor: pointer; font-size:1.1rem; font-weight:bold;">Testi
-            Bitir</button>
-    </div>
-
-    <div class="modal-overlay" id="resultModal"
-        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; justify-content: center; align-items: center;">
-        <div class="modal-content"
-            style="background: white; padding: 30px; border-radius: 12px; text-align: center; max-width: 400px; width: 90%;">
-            <h2>Test Sonucu</h2>
-            <div id="scoreDisplay" style="font-size: 3rem; font-weight: 800; color: #27ae60; margin: 15px 0;">0 / 100
+        <header class="header-sticky"
+            style="position: sticky; top: 0; background: white; z-index: 100; padding: 15px; border-bottom: 3px solid #27ae60; display: none; justify-content: space-between; align-items: center;"
+            id="testHeader">
+            <div>
+                <div class="test-title" id="testTitle" style="font-weight:700; color:#2c3e50;">Deneme Sınavı</div>
+                <div id="modeLabel" style="font-size:0.85rem; font-weight:600; color:#64748b;"></div>
             </div>
-            <p id="resultText">Analiz ediliyor...</p>
-            <div class="d-flex gap-2 justify-content-center mt-4">
-                <a href="denemeler.html" class="btn btn-secondary"
-                    style="padding: 8px 20px; text-decoration:none; color:white; background:#7f8c8d; border-radius:4px;">Çıkış</a>
-                <button onclick="document.getElementById('resultModal').style.display='none'"
-                    style="padding: 8px 25px; background: #2c3e50; color: white; border: none; border-radius: 4px; cursor: pointer;">Cevapları
-                    İncele</button>
+            <div class="score-board" style="display: flex; gap: 15px; font-weight: bold;">
+                <div class="score-item" style="color:#27ae60">D: <span id="trueVal">0</span></div>
+                <div class="score-item" style="color:#c0392b">Y: <span id="falseVal">0</span></div>
+                <div class="score-item" style="color:#34495e">K: <span id="remainVal">--</span></div>
+                <div class="score-item" style="color:#e67e22">⏱ <span id="timerDisplay">00:00</span></div>
+            </div>
+        </header>
+
+        <main class="quiz-container" id="quizContainer"
+            style="max-width: 880px; margin: 20px auto; padding: 0 15px; display:none;">
+        </main>
+
+        <div class="footer-static" id="testFooter"
+            style="display: none; justify-content: center; gap: 10px; padding: 20px 0 40px; margin-top: 20px; border-top: 1px solid #e2e8f0; background-color: transparent;">
+            <button id="btnFinish" class="btn-action"
+                style="padding: 10px 30px; background-color: #27ae60; color: white; border: none; border-radius: 6px; cursor: pointer; font-size:1.1rem; font-weight:bold;">Testi
+                Bitir</button>
+        </div>
+
+        <div class="modal-overlay" id="resultModal"
+            style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; justify-content: center; align-items: center;">
+            <div class="modal-content"
+                style="background: white; padding: 30px; border-radius: 12px; text-align: center; max-width: 400px; width: 90%;">
+                <h2>Test Sonucu</h2>
+                <div id="scoreDisplay"
+                    style="font-size: 3rem; font-weight: 800; color: #27ae60; margin: 15px 0;">0 / 100
+                </div>
+                <p id="resultText">Analiz ediliyor...</p>
+                <div class="d-flex gap-2 justify-content-center mt-4">
+                    <a href="denemeler.html" class="btn btn-secondary"
+                        style="padding: 8px 20px; text-decoration:none; color:white; background:#7f8c8d; border-radius:4px;">Çıkış</a>
+                    <button onclick="document.getElementById('resultModal').style.display='none'"
+                        style="padding: 8px 25px; background: #2c3e50; color: white; border: none; border-radius: 4px; cursor: pointer;">Cevapları
+                        İncele</button>
+                </div>
             </div>
         </div>
-    </div>
 
     <script type="module">
         import { TestEngine } from "../js/test-engine.js";
@@ -282,12 +456,21 @@
                     throw new Error("Soru bulunamadı veya test içeriği boş.");
                 }
 
+                const resolvedMode = mode === 'smart' ? 'practice' : (mode || 'exam');
+                const modeLabel = document.getElementById('modeLabel');
+
                 document.title = `${title} | Çöz`;
                 document.getElementById('testTitle').innerText = title;
+                if (modeLabel) {
+                    modeLabel.innerText = resolvedMode === 'exam'
+                        ? 'Sınav Modu • 1,25 dk/soru'
+                        : 'Öğrenme Modu • Anlık doğru/yanlış';
+                }
 
                 // Test Motorunu Başlat
                 const engine = new TestEngine('quizContainer', questions, {
-                    mode: mode === 'smart' ? 'practice' : (mode || 'exam'), // Smart modda 'practice' gibi davran
+                    mode: resolvedMode, // Smart modda 'practice' gibi davran
+                    duration: duration,
                     menuButton: true // Yan menü desteği varsa aktif et
                 });
 

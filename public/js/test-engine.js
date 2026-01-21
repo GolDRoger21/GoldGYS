@@ -11,7 +11,8 @@ export class TestEngine {
         // Ayarlar
         this.examId = options.examId || 'custom_practice';
         this.examTitle = options.title || 'Genel Test';
-        this.mode = options.mode || 'practice'; // 'exam' (Sınav) veya 'practice' (Çalışma)
+        const rawMode = options.mode || 'practice';
+        this.mode = rawMode === 'learning' ? 'practice' : rawMode; // 'exam' (Sınav) veya 'practice' (Çalışma)
         this.duration = options.duration || 0; // Dakika cinsinden
 
         // Durum Değişkenleri
@@ -41,12 +42,16 @@ export class TestEngine {
 
     async init() {
         await this.loadUserFavorites();
-        this.renderCurrentQuestion();
+        this.renderAllQuestions();
         this.updateCounters();
-        this.setupMobileGestures();
 
         // Sınav Moduysa Sayacı Başlat
-        if (this.mode === 'exam' && this.duration > 0) {
+        if (this.mode === 'exam') {
+            if (this.duration <= 0) {
+                this.remainingTime = Math.round(this.questions.length * 75);
+            } else {
+                this.remainingTime = Math.round(this.duration * 60);
+            }
             this.startTimer();
             // Sınav modunda çözüm alanı gizli kalır, sayaç görünür
             if (this.ui.timerDisplay) this.ui.timerDisplay.parentElement.style.display = 'flex';
@@ -85,20 +90,17 @@ export class TestEngine {
     }
 
     // --- RENDER İŞLEMLERİ ---
-    renderCurrentQuestion() {
+    renderAllQuestions() {
         this.container.innerHTML = '';
-        const q = this.questions[this.currentIndex];
 
-        // Animasyonlu geçiş için container'ı temizle ve yeni kartı ekle
-        const card = this.createQuestionCard(q, this.currentIndex);
-        this.container.appendChild(card);
+        this.questions.forEach((question, index) => {
+            const card = this.createQuestionCard(question, index);
+            this.container.appendChild(card);
 
-        this.renderNavigation();
-
-        // Eğer soru daha önce cevaplandıysa durumunu geri yükle
-        if (this.answers[q.id]) {
-            this.restoreAnswerState(q.id);
-        }
+            if (this.answers[question.id]) {
+                this.restoreAnswerState(question.id);
+            }
+        });
     }
 
     createQuestionCard(q, index) {
@@ -192,26 +194,6 @@ export class TestEngine {
         return article;
     }
 
-    renderNavigation() {
-        const navDiv = document.createElement('div');
-        navDiv.className = 'test-navigation';
-
-        const isFirst = this.currentIndex === 0;
-        const isLast = this.currentIndex === this.questions.length - 1;
-
-        navDiv.innerHTML = `
-            <button class="btn-nav btn-prev" onclick="window.testEngine.prevQuestion()" ${isFirst ? 'disabled' : ''}>
-                ← Önceki
-            </button>
-            
-            ${isLast
-                ? `<button class="btn-nav btn-finish" onclick="window.testEngine.finishConfirm()">Testi Bitir ✓</button>`
-                : `<button class="btn-nav btn-next" onclick="window.testEngine.nextQuestion()">Sonraki →</button>`
-            }
-        `;
-        this.container.appendChild(navDiv);
-    }
-
     // --- CEVAPLAMA MANTIĞI ---
     handleAnswer(questionId, selectedOptionId) {
         // Eğer zaten cevaplandıysa işlem yapma
@@ -229,7 +211,7 @@ export class TestEngine {
         };
 
         // Moda Göre UI Davranışı
-        if (this.mode === 'practice') {
+        if (this.mode !== 'exam') {
             // Çalışma Modu: Anlık geri bildirim ve çözüm gösterimi
             this.showFeedback(questionId, selectedOptionId, isCorrect, question.correctOption);
 
@@ -294,7 +276,7 @@ export class TestEngine {
         const ans = this.answers[qId];
         const q = this.questions.find(item => item.id === qId);
 
-        if (this.mode === 'practice') {
+        if (this.mode !== 'exam') {
             this.showFeedback(qId, ans.selected, ans.isCorrect, q.correctOption);
         } else {
             this.markSelected(qId, ans.selected);
@@ -305,7 +287,7 @@ export class TestEngine {
     nextQuestion() {
         if (this.currentIndex < this.questions.length - 1) {
             this.currentIndex++;
-            this.renderCurrentQuestion();
+            this.renderAllQuestions();
             this.scrollToTop();
         }
     }
@@ -313,7 +295,7 @@ export class TestEngine {
     prevQuestion() {
         if (this.currentIndex > 0) {
             this.currentIndex--;
-            this.renderCurrentQuestion();
+            this.renderAllQuestions();
             this.scrollToTop();
         }
     }
@@ -351,7 +333,7 @@ export class TestEngine {
         if (this.mode === 'exam') {
             this.mode = 'practice'; // Artık çözümleri görebilir
             alert("Sınav tamamlandı. Sonuçlarınız kaydedildi. Şimdi cevaplarınızı ve çözümleri inceleyebilirsiniz.");
-            this.renderCurrentQuestion(); // Mevcut soruyu güncelle (renkler ve çözümler gelsin)
+            this.renderAllQuestions(); // Mevcut soruları güncelle (renkler ve çözümler gelsin)
         }
 
         // UI Güncelle (Modal)
@@ -518,14 +500,5 @@ export class TestEngine {
         }
     }
 
-    setupMobileGestures() {
-        let touchstartX = 0;
-        let touchendX = 0;
-        this.container.addEventListener('touchstart', e => touchstartX = e.changedTouches[0].screenX, { passive: true });
-        this.container.addEventListener('touchend', e => {
-            touchendX = e.changedTouches[0].screenX;
-            if (touchendX < touchstartX - 75) this.nextQuestion(); // Sola kaydır -> İleri
-            if (touchendX > touchstartX + 75) this.prevQuestion(); // Sağa kaydır -> Geri
-        }, { passive: true });
-    }
+    setupMobileGestures() {}
 }
