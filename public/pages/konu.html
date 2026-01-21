@@ -5,12 +5,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Konu Çalışma Alanı | GOLD GYS</title>
+  <link rel="icon" href="/img/dashboard-preview.svg" type="image/svg+xml">
+
   <link rel="stylesheet" href="../styles/tokens.css">
   <link rel="stylesheet" href="../css/layout.css">
   <link rel="stylesheet" href="../css/dashboard.css">
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
   <style>
-    /* --- YENİ STİLLER --- */
+    /* --- MEVCUT STİLLERİNİZ --- */
     .study-mode-card {
       background: var(--bg-surface);
       color: var(--text-main);
@@ -78,7 +80,6 @@
       font-size: 1.5rem;
     }
 
-    /* Mevcut stiller korunuyor... */
     .topic-header {
       background: var(--bg-surface);
       padding: 30px 20px;
@@ -100,6 +101,9 @@
       border-radius: 16px;
       padding: 20px;
       margin-bottom: 15px;
+      /* Mobil uyumluluk için */
+      width: 100%;
+      box-sizing: border-box;
     }
 
     .subtopic-section {
@@ -171,8 +175,12 @@
       margin-top: 8px;
     }
 
+    /* Butonların mobilde taşmasını engellemek için */
     .subtopic-actions .btn {
       flex: 1;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
     }
 
     .subtopic-meta {
@@ -183,6 +191,11 @@
     @media (max-width: 900px) {
       .content-container {
         grid-template-columns: 1fr;
+      }
+
+      /* Mobilde sağ kolonun (ders notları) aşağı inince margin eklemesi */
+      .side-section {
+        margin-top: 30px;
       }
     }
   </style>
@@ -213,12 +226,12 @@
 
   <div class="content-container">
 
-    <!-- SOL KOLON -->
     <div class="main-section">
 
       <div id="subtopicSection" class="subtopic-section" style="display:none;">
         <h2 style="margin:0;">Alt Başlıklar</h2>
-        <p class="text-muted" style="margin-top:6px;">Bu ana konu altında ilgili alt başlıkları seçerek ders notları ve testlere erişebilirsiniz.</p>
+        <p class="text-muted" style="margin-top:6px;">Bu ana konu altında ilgili alt başlıkları seçerek ders notları ve
+          testlere erişebilirsiniz.</p>
         <div id="subtopicEmptyNote" class="section-note" style="display:none;">
           Bu ana başlıkta doğrudan içerik bulunmuyor. İlerlemek için alt başlıklardan birini seç.
         </div>
@@ -227,43 +240,39 @@
       </div>
 
       <div id="topicContentSection">
-      <!-- YENİ: AKILLI ÇALIŞMA MODU -->
-      <div class="study-mode-card">
-        <h2 style="margin:0; font-size:1.5rem;">🚀 Serbest Çalışma Modu</h2>
-        <p id="studyModeStatus" style="opacity:0.8; margin-top:5px;">Bu konuya ait <strong id="totalQCount">0</strong> soruyu dilediğin gibi
-          çöz.</p>
+        <div class="study-mode-card">
+          <h2 style="margin:0; font-size:1.5rem;">🚀 Serbest Çalışma Modu</h2>
+          <p id="studyModeStatus" style="opacity:0.8; margin-top:5px;">Bu konuya ait <strong id="totalQCount">0</strong>
+            soruyu dilediğin gibi çöz.</p>
 
-        <div class="mode-options">
-          <button class="mode-btn" onclick="startSmartTest('random')">
-            <span class="mode-icon">🔀</span>
-            <span>Karışık</span>
-          </button>
-          <button class="mode-btn" onclick="startSmartTest('order')">
-            <span class="mode-icon">abc</span>
-            <span>Madde Sırasına Göre</span>
-          </button>
-          <button class="mode-btn" onclick="startSmartTest('wrongs')">
-            <span class="mode-icon">⚠️</span>
-            <span>Sadece Yanlışlar</span>
-          </button>
-          <button class="mode-btn" onclick="startSmartTest('favorites')">
-            <span class="mode-icon">⭐</span>
-            <span>Favoriler</span>
-          </button>
+          <div class="mode-options">
+            <button class="mode-btn" onclick="startSmartTest('random')">
+              <span class="mode-icon">🔀</span>
+              <span>Karışık</span>
+            </button>
+            <button class="mode-btn" onclick="startSmartTest('order')">
+              <span class="mode-icon">abc</span>
+              <span>Madde Sırasına Göre</span>
+            </button>
+            <button class="mode-btn" onclick="startSmartTest('wrongs')">
+              <span class="mode-icon">⚠️</span>
+              <span>Sadece Yanlışlar</span>
+            </button>
+            <button class="mode-btn" onclick="startSmartTest('favorites')">
+              <span class="mode-icon">⭐</span>
+              <span>Favoriler</span>
+            </button>
+          </div>
         </div>
-      </div>
 
-      <!-- KONU TESTLERİ -->
-      <h3 style="border-left:4px solid var(--color-primary); padding-left:10px; margin-bottom:20px;">📝 Konu Testleri
-      </h3>
-      <div id="testsList">Yükleniyor...</div>
+        <h3 style="border-left:4px solid var(--color-primary); padding-left:10px; margin-bottom:20px;">📝 Konu Testleri
+        </h3>
+        <div id="testsList">Yükleniyor...</div>
       </div>
 
     </div>
 
-    <!-- SAĞ KOLON: DERS NOTLARI -->
     <div class="side-section" id="topicMaterialsSection">
-      <div id="materials"></div>
       <h3 style="border-left:4px solid var(--color-success); padding-left:10px; margin-bottom:20px;">📚 Ders Notları
       </h3>
       <div id="materialsList"></div>
@@ -284,7 +293,18 @@
       currentTopicId = urlParams.get('id');
       if (!currentTopicId) return window.location.href = '/pages/konular.html';
 
-      await loadTopicData();
+      // 1. Önce Konu Başlığını Çek
+      await loadTopicHeader();
+
+      // 2. Alt Konuları ve İçerikleri Çek (Hata olursa devam et)
+      try {
+        await loadTopicData();
+      } catch (error) {
+        console.error("Veri yükleme sırasında hata:", error);
+        // Hata olsa bile "Yükleniyor" yazısını kaldırıp boş state gösterelim
+        document.getElementById('testsList').innerHTML = '<div class="test-card">Veriler yüklenirken bir bağlantı hatası oluştu.</div>';
+      }
+
       await loadQuestionCount();
 
       onAuthStateChanged(auth, async (user) => {
@@ -294,8 +314,7 @@
       });
     });
 
-    async function loadTopicData() {
-      // Konu Bilgisi
+    async function loadTopicHeader() {
       const topicSnap = await getDoc(doc(db, "topics", currentTopicId));
       if (topicSnap.exists()) {
         const data = topicSnap.data();
@@ -303,21 +322,32 @@
         document.getElementById('topicTitle').innerText = data.title;
         document.title = `${data.title} | Çalışma`;
       }
+    }
 
-      const subtopicQuery = query(
-        collection(db, "topics"),
-        where("parentId", "==", currentTopicId),
-        where("isActive", "==", true),
-        orderBy("order", "asc")
-      );
-      const subtopicSnap = await getDocs(subtopicQuery);
-      const subtopics = [];
-      subtopicSnap.forEach(doc => {
-        subtopics.push({ id: doc.id, ...doc.data() });
-      });
+    async function loadTopicData() {
+      // ALT KONULARI ÇEKME (Firestore Index Hatası burada olabilir, try-catch ile koruyoruz)
+      let subtopics = [];
+      try {
+        const subtopicQuery = query(
+          collection(db, "topics"),
+          where("parentId", "==", currentTopicId),
+          where("isActive", "==", true),
+          orderBy("order", "asc")
+        );
+        const subtopicSnap = await getDocs(subtopicQuery);
+        subtopicSnap.forEach(doc => {
+          subtopics.push({ id: doc.id, ...doc.data() });
+        });
+      } catch (e) {
+        console.warn("Alt konular çekilemedi (Muhtemelen eksik Index):", e);
+        // Alt konu bölümünü gizle ama hata fırlatma, içerik yüklemeye devam et
+        const subtopicSection = document.getElementById('subtopicSection');
+        if (subtopicSection) subtopicSection.style.display = 'none';
+      }
 
       const hasSubtopics = subtopics.length > 0;
       const subtopicSection = document.getElementById('subtopicSection');
+
       if (hasSubtopics) {
         await renderSubtopics(subtopics);
         if (subtopicSection) subtopicSection.style.display = 'block';
@@ -325,21 +355,16 @@
         subtopicSection.style.display = 'none';
       }
 
-      const contentStatus = await loadTopicContent();
-      const hasContent = contentStatus.totalCount > 0;
+      // İÇERİKLERİ YÜKLE (Index hatası olsa bile burası çalışmalı)
+      await loadTopicContent(hasSubtopics);
 
       document.getElementById('topicContentSection').style.display = 'block';
       document.getElementById('topicMaterialsSection').style.display = 'block';
 
-      const subtopicNote = document.getElementById('subtopicEmptyNote');
-      if (subtopicNote) {
-        subtopicNote.style.display = hasSubtopics && !hasContent ? 'block' : 'none';
-      }
-
       return hasSubtopics;
     }
 
-    async function loadTopicContent() {
+    async function loadTopicContent(hasSubtopics) {
       const testsContainer = document.getElementById('testsList');
       const materialsContainer = document.getElementById('materialsList');
 
@@ -350,64 +375,48 @@
       let materialCount = 0;
 
       try {
-        // Dersler ve Testler (Subcollection)
         const q = query(collection(db, `topics/${currentTopicId}/lessons`), orderBy("order", "asc"));
         const snapshot = await getDocs(q);
 
         snapshot.forEach(doc => {
           const item = { id: doc.id, ...doc.data() };
-
           if (item?.status === 'deleted' || item?.isDeleted || item?.isActive === false) return;
 
           const isTest = item.type === 'test' || (Array.isArray(item.questions) && item.questions.length > 0) || Number.isFinite(item.qCount);
 
           if (isTest) {
             testCount += 1;
-            // Test Kartı
             const qCount = item.qCount || (item.questions ? item.questions.length : 0);
             testsContainer.innerHTML += `
                       <div class="test-card">
-                          <div style="display:flex; justify-content:space-between;">
-                              <strong>${item.title}</strong>
+                          <div style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;">
+                              <strong style="font-size:1.05rem;">${item.title}</strong>
                               <span class="badge bg-light text-dark">${qCount} Soru</span>
                           </div>
-                          <div style="margin-top:10px; display:flex; gap:10px;">
-                              <a href="/pages/test.html?id=${item.id}&topic=${currentTopicId}&mode=practice" class="btn btn-sm btn-outline-primary w-100">Çöz</a>
+                          <div style="margin-top:10px;">
+                              <a href="/pages/test.html?id=${item.id}&topic=${currentTopicId}&mode=practice" class="btn btn-sm btn-outline-primary w-100">Testi Çöz</a>
                           </div>
                       </div>
                   `;
           } else {
-            // Ders Notu / Materyal (Listeleme)
+            // Materyalleri işle
             if (item.materials && item.materials.length > 0) {
-              materialCount += item.materials.length;
-              // Alt materyalleri listele
               item.materials.forEach(mat => {
-                let icon = '📝';
-                let bgClass = 'bg-light';
-                let btnText = 'İncele';
+                materialCount++;
+                let icon = '📝'; let bgClass = 'bg-light'; let btnText = 'İncele';
                 let btnAction = `window.open('${mat.url}', '_blank')`;
                 let badge = '';
 
-                if (mat.type === 'video') {
-                  icon = '▶️'; bgClass = 'bg-warning-subtle'; btnText = 'İzle';
-                  badge = `<span class="badge bg-dark text-white ms-2">${mat.duration || '?'} dk</span>`;
-                }
-                else if (mat.type === 'podcast') {
-                  icon = '🎧'; bgClass = 'bg-purple-subtle'; btnText = 'Dinle';
-                  badge = `<span class="badge bg-secondary text-white ms-2">${mat.duration || '?'} dk</span>`;
-                }
-                else if (mat.type === 'pdf') {
-                  icon = '📄'; bgClass = 'bg-danger-subtle'; btnText = 'İndir';
-                }
-                else if (mat.type === 'html') {
-                  icon = '📰'; bgClass = 'bg-success-subtle'; btnText = 'Oku';
-                }
+                if (mat.type === 'video') { icon = '▶️'; bgClass = 'bg-warning-subtle'; btnText = 'İzle'; badge = `<span class="badge bg-dark text-white ms-2">${mat.duration || ''}</span>`; }
+                else if (mat.type === 'podcast') { icon = '🎧'; bgClass = 'bg-purple-subtle'; btnText = 'Dinle'; badge = `<span class="badge bg-secondary text-white ms-2">${mat.duration || ''}</span>`; }
+                else if (mat.type === 'pdf') { icon = '📄'; bgClass = 'bg-danger-subtle'; btnText = 'İndir'; }
+                else if (mat.type === 'html') { icon = '📰'; bgClass = 'bg-success-subtle'; btnText = 'Oku'; }
 
                 materialsContainer.innerHTML += `
                         <div class="test-card ${bgClass}" style="border-left:4px solid var(--color-primary);">
                             <div class="d-flex justify-content-between align-items-start">
                                 <div>
-                                    <div class="d-flex align-items-center">
+                                    <div class="d-flex align-items-center flex-wrap">
                                         <span style="font-size:1.2rem; margin-right:8px;">${icon}</span>
                                         <strong>${mat.title || item.title}</strong>
                                         ${badge}
@@ -420,144 +429,140 @@
                     `;
               });
             } else {
-              materialCount += 1;
-              // Eski tip tekil ders notu (veya materyali olmayan başlık)
+              // Eski tip tekil materyal
+              materialCount++;
               materialsContainer.innerHTML += `
                     <div class="test-card" style="border-left:4px solid var(--color-success);">
                         <strong>${item.title}</strong>
                         <div class="text-muted small mt-1">${item.summary || ''}</div>
-                        ${item.tags ? item.tags.map(t => `<span class="badge bg-secondary me-1">${t}</span>`).join('') : ''}
                         <button class="btn btn-sm btn-light w-100 mt-2">İncele</button>
                     </div>
                 `;
             }
           }
         });
+
       } catch (error) {
-        console.error('Konu içerikleri yüklenemedi:', error);
-        testsContainer.innerHTML = `
-          <div class="test-card">
-            <strong>Testler yüklenemedi</strong>
-            <div class="text-muted small mt-1">Lütfen sayfayı yenileyip tekrar deneyin.</div>
-          </div>
-        `;
-        materialsContainer.innerHTML = `
-          <div class="test-card">
-            <strong>Ders notları yüklenemedi</strong>
-            <div class="text-muted small mt-1">Lütfen sayfayı yenileyip tekrar deneyin.</div>
-          </div>
-        `;
-        return { testCount, materialCount, totalCount: 0 };
+        console.error('İçerik yükleme hatası:', error);
       }
 
+      // --- BOŞ DURUM YÖNETİMİ (Kritik Kısım) ---
 
+      // Eğer test hiç yoksa:
       if (testsContainer.innerHTML === '') {
-        testsContainer.innerHTML = `
-          <div class="test-card">
-            <strong>Henüz test bulunmuyor</strong>
-            <div class="text-muted small mt-1">Bu konu için hazırlanan testler yakında eklenecektir.</div>
-          </div>
-        `;
+        // Eğer alt başlıklar varsa kullanıcıyı oraya yönlendirecek bir mesaj göster
+        if (hasSubtopics) {
+          testsContainer.innerHTML = `
+              <div class="test-card">
+                <strong>Bu başlıkta test bulunamadı</strong>
+                <div class="text-muted small mt-1">Testler için yukarıdaki <b>Alt Başlıklar</b> bölümünden ilgili konuyu seçiniz.</div>
+              </div>
+            `;
+        } else {
+          testsContainer.innerHTML = `
+              <div class="test-card">
+                <strong>Henüz test eklenmemiş</strong>
+                <div class="text-muted small mt-1">Bu konu için testler hazırlanıyor.</div>
+              </div>
+            `;
+        }
       }
 
+      // Eğer notlar boşsa, PLACEHOLDER'ları GÖSTER (İsteğiniz üzerine)
       if (materialsContainer.innerHTML === '') {
-        const emptyMaterials = [
-          { icon: '🎥', title: 'Videolu Dersler', message: 'Bu konuda henüz videolu ders bulunmuyor.' },
-          { icon: '🎧', title: 'Podcast', message: 'Podcast içerikleri en kısa zamanda eklenecektir.' },
-          { icon: '📄', title: 'PDF Notları', message: 'PDF notları için içerik hazırlığı sürüyor.' },
-          { icon: '📰', title: 'HTML Notları', message: 'HTML notları yakında paylaşılacaktır.' }
+        const placeholders = [
+          { icon: '🎥', title: 'Videolu Dersler', message: 'Bu konuda henüz videolu anlatım bulunmuyor.' },
+          { icon: '📄', title: 'Ders Notları (PDF)', message: 'PDF notları sisteme yükleniyor.' },
+          { icon: '🎧', title: 'Podcast', message: 'Sesli anlatımlar çok yakında.' },
+          { icon: '📰', title: 'Özet Bilgiler', message: 'Konu özetleri hazırlanma aşamasında.' }
         ];
 
-        materialsContainer.innerHTML = emptyMaterials.map((item) => `
-          <div class="test-card">
+        materialsContainer.innerHTML = placeholders.map((item) => `
+          <div class="test-card" style="opacity: 0.7; border-style: dashed;">
             <div class="d-flex align-items-center" style="gap:10px;">
               <span style="font-size:1.3rem;">${item.icon}</span>
               <strong>${item.title}</strong>
             </div>
-            <div class="text-muted small mt-2">${item.message} En kısa zamanda güncellenecektir.</div>
+            <div class="text-muted small mt-2">${item.message}</div>
           </div>
         `).join('');
+      }
+
+      // Alt başlık boş notunu güncelle
+      const subtopicNote = document.getElementById('subtopicEmptyNote');
+      if (subtopicNote) {
+        // Hem alt başlık var hem de bu sayfada hiç içerik yoksa notu göster
+        subtopicNote.style.display = (hasSubtopics && testCount === 0 && materialCount === 0) ? 'block' : 'none';
       }
 
       return { testCount, materialCount, totalCount: testCount + materialCount };
     }
 
     async function renderSubtopics(subtopics) {
-      const section = document.getElementById('subtopicSection');
       const list = document.getElementById('subtopicList');
-      const loading = document.getElementById('subtopicLoading');
-      if (!section || !list) return;
-
-      if (loading) loading.style.display = 'block';
+      if (!list) return;
 
       const subtopicCards = await Promise.all(subtopics.map(async (subtopic) => {
-        const lessonQuery = query(collection(db, `topics/${subtopic.id}/lessons`), orderBy("order", "asc"));
-        const lessonSnap = await getDocs(lessonQuery);
+        // Basit istatistik çekimi (Hata olursa 0 göster)
         let lessonCount = 0;
         let testCount = 0;
-        lessonSnap.forEach(doc => {
-          const item = doc.data();
-          if (item?.status === 'deleted' || item?.isDeleted) return;
-          if (item?.type === 'test') testCount += 1;
-          else lessonCount += 1;
-        });
+        try {
+          const lessonQuery = query(collection(db, `topics/${subtopic.id}/lessons`), orderBy("order", "asc"));
+          const lessonSnap = await getDocs(lessonQuery);
+          lessonSnap.forEach(doc => {
+            const item = doc.data();
+            if (item?.status === 'deleted' || item?.isDeleted) return;
+            if (item?.type === 'test') testCount += 1;
+            else lessonCount += 1;
+          });
+        } catch (e) { console.log('Subtopic istatistik hatası', e); }
 
         return `
           <div class="subtopic-card">
             <h4 class="subtopic-title">${subtopic.title}</h4>
-            <span class="subtopic-meta">Sıra: ${subtopic.order || '-'}</span>
-            <span class="subtopic-meta">${subtopic.description || 'Konu açıklaması bulunmuyor.'}</span>
+            <span class="subtopic-meta">${subtopic.description || ''}</span>
             <div class="subtopic-badges">
               <span class="badge subtopic-badge">📄 ${lessonCount} Not</span>
               <span class="badge subtopic-badge">📝 ${testCount} Test</span>
             </div>
             <div class="subtopic-actions">
               <a class="btn btn-sm btn-outline-primary" href="/pages/konu.html?id=${subtopic.id}">Konuya Git</a>
-              <a class="btn btn-sm btn-dark" href="/pages/konu.html?id=${subtopic.id}#materials">Notlar/Testler</a>
             </div>
           </div>
         `;
       }));
 
       list.innerHTML = subtopicCards.join('');
-      if (loading) loading.style.display = 'none';
     }
 
     async function loadQuestionCount() {
-      // Bu konuya ait toplam soru sayısını bul (Kategoriye göre)
-      // Not: Firestore'da 'count' sorgusu maliyetlidir, cache kullanılabilir.
-      // Şimdilik basit sorgu:
       if (!topicTitle) return;
-      const q = query(collection(db, "questions"), where("category", "==", topicTitle), where("isActive", "==", true));
-      const snap = await getDocs(q); // Sadece count alacağız
-      updateStudyModeState(snap.size);
+      try {
+        const q = query(collection(db, "questions"), where("category", "==", topicTitle), where("isActive", "==", true));
+        const snap = await getDocs(q);
+        updateStudyModeState(snap.size);
+      } catch (e) {
+        console.warn("Soru sayısı çekilemedi:", e);
+      }
     }
 
     function updateStudyModeState(questionCount) {
       const status = document.getElementById('studyModeStatus');
       const modeButtons = document.querySelectorAll('.mode-btn');
       const hasQuestions = questionCount > 0;
-      const topicContentSection = document.getElementById('topicContentSection');
 
       modeButtons.forEach((btn) => {
         btn.disabled = !hasQuestions;
       });
 
-      if (topicContentSection && hasQuestions) {
-        topicContentSection.style.display = 'block';
-      }
-
       if (status) {
         status.innerHTML = hasQuestions
           ? `Bu konuya ait <strong id="totalQCount">${questionCount}</strong> soruyu dilediğin gibi çöz.`
-          : 'Bu konu için henüz aktif soru bulunmuyor. Alt başlıkları kontrol edebilir veya daha sonra tekrar deneyebilirsin.';
+          : 'Bu konu için henüz aktif soru bulunmuyor. Testler bölümünü kontrol ediniz.';
       }
     }
 
-    // Global Fonksiyon
     window.startSmartTest = (mode) => {
-      // Test sayfasına yönlendir, parametreleri gönder
-      // mode: random, order, wrongs, favorites
       window.location.href = `/pages/test.html?topic=${encodeURIComponent(currentTopicId)}&mode=smart&filter=${encodeURIComponent(mode)}`;
     };
 
