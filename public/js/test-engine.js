@@ -196,11 +196,23 @@ export class TestEngine {
 
     // --- CEVAPLAMA MANTIĞI ---
     handleAnswer(questionId, selectedOptionId) {
-        // Eğer zaten cevaplandıysa işlem yapma
-        if (this.answers[questionId]) return;
-
         const question = this.questions.find(q => q.id === questionId);
         const isCorrect = (selectedOptionId === question.correctOption);
+
+        if (this.mode === 'exam') {
+            this.answers[questionId] = {
+                selected: selectedOptionId,
+                isCorrect: isCorrect,
+                category: question.category || 'Genel',
+                timestamp: Date.now()
+            };
+            this.markSelected(questionId, selectedOptionId);
+            this.updateCounters();
+            return;
+        }
+
+        // Eğer zaten cevaplandıysa işlem yapma
+        if (this.answers[questionId]) return;
 
         // Cevabı Kaydet
         this.answers[questionId] = {
@@ -210,18 +222,12 @@ export class TestEngine {
             timestamp: Date.now()
         };
 
-        // Moda Göre UI Davranışı
-        if (this.mode !== 'exam') {
-            // Çalışma Modu: Anlık geri bildirim ve çözüm gösterimi
-            this.showFeedback(questionId, selectedOptionId, isCorrect, question.correctOption);
+        // Çalışma Modu: Anlık geri bildirim ve çözüm gösterimi
+        this.showFeedback(questionId, selectedOptionId, isCorrect, question.correctOption);
 
-            // Yanlışsa hemen DB'ye işle (Kullanıcı bekletilmez, arka planda çalışır)
-            if (!isCorrect && auth.currentUser) {
-                this.saveWrongAnswer(questionId, question);
-            }
-        } else {
-            // Sınav Modu: Sadece seçimi işaretle (Renk yok, çözüm yok)
-            this.markSelected(questionId, selectedOptionId);
+        // Yanlışsa hemen DB'ye işle (Kullanıcı bekletilmez, arka planda çalışır)
+        if (!isCorrect && auth.currentUser) {
+            this.saveWrongAnswer(questionId, question);
         }
 
         this.updateCounters();
@@ -332,7 +338,7 @@ export class TestEngine {
         // Sınav Modundaysa: Modu 'practice' yap ve kullanıcıya inceleme fırsatı ver
         if (this.mode === 'exam') {
             this.mode = 'practice'; // Artık çözümleri görebilir
-            alert("Sınav tamamlandı. Sonuçlarınız kaydedildi. Şimdi cevaplarınızı ve çözümleri inceleyebilirsiniz.");
+            this.showExamInfoModal("Sınav tamamlandı. Sonuçlarınız kaydedildi. Şimdi cevaplarınızı ve çözümleri inceleyebilirsiniz.");
             this.renderAllQuestions(); // Mevcut soruları güncelle (renkler ve çözümler gelsin)
         }
 
@@ -353,6 +359,33 @@ export class TestEngine {
         await this.saveExamResult({
             score, correctCount, wrongCount, emptyCount, total, timeSpent
         });
+    }
+
+    showExamInfoModal(message) {
+        const modal = document.getElementById('examInfoModal');
+        const messageEl = document.getElementById('examInfoMessage');
+        const closeBtn = document.getElementById('examInfoClose');
+
+        if (!modal || !messageEl) {
+            alert(message);
+            return;
+        }
+
+        messageEl.textContent = message;
+        modal.style.display = 'flex';
+
+        const close = () => {
+            modal.style.display = 'none';
+            modal.removeEventListener('click', handleOverlayClick);
+            if (closeBtn) closeBtn.removeEventListener('click', close);
+        };
+
+        const handleOverlayClick = (event) => {
+            if (event.target === modal) close();
+        };
+
+        if (closeBtn) closeBtn.addEventListener('click', close);
+        modal.addEventListener('click', handleOverlayClick);
     }
 
     async saveExamResult(stats) {
