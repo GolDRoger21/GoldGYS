@@ -354,6 +354,8 @@ export class TestEngine {
 
         if (this.ui.resultText) this.ui.resultText.innerText = msg;
         if (this.ui.modal) this.ui.modal.style.display = 'flex';
+        const returnBtn = document.getElementById('btnReturnTopic');
+        if (returnBtn) returnBtn.style.display = 'inline-flex';
 
         // Veritabanına Kaydet
         await this.saveExamResult({
