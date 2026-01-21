@@ -284,6 +284,40 @@ body.sidebar-collapsed .nav-label {
     padding: 8px 0;
 }
 
+.notification-item {
+    display: flex;
+    gap: 12px;
+    padding: 12px 16px;
+    cursor: pointer;
+    align-items: flex-start;
+    transition: background-color var(--transition-fast);
+}
+
+.notification-item:hover {
+    background-color: var(--bg-hover);
+}
+
+.notif-icon {
+    font-size: 1.2rem;
+    line-height: 1.2;
+}
+
+.notif-content {
+    display: grid;
+    gap: 2px;
+}
+
+.notif-title {
+    font-weight: 600;
+    color: var(--text-main);
+}
+
+.notif-desc,
+.notif-time {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
 .menu-item {
     display: flex;
     align-items: center;
