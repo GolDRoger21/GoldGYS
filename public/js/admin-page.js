@@ -13,6 +13,7 @@ import * as TopicsModule from "./modules/admin/topics.js";
 import { initNotifications } from "./modules/admin/notifications.js";
 
 // --- SAYFA BAŞLANGICI ---
+let currentRole = null;
 document.addEventListener("DOMContentLoaded", async () => {
     try {
         // 1. Arayüzü Yükle
@@ -24,6 +25,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         // 2. Yetki Kontrolü
         const { role, user } = await requireAdminOrEditor();
+        currentRole = role;
         console.log(`✅ Giriş Başarılı: ${role}`);
 
         // 3. Kullanıcı Bilgilerini Güncelle
@@ -134,6 +136,12 @@ function initInteractions(role) {
     if (logoutBtn) logoutBtn.addEventListener('click', handleLogout);
     if (headerLogoutBtn) headerLogoutBtn.addEventListener('click', handleLogout);
 }
+
+window.addEventListener('hashchange', () => {
+    if (!currentRole) return;
+    const targetTab = window.location.hash.substring(1) || 'dashboard';
+    activateTab(targetTab, currentRole);
+});
 
 function toggleMobileMenu() {
     const s = document.getElementById('sidebar'), o = document.getElementById('sidebarOverlay');
