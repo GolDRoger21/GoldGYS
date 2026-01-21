@@ -105,7 +105,7 @@ body.sidebar-collapsed .app-layout {
     overflow-y: auto;
     overflow-x: hidden;
     z-index: var(--z-sidebar);
-    transition: width var(--transition-medium), background-color var(--transition-medium);
+    transition: width var(--transition-medium), background-color var(--transition-medium), transform var(--transition-medium);
     padding: 12px 0;
 }
 
@@ -483,7 +483,7 @@ body.sidebar-collapsed .nav-label {
 
     .app-sidebar {
         transform: translateX(-100%);
-        width: 280px;
+        width: min(85vw, 320px);
         box-shadow: var(--shadow-md);
     }
 
@@ -492,7 +492,7 @@ body.sidebar-collapsed .nav-label {
     }
 
     body.sidebar-collapsed .app-sidebar {
-        width: 280px;
+        width: min(85vw, 320px);
     }
 
     .sidebar-overlay {
@@ -502,6 +502,10 @@ body.sidebar-collapsed .nav-label {
         z-index: calc(var(--z-sidebar) - 1);
         display: none;
         backdrop-filter: blur(2px);
+    }
+
+    body.sidebar-open {
+        overflow: hidden;
     }
 
     body.sidebar-open .sidebar-overlay {
