@@ -569,7 +569,7 @@
         import { TestEngine } from "../js/test-engine.js";
         import { db } from "../js/firebase-config.js";
         import { showToast } from "../js/notifications.js";
-        import { doc, getDoc, collection, query, where, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { doc, getDoc, collection, query, where, limit, getDocs, documentId } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         document.addEventListener('DOMContentLoaded', async () => {
             const urlParams = new URLSearchParams(window.location.search);
@@ -665,14 +665,35 @@
                 }
                 else if (mode === 'custom' && urlParams.get('source') === 'local') {
                     // --- CUSTOM LOCAL MOD ---
-                    const storedData = localStorage.getItem('customTestQuestions');
-                    if (storedData) {
-                        const rawQuestions = JSON.parse(storedData);
-                        const ids = rawQuestions.map(q => q.questionId || q.id);
+                    const storedIds = JSON.parse(localStorage.getItem('customTestQuestionIds') || '[]');
+                    const storedData = JSON.parse(localStorage.getItem('customTestQuestions') || '[]');
+                    const customTitle = localStorage.getItem('customTestTitle');
+                    title = customTitle || "Özel Test";
 
-                        // ID varsa veri tabanından çekmeyi dene, yoksa local veriye güven
-                        // Şimdilik basitlik adına local veriyi kullanıyoruz, ancak tip dönüşümü yapıyoruz
-                        questions = rawQuestions.map(q => ({
+                    if (storedIds.length > 0) {
+                        const questionMap = await fetchQuestionsByIds(storedIds);
+                        const fallbackMap = new Map(
+                            storedData.map(q => [q.questionId || q.id, q])
+                        );
+
+                        questions = storedIds.map(id => {
+                            const remote = questionMap.get(id);
+                            const local = fallbackMap.get(id);
+                            const source = remote || local;
+                            if (!source) return null;
+                            return {
+                                id: source.id || source.questionId || id,
+                                text: source.text || "Soru metni yüklenemedi",
+                                options: source.options || [],
+                                correctOption: source.correctOption,
+                                solution: source.solution || {},
+                                type: source.type || 'standard',
+                                category: source.category,
+                                legislationRef: source.legislationRef
+                            };
+                        }).filter(Boolean);
+                    } else if (storedData.length > 0) {
+                        questions = storedData.map(q => ({
                             id: q.questionId || q.id,
                             text: q.text || "Soru metni yüklenemedi",
                             options: q.options || [],
@@ -682,7 +703,6 @@
                             category: q.category,
                             legislationRef: q.legislationRef
                         }));
-                        title = "Özel Test";
                     }
                 }
                 else if (examId) {
@@ -698,7 +718,11 @@
                     throw new Error("Soru bulunamadı veya test içeriği boş.");
                 }
 
-                const resolvedMode = mode === 'smart' ? 'practice' : (mode || 'exam');
+                const customTestMode = urlParams.get('testMode');
+                let resolvedMode = mode === 'smart' ? 'practice' : (mode || 'exam');
+                if (mode === 'custom') {
+                    resolvedMode = customTestMode === 'exam' ? 'exam' : 'practice';
+                }
                 const modeLabel = document.getElementById('modeLabel');
 
                 document.title = `${title} | Çöz`;
@@ -743,6 +767,24 @@
                 loadingScreen.innerHTML = `<div class="text-center"><h3 class="text-danger">Hata: ${error.message}</h3><button onclick="window.history.back()" class="btn btn-secondary mt-3">Geri Dön</button></div>`;
             }
         });
+
+        async function fetchQuestionsByIds(ids) {
+            const questionMap = new Map();
+            const chunks = [];
+            for (let i = 0; i < ids.length; i += 10) {
+                chunks.push(ids.slice(i, i + 10));
+            }
+
+            for (const chunk of chunks) {
+                const qQuery = query(collection(db, "questions"), where(documentId(), "in", chunk));
+                const qSnap = await getDocs(qQuery);
+                qSnap.docs.forEach(docSnap => {
+                    questionMap.set(docSnap.id, { id: docSnap.id, ...docSnap.data() });
+                });
+            }
+
+            return questionMap;
+        }
 
         function initThemeToggle() {
             const themeToggle = document.getElementById('themeToggle');
