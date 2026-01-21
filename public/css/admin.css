@@ -284,6 +284,10 @@
     gap: 12px;
 }
 
+#reportsSelectionCount {
+    white-space: nowrap;
+}
+
 .reports-sort {
     min-width: 220px;
 }
@@ -470,6 +474,11 @@ tr.highlight {
     background: #fff9e8;
 }
 
+[data-theme="dark"] .question-preview {
+    background: var(--bg-surface);
+    color: var(--text-main);
+}
+
 .question-preview.missing {
     background: var(--bg-hover);
     border-style: dashed;
@@ -490,7 +499,7 @@ tr.highlight {
     display: inline-flex;
     align-items: center;
     background: rgba(212, 175, 55, 0.15);
-    color: #8b6a11;
+    color: var(--color-primary);
     padding: 4px 10px;
     border-radius: var(--radius-full);
     font-size: 0.75rem;
