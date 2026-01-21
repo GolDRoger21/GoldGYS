@@ -14,63 +14,6 @@
     
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230F172A'/><text x='50' y='70' font-family='serif' font-size='60' fill='%23D4AF37' text-anchor='middle' font-weight='bold'>G</text></svg>">
 
-    <style>
-        .features-section {
-            padding: 5rem 2rem;
-            background-color: #0c1425; /* Footer ile uyumlu koyu ton */
-        }
-        .features-container {
-            max-width: 1280px;
-            margin: 0 auto;
-        }
-        .section-header {
-            text-align: center;
-            margin-bottom: 4rem;
-        }
-        .section-header h2 {
-            font-family: 'Playfair Display', serif;
-            font-size: 2.5rem;
-            color: var(--text-light);
-            margin-bottom: 1rem;
-        }
-        .section-header p {
-            color: var(--text-muted);
-            max-width: 600px;
-            margin: 0 auto;
-        }
-        .feature-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
-        }
-        .feature-card {
-            background: rgba(30, 41, 59, 0.4); /* Yarı saydam kart */
-            border: 1px solid var(--border-dark);
-            padding: 2rem;
-            border-radius: 12px;
-            transition: transform 0.3s ease, border-color 0.3s ease;
-        }
-        .feature-card:hover {
-            transform: translateY(-5px);
-            border-color: var(--gold-primary);
-        }
-        .feature-icon {
-            font-size: 2.5rem;
-            margin-bottom: 1.5rem;
-            display: block;
-        }
-        .feature-card h3 {
-            color: var(--text-light);
-            font-size: 1.25rem;
-            margin-bottom: 1rem;
-            font-weight: 600;
-        }
-        .feature-card p {
-            color: var(--text-muted);
-            line-height: 1.6;
-            font-size: 0.95rem;
-        }
-    </style>
     <link rel="manifest" href="/manifest.json">
 </head>
 <body>
@@ -80,9 +23,9 @@
             <a href="/" class="brand-logo">GOLD <span>GYS</span></a>
             
             <div class="nav-links">
-                <a href="#features">Özellikler</a>
-                <a href="pages/denemeler.html" class="desktop-only">Denemeler</a>
-                
+                <a href="#features" class="nav-link">Özellikler</a>
+                <a href="#journey" class="nav-link desktop-only">Yolculuk</a>
+                <a href="pages/denemeler.html" class="nav-link desktop-only">Denemeler</a>
                 <a href="login.html" class="btn btn-primary" id="navLoginBtn">Giriş Yap</a>
             </div>
         </div>
@@ -90,18 +33,58 @@
 
     <main>
         <section class="hero-section">
-            <div class="hero-content">
-                <span class="hero-badge">Adalet Bakanlığı Görevde Yükselme</span>
-                <h1 class="hero-title">
-                    Kariyerinizde <span>Altın Çağ</span> Başlıyor
-                </h1>
-                <p class="hero-desc">
-                    Yazı İşleri Müdürü ve diğer ünvanlar için tasarlanmış; yapay zeka destekli analizler, 
-                    konu odaklı testler ve gerçekçi deneme sınavlarıyla dolu premium hazırlık platformu.
-                </p>
-                <div class="hero-buttons">
-                    <a href="login.html" class="btn btn-primary" id="heroCtaBtn">Hemen Başla</a>
-                    <a href="#features" class="btn btn-secondary">Keşfet</a>
+            <div class="hero-grid">
+                <div class="hero-content">
+                    <span class="hero-badge">Adalet Bakanlığı Görevde Yükselme</span>
+                    <h1 class="hero-title">
+                        Gol D. Roger’ın kararlılığıyla <span>zirveye yelken açın</span>
+                    </h1>
+                    <p class="hero-desc">
+                        Gold GYS, sınav hazırlığını bir yolculuğa dönüştürür. Yapay zeka destekli analizler,
+                        mevzuata tam uyumlu denemeler ve kişiselleştirilmiş çalışma rotalarıyla kariyerinizde
+                        efsanevi bir çıkış yakalayın.
+                    </p>
+                    <div class="hero-buttons">
+                        <a href="login.html" class="btn btn-primary" id="heroCtaBtn">Maceraya Başla</a>
+                        <a href="#features" class="btn btn-secondary">Neler Var?</a>
+                    </div>
+                    <div class="hero-trust">
+                        <div>
+                            <strong>+15.000</strong>
+                            <span>Adayın tercihi</span>
+                        </div>
+                        <div>
+                            <strong>%92</strong>
+                            <span>Başarı artışı</span>
+                        </div>
+                        <div>
+                            <strong>7/24</strong>
+                            <span>Akıllı rehber</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="hero-visual">
+                    <div class="hero-card">
+                        <p class="hero-card-title">Kaptan Günlüğü</p>
+                        <h3>Bugünkü hedef: Deniz feneri gibi net bir strateji.</h3>
+                        <p>Eksik konular, hedef puan ve kalan gün sayısına göre otomatik rota çıkarın.</p>
+                        <div class="hero-card-footer">
+                            <span>Akıllı Rota</span>
+                            <span class="hero-chip">GYS 2026</span>
+                        </div>
+                    </div>
+                    <div class="hero-card hero-card-alt">
+                        <p class="hero-card-title">Miras Haritası</p>
+                        <ul>
+                            <li>Güncel mevzuat takip sistemi</li>
+                            <li>Gerçek sınav simülasyonları</li>
+                            <li>Raporlanan performans analizi</li>
+                        </ul>
+                    </div>
+                    <div class="hero-quote">
+                        <p>“Altın çağ, hazırlıklı olanların çağıdır.”</p>
+                        <span>Gol D. Roger’dan ilhamla</span>
+                    </div>
                 </div>
             </div>
         </section>
@@ -109,29 +92,76 @@
         <section id="features" class="features-section">
             <div class="features-container">
                 <div class="section-header">
-                    <h2>Neden Gold GYS?</h2>
-                    <p>Sizi sadece sınava değil, zirveye hazırlıyoruz. İşte başarıya giden yoldaki araçlarınız.</p>
+                    <h2>Altın Çağ için donatılmış araçlar</h2>
+                    <p>Gold GYS, sınav hazırlığını tek bir merkezde toplayan kapsamlı bir komuta güvertesi sunar.</p>
                 </div>
 
                 <div class="feature-grid">
                     <div class="feature-card">
-                        <span class="feature-icon">🎯</span>
-                        <h3>Birebir Sınav Simülasyonu</h3>
-                        <p>Gerçek sınav formatında, güncel mevzuata ve yönetmeliklere %100 uyumlu sorularla kendinizi gerçek sınavdaymış gibi test edin.</p>
+                        <span class="feature-icon">🧭</span>
+                        <h3>Akıllı Çalışma Rotası</h3>
+                        <p>Hedef puanınıza göre öncelikleri belirleyen ve haftalık planınızı otomatik oluşturan rehber.</p>
                     </div>
 
                     <div class="feature-card">
-                        <span class="feature-icon">🧠</span>
-                        <h3>Yapay Zeka Analizi</h3>
-                        <p>Sadece doğrularınızı değil, yanlışlarınızı da analiz ediyoruz. Yapay zeka, eksik olduğunuz konuları belirler ve size özel çalışma rotası çizer.</p>
+                        <span class="feature-icon">⚓</span>
+                        <h3>Gerçekçi Deneme Salonları</h3>
+                        <p>Gerçek sınav süresi, soru dağılımı ve güncel mevzuatla uyumlu denemelerle hazır olun.</p>
+                    </div>
+
+                    <div class="feature-card">
+                        <span class="feature-icon">📜</span>
+                        <h3>Mevzuat Güncelliği</h3>
+                        <p>Yönetmelik ve mevzuat değişimleri anında sisteme yansır, siz hep güncel kalırsınız.</p>
                     </div>
 
                     <div class="feature-card">
                         <span class="feature-icon">📊</span>
-                        <h3>Detaylı Performans Takibi</h3>
-                        <p>Konu bazlı başarı oranlarınızı grafiklerle izleyin. Hangi konuda daha fazla çalışmanız gerektiğini anlık olarak görün.</p>
+                        <h3>Performans Radarları</h3>
+                        <p>Konu bazlı başarı oranları, hız grafikleri ve gelişim trendleriyle kontrol hep sizde.</p>
                     </div>
                 </div>
+            </div>
+        </section>
+
+        <section id="journey" class="journey-section">
+            <div class="journey-container">
+                <div class="section-header">
+                    <h2>Rotanızı netleştirin</h2>
+                    <p>Gol D. Roger’ın disiplinini örnek alan bu yolculuk, dört adımda hedefe ulaştırır.</p>
+                </div>
+                <div class="journey-steps">
+                    <div class="journey-card">
+                        <span class="journey-step">1</span>
+                        <h3>Profil & Hedef</h3>
+                        <p>Mevcut seviyenizi belirleyin, hedef puan ve tarih girin.</p>
+                    </div>
+                    <div class="journey-card">
+                        <span class="journey-step">2</span>
+                        <h3>Akıllı Plan</h3>
+                        <p>Yapay zeka, eksiklerinize göre haftalık rota oluşturur.</p>
+                    </div>
+                    <div class="journey-card">
+                        <span class="journey-step">3</span>
+                        <h3>Deneme & Analiz</h3>
+                        <p>Denemelerle prova yapın, anlık raporlarla ilerleyin.</p>
+                    </div>
+                    <div class="journey-card">
+                        <span class="journey-step">4</span>
+                        <h3>Zirveye Çıkış</h3>
+                        <p>Netleşen stratejiyle sınav gününde tam odaklı olun.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="cta-section">
+            <div class="cta-card">
+                <div>
+                    <h2>Karşılama güvertesine hoş geldiniz</h2>
+                    <p>Gold GYS ile yolculuğunuzu başlatın, hedefiniz olan terfiye altın bir rota çizin.</p>
+                </div>
+                <a href="login.html" class="btn btn-primary">Hemen Katıl</a>
             </div>
         </section>
     </main>
