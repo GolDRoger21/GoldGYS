@@ -4,7 +4,7 @@
 
 /* --- 1. GENEL YAPI VE DASHBOARD --- */
 
-:root {
+[data-theme="light"] {
     --color-primary: #d4af37;
     --color-primary-hover: #b4942b;
     --text-on-gold: #ffffff;
