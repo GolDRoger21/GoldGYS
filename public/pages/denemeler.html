@@ -1,102 +1,518 @@
 <!DOCTYPE html>
 <html lang="tr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Deneme Sınavları | GOLD GYS</title>
-    <link rel="stylesheet" href="../css/app.css">
-    <link rel="stylesheet" href="../components/ui/ui.css">
+    <link rel="stylesheet" href="../styles/tokens.css">
+    <link rel="stylesheet" href="../css/layout.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <style>
+        body {
+            visibility: hidden;
+        }
+
+        .denemeler-page {
+            display: flex;
+            flex-direction: column;
+            gap: 32px;
+        }
+
+        .deneme-hero {
+            --hero-bg-start: rgba(212, 175, 55, 0.18);
+            --hero-bg-end: rgba(15, 23, 42, 0.9);
+            --hero-panel-bg: rgba(255, 255, 255, 0.12);
+            --hero-panel-border: rgba(255, 255, 255, 0.2);
+            --hero-panel-text: #f8fafc;
+            background: linear-gradient(135deg, var(--hero-bg-start), var(--hero-bg-end));
+            border-radius: var(--radius-lg);
+            padding: 32px;
+            color: var(--text-on-gold);
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 28px;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .deneme-hero h1 {
+            font-size: 2rem;
+            margin-bottom: 12px;
+            font-family: var(--font-family-serif);
+        }
+
+        .deneme-hero p {
+            opacity: 0.9;
+            margin-bottom: 20px;
+        }
+
+        .hero-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .hero-panel {
+            background: var(--hero-panel-bg);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            display: grid;
+            gap: 12px;
+            border: 1px solid var(--hero-panel-border);
+        }
+
+        .hero-panel-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+            color: var(--hero-panel-text);
+        }
+
+        .hero-panel-item .label {
+            font-size: 0.85rem;
+            opacity: 0.8;
+        }
+
+        .hero-panel-item .value {
+            font-size: 1.4rem;
+            font-weight: 800;
+        }
+
+        .info-section {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .section-header {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .section-header h2 {
+            font-size: 1.3rem;
+            margin-bottom: 6px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+        }
+
+        .info-card {
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 16px;
+            background: var(--bg-hover);
+        }
+
+        .info-card h3 {
+            font-size: 1rem;
+            margin-bottom: 8px;
+        }
+
+        .info-card p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .pill-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .pill {
+            background: var(--bg-hover);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-full);
+            padding: 6px 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .exam-list-section {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .filter-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .filter-field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .filter-field input,
+        .filter-field select {
+            padding: 10px 12px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-surface);
+            color: var(--text-main);
+        }
+
+        .exam-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 20px;
+        }
+
+        .exam-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            border-radius: 18px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .exam-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .exam-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .exam-card-actions {
+            margin-top: auto;
+        }
+
+        .exam-highlight {
+            border-color: var(--color-primary);
+            box-shadow: var(--shadow-md);
+        }
+
+        .empty-state {
+            padding: 32px;
+            text-align: center;
+            border: 1px dashed var(--border-color);
+            border-radius: 16px;
+            color: var(--text-muted);
+        }
+
+        .skeleton {
+            height: 160px;
+            border-radius: 16px;
+            background: linear-gradient(90deg, rgba(148, 163, 184, 0.2) 25%, rgba(148, 163, 184, 0.35) 37%, rgba(148, 163, 184, 0.2) 63%);
+            background-size: 400% 100%;
+            animation: shimmer 1.4s ease infinite;
+        }
+
+        @keyframes shimmer {
+            0% {
+                background-position: 100% 0;
+            }
+            100% {
+                background-position: -100% 0;
+            }
+        }
+
+        [data-theme="light"] .deneme-hero {
+            --hero-bg-start: rgba(212, 175, 55, 0.14);
+            --hero-bg-end: rgba(255, 255, 255, 0.96);
+            --hero-panel-bg: rgba(255, 255, 255, 0.85);
+            --hero-panel-border: var(--border-color);
+            --hero-panel-text: var(--text-main);
+            color: var(--text-main);
+        }
+
+        [data-theme="light"] .deneme-hero .btn-light {
+            border-color: var(--border-color);
+        }
+
+        @media (max-width: 768px) {
+            .deneme-hero {
+                padding: 24px;
+            }
+
+            .hero-panel {
+                order: -1;
+            }
+        }
+    </style>
     <link rel="manifest" href="/manifest.json">
 </head>
+
 <body>
-    <div id="header-placeholder"></div>
-
-    <main class="container mt-4 mb-5">
-        <div class="section-header mb-4">
-            <h1>📝 Deneme Sınavları</h1>
-            <p class="text-muted">Gerçek sınav provası yapabileceğiniz, mevzuata uygun denemeler.</p>
-        </div>
-
-        <div id="examsGrid" class="row">
-            <div class="col-12 text-center py-5">
-                <div class="spinner-border text-primary" role="status"></div>
-                <p>Sınavlar yükleniyor...</p>
-            </div>
-        </div>
-    </main>
-
-    <div id="footer-placeholder"></div>
-
     <script type="module">
-        import { loadHTML } from "../js/ui-loader.js";
+        import { initLayout } from '../js/ui-loader.js';
         import { db } from "../js/firebase-config.js";
         import { collection, getDocs, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // Header/Footer Yükle
-        loadHTML('../components/header.html', 'header-placeholder');
-        loadHTML('../components/footer.html', 'footer-placeholder');
+        const state = {
+            exams: []
+        };
 
-        document.addEventListener('DOMContentLoaded', async () => {
+        const formatDate = (timestamp) => {
+            if (!timestamp) return "-";
+            const date = timestamp.seconds ? new Date(timestamp.seconds * 1000) : new Date(timestamp);
+            return date.toLocaleDateString('tr-TR', {
+                day: '2-digit',
+                month: 'long',
+                year: 'numeric'
+            });
+        };
+
+        const formatNumber = (value) => new Intl.NumberFormat('tr-TR').format(value);
+
+        const renderStats = (exams) => {
+            const totalExams = exams.length;
+            const totalQuestions = exams.reduce((sum, exam) => sum + (exam.totalQuestions || 0), 0);
+            const avgDuration = totalExams ? Math.round(exams.reduce((sum, exam) => sum + (exam.duration || 0), 0) / totalExams) : 0;
+            const latestExam = exams[0];
+
+            document.getElementById('statExamCount').textContent = totalExams;
+            document.getElementById('statQuestionCount').textContent = formatNumber(totalQuestions || 0);
+            document.getElementById('statAvgDuration').textContent = avgDuration ? `${avgDuration} dk` : "-";
+            document.getElementById('statLastUpdate').textContent = latestExam ? formatDate(latestExam.createdAt) : "-";
+        };
+
+        const updateRoleFilter = (exams) => {
+            const roleFilter = document.getElementById('roleFilter');
+            const roles = [...new Set(exams.map((exam) => exam.role).filter(Boolean))];
+            roleFilter.innerHTML = '<option value="all">Tümü</option>' + roles.map((role) => `<option value="${role}">${role}</option>`).join('');
+        };
+
+        const renderExams = (exams) => {
             const grid = document.getElementById('examsGrid');
-            
+            const countNote = document.getElementById('examCountNote');
+
+            grid.innerHTML = '';
+
+            if (!exams.length) {
+                countNote.textContent = "0 deneme gösteriliyor";
+                grid.innerHTML = `
+                    <div class="empty-state">
+                        Henüz eşleşen bir deneme bulunamadı. Filtreleri temizleyip tekrar deneyin.
+                    </div>
+                `;
+                return;
+            }
+
+            countNote.textContent = `${exams.length} deneme gösteriliyor`;
+
+            exams.forEach((exam, index) => {
+                const card = document.createElement('div');
+                card.className = `exam-card ${index === 0 ? 'exam-highlight' : ''}`;
+                card.innerHTML = `
+                    <div class="exam-card-header">
+                        <span class="badge bg-light text-dark">${exam.role || 'Genel'}</span>
+                        <span class="small text-muted">${formatDate(exam.createdAt)}</span>
+                    </div>
+                    <div>
+                        <h3>${exam.title}</h3>
+                        <p class="text-muted small">${exam.description || 'Mevzuat dağılımına uygun, otomatik seçilmiş sorularla hazırlandı.'}</p>
+                    </div>
+                    <div class="exam-meta">
+                        <span>🧩 ${exam.totalQuestions || 0} Soru</span>
+                        <span>⏱️ ${exam.duration || 0} dk</span>
+                        <span>🎯 Puan: %0-100</span>
+                    </div>
+                    <div class="exam-card-actions">
+                        <a href="deneme.html?id=${exam.id}" class="btn btn-outline-primary w-100">Sınava Başla</a>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        };
+
+        const applyFilters = () => {
+            const searchValue = document.getElementById('examSearch').value.toLowerCase().trim();
+            const roleValue = document.getElementById('roleFilter').value;
+
+            const filtered = state.exams.filter((exam) => {
+                const matchesSearch = !searchValue || exam.title?.toLowerCase().includes(searchValue);
+                const matchesRole = roleValue === 'all' || exam.role === roleValue;
+                return matchesSearch && matchesRole;
+            });
+
+            renderExams(filtered);
+        };
+
+        const showEmptyExamsState = () => {
+            const grid = document.getElementById('examsGrid');
+            const countNote = document.getElementById('examCountNote');
+
+            countNote.textContent = "0 deneme gösteriliyor";
+            grid.innerHTML = `
+                <div class="empty-state">
+                    Şu anda yayınlanmış deneme sınavı bulunmuyor. Admin panelinde deneme yayınlandığında burada listelenecek.
+                </div>
+            `;
+        };
+
+        const loadExams = async () => {
+            const grid = document.getElementById('examsGrid');
+            grid.innerHTML = `
+                <div class="skeleton"></div>
+                <div class="skeleton"></div>
+                <div class="skeleton"></div>
+            `;
+
             try {
-                // Sadece Aktif Olan Sınavları Getir
                 const q = query(
-                    collection(db, "exams"), 
+                    collection(db, "exams"),
                     where("isActive", "==", true),
                     orderBy("createdAt", "desc")
                 );
-                
+
                 const snapshot = await getDocs(q);
-                
+
                 if (snapshot.empty) {
-                    grid.innerHTML = '<div class="col-12"><div class="alert alert-info">Henüz yayınlanmış deneme sınavı bulunmamaktadır. Takipte kalın!</div></div>';
+                    state.exams = [];
+                    renderStats(state.exams);
+                    updateRoleFilter(state.exams);
+                    showEmptyExamsState();
                     return;
                 }
 
-                grid.innerHTML = ''; // Loading'i temizle
+                state.exams = snapshot.docs.map((docSnap) => ({
+                    id: docSnap.id,
+                    ...docSnap.data()
+                }));
 
-                snapshot.forEach(docSnap => {
-                    const exam = docSnap.data();
-                    const card = document.createElement('div');
-                    card.className = 'col-md-6 col-lg-4 mb-4';
-                    
-                    // Zorluk veya türüne göre renk belirleme (Opsiyonel)
-                    const badgeColor = exam.role.includes('Müdür') ? 'bg-primary' : 'bg-success';
-
-                    card.innerHTML = `
-                        <div class="card h-100 shadow-sm border-0 exam-card">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between align-items-start mb-3">
-                                    <span class="badge ${badgeColor} text-white">${exam.role}</span>
-                                    <small class="text-muted">${new Date(exam.createdAt.seconds * 1000).toLocaleDateString('tr-TR')}</small>
-                                </div>
-                                <h4 class="card-title mb-3">${exam.title}</h4>
-                                
-                                <div class="exam-stats d-flex gap-3 mb-4 text-muted small">
-                                    <span><i class="icon-book"></i> ${exam.totalQuestions} Soru</span>
-                                    <span><i class="icon-clock"></i> ${exam.duration} Dakika</span>
-                                </div>
-
-                                <p class="card-text text-muted">
-                                    Bu deneme sınavı, güncel mevzuat ve sınav dağılımına tam uygun olarak hazırlanmıştır.
-                                </p>
-                            </div>
-                            <div class="card-footer bg-white border-0 pb-4 pt-0">
-                                <a href="test.html?id=${docSnap.id}" class="btn btn-outline-primary w-100 fw-bold">
-                                    BAŞLA 🚀
-                                </a>
-                            </div>
-                        </div>
-                    `;
-                    grid.appendChild(card);
-                });
-
+                renderStats(state.exams);
+                updateRoleFilter(state.exams);
+                renderExams(state.exams);
             } catch (error) {
                 console.error("Hata:", error);
-                grid.innerHTML = `<div class="col-12 text-danger">Bağlantı hatası: ${error.message}</div>`;
+                grid.innerHTML = `<div class="empty-state">Bağlantı hatası: ${error.message}</div>`;
             }
+        };
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            await initLayout();
+            await loadExams();
+
+            document.getElementById('examSearch').addEventListener('input', applyFilters);
+            document.getElementById('roleFilter').addEventListener('change', applyFilters);
         });
     </script>
+
+    <div class="dashboard-container denemeler-page">
+        <section class="deneme-hero">
+            <div>
+                <span class="badge bg-purple-subtle">Otomatik Deneme Sistemi</span>
+                <h1>Deneme Sınavları</h1>
+                <p>Denemeler, aktif soru havuzundan mevzuat şablonuna göre seçilir. Sistem 75 soruluk dağılımı tamamlar,
+                    kalan 5 soruyu da rastgele ekleyerek 80 soruluk gerçek sınav formatını oluşturur.</p>
+                <div class="hero-actions">
+                    <a href="#examListSection" class="btn btn-dark">Denemeleri Gör</a>
+                    <a href="/pages/testler.html" class="btn btn-light">Konu Bazlı Teste Geç</a>
+                </div>
+            </div>
+            <div class="hero-panel">
+                <div class="hero-panel-item">
+                    <span class="label">Yayınlanan Deneme</span>
+                    <span class="value" id="statExamCount">0</span>
+                </div>
+                <div class="hero-panel-item">
+                    <span class="label">Toplam Soru</span>
+                    <span class="value" id="statQuestionCount">0</span>
+                </div>
+                <div class="hero-panel-item">
+                    <span class="label">Ortalama Süre</span>
+                    <span class="value" id="statAvgDuration">-</span>
+                </div>
+                <div class="hero-panel-item">
+                    <span class="label">Son Güncelleme</span>
+                    <span class="value" id="statLastUpdate">-</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="info-section">
+            <div class="section-header">
+                <div>
+                    <h2>Deneme Sistemi Nasıl Çalışır?</h2>
+                    <p class="text-muted">Admin panelindeki otomatik deneme üreticisinin adımlarını özetledik.</p>
+                </div>
+            </div>
+            <div class="info-grid">
+                <div class="info-card">
+                    <h3>1) Aktif Havuz Taraması</h3>
+                    <p>Yayın durumundaki tüm sorular sistem tarafından çekilir ve mevzuat kodlarına göre gruplanır.</p>
+                </div>
+                <div class="info-card">
+                    <h3>2) Şablon Dağılımı</h3>
+                    <p>Her kanun için belirlenen soru sayısı rastgele seçilir. Eksik kalan konular raporlanır.</p>
+                </div>
+                <div class="info-card">
+                    <h3>3) 80 Soruya Tamamlama</h3>
+                    <p>Şablondan gelen 75 soru tamamlandıktan sonra sistem kalan 5 soruyu havuzdan dengeli biçimde ekler.</p>
+                </div>
+                <div class="info-card">
+                    <h3>4) Snapshot ve Yayın</h3>
+                    <p>Seçilen sorular sınava kilitlenir ve yayınlanır. Böylece sınav boyunca soru seti sabit kalır.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="info-section">
+            <div class="section-header">
+                <div>
+                    <h2>Deneme Formatı</h2>
+                    <p class="text-muted">Sınav deneyimini önceden bilin, stratejinizi planlayın.</p>
+                </div>
+            </div>
+            <div class="pill-list">
+                <span class="pill">80 Soru / Otomatik Şablon</span>
+                <span class="pill">Süre: Ortalama 100 dk</span>
+                <span class="pill">Puanlama: Doğru / Toplam</span>
+                <span class="pill">Sınav bitince çözümler açılır</span>
+                <span class="pill">Sonuçlar analiz ekranına kaydedilir</span>
+            </div>
+        </section>
+
+        <section id="examListSection" class="exam-list-section">
+            <div class="section-header">
+                <div>
+                    <h2>Yayınlanan Denemeler</h2>
+                    <p class="text-muted">Seviyene uygun denemeyi seç, gerçek sınav temposunu yakala.</p>
+                </div>
+                <div class="filter-bar">
+                    <div class="filter-field">
+                        <label for="examSearch" class="text-muted small">Başlıkta ara</label>
+                        <input id="examSearch" type="search" placeholder="Örn: 2025 Genel Deneme">
+                    </div>
+                    <div class="filter-field">
+                        <label for="roleFilter" class="text-muted small">Ünvan</label>
+                        <select id="roleFilter">
+                            <option value="all">Tümü</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div id="examCountNote" class="text-muted small"></div>
+            <div id="examsGrid" class="exam-grid"></div>
+        </section>
+    </div>
 </body>
+
 </html>
