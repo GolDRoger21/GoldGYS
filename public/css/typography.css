@@ -7,11 +7,11 @@
     --font-family-serif: 'Playfair Display', Georgia, "Times New Roman", serif;
 
     /* Font Boyutları (Responsive) */
-    --font-size-display: clamp(2.5rem, 4vw + 1rem, 4rem);
-    --font-size-h1: clamp(2rem, 3vw + 1rem, 3rem);
-    --font-size-h2: clamp(1.5rem, 2vw + 1rem, 2.25rem);
-    --font-size-h3: clamp(1.25rem, 1.5vw + 1rem, 1.75rem);
-    --font-size-h4: clamp(1.1rem, 1vw + 1rem, 1.5rem);
+    --font-size-display: clamp(2rem, 3vw + 1rem, 3.25rem);
+    --font-size-h1: clamp(1.6rem, 2.4vw + 0.9rem, 2.6rem);
+    --font-size-h2: clamp(1.35rem, 1.8vw + 0.8rem, 2.1rem);
+    --font-size-h3: clamp(1.15rem, 1.2vw + 0.75rem, 1.6rem);
+    --font-size-h4: clamp(1rem, 0.8vw + 0.7rem, 1.35rem);
     
     --font-size-body-lg: 1.125rem;
     --font-size-body: 1rem;
