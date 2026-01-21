@@ -37,13 +37,33 @@ main {
 }
 
 .header-inner {
-    max-width: 1280px;
-    margin: 0 auto;
-    padding: 1rem 2rem;
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    padding: 1rem 3rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
     height: 70px;
+}
+
+/* ... */
+
+.btn-primary {
+    background-color: var(--gold-main);
+    color: #000000;
+    /* Tam Siyah for maximum contrast */
+    border: 1px solid var(--gold-main);
+    box-shadow: 0 4px 15px rgba(212, 175, 55, 0.4);
+    font-weight: 700;
+    /* Ensure bold */
+}
+
+.btn-primary:hover {
+    background-color: #e5c145;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(212, 175, 55, 0.5);
+    color: #000000;
 }
 
 .brand-logo {
