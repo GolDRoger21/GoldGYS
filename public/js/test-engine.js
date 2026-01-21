@@ -1,4 +1,5 @@
 import { db, auth } from "./firebase-config.js";
+import { showToast } from "./notifications.js";
 import {
     doc, setDoc, addDoc, collection, serverTimestamp, increment, getDoc, deleteDoc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -70,7 +71,7 @@ export class TestEngine {
 
             if (this.remainingTime <= 0) {
                 clearInterval(this.timerInterval);
-                alert("Süre doldu! Sınav otomatik olarak bitiriliyor.");
+                showToast("Süre doldu! Sınav otomatik olarak bitiriliyor.", "warning", { duration: 4500 });
                 this.finishTest(true);
             }
         }, 1000);
@@ -369,7 +370,7 @@ export class TestEngine {
         const closeBtn = document.getElementById('examInfoClose');
 
         if (!modal || !messageEl) {
-            alert(message);
+            showToast(message, "info", { duration: 5000 });
             return;
         }
 
@@ -491,7 +492,10 @@ export class TestEngine {
     }
 
     async toggleFavorite(qId) {
-        if (!auth.currentUser) return alert("Bu işlem için giriş yapmalısınız.");
+        if (!auth.currentUser) {
+            showToast("Bu işlem için giriş yapmalısınız.", "error");
+            return;
+        }
 
         const btn = document.querySelector(`#q-${qId} .fav-btn`);
         const ref = doc(db, `users/${auth.currentUser.uid}/favorites/${qId}`);
@@ -531,7 +535,7 @@ export class TestEngine {
                 status: "pending",
                 createdAt: serverTimestamp()
             });
-            alert("Bildiriminiz alındı. Teşekkürler!");
+            showToast("Bildiriminiz alındı. Teşekkürler!", "success");
         }
     }
 
