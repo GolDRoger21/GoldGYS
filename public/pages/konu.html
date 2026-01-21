@@ -86,6 +86,13 @@
       border-bottom: 1px solid var(--border-color);
     }
 
+    .topic-title {
+      margin: 0;
+      font-family: var(--font-family-serif);
+      font-size: clamp(1.6rem, 2vw + 1rem, 2.2rem);
+      line-height: 1.2;
+    }
+
     .content-container {
       max-width: 1200px;
       margin: 0 auto;
@@ -245,6 +252,16 @@
     }
 
     @media (max-width: 600px) {
+      .topic-title {
+        font-size: 1.4rem;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        word-break: break-word;
+      }
+
       .study-mode-card {
         padding: 18px;
       }
@@ -282,7 +299,7 @@
         style="text-decoration:none; color:var(--text-muted); display:flex; align-items:center; gap:5px; margin-bottom:10px;">
         <span class="material-icons">arrow_back</span> Tüm Konular
       </a>
-      <h1 id="topicTitle" style="margin:0; font-family:var(--font-family-serif);">Yükleniyor...</h1>
+      <h1 id="topicTitle" class="topic-title">Yükleniyor...</h1>
       <div class="progress-wrapper"
         style="margin-top:20px; background:var(--bg-hover); height:6px; border-radius:10px;">
         <div class="progress-bar" id="topicProgressBar" style="width:0%; height:100%; background:var(--color-primary);">

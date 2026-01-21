@@ -212,6 +212,10 @@ function setupEventListeners() {
         if (target.id === 'sidebarOverlay') {
             document.body.classList.remove('sidebar-open');
         }
+
+        if (window.innerWidth <= 768 && target.closest('.app-sidebar a')) {
+            document.body.classList.remove('sidebar-open');
+        }
     });
 }
 
