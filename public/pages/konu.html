@@ -188,14 +188,82 @@
       color: var(--text-muted);
     }
 
+    .mobile-tab-bar {
+      display: none;
+      gap: 10px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 10px;
+      margin-bottom: 20px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .mobile-tab-btn {
+      flex: 1;
+      border: 1px solid transparent;
+      background: var(--bg-hover);
+      color: var(--text-main);
+      padding: 10px 12px;
+      border-radius: 12px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .mobile-tab-btn.active {
+      background: var(--color-primary);
+      color: var(--text-on-gold);
+      border-color: var(--color-primary);
+      box-shadow: var(--shadow-gold);
+    }
+
     @media (max-width: 900px) {
       .content-container {
         grid-template-columns: 1fr;
       }
 
+      .mobile-tab-bar {
+        display: flex;
+      }
+
+      [data-tab-content] {
+        display: none;
+      }
+
+      body[data-topic-tab="tests"] #topicContentSection,
+      body[data-topic-tab="materials"] #topicMaterialsSection {
+        display: block !important;
+      }
+
       /* Mobilde sağ kolonun (ders notları) aşağı inince margin eklemesi */
       .side-section {
         margin-top: 30px;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .study-mode-card {
+        padding: 18px;
+      }
+
+      .mode-options {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .mode-btn {
+        flex-direction: row;
+        justify-content: center;
+        padding: 10px 12px;
+        gap: 6px;
+        font-size: 0.85rem;
+      }
+
+      .mode-icon {
+        font-size: 1.1rem;
       }
     }
   </style>
@@ -239,7 +307,17 @@
         <div id="subtopicLoading" class="text-muted small mt-3" style="display:none;">Alt başlıklar yükleniyor...</div>
       </div>
 
-      <div id="topicContentSection">
+      <div class="mobile-tab-bar" role="tablist" aria-label="Konu içerik sekmeleri">
+        <button class="mobile-tab-btn active" type="button" data-topic-tab="tests" role="tab"
+          aria-selected="true">
+          🚀 Testler
+        </button>
+        <button class="mobile-tab-btn" type="button" data-topic-tab="materials" role="tab" aria-selected="false">
+          📚 Ders Notları
+        </button>
+      </div>
+
+      <div id="topicContentSection" data-tab-content="tests">
         <div class="study-mode-card">
           <h2 style="margin:0; font-size:1.5rem;">🚀 Serbest Çalışma Modu</h2>
           <p id="studyModeStatus" style="opacity:0.8; margin-top:5px;">Bu konuya ait <strong id="totalQCount">0</strong>
@@ -272,7 +350,7 @@
 
     </div>
 
-    <div class="side-section" id="topicMaterialsSection">
+    <div class="side-section" id="topicMaterialsSection" data-tab-content="materials">
       <h3 style="border-left:4px solid var(--color-success); padding-left:10px; margin-bottom:20px;">📚 Ders Notları
       </h3>
       <div id="materialsList"></div>
@@ -292,6 +370,8 @@
       const urlParams = new URLSearchParams(window.location.search);
       currentTopicId = urlParams.get('id');
       if (!currentTopicId) return window.location.href = '/pages/konular.html';
+
+      initMobileTabs();
 
       // 1. Önce Konu Başlığını Çek
       await loadTopicHeader();
@@ -358,8 +438,8 @@
       // İÇERİKLERİ YÜKLE (Index hatası olsa bile burası çalışmalı)
       await loadTopicContent(hasSubtopics);
 
-      document.getElementById('topicContentSection').style.display = 'block';
-      document.getElementById('topicMaterialsSection').style.display = 'block';
+      document.getElementById('topicContentSection').style.display = '';
+      document.getElementById('topicMaterialsSection').style.display = '';
 
       return hasSubtopics;
     }
@@ -387,6 +467,7 @@
           if (isTest) {
             testCount += 1;
             const qCount = item.qCount || (item.questions ? item.questions.length : 0);
+            const returnUrl = encodeURIComponent(`/pages/konu.html?id=${currentTopicId}`);
             testsContainer.innerHTML += `
                       <div class="test-card">
                           <div style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;">
@@ -394,7 +475,7 @@
                               <span class="badge bg-light text-dark">${qCount} Soru</span>
                           </div>
                           <div style="margin-top:10px;">
-                              <a href="/pages/test.html?id=${item.id}&topic=${currentTopicId}&mode=practice" class="btn btn-sm btn-outline-primary w-100">Testi Çöz</a>
+                              <a href="/pages/test.html?id=${item.id}&topic=${currentTopicId}&mode=select&return=${returnUrl}" class="btn btn-sm btn-outline-primary w-100">Testi Çöz</a>
                           </div>
                       </div>
                   `;
@@ -563,8 +644,29 @@
     }
 
     window.startSmartTest = (mode) => {
-      window.location.href = `/pages/test.html?topic=${encodeURIComponent(currentTopicId)}&mode=smart&filter=${encodeURIComponent(mode)}`;
+      const returnUrl = encodeURIComponent(`/pages/konu.html?id=${currentTopicId}`);
+      window.location.href = `/pages/test.html?topic=${encodeURIComponent(currentTopicId)}&mode=smart&filter=${encodeURIComponent(mode)}&return=${returnUrl}`;
     };
+
+    function initMobileTabs() {
+      const tabButtons = document.querySelectorAll('[data-topic-tab]');
+      if (!tabButtons.length) return;
+
+      const setActiveTab = (tab) => {
+        document.body.dataset.topicTab = tab;
+        tabButtons.forEach((btn) => {
+          const isActive = btn.dataset.topicTab === tab;
+          btn.classList.toggle('active', isActive);
+          btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
+        });
+      };
+
+      tabButtons.forEach((btn) => {
+        btn.addEventListener('click', () => setActiveTab(btn.dataset.topicTab));
+      });
+
+      setActiveTab(document.body.dataset.topicTab || 'tests');
+    }
 
   </script>
 </body>
