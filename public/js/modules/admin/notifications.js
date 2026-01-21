@@ -1,5 +1,5 @@
 import { db } from "../../firebase-config.js";
-import { collection, query, where, onSnapshot, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 export function initNotifications() {
     const badge = document.getElementById('notificationBadge');
@@ -43,20 +43,45 @@ export function initNotifications() {
             title: 'Yeni Üyelik Talebi',
             desc: `${doc.data().displayName || doc.data().email} onay bekliyor.`,
             time: doc.data().createdAt,
-            link: '#users'
+            link: { tab: 'users' }
         }));
         updateUI();
     });
 
     // Raporları Dinle
     onSnapshot(qReports, (snapshot) => {
-        pendingReports = snapshot.docs.map(doc => ({
-            id: doc.id,
-            type: 'report',
-            title: `Yeni Destek Talebi: ${doc.data().type}`,
-            desc: doc.data().description ? doc.data().description.substring(0, 40) + '...' : 'Detay yok',
-            time: doc.data().createdAt,
-            link: '#reports'
+        const reports = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const grouped = new Map();
+
+        reports.forEach((report) => {
+            const key = report.questionId ? `question:${report.questionId}` : `report:${report.id}`;
+            if (!grouped.has(key)) {
+                grouped.set(key, {
+                    id: key,
+                    questionId: report.questionId || null,
+                    reportIds: [],
+                    count: 0,
+                    time: report.createdAt,
+                    type: report.source === 'help_page' ? 'support' : 'report'
+                });
+            }
+            const group = grouped.get(key);
+            group.reportIds.push(report.id);
+            group.count += 1;
+            if ((report.createdAt?.seconds || 0) > (group.time?.seconds || 0)) {
+                group.time = report.createdAt;
+            }
+        });
+
+        pendingReports = [...grouped.values()].map(group => ({
+            id: group.id,
+            type: group.type,
+            title: group.questionId ? 'Soru Bildirimi' : 'Yeni Destek Talebi',
+            desc: group.questionId ? `${group.count} bildirim` : `${group.count} yeni mesaj`,
+            time: group.time,
+            link: group.questionId
+                ? { tab: 'reports', questionId: group.questionId }
+                : { tab: 'reports', reportId: group.reportIds[0] }
         }));
         updateUI();
     });
@@ -89,15 +114,25 @@ export function initNotifications() {
         list.innerHTML = '';
         // Sadece ilk 5 bildirimi göster
         allNotifs.slice(0, 5).forEach(item => {
-            const icon = item.type === 'user' ? '👤' : '📩';
+            const icon = item.type === 'user' ? '👤' : item.type === 'support' ? '📩' : '🚩';
             const timeStr = item.time ? new Date(item.time.seconds * 1000).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }) : '';
 
             const div = document.createElement('div');
             div.className = 'notification-item';
             div.onclick = () => {
-                window.location.hash = item.link.replace('#', '');
-                // Sayfa yenilemeden tab değişimi için manuel tetikleme gerekebilir
-                // Şimdilik basit hash değişimi yeterli
+                if (item.link?.tab) {
+                    const url = new URL(window.location.href);
+                    url.searchParams.delete('reportQuestionId');
+                    url.searchParams.delete('reportId');
+                    if (item.link.questionId) {
+                        url.searchParams.set('reportQuestionId', item.link.questionId);
+                    }
+                    if (item.link.reportId) {
+                        url.searchParams.set('reportId', item.link.reportId);
+                    }
+                    window.history.replaceState({}, '', url.toString());
+                    window.location.hash = item.link.tab;
+                }
                 dropdown.classList.remove('active');
             };
 

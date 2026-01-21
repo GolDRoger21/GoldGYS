@@ -548,6 +548,7 @@ export class TestEngine {
                 questionId: qId,
                 userId: auth.currentUser.uid,
                 userEmail: auth.currentUser.email,
+                userName: auth.currentUser.displayName,
                 description: desc,
                 type: "question_error",
                 status: "pending",

@@ -88,6 +88,7 @@ async function renderUsersList(queryRef) {
         snapshot.forEach(docSnap => {
             const user = docSnap.data();
             const tr = document.createElement('tr');
+            tr.dataset.userRow = user.uid;
             
             // Tarih formatlama
             const dateStr = user.createdAt ? new Date(user.createdAt.seconds * 1000).toLocaleDateString('tr-TR') : '-';
@@ -109,6 +110,7 @@ async function renderUsersList(queryRef) {
             usersTableBody.appendChild(tr);
         });
 
+        focusRequestedUser();
     } catch (error) {
         console.error("Üye listesi hatası:", error);
         usersTableBody.innerHTML = `<tr><td colspan="5" class="error">Hata: ${error.message}</td></tr>`;
@@ -165,4 +167,22 @@ async function updateUserStatus(uid, status) {
         console.error("Güncelleme hatası:", error);
         alert("İşlem başarısız!");
     }
+}
+
+function focusRequestedUser() {
+    const uid = sessionStorage.getItem('adminUserFocus');
+    if (!uid) return;
+    const triedAll = sessionStorage.getItem('adminUserFocusAll') === '1';
+    const row = document.querySelector(`[data-user-row="${uid}"]`);
+    if (!row && !triedAll) {
+        sessionStorage.setItem('adminUserFocusAll', '1');
+        loadAllUsers();
+        return;
+    }
+    sessionStorage.removeItem('adminUserFocus');
+    sessionStorage.removeItem('adminUserFocusAll');
+    if (!row) return;
+    row.classList.add('highlight');
+    row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    setTimeout(() => row.classList.remove('highlight'), 3500);
 }
