@@ -13,7 +13,6 @@ export function initImporterPage() {
             </div>
             <div class="d-flex gap-2">
                 <button onclick="showGuide()" class="btn btn-info text-white">ℹ️ Format Rehberi</button>
-                <button onclick="downloadTemplate()" class="btn btn-outline-primary">📄 Excel Şablonu İndir</button>
             </div>
         </div>
 
@@ -71,17 +70,71 @@ export function initImporterPage() {
                     </ul>
                     
                     <h5>JSON Formatı (Gelişmiş)</h5>
+                    <p>JSON yüklemesi önerilen yöntemdir. Aşağıdaki format birebir korunmalıdır.</p>
                     <pre style="background:#f8f9fa; padding:10px; border-radius:5px;">
 [
   {
+    "category": "Anayasa",
+    "difficulty": 3,
+    "type": "standard",
     "text": "Soru metni...",
+    "questionRoot": null,
+    "onculler": [],
     "options": [
        {"id": "A", "text": "Cevap A"},
-       {"id": "B", "text": "Cevap B"}
+       {"id": "B", "text": "Cevap B"},
+       {"id": "C", "text": "Cevap C"},
+       {"id": "D", "text": "Cevap D"},
+       {"id": "E", "text": "Cevap E"}
     ],
     "correctOption": "A",
     "legislationRef": { "code": "5271", "article": "12" },
-    "solution": { "analiz": "...", "hap": "..." }
+    "solution": {
+      "analiz": "Detaylı açıklama",
+      "dayanakText": "Mevzuat dayanağı",
+      "hap": "Hap bilgi",
+      "tuzak": "Sınav tuzağı"
+    }
+  }
+]
+                    </pre>
+                    <h5>Yapay Zeka Promptu (JSON üretimi için)</h5>
+                    <p>Aşağıdaki promptu kopyalayıp yapay zekaya verin. Çıktıyı sadece JSON olarak üretmesini isteyin.</p>
+                    <pre style="background:#f8f9fa; padding:10px; border-radius:5px; white-space: pre-wrap;">
+Sen bir hukuk sınavı soru üretim asistanısın. Aşağıdaki kurallara uyarak SADECE JSON dizi çıktısı üret:
+- Çıktı bir JSON array olmalı.
+- Her nesnede şu alanlar zorunlu: category, difficulty (1-5), type, text, options (A-E), correctOption, legislationRef, solution.
+- options alanı A, B, C, D, E id’lerine sahip 5 seçenek içermeli.
+- correctOption yalnızca "A", "B", "C", "D" veya "E" olabilir.
+- legislationRef alanında code ve article string olmalı (bilinmiyorsa boş string).
+- solution alanında analiz, dayanakText, hap, tuzak alanları string olmalı (bilinmiyorsa boş string).
+- questionRoot null olabilir, onculler ise string dizisi olabilir.
+- Asla açıklama, markdown veya ek metin yazma; yalnızca JSON döndür.
+
+Örnek çıktı formatı:
+[
+  {
+    "category": "Anayasa",
+    "difficulty": 3,
+    "type": "standard",
+    "text": "Soru metni...",
+    "questionRoot": null,
+    "onculler": [],
+    "options": [
+      {"id": "A", "text": "Seçenek A"},
+      {"id": "B", "text": "Seçenek B"},
+      {"id": "C", "text": "Seçenek C"},
+      {"id": "D", "text": "Seçenek D"},
+      {"id": "E", "text": "Seçenek E"}
+    ],
+    "correctOption": "A",
+    "legislationRef": { "code": "5271", "article": "12" },
+    "solution": {
+      "analiz": "Detaylı açıklama",
+      "dayanakText": "",
+      "hap": "",
+      "tuzak": ""
+    }
   }
 ]
                     </pre>
@@ -110,15 +163,7 @@ async function handleFileSelect(event) {
             const jsonData = JSON.parse(text);
 
             if (Array.isArray(jsonData)) {
-                // JSON verisi zaten bizim formatımızda ise direkt kullan
-                // Ancak her ihtimale karşı eksik alanları tamamlayalım
-                parsedQuestions = jsonData.map(q => ({
-                    ...q,
-                    isActive: true,
-                    isFlaggedForReview: false,
-                    createdAt: serverTimestamp(),
-                    updatedAt: serverTimestamp()
-                }));
+                parsedQuestions = jsonData.map((q, index) => normalizeQuestionData(q, index));
                 log(`JSON'dan ${parsedQuestions.length} soru okundu.`, "success");
             } else {
                 throw new Error("JSON dosyası bir dizi (array) içermelidir.");
@@ -143,14 +188,14 @@ async function handleFileSelect(event) {
 
 // Excel Verisini Dönüştürme (Sadece Excel için kullanılır)
 function convertExcelData(rawData) {
-    return rawData.map(row => {
+    return rawData.map((row, index) => {
         // Öncülleri ayır
         let onculler = [];
         if (row['Onculler']) {
             onculler = row['Onculler'].split('|').map(s => s.trim());
         }
 
-        return {
+        const rawQuestion = {
             category: row['Kategori'] || row['category'] || 'Genel',
             difficulty: parseInt(row['Zorluk'] || row['difficulty']) || 3,
             type: row['Tip'] || row['type'] || 'standard',
@@ -177,14 +222,71 @@ function convertExcelData(rawData) {
             legislationRef: {
                 code: String(row['Kanun No'] || row['code'] || ''),
                 article: String(row['Madde No'] || row['article'] || '')
-            },
-
-            isActive: true,
-            isFlaggedForReview: false,
-            createdAt: serverTimestamp(),
-            updatedAt: serverTimestamp()
+            }
         };
+
+        return normalizeQuestionData(rawQuestion, index);
     });
+}
+
+function normalizeQuestionData(rawQuestion, index = 0) {
+    const normalizedOptions = normalizeOptions(rawQuestion.options || []);
+    const fallbackCorrect = normalizedOptions[0]?.id || '';
+    const normalizedCorrectOption = normalizeCorrectOption(rawQuestion.correctOption, normalizedOptions) || fallbackCorrect;
+
+    return {
+        category: rawQuestion.category || 'Genel',
+        difficulty: Number.isFinite(rawQuestion.difficulty) ? rawQuestion.difficulty : 3,
+        type: rawQuestion.type || 'standard',
+        text: rawQuestion.text || '',
+        questionRoot: rawQuestion.questionRoot ?? null,
+        onculler: Array.isArray(rawQuestion.onculler) ? rawQuestion.onculler : [],
+        options: normalizedOptions,
+        correctOption: normalizedCorrectOption,
+        solution: {
+            analiz: rawQuestion.solution?.analiz || '',
+            dayanakText: rawQuestion.solution?.dayanakText || '',
+            hap: rawQuestion.solution?.hap || '',
+            tuzak: rawQuestion.solution?.tuzak || ''
+        },
+        legislationRef: {
+            code: rawQuestion.legislationRef?.code ? String(rawQuestion.legislationRef.code) : '',
+            article: rawQuestion.legislationRef?.article ? String(rawQuestion.legislationRef.article) : ''
+        },
+        isActive: true,
+        isFlaggedForReview: false,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+        _rowIndex: index + 1
+    };
+}
+
+function normalizeOptions(options) {
+    if (!Array.isArray(options)) return [];
+    const normalized = options
+        .filter(option => option)
+        .map((option, index) => {
+            if (typeof option === 'string') {
+                return { id: '', text: option, _index: index };
+            }
+            return {
+                id: String(option.id || '').toUpperCase(),
+                text: option.text || '',
+                _index: index
+            };
+        })
+        .filter(option => option.text);
+
+    return normalized.map(option => ({
+        id: option.id || ['A', 'B', 'C', 'D', 'E'][option._index] || '',
+        text: option.text
+    }));
+}
+
+function normalizeCorrectOption(correctOption, options) {
+    if (!correctOption) return '';
+    const normalized = String(correctOption).toUpperCase();
+    return options.some(option => option.id === normalized) ? normalized : '';
 }
 
 function validateAndPreview() {
@@ -193,18 +295,26 @@ function validateAndPreview() {
     let validCount = 0;
 
     parsedQuestions.forEach((q, index) => {
-        // Basit doğrulama: Soru metni ve doğru cevap var mı?
-        const isValid = q.text && q.correctOption;
+        const optionIds = new Set(q.options.map(option => option.id));
+        const hasRequiredOptions = ['A', 'B', 'C', 'D', 'E'].every(id => optionIds.has(id));
+        const isValid = Boolean(q.text) && Boolean(q.correctOption) && hasRequiredOptions;
         if (isValid) validCount++;
 
         const shortText = q.text ? (q.text.length > 50 ? q.text.substring(0, 50) + '...' : q.text) : '---';
+        const reason = !q.text
+            ? 'Soru metni eksik'
+            : !q.correctOption
+                ? 'Doğru cevap hatalı/eksik'
+                : !hasRequiredOptions
+                    ? 'Şıklar A-E eksik'
+                    : '';
 
         table.innerHTML += `
             <tr style="${!isValid ? 'background:rgba(255,0,0,0.1)' : ''}">
                 <td>${index + 1}</td>
                 <td>${q.category || '-'}</td>
-                <td title="${q.text}">${shortText}</td>
-                <td>${isValid ? '✅' : '❌'}</td>
+                <td title="${q.text || reason}">${shortText}</td>
+                <td>${isValid ? '✅' : `❌ ${reason}`}</td>
             </tr>
         `;
     });
@@ -281,25 +391,6 @@ function log(msg, type = "info") {
     area.innerHTML += `<div style="color:${color}">> ${msg}</div>`;
     area.scrollTop = area.scrollHeight;
 }
-
-window.downloadTemplate = () => {
-    const ws = XLSX.utils.json_to_sheet([{
-        "Kategori": "Genel",
-        "Soru Metni": "Soru?",
-        "A": "Cevap A",
-        "B": "Cevap B",
-        "C": "Cevap C",
-        "D": "Cevap D",
-        "E": "Cevap E",
-        "Doğru Cevap": "A",
-        "Çözüm Analiz": "Açıklama",
-        "Kanun No": "5271",
-        "Madde No": "1"
-    }]);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Sablon");
-    XLSX.writeFile(wb, "Soru_Sablonu.xlsx");
-};
 
 window.showGuide = () => {
     document.getElementById('guideModal').style.display = 'flex';
