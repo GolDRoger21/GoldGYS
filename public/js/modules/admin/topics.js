@@ -4,6 +4,7 @@ import { db } from "../../firebase-config.js";
 import {
     collection, getDocs, doc, addDoc, updateDoc, deleteDoc, serverTimestamp, query, orderBy, where
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { showConfirm, showToast } from "../../notifications.js";
 import { openQuestionEditor } from './content.js';
 import { UI_SHELL, renderNavItem } from './topics.ui.js';
 
@@ -365,7 +366,11 @@ function renderContentNav() {
 // ============================================================
 
 function createNewContent(type) {
-    if (!state.activeTopicId) { alert("Lütfen önce konuyu oluşturun ve kaydedin."); showMetaEditor(); return; }
+    if (!state.activeTopicId) {
+        showToast("Lütfen önce konuyu oluşturup kaydedin.", "info");
+        showMetaEditor();
+        return;
+    }
 
     const contentType = type || state.sidebarTab;
     state.activeLessonId = null;
@@ -464,7 +469,10 @@ function showMetaEditor() {
 async function saveTopicMeta() {
     const id = document.getElementById('editTopicId').value;
     const title = document.getElementById('inpTopicTitle').value;
-    if (!title) return alert("Başlık giriniz.");
+    if (!title) {
+        showToast("Lütfen bir başlık girin.", "info");
+        return;
+    }
     const rawParentId = document.getElementById('inpTopicParent').value;
     const parentId = rawParentId && rawParentId !== id ? rawParentId : null;
     const existing = id ? state.allTopics.find(t => t.id === id) : null;
@@ -494,9 +502,11 @@ async function saveTopicMeta() {
         }
         state.activeTopicTitle = title;
         syncTopicFilterBadge();
-        alert("Konu ayarları kaydedildi.");
+        showToast("Konu ayarları kaydedildi.", "success");
         loadTopics();
-    } catch (e) { alert(e.message); }
+    } catch (e) {
+        showToast(e.message, "error");
+    }
 }
 
 // Otomatik Kaydetme Mekanizması
@@ -580,33 +590,48 @@ async function saveContent(silent = false) {
 
         loadLessons(state.activeTopicId);
     } catch (e) {
-        if (!silent) alert(e.message);
+        if (!silent) showToast(e.message, "error");
         throw e;
     }
 }
 
 async function deleteContent() {
-    if (state.activeLessonId && confirm("Bu içeriği silmek istediğinize emin misiniz?")) {
-        await updateDoc(doc(db, `topics/${state.activeTopicId}/lessons`, state.activeLessonId), {
-            status: 'deleted',
-            isActive: false,
-            deletedAt: serverTimestamp(),
-            updatedAt: serverTimestamp()
-        });
-        loadLessons(state.activeTopicId);
-        showMetaEditor(); // Ana ekrana dön
-    }
+    if (!state.activeLessonId) return;
+    const shouldDelete = await showConfirm("Bu içeriği silmek istediğinize emin misiniz?", {
+        title: "İçeriği Sil",
+        confirmText: "Sil",
+        cancelText: "Vazgeç",
+        tone: "error"
+    });
+    if (!shouldDelete) return;
+
+    await updateDoc(doc(db, `topics/${state.activeTopicId}/lessons`, state.activeLessonId), {
+        status: 'deleted',
+        isActive: false,
+        deletedAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+    });
+    loadLessons(state.activeTopicId);
+    showMetaEditor(); // Ana ekrana dön
 }
 
 async function promoteToSubtopic(id, ev) {
     ev?.stopPropagation();
     const item = state.currentLessons.find(x => x.id === id);
     if (!item) return;
-    if (!state.activeTopicId) return alert("Önce üst konuyu seçin.");
+    if (!state.activeTopicId) {
+        showToast("Önce üst konuyu seçin.", "info");
+        return;
+    }
 
     const parentTopic = state.allTopics.find(t => t.id === state.activeTopicId);
     const confirmMsg = `"${item.title}" içeriğini alt konuya dönüştürmek istiyor musunuz?\nBu işlem yeni bir konu oluşturur ve mevcut içeriği taşır.`;
-    if (!confirm(confirmMsg)) return;
+    const shouldProceed = await showConfirm(confirmMsg, {
+        title: "Alt Konu Oluştur",
+        confirmText: "Oluştur",
+        cancelText: "Vazgeç"
+    });
+    if (!shouldProceed) return;
 
     try {
         const nextOrder = getNextOrderForParent(state.activeTopicId);
@@ -643,12 +668,12 @@ async function promoteToSubtopic(id, ev) {
         await addDoc(collection(db, `topics/${topicRef.id}/lessons`), lessonPayload);
         await deleteDoc(doc(db, `topics/${state.activeTopicId}/lessons`, id));
 
-        alert("Alt konu oluşturuldu ve içerik taşındı.");
+        showToast("Alt konu oluşturuldu ve içerik taşındı.", "success");
         loadLessons(state.activeTopicId);
         loadTopics();
     } catch (e) {
         console.error(e);
-        alert(`Alt konu oluşturulamadı: ${e.message}`);
+        showToast(`Alt konu oluşturulamadı: ${e.message}`, "error");
     }
 }
 
@@ -813,7 +838,10 @@ function matDragEnd(ev) {
 async function searchQuestions() {
     const code = document.getElementById('wizLegislation').value.trim();
     const topicTitle = state.activeTopicTitle || '';
-    if (!topicTitle && !code) return alert("Lütfen bir Mevzuat Kodu girin (Örn: 5271).");
+    if (!topicTitle && !code) {
+        showToast("Lütfen bir mevzuat kodu girin (Örn: 5271).", "info");
+        return;
+    }
 
     const poolList = document.getElementById('poolList');
     if (poolList) poolList.innerHTML = '<div class="text-center p-4"><div class="spinner-border text-primary" role="status"></div><br>Sorular Taranıyor...</div>';
@@ -869,10 +897,10 @@ function autoGenerateTest() {
         if (state.activeTopicTitle || hasLeg) {
             searchQuestions().then(() => {
                 if (state.poolQuestions.length > 0) performSmartSelection();
-                else alert("Kriterlere uygun soru bulunamadı.");
+                else showToast("Kriterlere uygun soru bulunamadı.", "info");
             });
         } else {
-            alert("Lütfen önce Mevzuat Kodu girin.");
+            showToast("Lütfen önce mevzuat kodu girin.", "info");
         }
     } else {
         performSmartSelection();
@@ -887,7 +915,10 @@ function performSmartSelection() {
     const addedIds = new Set(state.tempQuestions.map(q => q.id));
     pool = pool.filter(q => !addedIds.has(q.id));
 
-    if (pool.length === 0) return alert("Havuzdaki tüm sorular zaten eklendi.");
+    if (pool.length === 0) {
+        showToast("Havuzdaki tüm sorular zaten eklendi.", "info");
+        return;
+    }
 
     let selection = [];
     // Basit rastgele seçim (İleride zorluk dağılımı eklenebilir)
@@ -1046,7 +1077,10 @@ async function restoreItem(id) { await updateDoc(doc(db, "topics", id), { status
 
 // İçerik Çöp Kutusu
 async function openContentTrash() {
-    if (!state.activeTopicId) return alert("Önce bir konu seçin.");
+    if (!state.activeTopicId) {
+        showToast("Önce bir konu seçin.", "info");
+        return;
+    }
     closeModalById('trashModal');
     const modal = document.getElementById('contentTrashModal');
     const tbody = document.getElementById('contentTrashTableBody');
@@ -1097,15 +1131,29 @@ async function restoreContentItem(id) {
 }
 
 async function purgeOneDeletedContent(id) {
-    if (!state.activeTopicId || !confirm("Kalıcı olarak silinecek?")) return;
+    if (!state.activeTopicId) return;
+    const shouldDelete = await showConfirm("Bu içerik kalıcı olarak silinecek. Devam etmek istiyor musunuz?", {
+        title: "Kalıcı Silme",
+        confirmText: "Sil",
+        cancelText: "Vazgeç",
+        tone: "error"
+    });
+    if (!shouldDelete) return;
     await deleteDoc(doc(db, `topics/${state.activeTopicId}/lessons`, id));
     openContentTrash();
 }
 
 async function purgeAllDeletedContent() {
-    if (!state.activeTopicId || !confirm("Tümünü kalıcı sil?")) return;
+    if (!state.activeTopicId) return;
+    const shouldDeleteAll = await showConfirm("Tüm içerikler kalıcı olarak silinecek. Devam etmek istiyor musunuz?", {
+        title: "Toplu Kalıcı Silme",
+        confirmText: "Sil",
+        cancelText: "Vazgeç",
+        tone: "error"
+    });
+    if (!shouldDeleteAll) return;
     // Batch silme işlemi yapılabilir, şimdilik basit tutuyoruz
-    alert("Bu işlem toplu silme gerektirir, güvenlik nedeniyle şimdilik devre dışı.");
+    showToast("Bu işlem toplu silme gerektirir; güvenlik nedeniyle şu anda devre dışı.", "info");
 }
 
 async function normalizeTopicOrders(topics) {

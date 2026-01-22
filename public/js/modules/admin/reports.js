@@ -1,4 +1,5 @@
 import { db } from "../../firebase-config.js";
+import { showConfirm, showToast } from "../../notifications.js";
 import {
     collection,
     query,
@@ -466,7 +467,12 @@ async function applyBulkAction(action) {
     if (selectedKeys.length === 0) return;
 
     const actionLabel = action === 'delete' ? 'sil' : action === 'archived' ? 'arşivle' : 'çözüldü olarak işaretle';
-    if (!confirm(`Seçili bildirimleri ${actionLabel}mek istiyor musunuz?`)) return;
+    const shouldApply = await showConfirm(`Seçili bildirimleri ${actionLabel}mek istiyor musunuz?`, {
+        title: "Toplu İşlem",
+        confirmText: "Uygula",
+        cancelText: "Vazgeç"
+    });
+    if (!shouldApply) return;
 
     const batch = writeBatch(db);
     selectedKeys.forEach((key) => {
@@ -487,7 +493,7 @@ async function applyBulkAction(action) {
         reportsState.selectedGroups.clear();
         await initReportsPage();
     } catch (error) {
-        alert("Toplu işlem başarısız oldu.");
+        showToast("Toplu işlem başarısız oldu. Lütfen tekrar deneyin.", "error");
         console.error("Toplu işlem hatası:", error);
     }
 }
@@ -544,30 +550,49 @@ function clearReportFocusParams() {
 // Global Actions
 export const AdminReports = {
     archive: async (id) => {
-        if (!confirm('Bu bildirimi arşivlemek istiyor musunuz?')) return;
+        const shouldArchive = await showConfirm("Bu bildirimi arşivlemek istiyor musunuz?", {
+            title: "Bildirimi Arşivle",
+            confirmText: "Arşivle",
+            cancelText: "Vazgeç"
+        });
+        if (!shouldArchive) return;
         await updateReportStatus(id, 'archived');
     },
     resolve: async (id) => {
-        if (!confirm('Bu bildirimi hata yok olarak işaretlemek istiyor musunuz?')) return;
+        const shouldResolve = await showConfirm("Bu bildirimi çözüldü olarak işaretlemek istiyor musunuz?", {
+            title: "Bildirimi Güncelle",
+            confirmText: "İşaretle",
+            cancelText: "Vazgeç"
+        });
+        if (!shouldResolve) return;
         await updateReportStatus(id, 'resolved');
     },
     editQuestion: async (questionId) => {
         if (!questionId) {
-            alert("Bu bildirime bağlı soru bulunamadı.");
+            showToast("Bu bildirime bağlı soru bulunamadı.", "info");
             return;
         }
         if (typeof window.openQuestionEditor !== 'function') {
-            alert("Soru düzenleyici yüklenemedi.");
+            showToast("Soru düzenleyici yüklenemedi.", "error");
             return;
         }
         window.openQuestionEditor(questionId);
     },
     delete: async (id) => {
-        if (!confirm('Bu bildirimi kalıcı olarak silmek istiyor musunuz?')) return;
+        const shouldDelete = await showConfirm("Bu bildirimi kalıcı olarak silmek istiyor musunuz?", {
+            title: "Kalıcı Sil",
+            confirmText: "Sil",
+            cancelText: "Vazgeç",
+            tone: "error"
+        });
+        if (!shouldDelete) return;
         try {
             await deleteDoc(doc(db, "reports", id));
             await initReportsPage();
-        } catch (e) { alert("Silme başarısız"); }
+            showToast("Bildirim silindi.", "success");
+        } catch (e) {
+            showToast("Silme işlemi başarısız oldu.", "error");
+        }
     },
     viewUser: async (uid) => {
         if (!uid) return;
@@ -581,6 +606,6 @@ async function updateReportStatus(id, status) {
         await updateDoc(doc(db, "reports", id), { status: status });
         await initReportsPage();
     } catch (e) {
-        alert("İşlem başarısız");
+        showToast("İşlem başarısız oldu. Lütfen tekrar deneyin.", "error");
     }
 }

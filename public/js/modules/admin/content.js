@@ -1,6 +1,7 @@
 /* DOSYA: public/js/modules/admin/content.js */
 
 import { db } from "../../firebase-config.js";
+import { showConfirm, showToast } from "../../notifications.js";
 import {
     collection, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, serverTimestamp, query, orderBy, limit, where
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -424,8 +425,10 @@ async function handleSaveQuestion(e) {
         // Eğer Soru Bankası sayfasındaysak listeyi yenile
         if (document.getElementById('questionsTableBody')) loadQuestions();
 
-        alert("Kaydedildi.");
-    } catch (e) { alert("Hata: " + e.message); }
+        showToast("Soru başarıyla kaydedildi.", "success");
+    } catch (e) {
+        showToast(`Kaydetme sırasında hata oluştu: ${e.message}`, "error");
+    }
 }
 
 // --- YARDIMCI FONKSİYONLAR ---
@@ -504,15 +507,23 @@ async function autoDetectTopic() {
 // --- ÇÖP KUTUSU ---
 
 async function softDeleteQuestion(id) {
-    if (confirm("Bu soruyu Çöp Kutusuna taşımak istiyor musunuz?")) {
-        try {
-            await updateDoc(doc(db, "questions", id), {
-                isDeleted: true,
-                deletedAt: serverTimestamp(),
-                isActive: false
-            });
-            loadQuestions();
-        } catch (e) { alert("Hata: " + e.message); }
+    const shouldDelete = await showConfirm("Bu soruyu çöp kutusuna taşımak istediğinize emin misiniz?", {
+        title: "Soruyu Taşı",
+        confirmText: "Çöp Kutusuna Taşı",
+        cancelText: "Vazgeç"
+    });
+    if (!shouldDelete) return;
+
+    try {
+        await updateDoc(doc(db, "questions", id), {
+            isDeleted: true,
+            deletedAt: serverTimestamp(),
+            isActive: false
+        });
+        loadQuestions();
+        showToast("Soru çöp kutusuna taşındı.", "success");
+    } catch (e) {
+        showToast(`İşlem sırasında hata oluştu: ${e.message}`, "error");
     }
 }
 
@@ -557,8 +568,15 @@ async function restoreQuestion(id) {
 }
 
 async function permanentDeleteQuestion(id) {
-    if (confirm("BU İŞLEM GERİ ALINAMAZ! Soru veritabanından tamamen silinecek.")) {
-        await deleteDoc(doc(db, "questions", id));
-        openTrashModal();
-    }
+    const shouldDelete = await showConfirm("Bu işlem geri alınamaz. Soru veritabanından tamamen silinecek.", {
+        title: "Kalıcı Silme",
+        confirmText: "Kalıcı Olarak Sil",
+        cancelText: "Vazgeç",
+        tone: "error"
+    });
+    if (!shouldDelete) return;
+
+    await deleteDoc(doc(db, "questions", id));
+    openTrashModal();
+    showToast("Soru kalıcı olarak silindi.", "success");
 }

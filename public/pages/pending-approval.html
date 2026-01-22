@@ -179,6 +179,7 @@
 
     <script type="module">
         import { auth, db } from "/js/firebase-config.js";
+        import { showToast } from "/js/notifications.js";
         import { signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         
@@ -233,7 +234,7 @@
                         window.location.href = "/pages/dashboard.html";
                         return;
                     } else if (userData.status === "rejected") {
-                        alert("❌ Başvurunuz reddedilmiştir.");
+                        showToast("Başvurunuz reddedildi. Detay için destek ekibine ulaşabilirsiniz.", "error");
                         await signOut(auth);
                         window.location.href = "/login.html";
                         return;
@@ -241,11 +242,11 @@
                 }
                 
                 // Hala pending
-                alert("⏳ Hesabınız hala onay bekleniyor. Lütfen daha sonra tekrar deneyin.");
+                showToast("Hesabınız onay bekliyor. Kısa süre sonra tekrar kontrol edebilirsiniz.", "info");
                 
             } catch (error) {
                 console.error("Kontrol sırasında hata:", error);
-                alert("Kontrol edilirken bir hata oluştu. Lütfen tekrar deneyin.");
+                showToast("Kontrol sırasında bir hata oluştu. Lütfen tekrar deneyin.", "error");
             } finally {
                 refreshBtn.disabled = false;
                 refreshBtn.innerHTML = "Tekrar Kontrol Et";
@@ -260,7 +261,7 @@
                 window.location.href = "/login.html";
             } catch (error) {
                 console.error("Çıkış yapılırken hata oluştu:", error);
-                alert("Çıkış yapılırken bir hata oluştu. Lütfen sayfayı yenileyin.");
+                showToast("Çıkış sırasında bir hata oluştu. Lütfen sayfayı yenileyin.", "error");
             }
         });
     </script>

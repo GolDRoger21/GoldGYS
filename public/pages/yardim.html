@@ -366,6 +366,7 @@
 
   <script type="module">
     import { db, auth } from '../js/firebase-config.js';
+    import { showToast } from '../js/notifications.js';
     import { collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
     import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
@@ -390,7 +391,7 @@
       e.preventDefault();
 
       if (!auth.currentUser) {
-        alert("Mesaj göndermek için giriş yapmalısınız.");
+        showToast("Mesaj gönderebilmek için lütfen giriş yapın.", "error");
         return;
       }
 
@@ -415,11 +416,11 @@
           isRead: false // Admin bildirimi için
         });
 
-        alert("Destek talebiniz başarıyla oluşturuldu. En kısa sürede dönüş yapacağız.");
+        showToast("Destek talebiniz alındı. En kısa sürede dönüş yapacağız.", "success");
         document.getElementById('inpMessage').value = '';
       } catch (error) {
         console.error("Hata:", error);
-        alert("Bir hata oluştu: " + error.message);
+        showToast(`Bir hata oluştu: ${error.message}`, "error");
       } finally {
         btn.disabled = false;
         btn.innerText = originalText;

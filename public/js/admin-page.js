@@ -11,6 +11,7 @@ import * as ExamsModule from "./modules/admin/exams.js";
 import * as ImporterModule from "./modules/admin/importer.js";
 import * as TopicsModule from "./modules/admin/topics.js";
 import { initNotifications } from "./modules/admin/notifications.js";
+import { showConfirm, showToast } from "./notifications.js";
 
 // --- SAYFA BAŞLANGICI ---
 let currentRole = null;
@@ -62,7 +63,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     } catch (error) {
         console.error("Başlatma Hatası:", error);
-        alert("Panel yüklenirken hata: " + error.message);
+        showToast(`Panel yüklenirken bir hata oluştu: ${error.message}`, "error");
     }
 });
 
@@ -130,7 +131,14 @@ function initInteractions(role) {
     }
 
     // Çıkış Butonları
-    const handleLogout = () => { if (confirm("Çıkış yapılsın mı?")) window.location.href = "../index.html"; };
+    const handleLogout = async () => {
+        const shouldLogout = await showConfirm("Oturumunuzu kapatmak istediğinize emin misiniz?", {
+            title: "Çıkış Onayı",
+            confirmText: "Çıkış Yap",
+            cancelText: "Vazgeç"
+        });
+        if (shouldLogout) window.location.href = "../index.html";
+    };
     const logoutBtn = document.getElementById('logoutBtn');
     const headerLogoutBtn = document.getElementById('logoutButton');
     if (logoutBtn) logoutBtn.addEventListener('click', handleLogout);

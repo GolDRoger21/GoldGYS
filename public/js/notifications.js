@@ -1,6 +1,7 @@
 let toastContainer;
 let alertContainer;
 let alertTimeout;
+let confirmOverlay;
 
 function ensureContainer(element, id, className, attributes = {}) {
   if (element) return element;
@@ -66,4 +67,78 @@ export function showAlert(message, type = 'info', options = {}) {
     clearTimeout(alertTimeout);
     alertTimeout = setTimeout(() => alertContainer.classList.remove('visible'), duration);
   }
+}
+
+function removeConfirmOverlay() {
+  if (confirmOverlay) {
+    confirmOverlay.remove();
+    confirmOverlay = null;
+  }
+}
+
+export function showConfirm(message, options = {}) {
+  const {
+    title = 'Onay',
+    confirmText = 'Onayla',
+    cancelText = 'Vazgeç',
+    tone = 'info'
+  } = options;
+
+  return new Promise((resolve) => {
+    removeConfirmOverlay();
+
+    confirmOverlay = document.createElement('div');
+    confirmOverlay.className = 'confirm-overlay';
+    confirmOverlay.setAttribute('role', 'dialog');
+    confirmOverlay.setAttribute('aria-modal', 'true');
+
+    const dialog = document.createElement('div');
+    dialog.className = `confirm-dialog ${tone}`;
+
+    const heading = document.createElement('h3');
+    heading.className = 'confirm-title';
+    heading.textContent = title;
+
+    const text = document.createElement('p');
+    text.className = 'confirm-message';
+    text.textContent = message;
+
+    const actions = document.createElement('div');
+    actions.className = 'confirm-actions';
+
+    const cancelBtn = document.createElement('button');
+    cancelBtn.type = 'button';
+    cancelBtn.className = 'confirm-button ghost';
+    cancelBtn.textContent = cancelText;
+
+    const confirmBtn = document.createElement('button');
+    confirmBtn.type = 'button';
+    confirmBtn.className = 'confirm-button solid';
+    confirmBtn.textContent = confirmText;
+
+    actions.append(cancelBtn, confirmBtn);
+    dialog.append(heading, text, actions);
+    confirmOverlay.appendChild(dialog);
+    document.body.appendChild(confirmOverlay);
+
+    const cleanup = (result) => {
+      removeConfirmOverlay();
+      document.removeEventListener('keydown', handleKey);
+      resolve(result);
+    };
+
+    const handleKey = (event) => {
+      if (event.key === 'Escape') cleanup(false);
+      if (event.key === 'Enter') cleanup(true);
+    };
+
+    confirmOverlay.addEventListener('click', (event) => {
+      if (event.target === confirmOverlay) cleanup(false);
+    });
+    cancelBtn.addEventListener('click', () => cleanup(false));
+    confirmBtn.addEventListener('click', () => cleanup(true));
+    document.addEventListener('keydown', handleKey);
+
+    confirmBtn.focus();
+  });
 }

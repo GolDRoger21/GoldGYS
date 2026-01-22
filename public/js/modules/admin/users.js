@@ -1,4 +1,5 @@
 import { db } from "../../firebase-config.js";
+import { showConfirm, showToast } from "../../notifications.js";
 import { collection, query, where, getDocs, doc, updateDoc, orderBy, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 let usersTableBody = null; // Global seçim yerine init içinde seçeceğiz
@@ -281,14 +282,21 @@ function handleRowSelection(event) {
 
 async function updateUserStatus(uid, status, confirmMessage) {
     try {
-        if (confirmMessage && !confirm(confirmMessage)) return;
+        if (confirmMessage) {
+            const shouldProceed = await showConfirm(confirmMessage, {
+                title: "Durum Güncelle",
+                confirmText: "Onayla",
+                cancelText: "Vazgeç"
+            });
+            if (!shouldProceed) return;
+        }
         await updateDoc(doc(db, "users", uid), { status: status });
         updateUserInState(uid, { status });
-        alert(`Kullanıcı durumu güncellendi: ${getStatusLabel(status)}`);
+        showToast(`Kullanıcı durumu güncellendi: ${getStatusLabel(status)}`, "success");
         refreshCurrentView(); 
     } catch (error) {
         console.error("Güncelleme hatası:", error);
-        alert("İşlem başarısız!");
+        showToast("İşlem tamamlanamadı. Lütfen tekrar deneyin.", "error");
     }
 }
 
@@ -409,7 +417,7 @@ function getSelectedUsers() {
 async function runBulkStatusUpdate(status) {
     const selectedUsers = getSelectedUsers();
     if (!selectedUsers.length) {
-        alert("Önce işlem yapmak istediğiniz üyeleri seçin.");
+        showToast("Lütfen işlem yapmak istediğiniz üyeleri seçin.", "info");
         return;
     }
     const filteredByStatus = selectedUsers.filter((user) => {
@@ -419,11 +427,15 @@ async function runBulkStatusUpdate(status) {
         return false;
     });
     if (!filteredByStatus.length) {
-        alert("Seçili üyeler için uygun durum bulunamadı.");
+        showToast("Seçili üyeler için uygun bir durum bulunamadı.", "info");
         return;
     }
-    const confirmation = confirm(`${filteredByStatus.length} üyeyi "${getStatusLabel(status)}" olarak güncellemek istiyor musunuz?`);
-    if (!confirmation) return;
+    const shouldUpdate = await showConfirm(`${filteredByStatus.length} üyeyi "${getStatusLabel(status)}" olarak güncellemek istiyor musunuz?`, {
+        title: "Toplu Durum Güncelleme",
+        confirmText: "Güncelle",
+        cancelText: "Vazgeç"
+    });
+    if (!shouldUpdate) return;
 
     try {
         const batch = writeBatch(db);
@@ -432,11 +444,11 @@ async function runBulkStatusUpdate(status) {
         });
         await batch.commit();
         filteredByStatus.forEach((user) => updateUserInState(user.uid, { status }));
-        alert(`Toplu işlem tamamlandı: ${filteredByStatus.length} üye güncellendi.`);
+        showToast(`Toplu işlem tamamlandı: ${filteredByStatus.length} üye güncellendi.`, "success");
         refreshCurrentView();
     } catch (error) {
         console.error("Toplu güncelleme hatası:", error);
-        alert("Toplu işlem başarısız oldu.");
+        showToast("Toplu işlem başarısız oldu. Lütfen tekrar deneyin.", "error");
     }
 }
 
@@ -520,10 +532,10 @@ function openUserModal(user) {
             if (!value) return;
             try {
                 await navigator.clipboard.writeText(value);
-                alert("Kopyalandı.");
+                showToast("Kopyalama tamamlandı.", "success");
             } catch (error) {
                 console.error("Kopyalama hatası:", error);
-                alert("Kopyalama başarısız.");
+                showToast("Kopyalama başarısız oldu.", "error");
             }
         });
     });
@@ -540,12 +552,12 @@ function openUserModal(user) {
         try {
             await updateDoc(doc(db, "users", user.uid), updates);
             updateUserInState(user.uid, updates);
-            alert("Profil güncellendi.");
+            showToast("Profil güncellendi.", "success");
             refreshCurrentView();
             closeModal();
         } catch (error) {
             console.error("Profil güncelleme hatası:", error);
-            alert("Profil güncellenemedi.");
+            showToast("Profil güncellenemedi. Lütfen tekrar deneyin.", "error");
         }
     });
 }

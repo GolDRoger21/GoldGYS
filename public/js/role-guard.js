@@ -1,5 +1,6 @@
 // public/js/role-guard.js
 import { auth } from "./firebase-config.js";
+import { showToast } from "./notifications.js";
 
 /**
  * Kullanıcının yetkisini kontrol eder ve yetkisiz ise yönlendirir.
@@ -28,8 +29,10 @@ export async function requireAdminOrEditor() {
                     resolve({ role: "editor", user });
                 } else {
                     console.warn("Yetkisiz erişim denemesi!");
-                    alert("Bu alana erişim yetkiniz yok.");
-                    window.location.href = "/pages/dashboard.html";
+                    showToast("Bu alana erişim yetkiniz bulunmuyor.", "error");
+                    setTimeout(() => {
+                        window.location.href = "/pages/dashboard.html";
+                    }, 1000);
                     reject("Unauthorized");
                 }
             } catch (error) {
