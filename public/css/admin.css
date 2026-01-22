@@ -918,11 +918,28 @@ tr.highlight {
     padding: 0 20px;
     background: var(--bg-surface);
     flex-shrink: 0;
+    position: relative;
 }
 
 .studio-title-row {
     flex: 1;
     min-width: 0;
+    display: flex;
+    align-items: center;
+    position: relative;
+}
+
+.studio-branding {
+    z-index: 1;
+}
+
+.studio-topic-title {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    max-width: 60%;
+    text-align: center;
 }
 
 #activeTopicTitleDisplay {
@@ -1149,6 +1166,11 @@ tr.highlight {
 
 .editor-actions .input-group {
     align-items: center;
+    flex-wrap: nowrap;
+}
+
+.editor-actions .input-group-text {
+    white-space: nowrap;
 }
 
 /* Editör İçerik Alanı (ALTTA KAYDIRILABİLİR) */
@@ -1431,6 +1453,10 @@ tr.highlight {
     position: relative;
 }
 
+.question-card--paper {
+    align-items: flex-start;
+}
+
 .question-card:hover {
     border-color: var(--color-primary);
     transform: translateX(2px);
@@ -1489,6 +1515,29 @@ tr.highlight {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+.qc-text-full {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: unset;
+}
+
+.qc-question-root {
+    font-weight: 600;
+    margin-bottom: 4px;
+    color: var(--text-main);
+}
+
+.qc-answer {
+    margin-top: 6px;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.qc-answer-label {
+    font-weight: 600;
+    color: var(--text-main);
 }
 
 .qc-actions {
