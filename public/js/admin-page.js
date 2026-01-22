@@ -10,6 +10,7 @@ import * as ReportsModule from "./modules/admin/reports.js";
 import * as ExamsModule from "./modules/admin/exams.js";
 import * as ImporterModule from "./modules/admin/importer.js";
 import * as TopicsModule from "./modules/admin/topics.js";
+import * as TrashModule from "./modules/admin/trash.js";
 import { initNotifications } from "./modules/admin/notifications.js";
 import { showConfirm, showToast } from "./notifications.js";
 
@@ -94,6 +95,7 @@ function handleTabChange(target, role) {
             case 'exams': ExamsModule.initExamsPage(); break;
             case 'importer': ImporterModule.initImporterPage(); break;
             case 'topics': TopicsModule.initTopicsPage(); break;
+            case 'trash': TrashModule.initTrashPage(); break;
         }
     }
 }

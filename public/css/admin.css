@@ -920,6 +920,18 @@ tr.highlight {
     flex-shrink: 0;
 }
 
+.studio-title-row {
+    flex: 1;
+    min-width: 0;
+}
+
+#activeTopicTitleDisplay {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
 /* Ana Gövde (Sidebar + Editor) */
 /* Flex-direction ROW: Yan yana dizilim */
 .studio-layout {
@@ -1132,6 +1144,11 @@ tr.highlight {
     display: flex;
     align-items: center;
     gap: 12px;
+    flex-wrap: wrap;
+}
+
+.editor-actions .input-group {
+    align-items: center;
 }
 
 /* Editör İçerik Alanı (ALTTA KAYDIRILABİLİR) */
@@ -1595,6 +1612,7 @@ tr.highlight {
     border: 1px solid var(--border-color);
     background: var(--bg-surface);
     color: var(--text-muted);
+    white-space: nowrap;
 }
 
 .save-indicator.saving {

@@ -29,7 +29,9 @@ let state = {
     _isSaving: false,
     _matDragIndex: null,
     _dragIndex: null,
-    _isNormalizing: false
+    _isNormalizing: false,
+    topicTrashItems: [],
+    contentTrashItems: []
 };
 
 // ============================================================
@@ -89,12 +91,23 @@ export function initTopicsPage() {
         },
 
         // Çöp Kutusu İşlemleri
-        trash: { open: openTrash, restore: restoreItem },
+        trash: {
+            open: openTrash,
+            refresh: renderTopicTrashTable,
+            restore: restoreItem,
+            restoreSelected: restoreSelectedTopics,
+            purgeSelected: purgeSelectedTopics,
+            toggleAll: toggleAllTopicTrash
+        },
         contentTrash: {
             open: openContentTrash,
+            refresh: renderContentTrashTable,
             restore: restoreContentItem,
             purgeAll: purgeAllDeletedContent,
-            purgeOne: purgeOneDeletedContent
+            purgeOne: purgeOneDeletedContent,
+            restoreSelected: restoreSelectedContent,
+            purgeSelected: purgeSelectedContent,
+            toggleAll: toggleAllContentTrash
         }
     };
 
@@ -108,6 +121,13 @@ function closeEditor() {
 function closeModalById(id) {
     const el = document.getElementById(id);
     if (el) el.style.display = 'none';
+}
+
+function updateActiveTopicTitle(title) {
+    const el = document.getElementById('activeTopicTitleDisplay');
+    if (!el) return;
+    el.innerText = title;
+    el.title = title;
 }
 
 function sortTopicsByOrder(a, b) {
@@ -273,7 +293,7 @@ async function openEditor(id = null) {
             updateParentOptions(id);
             document.getElementById('inpTopicParent').value = t.parentId || '';
 
-            document.getElementById('activeTopicTitleDisplay').innerText = t.title;
+            updateActiveTopicTitle(t.title);
             state.activeTopicTitle = t.title;
             state.autoFilter = t.title;
             syncTopicFilterBadge();
@@ -294,7 +314,7 @@ async function openEditor(id = null) {
         document.getElementById('inpTopicParent').value = '';
         document.getElementById('contentListNav').innerHTML = '';
 
-        document.getElementById('activeTopicTitleDisplay').innerText = "Yeni Konu Oluşturuluyor...";
+        updateActiveTopicTitle("Yeni Konu Oluşturuluyor...");
         syncTopicFilterBadge();
 
         document.getElementById('emptyState').style.display = 'flex';
@@ -458,7 +478,7 @@ function showMetaEditor() {
     state.activeLessonId = null;
     document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
     const topicTitle = document.getElementById('inpTopicTitle')?.value || "";
-    document.getElementById('activeTopicTitleDisplay').innerText = topicTitle || (state.activeTopicId ? "Konu" : "Yeni Konu");
+    updateActiveTopicTitle(topicTitle || (state.activeTopicId ? "Konu" : "Yeni Konu"));
     toggleMetaDrawer(true);
 }
 
@@ -515,7 +535,11 @@ function setSaveIndicator(stateName, text) {
     if (!el) return;
     el.classList.remove('saving', 'saved', 'error');
     if (stateName) el.classList.add(stateName);
-    el.innerText = text || '—';
+    el.innerText = text || 'Otomatik kayıt açık';
+}
+
+function formatTimeLabel(date = new Date()) {
+    return date.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
 }
 
 function scheduleAutosave() {
@@ -531,9 +555,9 @@ function scheduleAutosave() {
             await saveContent(true); // Sessiz kayıt
             state._isSaving = false;
             state._isDirty = false;
-            setSaveIndicator('saved', 'Kaydedildi');
+            setSaveIndicator('saved', `Otomatik kaydedildi • ${formatTimeLabel()}`);
             clearTimeout(state._autosaveTimer2);
-            state._autosaveTimer2 = setTimeout(() => setSaveIndicator('', '—'), 2000);
+            state._autosaveTimer2 = setTimeout(() => setSaveIndicator('', 'Otomatik kayıt açık'), 2500);
         } catch (e) {
             console.error(e);
             state._isSaving = false;
@@ -1067,13 +1091,72 @@ async function openTrash() {
     const q = query(collection(db, "topics"), where("status", "==", "deleted"));
     const snap = await getDocs(q);
 
-    if (tbody) {
-        if (snap.empty) { tbody.innerHTML = '<tr><td colspan="2">Çöp kutusu boş</td></tr>'; return; }
-        tbody.innerHTML = snap.docs.map(d => `<tr><td>${d.data().title}</td><td class="text-end"><button class="btn btn-success btn-sm" onclick="window.Studio.trash.restore('${d.id}')">Geri Al</button></td></tr>`).join('');
-    }
+    state.topicTrashItems = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderTopicTrashTable();
 }
 
 async function restoreItem(id) { await updateDoc(doc(db, "topics", id), { status: 'active' }); openTrash(); loadTopics(); }
+
+function renderTopicTrashTable() {
+    const tbody = document.getElementById('trashTableBody');
+    const search = document.getElementById('topicTrashSearch')?.value.toLowerCase() || '';
+    const selectAll = document.getElementById('topicTrashSelectAll');
+    if (selectAll) selectAll.checked = false;
+    if (!tbody) return;
+
+    const filtered = state.topicTrashItems.filter(item =>
+        (item.title || '').toLowerCase().includes(search)
+    );
+
+    if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="3" class="text-center p-4 text-muted">Çöp kutusu boş.</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = filtered.map(item => `
+        <tr>
+            <td><input type="checkbox" class="topic-trash-checkbox" data-id="${item.id}"></td>
+            <td>${item.title || '(başlıksız)'}</td>
+            <td class="text-end">
+                <button class="btn btn-success btn-sm" onclick="window.Studio.trash.restore('${item.id}')">Geri Al</button>
+                <button class="btn btn-danger btn-sm" onclick="window.Studio.trash.purgeSelected(['${item.id}'])">Kalıcı Sil</button>
+            </td>
+        </tr>`).join('');
+}
+
+function getSelectedTopicTrashIds() {
+    return Array.from(document.querySelectorAll('.topic-trash-checkbox:checked'))
+        .map(input => input.dataset.id);
+}
+
+function toggleAllTopicTrash(checked) {
+    document.querySelectorAll('.topic-trash-checkbox').forEach(input => {
+        input.checked = checked;
+    });
+}
+
+async function restoreSelectedTopics() {
+    const ids = getSelectedTopicTrashIds();
+    if (ids.length === 0) return;
+    await Promise.all(ids.map(id => updateDoc(doc(db, "topics", id), { status: 'active' })));
+    openTrash();
+    loadTopics();
+}
+
+async function purgeSelectedTopics(idsParam = null) {
+    const ids = idsParam || getSelectedTopicTrashIds();
+    if (ids.length === 0) return;
+    const shouldDelete = await showConfirm("Seçilen konular kalıcı olarak silinecek. Devam etmek istiyor musunuz?", {
+        title: "Kalıcı Silme",
+        confirmText: "Sil",
+        cancelText: "Vazgeç",
+        tone: "error"
+    });
+    if (!shouldDelete) return;
+    await Promise.all(ids.map(id => deleteDoc(doc(db, "topics", id))));
+    openTrash();
+    loadTopics();
+}
 
 // İçerik Çöp Kutusu
 async function openContentTrash() {
@@ -1084,8 +1167,10 @@ async function openContentTrash() {
     closeModalById('trashModal');
     const modal = document.getElementById('contentTrashModal');
     const tbody = document.getElementById('contentTrashTableBody');
+    const modeLabel = document.getElementById('contentTrashModeLabel');
     if (!modal) return;
     modal.style.display = 'flex';
+    if (modeLabel) modeLabel.innerText = state.sidebarTab === 'test' ? 'Test' : 'Ders';
 
     if (tbody) tbody.innerHTML = '<tr><td colspan="4" class="p-3">Yükleniyor...</td></tr>';
 
@@ -1097,29 +1182,17 @@ async function openContentTrash() {
         );
         const snap = await getDocs(q);
         const rows = [];
-        const isTest = state.sidebarTab === 'test';
+        const defaultFilter = document.getElementById('contentTrashTypeFilter');
+        if (defaultFilter) defaultFilter.value = 'active';
 
         snap.forEach(d => {
             const data = d.data();
             const type = data.type || 'lesson';
-            if (isTest && type !== 'test') return;
-            if (!isTest && type === 'test') return;
             rows.push({ id: d.id, ...data });
         });
 
-        if (!tbody) return;
-        if (rows.length === 0) { tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-muted">Bu sekmede silinmiş içerik yok.</td></tr>`; return; }
-
-        tbody.innerHTML = rows.map(r => `
-            <tr>
-                <td><strong>${(r.title || '(başlıksız)')}</strong></td>
-                <td class="text-center">${r.order ?? ''}</td>
-                <td class="text-center"><span class="badge bg-light text-dark border">${r.type === 'test' ? 'Test' : 'Ders'}</span></td>
-                <td class="text-end">
-                    <button class="btn btn-success btn-sm" onclick="window.Studio.contentTrash.restore('${r.id}')">Geri Al</button>
-                    <button class="btn btn-danger btn-sm" onclick="window.Studio.contentTrash.purgeOne('${r.id}')">Kalıcı Sil</button>
-                </td>
-            </tr>`).join('');
+        state.contentTrashItems = rows;
+        renderContentTrashTable();
     } catch (e) { console.error(e); }
 }
 
@@ -1152,8 +1225,86 @@ async function purgeAllDeletedContent() {
         tone: "error"
     });
     if (!shouldDeleteAll) return;
-    // Batch silme işlemi yapılabilir, şimdilik basit tutuyoruz
-    showToast("Bu işlem toplu silme gerektirir; güvenlik nedeniyle şu anda devre dışı.", "info");
+    const ids = state.contentTrashItems.map(item => item.id);
+    if (ids.length === 0) {
+        showToast("Silinecek içerik bulunamadı.", "info");
+        return;
+    }
+    await Promise.all(ids.map(id => deleteDoc(doc(db, `topics/${state.activeTopicId}/lessons`, id))));
+    openContentTrash();
+}
+
+function renderContentTrashTable() {
+    const tbody = document.getElementById('contentTrashTableBody');
+    const search = document.getElementById('contentTrashSearch')?.value.toLowerCase() || '';
+    const typeFilter = document.getElementById('contentTrashTypeFilter')?.value || 'active';
+    const selectAll = document.getElementById('contentTrashSelectAll');
+    if (selectAll) selectAll.checked = false;
+    if (!tbody) return;
+
+    const filtered = state.contentTrashItems.filter(item => {
+        const type = item.type || 'lesson';
+        const typeMatches = typeFilter === 'all'
+            || (typeFilter === 'active' && type === state.sidebarTab)
+            || typeFilter === type;
+        return typeMatches && (item.title || '').toLowerCase().includes(search);
+    });
+
+    if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-muted">Bu kriterlerde silinmiş içerik yok.</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = filtered.map(r => `
+        <tr>
+            <td><input type="checkbox" class="content-trash-checkbox" data-id="${r.id}"></td>
+            <td><strong>${(r.title || '(başlıksız)')}</strong></td>
+            <td class="text-center">${r.order ?? ''}</td>
+            <td class="text-center"><span class="badge bg-light text-dark border">${r.type === 'test' ? 'Test' : 'Ders'}</span></td>
+            <td class="text-end">
+                <button class="btn btn-success btn-sm" onclick="window.Studio.contentTrash.restore('${r.id}')">Geri Al</button>
+                <button class="btn btn-danger btn-sm" onclick="window.Studio.contentTrash.purgeOne('${r.id}')">Kalıcı Sil</button>
+            </td>
+        </tr>`).join('');
+}
+
+function toggleAllContentTrash(checked) {
+    document.querySelectorAll('.content-trash-checkbox').forEach(input => {
+        input.checked = checked;
+    });
+}
+
+function getSelectedContentTrashIds() {
+    return Array.from(document.querySelectorAll('.content-trash-checkbox:checked'))
+        .map(input => input.dataset.id);
+}
+
+async function restoreSelectedContent() {
+    if (!state.activeTopicId) return;
+    const ids = getSelectedContentTrashIds();
+    if (ids.length === 0) return;
+    await Promise.all(ids.map(id => updateDoc(doc(db, `topics/${state.activeTopicId}/lessons`, id), {
+        status: 'active',
+        isActive: true,
+        deletedAt: null
+    })));
+    loadLessons(state.activeTopicId);
+    openContentTrash();
+}
+
+async function purgeSelectedContent() {
+    if (!state.activeTopicId) return;
+    const ids = getSelectedContentTrashIds();
+    if (ids.length === 0) return;
+    const shouldDelete = await showConfirm("Seçilen içerikler kalıcı olarak silinecek. Devam etmek istiyor musunuz?", {
+        title: "Kalıcı Silme",
+        confirmText: "Sil",
+        cancelText: "Vazgeç",
+        tone: "error"
+    });
+    if (!shouldDelete) return;
+    await Promise.all(ids.map(id => deleteDoc(doc(db, `topics/${state.activeTopicId}/lessons`, id))));
+    openContentTrash();
 }
 
 async function normalizeTopicOrders(topics) {

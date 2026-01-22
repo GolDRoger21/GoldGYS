@@ -43,7 +43,7 @@ export const UI_SHELL = `
         <div class="studio-modal-container">
 
             <div class="studio-header">
-                <div class="d-flex align-items-center gap-3">
+                <div class="d-flex align-items-center gap-3 studio-title-row">
                     <div class="fw-bold text-primary" style="font-size:1.2rem;">⚡ Studio Pro</div>
                     <div class="vr"></div>
                     <div id="activeTopicTitleDisplay" class="text-muted fw-medium">Konu Seçilmedi</div>
@@ -96,7 +96,7 @@ export const UI_SHELL = `
                                 <input type="text" id="inpContentTitle" class="editor-title-input" placeholder="İçerik Başlığı Giriniz...">
                             </div>
                             <div class="editor-actions">
-                                <span id="saveIndicator" class="save-indicator">—</span>
+                                <span id="saveIndicator" class="save-indicator">Otomatik kayıt açık</span>
                                 <div class="input-group input-group-sm" style="width: 100px;">
                                     <span class="input-group-text">Sıra</span>
                                     <input type="number" id="inpContentOrder" class="form-control text-center">
@@ -234,13 +234,37 @@ export const UI_SHELL = `
                         <button onclick="document.getElementById('contentTrashModal').style.display='none'" class="close-btn">&times;</button>
                     </div>
                     <div class="modal-body-scroll p-0">
-                         <div class="p-3 border-bottom bg-white d-flex align-items-center justify-content-between">
-                            <div class="small text-muted">
-                                Aktif sekmeye göre listelenir: <strong id="contentTrashModeLabel">Ders</strong>
+                         <div class="p-3 border-bottom bg-white d-flex flex-wrap gap-2 align-items-center justify-content-between">
+                            <div class="d-flex flex-wrap gap-2 align-items-center">
+                                <div class="small text-muted">
+                                    Aktif sekmeye göre listelenir: <strong id="contentTrashModeLabel">Ders</strong>
+                                </div>
+                                <input type="text" id="contentTrashSearch" class="form-control form-control-sm" placeholder="Başlıkta ara..." oninput="window.Studio.contentTrash.refresh()">
+                                <select id="contentTrashTypeFilter" class="form-select form-select-sm" onchange="window.Studio.contentTrash.refresh()">
+                                    <option value="active">Aktif Sekme</option>
+                                    <option value="lesson">Ders</option>
+                                    <option value="test">Test</option>
+                                    <option value="all">Tümü</option>
+                                </select>
                             </div>
-                            <button class="btn btn-danger btn-sm" onclick="window.Studio.contentTrash.purgeAll()">Tümünü Sil</button>
+                            <div class="d-flex flex-wrap gap-2">
+                                <button class="btn btn-outline-success btn-sm" onclick="window.Studio.contentTrash.restoreSelected()">Seçileni Geri Al</button>
+                                <button class="btn btn-danger btn-sm" onclick="window.Studio.contentTrash.purgeSelected()">Seçileni Sil</button>
+                                <button class="btn btn-danger btn-sm" onclick="window.Studio.contentTrash.purgeAll()">Tümünü Sil</button>
+                            </div>
                         </div>
-                        <table class="admin-table"><tbody id="contentTrashTableBody"></tbody></table>
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th style="width:36px;"><input type="checkbox" id="contentTrashSelectAll" onchange="window.Studio.contentTrash.toggleAll(this.checked)"></th>
+                                    <th>Başlık</th>
+                                    <th class="text-center">Sıra</th>
+                                    <th class="text-center">Tür</th>
+                                    <th class="text-end">İşlem</th>
+                                </tr>
+                            </thead>
+                            <tbody id="contentTrashTableBody"></tbody>
+                        </table>
                     </div>
                 </div>
             </div>
@@ -252,7 +276,21 @@ export const UI_SHELL = `
                         <button onclick="document.getElementById('trashModal').style.display='none'" class="close-btn">&times;</button>
                     </div>
                     <div class="modal-body-scroll p-0">
+                        <div class="p-3 border-bottom bg-white d-flex flex-wrap gap-2 align-items-center justify-content-between">
+                            <input type="text" id="topicTrashSearch" class="form-control form-control-sm" placeholder="Konu başlığı ara..." oninput="window.Studio.trash.refresh()">
+                            <div class="d-flex flex-wrap gap-2">
+                                <button class="btn btn-outline-success btn-sm" onclick="window.Studio.trash.restoreSelected()">Seçileni Geri Al</button>
+                                <button class="btn btn-danger btn-sm" onclick="window.Studio.trash.purgeSelected()">Seçileni Sil</button>
+                            </div>
+                        </div>
                         <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th style="width:36px;"><input type="checkbox" id="topicTrashSelectAll" onchange="window.Studio.trash.toggleAll(this.checked)"></th>
+                                    <th>Konu</th>
+                                    <th class="text-end">İşlem</th>
+                                </tr>
+                            </thead>
                             <tbody id="trashTableBody"></tbody>
                         </table>
                     </div>
