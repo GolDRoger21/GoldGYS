@@ -85,6 +85,7 @@
 
     <script type="module">
         import { db, auth } from '../js/firebase-config.js';
+        import { showConfirm, showToast } from '../js/notifications.js';
         import { collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
@@ -97,7 +98,7 @@
             if (!user) {
                 statusDiv.style.display = 'block';
                 statusDiv.className = 'error';
-                statusDiv.innerHTML = "⚠️ HATA: Lütfen önce admin hesabınızla giriş yapın.";
+                statusDiv.innerHTML = "Giriş yapılmadı. Lütfen admin hesabınızla oturum açın.";
                 importBtn.disabled = true;
                 importBtn.classList.add('btn-secondary');
                 importBtn.classList.remove('btn-primary');
@@ -107,11 +108,16 @@
         importBtn.addEventListener('click', async () => {
             if (isRunning) return;
             if (!auth.currentUser) {
-                alert("Lütfen önce giriş yapın.");
+                showToast("Devam etmek için lütfen giriş yapın.", "error");
                 return;
             }
 
-            if (!confirm("Bu işlem `public/seed.json` dosyasındaki verileri veritabanına ekleyecektir. Onaylıyor musunuz?")) {
+            const shouldImport = await showConfirm("`public/seed.json` dosyasındaki veriler Firestore'a aktarılacak. İşleme devam etmek istiyor musunuz?", {
+                title: "Veri Aktarımı",
+                confirmText: "Aktarımı Başlat",
+                cancelText: "Vazgeç"
+            });
+            if (!shouldImport) {
                 return;
             }
 

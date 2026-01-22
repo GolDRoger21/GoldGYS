@@ -1,4 +1,5 @@
 import { db } from "../../firebase-config.js";
+import { showConfirm, showToast } from "../../notifications.js";
 import { collection, writeBatch, doc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import * as XLSX from "https://cdn.sheetjs.com/xlsx-latest/package/xlsx.mjs";
 
@@ -223,7 +224,12 @@ function validateAndPreview() {
 }
 
 async function startBatchImport() {
-    if (!confirm(`${parsedQuestions.length} soruyu veritabanına yüklemek istiyor musunuz?`)) return;
+    const shouldImport = await showConfirm(`${parsedQuestions.length} soruyu veritabanına yüklemek istiyor musunuz?`, {
+        title: "Toplu Yükleme",
+        confirmText: "Yüklemeyi Başlat",
+        cancelText: "Vazgeç"
+    });
+    if (!shouldImport) return;
 
     const btn = document.getElementById('btnStartImport');
     btn.disabled = true;
@@ -254,7 +260,7 @@ async function startBatchImport() {
         }
 
         log("✅ TÜM İŞLEMLER BAŞARIYLA TAMAMLANDI!", "success");
-        alert("Yükleme tamamlandı.");
+        showToast("Yükleme başarıyla tamamlandı.", "success");
 
         // Temizlik
         document.getElementById('previewCard').style.display = 'none';

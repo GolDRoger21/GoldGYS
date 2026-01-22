@@ -1,5 +1,5 @@
 import { db, auth } from "./firebase-config.js";
-import { showToast } from "./notifications.js";
+import { showConfirm, showToast } from "./notifications.js";
 import {
     doc, setDoc, addDoc, collection, serverTimestamp, increment, getDoc, deleteDoc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -311,15 +311,20 @@ export class TestEngine {
         }
     }
 
-    finishConfirm() {
+    async finishConfirm() {
         const answeredCount = Object.keys(this.answers).length;
         const total = this.questions.length;
         const empty = total - answeredCount;
 
         let msg = "Testi bitirmek istediğinize emin misiniz?";
-        if (empty > 0) msg += `\n\n⚠️ ${empty} boş sorunuz var!`;
+        if (empty > 0) msg += ` ${empty} soruyu boş bıraktınız.`;
 
-        if (confirm(msg)) {
+        const shouldFinish = await showConfirm(msg, {
+            title: "Testi Bitir",
+            confirmText: "Testi Bitir",
+            cancelText: "Devam Et"
+        });
+        if (shouldFinish) {
             this.finishTest();
         }
     }

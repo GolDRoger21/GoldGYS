@@ -2,6 +2,7 @@ import { auth, db } from "./firebase-config.js";
 import { sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { doc, updateDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { getUserProfile, updateUserCache } from "./user-profile.js";
+import { showConfirm, showToast } from "./notifications.js";
 
 // DOM Elemanlarını dinamik olarak alacağız
 const getDom = () => ({
@@ -237,13 +238,18 @@ async function saveProfile(uid) {
     }
 }
 
-function handlePasswordReset(email) {
+async function handlePasswordReset(email) {
     if(!email) return;
-    if(confirm("Şifre sıfırlama bağlantısı gönderilsin mi?")) {
-        sendPasswordResetEmail(auth, email)
-            .then(() => alert("E-posta gönderildi."))
-            .catch(e => alert("Hata: " + e.message));
-    }
+    const shouldSend = await showConfirm("Şifre sıfırlama bağlantısını e-posta adresinize göndermek istiyor musunuz?", {
+        title: "Şifre Sıfırlama",
+        confirmText: "Gönder",
+        cancelText: "Vazgeç"
+    });
+    if (!shouldSend) return;
+
+    sendPasswordResetEmail(auth, email)
+        .then(() => showToast("Şifre sıfırlama bağlantısı gönderildi.", "success"))
+        .catch(e => showToast(`Gönderim sırasında hata oluştu: ${e.message}`, "error"));
 }
 
 function initTabs() {

@@ -64,6 +64,7 @@
 
   <script type="module">
     import { db, auth } from '../js/firebase-config.js';
+    import { showConfirm, showToast } from '../js/notifications.js';
     import { collection, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
     import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
@@ -134,11 +135,17 @@
     }
 
     window.removeFavorite = async (id) => {
-      if (confirm("Favorilerden çıkarmak istiyor musunuz?")) {
-        const uid = auth.currentUser.uid;
-        await deleteDoc(doc(db, `users/${uid}/favorites`, id));
-        document.getElementById(`fav-${id}`).remove();
-      }
+      const shouldRemove = await showConfirm("Bu soruyu favorilerinizden kaldırmak istediğinize emin misiniz?", {
+        title: "Favoriden Kaldır",
+        confirmText: "Kaldır",
+        cancelText: "Vazgeç"
+      });
+      if (!shouldRemove) return;
+
+      const uid = auth.currentUser.uid;
+      await deleteDoc(doc(db, `users/${uid}/favorites`, id));
+      document.getElementById(`fav-${id}`).remove();
+      showToast("Favori listesi güncellendi.", "success");
     };
   </script>
 </body>

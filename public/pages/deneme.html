@@ -227,6 +227,7 @@
         import { protectPage } from '/js/role-guard.js';
         import { TestEngine } from '/js/test-engine.js';
         import { db, auth } from '/js/firebase-config.js';
+        import { showConfirm, showToast } from '/js/notifications.js';
         import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         protectPage();
@@ -236,7 +237,7 @@
             const examId = urlParams.get('id');
 
             if (!examId) {
-                alert("Deneme ID bulunamadı.");
+                showToast("Deneme bilgisi bulunamadı. Lütfen listeye geri dönün.", "error");
                 window.location.href = 'denemeler.html';
                 return;
             }
@@ -265,15 +266,20 @@
                 document.getElementById('loader').style.display = 'none';
 
                 // Bitir Butonu
-                document.getElementById('btnFinishExam').addEventListener('click', () => {
-                    if (confirm("Sınavı bitirmek istediğinize emin misiniz?")) {
+                document.getElementById('btnFinishExam').addEventListener('click', async () => {
+                    const shouldFinish = await showConfirm("Sınavı bitirmek ve sonuçları görmek istediğinize emin misiniz?", {
+                        title: "Sınavı Bitir",
+                        confirmText: "Sınavı Bitir",
+                        cancelText: "Devam Et"
+                    });
+                    if (shouldFinish) {
                         engine.finishTest();
                     }
                 });
 
             } catch (error) {
                 console.error(error);
-                alert("Hata: " + error.message);
+                showToast(`Bir hata oluştu: ${error.message}`, "error");
                 window.location.href = 'denemeler.html';
             }
         });

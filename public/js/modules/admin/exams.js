@@ -1,4 +1,5 @@
 import { db } from "../../firebase-config.js";
+import { showConfirm, showToast } from "../../notifications.js";
 import { collection, getDocs, doc, addDoc, deleteDoc, serverTimestamp, query, orderBy, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 let generatedQuestionsCache = [];
@@ -200,7 +201,10 @@ async function saveExam() {
     const title = document.getElementById('inpExamTitle').value;
     const duration = document.getElementById('inpDuration').value;
 
-    if (!title) return alert("Başlık giriniz.");
+    if (!title) {
+        showToast("Lütfen bir başlık girin.", "info");
+        return;
+    }
 
     try {
         await addDoc(collection(db, "exams"), {
@@ -212,10 +216,12 @@ async function saveExam() {
             isActive: true,
             role: "Yazı İşleri Müdürü"
         });
-        alert("Deneme başarıyla yayınlandı!");
+        showToast("Deneme başarıyla yayınlandı.", "success");
         document.getElementById('examWizard').style.display = 'none';
         loadExams();
-    } catch (e) { alert("Hata: " + e.message); }
+    } catch (e) {
+        showToast(`Yayınlama sırasında hata oluştu: ${e.message}`, "error");
+    }
 }
 
 async function loadExams() {
@@ -247,8 +253,15 @@ async function loadExams() {
 }
 
 window.deleteExam = async (id) => {
-    if (confirm("Bu denemeyi silmek istediğinize emin misiniz?")) {
-        await deleteDoc(doc(db, "exams", id));
-        loadExams();
-    }
+    const shouldDelete = await showConfirm("Bu denemeyi silmek istediğinize emin misiniz?", {
+        title: "Denemeyi Sil",
+        confirmText: "Sil",
+        cancelText: "Vazgeç",
+        tone: "error"
+    });
+    if (!shouldDelete) return;
+
+    await deleteDoc(doc(db, "exams", id));
+    loadExams();
+    showToast("Deneme silindi.", "success");
 };

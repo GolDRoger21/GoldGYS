@@ -1,6 +1,7 @@
 import { auth } from './firebase-config.js';
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getUserProfile } from './user-profile.js';
+import { showConfirm } from './notifications.js';
 
 const PAGE_CONFIG = {
     '/pages/dashboard.html': { id: 'dashboard', title: 'Genel Bakış' },
@@ -155,7 +156,7 @@ function updateThemeIcon(theme) {
 
 function setupEventListeners() {
     // Event Delegation: Dinamik yüklenen elementler için body'ye listener ekliyoruz
-    document.body.addEventListener('click', (e) => {
+    document.body.addEventListener('click', async (e) => {
         const target = e.target;
 
         // 1. Sidebar Toggle (Hamburger)
@@ -196,7 +197,12 @@ function setupEventListeners() {
         // 4. Çıkış Butonu
         const logoutBtn = target.closest('#logoutButton');
         if (logoutBtn) {
-            if (confirm("Çıkış yapmak istiyor musunuz?")) {
+            const shouldLogout = await showConfirm("Oturumunuzu kapatmak istediğinize emin misiniz?", {
+                title: "Çıkış Onayı",
+                confirmText: "Çıkış Yap",
+                cancelText: "Vazgeç"
+            });
+            if (shouldLogout) {
                 signOut(auth).then(() => window.location.href = '/login.html');
             }
             return;

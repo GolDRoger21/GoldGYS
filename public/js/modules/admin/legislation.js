@@ -1,4 +1,5 @@
 import { db } from "../../firebase-config.js";
+import { showConfirm, showToast } from "../../notifications.js";
 import {
     collection, query, where, getDocs, writeBatch, doc, getCountFromServer, orderBy
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -113,7 +114,10 @@ async function findAffectedQuestions() {
     const resultsArea = document.getElementById('resultsArea');
     const tbody = document.getElementById('legislationTableBody');
 
-    if (!code) return alert("Lütfen en azından Kanun Numarası giriniz.");
+    if (!code) {
+        showToast("Lütfen en azından kanun numarası girin.", "info");
+        return;
+    }
 
     tbody.innerHTML = '<tr><td colspan="6" class="text-center">Veritabanı taranıyor...</td></tr>';
     resultsArea.style.display = 'block';
@@ -211,7 +215,10 @@ async function loadFlaggedQuestions() {
 }
 
 async function applyBulkAction(actionType) {
-    if (currentAffectedQuestions.length === 0) return alert("İşlem yapılacak soru yok.");
+    if (currentAffectedQuestions.length === 0) {
+        showToast("İşlem yapılacak soru bulunamadı.", "info");
+        return;
+    }
 
     let confirmMsg = "";
     let updateData = {};
@@ -224,7 +231,12 @@ async function applyBulkAction(actionType) {
         updateData = { isFlaggedForReview: true };
     }
 
-    if (!confirm(confirmMsg)) return;
+    const shouldApply = await showConfirm(confirmMsg, {
+        title: "Toplu İşlem",
+        confirmText: "Uygula",
+        cancelText: "Vazgeç"
+    });
+    if (!shouldApply) return;
 
     try {
         // Firestore Batch (Max 500 işlem)
@@ -236,7 +248,7 @@ async function applyBulkAction(actionType) {
         });
 
         await batch.commit();
-        alert("Toplu işlem başarıyla tamamlandı.");
+        showToast("Toplu işlem başarıyla tamamlandı.", "success");
 
         // Listeyi yenile
         findAffectedQuestions();
@@ -244,6 +256,6 @@ async function applyBulkAction(actionType) {
 
     } catch (error) {
         console.error(error);
-        alert("İşlem sırasında hata oluştu: " + error.message);
+        showToast(`İşlem sırasında hata oluştu: ${error.message}`, "error");
     }
 }
