@@ -72,20 +72,85 @@
                         </div>
                     </div>
 
-                    <div class="dashboard-charts-row">
-                        <div class="chart-container card">
-                            <h3>📈 Son 7 Gün Üye Katılımı</h3>
-                            <div class="chart-wrapper"><canvas id="usersChart"></canvas></div>
+                    <div class="dashboard-overview-grid">
+                        <div class="overview-main">
+                            <div class="card chart-card">
+                                <div class="card-header">
+                                    <div>
+                                        <h3>📈 Son 7 Gün Üye Katılımı</h3>
+                                        <p class="text-muted">Yeni kayıt trendini günlük olarak takip edin.</p>
+                                    </div>
+                                    <span class="badge badge-secondary">Günlük</span>
+                                </div>
+                                <div class="chart-wrapper"><canvas id="usersChart"></canvas></div>
+                            </div>
+
+                            <div class="card">
+                                <div class="card-header">
+                                    <div>
+                                        <h3>🧑‍💻 Son Üyeler</h3>
+                                        <p class="text-muted">Aramıza katılan en yeni kullanıcılar.</p>
+                                    </div>
+                                    <button class="btn btn-secondary btn-sm" onclick="window.location.hash='users'">Tümü</button>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="admin-table compact-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Kullanıcı</th>
+                                                <th>E-Posta</th>
+                                                <th>Tarih</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="recentUsersTable"></tbody>
+                                    </table>
+                                </div>
+                            </div>
                         </div>
-                        <div class="quick-actions-container">
-                            <div class="card action-card">
+
+                        <div class="overview-side">
+                            <div class="card overview-quick-actions">
                                 <h3>⚡ Hızlı İşlemler</h3>
+                                <p class="text-muted">Sık kullanılan yönetim aksiyonlarına tek tıkla erişin.</p>
                                 <div class="action-buttons">
                                     <button onclick="window.location.hash='topics'" class="btn-action">📑 İçerik
                                         Stüdyosu</button>
                                     <button onclick="window.location.hash='content'" class="btn-action">📚 Soru
                                         Bankası</button>
+                                    <button onclick="window.location.hash='reports'" class="btn-action">🚩 Bildirimleri
+                                        İncele</button>
                                 </div>
+                            </div>
+
+                            <div class="card">
+                                <div class="card-header">
+                                    <div>
+                                        <h3>🚩 Son Bildirimler</h3>
+                                        <p class="text-muted">Son raporlanan içerikler ve durumları.</p>
+                                    </div>
+                                    <button class="btn btn-secondary btn-sm" onclick="window.location.hash='reports'">Tümünü gör</button>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="admin-table compact-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Tür</th>
+                                                <th>Açıklama</th>
+                                                <th>Durum</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="recentReportsTable"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <div class="card system-health">
+                                <h3>🟢 Sistem Özeti</h3>
+                                <ul class="status-list">
+                                    <li><span class="status-dot status-success"></span>Sunucu ve hizmetler aktif</li>
+                                    <li><span class="status-dot status-info"></span>Yedekleme son 6 saat içinde alındı</li>
+                                    <li><span class="status-dot status-warning"></span>Bildirim kuyruğunu kontrol edin</li>
+                                </ul>
                             </div>
                         </div>
                     </div>
