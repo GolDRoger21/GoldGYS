@@ -237,19 +237,26 @@ function renderContentInterface() {
             </div>
         </div>
 
-        <div class="card mb-4 p-3 border-0 shadow-sm">
+        <div class="card mb-4 p-3 border-0 shadow-sm question-filter-card">
+            <div class="question-filter-header">
+                <div>
+                    <h5>Filtreler</h5>
+                    <p class="text-muted small mb-0">Soru bankasını hızlıca daraltmak için aşağıdaki kriterleri kullanın.</p>
+                </div>
+                <button id="btnFilter" class="btn btn-secondary">Ara / Filtrele</button>
+            </div>
             <div class="row g-3 align-items-end">
-                <div class="col-md-4">
+                <div class="col-lg-4 col-md-6">
                     <label class="form-label small fw-bold text-muted">GENEL ARAMA</label>
                     <input type="text" id="searchQuestion" class="form-control" placeholder="Soru metni, ID, kategori veya mevzuat ara...">
                 </div>
-                <div class="col-md-3">
+                <div class="col-lg-3 col-md-6">
                     <label class="form-label small fw-bold text-muted">KATEGORİ</label>
                     <select id="filterCategory" class="form-select">
                         <option value="">Tüm Kategoriler</option>
                     </select>
                 </div>
-                <div class="col-md-3">
+                <div class="col-lg-2 col-md-6">
                     <label class="form-label small fw-bold text-muted">DURUM</label>
                     <select id="filterStatus" class="form-select">
                         <option value="active">✅ Aktif</option>
@@ -258,18 +265,7 @@ function renderContentInterface() {
                         <option value="all">📌 Tümü</option>
                     </select>
                 </div>
-                <div class="col-md-2">
-                    <button id="btnFilter" class="btn btn-secondary w-100">Ara / Filtrele</button>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label small fw-bold text-muted">KANUN NO</label>
-                    <input type="text" id="filterLegCode" class="form-control" placeholder="Örn: 5271">
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label small fw-bold text-muted">MADDE NO</label>
-                    <input type="text" id="filterLegArticle" class="form-control" placeholder="Örn: 12">
-                </div>
-                <div class="col-md-3">
+                <div class="col-lg-3 col-md-6">
                     <label class="form-label small fw-bold text-muted">MEVZUAT DURUMU</label>
                     <select id="filterLegMode" class="form-select">
                         <option value="all">Tümü</option>
@@ -277,8 +273,16 @@ function renderContentInterface() {
                         <option value="without">Mevzuatsız</option>
                     </select>
                 </div>
-                <div class="col-md-3 d-flex align-items-end">
-                    <div class="text-muted small">Mevzuat değişikliğinde ilgili kanun/maddeyi filtreleyip topluca işlem yapabilirsiniz.</div>
+                <div class="col-lg-3 col-md-6">
+                    <label class="form-label small fw-bold text-muted">KANUN NO</label>
+                    <input type="text" id="filterLegCode" class="form-control" placeholder="Örn: 5271">
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <label class="form-label small fw-bold text-muted">MADDE NO</label>
+                    <input type="text" id="filterLegArticle" class="form-control" placeholder="Örn: 12">
+                </div>
+                <div class="col-lg-6 col-md-12 d-flex align-items-end">
+                    <div class="text-muted small question-filter-hint">Mevzuat değişikliğinde ilgili kanun/maddeyi filtreleyip topluca işlem yapabilirsiniz.</div>
                 </div>
             </div>
         </div>
@@ -451,9 +455,11 @@ async function loadQuestions() {
                     </div>
                 </td>
                 <td>
-                    <button class="btn btn-sm btn-primary" onclick="window.QuestionBank.openEditor('${doc.id}')">✏️</button>
-                    <button class="btn btn-sm btn-outline-secondary" onclick="window.toggleQuestionActive('${doc.id}', ${d.isActive === false})">${d.isActive === false ? '▶️' : '⏸️'}</button>
-                    <button class="btn btn-sm btn-danger" onclick="window.softDeleteQuestion('${doc.id}')">🗑️</button>
+                    <div class="question-actions">
+                        <button class="btn btn-sm btn-primary" onclick="window.QuestionBank.openEditor('${doc.id}')">✏️</button>
+                        <button class="btn btn-sm btn-outline-secondary" onclick="window.toggleQuestionActive('${doc.id}', ${d.isActive === false})">${d.isActive === false ? '▶️' : '⏸️'}</button>
+                        <button class="btn btn-sm btn-danger" onclick="window.softDeleteQuestion('${doc.id}')">🗑️</button>
+                    </div>
                 </td>
             `;
             tbody.appendChild(tr);
