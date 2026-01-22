@@ -620,7 +620,10 @@ async function saveContent(silent = false) {
 }
 
 async function deleteContent() {
-    if (!state.activeLessonId) return;
+    if (!state.activeLessonId) {
+        showToast("Silmek için önce kaydedilmiş bir içerik seçin.", "info");
+        return;
+    }
     const shouldDelete = await showConfirm("Bu içeriği silmek istediğinize emin misiniz?", {
         title: "İçeriği Sil",
         confirmText: "Sil",
@@ -1005,9 +1008,11 @@ function renderTestPaper() {
     }
 
     list.innerHTML = state.tempQuestions.map((q, i) => {
-        const shortText = (q.text || '').replace(/<[^>]*>?/gm, '').substring(0, 100) + '...';
+        const questionRoot = sanitizeHTML(q.questionRoot || '');
+        const questionText = sanitizeHTML(q.text || '');
+        const answerText = getAnswerText(q);
         return `
-        <div class="question-card" draggable="true" 
+        <div class="question-card question-card--paper" draggable="true" 
             ondragstart="window.Studio.wizard.dragStart(${i},event)" 
             ondragover="window.Studio.wizard.dragOver(${i},event)" 
             ondragleave="window.Studio.wizard.dragLeave(event)" 
@@ -1023,7 +1028,9 @@ function renderTestPaper() {
                     <span class="badge-outline">Md. ${q.artNo || '?'}</span>
                     <span class="badge-outline" style="border:none; color:#94a3b8">${q.category || 'Genel'}</span>
                 </div>
-                <div class="qc-text">${shortText}</div>
+                ${questionRoot ? `<div class="qc-question-root">${questionRoot}</div>` : ''}
+                <div class="qc-text qc-text-full">${questionText}</div>
+                ${answerText ? `<div class="qc-answer"><span class="qc-answer-label">Cevap:</span> ${answerText}</div>` : ''}
             </div>
             <div class="qc-actions">
                 <button class="btn-icon" style="background:#e0f2fe; color:#075985;" onclick="event.stopPropagation(); window.Studio.wizard.fullEdit('${q.id}')" title="Düzenle">✏️</button>
@@ -1031,6 +1038,15 @@ function renderTestPaper() {
             </div>
         </div>`;
     }).join('');
+}
+
+function getAnswerText(question) {
+    if (!question) return '';
+    const correctId = question.correctOption;
+    if (!correctId) return '';
+    const option = (question.options || []).find(opt => opt.id === correctId);
+    const optionText = option?.text ? sanitizeHTML(option.text) : '';
+    return optionText ? `${correctId}) ${optionText}` : correctId;
 }
 
 function addToTestPaper(id) {

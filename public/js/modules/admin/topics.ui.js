@@ -43,10 +43,12 @@ export const UI_SHELL = `
         <div class="studio-modal-container">
 
             <div class="studio-header">
-                <div class="d-flex align-items-center gap-3 studio-title-row">
-                    <div class="fw-bold text-primary" style="font-size:1.2rem;">⚡ Studio Pro</div>
-                    <div class="vr"></div>
-                    <div id="activeTopicTitleDisplay" class="text-muted fw-medium">Konu Seçilmedi</div>
+                <div class="studio-title-row">
+                    <div class="studio-branding d-flex align-items-center gap-3">
+                        <div class="fw-bold text-primary" style="font-size:1.2rem;">⚡ Studio Pro</div>
+                        <div class="vr"></div>
+                    </div>
+                    <div id="activeTopicTitleDisplay" class="text-muted fw-medium studio-topic-title">Konu Seçilmedi</div>
                 </div>
                 <button class="btn btn-icon text-muted" onclick="window.Studio.close()" style="font-size:1.5rem;">&times;</button>
             </div>
