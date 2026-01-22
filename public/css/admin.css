@@ -153,6 +153,136 @@
     background-color: var(--bg-hover);
 }
 
+.user-info .name {
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+.user-info small,
+.user-meta {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+}
+
+.user-meta {
+    margin-top: 4px;
+}
+
+.users-actions {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.users-toolbar {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.users-toolbar-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.users-view-buttons {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.users-search {
+    flex: 1;
+    min-width: 220px;
+}
+
+.users-filters {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.users-bulk-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+    padding: 12px;
+    border-radius: var(--radius-md);
+    background: var(--bg-hover);
+    border: 1px solid var(--border-color);
+}
+
+.users-select-all {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+}
+
+.users-bulk-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-left: auto;
+}
+
+.badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: var(--radius-full);
+    font-size: 0.75rem;
+    font-weight: 600;
+    border: 1px solid transparent;
+}
+
+.badge-admin {
+    background: rgba(212, 175, 55, 0.2);
+    color: #8a6b14;
+    border-color: rgba(212, 175, 55, 0.3);
+}
+
+.badge-editor {
+    background: rgba(59, 130, 246, 0.15);
+    color: #1d4ed8;
+    border-color: rgba(59, 130, 246, 0.25);
+}
+
+.badge-student {
+    background: rgba(100, 116, 139, 0.18);
+    color: #475569;
+    border-color: rgba(100, 116, 139, 0.2);
+}
+
+.status-pending {
+    background: rgba(245, 158, 11, 0.18);
+    color: #b45309;
+    border-color: rgba(245, 158, 11, 0.2);
+}
+
+.status-active {
+    background: rgba(16, 185, 129, 0.18);
+    color: #047857;
+    border-color: rgba(16, 185, 129, 0.2);
+}
+
+.status-suspended {
+    background: rgba(239, 68, 68, 0.12);
+    color: #b91c1c;
+    border-color: rgba(239, 68, 68, 0.2);
+}
+
+.status-rejected {
+    background: rgba(100, 116, 139, 0.18);
+    color: #475569;
+    border-color: rgba(100, 116, 139, 0.2);
+}
+
 /* Butonlar */
 .btn {
     display: inline-flex;
@@ -544,6 +674,46 @@ tr.highlight {
     color: var(--text-main);
     font-family: inherit;
     transition: border-color var(--transition-fast);
+}
+
+.form-label {
+    display: block;
+    margin: 10px 0 6px;
+    font-weight: 600;
+    color: var(--text-main);
+}
+
+.modal-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+    margin-top: 16px;
+    flex-wrap: wrap;
+}
+
+.user-profile-grid {
+    display: grid;
+    gap: 16px;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+.user-profile-card {
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    background: var(--bg-surface);
+}
+
+.user-profile-card h4 {
+    margin-top: 0;
+    margin-bottom: 12px;
+}
+
+.user-profile-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+    flex-wrap: wrap;
 }
 
 .form-control:focus,
