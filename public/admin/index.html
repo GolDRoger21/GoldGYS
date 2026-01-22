@@ -141,6 +141,45 @@
                     <div id="reportsList" class="card p-0"></div>
                 </section>
 
+                <section id="section-trash" class="admin-section" style="display:none;">
+                    <div class="section-header">
+                        <h2>🗑️ Çöp Kutusu</h2>
+                        <p class="text-muted">Silinen içerikleri filtreleyin, geri alın veya kalıcı olarak silin.</p>
+                    </div>
+                    <div class="card p-0">
+                        <div class="p-3 border-bottom d-flex flex-wrap gap-2 align-items-center justify-content-between">
+                            <div class="d-flex flex-wrap gap-2 align-items-center">
+                                <input type="text" id="trashCenterSearch" class="form-control form-control-sm" placeholder="Başlıkta veya konu adında ara...">
+                                <select id="trashCenterTypeFilter" class="form-select form-select-sm">
+                                    <option value="all">Tümü</option>
+                                    <option value="topic">Konular</option>
+                                    <option value="lesson">Dersler</option>
+                                    <option value="test">Testler</option>
+                                </select>
+                            </div>
+                            <div class="d-flex flex-wrap gap-2">
+                                <button class="btn btn-outline-secondary btn-sm" id="trashCenterRefreshBtn">Yenile</button>
+                                <button class="btn btn-outline-success btn-sm" id="trashCenterRestoreSelected">Seçileni Geri Al</button>
+                                <button class="btn btn-danger btn-sm" id="trashCenterPurgeSelected">Seçileni Sil</button>
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="admin-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width:36px;"><input type="checkbox" id="trashCenterSelectAll"></th>
+                                        <th>Başlık</th>
+                                        <th>Konu</th>
+                                        <th>Tür</th>
+                                        <th class="text-end">İşlem</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="trashCenterTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
             </div>
         </main>
     </div>
