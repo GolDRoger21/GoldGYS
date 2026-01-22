@@ -1,12 +1,15 @@
 <!DOCTYPE html>
 <html lang="tr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Onay Bekleniyor | GOLD GYS</title>
     <link rel="stylesheet" href="/css/app.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
-    
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Playfair+Display:wght@700&display=swap"
+        rel="stylesheet">
+
     <style>
         body {
             margin: 0;
@@ -43,8 +46,15 @@
         }
 
         @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
         }
 
         .pending-box h1 {
@@ -141,28 +151,35 @@
             margin: 0.5rem 0;
         }
     </style>
+    <link rel="icon" type="image/png" href="../icons/favicon.png">
     <link rel="manifest" href="/manifest.json">
 </head>
+
 <body>
     <div class="pending-container">
         <div class="pending-box">
             <div class="icon-wait">⏳</div>
-            
+
             <h1>Üyelik Onayı Bekleniyor</h1>
-            
+
             <p>Merhaba! Kaydınız sistemimize başarıyla ulaştı.</p>
-            <p>Hesabınız şu anda <strong>yönetici onayı</strong> aşamasındadır. Güvenlik prosedürlerimiz gereği başvurular manuel olarak incelenmektedir.</p>
-            
+            <p>Hesabınız şu anda <strong>yönetici onayı</strong> aşamasındadır. Güvenlik prosedürlerimiz gereği
+                başvurular manuel olarak incelenmektedir.</p>
+
             <div class="status-info">
                 <h3>ℹ️ Ne Yapmalıyım?</h3>
-                <p>Genellikle onay süreci 1-2 saat içerisinde tamamlanır. Onaylandığında sisteme otomatik olarak erişebileceksiniz.</p>
+                <p>Genellikle onay süreci 1-2 saat içerisinde tamamlanır. Onaylandığında sisteme otomatik olarak
+                    erişebileceksiniz.</p>
             </div>
 
             <div class="status-info" style="border-color: #3b82f6; background: rgba(59, 130, 246, 0.1);">
                 <h3>❓ Bir Sorun mu Var?</h3>
-                <p>Eğer uzun süredir bekliyorsanız veya bir hata olduğunu düşünüyorsanız destek ekibimizle iletişime geçebilirsiniz.</p>
+                <p>Eğer uzun süredir bekliyorsanız veya bir hata olduğunu düşünüyorsanız destek ekibimizle iletişime
+                    geçebilirsiniz.</p>
                 <div style="margin-top: 10px;">
-                    <a href="/pages/yardim.html" class="btn" style="background: #3b82f6; color: white; text-decoration: none; display: inline-block; font-size: 0.9rem; padding: 8px 16px;">Destek ve İletişim</a>
+                    <a href="/pages/yardim.html" class="btn"
+                        style="background: #3b82f6; color: white; text-decoration: none; display: inline-block; font-size: 0.9rem; padding: 8px 16px;">Destek
+                        ve İletişim</a>
                 </div>
             </div>
 
@@ -182,7 +199,7 @@
         import { showToast } from "/js/notifications.js";
         import { signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-        
+
         const logoutBtn = document.getElementById("logoutBtn");
         const refreshBtn = document.querySelector(".btn-refresh");
         let isChecking = false;
@@ -197,7 +214,7 @@
             // Admin onu onayladıysa dashboard'a yönlendir
             const userRef = doc(db, "users", user.uid);
             const userSnap = await getDoc(userRef);
-            
+
             if (userSnap.exists()) {
                 const userData = userSnap.data();
                 if (userData.status === "active") {
@@ -211,10 +228,10 @@
         refreshBtn.addEventListener("click", async () => {
             if (isChecking) return;
             isChecking = true;
-            
+
             refreshBtn.disabled = true;
             refreshBtn.innerHTML = "⏳ Kontrol ediliyor...";
-            
+
             try {
                 const user = auth.currentUser;
                 if (!user) {
@@ -225,10 +242,10 @@
                 // Firestore'dan en güncel verileri çek
                 const userRef = doc(db, "users", user.uid);
                 const userSnap = await getDoc(userRef);
-                
+
                 if (userSnap.exists()) {
                     const userData = userSnap.data();
-                    
+
                     if (userData.status === "active") {
                         // Onaylandı! Dashboard'a git
                         window.location.href = "/pages/dashboard.html";
@@ -240,10 +257,10 @@
                         return;
                     }
                 }
-                
+
                 // Hala pending
                 showToast("Hesabınız onay bekliyor. Kısa süre sonra tekrar kontrol edebilirsiniz.", "info");
-                
+
             } catch (error) {
                 console.error("Kontrol sırasında hata:", error);
                 showToast("Kontrol sırasında bir hata oluştu. Lütfen tekrar deneyin.", "error");
@@ -253,7 +270,7 @@
                 isChecking = false;
             }
         });
-        
+
         // Çıkış butonu
         logoutBtn.addEventListener("click", async () => {
             try {
@@ -266,4 +283,5 @@
         });
     </script>
 </body>
+
 </html>

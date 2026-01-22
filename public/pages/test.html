@@ -464,106 +464,108 @@
                 opacity: 0;
                 transform: translateY(6px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
             }
         }
     </style>
+    <link rel="icon" type="image/png" href="../icons/favicon.png">
     <link rel="manifest" href="/manifest.json">
-    </head>
+</head>
 
-    <body class="test-body">
-        <div id="loadingScreen" class="loading-overlay">
-            <div class="spinner-border text-success mb-3" role="status" style="width: 3rem; height: 3rem;"></div>
-            <h3 id="loadingText">Sınav Hazırlanıyor...</h3>
+<body class="test-body">
+    <div id="loadingScreen" class="loading-overlay">
+        <div class="spinner-border text-success mb-3" role="status" style="width: 3rem; height: 3rem;"></div>
+        <h3 id="loadingText">Sınav Hazırlanıyor...</h3>
+    </div>
+
+    <header class="test-header" id="testHeader">
+        <div class="test-header-main">
+            <div class="test-title" id="testTitle">Deneme Sınavı</div>
+            <div class="test-meta-line" id="modeLabel"></div>
         </div>
-
-        <header class="test-header" id="testHeader">
-            <div class="test-header-main">
-                <div class="test-title" id="testTitle">Deneme Sınavı</div>
-                <div class="test-meta-line" id="modeLabel"></div>
+        <div class="test-header-actions">
+            <div class="score-board">
+                <div class="score-item">D: <span id="trueVal">0</span></div>
+                <div class="score-item">Y: <span id="falseVal">0</span></div>
+                <div class="score-item">K: <span id="remainVal">--</span></div>
+                <div class="score-item">⏱ <span id="timerDisplay">00:00</span></div>
             </div>
-            <div class="test-header-actions">
-                <div class="score-board">
-                    <div class="score-item">D: <span id="trueVal">0</span></div>
-                    <div class="score-item">Y: <span id="falseVal">0</span></div>
-                    <div class="score-item">K: <span id="remainVal">--</span></div>
-                    <div class="score-item">⏱ <span id="timerDisplay">00:00</span></div>
-                </div>
-                <button class="theme-toggle-btn" id="themeToggle" aria-label="Temayı Değiştir">
-                    <svg class="icon-sun" style="display:none;" xmlns="http://www.w3.org/2000/svg" height="20" width="20"
-                        viewBox="0 0 24 24" fill="currentColor">
-                        <path
-                            d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58a.996.996 0 00-1.41 0 .996.996 0 000 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37a.996.996 0 00-1.41 0 .996.996 0 000 1.41l1.06 1.06c.39.39 1.03.39 1.41 0a.996.996 0 000-1.41l-1.06-1.06zm1.06-10.96a.996.996 0 000-1.41.996.996 0 00-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06zM7.05 18.36a.996.996 0 000 1.41.996.996 0 001.41 0l1.06-1.06c.39-.39.39-1.03 0-1.41s-1.03-.39-1.41 0l-1.06 1.06z" />
-                    </svg>
-                    <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 24 24"
-                        fill="currentColor">
-                        <path
-                            d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9c0-.46-.04-.92-.1-1.36-.98 1.37-2.58 2.26-4.4 2.26-2.98 0-5.4-2.42-5.4-5.4 0-1.81.89-3.42 2.26-4.4-.44-.06-.9-.1-1.36-.1z" />
-                    </svg>
-                </button>
-            </div>
-        </header>
-
-        <main class="quiz-container" id="quizContainer"
-            style="max-width: 880px; margin: 20px auto; padding: 0 15px; display:none;">
-        </main>
-
-        <div class="footer-static" id="testFooter"
-            style="display: none; justify-content: center; gap: 10px; padding: 20px 0 40px; margin-top: 20px; border-top: 1px solid var(--border-color); background-color: transparent;">
-            <button id="btnFinish" class="btn-pill btn-primary">Testi Bitir</button>
-            <a id="btnReturnTopic" class="btn-pill btn-secondary" style="display: none;" href="#">Konuya Dön</a>
+            <button class="theme-toggle-btn" id="themeToggle" aria-label="Temayı Değiştir">
+                <svg class="icon-sun" style="display:none;" xmlns="http://www.w3.org/2000/svg" height="20" width="20"
+                    viewBox="0 0 24 24" fill="currentColor">
+                    <path
+                        d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58a.996.996 0 00-1.41 0 .996.996 0 000 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37a.996.996 0 00-1.41 0 .996.996 0 000 1.41l1.06 1.06c.39.39 1.03.39 1.41 0a.996.996 0 000-1.41l-1.06-1.06zm1.06-10.96a.996.996 0 000-1.41.996.996 0 00-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06zM7.05 18.36a.996.996 0 000 1.41.996.996 0 001.41 0l1.06-1.06c.39-.39.39-1.03 0-1.41s-1.03-.39-1.41 0l-1.06 1.06z" />
+                </svg>
+                <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 24 24"
+                    fill="currentColor">
+                    <path
+                        d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9c0-.46-.04-.92-.1-1.36-.98 1.37-2.58 2.26-4.4 2.26-2.98 0-5.4-2.42-5.4-5.4 0-1.81.89-3.42 2.26-4.4-.44-.06-.9-.1-1.36-.1z" />
+                </svg>
+            </button>
         </div>
+    </header>
 
-        <div class="modal-overlay" id="modeModal"
-            style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.75); z-index: 2000; justify-content: center; align-items: center;">
-            <div class="modal-shell">
-                <div class="modal-title">Test Modunu Seç</div>
-                <p class="modal-subtitle">İstersen sınav modunda süre tutabilir, istersen öğrenme modunda çözebilirsin.</p>
-                <div class="result-actions">
-                    <button class="btn-pill btn-primary" data-mode-choice="exam">Sınav Modu</button>
-                    <button class="btn-pill btn-secondary" data-mode-choice="practice">Öğrenme Modu</button>
-                </div>
-                <button class="btn-pill btn-secondary" id="modeCancelBtn" style="margin-top: 14px;">Vazgeç</button>
+    <main class="quiz-container" id="quizContainer"
+        style="max-width: 880px; margin: 20px auto; padding: 0 15px; display:none;">
+    </main>
+
+    <div class="footer-static" id="testFooter"
+        style="display: none; justify-content: center; gap: 10px; padding: 20px 0 40px; margin-top: 20px; border-top: 1px solid var(--border-color); background-color: transparent;">
+        <button id="btnFinish" class="btn-pill btn-primary">Testi Bitir</button>
+        <a id="btnReturnTopic" class="btn-pill btn-secondary" style="display: none;" href="#">Konuya Dön</a>
+    </div>
+
+    <div class="modal-overlay" id="modeModal"
+        style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.75); z-index: 2000; justify-content: center; align-items: center;">
+        <div class="modal-shell">
+            <div class="modal-title">Test Modunu Seç</div>
+            <p class="modal-subtitle">İstersen sınav modunda süre tutabilir, istersen öğrenme modunda çözebilirsin.</p>
+            <div class="result-actions">
+                <button class="btn-pill btn-primary" data-mode-choice="exam">Sınav Modu</button>
+                <button class="btn-pill btn-secondary" data-mode-choice="practice">Öğrenme Modu</button>
             </div>
+            <button class="btn-pill btn-secondary" id="modeCancelBtn" style="margin-top: 14px;">Vazgeç</button>
         </div>
+    </div>
 
-        <div class="modal-overlay" id="finishModal"
-            style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.75); z-index: 2000; justify-content: center; align-items: center;">
-            <div class="modal-shell">
-                <div class="modal-title">Testi bitirmek istiyor musunuz?</div>
-                <p class="modal-subtitle" id="finishModalSubtitle">Cevaplarınız kaydedilecek.</p>
-                <div class="result-actions">
-                    <button class="btn-pill btn-secondary" id="finishCancelBtn">Devam Et</button>
-                    <button class="btn-pill btn-danger" id="finishConfirmBtn">Testi Bitir</button>
-                </div>
-            </div>
-        </div>
-
-        <div class="modal-overlay" id="examInfoModal"
-            style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.75); z-index: 2000; justify-content: center; align-items: center;">
-            <div class="modal-shell">
-                <div class="modal-title">Bilgilendirme</div>
-                <p class="modal-subtitle" id="examInfoMessage">Sınav tamamlandı.</p>
-                <div class="result-actions">
-                    <button class="btn-pill btn-primary" id="examInfoClose">Devam Et</button>
-                </div>
+    <div class="modal-overlay" id="finishModal"
+        style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.75); z-index: 2000; justify-content: center; align-items: center;">
+        <div class="modal-shell">
+            <div class="modal-title">Testi bitirmek istiyor musunuz?</div>
+            <p class="modal-subtitle" id="finishModalSubtitle">Cevaplarınız kaydedilecek.</p>
+            <div class="result-actions">
+                <button class="btn-pill btn-secondary" id="finishCancelBtn">Devam Et</button>
+                <button class="btn-pill btn-danger" id="finishConfirmBtn">Testi Bitir</button>
             </div>
         </div>
+    </div>
 
-        <div class="modal-overlay" id="resultModal"
-            style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.8); z-index: 2000; justify-content: center; align-items: center;">
-            <div class="modal-shell">
-                <div class="modal-title">Test Sonucu</div>
-                <div id="scoreDisplay" class="result-score">0 / 100</div>
-                <p id="resultText" class="modal-subtitle">Analiz ediliyor...</p>
-                <div class="result-actions">
-                    <a href="denemeler.html" class="btn-pill btn-secondary" id="exitToList">Çıkış</a>
-                    <button class="btn-pill btn-primary" id="reviewAnswersBtn">Cevapları İncele</button>
-                </div>
+    <div class="modal-overlay" id="examInfoModal"
+        style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.75); z-index: 2000; justify-content: center; align-items: center;">
+        <div class="modal-shell">
+            <div class="modal-title">Bilgilendirme</div>
+            <p class="modal-subtitle" id="examInfoMessage">Sınav tamamlandı.</p>
+            <div class="result-actions">
+                <button class="btn-pill btn-primary" id="examInfoClose">Devam Et</button>
             </div>
         </div>
+    </div>
+
+    <div class="modal-overlay" id="resultModal"
+        style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.8); z-index: 2000; justify-content: center; align-items: center;">
+        <div class="modal-shell">
+            <div class="modal-title">Test Sonucu</div>
+            <div id="scoreDisplay" class="result-score">0 / 100</div>
+            <p id="resultText" class="modal-subtitle">Analiz ediliyor...</p>
+            <div class="result-actions">
+                <a href="denemeler.html" class="btn-pill btn-secondary" id="exitToList">Çıkış</a>
+                <button class="btn-pill btn-primary" id="reviewAnswersBtn">Cevapları İncele</button>
+            </div>
+        </div>
+    </div>
 
     <script type="module">
         import { TestEngine } from "../js/test-engine.js";
@@ -908,6 +910,6 @@
             modal.addEventListener('click', handleOverlayClick);
         }
     </script>
-    </body>
+</body>
 
 </html>
