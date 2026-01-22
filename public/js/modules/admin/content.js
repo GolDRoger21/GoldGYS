@@ -3,11 +3,13 @@
 import { db } from "../../firebase-config.js";
 import { showConfirm, showToast } from "../../notifications.js";
 import {
-    collection, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, serverTimestamp, query, orderBy, limit, where
+    collection, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, serverTimestamp, query, orderBy, limit, where, writeBatch
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 let isEditorInitialized = false;
 let currentOnculler = [];
+const selectedQuestionIds = new Set();
+let lastVisibleQuestionIds = [];
 
 // ============================================================
 // --- INIT ---
@@ -234,26 +236,64 @@ function renderContentInterface() {
                 <button id="btnNewQuestion" class="btn btn-primary">➕ Yeni Soru</button>
             </div>
         </div>
-        
+
         <div class="card mb-4 p-3 border-0 shadow-sm">
-            <div class="row g-3">
+            <div class="row g-3 align-items-end">
                 <div class="col-md-4">
-                    <input type="text" id="searchQuestion" class="form-control" placeholder="Soru metni, ID veya Kanun No ara...">
+                    <label class="form-label small fw-bold text-muted">GENEL ARAMA</label>
+                    <input type="text" id="searchQuestion" class="form-control" placeholder="Soru metni, ID, kategori veya mevzuat ara...">
                 </div>
                 <div class="col-md-3">
+                    <label class="form-label small fw-bold text-muted">KATEGORİ</label>
                     <select id="filterCategory" class="form-select">
                         <option value="">Tüm Kategoriler</option>
                     </select>
                 </div>
                 <div class="col-md-3">
+                    <label class="form-label small fw-bold text-muted">DURUM</label>
                     <select id="filterStatus" class="form-select">
-                        <option value="active">✅ Aktif Sorular</option>
-                        <option value="flagged">⚠️ İncelenecekler</option>
+                        <option value="active">✅ Aktif</option>
+                        <option value="inactive">⏸️ Pasif</option>
+                        <option value="flagged">⚠️ İncelenecek</option>
+                        <option value="all">📌 Tümü</option>
                     </select>
                 </div>
                 <div class="col-md-2">
                     <button id="btnFilter" class="btn btn-secondary w-100">Ara / Filtrele</button>
                 </div>
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold text-muted">KANUN NO</label>
+                    <input type="text" id="filterLegCode" class="form-control" placeholder="Örn: 5271">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold text-muted">MADDE NO</label>
+                    <input type="text" id="filterLegArticle" class="form-control" placeholder="Örn: 12">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold text-muted">MEVZUAT DURUMU</label>
+                    <select id="filterLegMode" class="form-select">
+                        <option value="all">Tümü</option>
+                        <option value="with">Mevzuatlı</option>
+                        <option value="without">Mevzuatsız</option>
+                    </select>
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <div class="text-muted small">Mevzuat değişikliğinde ilgili kanun/maddeyi filtreleyip topluca işlem yapabilirsiniz.</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="users-bulk-bar mb-3" id="questionBulkBar" style="display:none;">
+            <label class="users-select-all">
+                <input type="checkbox" id="selectAllQuestions">
+                <span>Seçilen: <strong id="selectedCount">0</strong></span>
+            </label>
+            <div class="users-bulk-actions">
+                <button class="btn btn-outline-primary btn-sm" id="bulkActivate">▶️ Aktifleştir</button>
+                <button class="btn btn-outline-warning btn-sm" id="bulkDeactivate">⏸️ Pasife Al</button>
+                <button class="btn btn-outline-secondary btn-sm" id="bulkFlag">⚠️ İncelemeye Al</button>
+                <button class="btn btn-outline-success btn-sm" id="bulkUnflag">✅ İncelemeden Çıkar</button>
+                <button class="btn btn-outline-danger btn-sm" id="bulkDelete">🗑️ Çöp Kutusu</button>
             </div>
         </div>
 
@@ -262,16 +302,17 @@ function renderContentInterface() {
                 <table class="admin-table table-hover">
                     <thead class="bg-light">
                         <tr>
+                            <th style="width:36px"><input type="checkbox" id="selectAllQuestionsHead"></th>
                             <th style="width:50px">ID</th>
                             <th>Kategori / Mevzuat</th>
                             <th>Soru Özeti</th>
                             <th>Tip</th>
                             <th>Durum</th>
-                            <th style="width:120px">İşlem</th>
+                            <th style="width:150px">İşlem</th>
                         </tr>
                     </thead>
                     <tbody id="questionsTableBody">
-                        <tr><td colspan="6" class="text-center p-4">Yükleniyor...</td></tr>
+                        <tr><td colspan="7" class="text-center p-4">Yükleniyor...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -303,9 +344,23 @@ function renderContentInterface() {
 function bindPageEvents() {
     const btnNew = document.getElementById('btnNewQuestion');
     const btnFilter = document.getElementById('btnFilter');
+    const selectAll = document.getElementById('selectAllQuestions');
+    const selectAllHead = document.getElementById('selectAllQuestionsHead');
+    const bulkActivate = document.getElementById('bulkActivate');
+    const bulkDeactivate = document.getElementById('bulkDeactivate');
+    const bulkFlag = document.getElementById('bulkFlag');
+    const bulkUnflag = document.getElementById('bulkUnflag');
+    const bulkDelete = document.getElementById('bulkDelete');
 
     if (btnNew) btnNew.onclick = () => openQuestionEditor();
     if (btnFilter) btnFilter.onclick = loadQuestions;
+    if (selectAll) selectAll.onchange = (e) => toggleSelectAll(e.target.checked);
+    if (selectAllHead) selectAllHead.onchange = (e) => toggleSelectAll(e.target.checked);
+    if (bulkActivate) bulkActivate.onclick = () => runBulkUpdate({ isActive: true, isDeleted: false }, "Seçilen sorular aktifleştirildi.");
+    if (bulkDeactivate) bulkDeactivate.onclick = () => runBulkUpdate({ isActive: false }, "Seçilen sorular pasife alındı.");
+    if (bulkFlag) bulkFlag.onclick = () => runBulkUpdate({ isFlaggedForReview: true }, "Seçilen sorular incelemeye alındı.");
+    if (bulkUnflag) bulkUnflag.onclick = () => runBulkUpdate({ isFlaggedForReview: false }, "Seçilen sorular incelemeden çıkarıldı.");
+    if (bulkDelete) bulkDelete.onclick = () => bulkSoftDelete();
 
     // Global Fonksiyonlar (HTML onclick için)
     window.removeOnculInternal = removeOncul;
@@ -313,6 +368,7 @@ function bindPageEvents() {
     window.restoreQuestion = restoreQuestion;
     window.permanentDeleteQuestion = permanentDeleteQuestion;
     window.softDeleteQuestion = softDeleteQuestion;
+    window.toggleQuestionActive = toggleQuestionActive;
 }
 
 // --- VERİ YÖNETİMİ ---
@@ -321,11 +377,14 @@ async function loadQuestions() {
     const tbody = document.getElementById('questionsTableBody');
     if (!tbody) return; // Tablo yoksa (belki stüdyo sayfasındayız) çık
 
-    tbody.innerHTML = '<tr><td colspan="6" class="text-center p-4">Yükleniyor...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" class="text-center p-4">Yükleniyor...</td></tr>';
 
     const cat = document.getElementById('filterCategory')?.value;
     const status = document.getElementById('filterStatus')?.value;
     const search = document.getElementById('searchQuestion')?.value.toLowerCase();
+    const legCode = document.getElementById('filterLegCode')?.value.toLowerCase();
+    const legArticle = document.getElementById('filterLegArticle')?.value.toLowerCase();
+    const legMode = document.getElementById('filterLegMode')?.value || 'all';
 
     // Temel Sorgu
     let q = query(collection(db, "questions"), orderBy("createdAt", "desc"), limit(100));
@@ -334,43 +393,80 @@ async function loadQuestions() {
         const snap = await getDocs(q);
         tbody.innerHTML = '';
         let count = 0;
+        lastVisibleQuestionIds = [];
 
         snap.forEach(doc => {
             const d = doc.data();
+            const legRef = d.legislationRef || {};
+            const legCodeValue = (legRef.code || '').toString();
+            const legArticleValue = (legRef.article || '').toString();
+            const hasLegislation = Boolean(legCodeValue || legArticleValue);
 
             // Client-side Filtreleme
             if (d.isDeleted === true) return;
             if (status === 'flagged' && !d.isFlaggedForReview) return;
+            if (status === 'active' && d.isActive === false) return;
+            if (status === 'inactive' && d.isActive !== false) return;
             if (cat && d.category !== cat) return;
+            if (legMode === 'with' && !hasLegislation) return;
+            if (legMode === 'without' && hasLegislation) return;
+            if (legCode && !legCodeValue.toLowerCase().includes(legCode)) return;
+            if (legArticle && !legArticleValue.toLowerCase().includes(legArticle)) return;
 
             // Arama check
             if (search) {
                 const textMatch = (d.text || '').toLowerCase().includes(search);
                 const idMatch = doc.id.toLowerCase().includes(search);
-                const legMatch = (d.legislationRef?.code || '').toLowerCase().includes(search);
-                if (!textMatch && !idMatch && !legMatch) return;
+                const catMatch = (d.category || '').toLowerCase().includes(search);
+                const legMatch = legCodeValue.toLowerCase().includes(search) || legArticleValue.toLowerCase().includes(search);
+                if (!textMatch && !idMatch && !legMatch && !catMatch) return;
             }
 
             count++;
+            lastVisibleQuestionIds.push(doc.id);
             const tr = document.createElement('tr');
+            const isSelected = selectedQuestionIds.has(doc.id);
+            const statusBadge = d.isActive === false
+                ? '<span class="badge badge-status-inactive">Pasif</span>'
+                : '<span class="badge badge-status-active">Aktif</span>';
+            const flaggedBadge = d.isFlaggedForReview
+                ? '<span class="badge badge-status-flagged">İncelenecek</span>'
+                : '';
+            const legLabel = hasLegislation
+                ? `${legCodeValue || '-'} / Md.${legArticleValue || '-'}`
+                : 'Mevzuat Yok';
             tr.innerHTML = `
+                <td><input type="checkbox" class="question-select" data-id="${doc.id}" ${isSelected ? 'checked' : ''}></td>
                 <td><small class="text-muted">${doc.id.substring(0, 5)}</small></td>
                 <td>
                     <div class="fw-bold">${d.category || '-'}</div>
-                    <small class="text-muted">${d.legislationRef?.code || '-'} / Md.${d.legislationRef?.article || '-'}</small>
+                    <small class="text-muted">${legLabel}</small>
                 </td>
                 <td title="${d.text}">${(d.text || '').substring(0, 60)}...</td>
                 <td><span class="badge bg-light text-dark border">${d.type === 'oncullu' ? 'Öncüllü' : 'Std'}</span></td>
-                <td>${d.isFlaggedForReview ? '<span class="badge bg-warning text-dark">İncelenecek</span>' : '<span class="badge bg-success">Aktif</span>'}</td>
+                <td>
+                    <div class="d-flex flex-column gap-1">
+                        ${statusBadge}
+                        ${flaggedBadge}
+                    </div>
+                </td>
                 <td>
                     <button class="btn btn-sm btn-primary" onclick="window.QuestionBank.openEditor('${doc.id}')">✏️</button>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="window.toggleQuestionActive('${doc.id}', ${d.isActive === false})">${d.isActive === false ? '▶️' : '⏸️'}</button>
                     <button class="btn btn-sm btn-danger" onclick="window.softDeleteQuestion('${doc.id}')">🗑️</button>
                 </td>
             `;
             tbody.appendChild(tr);
         });
 
-        if (count === 0) tbody.innerHTML = '<tr><td colspan="6" class="text-center p-4">Kriterlere uygun soru bulunamadı.</td></tr>';
+        if (count === 0) tbody.innerHTML = '<tr><td colspan="7" class="text-center p-4">Kriterlere uygun soru bulunamadı.</td></tr>';
+
+        selectedQuestionIds.forEach(id => {
+            if (!lastVisibleQuestionIds.includes(id)) selectedQuestionIds.delete(id);
+        });
+
+        bindRowSelection();
+        updateSelectionUI();
 
     } catch (e) { console.error(e); }
 }
@@ -432,6 +528,130 @@ async function handleSaveQuestion(e) {
 }
 
 // --- YARDIMCI FONKSİYONLAR ---
+
+function bindRowSelection() {
+    document.querySelectorAll('.question-select').forEach(el => {
+        el.onchange = (event) => {
+            const id = event.target.dataset.id;
+            if (!id) return;
+            if (event.target.checked) {
+                selectedQuestionIds.add(id);
+            } else {
+                selectedQuestionIds.delete(id);
+            }
+            updateSelectionUI();
+        };
+    });
+}
+
+function toggleSelectAll(checked) {
+    if (!lastVisibleQuestionIds.length) return;
+    if (checked) {
+        lastVisibleQuestionIds.forEach(id => selectedQuestionIds.add(id));
+    } else {
+        lastVisibleQuestionIds.forEach(id => selectedQuestionIds.delete(id));
+    }
+    document.querySelectorAll('.question-select').forEach(el => {
+        el.checked = checked;
+    });
+    updateSelectionUI();
+}
+
+function updateSelectionUI() {
+    const bulkBar = document.getElementById('questionBulkBar');
+    const countEl = document.getElementById('selectedCount');
+    const selectAll = document.getElementById('selectAllQuestions');
+    const selectAllHead = document.getElementById('selectAllQuestionsHead');
+    const selectedCount = selectedQuestionIds.size;
+    const visibleCount = lastVisibleQuestionIds.length;
+    const allSelected = visibleCount > 0 && lastVisibleQuestionIds.every(id => selectedQuestionIds.has(id));
+    const noneSelected = lastVisibleQuestionIds.every(id => !selectedQuestionIds.has(id));
+
+    if (countEl) countEl.innerText = selectedCount.toString();
+    if (bulkBar) bulkBar.style.display = selectedCount > 0 ? 'flex' : 'none';
+    if (selectAll) {
+        selectAll.checked = allSelected;
+        selectAll.indeterminate = !allSelected && !noneSelected && selectedCount > 0;
+    }
+    if (selectAllHead) {
+        selectAllHead.checked = allSelected;
+        selectAllHead.indeterminate = !allSelected && !noneSelected && selectedCount > 0;
+    }
+}
+
+async function runBulkUpdate(updatePayload, toastMessage) {
+    if (selectedQuestionIds.size === 0) {
+        showToast("Önce işlem yapmak istediğiniz soruları seçin.", "warning");
+        return;
+    }
+
+    const shouldProceed = await showConfirm("Seçili sorular için toplu işlem yapmak istediğinize emin misiniz?", {
+        title: "Toplu İşlem",
+        confirmText: "Devam Et",
+        cancelText: "Vazgeç"
+    });
+    if (!shouldProceed) return;
+
+    const ids = Array.from(selectedQuestionIds);
+    const chunks = [];
+    while (ids.length) chunks.push(ids.splice(0, 450));
+
+    try {
+        for (const chunk of chunks) {
+            const batch = writeBatch(db);
+            chunk.forEach(id => {
+                batch.update(doc(db, "questions", id), {
+                    ...updatePayload,
+                    updatedAt: serverTimestamp()
+                });
+            });
+            await batch.commit();
+        }
+        selectedQuestionIds.clear();
+        loadQuestions();
+        showToast(toastMessage, "success");
+    } catch (e) {
+        showToast(`Toplu işlem sırasında hata oluştu: ${e.message}`, "error");
+    }
+}
+
+async function bulkSoftDelete() {
+    if (selectedQuestionIds.size === 0) {
+        showToast("Önce silinecek soruları seçin.", "warning");
+        return;
+    }
+
+    const shouldDelete = await showConfirm("Seçili sorular çöp kutusuna taşınacak. Emin misiniz?", {
+        title: "Toplu Çöp Kutusu",
+        confirmText: "Taşı",
+        cancelText: "Vazgeç"
+    });
+    if (!shouldDelete) return;
+
+    const ids = Array.from(selectedQuestionIds);
+    const chunks = [];
+    while (ids.length) chunks.push(ids.splice(0, 450));
+
+    try {
+        for (const chunk of chunks) {
+            const batch = writeBatch(db);
+            chunk.forEach(id => {
+                batch.update(doc(db, "questions", id), {
+                    isDeleted: true,
+                    isActive: false,
+                    deletedAt: serverTimestamp(),
+                    updatedAt: serverTimestamp()
+                });
+            });
+            await batch.commit();
+        }
+        selectedQuestionIds.clear();
+        loadQuestions();
+        showToast("Seçili sorular çöp kutusuna taşındı.", "success");
+    } catch (e) {
+        showToast(`Toplu işlem sırasında hata oluştu: ${e.message}`, "error");
+    }
+}
 
 async function loadDynamicCategories() {
     const filterSelect = document.getElementById('filterCategory');
@@ -501,6 +721,19 @@ async function autoDetectTopic() {
     if (res) {
         res.innerText = "Aranıyor...";
         setTimeout(() => res.innerHTML = '<span class="text-warning">Otomatik eşleşme bulunamadı.</span>', 1000);
+    }
+}
+
+async function toggleQuestionActive(id, isActivate) {
+    try {
+        await updateDoc(doc(db, "questions", id), {
+            isActive: isActivate,
+            updatedAt: serverTimestamp()
+        });
+        loadQuestions();
+        showToast(isActivate ? "Soru aktifleştirildi." : "Soru pasife alındı.", "success");
+    } catch (e) {
+        showToast(`İşlem sırasında hata oluştu: ${e.message}`, "error");
     }
 }
 

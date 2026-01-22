@@ -241,6 +241,24 @@
     border: 1px solid transparent;
 }
 
+.badge-status-active {
+    background: rgba(16, 185, 129, 0.15);
+    color: #0f6f4c;
+    border-color: rgba(16, 185, 129, 0.3);
+}
+
+.badge-status-inactive {
+    background: rgba(148, 163, 184, 0.2);
+    color: #475569;
+    border-color: rgba(148, 163, 184, 0.4);
+}
+
+.badge-status-flagged {
+    background: rgba(245, 158, 11, 0.18);
+    color: #92400e;
+    border-color: rgba(245, 158, 11, 0.35);
+}
+
 .badge-admin {
     background: rgba(212, 175, 55, 0.2);
     color: #8a6b14;
