@@ -149,6 +149,60 @@
     vertical-align: middle;
 }
 
+.question-actions {
+    display: flex;
+    gap: 6px;
+    flex-wrap: nowrap;
+    align-items: center;
+}
+
+.question-actions .btn {
+    min-width: 36px;
+    padding: 6px 10px;
+}
+
+.question-filter-card {
+    border: 1px solid var(--border-color);
+}
+
+.question-filter-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+}
+
+.question-filter-header h5 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+.question-filter-hint {
+    padding: 10px 12px;
+    border-radius: var(--radius-md);
+    border: 1px dashed var(--border-color);
+    background: var(--bg-hover);
+    width: 100%;
+}
+
+@media (max-width: 768px) {
+    .question-actions {
+        flex-wrap: wrap;
+    }
+
+    .question-filter-header {
+        align-items: stretch;
+    }
+
+    .question-filter-header .btn {
+        width: 100%;
+    }
+}
+
 .admin-table tr:hover td {
     background-color: var(--bg-hover);
 }
