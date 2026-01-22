@@ -52,6 +52,119 @@
     gap: 16px;
 }
 
+.dashboard-overview-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+    gap: 20px;
+}
+
+@media (max-width: 1024px) {
+    .dashboard-overview-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.overview-main,
+.overview-side {
+    display: grid;
+    gap: 20px;
+}
+
+.card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+}
+
+.card-header h3 {
+    margin: 0 0 6px;
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
+.chart-card .chart-wrapper {
+    height: 260px;
+}
+
+.overview-quick-actions {
+    background: linear-gradient(140deg, rgba(212, 175, 55, 0.15), rgba(212, 175, 55, 0.03));
+    border: 1px solid rgba(212, 175, 55, 0.35);
+}
+
+.action-buttons {
+    display: grid;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.btn-action {
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: var(--radius-md);
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    font-weight: 600;
+    text-align: left;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all var(--transition-fast);
+    cursor: pointer;
+}
+
+.btn-action:hover {
+    border-color: var(--color-primary);
+    box-shadow: var(--shadow-sm);
+    transform: translateY(-1px);
+}
+
+.compact-table th,
+.compact-table td {
+    padding: 10px 12px;
+}
+
+.system-health {
+    background: var(--bg-hover);
+}
+
+.status-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: 10px;
+    color: var(--text-main);
+    font-size: 0.9rem;
+}
+
+.status-list li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.status-success {
+    background: #10b981;
+}
+
+.status-info {
+    background: #3b82f6;
+}
+
+.status-warning {
+    background: #f59e0b;
+}
+
 .date-display {
     font-size: 0.9rem;
     color: var(--text-muted);
@@ -200,6 +313,22 @@
 
     .question-filter-header .btn {
         width: 100%;
+    }
+
+    .dashboard-overview-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .dashboard-header {
+        align-items: flex-start;
+    }
+
+    .card-header {
+        align-items: flex-start;
+    }
+
+    .chart-card .chart-wrapper {
+        height: 220px;
     }
 }
 
