@@ -963,6 +963,7 @@ tr.highlight {
 /* Küçük Modallar (Soru Editörü, Çöp Kutusu vb.) */
 .admin-modal-content {
     background: var(--bg-surface);
+    color: var(--text-main);
     border-radius: 8px;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
     display: flex;

@@ -57,21 +57,9 @@ export function initImporterPage() {
                     <button onclick="document.getElementById('guideModal').style.display='none'" class="close-btn">&times;</button>
                 </div>
                 <div class="modal-body-scroll">
-                    <h5>Excel Formatı</h5>
-                    <p>Excel dosyanızın ilk satırı başlık olmalıdır. Sütun isimleri şunlardır:</p>
-                    <ul class="list-group mb-3">
-                        <li class="list-group-item"><strong>Kategori:</strong> Konu başlığı (Örn: Anayasa)</li>
-                        <li class="list-group-item"><strong>Soru Metni:</strong> Sorunun kendisi</li>
-                        <li class="list-group-item"><strong>A, B, C, D, E:</strong> Şıklar</li>
-                        <li class="list-group-item"><strong>Doğru Cevap:</strong> Sadece harf (A, B...)</li>
-                        <li class="list-group-item"><strong>Kanun No:</strong> İlgili kanun kodu (Örn: 5271)</li>
-                        <li class="list-group-item"><strong>Madde No:</strong> İlgili madde numarası</li>
-                        <li class="list-group-item"><strong>Çözüm Analiz:</strong> Detaylı açıklama</li>
-                    </ul>
-                    
-                    <h5>JSON Formatı (Gelişmiş)</h5>
-                    <p>JSON yüklemesi önerilen yöntemdir. Aşağıdaki format birebir korunmalıdır.</p>
-                    <pre style="background:#f8f9fa; padding:10px; border-radius:5px;">
+                    <h5>JSON Formatı (Önerilen)</h5>
+                    <p>JSON yüklemesi en sağlıklı yöntemdir. Aşağıdaki format birebir korunmalıdır.</p>
+                    <pre style="background:var(--bg-hover); color:var(--text-main); padding:10px; border-radius:5px; border:1px solid var(--border-color);">
 [
   {
     "category": "Anayasa",
@@ -100,7 +88,7 @@ export function initImporterPage() {
                     </pre>
                     <h5>Yapay Zeka Promptu (JSON üretimi için)</h5>
                     <p>Aşağıdaki promptu kopyalayıp yapay zekaya verin. Çıktıyı sadece JSON olarak üretmesini isteyin.</p>
-                    <pre style="background:#f8f9fa; padding:10px; border-radius:5px; white-space: pre-wrap;">
+                    <pre style="background:var(--bg-hover); color:var(--text-main); padding:10px; border-radius:5px; border:1px solid var(--border-color); white-space: pre-wrap;">
 Sen bir hukuk sınavı soru üretim asistanısın. Aşağıdaki kurallara uyarak SADECE JSON dizi çıktısı üret:
 - Çıktı bir JSON array olmalı.
 - Her nesnede şu alanlar zorunlu: category, difficulty (1-5), type, text, options (A-E), correctOption, legislationRef, solution.
