@@ -349,28 +349,28 @@
 
         <!-- KPI Kartları -->
         <div class="stats-grid">
-            <div class="kpi-card">
+            <div class="kpi-card glass-card">
                 <div class="kpi-icon bg-blue-soft">📝</div>
                 <div>
                     <div class="kpi-value" id="totalExams">0</div>
                     <div class="kpi-label">Çözülen Deneme</div>
                 </div>
             </div>
-            <div class="kpi-card">
+            <div class="kpi-card glass-card">
                 <div class="kpi-icon bg-green-soft">🎯</div>
                 <div>
                     <div class="kpi-value" id="avgScore">%0</div>
                     <div class="kpi-label">Ortalama Başarı</div>
                 </div>
             </div>
-            <div class="kpi-card">
+            <div class="kpi-card glass-card">
                 <div class="kpi-icon bg-gold-soft">⚡</div>
                 <div>
                     <div class="kpi-value" id="totalQuestions">0</div>
                     <div class="kpi-label">Toplam Soru</div>
                 </div>
             </div>
-            <div class="kpi-card">
+            <div class="kpi-card glass-card">
                 <div class="kpi-icon bg-red-soft">⚠️</div>
                 <div>
                     <div class="kpi-value" id="wrongRate">%0</div>
@@ -380,105 +380,121 @@
         </div>
 
         <div class="analysis-panel-grid">
-            <div class="analysis-card">
-                <h3>🎯 Konu İlerlemesi Özeti</h3>
-                <p class="text-muted">Konu bazlı ilerlemenizi ve genel tamamlama oranınızı tek bakışta görün.</p>
-                <div class="progress-summary-grid">
-                    <div class="summary-item">
-                        <span class="summary-value" id="topicCompletionRate">%0</span>
-                        <span class="summary-label">Tamamlanan Oranı</span>
-                    </div>
-                    <div class="summary-item">
-                        <span class="summary-value" id="completedTopicCount">0</span>
-                        <span class="summary-label">Tamamlanan Konu</span>
-                    </div>
-                    <div class="summary-item">
-                        <span class="summary-value" id="inProgressTopicCount">0</span>
-                        <span class="summary-label">Devam Eden</span>
-                    </div>
-                    <div class="summary-item">
-                        <span class="summary-value" id="remainingTopicCount">0</span>
-                        <span class="summary-label">Kalan Konu</span>
+            <!-- Sol Kolon: İlerleme ve Tahmin -->
+            <div class="analysis-column-left" style="display:flex; flex-direction:column; gap:24px;">
+                <div class="analysis-card glass-card">
+                    <h3>🔮 Tahmini Puan</h3>
+                    <p class="text-muted">Mevcut performansınıza göre öngörülen sınav puanınız.</p>
+                    <div style="margin-top:20px; text-align:center;">
+                        <span id="predictedScore" style="font-size:3rem; font-weight:800; color:var(--color-primary); display:block;">--</span>
+                        <span class="text-muted" style="font-size:0.9rem;">Son 5 sınav ağırlıklı ortalaması</span>
                     </div>
                 </div>
-                <div class="progress-bar-container" aria-label="Konu tamamlama çubuğu">
-                    <div id="topicCompletionBar" class="progress-bar" style="width:0%;"></div>
-                </div>
-                <div class="current-topic-card">
-                    <div>
-                        <span class="badge bg-light text-dark border">Şu anda çalışılan konu</span>
-                        <div class="current-topic-title" id="currentTopicName">Seçili konu yok</div>
-                        <div class="topic-meta" id="currentTopicMeta">Bir konu seçerek odağınızı belirleyebilirsiniz.</div>
-                    </div>
-                    <div>
-                        <button id="focusTopicBtn" class="btn btn-sm btn-outline-primary" disabled>Konuyu Aç</button>
-                    </div>
-                </div>
-            </div>
-            <div class="analysis-card">
-                <h3>📌 Detaylı İstatistikler</h3>
-                <p class="text-muted">Başarı, istikrar ve öğrenme yoğunluğunu özetleyen göstergeler.</p>
-                <div class="detail-grid">
-                    <div class="detail-item">
-                        <span class="detail-label">En güçlü konu</span>
-                        <span class="detail-value" id="bestTopic">-</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Geliştirilmesi gereken</span>
-                        <span class="detail-value" id="focusTopic">-</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Son 30 gün başarı</span>
-                        <span class="detail-value" id="recentSuccess">%0</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">İstikrar puanı</span>
-                        <span class="detail-value" id="consistencyScore">%0</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Toplam çalışma oturumu</span>
-                        <span class="detail-value" id="sessionCount">0</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Ortalama soru/oturum</span>
-                        <span class="detail-value" id="avgQuestionsPerSession">0</span>
-                    </div>
-                </div>
-            </div>
-        </div>
 
-        <div class="card">
-            <div class="topic-progress-header">
-                <div>
-                    <h3 style="font-size:1.1rem; margin:0; color:var(--text-main);">📚 Konu Takip Listesi</h3>
-                    <p class="text-muted" style="margin:6px 0 0;">Dışarıda tamamladığınız konuları işaretleyebilir, çalışma odağınızı belirleyebilirsiniz.</p>
-                </div>
-                <div class="chip-group" id="topicFilterChips">
-                    <button class="chip active" type="button" data-filter="all">Tümü</button>
-                    <button class="chip" type="button" data-filter="completed">Tamamlanan</button>
-                    <button class="chip" type="button" data-filter="in_progress">Devam Eden</button>
-                    <button class="chip" type="button" data-filter="pending">Kalan</button>
+                <div class="analysis-card glass-card">
+                    <h3>🎯 Konu İlerlemesi Özeti</h3>
+                    <p class="text-muted">Konu bazlı ilerlemenizi ve genel tamamlama oranınızı tek bakışta görün.</p>
+                    <div class="progress-summary-grid">
+                        <div class="summary-item">
+                            <span class="summary-value" id="topicCompletionRate">%0</span>
+                            <span class="summary-label">Tamamlanan Oranı</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-value" id="completedTopicCount">0</span>
+                            <span class="summary-label">Tamamlanan Konu</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-value" id="inProgressTopicCount">0</span>
+                            <span class="summary-label">Devam Eden</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-value" id="remainingTopicCount">0</span>
+                            <span class="summary-label">Kalan Konu</span>
+                        </div>
+                    </div>
+                    <div class="progress-bar-container" aria-label="Konu tamamlama çubuğu">
+                        <div id="topicCompletionBar" class="progress-bar" style="width:0%;"></div>
+                    </div>
+                    <div class="current-topic-card">
+                        <div>
+                            <span class="badge bg-light text-dark border">Şu anda çalışılan konu</span>
+                            <div class="current-topic-title" id="currentTopicName">Seçili konu yok</div>
+                            <div class="topic-meta" id="currentTopicMeta">Bir konu seçerek odağınızı belirleyebilirsiniz.</div>
+                        </div>
+                        <div>
+                            <button id="focusTopicBtn" class="btn btn-sm btn-outline-primary" disabled>Konuyu Aç</button>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div id="topicProgressList" class="topic-progress-list"></div>
-            <div id="topicProgressEmpty" class="empty-state" style="display:none;">Henüz konu verisi bulunamadı.</div>
+
+            <!-- Sağ Kolon: Detaylar -->
+            <div class="analysis-column-right" style="display:flex; flex-direction:column; gap:24px;">
+                <div class="analysis-card glass-card">
+                    <h3>📌 Detaylı İstatistikler</h3>
+                    <p class="text-muted">Başarı, istikrar ve öğrenme yoğunluğunu özetleyen göstergeler.</p>
+                    <div class="detail-grid">
+                        <div class="detail-item">
+                            <span class="detail-label">En güçlü konu</span>
+                            <span class="detail-value" id="bestTopic">-</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Geliştirilmesi gereken</span>
+                            <span class="detail-value" id="focusTopic">-</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Son 30 gün başarı</span>
+                            <span class="detail-value" id="recentSuccess">%0</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">İstikrar puanı</span>
+                            <span class="detail-value" id="consistencyScore">%0</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Toplam çalışma oturumu</span>
+                            <span class="detail-value" id="sessionCount">0</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Ortalama soru/oturum</span>
+                            <span class="detail-value" id="avgQuestionsPerSession">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card glass-card">
+                    <div class="topic-progress-header">
+                        <div>
+                            <h3 style="font-size:1.1rem; margin:0; color:var(--text-main);">📚 Konu Takip Listesi</h3>
+                            <p class="text-muted" style="margin:6px 0 0;">Dışarıda tamamladığınız konuları işaretleyebilir, çalışma odağınızı belirleyebilirsiniz.</p>
+                        </div>
+                        <div class="chip-group" id="topicFilterChips">
+                            <button class="chip active" type="button" data-filter="all">Tümü</button>
+                            <button class="chip" type="button" data-filter="completed">Tamamlanan</button>
+                            <button class="chip" type="button" data-filter="in_progress">Devam Eden</button>
+                            <button class="chip" type="button" data-filter="pending">Kalan</button>
+                        </div>
+                    </div>
+                    <div id="topicProgressList" class="topic-progress-list"></div>
+                    <div id="topicProgressEmpty" class="empty-state" style="display:none;">Henüz konu verisi bulunamadı.</div>
+                </div>
+            </div>
         </div>
 
         <!-- Grafikler -->
         <div class="analysis-grid">
-            <div class="chart-container">
+            <div class="chart-container glass-card">
                 <h3 class="mb-3" style="font-size:1.1rem; color:var(--text-main);">📈 Gelişim Grafiği (Son 10 Sınav)
                 </h3>
                 <canvas id="progressChart"></canvas>
             </div>
-            <div class="chart-container">
+            <div class="chart-container glass-card">
                 <h3 class="mb-3" style="font-size:1.1rem; color:var(--text-main);">🎯 Konu Bazlı Başarı</h3>
                 <canvas id="topicChart"></canvas>
             </div>
         </div>
 
         <!-- Geçmiş Tablosu -->
-        <div class="card">
+        <div class="card glass-card">
             <div class="p-3 border-bottom border-color">
                 <h3 style="font-size:1.1rem; margin:0; color:var(--text-main);">Sınav Geçmişi</h3>
             </div>

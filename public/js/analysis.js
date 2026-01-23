@@ -33,6 +33,7 @@ async function initAnalysis(userId) {
         renderTopicChart(results);
         renderHistoryTable(results);
         renderDetailedStats(results);
+        calculatePredictedScore(results);
         await loadTopicProgress(userId, results);
 
         document.getElementById('lastUpdate').innerText = `Son Güncelleme: ${new Date().toLocaleTimeString('tr-TR')}`;
@@ -73,20 +74,41 @@ function renderProgressChart(results) {
                 label: 'Sınav Puanı',
                 data,
                 borderColor: '#D4AF37', // Gold
-                backgroundColor: 'rgba(212, 175, 55, 0.1)',
+                backgroundColor: 'rgba(212, 175, 55, 0.15)',
                 tension: 0.4,
                 fill: true,
-                pointBackgroundColor: '#fff',
+                pointBackgroundColor: '#1e293b', // Dark background to match card
                 pointBorderColor: '#D4AF37',
-                pointRadius: 4
+                pointRadius: 5,
+                pointHoverRadius: 7
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                    titleColor: '#D4AF37',
+                    bodyColor: '#fff',
+                    borderColor: '#334155',
+                    borderWidth: 1,
+                    padding: 10,
+                    displayColors: false
+                }
+            },
             scales: {
-                y: { beginAtZero: true, max: 100 }
+                y: {
+                    beginAtZero: true,
+                    max: 100,
+                    grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                    ticks: { color: '#94a3b8' }
+                },
+                x: {
+                    grid: { display: false },
+                    ticks: { color: '#94a3b8' }
+                }
             }
         }
     });
@@ -112,14 +134,39 @@ function renderTopicChart(results) {
                 backgroundColor: 'rgba(16, 185, 129, 0.2)', // Green Soft
                 borderColor: '#10b981',
                 pointBackgroundColor: '#10b981',
-                pointBorderColor: '#fff'
+                pointBorderColor: '#fff',
+                pointHoverBackgroundColor: '#fff',
+                pointHoverBorderColor: '#10b981'
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                    titleColor: '#10b981',
+                    bodyColor: '#fff',
+                    borderColor: '#334155',
+                    borderWidth: 1
+                }
+            },
             scales: {
-                r: { suggestedMin: 0, suggestedMax: 100 }
+                r: {
+                    suggestedMin: 0,
+                    suggestedMax: 100,
+                    grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                    angleLines: { color: 'rgba(255, 255, 255, 0.05)' },
+                    pointLabels: {
+                        color: '#94a3b8',
+                        font: { size: 11 }
+                    },
+                    ticks: {
+                        backdropColor: 'transparent',
+                        color: 'transparent' // Hide scale numbers for cleaner look
+                    }
+                }
             }
         }
     });
@@ -185,6 +232,28 @@ function renderDetailedStats(results) {
     document.getElementById('consistencyScore').innerText = `%${consistencyScore}`;
     document.getElementById('sessionCount').innerText = totalSessions;
     document.getElementById('avgQuestionsPerSession').innerText = avgQuestions;
+    document.getElementById('avgQuestionsPerSession').innerText = avgQuestions;
+}
+
+function calculatePredictedScore(results) {
+    // Weighted average of last 5 exams (most recent has higher weight)
+    const recentExams = results.slice(0, 5).reverse(); // Oldest to newest of the last 5
+    if (recentExams.length === 0) {
+        document.getElementById('predictedScore').innerText = '-';
+        return;
+    }
+
+    let totalWeight = 0;
+    let weightedSum = 0;
+
+    recentExams.forEach((exam, index) => {
+        const weight = index + 1; // 1, 2, 3, 4, 5
+        weightedSum += (exam.score || 0) * weight;
+        totalWeight += weight;
+    });
+
+    const predicted = Math.round(weightedSum / totalWeight);
+    document.getElementById('predictedScore').innerText = `%${predicted}`;
 }
 
 async function loadTopicProgress(userId, results) {
