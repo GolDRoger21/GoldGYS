@@ -164,6 +164,138 @@
             color: var(--text-main);
         }
 
+        .level-card {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .level-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .level-title {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .level-label {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            letter-spacing: 0.4px;
+        }
+
+        .level-badge {
+            padding: 6px 14px;
+            border-radius: var(--radius-full);
+            background: rgba(212, 175, 55, 0.18);
+            color: var(--color-primary);
+            font-weight: 700;
+            font-size: 0.85rem;
+            border: 1px solid rgba(212, 175, 55, 0.4);
+        }
+
+        .level-progress-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .level-metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 12px;
+        }
+
+        .level-metric-card {
+            background: var(--bg-hover);
+            border-radius: var(--radius-md);
+            padding: 12px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .level-metric-value {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .mission-list {
+            display: grid;
+            gap: 12px;
+        }
+
+        .mission-item {
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 12px 14px;
+            display: grid;
+            gap: 10px;
+            background: var(--bg-surface);
+        }
+
+        .mission-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .mission-title {
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .mission-progress {
+            font-size: 0.82rem;
+            color: var(--text-muted);
+        }
+
+        .mission-bar {
+            height: 8px;
+            border-radius: var(--radius-full);
+            background: rgba(148, 163, 184, 0.2);
+            overflow: hidden;
+        }
+
+        .mission-bar span {
+            display: block;
+            height: 100%;
+            border-radius: inherit;
+            background: linear-gradient(90deg, rgba(16, 185, 129, 0.8), rgba(212, 175, 55, 0.9));
+        }
+
+        .mission-status {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: var(--radius-full);
+            border: 1px solid var(--border-color);
+            background: var(--bg-hover);
+            color: var(--text-muted);
+        }
+
+        .mission-status.done {
+            background: rgba(16, 185, 129, 0.18);
+            color: var(--color-success);
+            border-color: rgba(16, 185, 129, 0.4);
+        }
+
         .topic-progress-header {
             display: flex;
             flex-wrap: wrap;
@@ -305,6 +437,12 @@
             .topic-action-group {
                 align-items: stretch;
             }
+
+            .level-progress-meta {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 6px;
+            }
         }
 
         /* Renkler */
@@ -424,6 +562,52 @@
                         <div>
                             <button id="focusTopicBtn" class="btn btn-sm btn-outline-primary" disabled>Konuyu Aç</button>
                         </div>
+                    </div>
+                </div>
+
+                <div class="analysis-card glass-card level-card">
+                    <div>
+                        <h3>🚀 Görevde Yükselme</h3>
+                        <p class="text-muted">Görev tamamlama ritminize göre seviyeniz ve bir sonraki hedefiniz.</p>
+                    </div>
+                    <div class="level-header">
+                        <div>
+                            <div class="level-label">Mevcut seviye</div>
+                            <div class="level-title">
+                                <span id="currentLevel">Seviye 1</span>
+                                <span class="text-muted" id="currentLevelXp">0 XP</span>
+                            </div>
+                        </div>
+                        <div class="level-badge" id="currentLevelBadge">Başlangıç</div>
+                    </div>
+                    <div class="progress-bar-container" aria-label="Seviye ilerleme çubuğu">
+                        <div id="levelProgressBar" class="progress-bar" style="width:0%;"></div>
+                    </div>
+                    <div class="level-progress-meta">
+                        <span id="levelProgressText">0 / 0 XP</span>
+                        <span id="levelNextTarget">Sonraki seviye: -</span>
+                    </div>
+                    <div class="level-metrics-grid">
+                        <div class="level-metric-card">
+                            <span class="detail-label">Çalışma serisi</span>
+                            <span class="level-metric-value" id="studyStreak">0 gün</span>
+                        </div>
+                        <div class="level-metric-card">
+                            <span class="detail-label">Haftalık deneme</span>
+                            <span class="level-metric-value" id="weeklyExamProgress">0 / 0</span>
+                        </div>
+                        <div class="level-metric-card">
+                            <span class="detail-label">Haftalık soru</span>
+                            <span class="level-metric-value" id="weeklyQuestionProgress">0 / 0</span>
+                        </div>
+                        <div class="level-metric-card">
+                            <span class="detail-label">Konu hakimiyeti</span>
+                            <span class="level-metric-value" id="topicMastery">%0</span>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 style="margin:0 0 8px; font-size:1rem; color:var(--text-main);">Aktif görevler</h4>
+                        <div class="mission-list" id="missionList"></div>
                     </div>
                 </div>
             </div>

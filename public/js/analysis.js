@@ -276,6 +276,7 @@ async function loadTopicProgress(userId, results) {
     updateCurrentTopicCard(topics, currentTopicId, successMap);
     renderTopicList(topics, progressMap, currentTopicId, successMap);
     renderTopicInsights(successMap, topicMap);
+    renderLevelSystem(buildLevelData(results, topics, progressMap));
 }
 
 function buildTopicSuccessMap(topics, categoryTotals) {
@@ -409,6 +410,166 @@ function getTopicStatus(topicId, progressMap, currentTopicId) {
     if (progress?.status === 'completed') return 'completed';
     if (progress?.status === 'in_progress' || topicId === currentTopicId) return 'in_progress';
     return 'pending';
+}
+
+function buildLevelData(results, topics, progressMap) {
+    const totalCorrect = results.reduce((acc, curr) => acc + (curr.correct || 0), 0);
+    const totalQuestions = results.reduce((acc, curr) => acc + (curr.total || 0), 0);
+    const totalSessions = results.length;
+    const completedTopics = topics.filter(topic => getTopicStatus(topic.id, progressMap, state.currentTopicId) === 'completed').length;
+    const accuracy = totalQuestions ? Math.round((totalCorrect / totalQuestions) * 100) : 0;
+
+    const weeklyWindow = Date.now() - (7 * 24 * 60 * 60 * 1000);
+    const weeklyResults = results.filter(item => item.completedAt?.seconds ? (item.completedAt.seconds * 1000) >= weeklyWindow : false);
+    const weeklyExamCount = weeklyResults.length;
+    const weeklyQuestionCount = weeklyResults.reduce((acc, curr) => acc + (curr.total || 0), 0);
+
+    const recentTopicWindow = Date.now() - (14 * 24 * 60 * 60 * 1000);
+    const recentCompletedTopics = [...progressMap.values()].filter(item => {
+        const timestamp = item?.updatedAt?.seconds ? item.updatedAt.seconds * 1000 : null;
+        return item?.status === 'completed' && timestamp && timestamp >= recentTopicWindow;
+    }).length;
+
+    const topicMastery = topics.length ? Math.round((completedTopics / topics.length) * 100) : 0;
+    const studyStreak = calculateStudyStreak(results);
+
+    const xp = (totalCorrect * 2) + (totalSessions * 20) + (completedTopics * 60) + (accuracy * 3);
+    const levels = [
+        { level: 1, name: 'Başlangıç', minXp: 0 },
+        { level: 2, name: 'İvme Kazanan', minXp: 500 },
+        { level: 3, name: 'Düzenli Takipçi', minXp: 1100 },
+        { level: 4, name: 'Kararlı Öğrenci', minXp: 1800 },
+        { level: 5, name: 'Hedef Odaklı', minXp: 2600 },
+        { level: 6, name: 'Uzmanlaşan', minXp: 3500 }
+    ];
+
+    const currentLevelIndex = levels.reduce((acc, curr, index) => (xp >= curr.minXp ? index : acc), 0);
+    const currentLevel = levels[currentLevelIndex];
+    const nextLevel = levels[currentLevelIndex + 1] || null;
+    const levelRange = nextLevel ? (nextLevel.minXp - currentLevel.minXp) : 1;
+    const levelProgress = nextLevel ? Math.min(Math.round(((xp - currentLevel.minXp) / levelRange) * 100), 100) : 100;
+
+    const missions = [
+        {
+            title: 'Haftalık deneme takibi',
+            description: '7 gün içinde 3 deneme çöz.',
+            value: weeklyExamCount,
+            target: 3
+        },
+        {
+            title: 'Haftalık soru yükü',
+            description: '7 gün içinde 250 soru çöz.',
+            value: weeklyQuestionCount,
+            target: 250
+        },
+        {
+            title: 'Yeni konu tamamla',
+            description: 'Son 14 günde 1 konu tamamla.',
+            value: recentCompletedTopics,
+            target: 1
+        },
+        {
+            title: 'Doğruluk hedefi',
+            description: 'Genel başarı oranını %75 üzerine taşı.',
+            value: accuracy,
+            target: 75,
+            unit: '%'
+        }
+    ];
+
+    return {
+        xp,
+        currentLevel,
+        nextLevel,
+        levelProgress,
+        levelRange,
+        topicMastery,
+        studyStreak,
+        weeklyExamCount,
+        weeklyExamTarget: 3,
+        weeklyQuestionCount,
+        weeklyQuestionTarget: 250,
+        missions
+    };
+}
+
+function renderLevelSystem(levelData) {
+    const {
+        xp,
+        currentLevel,
+        nextLevel,
+        levelProgress,
+        levelRange,
+        topicMastery,
+        studyStreak,
+        weeklyExamCount,
+        weeklyExamTarget,
+        weeklyQuestionCount,
+        weeklyQuestionTarget,
+        missions
+    } = levelData;
+
+    document.getElementById('currentLevel').innerText = `Seviye ${currentLevel.level}`;
+    document.getElementById('currentLevelXp').innerText = `${xp} XP`;
+    document.getElementById('currentLevelBadge').innerText = currentLevel.name;
+    document.getElementById('levelProgressBar').style.width = `${levelProgress}%`;
+    document.getElementById('levelProgressText').innerText = nextLevel
+        ? `${xp - currentLevel.minXp} / ${levelRange} XP`
+        : `${xp} XP`;
+    document.getElementById('levelNextTarget').innerText = nextLevel
+        ? `Sonraki seviye: ${nextLevel.name} (${nextLevel.minXp} XP)`
+        : 'Son seviye';
+    document.getElementById('studyStreak').innerText = `${studyStreak} gün`;
+    document.getElementById('weeklyExamProgress').innerText = `${weeklyExamCount} / ${weeklyExamTarget}`;
+    document.getElementById('weeklyQuestionProgress').innerText = `${weeklyQuestionCount} / ${weeklyQuestionTarget}`;
+    document.getElementById('topicMastery').innerText = `%${topicMastery}`;
+
+    const missionList = document.getElementById('missionList');
+    missionList.innerHTML = missions.map(mission => {
+        const progress = Math.min(Math.round((mission.value / mission.target) * 100), 100);
+        const isComplete = mission.value >= mission.target;
+        const displayValue = mission.unit ? `${mission.value}${mission.unit}` : mission.value;
+        const displayTarget = mission.unit ? `${mission.target}${mission.unit}` : mission.target;
+        return `
+            <div class="mission-item">
+                <div class="mission-header">
+                    <div>
+                        <div class="mission-title">${mission.title}</div>
+                        <div class="mission-progress">${mission.description}</div>
+                    </div>
+                    <span class="mission-status ${isComplete ? 'done' : ''}">${isComplete ? 'Tamamlandı' : 'Devam ediyor'}</span>
+                </div>
+                <div class="mission-progress">${displayValue} / ${displayTarget}</div>
+                <div class="mission-bar"><span style="width:${progress}%"></span></div>
+            </div>
+        `;
+    }).join('');
+}
+
+function calculateStudyStreak(results) {
+    if (!results.length) return 0;
+    const dateSet = new Set();
+    results.forEach(item => {
+        if (!item.completedAt?.seconds) return;
+        const dayKey = new Date(item.completedAt.seconds * 1000).toISOString().slice(0, 10);
+        dateSet.add(dayKey);
+    });
+
+    const dates = [...dateSet].sort().reverse();
+    if (!dates.length) return 0;
+
+    let streak = 0;
+    let cursor = new Date(dates[0]);
+    for (const dateStr of dates) {
+        const date = new Date(dateStr);
+        if (date.toDateString() === cursor.toDateString()) {
+            streak += 1;
+            cursor.setDate(cursor.getDate() - 1);
+        } else {
+            break;
+        }
+    }
+    return streak;
 }
 
 function bindTopicActions() {
