@@ -62,6 +62,251 @@
             margin-top: 4px;
         }
 
+        .analysis-panel-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        .analysis-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+            padding: 20px 22px;
+        }
+
+        .analysis-card h3 {
+            font-size: 1.1rem;
+            margin: 0 0 6px 0;
+            color: var(--text-main);
+        }
+
+        .analysis-card p {
+            margin: 0;
+            color: var(--text-muted);
+        }
+
+        .progress-summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 16px;
+            margin: 18px 0;
+        }
+
+        .summary-item {
+            background: var(--bg-hover);
+            border-radius: var(--radius-md);
+            padding: 12px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .summary-value {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: var(--text-main);
+        }
+
+        .summary-label {
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+
+        .current-topic-card {
+            border: 1px dashed var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 18px;
+            background: var(--bg-surface);
+        }
+
+        .current-topic-title {
+            font-weight: 700;
+            font-size: 1.05rem;
+            color: var(--text-main);
+            margin: 6px 0 4px 0;
+        }
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 14px;
+            margin-top: 16px;
+        }
+
+        .detail-item {
+            background: var(--bg-hover);
+            border-radius: var(--radius-md);
+            padding: 12px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .detail-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .detail-value {
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .topic-progress-header {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .chip-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .chip {
+            padding: 6px 12px;
+            border-radius: var(--radius-full);
+            border: 1px solid var(--border-color);
+            background: var(--bg-hover);
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            color: var(--text-main);
+        }
+
+        .chip.active {
+            background: rgba(212, 175, 55, 0.16);
+            border-color: var(--color-primary);
+            color: var(--color-primary);
+        }
+
+        .topic-progress-list {
+            display: grid;
+            gap: 12px;
+        }
+
+        .topic-progress-item {
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 14px 16px;
+            display: grid;
+            gap: 12px;
+            grid-template-columns: minmax(0, 1.4fr) minmax(0, 0.7fr) minmax(0, 0.6fr);
+            align-items: center;
+            background: var(--bg-surface);
+        }
+
+        .topic-progress-title {
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 4px;
+        }
+
+        .topic-meta {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .topic-badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 6px;
+        }
+
+        .status-pill {
+            font-size: 0.72rem;
+            padding: 2px 8px;
+            border-radius: var(--radius-full);
+            border: 1px solid transparent;
+            font-weight: 600;
+        }
+
+        .status-completed {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--color-success);
+            border-color: rgba(16, 185, 129, 0.3);
+        }
+
+        .status-progress {
+            background: rgba(59, 130, 246, 0.15);
+            color: #3b82f6;
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+
+        .status-pending {
+            background: rgba(239, 68, 68, 0.12);
+            color: var(--color-danger);
+            border-color: rgba(239, 68, 68, 0.28);
+        }
+
+        .topic-action-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            align-items: flex-start;
+        }
+
+        .toggle-complete {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .progress-metric {
+            font-weight: 700;
+            color: var(--text-main);
+            font-size: 1.1rem;
+        }
+
+        .progress-subtext {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 24px;
+            color: var(--text-muted);
+            border-radius: var(--radius-md);
+            border: 1px dashed var(--border-color);
+            background: var(--bg-surface);
+        }
+
+        @media (max-width: 1024px) {
+            .analysis-panel-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 840px) {
+            .topic-progress-item {
+                grid-template-columns: 1fr;
+            }
+
+            .topic-action-group {
+                align-items: stretch;
+            }
+        }
+
         /* Renkler */
         .bg-gold-soft {
             background: rgba(212, 175, 55, 0.15);
@@ -132,6 +377,91 @@
                     <div class="kpi-label">Hata Oranı</div>
                 </div>
             </div>
+        </div>
+
+        <div class="analysis-panel-grid">
+            <div class="analysis-card">
+                <h3>🎯 Konu İlerlemesi Özeti</h3>
+                <p class="text-muted">Konu bazlı ilerlemenizi ve genel tamamlama oranınızı tek bakışta görün.</p>
+                <div class="progress-summary-grid">
+                    <div class="summary-item">
+                        <span class="summary-value" id="topicCompletionRate">%0</span>
+                        <span class="summary-label">Tamamlanan Oranı</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-value" id="completedTopicCount">0</span>
+                        <span class="summary-label">Tamamlanan Konu</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-value" id="inProgressTopicCount">0</span>
+                        <span class="summary-label">Devam Eden</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-value" id="remainingTopicCount">0</span>
+                        <span class="summary-label">Kalan Konu</span>
+                    </div>
+                </div>
+                <div class="progress-bar-container" aria-label="Konu tamamlama çubuğu">
+                    <div id="topicCompletionBar" class="progress-bar" style="width:0%;"></div>
+                </div>
+                <div class="current-topic-card">
+                    <div>
+                        <span class="badge bg-light text-dark border">Şu anda çalışılan konu</span>
+                        <div class="current-topic-title" id="currentTopicName">Seçili konu yok</div>
+                        <div class="topic-meta" id="currentTopicMeta">Bir konu seçerek odağınızı belirleyebilirsiniz.</div>
+                    </div>
+                    <div>
+                        <button id="focusTopicBtn" class="btn btn-sm btn-outline-primary" disabled>Konuyu Aç</button>
+                    </div>
+                </div>
+            </div>
+            <div class="analysis-card">
+                <h3>📌 Detaylı İstatistikler</h3>
+                <p class="text-muted">Başarı, istikrar ve öğrenme yoğunluğunu özetleyen göstergeler.</p>
+                <div class="detail-grid">
+                    <div class="detail-item">
+                        <span class="detail-label">En güçlü konu</span>
+                        <span class="detail-value" id="bestTopic">-</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Geliştirilmesi gereken</span>
+                        <span class="detail-value" id="focusTopic">-</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Son 30 gün başarı</span>
+                        <span class="detail-value" id="recentSuccess">%0</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">İstikrar puanı</span>
+                        <span class="detail-value" id="consistencyScore">%0</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Toplam çalışma oturumu</span>
+                        <span class="detail-value" id="sessionCount">0</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Ortalama soru/oturum</span>
+                        <span class="detail-value" id="avgQuestionsPerSession">0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="topic-progress-header">
+                <div>
+                    <h3 style="font-size:1.1rem; margin:0; color:var(--text-main);">📚 Konu Takip Listesi</h3>
+                    <p class="text-muted" style="margin:6px 0 0;">Dışarıda tamamladığınız konuları işaretleyebilir, çalışma odağınızı belirleyebilirsiniz.</p>
+                </div>
+                <div class="chip-group" id="topicFilterChips">
+                    <button class="chip active" type="button" data-filter="all">Tümü</button>
+                    <button class="chip" type="button" data-filter="completed">Tamamlanan</button>
+                    <button class="chip" type="button" data-filter="in_progress">Devam Eden</button>
+                    <button class="chip" type="button" data-filter="pending">Kalan</button>
+                </div>
+            </div>
+            <div id="topicProgressList" class="topic-progress-list"></div>
+            <div id="topicProgressEmpty" class="empty-state" style="display:none;">Henüz konu verisi bulunamadı.</div>
         </div>
 
         <!-- Grafikler -->
