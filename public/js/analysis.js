@@ -54,7 +54,12 @@ function calculateKPIs(results) {
     const totalScore = results.reduce((acc, curr) => acc + (curr.score || 0), 0);
     const avgScore = totalExams > 0 ? Math.round(totalScore / totalExams) : 0;
 
-    const totalQuestions = results.reduce((acc, curr) => acc + (curr.total || 0), 0);
+    const totalQuestions = results.reduce((acc, curr) => {
+        // Eğer veritabanında 'total' alanı yoksa hesapla
+        const examTotal = curr.total || ((curr.correct || 0) + (curr.wrong || 0) + (curr.empty || 0));
+        return acc + examTotal;
+    }, 0);
+
     const totalWrong = results.reduce((acc, curr) => acc + (curr.wrong || 0), 0);
     const wrongRate = totalQuestions > 0 ? Math.round((totalWrong / totalQuestions) * 100) : 0;
 

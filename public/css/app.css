@@ -4,17 +4,25 @@
 /* --- ANA TEMA DEĞİŞKENLERİ --- */
 :root {
     /* Renk Paleti (Admin.css ile uyumlu) */
-    --navy-deep: #0F172A;   /* Koyu Lacivert */
-    --navy-light: #1E293B;  /* Açık Lacivert (Panel rengi) */
-    --navy-border: #334155; /* Çerçeve Rengi */
-    
-    --gold-main: #D4AF37;   /* Ana Altın Rengi */
-    --gold-light: #F7E8A9;  /* Parlak Altın */
-    --gold-dark: #A8853A;   /* Koyu Altın */
-    
-    --text-light: #F8FAFC;  /* Beyazımsı Metin */
-    --text-muted: #94A3B8;  /* Sönük Metin */
-    
+    --navy-deep: #0F172A;
+    /* Koyu Lacivert */
+    --navy-light: #1E293B;
+    /* Açık Lacivert (Panel rengi) */
+    --navy-border: #334155;
+    /* Çerçeve Rengi */
+
+    --gold-main: #D4AF37;
+    /* Ana Altın Rengi */
+    --gold-light: #F7E8A9;
+    /* Parlak Altın */
+    --gold-dark: #A8853A;
+    /* Koyu Altın */
+
+    --text-light: #F8FAFC;
+    /* Beyazımsı Metin */
+    --text-muted: #94A3B8;
+    /* Sönük Metin */
+
     /* Durum Renkleri */
     --color-success: #10b981;
     --color-danger: #ef4444;
@@ -23,8 +31,13 @@
 
 /* --- HAREKETLİ ALTIN ANİMASYONU --- */
 @keyframes shimmer {
-    0% { background-position: -200% center; }
-    100% { background-position: 200% center; }
+    0% {
+        background-position: -200% center;
+    }
+
+    100% {
+        background-position: 200% center;
+    }
 }
 
 .premium-gold-text {
@@ -54,7 +67,8 @@
 /* --- TEMEL SAYFA YAPISI --- */
 body {
     font-family: 'Inter', sans-serif;
-    background-color: var(--navy-deep); /* Arka planı koyu yaptım, landing page için daha şık */
+    background-color: var(--navy-deep);
+    /* Arka planı koyu yaptım, landing page için daha şık */
     color: var(--text-light);
     line-height: 1.6;
     overflow-x: hidden;
@@ -219,7 +233,8 @@ body {
     justify-content: space-between;
     align-items: center;
     padding: 0 6%;
-    background: rgba(15, 23, 42, 0.9); /* navy-deep şeffaf */
+    background: rgba(15, 23, 42, 0.9);
+    /* navy-deep şeffaf */
     backdrop-filter: blur(10px);
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     transition: all 0.3s ease;
@@ -227,7 +242,7 @@ body {
 
 .landing-nav.scrolled {
     background: rgba(15, 23, 42, 0.98);
-    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
     border-bottom: 1px solid var(--gold-main);
 }
 
@@ -244,6 +259,10 @@ body {
 
 .brand-logo span {
     color: var(--gold-main);
+}
+
+[data-theme="light"] .brand-logo {
+    color: var(--navy-deep);
 }
 
 .nav-right {
@@ -275,7 +294,8 @@ body {
 /* Butonlar */
 .btn {
     padding: 10px 24px;
-    border-radius: 6px; /* 50px yerine modern köşeli yapı */
+    border-radius: 6px;
+    /* 50px yerine modern köşeli yapı */
     font-weight: 600;
     text-decoration: none;
     display: inline-flex;
@@ -339,8 +359,8 @@ body {
         padding: 2rem;
         gap: 1.5rem;
         border-bottom: 1px solid var(--navy-border);
-        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-        
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+
         /* Animasyon özellikleri */
         opacity: 0;
         visibility: hidden;
@@ -370,9 +390,11 @@ body {
     .mobile-nav-toggle.open .icon-bar:nth-child(1) {
         transform: rotate(45deg) translate(5px, 6px);
     }
+
     .mobile-nav-toggle.open .icon-bar:nth-child(2) {
         opacity: 0;
     }
+
     .mobile-nav-toggle.open .icon-bar:nth-child(3) {
         transform: rotate(-45deg) translate(5px, -6px);
     }
