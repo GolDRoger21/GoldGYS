@@ -492,13 +492,14 @@ async function renderLevelSystem(userId, results) {
         document.getElementById('levelNextTarget').innerText = ``;
     }
 
-    // Missions (Dummy logic for now)
+    // Missions (Real Data)
+    const streakDays = calculateStudyStreak(results);
     const missionHTML = `
         <div style="background:rgba(255,255,255,0.05); padding:10px; border-radius:8px; display:flex; align-items:center; gap:10px;">
             <div style="font-size:1.5rem;">🔥</div>
             <div>
                 <div style="font-weight:bold; font-size:0.85rem;">Haftalık Seri</div>
-                <div style="font-size:0.75rem; color:var(--text-muted);">${calculateStudyStreak(results)} Gün</div>
+                <div style="font-size:0.75rem; color:var(--text-muted);">${streakDays} Gün</div>
             </div>
         </div>
         <div style="background:rgba(255,255,255,0.05); padding:10px; border-radius:8px; display:flex; align-items:center; gap:10px;">
