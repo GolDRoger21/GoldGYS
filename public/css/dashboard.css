@@ -6,7 +6,218 @@
     width: 100%;
 }
 
-/* --- BENTO GRID LAYOUT --- */
+/* --- WELCOME SECTION (Restored) --- */
+.welcome-section {
+    background: linear-gradient(135deg, var(--navy-light), var(--navy-deep));
+    padding: 30px;
+    border-radius: 24px;
+    margin-bottom: 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.welcome-section::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -10%;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(212, 175, 55, 0.1) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+.welcome-text h1 {
+    font-size: 2rem;
+    margin-bottom: 8px;
+    font-weight: 700;
+    color: var(--text-light);
+}
+
+.welcome-text p {
+    font-size: 1.1rem;
+    color: var(--text-muted);
+}
+
+/* Geri Sayım (Restored) */
+.exam-countdown {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    padding: 15px 25px;
+    border-radius: 16px;
+    text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    min-width: 120px;
+}
+
+.exam-countdown .days {
+    display: block;
+    font-size: 2.5rem;
+    font-weight: 800;
+    line-height: 1;
+    color: var(--gold-main);
+}
+
+.exam-countdown .label {
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-muted);
+}
+
+/* --- STATS GRID (Old Dashboard) --- */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 24px;
+    margin-bottom: 40px;
+}
+
+.stat-card {
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
+    padding: 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    border-color: rgba(212, 175, 55, 0.3);
+}
+
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    flex-shrink: 0;
+}
+
+.stat-icon.gold {
+    background: rgba(212, 175, 55, 0.15);
+    color: var(--gold-main);
+}
+
+.stat-icon.blue {
+    background: rgba(59, 130, 246, 0.15);
+    color: #3b82f6;
+}
+
+.stat-icon.red {
+    background: rgba(239, 68, 68, 0.15);
+    color: var(--color-danger);
+}
+
+.stat-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.stat-info h3 {
+    font-size: 0.95rem;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.stat-info .stat-value {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: var(--text-light);
+    line-height: 1.2;
+}
+
+.progress-bar-container {
+    width: 100%;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 99px;
+    margin: 8px 0;
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 100%;
+    background: var(--gold-main);
+    border-radius: 99px;
+}
+
+.link-small a {
+    font-size: 0.85rem;
+    color: var(--gold-main);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+/* --- QUICK ACCESS (Restored) --- */
+.section-title {
+    font-size: 1.25rem;
+    color: var(--text-light);
+    margin-bottom: 20px;
+    font-weight: 700;
+    border-left: 4px solid var(--gold-main);
+    padding-left: 12px;
+}
+
+.quick-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 20px;
+}
+
+.quick-card {
+    background: rgba(15, 23, 42, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
+    padding: 24px;
+    text-decoration: none;
+    color: var(--text-light);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    text-align: center;
+    transition: all 0.3s ease;
+    height: 160px;
+}
+
+.quick-card:hover {
+    border-color: var(--gold-main);
+    transform: translateY(-4px);
+    background: rgba(15, 23, 42, 0.6);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+}
+
+.quick-card .q-icon {
+    font-size: 2.5rem;
+    margin-bottom: 4px;
+}
+
+.quick-card span {
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+
+/* --- BENTO GRID LAYOUT (New Analysis) --- */
 .bento-grid {
     display: grid;
     grid-template-columns: repeat(12, 1fr);
@@ -16,45 +227,79 @@
 }
 
 /* Grid Spans */
-.col-span-3 { grid-column: span 3; }
-.col-span-4 { grid-column: span 4; }
-.col-span-6 { grid-column: span 6; }
-.col-span-8 { grid-column: span 8; }
-.col-span-12 { grid-column: span 12; }
+.col-span-3 {
+    grid-column: span 3;
+}
 
-.row-span-2 { grid-row: span 2; }
+.col-span-4 {
+    grid-column: span 4;
+}
+
+.col-span-6 {
+    grid-column: span 6;
+}
+
+.col-span-8 {
+    grid-column: span 8;
+}
+
+.col-span-12 {
+    grid-column: span 12;
+}
+
+.row-span-2 {
+    grid-row: span 2;
+}
 
 /* --- GLASS CARD (PREMIUM) --- */
 .glass-card {
     background: rgba(15, 23, 42, 0.6);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.08); /* Çok ince, zarif sınır */
-    border-radius: 24px; /* Daha modern, geniş ovallik */
-    box-shadow: 
-        0 4px 6px -1px rgba(0, 0, 0, 0.1), 
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 24px;
+    box-shadow:
+        0 4px 6px -1px rgba(0, 0, 0, 0.1),
         0 2px 4px -1px rgba(0, 0, 0, 0.06),
-        inset 0 1px 0 rgba(255, 255, 255, 0.05); /* İç parlama */
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
     overflow: hidden;
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.3s ease;
 }
 
 .glass-card:hover {
     transform: translateY(-2px);
-    box-shadow: 
-        0 20px 25px -5px rgba(0, 0, 0, 0.2), 
-        0 10px 10px -5px rgba(0, 0, 0, 0.1),
-        inset 0 1px 0 rgba(255, 255, 255, 0.1);
-    border-color: rgba(212, 175, 55, 0.3); /* Hover'da hafif altın ışıltısı */
+    border-color: rgba(212, 175, 55, 0.3);
+}
+
+/* Themes Support for Glass Card */
+[data-theme="light"] .glass-card {
+    background: rgba(255, 255, 255, 0.85);
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    box-shadow:
+        0 4px 15px rgba(0, 0, 0, 0.05),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+[data-theme="light"] .card-title {
+    color: var(--navy-deep);
+}
+
+[data-theme="light"] .metric-label {
+    color: #64748b;
 }
 
 /* Card Header & Content */
 .card-header {
     padding: 20px 24px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    /* Light theme overrides needed */
     display: flex;
     justify-content: space-between;
     align-items: center;
+}
+
+[data-theme="light"] .card-header {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .card-title {
@@ -82,10 +327,16 @@
     font-size: 3.5rem;
     font-weight: 800;
     line-height: 1;
-    background: linear-gradient(135deg, var(--color-primary) 0%, #fff 100%);
+    background: linear-gradient(135deg, var(--gold-main) 0%, #fff 100%);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
+}
+
+[data-theme="light"] .metric-big-value {
+    background: linear-gradient(135deg, var(--gold-dark) 0%, var(--gold-main) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
 }
 
 .metric-label {
@@ -108,7 +359,6 @@
     overflow: hidden;
 }
 
-/* Arkaplan ikon efekti */
 .kpi-stat-card .bg-icon {
     position: absolute;
     right: -10px;
@@ -119,10 +369,19 @@
     transform: rotate(-15deg);
 }
 
+[data-theme="light"] .kpi-stat-card .bg-icon {
+    opacity: 0.08;
+    color: #000;
+}
+
 .kpi-value {
     font-size: 2rem;
     font-weight: 800;
     color: var(--text-light);
+}
+
+[data-theme="light"] .kpi-value {
+    color: var(--navy-deep);
 }
 
 .kpi-title {
@@ -138,8 +397,8 @@
 
 .mastery-table {
     width: 100%;
-    border-collapse: separate; /* border-radius için */
-    border-spacing: 0 8px; /* Satırlar arası boşluk */
+    border-collapse: separate;
+    border-spacing: 0 8px;
 }
 
 .mastery-table th {
@@ -156,8 +415,16 @@
     transition: background 0.2s ease;
 }
 
+[data-theme="light"] .mastery-table tr.topic-row {
+    background: rgba(0, 0, 0, 0.03);
+}
+
 .mastery-table tr.topic-row:hover {
     background: rgba(255, 255, 255, 0.06);
+}
+
+[data-theme="light"] .mastery-table tr.topic-row:hover {
+    background: rgba(0, 0, 0, 0.06);
 }
 
 .mastery-table td {
@@ -176,17 +443,14 @@
     text-align: right;
 }
 
-/* Topic Info Cell */
-.topic-info-cell {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-
 .topic-name {
     font-weight: 600;
     color: var(--text-light);
     font-size: 1rem;
+}
+
+[data-theme="light"] .topic-name {
+    color: var(--navy-deep);
 }
 
 .topic-desc {
@@ -207,13 +471,17 @@
     margin-right: 12px;
 }
 
+[data-theme="light"] .progress-mini-wrapper {
+    background: rgba(0, 0, 0, 0.1);
+}
+
 .progress-mini-fill {
     height: 100%;
-    background: var(--color-primary);
+    background: var(--gold-main);
     border-radius: 99px;
 }
 
-/* Action Menu (Dots) */
+/* Action & Status */
 .action-btn {
     background: transparent;
     border: none;
@@ -230,7 +498,11 @@
     color: var(--text-light);
 }
 
-/* Status Badges (Pill) */
+[data-theme="light"] .action-btn:hover {
+    background: rgba(0, 0, 0, 0.05);
+    color: var(--navy-deep);
+}
+
 .status-pill {
     padding: 6px 14px;
     border-radius: 99px;
@@ -259,30 +531,111 @@
     border: 1px solid rgba(148, 163, 184, 0.2);
 }
 
-/* --- CHARTS CONTAINER --- */
-.chart-wrapper {
-    position: relative;
-    height: 300px;
-    width: 100%;
+/* --- EXAM HISTORY TABLE (PREMIUM LIST) --- */
+.exam-list-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.exam-card-item {
+    display: grid;
+    grid-template-columns: 80px 1fr 120px 80px;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.03);
+    padding: 16px;
+    border-radius: 16px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+[data-theme="light"] .exam-card-item {
+    background: rgba(0, 0, 0, 0.02);
+}
+
+.exam-card-item:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.1);
+    transform: translateX(4px);
+}
+
+[data-theme="light"] .exam-card-item:hover {
+    background: rgba(0, 0, 0, 0.05);
+    border-color: rgba(0, 0, 0, 0.1);
+}
+
+.exam-date-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 8px;
+    border-radius: 10px;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+[data-theme="light"] .exam-date-box {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+.exam-date-day {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--text-light);
+}
+
+[data-theme="light"] .exam-date-day {
+    color: var(--navy-deep);
+}
+
+.exam-info {
+    padding-left: 16px;
+}
+
+.exam-title {
+    font-weight: 600;
+    color: var(--text-light);
+    margin-bottom: 4px;
+}
+
+[data-theme="light"] .exam-title {
+    color: var(--navy-deep);
+}
+
+.exam-meta {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.exam-score-box {
+    text-align: center;
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: var(--text-light);
+}
+
+[data-theme="light"] .exam-score-box {
+    color: var(--navy-deep);
 }
 
 /* --- RESPONSIVE --- */
 @media (max-width: 1200px) {
     .bento-grid {
-        grid-template-columns: repeat(2, 1fr); /* Tablette 2 kolon */
-    }
-    
-    .col-span-3, .col-span-4, .col-span-6, .col-span-8 {
-        grid-column: span 1; /* Çoğu kart tek kolon olsun */
-    }
-    
-    .col-span-12 {
-        grid-column: span 2;
+        grid-template-columns: repeat(2, 1fr);
     }
 
-    /* KPI'lar için özel override */
-    .kpi-stat-card {
-        padding: 20px;
+    .col-span-3,
+    .col-span-4,
+    .col-span-6,
+    .col-span-8 {
+        grid-column: span 1;
+    }
+
+    .col-span-12 {
+        grid-column: span 2;
     }
 }
 
@@ -292,48 +645,41 @@
     }
 
     .bento-grid {
-        grid-template-columns: 1fr; /* Mobilde tek kolon */
+        grid-template-columns: 1fr;
         gap: 16px;
     }
 
-    .col-span-3, .col-span-4, .col-span-6, .col-span-8, .col-span-12 {
+    .col-span-3,
+    .col-span-4,
+    .col-span-6,
+    .col-span-8,
+    .col-span-12 {
         grid-column: span 1;
     }
 
-    .card-header {
-        flex-direction: column;
-        align-items: flex-start;
+    .exam-card-item {
+        grid-template-columns: 60px 1fr;
+        grid-template-rows: auto auto;
         gap: 12px;
     }
-    
-    .mastery-table th {
-        display: none; /* Mobilde başlıkları gizle */
+
+    .exam-date-box {
+        grid-row: span 2;
     }
 
-    .mastery-table tr.topic-row {
-        display: block;
-        margin-bottom: 12px;
-        padding: 12px;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 12px;
+    .exam-score-box {
+        grid-column: 2;
+        text-align: left;
+        padding-left: 16px;
     }
 
-    .mastery-table td {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 8px 0;
-        border: none;
+    .welcome-section {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 20px;
     }
-    
-    /* İsim satırı belirgin kalsın */
-    .mastery-table td:first-child {
-        margin-bottom: 8px;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-        padding-bottom: 12px;
-    }
-    
-    .progress-mini-wrapper {
-        width: 100px; /* Biraz küçült */
+
+    .exam-countdown {
+        width: 100%;
     }
 }

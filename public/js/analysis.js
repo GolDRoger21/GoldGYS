@@ -35,11 +35,11 @@ async function initAnalysis(userId) {
         renderHistoryTable(results);
         renderLevelSystem(userId, results); // Değişti: asenkron yükleme içine alındı
         calculatePredictedScore(results);
-        
+
         // Topic loading
         await loadTopicProgress(userId, results);
 
-        document.getElementById('lastUpdate').innerText = `Son Güncelleme: ${new Date().toLocaleTimeString('tr-TR', {hour:'2-digit', minute:'2-digit'})}`;
+        document.getElementById('lastUpdate').innerText = `Son Güncelleme: ${new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}`;
         document.getElementById('lastUpdate').classList.remove('status-in-progress');
         document.getElementById('lastUpdate').classList.add('status-completed');
     } catch (error) {
@@ -68,7 +68,7 @@ function renderProgressChart(results) {
     // Son 10 sınav
     const chartData = [...results].slice(0, 10).reverse();
     const ctx = document.getElementById('progressChart').getContext('2d');
-    
+
     const labels = chartData.length
         ? chartData.map(r => new Date(r.completedAt.seconds * 1000).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' }))
         : ['Veri Yok'];
@@ -190,31 +190,46 @@ function renderTopicChart(results) {
 }
 
 function renderHistoryTable(results) {
-    const tbody = document.getElementById('historyTableBody');
-    if (!tbody) return; // Tablo HTML'de yoksa geç
-    
+    const container = document.getElementById('historyListContainer');
+    if (!container) return;
+
     if (!results.length) {
-        tbody.innerHTML = '<tr><td colspan="4" class="text-center p-4" style="color:var(--text-muted)">Henüz sınav verisi yok.</td></tr>';
+        container.innerHTML = '<div style="text-align:center; padding: 20px; color: var(--text-muted);">Henüz sınav verisi yok.</div>';
         return;
     }
-    
-    const displayResults = results.slice(0, 5); // Sadece son 5
-    tbody.innerHTML = displayResults.map(r => `
-        <tr>
-            <td>${new Date(r.completedAt.seconds * 1000).toLocaleDateString('tr-TR')}</td>
-            <td style="font-weight:600; color:var(--text-light);">${r.examTitle || 'Genel Test'}</td>
-            <td>
-                <span style="color:var(--color-success)">${r.correct} D</span> / 
-                <span style="color:var(--color-danger)">${r.wrong} Y</span> / 
-                <span style="color:var(--text-muted)">${r.empty} B</span>
-            </td>
-            <td>
-                <span class="badge" style="background:${r.score >= 70 ? 'var(--color-success)' : 'var(--color-warning)'}; color:#fff; padding:4px 8px; border-radius:4px;">
-                    %${r.score}
-                </span>
-            </td>
-        </tr>
-    `).join('');
+
+    // Sadece son 5
+    const displayResults = results.slice(0, 5);
+
+    container.innerHTML = displayResults.map(r => {
+        const dateObj = new Date(r.completedAt.seconds * 1000);
+        const day = dateObj.getDate();
+        const month = dateObj.toLocaleDateString('tr-TR', { month: 'short' });
+        const examId = r.id || '#'; // Exam ID'si varsa link için kullan
+
+        return `
+        <div class="exam-card-item" onclick="window.location.href='/pages/sonuc.html?id=${examId}'">
+            <div class="exam-date-box">
+                <span class="exam-date-day">${day}</span>
+                <span>${month}</span>
+            </div>
+            <div class="exam-info">
+                <div class="exam-title">${r.examTitle || 'Genel Test'}</div>
+                <div class="exam-meta">
+                    <span style="color:var(--color-success)">${r.correct} D</span> • 
+                    <span style="color:var(--color-danger)">${r.wrong} Y</span> • 
+                    <span style="color:var(--text-muted)">${r.empty} B</span>
+                </div>
+            </div>
+            <div class="exam-score-box">
+                %${r.score}
+            </div>
+            <div style="text-align:right;">
+                <button class="action-btn">➔</button>
+            </div>
+        </div>
+        `;
+    }).join('');
 }
 
 function buildCategoryTotals(results) {
@@ -242,7 +257,7 @@ function calculatePredictedScore(results) {
     let weightedSum = 0;
 
     recentExams.forEach((exam, index) => {
-        const weight = index + 1; 
+        const weight = index + 1;
         weightedSum += (exam.score || 0) * weight;
         totalWeight += weight;
     });
@@ -267,7 +282,7 @@ async function loadTopicProgress(userId, results) {
     const successMap = buildTopicSuccessMap(topics, categoryTotals);
 
     renderTopicList(topics, progressMap, currentTopicId, successMap);
-    
+
     // Level datasını hesaplamak için de lazım olacak
     return { topics, progressMap };
 }
@@ -299,7 +314,7 @@ function renderTopicList(topics, progressMap, currentTopicId, successMap) {
         const progress = progressMap.get(topic.id) || {};
         const status = getTopicStatus(topic.id, progressMap, currentTopicId);
         const success = successMap.get(topic.id) || 0;
-        
+
         let statusBadge = '';
         if (status === 'completed') statusBadge = '<span class="status-pill status-completed">TAMAMLANDI</span>';
         else if (status === 'in_progress') statusBadge = '<span class="status-pill status-in-progress">ÇALIŞILIYOR</span>';
@@ -336,7 +351,7 @@ function renderTopicList(topics, progressMap, currentTopicId, successMap) {
             </tr>
         `;
     }).join('');
-    
+
     bindTopicFilters();
 }
 
@@ -352,18 +367,18 @@ function bindTopicFilters() {
     chips.forEach(chip => {
         chip.addEventListener('click', () => {
             // Görsel update
-             chips.forEach(c => {
-                 c.classList.remove('status-in-progress');
-                 c.classList.add('status-pending');
-                 c.style.color = 'var(--text-muted)';
-             });
-             chip.classList.remove('status-pending');
-             chip.classList.add('status-in-progress');
-             chip.style.color = '';
+            chips.forEach(c => {
+                c.classList.remove('status-in-progress');
+                c.classList.add('status-pending');
+                c.style.color = 'var(--text-muted)';
+            });
+            chip.classList.remove('status-pending');
+            chip.classList.add('status-in-progress');
+            chip.style.color = '';
 
             const filter = chip.dataset.filter;
             const rows = document.querySelectorAll('.topic-row');
-            
+
             rows.forEach(row => {
                 if (filter === 'all') {
                     row.style.display = 'table-row';
@@ -390,7 +405,7 @@ window.toggleTopicStatus = async (topicId, newStatus) => {
             manualCompleted: true,
             updatedAt: serverTimestamp()
         }, { merge: true });
-        
+
         // Reload data
         loadTopicProgress(state.userId, state.results);
         // Level XP'yi de update etmek gerekebilir ama şimdilik reload yetmeyebilir, tam refresh daha temiz
@@ -402,7 +417,7 @@ window.toggleTopicStatus = async (topicId, newStatus) => {
 };
 
 window.setFocusTopic = async (topicId) => {
-     try {
+    try {
         await setDoc(doc(db, "users", state.userId), {
             currentTopicId: topicId,
             updatedAt: serverTimestamp()
@@ -429,18 +444,18 @@ async function renderLevelSystem(userId, results) {
         getDocs(query(collection(db, "topics"))),
         getDocs(collection(db, `users/${userId}/topic_progress`))
     ]);
-    
-    const topics = topicsSnap.docs.map(d => ({id:d.id, ...d.data()}));
+
+    const topics = topicsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
     const progressMap = new Map(progressSnap.docs.map(d => [d.id, d.data()]));
-    
+
     // XP Hesaplama
     const totalCorrect = results.reduce((acc, curr) => acc + (curr.correct || 0), 0);
     const totalSessions = results.length;
     const completedTopics = [...progressMap.values()].filter(p => p.status === 'completed').length;
-    
+
     // Basit XP Formülü
     const xp = (totalCorrect * 2) + (totalSessions * 20) + (completedTopics * 50);
-    
+
     // Seviyeler
     const levels = [
         { level: 1, name: 'Çaylak', minXp: 0 },
@@ -448,21 +463,21 @@ async function renderLevelSystem(userId, results) {
         { level: 3, name: 'Usta', minXp: 1500 },
         { level: 4, name: 'Efsane', minXp: 3000 }
     ];
-    
+
     const currentLevelIdx = levels.reduce((acc, curr, idx) => xp >= curr.minXp ? idx : acc, 0);
     const currentLvl = levels[currentLevelIdx];
     const nextLvl = levels[currentLevelIdx + 1] || null;
-    
+
     // UI Update
     document.getElementById('currentLevel').innerText = `${currentLvl.name} (Lv.${currentLvl.level})`;
     document.getElementById('currentLevelXp').innerText = `${xp} XP`;
     document.getElementById('currentLevelBadge').innerText = `Seviye ${currentLvl.level}`;
-    
+
     if (nextLvl) {
         const range = nextLvl.minXp - currentLvl.minXp;
         const currentProgress = xp - currentLvl.minXp;
         const percent = Math.min(100, Math.round((currentProgress / range) * 100));
-        
+
         document.getElementById('levelProgressBar').style.width = `${percent}%`;
         document.getElementById('levelProgressText').innerText = `${currentProgress} / ${range} XP`;
         document.getElementById('levelNextTarget').innerText = `Sonraki: ${nextLvl.name}`;
@@ -471,7 +486,7 @@ async function renderLevelSystem(userId, results) {
         document.getElementById('levelProgressText').innerText = `Max Seviye`;
         document.getElementById('levelNextTarget').innerText = ``;
     }
-    
+
     // Missions (Dummy logic for now)
     const missionHTML = `
         <div style="background:rgba(255,255,255,0.05); padding:10px; border-radius:8px; display:flex; align-items:center; gap:10px;">
