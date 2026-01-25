@@ -21,6 +21,12 @@
     border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
+[data-theme="light"] .welcome-section {
+    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+}
+
 .welcome-section::before {
     content: '';
     position: absolute;
@@ -39,9 +45,17 @@
     color: var(--text-light);
 }
 
+[data-theme="light"] .welcome-text h1 {
+    color: var(--navy-deep);
+}
+
 .welcome-text p {
     font-size: 1.1rem;
     color: var(--text-muted);
+}
+
+[data-theme="light"] .welcome-text p {
+    color: #475569;
 }
 
 /* Geri Sayım (Restored) */
@@ -55,6 +69,11 @@
     min-width: 120px;
 }
 
+[data-theme="light"] .exam-countdown {
+    background: rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
 .exam-countdown .days {
     display: block;
     font-size: 2.5rem;
@@ -63,12 +82,20 @@
     color: var(--gold-main);
 }
 
+[data-theme="light"] .exam-countdown .days {
+    color: var(--gold-dark);
+}
+
 .exam-countdown .label {
     font-size: 0.85rem;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 1px;
     color: var(--text-muted);
+}
+
+[data-theme="light"] .exam-countdown .label {
+    color: #64748b;
 }
 
 /* --- STATS GRID (Old Dashboard) --- */
@@ -91,10 +118,20 @@
     transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
+[data-theme="light"] .stat-card {
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
+}
+
 .stat-card:hover {
     transform: translateY(-4px);
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
     border-color: rgba(212, 175, 55, 0.3);
+}
+
+[data-theme="light"] .stat-card:hover {
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
 }
 
 .stat-icon {
@@ -123,6 +160,19 @@
     color: var(--color-danger);
 }
 
+[data-theme="light"] .stat-icon.gold {
+    background: rgba(212, 175, 55, 0.1);
+    color: var(--gold-dark);
+}
+
+[data-theme="light"] .stat-icon.blue {
+    background: rgba(59, 130, 246, 0.1);
+}
+
+[data-theme="light"] .stat-icon.red {
+    background: rgba(239, 68, 68, 0.1);
+}
+
 .stat-info {
     flex: 1;
     display: flex;
@@ -137,11 +187,19 @@
     text-transform: uppercase;
 }
 
+[data-theme="light"] .stat-info h3 {
+    color: #64748b;
+}
+
 .stat-info .stat-value {
     font-size: 1.8rem;
     font-weight: 800;
     color: var(--text-light);
     line-height: 1.2;
+}
+
+[data-theme="light"] .stat-info .stat-value {
+    color: var(--navy-deep);
 }
 
 .progress-bar-container {
@@ -151,6 +209,10 @@
     border-radius: 99px;
     margin: 8px 0;
     overflow: hidden;
+}
+
+[data-theme="light"] .progress-bar-container {
+    background: rgba(0, 0, 0, 0.05);
 }
 
 .progress-bar {
@@ -166,6 +228,10 @@
     font-weight: 600;
 }
 
+[data-theme="light"] .link-small a {
+    color: var(--gold-dark);
+}
+
 /* --- QUICK ACCESS (Restored) --- */
 .section-title {
     font-size: 1.25rem;
@@ -174,6 +240,10 @@
     font-weight: 700;
     border-left: 4px solid var(--gold-main);
     padding-left: 12px;
+}
+
+[data-theme="light"] .section-title {
+    color: var(--navy-deep);
 }
 
 .quick-grid {
@@ -199,11 +269,23 @@
     height: 160px;
 }
 
+[data-theme="light"] .quick-card {
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    color: var(--navy-deep);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
+}
+
 .quick-card:hover {
     border-color: var(--gold-main);
     transform: translateY(-4px);
     background: rgba(15, 23, 42, 0.6);
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="light"] .quick-card:hover {
+    background: #fff;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
 }
 
 .quick-card .q-icon {
