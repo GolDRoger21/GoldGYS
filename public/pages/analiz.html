@@ -8,464 +8,9 @@
     <link rel="stylesheet" href="../styles/tokens.css">
     <link rel="stylesheet" href="../css/layout.css">
     <link rel="stylesheet" href="../css/dashboard.css">
+    <link rel="stylesheet" href="../css/app.css">
     <!-- Chart.js Kütüphanesi -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        .analysis-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 24px;
-            margin-bottom: 30px;
-        }
-
-        .chart-container {
-            background: var(--bg-surface);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-lg);
-            padding: 20px;
-            box-shadow: var(--shadow-sm);
-            height: 350px;
-            position: relative;
-        }
-
-        .kpi-card {
-            background: var(--bg-surface);
-            padding: 20px;
-            border-radius: var(--radius-lg);
-            border: 1px solid var(--border-color);
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
-
-        .kpi-icon {
-            width: 48px;
-            height: 48px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-        }
-
-        .kpi-value {
-            font-size: 1.8rem;
-            font-weight: 800;
-            color: var(--text-main);
-            line-height: 1;
-        }
-
-        .kpi-label {
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            margin-top: 4px;
-        }
-
-        .analysis-panel-grid {
-            display: grid;
-            grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
-            gap: 24px;
-            margin-bottom: 32px;
-        }
-
-        .analysis-card {
-            background: var(--bg-surface);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-lg);
-            box-shadow: var(--shadow-sm);
-            padding: 20px 22px;
-        }
-
-        .analysis-card h3 {
-            font-size: 1.1rem;
-            margin: 0 0 6px 0;
-            color: var(--text-main);
-        }
-
-        .analysis-card p {
-            margin: 0;
-            color: var(--text-muted);
-        }
-
-        .progress-summary-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 16px;
-            margin: 18px 0;
-        }
-
-        .summary-item {
-            background: var(--bg-hover);
-            border-radius: var(--radius-md);
-            padding: 12px 14px;
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
-        .summary-value {
-            font-size: 1.4rem;
-            font-weight: 800;
-            color: var(--text-main);
-        }
-
-        .summary-label {
-            font-size: 0.82rem;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.4px;
-        }
-
-        .current-topic-card {
-            border: 1px dashed var(--border-color);
-            border-radius: var(--radius-md);
-            padding: 16px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 16px;
-            align-items: center;
-            justify-content: space-between;
-            margin-top: 18px;
-            background: var(--bg-surface);
-        }
-
-        .current-topic-title {
-            font-weight: 700;
-            font-size: 1.05rem;
-            color: var(--text-main);
-            margin: 6px 0 4px 0;
-        }
-
-        .detail-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 14px;
-            margin-top: 16px;
-        }
-
-        .detail-item {
-            background: var(--bg-hover);
-            border-radius: var(--radius-md);
-            padding: 12px 14px;
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
-        .detail-label {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            text-transform: uppercase;
-        }
-
-        .detail-value {
-            font-weight: 700;
-            color: var(--text-main);
-        }
-
-        .level-card {
-            display: flex;
-            flex-direction: column;
-            gap: 18px;
-        }
-
-        .level-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 16px;
-            flex-wrap: wrap;
-        }
-
-        .level-title {
-            font-size: 1.4rem;
-            font-weight: 800;
-            color: var(--text-main);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .level-label {
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            color: var(--text-muted);
-            letter-spacing: 0.4px;
-        }
-
-        .level-badge {
-            padding: 6px 14px;
-            border-radius: var(--radius-full);
-            background: rgba(212, 175, 55, 0.18);
-            color: var(--color-primary);
-            font-weight: 700;
-            font-size: 0.85rem;
-            border: 1px solid rgba(212, 175, 55, 0.4);
-        }
-
-        .level-progress-meta {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            font-size: 0.85rem;
-            color: var(--text-muted);
-        }
-
-        .level-metrics-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-            gap: 12px;
-        }
-
-        .level-metric-card {
-            background: var(--bg-hover);
-            border-radius: var(--radius-md);
-            padding: 12px 14px;
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
-        .level-metric-value {
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: var(--text-main);
-        }
-
-        .mission-list {
-            display: grid;
-            gap: 12px;
-        }
-
-        .mission-item {
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-md);
-            padding: 12px 14px;
-            display: grid;
-            gap: 10px;
-            background: var(--bg-surface);
-        }
-
-        .mission-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-        }
-
-        .mission-title {
-            font-weight: 700;
-            color: var(--text-main);
-        }
-
-        .mission-progress {
-            font-size: 0.82rem;
-            color: var(--text-muted);
-        }
-
-        .mission-bar {
-            height: 8px;
-            border-radius: var(--radius-full);
-            background: rgba(148, 163, 184, 0.2);
-            overflow: hidden;
-        }
-
-        .mission-bar span {
-            display: block;
-            height: 100%;
-            border-radius: inherit;
-            background: linear-gradient(90deg, rgba(16, 185, 129, 0.8), rgba(212, 175, 55, 0.9));
-        }
-
-        .mission-status {
-            font-size: 0.7rem;
-            text-transform: uppercase;
-            letter-spacing: 0.4px;
-            font-weight: 700;
-            padding: 2px 8px;
-            border-radius: var(--radius-full);
-            border: 1px solid var(--border-color);
-            background: var(--bg-hover);
-            color: var(--text-muted);
-        }
-
-        .mission-status.done {
-            background: rgba(16, 185, 129, 0.18);
-            color: var(--color-success);
-            border-color: rgba(16, 185, 129, 0.4);
-        }
-
-        .topic-progress-header {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            justify-content: space-between;
-            gap: 16px;
-            margin-bottom: 16px;
-        }
-
-        .chip-group {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-
-        .chip {
-            padding: 6px 12px;
-            border-radius: var(--radius-full);
-            border: 1px solid var(--border-color);
-            background: var(--bg-hover);
-            font-size: 0.82rem;
-            font-weight: 600;
-            cursor: pointer;
-            color: var(--text-main);
-        }
-
-        .chip.active {
-            background: rgba(212, 175, 55, 0.16);
-            border-color: var(--color-primary);
-            color: var(--color-primary);
-        }
-
-        .topic-progress-list {
-            display: grid;
-            gap: 12px;
-        }
-
-        .topic-progress-item {
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-md);
-            padding: 14px 16px;
-            display: grid;
-            gap: 12px;
-            grid-template-columns: minmax(0, 1.4fr) minmax(0, 0.7fr) minmax(0, 0.6fr);
-            align-items: center;
-            background: var(--bg-surface);
-        }
-
-        .topic-progress-title {
-            font-weight: 700;
-            color: var(--text-main);
-            margin-bottom: 4px;
-        }
-
-        .topic-meta {
-            font-size: 0.85rem;
-            color: var(--text-muted);
-        }
-
-        .topic-badges {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-            margin-top: 6px;
-        }
-
-        .status-pill {
-            font-size: 0.72rem;
-            padding: 2px 8px;
-            border-radius: var(--radius-full);
-            border: 1px solid transparent;
-            font-weight: 600;
-        }
-
-        .status-completed {
-            background: rgba(16, 185, 129, 0.15);
-            color: var(--color-success);
-            border-color: rgba(16, 185, 129, 0.3);
-        }
-
-        .status-progress {
-            background: rgba(59, 130, 246, 0.15);
-            color: #3b82f6;
-            border-color: rgba(59, 130, 246, 0.3);
-        }
-
-        .status-pending {
-            background: rgba(239, 68, 68, 0.12);
-            color: var(--color-danger);
-            border-color: rgba(239, 68, 68, 0.28);
-        }
-
-        .topic-action-group {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            align-items: flex-start;
-        }
-
-        .toggle-complete {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.85rem;
-            color: var(--text-muted);
-        }
-
-        .progress-metric {
-            font-weight: 700;
-            color: var(--text-main);
-            font-size: 1.1rem;
-        }
-
-        .progress-subtext {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 24px;
-            color: var(--text-muted);
-            border-radius: var(--radius-md);
-            border: 1px dashed var(--border-color);
-            background: var(--bg-surface);
-        }
-
-        @media (max-width: 1024px) {
-            .analysis-panel-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        @media (max-width: 840px) {
-            .topic-progress-item {
-                grid-template-columns: 1fr;
-            }
-
-            .topic-action-group {
-                align-items: stretch;
-            }
-
-            .level-progress-meta {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 6px;
-            }
-        }
-
-        /* Renkler */
-        .bg-gold-soft {
-            background: rgba(212, 175, 55, 0.15);
-            color: var(--color-primary);
-        }
-
-        .bg-green-soft {
-            background: rgba(16, 185, 129, 0.15);
-            color: var(--color-success);
-        }
-
-        .bg-red-soft {
-            background: rgba(239, 68, 68, 0.15);
-            color: var(--color-danger);
-        }
-
-        .bg-blue-soft {
-            background: rgba(59, 130, 246, 0.15);
-            color: #3b82f6;
-        }
-    </style>
     <link rel="icon" type="image/png" href="../icons/favicon.png">
     <link rel="manifest" href="/manifest.json">
 </head>
@@ -477,228 +22,185 @@
     </script>
 
     <div class="dashboard-container">
-        <div class="section-header">
+        <!-- Header -->
+        <div class="section-header" style="margin-bottom: 30px; display: flex; justify-content: space-between; align-items: flex-end;">
             <div>
-                <h2>📊 Performans Karnesi</h2>
-                <p class="text-muted">Gelişim sürecinizi ve eksik olduğunuz konuları analiz edin.</p>
+                <h2 class="premium-gold-text" style="font-size: 2rem; margin-bottom: 8px;">Performans Karnesi</h2>
+                <p class="text-muted">Gelişim sürecinizi ve eksik olduğunuz konuları profesyonelce analiz edin.</p>
             </div>
-            <div class="date-display" id="lastUpdate">Güncelleniyor...</div>
-        </div>
-
-        <!-- KPI Kartları -->
-        <div class="stats-grid">
-            <div class="kpi-card glass-card">
-                <div class="kpi-icon bg-blue-soft">📝</div>
-                <div>
-                    <div class="kpi-value" id="totalExams">0</div>
-                    <div class="kpi-label">Çözülen Deneme</div>
-                </div>
-            </div>
-            <div class="kpi-card glass-card">
-                <div class="kpi-icon bg-green-soft">🎯</div>
-                <div>
-                    <div class="kpi-value" id="avgScore">%0</div>
-                    <div class="kpi-label">Ortalama Başarı</div>
-                </div>
-            </div>
-            <div class="kpi-card glass-card">
-                <div class="kpi-icon bg-gold-soft">⚡</div>
-                <div>
-                    <div class="kpi-value" id="totalQuestions">0</div>
-                    <div class="kpi-label">Toplam Soru</div>
-                </div>
-            </div>
-            <div class="kpi-card glass-card">
-                <div class="kpi-icon bg-red-soft">⚠️</div>
-                <div>
-                    <div class="kpi-value" id="wrongRate">%0</div>
-                    <div class="kpi-label">Hata Oranı</div>
-                </div>
+            <div class="status-pill status-in-progress" id="lastUpdate">
+                Güncelleniyor...
             </div>
         </div>
 
-        <div class="analysis-panel-grid">
-            <!-- Sol Kolon: İlerleme ve Tahmin -->
-            <div class="analysis-column-left" style="display:flex; flex-direction:column; gap:24px;">
-                <div class="analysis-card glass-card">
-                    <h3>🔮 Tahmini Puan</h3>
-                    <p class="text-muted">Mevcut performansınıza göre öngörülen sınav puanınız.</p>
-                    <div style="margin-top:20px; text-align:center;">
-                        <span id="predictedScore" style="font-size:3rem; font-weight:800; color:var(--color-primary); display:block;">--</span>
-                        <span class="text-muted" style="font-size:0.9rem;">Son 5 sınav ağırlıklı ortalaması</span>
-                    </div>
-                </div>
-
-                <div class="analysis-card glass-card">
-                    <h3>🎯 Konu İlerlemesi Özeti</h3>
-                    <p class="text-muted">Konu bazlı ilerlemenizi ve genel tamamlama oranınızı tek bakışta görün.</p>
-                    <div class="progress-summary-grid">
-                        <div class="summary-item">
-                            <span class="summary-value" id="topicCompletionRate">%0</span>
-                            <span class="summary-label">Tamamlanan Oranı</span>
-                        </div>
-                        <div class="summary-item">
-                            <span class="summary-value" id="completedTopicCount">0</span>
-                            <span class="summary-label">Tamamlanan Konu</span>
-                        </div>
-                        <div class="summary-item">
-                            <span class="summary-value" id="inProgressTopicCount">0</span>
-                            <span class="summary-label">Devam Eden</span>
-                        </div>
-                        <div class="summary-item">
-                            <span class="summary-value" id="remainingTopicCount">0</span>
-                            <span class="summary-label">Kalan Konu</span>
-                        </div>
-                    </div>
-                    <div class="progress-bar-container" aria-label="Konu tamamlama çubuğu">
-                        <div id="topicCompletionBar" class="progress-bar" style="width:0%;"></div>
-                    </div>
-                    <div class="current-topic-card">
-                        <div>
-                            <span class="badge bg-light text-dark border">Şu anda çalışılan konu</span>
-                            <div class="current-topic-title" id="currentTopicName">Seçili konu yok</div>
-                            <div class="topic-meta" id="currentTopicMeta">Bir konu seçerek odağınızı belirleyebilirsiniz.</div>
-                        </div>
-                        <div>
-                            <button id="focusTopicBtn" class="btn btn-sm btn-outline-primary" disabled>Konuyu Aç</button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="analysis-card glass-card level-card">
+        <!-- Bento Grid Layout -->
+        <div class="bento-grid">
+            
+            <!-- 1. Hero: Predictive Score (Sol Üst) -->
+            <div class="glass-card col-span-4 row-span-2" style="position: relative; overflow: hidden;">
+                <div class="card-body hero-metric-container">
                     <div>
-                        <h3>🚀 Görevde Yükselme</h3>
-                        <p class="text-muted">Görev tamamlama ritminize göre seviyeniz ve bir sonraki hedefiniz.</p>
+                        <div class="metric-label">Tahmini Puan</div>
+                        <div class="metric-big-value" id="predictedScore">--</div>
+                        <p class="text-muted" style="margin-top: 10px; font-size: 0.9rem;">
+                            Son 5 sınav ağırlıklı ortalaması
+                        </p>
                     </div>
-                    <div class="level-header">
+                    <!-- Dekoratif Arkaplan -->
+                    <div style="position: absolute; right: -20px; bottom: -20px; font-size: 8rem; opacity: 0.03;">🏆</div>
+                </div>
+            </div>
+
+            <!-- 2. Hero: Level Progress (Orta/Sağ Üst) -->
+            <div class="glass-card col-span-8 row-span-2">
+                <div class="card-header">
+                    <div class="card-title">
+                        <span>🚀 Görevde Yükselme</span>
+                    </div>
+                    <div class="status-pill status-completed" id="currentLevelBadge">Başlangıç</div>
+                </div>
+                <div class="card-body">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
                         <div>
-                            <div class="level-label">Mevcut seviye</div>
-                            <div class="level-title">
-                                <span id="currentLevel">Seviye 1</span>
-                                <span class="text-muted" id="currentLevelXp">0 XP</span>
-                            </div>
+                            <span class="text-muted" style="font-size: 0.85rem;">Mevcut Seviye</span>
+                            <div style="font-size: 1.4rem; font-weight: 700; color: var(--text-light);" id="currentLevel">Seviye 1</div>
                         </div>
-                        <div class="level-badge" id="currentLevelBadge">Başlangıç</div>
+                        <div style="text-align: right;">
+                             <span class="text-muted" style="font-size: 0.85rem;">Toplam XP</span>
+                             <div style="font-size: 1.4rem; font-weight: 700; color: var(--gold-main);" id="currentLevelXp">0 XP</div>
+                        </div>
                     </div>
-                    <div class="progress-bar-container" aria-label="Seviye ilerleme çubuğu">
-                        <div id="levelProgressBar" class="progress-bar" style="width:0%;"></div>
+                    
+                    <div class="progress-bar-container" style="height: 12px; background: rgba(255,255,255,0.05);">
+                        <div id="levelProgressBar" class="progress-bar" style="width: 0%; background: linear-gradient(90deg, var(--gold-dark), var(--gold-light));"></div>
                     </div>
-                    <div class="level-progress-meta">
+                    
+                    <div style="display: flex; justify-content: space-between; margin-top: 8px; font-size: 0.85rem; color: var(--text-muted);">
                         <span id="levelProgressText">0 / 0 XP</span>
-                        <span id="levelNextTarget">Sonraki seviye: -</span>
+                        <span id="levelNextTarget">Sonraki: -</span>
                     </div>
-                    <div class="level-metrics-grid">
-                        <div class="level-metric-card">
-                            <span class="detail-label">Çalışma serisi</span>
-                            <span class="level-metric-value" id="studyStreak">0 gün</span>
+
+                    <div style="margin-top: 24px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.05);">
+                        <div style="font-weight: 600; color: var(--text-muted); margin-bottom: 12px; font-size: 0.9rem;">HAFTALIK GÖREVLER</div>
+                        <div id="missionList" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;">
+                            <!-- JS ile dolacak -->
                         </div>
-                        <div class="level-metric-card">
-                            <span class="detail-label">Haftalık deneme</span>
-                            <span class="level-metric-value" id="weeklyExamProgress">0 / 0</span>
-                        </div>
-                        <div class="level-metric-card">
-                            <span class="detail-label">Haftalık soru</span>
-                            <span class="level-metric-value" id="weeklyQuestionProgress">0 / 0</span>
-                        </div>
-                        <div class="level-metric-card">
-                            <span class="detail-label">Konu hakimiyeti</span>
-                            <span class="level-metric-value" id="topicMastery">%0</span>
-                        </div>
-                    </div>
-                    <div>
-                        <h4 style="margin:0 0 8px; font-size:1rem; color:var(--text-main);">Aktif görevler</h4>
-                        <div class="mission-list" id="missionList"></div>
                     </div>
                 </div>
             </div>
 
-            <!-- Sağ Kolon: Detaylar -->
-            <div class="analysis-column-right" style="display:flex; flex-direction:column; gap:24px;">
-                <div class="analysis-card glass-card">
-                    <h3>📌 Detaylı İstatistikler</h3>
-                    <p class="text-muted">Başarı, istikrar ve öğrenme yoğunluğunu özetleyen göstergeler.</p>
-                    <div class="detail-grid">
-                        <div class="detail-item">
-                            <span class="detail-label">En güçlü konu</span>
-                            <span class="detail-value" id="bestTopic">-</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Geliştirilmesi gereken</span>
-                            <span class="detail-value" id="focusTopic">-</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Son 30 gün başarı</span>
-                            <span class="detail-value" id="recentSuccess">%0</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">İstikrar puanı</span>
-                            <span class="detail-value" id="consistencyScore">%0</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Toplam çalışma oturumu</span>
-                            <span class="detail-value" id="sessionCount">0</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Ortalama soru/oturum</span>
-                            <span class="detail-value" id="avgQuestionsPerSession">0</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card glass-card">
-                    <div class="topic-progress-header">
-                        <div>
-                            <h3 style="font-size:1.1rem; margin:0; color:var(--text-main);">📚 Konu Takip Listesi</h3>
-                            <p class="text-muted" style="margin:6px 0 0;">Dışarıda tamamladığınız konuları işaretleyebilir, çalışma odağınızı belirleyebilirsiniz.</p>
-                        </div>
-                        <div class="chip-group" id="topicFilterChips">
-                            <button class="chip active" type="button" data-filter="all">Tümü</button>
-                            <button class="chip" type="button" data-filter="completed">Tamamlanan</button>
-                            <button class="chip" type="button" data-filter="in_progress">Devam Eden</button>
-                            <button class="chip" type="button" data-filter="pending">Kalan</button>
-                        </div>
-                    </div>
-                    <div id="topicProgressList" class="topic-progress-list"></div>
-                    <div id="topicProgressEmpty" class="empty-state" style="display:none;">Henüz konu verisi bulunamadı.</div>
+            <!-- 3. KPI Cards (Orta Bant) -->
+            <div class="glass-card col-span-3">
+                <div class="kpi-stat-card">
+                    <div class="kpi-title">TOPLAM DENEME</div>
+                    <div class="kpi-value premium-gold-text" id="totalExams">0</div>
+                    <div class="bg-icon">📝</div>
                 </div>
             </div>
-        </div>
+            
+            <div class="glass-card col-span-3">
+                 <div class="kpi-stat-card">
+                    <div class="kpi-title">ORTALAMA BAŞARI</div>
+                    <div class="kpi-value" style="color: var(--color-success);" id="avgScore">%0</div>
+                    <div class="bg-icon">🎯</div>
+                </div>
+            </div>
 
-        <!-- Grafikler -->
-        <div class="analysis-grid">
-            <div class="chart-container glass-card">
-                <h3 class="mb-3" style="font-size:1.1rem; color:var(--text-main);">📈 Gelişim Grafiği (Son 10 Sınav)
-                </h3>
-                <canvas id="progressChart"></canvas>
+            <div class="glass-card col-span-3">
+                 <div class="kpi-stat-card">
+                    <div class="kpi-title">ÇÖZÜLEN SORU</div>
+                    <div class="kpi-value" style="color: #3b82f6;" id="totalQuestions">0</div>
+                    <div class="bg-icon">⚡</div>
+                </div>
             </div>
-            <div class="chart-container glass-card">
-                <h3 class="mb-3" style="font-size:1.1rem; color:var(--text-main);">🎯 Konu Bazlı Başarı</h3>
-                <canvas id="topicChart"></canvas>
-            </div>
-        </div>
 
-        <!-- Geçmiş Tablosu -->
-        <div class="card glass-card">
-            <div class="p-3 border-bottom border-color">
-                <h3 style="font-size:1.1rem; margin:0; color:var(--text-main);">Sınav Geçmişi</h3>
+            <div class="glass-card col-span-3">
+                 <div class="kpi-stat-card">
+                    <div class="kpi-title">HATA ORANI</div>
+                    <div class="kpi-value" style="color: var(--color-danger);" id="wrongRate">%0</div>
+                    <div class="bg-icon">⚠️</div>
+                </div>
             </div>
-            <div class="table-responsive">
-                <table class="admin-table">
-                    <thead>
-                        <tr>
-                            <th>Tarih</th>
-                            <th>Sınav Adı</th>
-                            <th>Doğru / Yanlış / Boş</th>
-                            <th>Puan</th>
-                        </tr>
-                    </thead>
-                    <tbody id="historyTableBody">
-                        <tr>
-                            <td colspan="4" class="text-center p-4">Veriler yükleniyor...</td>
-                        </tr>
-                    </tbody>
-                </table>
+
+            <!-- 4. Charts (Alt Bant) -->
+            <div class="glass-card col-span-8">
+                <div class="card-header">
+                    <div class="card-title">📈 Gelişim Grafiği (Son 10 Sınav)</div>
+                </div>
+                <div class="card-body" style="height: 320px;">
+                    <canvas id="progressChart"></canvas>
+                </div>
             </div>
+
+            <div class="glass-card col-span-4">
+                <div class="card-header">
+                    <div class="card-title">🎯 Konu Zayıflık Analizi</div>
+                </div>
+                <div class="card-body" style="height: 320px;">
+                     <canvas id="topicChart"></canvas>
+                </div>
+            </div>
+            
+            <!-- 5. Topic Mastery Center (En Alt - Geniş) -->
+            <div class="glass-card col-span-12">
+                <div class="card-header">
+                    <div class="card-title">
+                        <span>📚 Konu Hakimiyet Merkezi</span>
+                    </div>
+                    <!-- Filtreler -->
+                    <div class="chip-group" id="topicFilterChips" style="display: flex; gap: 8px;">
+                         <button class="status-pill status-in-progress" style="cursor: pointer; border:none;" data-filter="all">Tümü</button>
+                         <button class="status-pill status-pending" style="cursor: pointer; border:none; background: transparent; color: var(--text-muted);" data-filter="in_progress">Çalışılanlar</button>
+                         <button class="status-pill status-pending" style="cursor: pointer; border:none; background: transparent; color: var(--text-muted);" data-filter="completed">Tamamlananlar</button>
+                         <button class="status-pill status-pending" style="cursor: pointer; border:none; background: transparent; color: var(--text-muted);" data-filter="pending">Bekleyenler</button>
+                    </div>
+                </div>
+                <div class="card-body" style="padding: 0;">
+                    <div class="mastery-table-container">
+                        <table class="mastery-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 40%;">KONU BİLGİSİ</th>
+                                    <th style="width: 25%;">BAŞARI ORANI</th>
+                                    <th style="width: 20%;">DURUM</th>
+                                    <th style="width: 15%; text-align: right;">İŞLEMLER</th>
+                                </tr>
+                            </thead>
+                            <tbody id="topicMasteryList">
+                                <!-- JS ile dolacak -->
+                                <tr>
+                                    <td colspan="4" class="text-center" style="padding: 40px; color: var(--text-muted);">
+                                        Veriler yükleniyor...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sınav Geçmişi (Opsiyonel / Ek) -->
+             <div class="glass-card col-span-12">
+                <div class="card-header">
+                    <div class="card-title">📜 Son Sınavlar</div>
+                </div>
+                <div class="card-body">
+                     <div class="table-responsive">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Tarih</th>
+                                    <th>Sınav Adı</th>
+                                    <th>Sonuçlar</th>
+                                    <th>Puan</th>
+                                </tr>
+                            </thead>
+                            <tbody id="historyTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
 

@@ -1,292 +1,339 @@
 /* --- DASHBOARD CONTAINER --- */
 .dashboard-container {
-    max-width: 1200px;
+    max-width: 1400px;
     margin: 0 auto;
-    padding: 20px;
+    padding: 24px;
     width: 100%;
 }
 
-/* --- WELCOME SECTION --- */
-.welcome-section {
-    background: linear-gradient(135deg, var(--color-primary-dim), var(--color-primary));
-    color: var(--text-on-gold);
-    padding: 30px;
-    border-radius: var(--radius-lg);
-    margin-bottom: 30px;
+/* --- BENTO GRID LAYOUT --- */
+.bento-grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    grid-auto-rows: minmax(100px, auto);
+    gap: 24px;
+    margin-bottom: 40px;
+}
+
+/* Grid Spans */
+.col-span-3 { grid-column: span 3; }
+.col-span-4 { grid-column: span 4; }
+.col-span-6 { grid-column: span 6; }
+.col-span-8 { grid-column: span 8; }
+.col-span-12 { grid-column: span 12; }
+
+.row-span-2 { grid-row: span 2; }
+
+/* --- GLASS CARD (PREMIUM) --- */
+.glass-card {
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.08); /* Çok ince, zarif sınır */
+    border-radius: 24px; /* Daha modern, geniş ovallik */
+    box-shadow: 
+        0 4px 6px -1px rgba(0, 0, 0, 0.1), 
+        0 2px 4px -1px rgba(0, 0, 0, 0.06),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05); /* İç parlama */
+    overflow: hidden;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease;
+}
+
+.glass-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 
+        0 20px 25px -5px rgba(0, 0, 0, 0.2), 
+        0 10px 10px -5px rgba(0, 0, 0, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    border-color: rgba(212, 175, 55, 0.3); /* Hover'da hafif altın ışıltısı */
+}
+
+/* Card Header & Content */
+.card-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     display: flex;
     justify-content: space-between;
     align-items: center;
-    box-shadow: var(--shadow-gold);
-    position: relative;
-    overflow: hidden;
 }
 
-/* Dekoratif Arkaplan Efekti */
-.welcome-section::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    right: -10%;
-    width: 300px;
-    height: 300px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 50%;
-    pointer-events: none;
-}
-
-.welcome-text h1 {
-    font-family: var(--font-family-serif);
-    font-size: 2rem;
-    margin-bottom: 8px;
-    font-weight: 700;
-}
-
-.welcome-text p {
+.card-title {
     font-size: 1.1rem;
-    opacity: 0.9;
-    font-weight: 500;
+    font-weight: 700;
+    color: var(--text-light);
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 
-/* Geri Sayım Sayacı */
-.exam-countdown {
-    background: rgba(255, 255, 255, 0.2);
-    backdrop-filter: blur(5px);
-    padding: 15px 25px;
-    border-radius: var(--radius-md);
-    text-align: center;
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    min-width: 120px;
+.card-body {
+    padding: 24px;
 }
 
-.exam-countdown .days {
-    display: block;
-    font-size: 2.5rem;
+/* --- HERO METRICS (Predictive & Level) --- */
+.hero-metric-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 100%;
+}
+
+.metric-big-value {
+    font-size: 3.5rem;
     font-weight: 800;
     line-height: 1;
+    background: linear-gradient(135deg, var(--color-primary) 0%, #fff 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
 }
 
-.exam-countdown .label {
-    font-size: 0.85rem;
-    font-weight: 700;
+.metric-label {
+    font-size: 0.9rem;
+    color: var(--text-muted);
     text-transform: uppercase;
     letter-spacing: 1px;
+    font-weight: 600;
 }
 
-/* --- STATS GRID --- */
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 20px;
-    margin-bottom: 32px;
-}
-
-.stat-card {
-    background-color: var(--bg-surface);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-lg);
-    padding: 24px;
+/* --- KPI STAT CARDS (SMALL) --- */
+.kpi-stat-card {
     display: flex;
-    align-items: center;
-    gap: 16px;
-    transition: all var(--transition-medium);
-    box-shadow: var(--shadow-sm);
+    flex-direction: column;
+    justify-content: center;
+    gap: 8px;
+    padding: 24px;
+    height: 100%;
     position: relative;
     overflow: hidden;
 }
 
-.stat-card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-md);
-    border-color: var(--color-primary);
+/* Arkaplan ikon efekti */
+.kpi-stat-card .bg-icon {
+    position: absolute;
+    right: -10px;
+    bottom: -10px;
+    font-size: 5rem;
+    opacity: 0.05;
+    pointer-events: none;
+    transform: rotate(-15deg);
 }
 
-/* Glassmorphism Effect */
-.glass-card {
-    background: rgba(30, 41, 59, 0.7);
-    /* Fallback */
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-[data-theme="light"] .glass-card {
-    background: rgba(255, 255, 255, 0.8);
-    border: 1px solid rgba(0, 0, 0, 0.05);
-}
-
-.stat-icon {
-    width: 56px;
-    height: 56px;
-    border-radius: var(--radius-md);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.8rem;
-    flex-shrink: 0;
-}
-
-/* İkon Renkleri (Temaya göre uyumlu) */
-.stat-icon.gold {
-    background: rgba(212, 175, 55, 0.15);
-    color: var(--color-primary);
-}
-
-.stat-icon.blue {
-    background: rgba(59, 130, 246, 0.15);
-    color: #3b82f6;
-}
-
-.stat-icon.red {
-    background: rgba(239, 68, 68, 0.15);
-    color: var(--color-danger);
-}
-
-.stat-info {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-}
-
-.stat-info h3 {
-    font-size: 0.95rem;
-    color: var(--text-muted);
-    margin-bottom: 8px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.stat-info .stat-value {
-    font-size: 1.8rem;
+.kpi-value {
+    font-size: 2rem;
     font-weight: 800;
-    color: var(--text-main);
-    line-height: 1.2;
+    color: var(--text-light);
 }
 
-/* Progress Bar */
-.progress-bar-container {
+.kpi-title {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+/* --- TOPIC MASTERY CENTER (TABLE/LIST) --- */
+.mastery-table-container {
     width: 100%;
-    height: 6px;
-    background-color: var(--bg-hover);
-    border-radius: var(--radius-full);
-    margin: 8px 0;
-    overflow: hidden;
+    overflow-x: auto;
 }
 
-.progress-bar {
-    height: 100%;
-    background-color: var(--color-primary);
-    border-radius: var(--radius-full);
-    transition: width 1s ease-in-out;
+.mastery-table {
+    width: 100%;
+    border-collapse: separate; /* border-radius için */
+    border-spacing: 0 8px; /* Satırlar arası boşluk */
 }
 
-.link-small a {
+.mastery-table th {
+    text-align: left;
+    color: var(--text-muted);
     font-size: 0.85rem;
-    color: var(--color-primary);
-    text-decoration: none;
+    text-transform: uppercase;
+    padding: 0 16px 8px 16px;
     font-weight: 600;
 }
 
-.link-small a:hover {
-    text-decoration: underline;
+.mastery-table tr.topic-row {
+    background: rgba(255, 255, 255, 0.03);
+    transition: background 0.2s ease;
 }
 
-/* --- QUICK ACCESS --- */
-.section-title {
-    font-size: 1.25rem;
-    color: var(--text-main);
-    margin-bottom: 20px;
-    font-weight: 700;
-    border-left: 4px solid var(--color-primary);
-    padding-left: 12px;
+.mastery-table tr.topic-row:hover {
+    background: rgba(255, 255, 255, 0.06);
 }
 
-.quick-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 20px;
+.mastery-table td {
+    padding: 16px;
+    vertical-align: middle;
 }
 
-.quick-card {
-    background-color: var(--bg-surface);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-lg);
-    padding: 24px;
-    text-decoration: none;
-    color: var(--text-main);
+.mastery-table td:first-child {
+    border-top-left-radius: 12px;
+    border-bottom-left-radius: 12px;
+}
+
+.mastery-table td:last-child {
+    border-top-right-radius: 12px;
+    border-bottom-right-radius: 12px;
+    text-align: right;
+}
+
+/* Topic Info Cell */
+.topic-info-cell {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 16px;
-    text-align: center;
-    transition: all var(--transition-fast);
-    height: 160px;
-    box-shadow: var(--shadow-sm);
+    gap: 4px;
 }
 
-.quick-card:hover {
-    border-color: var(--color-primary);
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-md);
-    background-color: var(--bg-hover);
-}
-
-.quick-card .q-icon {
-    font-size: 2.5rem;
-    margin-bottom: 4px;
-}
-
-.quick-card span {
+.topic-name {
     font-weight: 600;
+    color: var(--text-light);
     font-size: 1rem;
 }
 
+.topic-desc {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+/* Progress Cell */
+.progress-mini-wrapper {
+    width: 120px;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 99px;
+    overflow: hidden;
+    position: relative;
+    display: inline-block;
+    vertical-align: middle;
+    margin-right: 12px;
+}
+
+.progress-mini-fill {
+    height: 100%;
+    background: var(--color-primary);
+    border-radius: 99px;
+}
+
+/* Action Menu (Dots) */
+.action-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 1.2rem;
+    padding: 8px;
+    border-radius: 50%;
+    transition: all 0.2s;
+}
+
+.action-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-light);
+}
+
+/* Status Badges (Pill) */
+.status-pill {
+    padding: 6px 14px;
+    border-radius: 99px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: inline-block;
+}
+
+.status-completed {
+    background: rgba(16, 185, 129, 0.15);
+    color: var(--color-success);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.status-in-progress {
+    background: rgba(59, 130, 246, 0.15);
+    color: #3b82f6;
+    border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.status-pending {
+    background: rgba(148, 163, 184, 0.1);
+    color: var(--text-muted);
+    border: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+/* --- CHARTS CONTAINER --- */
+.chart-wrapper {
+    position: relative;
+    height: 300px;
+    width: 100%;
+}
+
 /* --- RESPONSIVE --- */
+@media (max-width: 1200px) {
+    .bento-grid {
+        grid-template-columns: repeat(2, 1fr); /* Tablette 2 kolon */
+    }
+    
+    .col-span-3, .col-span-4, .col-span-6, .col-span-8 {
+        grid-column: span 1; /* Çoğu kart tek kolon olsun */
+    }
+    
+    .col-span-12 {
+        grid-column: span 2;
+    }
+
+    /* KPI'lar için özel override */
+    .kpi-stat-card {
+        padding: 20px;
+    }
+}
+
 @media (max-width: 768px) {
     .dashboard-container {
         padding: 16px;
     }
 
-    .welcome-section {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 20px;
-        text-align: left;
-        padding: 24px;
-    }
-
-    .exam-countdown {
-        width: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 15px;
-        margin-top: 10px;
-    }
-
-    .exam-countdown .days {
-        font-size: 2rem;
-    }
-
-    .stats-grid {
-        grid-template-columns: 1fr;
-        /* Full width cards on mobile */
+    .bento-grid {
+        grid-template-columns: 1fr; /* Mobilde tek kolon */
         gap: 16px;
     }
 
-    .quick-grid {
-        grid-template-columns: repeat(2, 1fr);
+    .col-span-3, .col-span-4, .col-span-6, .col-span-8, .col-span-12 {
+        grid-column: span 1;
+    }
+
+    .card-header {
+        flex-direction: column;
+        align-items: flex-start;
         gap: 12px;
     }
-
-    .analysis-panel-grid {
-        grid-template-columns: 1fr;
+    
+    .mastery-table th {
+        display: none; /* Mobilde başlıkları gizle */
     }
-}
 
-@media (max-width: 480px) {
-    .quick-grid {
-        grid-template-columns: 1fr;
+    .mastery-table tr.topic-row {
+        display: block;
+        margin-bottom: 12px;
+        padding: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+    }
+
+    .mastery-table td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 0;
+        border: none;
+    }
+    
+    /* İsim satırı belirgin kalsın */
+    .mastery-table td:first-child {
+        margin-bottom: 8px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        padding-bottom: 12px;
+    }
+    
+    .progress-mini-wrapper {
+        width: 100px; /* Biraz küçült */
     }
 }
