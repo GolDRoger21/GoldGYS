@@ -46,10 +46,12 @@
 .admin-body .app-sidebar .nav-item {
     align-items: center;
     gap: 12px;
-    height: auto;
+    height: 48px;
     min-height: 48px;
     padding: 10px 24px;
-    white-space: normal;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .admin-body .app-sidebar .nav-item .icon {
@@ -58,6 +60,7 @@
 
 .admin-body .app-sidebar .nav-item span:not(.icon) {
     line-height: 1.25;
+    white-space: nowrap;
 }
 
 /* Dashboard Header */
