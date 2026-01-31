@@ -118,6 +118,7 @@ body.sidebar-collapsed .app-sidebar {
     align-items: center;
     padding: 0 24px;
     height: 48px;
+    min-height: 48px;
     color: var(--text-main);
     text-decoration: none;
     font-size: 0.95rem;
@@ -127,6 +128,13 @@ body.sidebar-collapsed .app-sidebar {
     transition: all var(--transition-fast);
     white-space: nowrap;
     position: relative;
+
+    /* Modern Flex Layout (Matches Admin) */
+    gap: 12px;
+    flex-wrap: nowrap;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .nav-item:hover {
@@ -143,11 +151,20 @@ body.sidebar-collapsed .app-sidebar {
 
 .nav-item .icon {
     font-size: 1.25rem;
-    min-width: 24px;
-    margin-right: 24px;
+    /* min-width: 24px; */
+    /* margin-right: 24px;  <- REMOVED (Converted to gap) */
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
+}
+
+.nav-item span:not(.icon) {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 /* Collapsed Sidebar Adjustments */
