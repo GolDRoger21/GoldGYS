@@ -108,7 +108,7 @@ async function checkLastActivity(user) {
                     <h4 class="m-0" style="color:var(--text-main);">${activity.title}</h4>
                     <small class="text-muted">${activity.subTitle || 'Konu Çalışması'} • ${timeAgo}</small>
                 </div>
-                <a href="/pages/konu.html?id=${activity.id}" class="btn btn-sm btn-primary">
+                <a href="/konu/${encodeURIComponent(activity.id)}" class="btn btn-sm btn-primary">
                     Devam Et ▶
                 </a>
             </div>

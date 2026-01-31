@@ -4,14 +4,21 @@ import { getUserProfile } from './user-profile.js';
 import { showConfirm } from './notifications.js';
 
 const PAGE_CONFIG = {
+    '/dashboard': { id: 'dashboard', title: 'Genel Bakış' },
     '/pages/dashboard.html': { id: 'dashboard', title: 'Genel Bakış' },
     '/admin/index.html': { id: 'admin', title: 'Yönetim Paneli' },
+    '/profil': { id: 'profile', title: 'Profilim' },
     '/pages/profil.html': { id: 'profile', title: 'Profilim' },
+    '/konular': { id: 'lessons', title: 'Dersler' },
     '/pages/konular.html': { id: 'lessons', title: 'Dersler' },
     '/pages/testler.html': { id: 'tests', title: 'Testler' },
+    '/denemeler': { id: 'trials', title: 'Denemeler' },
     '/pages/denemeler.html': { id: 'trials', title: 'Denemeler' },
+    '/yanlislarim': { id: 'mistakes', title: 'Yanlışlarım' },
     '/pages/yanlislarim.html': { id: 'mistakes', title: 'Yanlışlarım' },
+    '/favoriler': { id: 'favorites', title: 'Favoriler' },
     '/pages/favoriler.html': { id: 'favorites', title: 'Favoriler' },
+    '/analiz': { id: 'analysis', title: 'Analiz' },
     '/pages/analiz.html': { id: 'analysis', title: 'Analiz' }
 };
 

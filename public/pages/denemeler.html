@@ -336,7 +336,7 @@
                         <span>🎯 Puan: %0-100</span>
                     </div>
                     <div class="exam-card-actions">
-                        <a href="deneme.html?id=${exam.id}" class="btn btn-outline-primary w-100">Sınava Başla</a>
+                        <a href="/deneme/${encodeURIComponent(exam.id)}" class="btn btn-outline-primary w-100">Sınava Başla</a>
                     </div>
                 `;
                 grid.appendChild(card);

@@ -295,7 +295,7 @@
 
   <header class="topic-header">
     <div style="max-width: 1200px; margin: 0 auto;">
-      <a href="/pages/konular.html"
+      <a href="/konular"
         style="text-decoration:none; color:var(--text-muted); display:flex; align-items:center; gap:5px; margin-bottom:10px;">
         <span class="material-icons">arrow_back</span> Tüm Konular
       </a>
@@ -385,7 +385,19 @@
     document.addEventListener('DOMContentLoaded', async () => {
       const urlParams = new URLSearchParams(window.location.search);
       currentTopicId = urlParams.get('id');
-      if (!currentTopicId) return window.location.href = '/pages/konular.html';
+
+      if (!currentTopicId) {
+        const pathMatch = window.location.pathname.match(/^\\/konu\\/([^/]+)$/);
+        if (pathMatch) {
+          currentTopicId = decodeURIComponent(pathMatch[1]);
+        }
+      }
+
+      if (!currentTopicId) return window.location.href = '/konular';
+
+      if (!window.location.pathname.startsWith('/konu/')) {
+        window.history.replaceState({}, '', `/konu/${encodeURIComponent(currentTopicId)}`);
+      }
 
       initMobileTabs();
 
@@ -483,7 +495,8 @@
           if (isTest) {
             testCount += 1;
             const qCount = item.qCount || (item.questions ? item.questions.length : 0);
-            const returnUrl = encodeURIComponent(`/pages/konu.html?id=${currentTopicId}`);
+            const returnUrl = encodeURIComponent(`/konu/${currentTopicId}`);
+            const testUrl = `/test/${encodeURIComponent(item.id)}?topic=${encodeURIComponent(currentTopicId)}&mode=select&return=${returnUrl}`;
             testsContainer.innerHTML += `
                       <div class="test-card">
                           <div style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;">
@@ -491,7 +504,7 @@
                               <span class="badge bg-light text-dark">${qCount} Soru</span>
                           </div>
                           <div style="margin-top:10px;">
-                              <a href="/pages/test.html?id=${item.id}&topic=${currentTopicId}&mode=select&return=${returnUrl}" class="btn btn-sm btn-outline-primary w-100">Testi Çöz</a>
+                              <a href="${testUrl}" class="btn btn-sm btn-outline-primary w-100">Testi Çöz</a>
                           </div>
                       </div>
                   `;
@@ -623,7 +636,7 @@
               <span class="badge subtopic-badge">📝 ${testCount} Test</span>
             </div>
             <div class="subtopic-actions">
-              <a class="btn btn-sm btn-outline-primary" href="/pages/konu.html?id=${subtopic.id}">Konuya Git</a>
+              <a class="btn btn-sm btn-outline-primary" href="/konu/${encodeURIComponent(subtopic.id)}">Konuya Git</a>
             </div>
           </div>
         `;
@@ -660,8 +673,8 @@
     }
 
     window.startSmartTest = (mode) => {
-      const returnUrl = encodeURIComponent(`/pages/konu.html?id=${currentTopicId}`);
-      window.location.href = `/pages/test.html?topic=${encodeURIComponent(currentTopicId)}&mode=smart&filter=${encodeURIComponent(mode)}&return=${returnUrl}`;
+      const returnUrl = encodeURIComponent(`/konu/${currentTopicId}`);
+      window.location.href = `/test?topic=${encodeURIComponent(currentTopicId)}&mode=smart&filter=${encodeURIComponent(mode)}&return=${returnUrl}`;
     };
 
     function initMobileTabs() {

@@ -177,7 +177,7 @@
                 <p>Eğer uzun süredir bekliyorsanız veya bir hata olduğunu düşünüyorsanız destek ekibimizle iletişime
                     geçebilirsiniz.</p>
                 <div style="margin-top: 10px;">
-                    <a href="/pages/yardim.html" class="btn"
+                    <a href="/yardim" class="btn"
                         style="background: #3b82f6; color: white; text-decoration: none; display: inline-block; font-size: 0.9rem; padding: 8px 16px;">Destek
                         ve İletişim</a>
                 </div>
@@ -218,7 +218,7 @@
             if (userSnap.exists()) {
                 const userData = userSnap.data();
                 if (userData.status === "active") {
-                    window.location.href = "/pages/dashboard.html";
+                    window.location.href = "/dashboard";
                     return;
                 }
             }
@@ -248,7 +248,7 @@
 
                     if (userData.status === "active") {
                         // Onaylandı! Dashboard'a git
-                        window.location.href = "/pages/dashboard.html";
+                        window.location.href = "/dashboard";
                         return;
                     } else if (userData.status === "rejected") {
                         showToast("Başvurunuz reddedildi. Detay için destek ekibine ulaşabilirsiniz.", "error");

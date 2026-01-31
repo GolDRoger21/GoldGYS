@@ -416,13 +416,13 @@
         const progress = Math.min(100, Math.round((stats.solved / stats.total) * 100));
 
         const card = document.createElement('a');
-        card.href = `/pages/konu.html?id=${t.id}`;
+        card.href = `/konu/${encodeURIComponent(t.id)}`;
         card.className = 'topic-card';
 
         const subtopicsHtml = childrenToShow.length ? `
                     <div class="subtopic-list">
                         ${childrenToShow.map(child => `
-                            <a class="subtopic-link" href="/pages/konu.html?id=${child.id}">
+                            <a class="subtopic-link" href="/konu/${encodeURIComponent(child.id)}">
                                 <span>${child.title}</span>
                                 <span class="subtopic-meta">Sıra ${child.order || '-'}</span>
                             </a>

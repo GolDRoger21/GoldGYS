@@ -51,13 +51,13 @@ const handleLoginSuccess = async (user) => {
             // YENİ ÜYE veya ONAY BEKLEYEN ÜYE
             showStatus("pending", "Üyelik başvurunuz alındı. Onay sayfasına yönlendiriliyorsunuz...");
             setTimeout(() => {
-                window.location.href = "/pages/pending-approval.html";
+                window.location.href = "/pending-approval";
             }, 1000);
             return;
         }
         
         if (userProfile.status === "rejected") {
-            showStatus("error", "❌ Üyelik başvurunuz reddedilmiştir. <br><a href='/pages/yardim.html'>Destek için tıklayın.</a>");
+            showStatus("error", "❌ Üyelik başvurunuz reddedilmiştir. <br><a href='/yardim'>Destek için tıklayın.</a>");
             await signOut(auth); // Oturumu kapat
             return;
         }
@@ -70,7 +70,7 @@ const handleLoginSuccess = async (user) => {
 
         if (userProfile.status === "active") {
             showStatus("pending", "Giriş başarılı! Yönlendiriliyorsunuz...");
-            window.location.href = "/pages/dashboard.html";
+            window.location.href = "/dashboard";
         }
 
     } catch (error) {
