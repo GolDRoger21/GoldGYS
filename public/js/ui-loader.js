@@ -64,11 +64,15 @@ async function loadRequiredHTML(isAdminPage) {
     const sidebarUrl = isAdminPage ? '/partials/admin-sidebar.html' : '/partials/sidebar.html';
 
     // Header'ı nereye koyacağız?
-    // Eğer sayfada #header-placeholder varsa oraya, yoksa body'nin başına (app-layout yapısı için)
-    let headerContainer = document.getElementById('header-placeholder');
+    // Eğer sayfada #header-placeholder, #header-area veya #app-header varsa oraya, yoksa body'nin başına (app-layout yapısı için)
+    let headerContainer = document.getElementById('header-placeholder')
+        || document.getElementById('header-area')
+        || document.getElementById('app-header');
+
+    const appLayout = document.querySelector('.app-layout');
     if (!headerContainer) {
         // Eğer app-layout yapısı yoksa oluştur
-        if (!document.querySelector('.app-layout')) {
+        if (!appLayout) {
             const layoutDiv = document.createElement('div');
             layoutDiv.className = 'app-layout';
 
@@ -90,16 +94,46 @@ async function loadRequiredHTML(isAdminPage) {
         headerContainer.className = 'app-header';
         headerContainer.id = 'app-header';
         document.querySelector('.app-layout').prepend(headerContainer);
+    } else {
+        headerContainer.classList.add('app-header');
+        headerContainer.id = headerContainer.id || 'app-header';
+        const layoutRoot = document.querySelector('.app-layout');
+        if (!layoutRoot) {
+            const layoutDiv = document.createElement('div');
+            layoutDiv.className = 'app-layout';
+            const mainContent = document.createElement('main');
+            mainContent.className = 'app-main';
+            mainContent.id = 'main-content';
+            while (document.body.firstChild) {
+                mainContent.appendChild(document.body.firstChild);
+            }
+            layoutDiv.appendChild(mainContent);
+            document.body.appendChild(layoutDiv);
+        }
+
+        const resolvedLayout = document.querySelector('.app-layout');
+        if (headerContainer.parentElement !== resolvedLayout) {
+            resolvedLayout.prepend(headerContainer);
+        }
     }
 
     // Sidebar container oluştur
-    let sidebarContainer = document.getElementById('sidebar-placeholder');
+    let sidebarContainer = document.getElementById('sidebar-placeholder')
+        || document.getElementById('sidebar-area')
+        || document.getElementById('app-sidebar');
     if (!sidebarContainer) {
         sidebarContainer = document.createElement('aside');
         sidebarContainer.className = 'app-sidebar';
         sidebarContainer.id = 'app-sidebar';
         // Header'dan sonra ekle (Grid yapısına uygun)
         document.querySelector('.app-layout').insertBefore(sidebarContainer, document.querySelector('.app-main'));
+    } else {
+        sidebarContainer.classList.add('app-sidebar');
+        sidebarContainer.id = sidebarContainer.id || 'app-sidebar';
+        const layoutRoot = document.querySelector('.app-layout');
+        if (layoutRoot && sidebarContainer.parentElement !== layoutRoot) {
+            layoutRoot.insertBefore(sidebarContainer, document.querySelector('.app-main'));
+        }
     }
 
     // Mobil overlay ekle
@@ -194,6 +228,18 @@ function setupEventListeners() {
             return;
         }
 
+        // Bildirim Dropdown Toggle (Admin dışında basit toggle)
+        const notificationBtn = target.closest('#notificationBtn');
+        if (notificationBtn && !document.body.classList.contains('admin-body')) {
+            e.stopPropagation();
+            const notificationDropdown = document.getElementById('notificationDropdown');
+            if (notificationDropdown) {
+                notificationDropdown.classList.toggle('active');
+                document.getElementById('profileDropdown')?.classList.remove('active');
+            }
+            return;
+        }
+
         // 4. Çıkış Butonu
         const logoutBtn = target.closest('#logoutButton');
         if (logoutBtn) {
@@ -212,6 +258,13 @@ function setupEventListeners() {
         const dropdown = document.getElementById('profileDropdown');
         if (dropdown && dropdown.classList.contains('active') && !target.closest('#profileDropdown')) {
             dropdown.classList.remove('active');
+        }
+
+        if (!document.body.classList.contains('admin-body')) {
+            const notificationDropdown = document.getElementById('notificationDropdown');
+            if (notificationDropdown && notificationDropdown.classList.contains('active') && !target.closest('#notificationDropdown')) {
+                notificationDropdown.classList.remove('active');
+            }
         }
 
         // Mobil Sidebar Overlay Tıklama
