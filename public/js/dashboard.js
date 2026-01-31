@@ -176,9 +176,12 @@ async function loadExamAnnouncement() {
         if (snapshot.empty) {
             ui.examPanelBody.innerHTML = `
                 <div class="panel-item">
-                    <div>
-                        <strong>Sınav ilanı henüz paylaşılmadı.</strong>
-                        <div class="panel-meta">Yeni ilan yayınlandığında burada göreceksiniz.</div>
+                    <div class="panel-item-content">
+                        <div class="panel-item-icon gold">📌</div>
+                        <div>
+                            <strong>Sınav ilanı henüz paylaşılmadı.</strong>
+                            <div class="panel-meta">Yeni ilan yayınlandığında burada göreceksiniz.</div>
+                        </div>
                     </div>
                     <span class="panel-pill">Takipte</span>
                 </div>
@@ -196,23 +199,32 @@ async function loadExamAnnouncement() {
 
         ui.examPanelBody.innerHTML = `
             <div class="panel-item">
-                <div>
-                    <strong>${data.title || 'Sınav İlanı'}</strong>
-                    <div class="panel-meta">${data.description || 'Sınav detayları güncellendi.'}</div>
+                <div class="panel-item-content">
+                    <div class="panel-item-icon gold">🗓️</div>
+                    <div>
+                        <strong>${data.title || 'Sınav İlanı'}</strong>
+                        <div class="panel-meta">${data.description || 'Sınav detayları güncellendi.'}</div>
+                    </div>
                 </div>
                 <span class="panel-pill">Aktif</span>
             </div>
             <div class="panel-item">
-                <div>
-                    <strong>${examDate ? formatDate(examDate, true) : 'Tarih açıklanacak'}</strong>
-                    <div class="panel-meta">Sınav Tarihi</div>
+                <div class="panel-item-content">
+                    <div class="panel-item-icon purple">📅</div>
+                    <div>
+                        <strong>${examDate ? formatDate(examDate, true) : 'Tarih açıklanacak'}</strong>
+                        <div class="panel-meta">Sınav Tarihi</div>
+                    </div>
                 </div>
                 <span class="panel-pill">${data.location || 'Konum belirlenecek'}</span>
             </div>
             <div class="panel-item">
-                <div>
-                    <strong>${formatRange(applyStart, applyEnd)}</strong>
-                    <div class="panel-meta">Başvuru Takvimi</div>
+                <div class="panel-item-content">
+                    <div class="panel-item-icon teal">📝</div>
+                    <div>
+                        <strong>${formatRange(applyStart, applyEnd)}</strong>
+                        <div class="panel-meta">Başvuru Takvimi</div>
+                    </div>
                 </div>
                 ${data.applicationLink ? `<a class="btn btn-sm btn-outline-primary" href="${data.applicationLink}" target="_blank" rel="noopener">Başvur</a>` : ''}
             </div>
@@ -274,9 +286,12 @@ async function loadAnnouncements() {
         if (snapshot.empty) {
             ui.announcementList.innerHTML = `
                 <div class="panel-item">
-                    <div>
-                        <strong>Henüz duyuru yok.</strong>
-                        <div class="panel-meta">Yeni duyurular burada yayınlanacak.</div>
+                    <div class="panel-item-content">
+                        <div class="panel-item-icon purple">📭</div>
+                        <div>
+                            <strong>Henüz duyuru yok.</strong>
+                            <div class="panel-meta">Yeni duyurular burada yayınlanacak.</div>
+                        </div>
                     </div>
                 </div>
             `;
@@ -288,10 +303,13 @@ async function loadAnnouncements() {
             const createdAt = parseDate(data.createdAt);
             return `
                 <div class="panel-item">
-                    <div>
-                        <strong>${data.title || 'Duyuru'}</strong>
-                        <div class="panel-meta">${data.body || ''}</div>
-                        <div class="panel-meta">${createdAt ? formatDate(createdAt) : ''}</div>
+                    <div class="panel-item-content">
+                        <div class="panel-item-icon gold">📣</div>
+                        <div>
+                            <strong>${data.title || 'Duyuru'}</strong>
+                            <div class="panel-meta">${data.body || ''}</div>
+                            <div class="panel-meta">${createdAt ? formatDate(createdAt) : ''}</div>
+                        </div>
                     </div>
                     <span class="panel-pill">${data.level || 'Bilgi'}</span>
                 </div>
@@ -312,9 +330,12 @@ async function loadRecentActivities(uid) {
         if (!activities.length) {
             ui.recentActivityList.innerHTML = `
                 <div class="panel-item">
-                    <div>
-                        <strong>Henüz aktivite yok.</strong>
-                        <div class="panel-meta">İlk konunu çalıştığında burada görünecek.</div>
+                    <div class="panel-item-content">
+                        <div class="panel-item-icon teal">✨</div>
+                        <div>
+                            <strong>Henüz aktivite yok.</strong>
+                            <div class="panel-meta">İlk konunu çalıştığında burada görünecek.</div>
+                        </div>
                     </div>
                 </div>
             `;
