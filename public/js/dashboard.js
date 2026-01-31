@@ -1,8 +1,9 @@
 // public/js/dashboard.js
 
 import { initLayout } from './ui-loader.js';
-import { auth } from "./firebase-config.js";
-import { getUserProfile, getLastActivity } from "./user-profile.js";
+import { auth, db } from "./firebase-config.js";
+import { getUserProfile, getLastActivity, getRecentActivities } from "./user-profile.js";
+import { collection, getDocs, limit, orderBy, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // UI Elementleri
 const ui = {
@@ -10,8 +11,19 @@ const ui = {
     loaderText: document.getElementById("loaderText"),
     welcomeMsg: document.getElementById("welcomeMsg"),
     mainWrapper: document.getElementById("mainWrapper"),
-    countdown: document.getElementById("countdownDays")
+    countdown: document.getElementById("countdownDays"),
+    countdownLabel: document.getElementById("countdownLabel"),
+    examPanelBody: document.getElementById("examPanelBody"),
+    examStatusBadge: document.getElementById("examStatusBadge"),
+    announcementList: document.getElementById("announcementList"),
+    recentActivityList: document.getElementById("recentActivityList"),
+    successRateBar: document.getElementById("successRateBar"),
+    successRateText: document.getElementById("successRateText"),
+    solvedCount: document.getElementById("solvedCount"),
+    wrongCount: document.getElementById("wrongCount")
 };
+
+let examCountdownInterval = null;
 
 document.addEventListener("DOMContentLoaded", async () => {
     try {
@@ -36,8 +48,14 @@ document.addEventListener("DOMContentLoaded", async () => {
                 ui.welcomeMsg.textContent = `Hoş geldin, ${displayName}!`;
             }
 
-            // Geri Sayım Sayacını Başlat
-            startCountdown();
+            updateStats(profile);
+
+            // Sınav ilanını, duyuruları ve aktiviteleri yükle
+            await Promise.all([
+                loadExamAnnouncement(),
+                loadAnnouncements(),
+                loadRecentActivities(user.uid)
+            ]);
 
             // Son aktiviteyi ve akıllı ipucunu göster
             checkLastActivity(user);
@@ -70,28 +88,6 @@ function hideLoader() {
             }
         }, 400);
     }
-}
-
-function startCountdown() {
-    if (!ui.countdown) return;
-    // Hedef tarih: 1 Haziran 2026 09:00
-    const examDate = new Date("2026-06-01T09:00:00").getTime();
-
-    const updateTimer = () => {
-        const now = new Date().getTime();
-        const distance = examDate - now;
-
-        if (distance < 0) {
-            ui.countdown.textContent = "0";
-            return;
-        }
-
-        const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-        ui.countdown.textContent = days;
-    };
-
-    updateTimer(); // İlk açılışta hemen çalıştır
-    setInterval(updateTimer, 60000); // Dakikada bir güncelle
 }
 
 async function checkLastActivity(user) {
@@ -148,4 +144,228 @@ function showSmartTip() {
     } else {
         container.appendChild(tipDiv);
     }
+}
+
+function updateStats(profile) {
+    const totalSolved = profile?.stats?.totalSolved ?? profile?.totalSolved ?? 0;
+    const totalWrong = profile?.stats?.totalWrong ?? profile?.totalWrong ?? 0;
+    const totalCorrect = profile?.stats?.totalCorrect ?? profile?.totalCorrect ?? Math.max(totalSolved - totalWrong, 0);
+
+    const successRate = totalSolved > 0
+        ? Math.round((totalCorrect / totalSolved) * 100)
+        : 0;
+
+    if (ui.solvedCount) ui.solvedCount.textContent = totalSolved.toLocaleString('tr-TR');
+    if (ui.wrongCount) ui.wrongCount.textContent = totalWrong.toLocaleString('tr-TR');
+    if (ui.successRateText) ui.successRateText.textContent = `%${successRate}`;
+    if (ui.successRateBar) ui.successRateBar.style.width = `${successRate}%`;
+}
+
+async function loadExamAnnouncement() {
+    if (!ui.examPanelBody) return;
+
+    try {
+        const examQuery = query(
+            collection(db, "examAnnouncements"),
+            where("isActive", "==", true),
+            orderBy("examDate", "asc"),
+            limit(1)
+        );
+        const snapshot = await getDocs(examQuery);
+
+        if (snapshot.empty) {
+            ui.examPanelBody.innerHTML = `
+                <div class="panel-item">
+                    <div>
+                        <strong>Sınav ilanı henüz paylaşılmadı.</strong>
+                        <div class="panel-meta">Yeni ilan yayınlandığında burada göreceksiniz.</div>
+                    </div>
+                    <span class="panel-pill">Takipte</span>
+                </div>
+            `;
+            setCountdownState(null);
+            if (ui.examStatusBadge) ui.examStatusBadge.textContent = "İlan Yok";
+            return;
+        }
+
+        const doc = snapshot.docs[0];
+        const data = doc.data();
+        const examDate = parseDate(data.examDate);
+        const applyStart = parseDate(data.applicationStart);
+        const applyEnd = parseDate(data.applicationEnd);
+
+        ui.examPanelBody.innerHTML = `
+            <div class="panel-item">
+                <div>
+                    <strong>${data.title || 'Sınav İlanı'}</strong>
+                    <div class="panel-meta">${data.description || 'Sınav detayları güncellendi.'}</div>
+                </div>
+                <span class="panel-pill">Aktif</span>
+            </div>
+            <div class="panel-item">
+                <div>
+                    <strong>${examDate ? formatDate(examDate, true) : 'Tarih açıklanacak'}</strong>
+                    <div class="panel-meta">Sınav Tarihi</div>
+                </div>
+                <span class="panel-pill">${data.location || 'Konum belirlenecek'}</span>
+            </div>
+            <div class="panel-item">
+                <div>
+                    <strong>${formatRange(applyStart, applyEnd)}</strong>
+                    <div class="panel-meta">Başvuru Takvimi</div>
+                </div>
+                ${data.applicationLink ? `<a class="btn btn-sm btn-outline-primary" href="${data.applicationLink}" target="_blank" rel="noopener">Başvur</a>` : ''}
+            </div>
+        `;
+
+        if (ui.examStatusBadge) ui.examStatusBadge.textContent = "Aktif";
+        setCountdownState(examDate);
+    } catch (error) {
+        console.error("Sınav ilanı yüklenemedi:", error);
+        ui.examPanelBody.innerHTML = `<p class="text-muted">Sınav bilgileri yüklenemedi.</p>`;
+        setCountdownState(null);
+        if (ui.examStatusBadge) ui.examStatusBadge.textContent = "Kontrol Edin";
+    }
+}
+
+function setCountdownState(examDate) {
+    if (!ui.countdown) return;
+
+    if (examCountdownInterval) {
+        clearInterval(examCountdownInterval);
+        examCountdownInterval = null;
+    }
+
+    if (!examDate || Number.isNaN(examDate.getTime())) {
+        ui.countdown.textContent = "--";
+        if (ui.countdownLabel) ui.countdownLabel.textContent = "Sınav Yok";
+        return;
+    }
+
+    const updateTimer = () => {
+        const now = new Date();
+        const distance = examDate.getTime() - now.getTime();
+        if (distance <= 0) {
+            ui.countdown.textContent = "0";
+            if (ui.countdownLabel) ui.countdownLabel.textContent = "Gün Kaldı";
+            return;
+        }
+        const days = Math.ceil(distance / (1000 * 60 * 60 * 24));
+        ui.countdown.textContent = days.toString();
+        if (ui.countdownLabel) ui.countdownLabel.textContent = "Gün Kaldı";
+    };
+
+    updateTimer();
+    examCountdownInterval = setInterval(updateTimer, 60000);
+}
+
+async function loadAnnouncements() {
+    if (!ui.announcementList) return;
+
+    try {
+        const announcementQuery = query(
+            collection(db, "announcements"),
+            where("isActive", "==", true),
+            orderBy("createdAt", "desc"),
+            limit(5)
+        );
+        const snapshot = await getDocs(announcementQuery);
+
+        if (snapshot.empty) {
+            ui.announcementList.innerHTML = `
+                <div class="panel-item">
+                    <div>
+                        <strong>Henüz duyuru yok.</strong>
+                        <div class="panel-meta">Yeni duyurular burada yayınlanacak.</div>
+                    </div>
+                </div>
+            `;
+            return;
+        }
+
+        ui.announcementList.innerHTML = snapshot.docs.map(doc => {
+            const data = doc.data();
+            const createdAt = parseDate(data.createdAt);
+            return `
+                <div class="panel-item">
+                    <div>
+                        <strong>${data.title || 'Duyuru'}</strong>
+                        <div class="panel-meta">${data.body || ''}</div>
+                        <div class="panel-meta">${createdAt ? formatDate(createdAt) : ''}</div>
+                    </div>
+                    <span class="panel-pill">${data.level || 'Bilgi'}</span>
+                </div>
+            `;
+        }).join('');
+    } catch (error) {
+        console.error("Duyurular yüklenemedi:", error);
+        ui.announcementList.innerHTML = `<p class="text-muted">Duyurular yüklenemedi.</p>`;
+    }
+}
+
+async function loadRecentActivities(uid) {
+    if (!ui.recentActivityList) return;
+
+    try {
+        const activities = await getRecentActivities(uid, 4);
+
+        if (!activities.length) {
+            ui.recentActivityList.innerHTML = `
+                <div class="panel-item">
+                    <div>
+                        <strong>Henüz aktivite yok.</strong>
+                        <div class="panel-meta">İlk konunu çalıştığında burada görünecek.</div>
+                    </div>
+                </div>
+            `;
+            return;
+        }
+
+        ui.recentActivityList.innerHTML = `
+            <div class="activity-list">
+                ${activities.map(activity => {
+                    const timeAgo = activity.timestamp?.toDate
+                        ? activity.timestamp.toDate().toLocaleDateString('tr-TR')
+                        : '';
+                    const icon = activity.type === 'test' ? '📝' : '📖';
+                    return `
+                        <div class="activity-item">
+                            <div class="activity-icon">${icon}</div>
+                            <div>
+                                <div class="activity-title">${activity.title || 'Çalışma'}</div>
+                                <div class="panel-meta">${activity.subTitle || 'Konu Çalışması'} • ${timeAgo}</div>
+                            </div>
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+        `;
+    } catch (error) {
+        console.error("Aktiviteler yüklenemedi:", error);
+        ui.recentActivityList.innerHTML = `<p class="text-muted">Aktivite bilgisi yüklenemedi.</p>`;
+    }
+}
+
+function parseDate(value) {
+    if (!value) return null;
+    if (value.toDate) return value.toDate();
+    if (value.seconds) return new Date(value.seconds * 1000);
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function formatDate(date, withTime = false) {
+    if (!date) return '';
+    const options = withTime
+        ? { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }
+        : { day: 'numeric', month: 'long', year: 'numeric' };
+    return date.toLocaleDateString('tr-TR', options);
+}
+
+function formatRange(start, end) {
+    if (!start && !end) return 'Takvim açıklanacak';
+    if (start && end) {
+        return `${formatDate(start)} - ${formatDate(end)}`;
+    }
+    return start ? `${formatDate(start)} itibariyle` : `${formatDate(end)} tarihine kadar`;
 }

@@ -44,7 +44,7 @@
             </div>
             <div class="exam-countdown">
                 <span class="days" id="countdownDays">--</span>
-                <span class="label">Gün Kaldı</span>
+                <span class="label" id="countdownLabel">Gün Kaldı</span>
             </div>
         </section>
 
@@ -68,7 +68,7 @@
                 <div class="stat-icon blue">📝</div>
                 <div class="stat-info">
                     <h3>Çözülen Soru</h3>
-                    <span class="stat-value">0</span>
+                    <span class="stat-value" id="solvedCount">0</span>
                 </div>
             </div>
 
@@ -76,31 +76,49 @@
                 <div class="stat-icon red">⚠️</div>
                 <div class="stat-info">
                     <h3>Yanlış Sayısı</h3>
-                    <span class="stat-value">0</span>
+                    <span class="stat-value" id="wrongCount">0</span>
                     <small class="link-small"><a href="/yanlislarim">Tekrar Et →</a></small>
                 </div>
             </div>
         </section>
 
-        <section class="quick-access">
-            <h2 class="section-title">Hızlı İşlemler</h2>
-            <div class="quick-grid">
-                <a href="/pages/testler.html" class="quick-card">
-                    <span class="q-icon">⚡</span>
-                    <span>Test Çöz</span>
-                </a>
-                <a href="/denemeler" class="quick-card">
-                    <span class="q-icon">🏆</span>
-                    <span>Deneme Başlat</span>
-                </a>
-                <a href="/konular" class="quick-card">
-                    <span class="q-icon">📖</span>
-                    <span>Konu Çalış</span>
-                </a>
-                <a href="/analiz" class="quick-card">
-                    <span class="q-icon">📈</span>
-                    <span>Durumumu Gör</span>
-                </a>
+        <section class="dashboard-panels">
+            <article class="panel-card">
+                <div class="panel-header">
+                    <div>
+                        <h2 class="section-title">Sınav Bilgisi</h2>
+                        <p class="text-muted">En güncel sınav ilanı burada yer alır.</p>
+                    </div>
+                    <span class="badge badge-secondary" id="examStatusBadge">Takipte</span>
+                </div>
+                <div id="examPanelBody" class="panel-body">
+                    <p class="text-muted">Sınav ilanı kontrol ediliyor...</p>
+                </div>
+            </article>
+
+            <article class="panel-card">
+                <div class="panel-header">
+                    <div>
+                        <h2 class="section-title">Duyurular</h2>
+                        <p class="text-muted">Yönetimden gelen güncel duyurular.</p>
+                    </div>
+                    <a class="link-small" href="/yardim">Daha fazla →</a>
+                </div>
+                <div id="announcementList" class="panel-body">
+                    <p class="text-muted">Duyurular yükleniyor...</p>
+                </div>
+            </article>
+        </section>
+
+        <section class="recent-activity">
+            <div class="panel-header">
+                <div>
+                    <h2 class="section-title">Son Çalışmaların</h2>
+                    <p class="text-muted">En son çalıştığın konu ve çözdüğün testler.</p>
+                </div>
+            </div>
+            <div id="recentActivityList" class="panel-body">
+                <p class="text-muted">Son aktiviteler yükleniyor...</p>
             </div>
         </section>
 

@@ -298,6 +298,134 @@
     font-size: 1rem;
 }
 
+/* --- DASHBOARD PANELS --- */
+.dashboard-panels {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 24px;
+    margin-bottom: 32px;
+}
+
+.panel-card,
+.recent-activity {
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
+    padding: 24px;
+    backdrop-filter: blur(12px);
+}
+
+[data-theme="light"] .panel-card,
+[data-theme="light"] .recent-activity {
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    box-shadow: 0 6px 14px rgba(15, 23, 42, 0.05);
+}
+
+.panel-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.panel-header .section-title {
+    margin-bottom: 8px;
+}
+
+.panel-body {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.panel-item {
+    padding: 14px 16px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+[data-theme="light"] .panel-item {
+    background: rgba(15, 23, 42, 0.04);
+    border: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.panel-item strong {
+    display: block;
+    font-size: 1rem;
+    color: var(--text-light);
+}
+
+[data-theme="light"] .panel-item strong {
+    color: var(--navy-deep);
+}
+
+.panel-meta {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.panel-pill {
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background: rgba(212, 175, 55, 0.12);
+    color: var(--gold-main);
+}
+
+[data-theme="light"] .panel-pill {
+    background: rgba(212, 175, 55, 0.2);
+    color: var(--gold-dark);
+}
+
+.activity-list {
+    display: grid;
+    gap: 12px;
+}
+
+.activity-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+[data-theme="light"] .activity-item {
+    background: rgba(15, 23, 42, 0.04);
+    border: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.activity-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    background: rgba(59, 130, 246, 0.15);
+    color: #3b82f6;
+}
+
+.activity-title {
+    font-weight: 600;
+    color: var(--text-light);
+}
+
+[data-theme="light"] .activity-title {
+    color: var(--navy-deep);
+}
+
 
 /* --- BENTO GRID LAYOUT (New Analysis) --- */
 .bento-grid {
