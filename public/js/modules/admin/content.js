@@ -10,6 +10,7 @@ let isEditorInitialized = false;
 let currentOnculler = [];
 const selectedQuestionIds = new Set();
 let lastVisibleQuestionIds = [];
+let filteredQuestions = [];
 
 // ============================================================
 // --- INIT ---
@@ -45,6 +46,11 @@ export function ensureQuestionEditorReady() {
                 </div>
                 <form id="questionForm" class="modal-body-scroll" style="flex:1; overflow-y:auto; padding:20px;">
                     <input type="hidden" id="editQuestionId">
+
+                    <div class="d-flex flex-wrap gap-2 align-items-center mb-3">
+                        <span class="badge bg-light text-dark border">Soru ID: <span id="questionIdDisplay">-</span></span>
+                        <span class="text-muted small">Yeni sorularda ID otomatik olarak oluşturulur.</span>
+                    </div>
                     
                     <div class="card p-3 mb-3 bg-light border-start border-4 border-primary">
                         <h6 class="text-primary m-0 mb-2">⚖️ Mevzuat Bağlantısı</h6>
@@ -112,11 +118,21 @@ export function ensureQuestionEditorReady() {
 
                     <div class="card p-3 mb-3 border-info bg-light">
                         <h6 class="text-info">💡 Çözüm Analizi</h6>
-                        <textarea id="inpSolAnaliz" class="form-control mb-2" rows="2" placeholder="Detaylı çözüm açıklaması..."></textarea>
+                        <label class="form-label small fw-bold text-muted">Detaylı Çözüm Açıklaması</label>
+                        <textarea id="inpSolAnaliz" class="form-control mb-2" rows="2" placeholder="Sorunun çözümünü adım adım açıklayın..."></textarea>
                         <div class="row g-2">
-                            <div class="col-md-6"><input type="text" id="inpSolDayanak" class="form-control form-control-sm" placeholder="Hukuki Dayanak"></div>
-                            <div class="col-md-6"><input type="text" id="inpSolHap" class="form-control form-control-sm" placeholder="Hap Bilgi"></div>
-                            <div class="col-12"><input type="text" id="inpSolTuzak" class="form-control form-control-sm" placeholder="Sınav Tuzağı (Dikkat edilmesi gereken)"></div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-muted">📜 Mevzuat Dayanağı</label>
+                                <input type="text" id="inpSolDayanak" class="form-control form-control-sm" placeholder="İlgili kanun/madde veya resmi dayanak">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-muted">💊 Hap Bilgi</label>
+                                <input type="text" id="inpSolHap" class="form-control form-control-sm" placeholder="Hatırlatıcı kısa bilgi">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label small fw-bold text-muted">⚠️ Sınav Tuzağı</label>
+                                <input type="text" id="inpSolTuzak" class="form-control form-control-sm" placeholder="Dikkat edilmesi gereken kritik nokta">
+                            </div>
                         </div>
                     </div>
 
@@ -167,10 +183,12 @@ export async function openQuestionEditor(id = null) {
     const titleEl = document.getElementById('modalTitle');
     const idEl = document.getElementById('editQuestionId');
     const resEl = document.getElementById('autoDetectResult');
+    const displayIdEl = document.getElementById('questionIdDisplay');
 
     if (titleEl) titleEl.innerText = id ? "Soruyu Düzenle" : "Yeni Soru Ekle";
     if (idEl) idEl.value = id || "";
     if (resEl) resEl.innerText = "";
+    if (displayIdEl) displayIdEl.innerText = id || "Otomatik";
 
     // Varsayılanlar
     document.getElementById('inpDifficulty').value = 3;
@@ -229,8 +247,8 @@ function renderContentInterface() {
     if (!container) return; // Sayfada değilsek çık
 
     container.innerHTML = `
-        <div class="section-header">
-            <div><h2>📚 Soru Bankası Yönetimi</h2><p class="text-muted">Soruları ekleyin, düzenleyin veya arşivleyin.</p></div>
+            <div class="section-header">
+                <div><h2>📚 Soru Bankası Yönetimi</h2><p class="text-muted">Soruları ekleyin, düzenleyin veya arşivleyin.</p></div>
             <div class="d-flex gap-2">
                 <button class="btn btn-warning" onclick="window.openTrashModal()">🗑️ Çöp Kutusu</button>
                 <button id="btnNewQuestion" class="btn btn-primary">➕ Yeni Soru</button>
@@ -243,7 +261,11 @@ function renderContentInterface() {
                     <h5>Filtreler</h5>
                     <p class="text-muted small mb-0">Soru bankasını hızlıca daraltmak için aşağıdaki kriterleri kullanın.</p>
                 </div>
-                <button id="btnFilter" class="btn btn-secondary">Ara / Filtrele</button>
+                <div class="d-flex flex-wrap gap-2 justify-content-end">
+                    <button id="btnFilter" class="btn btn-secondary">Ara / Filtrele</button>
+                    <button id="btnExportJson" class="btn btn-outline-primary">JSON İndir</button>
+                    <button id="btnExportExcel" class="btn btn-outline-success">Excel (CSV) İndir</button>
+                </div>
             </div>
             <div class="row g-3 align-items-end">
                 <div class="col-lg-4 col-md-6">
@@ -322,11 +344,11 @@ function renderContentInterface() {
             </div>
         </div>
         
-        <div id="trashModal" class="modal-overlay" style="display:none; z-index: 100010;">
+        <div id="questionTrashModal" class="modal-overlay" style="display:none; z-index: 100010;">
             <div class="admin-modal-content" style="max-width:800px;">
                 <div class="modal-header">
                     <h5 class="m-0">🗑️ Çöp Kutusu</h5>
-                    <button onclick="document.getElementById('trashModal').style.display='none'" class="close-btn">&times;</button>
+                    <button onclick="document.getElementById('questionTrashModal').style.display='none'" class="close-btn">&times;</button>
                 </div>
                 <div class="modal-body-scroll">
                     <table class="admin-table">
@@ -348,6 +370,8 @@ function renderContentInterface() {
 function bindPageEvents() {
     const btnNew = document.getElementById('btnNewQuestion');
     const btnFilter = document.getElementById('btnFilter');
+    const btnExportJson = document.getElementById('btnExportJson');
+    const btnExportExcel = document.getElementById('btnExportExcel');
     const selectAll = document.getElementById('selectAllQuestions');
     const selectAllHead = document.getElementById('selectAllQuestionsHead');
     const bulkActivate = document.getElementById('bulkActivate');
@@ -358,6 +382,8 @@ function bindPageEvents() {
 
     if (btnNew) btnNew.onclick = () => openQuestionEditor();
     if (btnFilter) btnFilter.onclick = loadQuestions;
+    if (btnExportJson) btnExportJson.onclick = () => exportFilteredQuestions('json');
+    if (btnExportExcel) btnExportExcel.onclick = () => exportFilteredQuestions('excel');
     if (selectAll) selectAll.onchange = (e) => toggleSelectAll(e.target.checked);
     if (selectAllHead) selectAllHead.onchange = (e) => toggleSelectAll(e.target.checked);
     if (bulkActivate) bulkActivate.onclick = () => runBulkUpdate({ isActive: true, isDeleted: false }, "Seçilen sorular aktifleştirildi.");
@@ -398,6 +424,7 @@ async function loadQuestions() {
         tbody.innerHTML = '';
         let count = 0;
         lastVisibleQuestionIds = [];
+        filteredQuestions = [];
 
         snap.forEach(doc => {
             const d = doc.data();
@@ -428,6 +455,7 @@ async function loadQuestions() {
 
             count++;
             lastVisibleQuestionIds.push(doc.id);
+            filteredQuestions.push({ id: doc.id, ...d });
             const tr = document.createElement('tr');
             const isSelected = selectedQuestionIds.has(doc.id);
             const statusBadge = d.isActive === false
@@ -456,9 +484,9 @@ async function loadQuestions() {
                 </td>
                 <td>
                     <div class="question-actions">
-                        <button class="btn btn-sm btn-primary" onclick="window.QuestionBank.openEditor('${doc.id}')">✏️</button>
-                        <button class="btn btn-sm btn-outline-secondary" onclick="window.toggleQuestionActive('${doc.id}', ${d.isActive === false})">${d.isActive === false ? '▶️' : '⏸️'}</button>
-                        <button class="btn btn-sm btn-danger" onclick="window.softDeleteQuestion('${doc.id}')">🗑️</button>
+                        <button class="btn btn-sm btn-primary" title="Soruyu düzenle" onclick="window.QuestionBank.openEditor('${doc.id}')">✏️</button>
+                        <button class="btn btn-sm btn-outline-secondary" title="${d.isActive === false ? 'Aktifleştir' : 'Pasife al'}" onclick="window.toggleQuestionActive('${doc.id}', ${d.isActive === false})">${d.isActive === false ? '▶️' : '⏸️'}</button>
+                        <button class="btn btn-sm btn-danger" title="Çöp kutusuna taşı" onclick="window.softDeleteQuestion('${doc.id}')">🗑️</button>
                     </div>
                 </td>
             `;
@@ -475,6 +503,90 @@ async function loadQuestions() {
         updateSelectionUI();
 
     } catch (e) { console.error(e); }
+}
+
+function exportFilteredQuestions(format) {
+    if (!filteredQuestions.length) {
+        showToast("İndirilecek soru bulunamadı. Önce filtreleme yapın.", "warning");
+        return;
+    }
+
+    const rows = filteredQuestions.map((question) => {
+        const options = (question.options || []).reduce((acc, opt) => {
+            acc[opt.id] = opt.text;
+            return acc;
+        }, {});
+        return {
+            id: question.id,
+            category: question.category || '',
+            difficulty: question.difficulty ?? '',
+            type: question.type || '',
+            text: question.text || '',
+            options: ['A', 'B', 'C', 'D', 'E']
+                .map((key) => `${key}: ${options[key] || ''}`)
+                .join(' | '),
+            correctOption: question.correctOption || '',
+            legislationCode: question.legislationRef?.code || '',
+            legislationArticle: question.legislationRef?.article || '',
+            solutionAnaliz: question.solution?.analiz || '',
+            solutionDayanak: question.solution?.dayanakText || '',
+            solutionHap: question.solution?.hap || '',
+            solutionTuzak: question.solution?.tuzak || '',
+            status: question.isActive === false ? 'inactive' : 'active',
+            flagged: question.isFlaggedForReview ? 'flagged' : '',
+            createdAt: formatTimestamp(question.createdAt),
+            updatedAt: formatTimestamp(question.updatedAt)
+        };
+    });
+
+    if (format === 'json') {
+        const json = JSON.stringify(rows, null, 2);
+        downloadFile(json, buildExportFilename('json'), 'application/json;charset=utf-8');
+        showToast("JSON indiriliyor...", "success");
+        return;
+    }
+
+    const csv = toCsv(rows);
+    downloadFile(csv, buildExportFilename('csv'), 'text/csv;charset=utf-8');
+    showToast("Excel (CSV) indiriliyor...", "success");
+}
+
+function formatTimestamp(value) {
+    if (!value) return '';
+    if (value.toDate) return value.toDate().toISOString();
+    if (typeof value.seconds === 'number') return new Date(value.seconds * 1000).toISOString();
+    if (value instanceof Date) return value.toISOString();
+    return '';
+}
+
+function toCsv(rows) {
+    if (!rows.length) return '';
+    const headers = Object.keys(rows[0]);
+    const escapeValue = (val) => `"${String(val ?? '').replace(/"/g, '""')}"`;
+    const lines = [
+        headers.join(',')
+    ];
+    rows.forEach((row) => {
+        lines.push(headers.map((header) => escapeValue(row[header])).join(','));
+    });
+    return `\ufeff${lines.join('\n')}`;
+}
+
+function buildExportFilename(extension) {
+    const stamp = new Date().toISOString().replace(/[:T]/g, '-').slice(0, 16);
+    return `soru-bankasi-${stamp}.${extension}`;
+}
+
+function downloadFile(content, filename, type) {
+    const blob = new Blob([content], { type });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
 }
 
 async function handleSaveQuestion(e) {
@@ -767,7 +879,7 @@ async function softDeleteQuestion(id) {
 }
 
 async function openTrashModal() {
-    const modal = document.getElementById('trashModal');
+    const modal = document.getElementById('questionTrashModal');
     const tbody = document.getElementById('trashTableBody');
     if (!modal) return;
     modal.style.display = 'flex';
