@@ -80,6 +80,19 @@
             white-space: nowrap;
         }
 
+        .mode-toggle-icon,
+        .mode-choice-icon {
+            font-size: 1rem;
+            line-height: 1;
+        }
+
+        .mode-choice-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            justify-content: center;
+        }
+
         .soru-metni {
             font-size: 1rem;
             font-weight: 600;
@@ -421,11 +434,7 @@
             }
 
             .test-header-main {
-                flex: 1;
-                min-width: 0;
-                flex-direction: row;
-                align-items: center;
-                gap: 6px;
+                display: none;
             }
 
             .test-title {
@@ -446,6 +455,7 @@
             .score-board {
                 flex-wrap: nowrap;
                 gap: 6px;
+                flex: 1;
             }
 
             .score-item {
@@ -456,8 +466,9 @@
 
             .test-header-actions {
                 gap: 8px;
-                flex-wrap: wrap;
-                justify-content: flex-end;
+                flex: 1;
+                flex-wrap: nowrap;
+                justify-content: space-between;
             }
 
             .soru-kart {
@@ -470,8 +481,25 @@
             }
 
             .mode-toggle-btn {
-                padding: 6px 10px;
-                font-size: 0.75rem;
+                width: 40px;
+                height: 40px;
+                padding: 0;
+                font-size: 0.85rem;
+                justify-content: center;
+            }
+
+            .mode-toggle-text {
+                display: none;
+            }
+
+            .mode-choice-text {
+                display: none;
+            }
+
+            .mode-choice-btn {
+                width: 48px;
+                height: 44px;
+                padding: 0;
             }
         }
 
@@ -519,8 +547,9 @@
                     <path d="M19 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H19v-2z" />
                 </svg>
             </a>
-            <button class="btn-pill btn-secondary mode-toggle-btn" id="modeToggleBtn" type="button">
-                <span class="mode-toggle-icon">🎓</span>
+            <button class="btn-pill btn-secondary mode-toggle-btn" id="modeToggleBtn" type="button"
+                aria-label="Modu Değiştir">
+                <span class="mode-toggle-icon" aria-hidden="true">🎓</span>
                 <span class="mode-toggle-text">Öğrenme Modu</span>
             </button>
             <button class="theme-toggle-btn" id="themeToggle" aria-label="Temayı Değiştir">
@@ -554,8 +583,14 @@
             <div class="modal-title">Test Modunu Seç</div>
             <p class="modal-subtitle">İstersen sınav modunda süre tutabilir, istersen öğrenme modunda çözebilirsin.</p>
             <div class="result-actions">
-                <button class="btn-pill btn-primary" data-mode-choice="exam">Sınav Modu</button>
-                <button class="btn-pill btn-secondary" data-mode-choice="practice">Öğrenme Modu</button>
+                <button class="btn-pill btn-primary mode-choice-btn" data-mode-choice="exam">
+                    <span class="mode-choice-icon" aria-hidden="true">📝</span>
+                    <span class="mode-choice-text">Sınav Modu</span>
+                </button>
+                <button class="btn-pill btn-secondary mode-choice-btn" data-mode-choice="practice">
+                    <span class="mode-choice-icon" aria-hidden="true">🎓</span>
+                    <span class="mode-choice-text">Öğrenme Modu</span>
+                </button>
             </div>
             <button class="btn-pill btn-secondary" id="modeCancelBtn" style="margin-top: 14px;">Vazgeç</button>
         </div>
