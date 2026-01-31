@@ -218,7 +218,7 @@
             <p id="resultMessage" class="lead mb-4">Analiz ediliyor...</p>
 
             <div class="d-grid gap-2">
-                <a href="/pages/dashboard.html" class="btn btn-outline-primary">Ana Sayfaya Dön</a>
+                <a href="/dashboard" class="btn btn-outline-primary">Ana Sayfaya Dön</a>
                 <button onclick="location.reload()" class="btn btn-primary">Tekrar Çöz</button>
             </div>
         </div>
@@ -235,11 +235,22 @@
 
         document.addEventListener('DOMContentLoaded', async () => {
             const urlParams = new URLSearchParams(window.location.search);
-            const examId = urlParams.get('id');
+            let examId = urlParams.get('id');
+
+            if (!examId) {
+                const pathMatch = window.location.pathname.match(/^\\/deneme\\/([^/]+)$/);
+                if (pathMatch) {
+                    examId = decodeURIComponent(pathMatch[1]);
+                }
+            }
+
+            if (examId && !window.location.pathname.startsWith('/deneme/')) {
+                window.history.replaceState({}, '', `/deneme/${encodeURIComponent(examId)}`);
+            }
 
             if (!examId) {
                 showToast("Deneme bilgisi bulunamadı. Lütfen listeye geri dönün.", "error");
-                window.location.href = 'denemeler.html';
+                window.location.href = '/denemeler';
                 return;
             }
 
@@ -281,7 +292,7 @@
             } catch (error) {
                 console.error(error);
                 showToast(`Bir hata oluştu: ${error.message}`, "error");
-                window.location.href = 'denemeler.html';
+                window.location.href = '/denemeler';
             }
         });
     </script>

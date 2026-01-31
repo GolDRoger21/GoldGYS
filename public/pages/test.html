@@ -561,7 +561,7 @@
             <div id="scoreDisplay" class="result-score">0 / 100</div>
             <p id="resultText" class="modal-subtitle">Analiz ediliyor...</p>
             <div class="result-actions">
-                <a href="denemeler.html" class="btn-pill btn-secondary" id="exitToList">Çıkış</a>
+                <a href="/denemeler" class="btn-pill btn-secondary" id="exitToList">Çıkış</a>
                 <button class="btn-pill btn-primary" id="reviewAnswersBtn">Cevapları İncele</button>
             </div>
         </div>
@@ -575,14 +575,28 @@
 
         document.addEventListener('DOMContentLoaded', async () => {
             const urlParams = new URLSearchParams(window.location.search);
-            const examId = urlParams.get('id'); // Test ID (Lesson ID)
+            let examId = urlParams.get('id'); // Test ID (Lesson ID)
+
+            if (!examId) {
+                const pathMatch = window.location.pathname.match(/^\\/test\\/([^/]+)$/);
+                if (pathMatch) {
+                    examId = decodeURIComponent(pathMatch[1]);
+                }
+            }
+
             const topicId = urlParams.get('topic'); // Konu ID
             let mode = urlParams.get('mode'); // practice, exam, smart
             const filter = urlParams.get('filter'); // random, order, wrongs, favorites
             const duration = parseInt(urlParams.get('duration')) || 0;
             const returnParam = urlParams.get('return');
-            const returnFallback = topicId ? `/pages/konu.html?id=${topicId}` : '/pages/denemeler.html';
+            const returnFallback = topicId ? `/konu/${encodeURIComponent(topicId)}` : '/denemeler';
             const returnUrl = getSafeReturnUrl(returnParam, returnFallback);
+
+            if (examId && !window.location.pathname.startsWith('/test/')) {
+                const nextUrl = new URL(window.location.href);
+                nextUrl.pathname = `/test/${encodeURIComponent(examId)}`;
+                window.history.replaceState({}, '', `${nextUrl.pathname}${nextUrl.search}${nextUrl.hash}`);
+            }
 
             const loadingScreen = document.getElementById('loadingScreen');
             const quizContainer = document.getElementById('quizContainer');
@@ -597,7 +611,7 @@
 
             if (!examId && !topicId && mode !== 'custom') {
                 showToast("Hata: Sınav veya Konu ID parametresi eksik.", "error", { duration: 4500 });
-                window.location.href = 'denemeler.html';
+                window.location.href = '/denemeler';
                 return;
             }
 

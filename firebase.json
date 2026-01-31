@@ -7,6 +7,22 @@
     "public": "public",
     "cleanUrls": true,
     "trailingSlash": false,
+    "rewrites": [
+      { "source": "/dashboard", "destination": "/pages/dashboard.html" },
+      { "source": "/konular", "destination": "/pages/konular.html" },
+      { "source": "/konu/**", "destination": "/pages/konu.html" },
+      { "source": "/test/**", "destination": "/pages/test.html" },
+      { "source": "/denemeler", "destination": "/pages/denemeler.html" },
+      { "source": "/deneme/**", "destination": "/pages/deneme.html" },
+      { "source": "/analiz", "destination": "/pages/analiz.html" },
+      { "source": "/profil", "destination": "/pages/profil.html" },
+      { "source": "/yanlislarim", "destination": "/pages/yanlislarim.html" },
+      { "source": "/favoriler", "destination": "/pages/favoriler.html" },
+      { "source": "/yardim", "destination": "/pages/yardim.html" },
+      { "source": "/yasal", "destination": "/pages/yasal.html" },
+      { "source": "/pending-approval", "destination": "/pages/pending-approval.html" },
+      { "source": "/report", "destination": "/pages/report.html" }
+    ],
     "ignore": [
       "firebase.json",
       "**/.*",

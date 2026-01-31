@@ -31,7 +31,7 @@ export async function requireAdminOrEditor() {
                     console.warn("Yetkisiz erişim denemesi!");
                     showToast("Bu alana erişim yetkiniz bulunmuyor.", "error");
                     setTimeout(() => {
-                        window.location.href = "/pages/dashboard.html";
+                        window.location.href = "/dashboard";
                     }, 1000);
                     reject("Unauthorized");
                 }
