@@ -44,10 +44,13 @@
 
 /* Admin Sidebar Navigation Fix */
 .admin-body .app-sidebar .nav-item {
+    display: flex;
     align-items: center;
+    flex-wrap: nowrap;
     gap: 12px;
     height: 48px;
     min-height: 48px;
+    min-width: 0;
     padding: 10px 24px;
     white-space: nowrap;
     overflow: hidden;
@@ -55,11 +58,12 @@
 }
 
 .admin-body .app-sidebar .nav-item .icon {
+    flex-shrink: 0;
     margin-right: 0;
 }
 
 .admin-body .app-sidebar .nav-item span:not(.icon) {
-    flex: 1;
+    flex: 1 1 auto;
     line-height: 1.25;
     min-width: 0;
     overflow: hidden;
