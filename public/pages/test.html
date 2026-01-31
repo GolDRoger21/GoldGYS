@@ -67,6 +67,19 @@
             color: var(--text-on-gold);
         }
 
+        .return-icon svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .mode-toggle-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
         .soru-metni {
             font-size: 1rem;
             font-weight: 600;
@@ -443,6 +456,8 @@
 
             .test-header-actions {
                 gap: 8px;
+                flex-wrap: wrap;
+                justify-content: flex-end;
             }
 
             .soru-kart {
@@ -452,6 +467,11 @@
             .quiz-container {
                 margin: 12px auto;
                 padding: 0 12px;
+            }
+
+            .mode-toggle-btn {
+                padding: 6px 10px;
+                font-size: 0.75rem;
             }
         }
 
@@ -493,6 +513,16 @@
                 <div class="score-item">K: <span id="remainVal">--</span></div>
                 <div class="score-item">⏱ <span id="timerDisplay">00:00</span></div>
             </div>
+            <a id="btnReturnTopicIcon" class="btn-icon return-icon" style="display: none;" href="#"
+                aria-label="Konuya Dön" title="Konuya Dön">
+                <svg xmlns="http://www.w3.org/2000/svg" height="18" width="18" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M19 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H19v-2z" />
+                </svg>
+            </a>
+            <button class="btn-pill btn-secondary mode-toggle-btn" id="modeToggleBtn" type="button">
+                <span class="mode-toggle-icon">🎓</span>
+                <span class="mode-toggle-text">Öğrenme Modu</span>
+            </button>
             <button class="theme-toggle-btn" id="themeToggle" aria-label="Temayı Değiştir">
                 <svg class="icon-sun" style="display:none;" xmlns="http://www.w3.org/2000/svg" height="20" width="20"
                     viewBox="0 0 24 24" fill="currentColor">
@@ -578,7 +608,7 @@
             let examId = urlParams.get('id'); // Test ID (Lesson ID)
 
             if (!examId) {
-                const pathMatch = window.location.pathname.match(/^\\/test\\/([^/]+)$/);
+                const pathMatch = window.location.pathname.match(/^\/test\/([^/]+)$/);
                 if (pathMatch) {
                     examId = decodeURIComponent(pathMatch[1]);
                 }
@@ -591,6 +621,7 @@
             const returnParam = urlParams.get('return');
             const returnFallback = topicId ? `/konu/${encodeURIComponent(topicId)}` : '/denemeler';
             const returnUrl = getSafeReturnUrl(returnParam, returnFallback);
+            const returnIcon = document.getElementById('btnReturnTopicIcon');
 
             if (examId && !window.location.pathname.startsWith('/test/')) {
                 const nextUrl = new URL(window.location.href);
@@ -606,6 +637,10 @@
             const returnBtn = document.getElementById('btnReturnTopic');
             if (exitLink) exitLink.href = returnUrl;
             if (returnBtn) returnBtn.href = returnUrl;
+            if (returnIcon) {
+                returnIcon.href = returnUrl;
+                returnIcon.style.display = returnUrl ? 'inline-flex' : 'none';
+            }
 
             initThemeToggle();
 
@@ -615,11 +650,8 @@
                 return;
             }
 
-            if ((!mode || mode === 'select') && examId) {
-                loadingScreen.style.display = 'none';
-                mode = await promptForModeSelection();
-                if (!mode) return;
-                loadingScreen.style.display = 'flex';
+            if (!mode || mode === 'select') {
+                mode = 'practice';
             }
 
             try {
@@ -735,18 +767,31 @@
                 }
 
                 const customTestMode = urlParams.get('testMode');
-                let resolvedMode = mode === 'smart' ? 'practice' : (mode || 'exam');
+                let resolvedMode = mode === 'smart' ? 'practice' : (mode || 'practice');
                 if (mode === 'custom') {
                     resolvedMode = customTestMode === 'exam' ? 'exam' : 'practice';
                 }
                 const modeLabel = document.getElementById('modeLabel');
+                const modeToggleBtn = document.getElementById('modeToggleBtn');
+                const modeToggleText = modeToggleBtn?.querySelector('.mode-toggle-text');
+                const modeToggleIcon = modeToggleBtn?.querySelector('.mode-toggle-icon');
 
                 document.title = `${title} | Çöz`;
                 document.getElementById('testTitle').innerText = title;
-                if (modeLabel) {
-                    modeLabel.innerText = '';
-                    modeLabel.style.display = 'none';
-                }
+                const updateModeUI = (currentMode) => {
+                    const isExam = currentMode === 'exam';
+                    if (modeLabel) {
+                        modeLabel.innerText = isExam ? 'Sınav Modu' : 'Öğrenme Modu';
+                        modeLabel.style.display = 'block';
+                    }
+                    if (modeToggleText) {
+                        modeToggleText.textContent = isExam ? 'Sınav Modu' : 'Öğrenme Modu';
+                    }
+                    if (modeToggleIcon) {
+                        modeToggleIcon.textContent = isExam ? '📝' : '🎓';
+                    }
+                };
+                updateModeUI(resolvedMode);
 
                 // Test Motorunu Başlat
                 const engine = new TestEngine('quizContainer', questions, {
@@ -767,6 +812,14 @@
                 const finishBtn = document.getElementById('btnFinish');
                 if (finishBtn) {
                     finishBtn.addEventListener('click', () => openFinishModal(engine));
+                }
+
+                if (modeToggleBtn) {
+                    modeToggleBtn.addEventListener('click', () => {
+                        const nextMode = engine.mode === 'exam' ? 'practice' : 'exam';
+                        engine.setMode(nextMode);
+                        updateModeUI(engine.mode);
+                    });
                 }
 
                 const reviewAnswersBtn = document.getElementById('reviewAnswersBtn');
