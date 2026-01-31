@@ -432,6 +432,18 @@
       }
     }
 
+    async function safeGetDocs(primaryQuery, fallbackQuery, contextLabel) {
+      try {
+        return await getDocs(primaryQuery);
+      } catch (error) {
+        console.warn(`${contextLabel} sıralı sorgu hatası, yedek sorguya geçiliyor:`, error);
+        if (fallbackQuery) {
+          return await getDocs(fallbackQuery);
+        }
+        throw error;
+      }
+    }
+
     async function loadTopicData() {
       // ALT KONULARI ÇEKME (Firestore Index Hatası burada olabilir, try-catch ile koruyoruz)
       let subtopics = [];
@@ -442,9 +454,16 @@
           where("isActive", "==", true),
           orderBy("order", "asc")
         );
-        const subtopicSnap = await getDocs(subtopicQuery);
+        const subtopicFallbackQuery = query(
+          collection(db, "topics"),
+          where("parentId", "==", currentTopicId),
+          orderBy("order", "asc")
+        );
+        const subtopicSnap = await safeGetDocs(subtopicQuery, subtopicFallbackQuery, 'Alt konular');
         subtopicSnap.forEach(doc => {
-          subtopics.push({ id: doc.id, ...doc.data() });
+          const data = doc.data();
+          if (data?.isActive === false) return;
+          subtopics.push({ id: doc.id, ...data });
         });
       } catch (e) {
         console.warn("Alt konular çekilemedi (Muhtemelen eksik Index):", e);
@@ -483,8 +502,9 @@
       let materialCount = 0;
 
       try {
-        const q = query(collection(db, `topics/${currentTopicId}/lessons`), orderBy("order", "asc"));
-        const snapshot = await getDocs(q);
+        const lessonsQuery = query(collection(db, `topics/${currentTopicId}/lessons`), orderBy("order", "asc"));
+        const lessonsFallback = collection(db, `topics/${currentTopicId}/lessons`);
+        const snapshot = await safeGetDocs(lessonsQuery, lessonsFallback, 'Konu içerikleri');
 
         snapshot.forEach(doc => {
           const item = { id: doc.id, ...doc.data() };
@@ -618,7 +638,8 @@
         let testCount = 0;
         try {
           const lessonQuery = query(collection(db, `topics/${subtopic.id}/lessons`), orderBy("order", "asc"));
-          const lessonSnap = await getDocs(lessonQuery);
+          const lessonFallback = collection(db, `topics/${subtopic.id}/lessons`);
+          const lessonSnap = await safeGetDocs(lessonQuery, lessonFallback, 'Alt konu içerikleri');
           lessonSnap.forEach(doc => {
             const item = doc.data();
             if (item?.status === 'deleted' || item?.isDeleted) return;
