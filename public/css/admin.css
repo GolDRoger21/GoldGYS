@@ -59,7 +59,11 @@
 }
 
 .admin-body .app-sidebar .nav-item span:not(.icon) {
+    flex: 1;
     line-height: 1.25;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
     white-space: nowrap;
 }
 
