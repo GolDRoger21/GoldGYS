@@ -521,6 +521,19 @@
     border-color: var(--text-muted);
 }
 
+.btn-guide {
+    color: var(--text-main);
+    background: var(--bg-hover);
+    border: 1px solid var(--border-color);
+}
+
+.btn-guide:hover,
+.btn-guide:focus {
+    color: var(--text-main);
+    background: var(--bg-hover);
+    border-color: var(--color-primary);
+}
+
 .btn-danger {
     background: rgba(239, 68, 68, 0.1);
     color: var(--color-danger);
