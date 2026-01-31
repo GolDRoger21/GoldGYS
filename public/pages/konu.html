@@ -387,7 +387,7 @@
       currentTopicId = urlParams.get('id');
 
       if (!currentTopicId) {
-        const pathMatch = window.location.pathname.match(/^\\/konu\\/([^/]+)$/);
+        const pathMatch = window.location.pathname.match(/^\/konu\/([^/]+)$/);
         if (pathMatch) {
           currentTopicId = decodeURIComponent(pathMatch[1]);
         }
