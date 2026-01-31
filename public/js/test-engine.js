@@ -48,14 +48,8 @@ export class TestEngine {
 
         // Sınav Moduysa Sayacı Başlat
         if (this.mode === 'exam') {
-            if (this.duration <= 0) {
-                this.remainingTime = Math.round(this.questions.length * 75);
-            } else {
-                this.remainingTime = Math.round(this.duration * 60);
-            }
+            this.prepareExamTimer();
             this.startTimer();
-            // Sınav modunda çözüm alanı gizli kalır, sayaç görünür
-            if (this.ui.timerDisplay) this.ui.timerDisplay.parentElement.style.display = 'flex';
         } else {
             // Çalışma modunda sayaç gizlenebilir
             if (this.ui.timerDisplay) this.ui.timerDisplay.parentElement.style.display = 'none';
@@ -75,6 +69,40 @@ export class TestEngine {
                 this.finishTest(true);
             }
         }, 1000);
+    }
+
+    prepareExamTimer() {
+        if (this.remainingTime <= 0) {
+            if (this.duration <= 0) {
+                this.remainingTime = Math.round(this.questions.length * 75);
+            } else {
+                this.remainingTime = Math.round(this.duration * 60);
+            }
+        }
+        // Sınav modunda çözüm alanı gizli kalır, sayaç görünür
+        if (this.ui.timerDisplay) this.ui.timerDisplay.parentElement.style.display = 'flex';
+    }
+
+    setMode(nextMode) {
+        const normalizedMode = nextMode === 'learning' ? 'practice' : nextMode;
+        if (normalizedMode === this.mode) return;
+
+        this.mode = normalizedMode;
+
+        if (this.mode === 'exam') {
+            this.prepareExamTimer();
+            if (!this.timerInterval) {
+                this.startTimer();
+            }
+        } else {
+            if (this.timerInterval) {
+                clearInterval(this.timerInterval);
+                this.timerInterval = null;
+            }
+            if (this.ui.timerDisplay) this.ui.timerDisplay.parentElement.style.display = 'none';
+        }
+
+        this.applyModeToAllQuestions();
     }
 
     updateTimerDisplay() {
@@ -248,6 +276,7 @@ export class TestEngine {
         buttons.forEach(btn => {
             btn.classList.add('disabled'); // Tıklamayı engelle
             const optId = btn.dataset.opt;
+            btn.querySelectorAll('.result-icon').forEach(icon => icon.remove());
 
             if (optId === selectedId) {
                 btn.classList.add(isCorrect ? 'correct' : 'wrong');
@@ -270,6 +299,36 @@ export class TestEngine {
             setTimeout(() => {
                 solDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             }, 100);
+        }
+    }
+
+    applyModeToAllQuestions() {
+        this.questions.forEach(question => {
+            if (this.mode === 'exam') {
+                this.resetQuestionForExam(question.id);
+            } else {
+                const ans = this.answers[question.id];
+                if (ans) {
+                    this.showFeedback(question.id, ans.selected, ans.isCorrect, question.correctOption);
+                }
+            }
+        });
+    }
+
+    resetQuestionForExam(qId) {
+        const card = document.getElementById(`q-${qId}`);
+        if (!card) return;
+        const buttons = card.querySelectorAll('.sik-btn');
+        buttons.forEach(btn => {
+            btn.classList.remove('correct', 'wrong', 'correct-ghost', 'disabled', 'selected');
+            btn.querySelectorAll('.result-icon').forEach(icon => icon.remove());
+        });
+        const solDiv = document.getElementById(`sol-${qId}`);
+        if (solDiv) solDiv.style.display = 'none';
+
+        const ans = this.answers[qId];
+        if (ans) {
+            this.markSelected(qId, ans.selected);
         }
     }
 

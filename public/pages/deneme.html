@@ -238,7 +238,7 @@
             let examId = urlParams.get('id');
 
             if (!examId) {
-                const pathMatch = window.location.pathname.match(/^\\/deneme\\/([^/]+)$/);
+                const pathMatch = window.location.pathname.match(/^\/deneme\/([^/]+)$/);
                 if (pathMatch) {
                     examId = decodeURIComponent(pathMatch[1]);
                 }
