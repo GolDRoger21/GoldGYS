@@ -115,7 +115,9 @@ export class TestEngine {
 
         if (q.type === 'oncullu' && q.onculler && q.onculler.length > 0) {
             const listItems = q.onculler.map((o, i) => `<li><span class="oncul-no">${['I', 'II', 'III', 'IV', 'V'][i]}</span> ${o}</li>`).join('');
+            const questionText = q.text ? `<div class="soru-metni">${q.text}</div>` : '';
             contentHTML = `
+                ${questionText}
                 <ul class="oncullu-liste">${listItems}</ul>
                 ${q.questionRoot ? `<p class="soru-kok-vurgu">${q.questionRoot}</p>` : ''}
             `;
