@@ -8,6 +8,7 @@ import * as ContentModule from "./modules/admin/content.js";
 import * as LegislationModule from "./modules/admin/legislation.js";
 import * as ReportsModule from "./modules/admin/reports.js";
 import * as ExamsModule from "./modules/admin/exams.js";
+import * as AnnouncementsModule from "./modules/admin/announcements.js";
 import * as ImporterModule from "./modules/admin/importer.js";
 import * as TopicsModule from "./modules/admin/topics.js";
 import * as TrashModule from "./modules/admin/trash.js";
@@ -93,6 +94,7 @@ function handleTabChange(target, role) {
             case 'legislation': if (role === 'admin') LegislationModule.initLegislationPage(); break;
             case 'reports': if (role === 'admin') ReportsModule.initReportsPage(); break;
             case 'exams': ExamsModule.initExamsPage(); break;
+            case 'announcements': if (role === 'admin') AnnouncementsModule.initAnnouncementsPage(); break;
             case 'importer': ImporterModule.initImporterPage(); break;
             case 'topics': TopicsModule.initTopicsPage(); break;
             case 'trash': TrashModule.initTrashPage(); break;

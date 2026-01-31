@@ -1,5 +1,5 @@
 import { db } from "./firebase-config.js";
-import { doc, getDoc, setDoc, serverTimestamp, updateDoc, addDoc, collection } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { doc, getDoc, setDoc, serverTimestamp, updateDoc, addDoc, collection, getDocs, limit, orderBy, query } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 /**
  * Kullanıcı veritabanında var mı kontrol eder, yoksa oluşturur.
@@ -153,5 +153,20 @@ export async function getLastActivity(uid) {
         return docSnap.exists() ? docSnap.data() : null;
     } catch (e) {
         return null;
+    }
+}
+
+/**
+ * Kullanıcının son aktivitelerini getirir.
+ */
+export async function getRecentActivities(uid, limitCount = 3) {
+    if (!uid) return [];
+    try {
+        const activityRef = collection(db, `users/${uid}/activity_history`);
+        const q = query(activityRef, orderBy("timestamp", "desc"), limit(limitCount));
+        const snapshot = await getDocs(q);
+        return snapshot.docs.map(docSnap => docSnap.data());
+    } catch (e) {
+        return [];
     }
 }
