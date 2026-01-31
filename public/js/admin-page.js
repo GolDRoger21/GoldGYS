@@ -44,10 +44,18 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         // --- KRİTİK DÜZELTME BAŞLANGICI ---
         // Admin menülerini yönet
+        // Admin menülerini yönet
         const adminElements = document.querySelectorAll('.admin-only');
         if (role === 'admin') {
-            // Admin ise gizli menüleri AÇ (display: block yap)
-            adminElements.forEach(el => el.style.display = 'block');
+            // Admin ise gizli menüleri AÇ
+            adminElements.forEach(el => {
+                if (el.classList.contains('nav-item')) {
+                    el.style.display = 'flex';
+                } else if (!el.classList.contains('admin-section')) {
+                    // Section'lar tab yöneticisi tarafından kontrol edilmeli, burası sadece diğer admin-only elemanları açsın
+                    el.style.display = 'block';
+                }
+            });
         } else {
             // Değilse gizle
             adminElements.forEach(el => el.style.display = 'none');
