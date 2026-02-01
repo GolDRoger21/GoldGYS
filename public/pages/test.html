@@ -754,6 +754,8 @@
                                 ? {
                                     id: remote.id,
                                     text: remote.text,
+                                    questionRoot: remote.questionRoot ?? null,
+                                    onculler: remote.onculler || [],
                                     options: remote.options || [],
                                     correctOption: remote.correctOption,
                                     solution: remote.solution || {},
@@ -783,6 +785,8 @@
                             return {
                                 id: remote.id,
                                 text: remote.text || "Soru metni yüklenemedi",
+                                questionRoot: remote.questionRoot ?? null,
+                                onculler: remote.onculler || [],
                                 options: remote.options || [],
                                 correctOption: remote.correctOption,
                                 solution: remote.solution || {},
