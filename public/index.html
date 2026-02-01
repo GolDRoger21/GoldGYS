@@ -49,7 +49,10 @@
                 <a href="#features" class="nav-link">Özellikler</a>
                 <a href="#journey" class="nav-link desktop-only">Yolculuk</a>
                 <a href="/denemeler" class="nav-link desktop-only">Denemeler</a>
-                <a href="login.html" class="btn btn-primary" id="navLoginBtn">Giriş Yap</a>
+                <div class="nav-auth-buttons">
+                    <a href="login.html?mode=login" class="btn btn-secondary btn-sm" id="navLoginBtn">Giriş Yap</a>
+                    <a href="login.html?mode=register" class="btn btn-primary btn-sm" id="navRegisterBtn">Kayıt Ol</a>
+                </div>
             </div>
 
             <button class="mobile-nav-toggle" aria-controls="navLinks" aria-expanded="false">
@@ -198,7 +201,11 @@
                     <h2>Hemen Çalışmaya Başlayın</h2>
                     <p>Kaybedecek zaman yok. Gold GYS ile rakiplerinizin bir adım önüne geçin.</p>
                 </div>
-                <a href="login.html" class="btn btn-primary">Ücretsiz Hesap Oluştur</a>
+            </div>
+            <div class="cta-buttons">
+                <a href="login.html?mode=register" class="btn btn-primary">Ücretsiz Hesap Oluştur</a>
+                <a href="login.html?mode=login" class="btn btn-secondary">Giriş Yap</a>
+            </div>
             </div>
         </section>
     </main>
@@ -217,8 +224,10 @@
                 <div>
                     <h4 style="color: var(--text-light); margin-bottom: 1rem;">Platform</h4>
                     <ul style="list-style: none; padding: 0;">
-                        <li style="margin-bottom: 0.5rem;"><a href="login.html"
+                        <li style="margin-bottom: 0.5rem;"><a href="login.html?mode=login"
                                 style="color: var(--text-muted); text-decoration: none;">Giriş Yap</a></li>
+                        <li style="margin-bottom: 0.5rem;"><a href="login.html?mode=register"
+                                style="color: var(--text-muted); text-decoration: none;">Kayıt Ol</a></li>
                         <li style="margin-bottom: 0.5rem;"><a href="/denemeler"
                                 style="color: var(--text-muted); text-decoration: none;">Denemeler</a></li>
                     </ul>
