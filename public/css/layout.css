@@ -128,27 +128,28 @@ body.sidebar-collapsed .app-layout {
     overflow-x: hidden;
     z-index: var(--z-sidebar);
     transition: width var(--transition-medium), background-color var(--transition-medium), transform var(--transition-medium);
-    padding: 12px 0;
+    padding: 12px;
 }
 
 body.sidebar-collapsed .app-sidebar {
     width: var(--sidebar-width-collapsed);
 }
 
-.nav-item {
+body:not(.admin-body) .app-sidebar .nav-item {
     display: flex;
     align-items: center;
-    padding: 0 24px;
+    padding: 10px 16px;
     height: 48px;
     min-height: 48px;
     color: var(--text-main);
     text-decoration: none;
     font-size: 0.95rem;
     font-weight: 500;
-    border-radius: 0 24px 24px 0;
-    margin-right: 12px;
-    margin-bottom: 8px;
-    /* Added vertical separation */
+    border-radius: var(--radius-md);
+    margin: 0 4px 10px;
+    border: 1px solid transparent;
+    background: var(--bg-surface);
+    box-shadow: var(--shadow-sm);
     transition: all var(--transition-fast);
     white-space: nowrap;
     position: relative;
@@ -161,19 +162,22 @@ body.sidebar-collapsed .app-sidebar {
     text-overflow: ellipsis;
 }
 
-.nav-item:hover {
+body:not(.admin-body) .app-sidebar .nav-item:hover {
     background-color: var(--bg-hover);
     color: var(--color-primary);
+    border-color: var(--border-color);
+    box-shadow: var(--shadow-md);
 }
 
-.nav-item.active {
+body:not(.admin-body) .app-sidebar .nav-item.active {
     background-color: rgba(212, 175, 55, 0.15);
     color: var(--color-primary);
     font-weight: 600;
-    border-left: 3px solid var(--color-primary);
+    border-color: var(--color-primary);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
 }
 
-.nav-item .icon {
+body:not(.admin-body) .app-sidebar .nav-item .icon {
     font-size: 1.25rem;
     /* min-width: 24px; */
     /* margin-right: 24px;  <- REMOVED (Converted to gap) */
@@ -183,7 +187,7 @@ body.sidebar-collapsed .app-sidebar {
     flex-shrink: 0;
 }
 
-.nav-item span:not(.icon) {
+body:not(.admin-body) .app-sidebar .nav-item span:not(.icon) {
     flex: 1 1 auto;
     min-width: 0;
     overflow: hidden;
@@ -192,26 +196,27 @@ body.sidebar-collapsed .app-sidebar {
 }
 
 /* Collapsed Sidebar Adjustments */
-body.sidebar-collapsed .nav-item {
+body.sidebar-collapsed:not(.admin-body) .app-sidebar .nav-item {
     padding: 0;
     justify-content: center;
-    border-radius: 8px;
-    margin: 4px 10px;
+    border-radius: 10px;
+    margin: 6px 8px;
+    box-shadow: var(--shadow-sm);
 }
 
-body.sidebar-collapsed .nav-item .icon {
+body.sidebar-collapsed:not(.admin-body) .app-sidebar .nav-item .icon {
     margin-right: 0;
 }
 
-body.sidebar-collapsed .nav-item span:not(.icon) {
+body.sidebar-collapsed:not(.admin-body) .app-sidebar .nav-item span:not(.icon) {
     display: none;
 }
 
-body.sidebar-collapsed .nav-label {
+body.sidebar-collapsed:not(.admin-body) .app-sidebar .nav-label {
     display: none;
 }
 
-.nav-label {
+body:not(.admin-body) .app-sidebar .nav-label {
     padding: 24px 24px 8px;
     font-size: 0.75rem;
     font-weight: 700;
