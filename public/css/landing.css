@@ -114,20 +114,47 @@ main {
 
 .btn-primary {
     background-color: var(--gold-main);
-    color: var(--text-on-gold);
-    /* Ensure dark text */
+    color: #0f172a;
+    /* Dark text for better contrast on gold */
     border: 1px solid var(--gold-main);
     box-shadow: 0 4px 15px rgba(212, 175, 55, 0.4);
     font-weight: 600;
     text-shadow: none;
-    /* Remove shadow for clarity */
 }
 
 .btn-primary:hover {
     background-color: #e5c145;
     transform: translateY(-2px);
     box-shadow: 0 8px 25px rgba(212, 175, 55, 0.5);
-    color: var(--navy-deep);
+    color: #0f172a;
+}
+
+/* Theme Toggle Button */
+.btn-theme-toggle {
+    background: transparent;
+    border: 1px solid var(--landing-nav-border);
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    width: 36px;
+    height: 36px;
+    margin-right: 0.5rem;
+}
+
+.btn-theme-toggle:hover {
+    background: rgba(212, 175, 55, 0.1);
+    color: var(--gold-main);
+    border-color: var(--gold-main);
+}
+
+.btn-theme-toggle svg {
+    width: 18px;
+    height: 18px;
 }
 
 .landing-nav .brand-logo {

@@ -50,6 +50,26 @@
                 <a href="#journey" class="nav-link desktop-only">Yolculuk</a>
                 <a href="/denemeler" class="nav-link desktop-only">Denemeler</a>
                 <div class="nav-auth-buttons">
+                    <button id="themeToggle" class="btn-theme-toggle" aria-label="Tema Değiştir">
+                        <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="5"></circle>
+                            <line x1="12" y1="1" x2="12" y2="3"></line>
+                            <line x1="12" y1="21" x2="12" y2="23"></line>
+                            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                            <line x1="1" y1="12" x2="3" y2="12"></line>
+                            <line x1="21" y1="12" x2="23" y2="12"></line>
+                            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                        </svg>
+                        <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                        </svg>
+                    </button>
                     <a href="login.html?mode=login" class="btn btn-secondary btn-sm" id="navLoginBtn">Giriş Yap</a>
                     <a href="login.html?mode=register" class="btn btn-primary btn-sm" id="navRegisterBtn">Kayıt Ol</a>
                 </div>
@@ -78,22 +98,7 @@
                         rakiplerinizin önüne geçin.
                     </p>
                     <div class="hero-buttons">
-                        <a href="login.html?mode=register" class="btn btn-primary" id="heroRegisterBtn">Kayıt Ol</a>
-                        <a href="login.html?mode=login" class="btn btn-secondary" id="heroLoginBtn">Giriş Yap</a>
-                    </div>
-                    <div class="hero-trust">
-                        <div>
-                            <strong>+1.200</strong>
-                            <span>Aktif Aday</span>
-                        </div>
-                        <div>
-                            <strong>%94</strong>
-                            <span>Memnuniyet</span>
-                        </div>
-                        <div>
-                            <strong>7/24</strong>
-                            <span>Yapay Zeka</span>
-                        </div>
+                        <!-- Duplicate buttons removed as requested -->
                     </div>
                 </div>
                 <div class="hero-visual">
@@ -203,8 +208,7 @@
                 </div>
             </div>
             <div class="cta-buttons">
-                <a href="login.html?mode=register" class="btn btn-primary">Kayıt Ol</a>
-                <a href="login.html?mode=login" class="btn btn-secondary">Giriş Yap</a>
+                <!-- Duplicate buttons removed as requested -->
             </div>
             </div>
         </section>
@@ -235,9 +239,9 @@
                 <div>
                     <h4 style="color: var(--text-light); margin-bottom: 1rem;">Yasal</h4>
                     <ul style="list-style: none; padding: 0;">
-                        <li style="margin-bottom: 0.5rem;"><a href="#"
+                        <li style="margin-bottom: 0.5rem;"><a href="/pages/gizlilik.html"
                                 style="color: var(--text-muted); text-decoration: none;">Gizlilik Politikası</a></li>
-                        <li style="margin-bottom: 0.5rem;"><a href="#"
+                        <li style="margin-bottom: 0.5rem;"><a href="/pages/kullanim-sartlari.html"
                                 style="color: var(--text-muted); text-decoration: none;">Kullanım Şartları</a></li>
                     </ul>
                 </div>
@@ -252,6 +256,40 @@
     <script type="module">
         import { auth } from "./js/firebase-config.js";
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+        // Theme Toggle Logic
+        const themeToggle = document.getElementById('themeToggle');
+        const htmlElement = document.documentElement;
+
+        // Check saved theme
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        htmlElement.setAttribute('data-theme', savedTheme);
+        updateThemeIcon(savedTheme);
+
+        if (themeToggle) {
+            themeToggle.addEventListener('click', () => {
+                const currentTheme = htmlElement.getAttribute('data-theme');
+                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+                htmlElement.setAttribute('data-theme', newTheme);
+                localStorage.setItem('theme', newTheme);
+                updateThemeIcon(newTheme);
+            });
+        }
+
+        function updateThemeIcon(theme) {
+            const sunIcon = document.querySelector('.icon-sun');
+            const moonIcon = document.querySelector('.icon-moon');
+            if (sunIcon && moonIcon) {
+                if (theme === 'dark') {
+                    sunIcon.style.display = 'block';
+                    moonIcon.style.display = 'none';
+                } else {
+                    sunIcon.style.display = 'none';
+                    moonIcon.style.display = 'block';
+                }
+            }
+        }
 
         // Mobile Nav Toggle
         const navToggle = document.querySelector('.mobile-nav-toggle');
@@ -292,10 +330,6 @@
 
                 // Kayıt ol butonlarını gizle veya panele yönlendir (tercihe bağlı, burada gizliyoruz)
                 if (navRegBtn) navRegBtn.style.display = "none";
-                if (heroRegBtn) {
-                    heroRegBtn.textContent = "Panele Devam Et";
-                    heroRegBtn.href = "/dashboard";
-                }
             }
         });
     </script>
