@@ -9,34 +9,212 @@
   <link rel="stylesheet" href="../css/layout.css">
   <link rel="stylesheet" href="../css/dashboard.css">
   <style>
-    .fav-card {
+    body {
+      visibility: hidden;
+    }
+
+    .favorites-hero {
       background: var(--bg-surface);
       border: 1px solid var(--border-color);
       border-radius: var(--radius-lg);
-      padding: 20px;
+      padding: 24px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 24px;
+    }
+
+    .favorites-hero h2 {
+      margin: 0 0 6px;
+    }
+
+    .favorites-hero p {
+      margin: 0;
+      color: var(--text-muted);
+    }
+
+    .favorites-hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .favorites-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .favorite-stat-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 18px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .favorite-stat-card strong {
+      font-size: 1.6rem;
+      display: block;
+      margin-top: 4px;
+      color: var(--text-primary);
+    }
+
+    .favorite-stat-card small {
+      color: var(--text-muted);
+    }
+
+    .favorites-filters {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .filter-group label {
+      display: block;
+      font-size: 0.85rem;
+      margin-bottom: 6px;
+      color: var(--text-muted);
+    }
+
+    .filter-group input,
+    .filter-group select {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-color);
+      background: var(--bg-input);
+      color: var(--text-primary);
+    }
+
+    .filter-actions {
+      display: flex;
+      align-items: flex-end;
+      gap: 10px;
+    }
+
+    .category-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .category-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .category-card h4 {
+      margin: 0;
+      font-size: 1rem;
+    }
+
+    .category-meta {
+      display: flex;
+      justify-content: space-between;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+    }
+
+    .category-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .fav-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 18px;
       margin-bottom: 16px;
       position: relative;
+      box-shadow: var(--shadow-sm);
     }
 
     .fav-icon {
       position: absolute;
-      top: 15px;
-      right: 15px;
+      top: 16px;
+      right: 16px;
       color: var(--color-primary);
       font-size: 1.2rem;
       cursor: pointer;
     }
 
     .fav-content {
-      padding-right: 30px;
+      padding-right: 36px;
     }
 
     .fav-actions {
-      margin-top: 15px;
-      padding-top: 15px;
+      margin-top: 14px;
+      padding-top: 14px;
       border-top: 1px solid var(--border-color);
       display: flex;
       gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .fav-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+
+    .fav-details {
+      border-top: 1px dashed var(--border-color);
+      margin-top: 12px;
+      padding-top: 12px;
+      display: none;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    .fav-details.is-open {
+      display: block;
+    }
+
+    .fav-options {
+      display: grid;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .fav-option-item {
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+    }
+
+    .fav-option-item span {
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 32px;
+      border-radius: var(--radius-md);
+      border: 1px dashed var(--border-color);
+      color: var(--text-muted);
     }
   </style>
   <link rel="icon" type="image/png" href="../icons/favicon.png">
@@ -50,17 +228,64 @@
   </script>
 
   <div class="dashboard-container">
-    <div class="section-header">
+    <section class="favorites-hero">
       <div>
-        <h2>⭐ Favori Sorular</h2>
-        <p class="text-muted">Önemli bulduğunuz ve kaydettiğiniz sorular.</p>
+        <h2>⭐ Favorilerim</h2>
+        <p>Favoriye eklediğiniz soruları karma veya konu bazlı çözerek tekrar edin.</p>
       </div>
-      <button class="btn btn-secondary">🖨️ PDF Olarak İndir</button>
-    </div>
+      <div class="favorites-hero-actions">
+        <button class="btn btn-primary" id="btnSolveAllExam">🎯 Karma Test (Sınav)</button>
+        <button class="btn btn-outline-primary" id="btnSolveAllPractice">📖 Karma Öğrenme</button>
+        <button class="btn btn-secondary" id="btnDownloadPdf">🖨️ PDF Olarak İndir</button>
+      </div>
+    </section>
 
-    <div id="favoritesList">
-      <div class="card p-4 text-center">Yükleniyor...</div>
-    </div>
+    <section class="favorites-stats">
+      <div class="favorite-stat-card">
+        <span class="text-muted">Toplam Favori</span>
+        <strong id="totalFavorites">0</strong>
+      </div>
+      <div class="favorite-stat-card">
+        <span class="text-muted">Konu Sayısı</span>
+        <strong id="totalCategories">0</strong>
+        <small>Favorilerinizdeki farklı konu başlığı.</small>
+      </div>
+      <div class="favorite-stat-card">
+        <span class="text-muted">Filtrelenen Soru</span>
+        <strong id="filteredCount">0</strong>
+        <small>Aktif filtrelerinize göre listelenen soru.</small>
+      </div>
+    </section>
+
+    <section class="favorites-filters">
+      <div class="filter-group">
+        <label for="categorySelect">Konu Filtrele</label>
+        <select id="categorySelect">
+          <option value="all">Tüm Konular</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label for="searchInput">Soru Ara</label>
+        <input id="searchInput" type="text" placeholder="Soru metninde ara...">
+      </div>
+      <div class="filter-actions">
+        <button class="btn btn-outline-secondary" id="btnClearFilters">Filtreleri Temizle</button>
+      </div>
+    </section>
+
+    <section>
+      <h3 class="mb-3">Konu Bazlı Favoriler</h3>
+      <div id="favoritesCategoryGrid" class="category-grid">
+        <div class="card p-4 text-center">Yükleniyor...</div>
+      </div>
+    </section>
+
+    <section>
+      <h3 class="mb-3">Favori Sorular</h3>
+      <div id="favoritesList">
+        <div class="card p-4 text-center">Yükleniyor...</div>
+      </div>
+    </section>
   </div>
 
   <script type="module">
@@ -69,28 +294,102 @@
     import { collection, getDocs, deleteDoc, doc, where, documentId, query } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
     import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
+    const ui = {
+      list: document.getElementById('favoritesList'),
+      categoryGrid: document.getElementById('favoritesCategoryGrid'),
+      totalFavorites: document.getElementById('totalFavorites'),
+      totalCategories: document.getElementById('totalCategories'),
+      filteredCount: document.getElementById('filteredCount'),
+      categorySelect: document.getElementById('categorySelect'),
+      searchInput: document.getElementById('searchInput'),
+      clearFilters: document.getElementById('btnClearFilters'),
+      btnSolveAllExam: document.getElementById('btnSolveAllExam'),
+      btnSolveAllPractice: document.getElementById('btnSolveAllPractice'),
+      btnDownloadPdf: document.getElementById('btnDownloadPdf')
+    };
+
+    const state = {
+      favorites: [],
+      filtered: [],
+      categories: new Map()
+    };
+
     document.addEventListener('DOMContentLoaded', () => {
       onAuthStateChanged(auth, async (user) => {
-        if (user) loadFavorites(user.uid);
+        if (user) {
+          await loadFavorites(user.uid);
+          document.body.style.visibility = 'visible';
+        }
       });
     });
 
-    async function loadFavorites(uid) {
-      const list = document.getElementById('favoritesList');
+    ui.categorySelect.addEventListener('change', () => applyFilters());
+    ui.searchInput.addEventListener('input', () => applyFilters());
+    ui.clearFilters.addEventListener('click', () => {
+      ui.categorySelect.value = 'all';
+      ui.searchInput.value = '';
+      applyFilters();
+    });
 
-      // URL'den kategori parametresini al
-      const urlParams = new URLSearchParams(window.location.search);
-      const filterCategory = urlParams.get('category');
+    ui.btnSolveAllExam.addEventListener('click', () => {
+      startCustomTest(state.favorites.map(item => item.questionId), 'Favoriler - Karma Test', 'exam', true);
+    });
+
+    ui.btnSolveAllPractice.addEventListener('click', () => {
+      startCustomTest(state.favorites.map(item => item.questionId), 'Favoriler - Karma Öğrenme', 'practice', true);
+    });
+
+    ui.btnDownloadPdf.addEventListener('click', () => {
+      showToast('PDF indirme yakında eklenecek.', 'info');
+    });
+
+    ui.categoryGrid.addEventListener('click', (event) => {
+      const button = event.target.closest('button[data-category]');
+      if (!button) return;
+      const category = button.dataset.category;
+      const action = button.dataset.action;
+
+      if (action === 'view') {
+        ui.categorySelect.value = category;
+        applyFilters();
+        ui.list.scrollIntoView({ behavior: 'smooth' });
+        return;
+      }
+
+      const ids = state.favorites.filter(item => item.category === category).map(item => item.questionId);
+      const title = `Favoriler - ${category}`;
+      const mode = action === 'exam' ? 'exam' : 'practice';
+      startCustomTest(ids, title, mode, true);
+    });
+
+    ui.list.addEventListener('click', (event) => {
+      const button = event.target.closest('button[data-action]');
+      if (!button) return;
+      const action = button.dataset.action;
+      const id = button.dataset.id;
+      if (action === 'solve') {
+        startCustomTest([id], 'Favoriler - Tek Soru', 'practice');
+      }
+      if (action === 'toggle') {
+        const details = document.querySelector(`#fav-${id} .fav-details`);
+        if (!details) return;
+        details.classList.toggle('is-open');
+        button.textContent = details.classList.contains('is-open') ? 'Detayı Gizle' : 'Detayı Gör';
+      }
+      if (action === 'remove') {
+        removeFavorite(id);
+      }
+    });
+
+    async function loadFavorites(uid) {
+      ui.list.innerHTML = '<div class="card p-4 text-center">Yükleniyor...</div>';
+      ui.categoryGrid.innerHTML = '<div class="card p-4 text-center">Yükleniyor...</div>';
 
       try {
-        let q = collection(db, `users/${uid}/favorites`);
-        // Eğer filtre varsa, sorguya ekleyebiliriz veya client-side filtreleyebiliriz.
-        // Basitlik için tümünü çekip burada filtreleyelim (az veri için uygun)
-
-        const snapshot = await getDocs(q);
+        const snapshot = await getDocs(collection(db, `users/${uid}/favorites`));
 
         if (snapshot.empty) {
-          list.innerHTML = '<div class="card p-4 text-center text-muted">Henüz favori soru eklemediniz.</div>';
+          renderEmptyState();
           return;
         }
 
@@ -100,63 +399,226 @@
           data: docSnap.data()
         }));
 
-        const activeIds = await fetchActiveQuestionIds(rawFavorites.map(fav => fav.questionId));
-        const staleFavorites = rawFavorites.filter(fav => !activeIds.has(fav.questionId));
+        const activeQuestions = await fetchActiveQuestionsMap(rawFavorites.map(fav => fav.questionId));
+        const staleFavorites = rawFavorites.filter(fav => !activeQuestions.has(fav.questionId));
         if (staleFavorites.length > 0) {
           await Promise.all(staleFavorites.map(fav => deleteDoc(doc(db, `users/${uid}/favorites/${fav.id}`))));
         }
 
-        const favorites = rawFavorites.filter(fav => activeIds.has(fav.questionId));
+        const favorites = rawFavorites
+          .filter(fav => activeQuestions.has(fav.questionId))
+          .map(fav => {
+            const question = activeQuestions.get(fav.questionId) || {};
+            const fallback = fav.data || {};
+            return {
+              id: fav.id,
+              questionId: fav.questionId,
+              category: question.category || fallback.category || 'Genel',
+              text: question.text || fallback.text || 'Soru metni yüklenemedi.',
+              questionRoot: question.questionRoot || fallback.questionRoot || null,
+              onculler: question.onculler || fallback.onculler || [],
+              options: question.options || fallback.options || [],
+              correctOption: question.correctOption || fallback.correctOption || null,
+              solution: question.solution || fallback.solution || {}
+            };
+          });
+
         if (favorites.length === 0) {
-          list.innerHTML = '<div class="card p-4 text-center text-muted">Henüz favori soru eklemediniz.</div>';
+          renderEmptyState();
           return;
         }
 
-        list.innerHTML = '';
-        let hasContent = false;
-
-        favorites.forEach(fav => {
-          const data = fav.data;
-
-          // Filtre Kontrolü
-          if (filterCategory) {
-            const decodedCat = decodeURIComponent(filterCategory);
-            // Kategori eşleşmesi (Tam veya Kısmi)
-            // URL'den gelen ile verideki kategori biraz farklı olabilir, bu yüzden 'includes' kullanmak daha güvenli olabilir
-            // veya tam eşleşme
-            if (data.category !== decodedCat) return;
-          }
-
-          hasContent = true;
-          const div = document.createElement('div');
-          div.className = 'fav-card';
-          div.id = `fav-${fav.id}`;
-          div.innerHTML = `
-                        <div class="fav-icon" onclick="removeFavorite('${fav.id}')">★</div>
-                        <div class="fav-content">
-                            <div class="badge badge-secondary mb-2">${data.category || 'Genel'}</div>
-                            <p>${data.text}</p>
-                        </div>
-                        <div class="fav-actions">
-                            <button class="btn btn-sm btn-primary">Çözümü Gör</button>
-                        </div>
-                    `;
-          list.appendChild(div);
-        });
-
-        if (!hasContent) {
-          list.innerHTML = `<div class="card p-4 text-center text-muted">Bu kategoride (${decodeURIComponent(filterCategory)}) favori sorunuz yok.</div>`;
-        }
-
+        state.favorites = favorites;
+        buildCategoryData();
+        populateCategorySelect();
+        renderCategoryCards();
+        applyFilters();
+        setSolveButtonsEnabled(true);
       } catch (error) {
-        list.innerHTML = '<div class="text-danger">Hata oluştu.</div>';
+        ui.list.innerHTML = '<div class="text-danger">Hata oluştu.</div>';
       }
     }
 
-    async function fetchActiveQuestionIds(ids) {
-      const activeIds = new Set();
+    function buildCategoryData() {
+      const categoryMap = new Map();
+      state.favorites.forEach(item => {
+        const category = item.category || 'Genel';
+        if (!categoryMap.has(category)) {
+          categoryMap.set(category, []);
+        }
+        categoryMap.get(category).push(item);
+      });
+      state.categories = categoryMap;
+      ui.totalFavorites.textContent = state.favorites.length;
+      ui.totalCategories.textContent = categoryMap.size;
+    }
+
+    function populateCategorySelect() {
+      const categories = Array.from(state.categories.keys()).sort((a, b) => a.localeCompare(b, 'tr'));
+      ui.categorySelect.innerHTML = '<option value="all">Tüm Konular</option>';
+      categories.forEach(category => {
+        const option = document.createElement('option');
+        option.value = category;
+        option.textContent = category;
+        ui.categorySelect.appendChild(option);
+      });
+    }
+
+    function renderCategoryCards() {
+      if (state.categories.size === 0) {
+        ui.categoryGrid.innerHTML = '<div class="empty-state">Favori konu bulunamadı.</div>';
+        return;
+      }
+
+      const cards = Array.from(state.categories.entries())
+        .sort(([a], [b]) => a.localeCompare(b, 'tr'))
+        .map(([category, items]) => {
+          return `
+            <div class="category-card">
+              <div>
+                <h4>${category}</h4>
+                <div class="category-meta">
+                  <span>${items.length} soru</span>
+                  <span>Konu bazlı çalışma</span>
+                </div>
+              </div>
+              <div class="category-actions">
+                <button class="btn btn-outline-primary" data-category="${category}" data-action="view">Soruları Gör</button>
+                <button class="btn btn-primary" data-category="${category}" data-action="practice">Konu Öğrenme</button>
+                <button class="btn btn-secondary" data-category="${category}" data-action="exam">Konu Testi</button>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+      ui.categoryGrid.innerHTML = cards;
+    }
+
+    function applyFilters() {
+      const category = ui.categorySelect.value;
+      const search = ui.searchInput.value.trim().toLowerCase();
+
+      state.filtered = state.favorites.filter(item => {
+        const categoryMatch = category === 'all' || item.category === category;
+        const searchMatch = !search || item.text.toLowerCase().includes(search);
+        return categoryMatch && searchMatch;
+      });
+
+      ui.filteredCount.textContent = state.filtered.length;
+      renderFavoritesList();
+      setSolveButtonsEnabled(state.favorites.length > 0);
+    }
+
+    function renderFavoritesList() {
+      if (state.filtered.length === 0) {
+        ui.list.innerHTML = '<div class="empty-state">Bu filtreye uygun favori soru bulunamadı.</div>';
+        return;
+      }
+
+      ui.list.innerHTML = state.filtered.map(item => {
+        const optionsHtml = renderOptions(item.options);
+        const oncullerHtml = renderOnculler(item.onculler);
+        const solutionHtml = renderSolution(item.solution, item.correctOption);
+
+        return `
+          <div class="fav-card" id="fav-${item.questionId}">
+            <div class="fav-icon" title="Favoriden kaldır" data-action="remove" data-id="${item.id}">★</div>
+            <div class="fav-content">
+              <div class="fav-meta">
+                <span class="badge badge-secondary">${item.category}</span>
+                <small class="text-muted">ID: ${item.questionId}</small>
+              </div>
+              <p>${item.text}</p>
+            </div>
+            <div class="fav-actions">
+              <button class="btn btn-sm btn-primary" data-action="solve" data-id="${item.questionId}">Tek Soru Çöz</button>
+              <button class="btn btn-sm btn-outline-primary" data-action="toggle" data-id="${item.questionId}">Detayı Gör</button>
+            </div>
+            <div class="fav-details">
+              ${item.questionRoot ? `<p><strong>Soru Kökü:</strong> ${item.questionRoot}</p>` : ''}
+              ${oncullerHtml}
+              ${optionsHtml}
+              ${solutionHtml}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderOnculler(onculler) {
+      if (!onculler || onculler.length === 0) return '';
+      const items = onculler.map(item => `<li>${item}</li>`).join('');
+      return `<div><strong>Öncüller:</strong><ol>${items}</ol></div>`;
+    }
+
+    function renderOptions(options) {
+      if (!options || options.length === 0) return '';
+      const list = options.map(option => {
+        if (typeof option === 'string') {
+          return `<div class="fav-option-item"><span>•</span><div>${option}</div></div>`;
+        }
+        return `<div class="fav-option-item"><span>${option.id || '•'}</span><div>${option.text || ''}</div></div>`;
+      }).join('');
+      return `<div><strong>Şıklar:</strong><div class="fav-options">${list}</div></div>`;
+    }
+
+    function renderSolution(solution, correctOption) {
+      if (!solution && !correctOption) return '';
+      const parts = [];
+      if (correctOption) {
+        parts.push(`<p><strong>Doğru Cevap:</strong> ${correctOption}</p>`);
+      }
+      if (solution?.analiz) parts.push(`<p><strong>Analiz:</strong> ${solution.analiz}</p>`);
+      if (solution?.dayanakText) parts.push(`<p><strong>Dayanak:</strong> ${solution.dayanakText}</p>`);
+      if (solution?.tuzak) parts.push(`<p><strong>Tuzak:</strong> ${solution.tuzak}</p>`);
+      if (solution?.hap) parts.push(`<p><strong>HAP Bilgi:</strong> ${solution.hap}</p>`);
+      return parts.length ? `<div>${parts.join('')}</div>` : '';
+    }
+
+    function renderEmptyState() {
+      ui.list.innerHTML = '<div class="empty-state">Henüz favori soru eklemediniz.</div>';
+      ui.categoryGrid.innerHTML = '<div class="empty-state">Favori konu bulunamadı.</div>';
+      ui.totalFavorites.textContent = '0';
+      ui.totalCategories.textContent = '0';
+      ui.filteredCount.textContent = '0';
+      setSolveButtonsEnabled(false);
+    }
+
+    function setSolveButtonsEnabled(isEnabled) {
+      [ui.btnSolveAllExam, ui.btnSolveAllPractice].forEach(btn => {
+        if (!btn) return;
+        btn.disabled = !isEnabled;
+        btn.classList.toggle('disabled', !isEnabled);
+      });
+    }
+
+    function shuffle(array) {
+      const arr = [...array];
+      for (let i = arr.length - 1; i > 0; i -= 1) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    function startCustomTest(ids, title, mode, shouldShuffle = false) {
+      const filteredIds = ids.filter(Boolean);
+      if (filteredIds.length === 0) {
+        showToast('Çözülecek favori soru bulunamadı.', 'warning');
+        return;
+      }
+
+      const finalIds = shouldShuffle ? shuffle(filteredIds) : filteredIds;
+      localStorage.setItem('customTestQuestionIds', JSON.stringify(finalIds));
+      localStorage.setItem('customTestTitle', title);
+      localStorage.removeItem('customTestQuestions');
+      window.location.href = `/test?mode=custom&source=local&testMode=${mode}`;
+    }
+
+    async function fetchActiveQuestionsMap(ids) {
+      const activeQuestions = new Map();
       const uniqueIds = Array.from(new Set(ids.filter(Boolean)));
-      if (uniqueIds.length === 0) return activeIds;
+      if (uniqueIds.length === 0) return activeQuestions;
 
       for (let i = 0; i < uniqueIds.length; i += 10) {
         const chunk = uniqueIds.slice(i, i + 10);
@@ -165,14 +627,14 @@
         snap.docs.forEach(docSnap => {
           const data = docSnap.data();
           if (data?.isDeleted || data?.isActive === false) return;
-          activeIds.add(docSnap.id);
+          activeQuestions.set(docSnap.id, { id: docSnap.id, ...data });
         });
       }
 
-      return activeIds;
+      return activeQuestions;
     }
 
-    window.removeFavorite = async (id) => {
+    async function removeFavorite(id) {
       const shouldRemove = await showConfirm("Bu soruyu favorilerinizden kaldırmak istediğinize emin misiniz?", {
         title: "Favoriden Kaldır",
         confirmText: "Kaldır",
@@ -182,9 +644,14 @@
 
       const uid = auth.currentUser.uid;
       await deleteDoc(doc(db, `users/${uid}/favorites`, id));
-      document.getElementById(`fav-${id}`).remove();
+
+      state.favorites = state.favorites.filter(item => item.id !== id);
+      buildCategoryData();
+      populateCategorySelect();
+      renderCategoryCards();
+      applyFilters();
       showToast("Favori listesi güncellendi.", "success");
-    };
+    }
   </script>
 </body>
 
