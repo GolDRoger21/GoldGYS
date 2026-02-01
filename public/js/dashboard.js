@@ -3,7 +3,7 @@
 import { initLayout } from './ui-loader.js';
 import { auth, db } from "./firebase-config.js";
 import { getUserProfile, getLastActivity, getRecentActivities } from "./user-profile.js";
-import { collection, getDocs, limit, orderBy, query, where, Timestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { collection, doc, getDoc, getDocs, limit, orderBy, query, where, Timestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // UI Elementleri
 const ui = {
@@ -148,9 +148,13 @@ function showSmartTip() {
 }
 
 async function loadDashboardStats(uid) {
+    const userSnap = await getDoc(doc(db, "users", uid));
+    const userData = userSnap.exists() ? userSnap.data() : {};
+    const statsResetAt = normalizeResetTimestamp(userData.statsResetAt);
+
     const [totalStats, todayStats] = await Promise.all([
-        fetchExamStats(uid),
-        fetchExamStats(uid, getTodayRange())
+        fetchExamStats(uid, { resetAtSeconds: statsResetAt }),
+        fetchExamStats(uid, { range: getTodayRange(), resetAtSeconds: statsResetAt })
     ]);
 
     const successRate = totalStats.total > 0
@@ -164,15 +168,40 @@ async function loadDashboardStats(uid) {
     if (ui.successRateBar) ui.successRateBar.style.width = `${successRate}%`;
 }
 
-async function fetchExamStats(uid, range = null) {
+function normalizeResetTimestamp(timestamp) {
+    if (!timestamp) return null;
+    if (typeof timestamp.seconds === 'number') return timestamp.seconds;
+    if (typeof timestamp.toDate === 'function') return Math.floor(timestamp.toDate().getTime() / 1000);
+    return null;
+}
+
+async function fetchExamStats(uid, options = {}) {
     if (!uid) return { total: 0, correct: 0, wrong: 0 };
 
     const baseRef = collection(db, `users/${uid}/exam_results`);
     const constraints = [];
+    const range = options.range || null;
+    const resetAtSeconds = typeof options.resetAtSeconds === 'number' ? options.resetAtSeconds : null;
 
-    if (range) {
-        constraints.push(where("completedAt", ">=", Timestamp.fromDate(range.start)));
-        constraints.push(where("completedAt", "<", Timestamp.fromDate(range.end)));
+    if (range || resetAtSeconds) {
+        let startDate = range ? range.start : null;
+        if (resetAtSeconds) {
+            const resetDate = new Date(resetAtSeconds * 1000);
+            if (!startDate || resetDate > startDate) {
+                startDate = resetDate;
+            }
+        }
+
+        if (startDate && range && startDate >= range.end) {
+            return { total: 0, correct: 0, wrong: 0 };
+        }
+
+        if (startDate) {
+            constraints.push(where("completedAt", ">=", Timestamp.fromDate(startDate)));
+        }
+        if (range) {
+            constraints.push(where("completedAt", "<", Timestamp.fromDate(range.end)));
+        }
     }
 
     const q = constraints.length ? query(baseRef, ...constraints) : baseRef;
@@ -180,7 +209,8 @@ async function fetchExamStats(uid, range = null) {
 
     return snapshot.docs.reduce((acc, docSnap) => {
         const data = docSnap.data();
-        acc.total += data.total || 0;
+        const total = data.total || ((data.correct || 0) + (data.wrong || 0) + (data.empty || 0));
+        acc.total += total;
         acc.correct += data.correct || 0;
         acc.wrong += data.wrong || 0;
         return acc;
