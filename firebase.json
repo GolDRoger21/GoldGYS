@@ -11,6 +11,7 @@
       { "source": "/dashboard", "destination": "/pages/dashboard.html" },
       { "source": "/konular", "destination": "/pages/konular.html" },
       { "source": "/konu/**", "destination": "/pages/konu.html" },
+      { "source": "/test", "destination": "/pages/test.html" },
       { "source": "/test/**", "destination": "/pages/test.html" },
       { "source": "/denemeler", "destination": "/pages/denemeler.html" },
       { "source": "/deneme/**", "destination": "/pages/deneme.html" },
