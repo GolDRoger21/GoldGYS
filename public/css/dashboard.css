@@ -55,7 +55,7 @@
 }
 
 [data-theme="light"] .welcome-text p {
-    color: #475569;
+    color: var(--text-muted);
 }
 
 /* Geri Sayım (Restored) */
@@ -95,7 +95,7 @@
 }
 
 [data-theme="light"] .exam-countdown .label {
-    color: #64748b;
+    color: var(--text-muted);
 }
 
 /* --- STATS GRID (Old Dashboard) --- */
@@ -119,9 +119,9 @@
 }
 
 [data-theme="light"] .stat-card {
-    background: rgba(255, 255, 255, 0.9);
-    border: 1px solid rgba(0, 0, 0, 0.05);
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    box-shadow: var(--shadow-sm);
 }
 
 .stat-card:hover {
@@ -131,7 +131,7 @@
 }
 
 [data-theme="light"] .stat-card:hover {
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+    box-shadow: var(--shadow-md);
 }
 
 .stat-icon {
@@ -188,7 +188,7 @@
 }
 
 [data-theme="light"] .stat-info h3 {
-    color: #64748b;
+    color: var(--text-muted);
 }
 
 .stat-info .stat-value {

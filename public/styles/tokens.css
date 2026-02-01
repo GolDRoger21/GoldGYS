@@ -24,7 +24,7 @@
   --transition-medium: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* --- DARK THEME (Varsayılan - Gold GYS Premium) --- */
+/* --- DARK THEME (Default - Gold GYS Premium) --- */
 :root,
 [data-theme="dark"] {
   /* Brand Colors */
@@ -34,46 +34,46 @@
   /* Gold Light */
   --color-primary-dim: #856d20;
   /* Gold Dark */
+
+  /* Gold Aliases */
   --gold-primary: var(--color-primary);
   --gold-main: var(--color-primary);
   --gold-light: #F7E8A9;
   --gold-dark: #A8853A;
+
+  /* Navy Palette */
   --navy-deep: #0F172A;
   --navy-light: #1E293B;
   --navy-border: #334155;
+
+  /* Status Colors */
   --color-danger: #ef4444;
   --color-success: #10b981;
   --color-warning: #f59e0b;
 
   /* Backgrounds */
   --bg-body: #0F172A;
-  /* Deep Navy (Sayfa Arkaplanı) */
+  /* Deep Navy */
   --bg-header: #0F172A;
-  /* Header Arkaplanı */
   --bg-sidebar: #0B1120;
-  /* Sidebar Arkaplanı (Biraz daha koyu) */
   --bg-surface: #1E293B;
-  /* Kartlar/Paneller */
+  /* Cards/Panels */
   --bg-hover: rgba(255, 255, 255, 0.08);
-  /* Hover Efekti */
   --bg-input: #0F172A;
-  /* Input Alanları */
   --bg-dropdown: #1E293B;
-  /* Dropdown Menü */
 
   /* Text */
   --text-main: #F8FAFC;
-  /* Ana Metin (Beyazımsı) */
+  /* Off-White */
   --text-muted: #94A3B8;
-  /* İkincil Metin (Gri) */
+  /* Slate Gray */
   --text-on-gold: #0F172A;
-  /* Gold üzerindeki metin (Koyu) */
+  /* Dark text on gold bg */
   --text-logo: #F8FAFC;
-  /* Logo Metni */
   --text-light: #F8FAFC;
   --text-white: #F8FAFC;
 
-  /* Borders */
+  /* Borders & Radius */
   --border-color: #334155;
   --border-subtle: rgba(255, 255, 255, 0.05);
 
@@ -83,49 +83,50 @@
   --shadow-gold: 0 0 15px rgba(212, 175, 55, 0.15);
 }
 
-/* --- LIGHT THEME (Aydınlık Mod - Okunabilirlik Odaklı) --- */
+/* --- LIGHT THEME (Readable & Professional) --- */
 [data-theme="light"] {
   /* Brand Colors */
   --color-primary: #D4AF37;
-  /* Main Gold */
   --color-primary-hover: #B5952F;
   --color-primary-dim: #A8853A;
+
+  /* Gold Aliases */
   --gold-primary: var(--color-primary);
   --gold-main: var(--color-primary);
   --gold-light: #F7E8A9;
   --gold-dark: #A8853A;
+
+  /* Navy variables in light mode (used for specific accents) */
   --navy-deep: #0F172A;
   --navy-light: #1E293B;
   --navy-border: #334155;
+
+  /* Status Colors */
   --color-danger: #dc2626;
   --color-success: #059669;
   --color-warning: #d97706;
 
   /* Backgrounds */
   --bg-body: #F1F5F9;
-  /* Açık Gri (Göz yormayan beyaz) */
+  /* Light Grayish Blue */
   --bg-header: #FFFFFF;
-  /* Beyaz Header */
   --bg-sidebar: #FFFFFF;
-  /* Beyaz Sidebar */
   --bg-surface: #FFFFFF;
-  /* Beyaz Kartlar */
   --bg-hover: #F8FAFC;
-  /* Çok açık gri hover */
   --bg-input: #FFFFFF;
   --bg-dropdown: #FFFFFF;
 
   /* Text */
   --text-main: #0F172A;
-  /* Koyu Lacivert (Siyah yerine) */
+  /* Dark Slate */
   --text-muted: #64748B;
-  /* Gri Metin */
   --text-on-gold: #FFFFFF;
-  /* Gold üzerindeki metin */
   --text-logo: #0F172A;
-  /* Logo Metni (Koyu) */
   --text-light: #F8FAFC;
+  /* Keep this light for reverse contrast elements if needed, or check usage */
   --text-white: #F8FAFC;
+
+  /* Undo text-light override for general usage if it causes issues, but kept for compatibility */
 
   /* Borders */
   --border-color: #E2E8F0;

@@ -4,24 +4,7 @@
 
 /* --- 1. GENEL YAPI VE DASHBOARD --- */
 
-[data-theme="light"] {
-    --color-primary: #d4af37;
-    --color-primary-hover: #b4942b;
-    --text-on-gold: #ffffff;
-    --text-main: #1e293b;
-    --text-muted: #64748b;
-    --bg-surface: #ffffff;
-    --bg-input: #ffffff;
-    --bg-hover: #f1f5f9;
-    --border-color: #e2e8f0;
-    --radius-md: 8px;
-    --radius-lg: 12px;
-    --radius-full: 9999px;
-    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
-    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    --transition-fast: 0.2s ease;
-    --color-danger: #ef4444;
-}
+/* --- VARIABLES NOW IN TOKENS.CSS --- */
 
 /* Section Header */
 .section-header {
@@ -1227,6 +1210,7 @@ tr.highlight {
     word-break: break-word;
     display: -webkit-box;
     -webkit-box-orient: vertical;
+    line-clamp: 2;
     -webkit-line-clamp: 2;
     overflow: hidden;
 }
