@@ -402,7 +402,7 @@ function renderTopicList(topics, progressMap, currentTopicId, successMap, topicR
                     <div class="progress-mini-wrapper">
                         <div class="progress-mini-fill" style="width: ${success}%"></div>
                     </div>
-                    <span style="font-weight:700; color:var(--text-light); font-size:0.9rem;">%${success}</span>
+                    <span class="progress-mini-percent">%${success}</span>
                 </td>
                 <td>${statusBadge}</td>
                 <td>
