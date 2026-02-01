@@ -26,6 +26,7 @@
             --logo-gold: #F6D78B;
             --logo-khaki: #C26144;
             --logo-highlight: #FBE7B1;
+            --gold-glow: rgba(212, 175, 55, 0.4);
         }
 
         * {
@@ -43,6 +44,8 @@
             flex-direction: column;
             position: relative;
             overflow: hidden;
+            background-image: radial-gradient(circle at top, rgba(212, 175, 55, 0.12), transparent 55%),
+                radial-gradient(circle at bottom, rgba(212, 175, 55, 0.08), transparent 60%);
         }
 
         /* Arkaplan Efekti */
@@ -94,13 +97,14 @@
 
         .auth-card {
             background: var(--bg-card);
-            border: 1px solid var(--border-color);
+            border: 1px solid rgba(212, 175, 55, 0.35);
             border-radius: 16px;
             padding: 3rem 2.5rem;
             width: 100%;
             max-width: 420px;
             text-align: center;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 35px rgba(212, 175, 55, 0.08);
+            position: relative;
         }
 
         /* Logo & Başlıklar */
@@ -161,7 +165,7 @@
             font-size: 1rem;
             padding: 0.875rem;
             border-radius: 8px;
-            border: 1px solid transparent;
+            border: 1px solid rgba(212, 175, 55, 0.4);
             cursor: pointer;
             transition: all 0.2s ease;
             gap: 12px;
@@ -170,7 +174,7 @@
         .btn-google:hover {
             background-color: #f8fafc;
             transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 8px 20px rgba(212, 175, 55, 0.2);
         }
 
         .btn-google:disabled {
@@ -204,6 +208,85 @@
             background-color: rgba(34, 197, 94, 0.1);
             border: 1px solid rgba(34, 197, 94, 0.2);
             color: #86efac;
+        }
+
+        .info-banner {
+            background: rgba(212, 175, 55, 0.12);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            color: #f7e8a9;
+            padding: 0.9rem 1rem;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            text-align: left;
+            margin-bottom: 1.5rem;
+        }
+
+        .info-banner strong {
+            color: var(--gold-primary);
+        }
+
+        .agreement-section {
+            text-align: left;
+            margin: 1.5rem 0;
+            padding: 1rem;
+            border-radius: 12px;
+            border: 1px solid rgba(212, 175, 55, 0.25);
+            background: rgba(15, 23, 42, 0.6);
+        }
+
+        .agreement-section h3 {
+            font-size: 1rem;
+            margin-bottom: 0.75rem;
+            color: var(--gold-primary);
+            letter-spacing: 0.02em;
+        }
+
+        .agreement-text {
+            max-height: 220px;
+            overflow: auto;
+            padding-right: 0.5rem;
+            font-size: 0.85rem;
+            line-height: 1.6;
+            color: var(--text-light);
+        }
+
+        .agreement-text h4 {
+            font-size: 0.9rem;
+            margin: 0.8rem 0 0.4rem;
+            color: var(--logo-gold);
+        }
+
+        .agreement-text ol {
+            padding-left: 1.2rem;
+            margin: 0.5rem 0 0.8rem;
+        }
+
+        .agreement-text li {
+            margin-bottom: 0.5rem;
+        }
+
+        .agreement-ack {
+            margin-top: 1rem;
+            display: flex;
+            gap: 0.6rem;
+            align-items: flex-start;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .agreement-ack input {
+            margin-top: 0.2rem;
+            accent-color: var(--gold-primary);
+        }
+
+        .agreement-ack a {
+            color: var(--gold-primary);
+            text-decoration: none;
+        }
+
+        .agreement-ack a:hover {
+            text-decoration: underline;
         }
 
         /* Loader */
@@ -270,6 +353,67 @@
             <p class="card-subtitle">
                 Adalet Bakanlığı Personel Görevde Yükselme Portalına Hoş Geldiniz.
             </p>
+
+            <div class="info-banner">
+                <strong>Bilgilendirme:</strong> Yeni üyelikler, yönetici onayı sonrasında aktif hale gelir. Onay
+                tamamlanana kadar sisteme giriş yapılamaz. Başvuru durumunuz e-posta ve panel üzerinden
+                bildirilecektir.
+            </div>
+
+            <div class="agreement-section">
+                <h3>Üyelik ve Kullanıcı Sözleşmesi</h3>
+                <div class="agreement-text" aria-label="GOLD GYS Üyelik Sözleşmesi">
+                    <p>
+                        İşbu Üyelik ve Kullanıcı Sözleşmesi (“Sözleşme”), GOLD GYS platformu (“Platform”) üzerinden
+                        sunulan dijital hizmetlerden yararlanacak kullanıcı (“Üye”) ile Platform’un işletmecisi
+                        arasında, Üye’nin platforma üyelik ve kullanım şartlarını düzenler. Üyelik başvurusu,
+                        aşağıdaki şartların okunup kabul edildiği anlamına gelir.
+                    </p>
+                    <h4>1. Taraflar</h4>
+                    <ol>
+                        <li>Platform: GOLD GYS (goldgys.web.app).</li>
+                        <li>Üye: Platforma Google hesabı ile giriş yaparak üyelik talebinde bulunan gerçek kişi.</li>
+                    </ol>
+                    <h4>2. Sözleşmenin Konusu</h4>
+                    <p>İşbu Sözleşme, Platform’un sağladığı sınav hazırlık, analiz ve dijital içerik hizmetlerinden
+                        yararlanma koşullarını belirler.</p>
+                    <h4>3. Üyelik ve Onay Süreci</h4>
+                    <ol>
+                        <li>Üyelik başvurusu yönetici onayına tabidir. Onay verilene kadar sisteme giriş yapılamaz.</li>
+                        <li>Üye, başvuru sırasında sağladığı tüm bilgilerin doğru ve güncel olduğunu beyan eder.</li>
+                        <li>Yanlış veya eksik beyan, üyeliğin askıya alınmasına veya sonlandırılmasına neden olabilir.</li>
+                    </ol>
+                    <h4>4. Kullanım Kuralları</h4>
+                    <ol>
+                        <li>Üye, Platform’u yürürlükteki mevzuata ve genel ahlak kurallarına uygun kullanmayı kabul eder.</li>
+                        <li>Platform’un güvenliğini zedeleyebilecek otomatik sorgu, veri kazıma veya spam faaliyetleri yasaktır.</li>
+                        <li>Üye, hesap bilgilerini üçüncü kişilerle paylaşamaz; tüm işlem ve kullanımından sorumludur.</li>
+                    </ol>
+                    <h4>5. Fikri Mülkiyet ve İçerik</h4>
+                    <ol>
+                        <li>Platform’daki içerikler, tasarımlar, metinler ve uygulamalar GOLD GYS’ye aittir.</li>
+                        <li>İçerikler izinsiz kopyalanamaz, çoğaltılamaz, dağıtılamaz veya ticari amaçla kullanılamaz.</li>
+                    </ol>
+                    <h4>6. Kişisel Veriler ve Gizlilik</h4>
+                    <p>Üye’nin kişisel verileri, yürürlükteki mevzuata uygun olarak, hizmetin sunulması ve güvenliğin
+                        sağlanması amacıyla işlenir. Platform, veri güvenliği için makul teknik ve idari tedbirleri alır.</p>
+                    <h4>7. Sorumluluğun Sınırlandırılması</h4>
+                    <ol>
+                        <li>Platform, teknik arızalar, bakım veya mücbir sebepler nedeniyle geçici hizmet kesintilerinden sorumlu değildir.</li>
+                        <li>Üye, Platform’un kullanımından doğabilecek dolaylı zararlar için tazminat talep etmeyeceğini kabul eder.</li>
+                    </ol>
+                    <h4>8. Sözleşmenin Feshi</h4>
+                    <p>Üye, üyeliğini dilediği zaman sonlandırabilir. Platform, işbu Sözleşme’nin ihlali halinde üyeliği
+                        askıya alma veya tek taraflı feshetme hakkına sahiptir.</p>
+                    <h4>9. Yürürlük</h4>
+                    <p>Üye’nin üyelik başvurusunu tamamlaması ve Sözleşme’yi onaylamasıyla işbu Sözleşme yürürlüğe girer.</p>
+                </div>
+                <label class="agreement-ack">
+                    <input type="checkbox" id="agreementCheck">
+                    <span>Kullanıcı sözleşmesini okudum, anladım ve kabul ediyorum. Onay vermeden giriş yapamayacağımı
+                        biliyorum.</span>
+                </label>
+            </div>
 
             <button id="googleLogin" class="btn-google">
                 <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
