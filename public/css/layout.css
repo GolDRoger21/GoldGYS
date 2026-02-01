@@ -147,6 +147,8 @@ body.sidebar-collapsed .app-sidebar {
     font-weight: 500;
     border-radius: 0 24px 24px 0;
     margin-right: 12px;
+    margin-bottom: 8px;
+    /* Added vertical separation */
     transition: all var(--transition-fast);
     white-space: nowrap;
     position: relative;
