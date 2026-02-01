@@ -263,7 +263,7 @@ function renderContentInterface() {
                 </div>
                 <div class="d-flex flex-wrap gap-2 justify-content-end">
                     <button id="btnFilter" class="btn btn-secondary">Ara / Filtrele</button>
-                    <button id="btnExportJson" class="btn btn-outline-primary">JSON İndir</button>
+                    <button id="btnExportJson" class="btn btn-outline-success">JSON İndir</button>
                     <button id="btnExportExcel" class="btn btn-outline-success">Excel (CSV) İndir</button>
                 </div>
             </div>
