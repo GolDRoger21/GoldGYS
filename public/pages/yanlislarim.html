@@ -279,7 +279,7 @@
   <script type="module">
     import { db, auth } from '../js/firebase-config.js';
     import { showToast } from '../js/notifications.js';
-    import { collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { collection, getDocs, query, orderBy, deleteDoc, doc, where, documentId } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
     import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
     const state = {
@@ -359,7 +359,7 @@
           return;
         }
 
-        state.allMistakes = snapshot.docs.map(docSnap => {
+        const rawMistakes = snapshot.docs.map(docSnap => {
           const data = docSnap.data();
           return {
             id: docSnap.id,
@@ -370,6 +370,19 @@
             lastAttempt: data.lastAttempt || null
           };
         });
+
+        const activeIds = await fetchActiveQuestionIds(rawMistakes.map(m => m.questionId));
+        const staleMistakes = rawMistakes.filter(m => !activeIds.has(m.questionId));
+        if (staleMistakes.length > 0) {
+          await Promise.all(staleMistakes.map(m => deleteDoc(doc(db, `users/${uid}/wrongs/${m.id}`))));
+        }
+
+        state.allMistakes = rawMistakes.filter(m => activeIds.has(m.questionId));
+
+        if (state.allMistakes.length === 0) {
+          renderEmptyState();
+          return;
+        }
 
         populateCategorySelect();
         renderCategoryCards();
@@ -541,6 +554,25 @@
       const dateA = a.seconds ? a.seconds * 1000 : new Date(a).getTime();
       const dateB = b.seconds ? b.seconds * 1000 : new Date(b).getTime();
       return dateA - dateB;
+    }
+
+    async function fetchActiveQuestionIds(ids) {
+      const activeIds = new Set();
+      const uniqueIds = Array.from(new Set(ids.filter(Boolean)));
+      if (uniqueIds.length === 0) return activeIds;
+
+      for (let i = 0; i < uniqueIds.length; i += 10) {
+        const chunk = uniqueIds.slice(i, i + 10);
+        const q = query(collection(db, "questions"), where(documentId(), "in", chunk));
+        const snap = await getDocs(q);
+        snap.docs.forEach(docSnap => {
+          const data = docSnap.data();
+          if (data?.isDeleted || data?.isActive === false) return;
+          activeIds.add(docSnap.id);
+        });
+      }
+
+      return activeIds;
     }
   </script>
 </body>

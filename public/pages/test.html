@@ -743,7 +743,26 @@
                     if (lessonSnap.exists()) {
                         const data = lessonSnap.data();
                         title = data.title;
-                        questions = data.questions || []; // Test oluştururken kaydettiğimiz sorular
+                        const rawQuestions = data.questions || []; // Test oluştururken kaydettiğimiz sorular
+                        const questionIds = rawQuestions.map(extractQuestionId).filter(Boolean);
+                        const activeQuestions = await fetchQuestionsByIds(questionIds);
+                        questions = rawQuestions.map((question) => {
+                            const id = extractQuestionId(question);
+                            if (!id) return null;
+                            const remote = activeQuestions.get(id);
+                            return remote
+                                ? {
+                                    id: remote.id,
+                                    text: remote.text,
+                                    options: remote.options || [],
+                                    correctOption: remote.correctOption,
+                                    solution: remote.solution || {},
+                                    type: remote.type || 'standard',
+                                    category: remote.category,
+                                    legislationRef: remote.legislationRef
+                                }
+                                : null;
+                        }).filter(Boolean);
                     }
                 }
                 else if (mode === 'custom' && urlParams.get('source') === 'local') {
@@ -753,39 +772,28 @@
                     const customTitle = localStorage.getItem('customTestTitle');
                     title = customTitle || "Özel Test";
 
-                    if (storedIds.length > 0) {
-                        const questionMap = await fetchQuestionsByIds(storedIds);
-                        const fallbackMap = new Map(
-                            storedData.map(q => [q.questionId || q.id, q])
-                        );
+                    const storedDataIds = storedData.map(extractQuestionId).filter(Boolean);
+                    const uniqueIds = Array.from(new Set([...(storedIds || []), ...storedDataIds]));
 
-                        questions = storedIds.map(id => {
+                    if (uniqueIds.length > 0) {
+                        const questionMap = await fetchQuestionsByIds(uniqueIds);
+                        questions = uniqueIds.map(id => {
                             const remote = questionMap.get(id);
-                            const local = fallbackMap.get(id);
-                            const source = remote || local;
-                            if (!source) return null;
+                            if (!remote) return null;
                             return {
-                                id: source.id || source.questionId || id,
-                                text: source.text || "Soru metni yüklenemedi",
-                                options: source.options || [],
-                                correctOption: source.correctOption,
-                                solution: source.solution || {},
-                                type: source.type || 'standard',
-                                category: source.category,
-                                legislationRef: source.legislationRef
+                                id: remote.id,
+                                text: remote.text || "Soru metni yüklenemedi",
+                                options: remote.options || [],
+                                correctOption: remote.correctOption,
+                                solution: remote.solution || {},
+                                type: remote.type || 'standard',
+                                category: remote.category,
+                                legislationRef: remote.legislationRef
                             };
                         }).filter(Boolean);
-                    } else if (storedData.length > 0) {
-                        questions = storedData.map(q => ({
-                            id: q.questionId || q.id,
-                            text: q.text || "Soru metni yüklenemedi",
-                            options: q.options || [],
-                            correctOption: q.correctOption,
-                            solution: q.solution || {},
-                            type: q.type || 'standard',
-                            category: q.category,
-                            legislationRef: q.legislationRef
-                        }));
+
+                        localStorage.setItem('customTestQuestionIds', JSON.stringify(questions.map(q => q.id)));
+                        localStorage.removeItem('customTestQuestions');
                     }
                 }
                 else if (examId) {
@@ -872,6 +880,12 @@
             }
         });
 
+        function extractQuestionId(value) {
+            if (!value) return null;
+            if (typeof value === 'string') return value;
+            return value.id || value.questionId || null;
+        }
+
         async function fetchQuestionsByIds(ids) {
             const questionMap = new Map();
             const chunks = [];
@@ -883,7 +897,9 @@
                 const qQuery = query(collection(db, "questions"), where(documentId(), "in", chunk));
                 const qSnap = await getDocs(qQuery);
                 qSnap.docs.forEach(docSnap => {
-                    questionMap.set(docSnap.id, { id: docSnap.id, ...docSnap.data() });
+                    const data = docSnap.data();
+                    if (data?.isDeleted || data?.isActive === false) return;
+                    questionMap.set(docSnap.id, { id: docSnap.id, ...data });
                 });
             }
 
