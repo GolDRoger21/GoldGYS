@@ -66,7 +66,7 @@
   <script type="module">
     import { db, auth } from '../js/firebase-config.js';
     import { showConfirm, showToast } from '../js/notifications.js';
-    import { collection, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { collection, getDocs, deleteDoc, doc, where, documentId, query } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
     import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -94,11 +94,29 @@
           return;
         }
 
+        const rawFavorites = snapshot.docs.map(docSnap => ({
+          id: docSnap.id,
+          questionId: docSnap.data().questionId || docSnap.id,
+          data: docSnap.data()
+        }));
+
+        const activeIds = await fetchActiveQuestionIds(rawFavorites.map(fav => fav.questionId));
+        const staleFavorites = rawFavorites.filter(fav => !activeIds.has(fav.questionId));
+        if (staleFavorites.length > 0) {
+          await Promise.all(staleFavorites.map(fav => deleteDoc(doc(db, `users/${uid}/favorites/${fav.id}`))));
+        }
+
+        const favorites = rawFavorites.filter(fav => activeIds.has(fav.questionId));
+        if (favorites.length === 0) {
+          list.innerHTML = '<div class="card p-4 text-center text-muted">Henüz favori soru eklemediniz.</div>';
+          return;
+        }
+
         list.innerHTML = '';
         let hasContent = false;
 
-        snapshot.forEach(docSnap => {
-          const data = docSnap.data();
+        favorites.forEach(fav => {
+          const data = fav.data;
 
           // Filtre Kontrolü
           if (filterCategory) {
@@ -112,9 +130,9 @@
           hasContent = true;
           const div = document.createElement('div');
           div.className = 'fav-card';
-          div.id = `fav-${docSnap.id}`;
+          div.id = `fav-${fav.id}`;
           div.innerHTML = `
-                        <div class="fav-icon" onclick="removeFavorite('${docSnap.id}')">★</div>
+                        <div class="fav-icon" onclick="removeFavorite('${fav.id}')">★</div>
                         <div class="fav-content">
                             <div class="badge badge-secondary mb-2">${data.category || 'Genel'}</div>
                             <p>${data.text}</p>
@@ -133,6 +151,25 @@
       } catch (error) {
         list.innerHTML = '<div class="text-danger">Hata oluştu.</div>';
       }
+    }
+
+    async function fetchActiveQuestionIds(ids) {
+      const activeIds = new Set();
+      const uniqueIds = Array.from(new Set(ids.filter(Boolean)));
+      if (uniqueIds.length === 0) return activeIds;
+
+      for (let i = 0; i < uniqueIds.length; i += 10) {
+        const chunk = uniqueIds.slice(i, i + 10);
+        const q = query(collection(db, "questions"), where(documentId(), "in", chunk));
+        const snap = await getDocs(q);
+        snap.docs.forEach(docSnap => {
+          const data = docSnap.data();
+          if (data?.isDeleted || data?.isActive === false) return;
+          activeIds.add(docSnap.id);
+        });
+      }
+
+      return activeIds;
     }
 
     window.removeFavorite = async (id) => {
