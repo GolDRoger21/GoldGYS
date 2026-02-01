@@ -7,6 +7,7 @@ import {
 import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getFirestore } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { getFunctions } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-functions.js";
+import { initializeAppCheck, ReCaptchaEnterpriseProvider } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app-check.js";
 
 // Senin Proje Ayarların
 export const firebaseConfig = {
@@ -20,6 +21,17 @@ export const firebaseConfig = {
 
 // Firebase'i Başlat (önceden başlatıldıysa mevcut uygulamayı kullan)
 export const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+
+// App Check'i Başlat
+if (typeof window !== "undefined") {
+  // Localhost testi için debug token'ı aktif et
+  self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
+
+  initializeAppCheck(app, {
+    provider: new ReCaptchaEnterpriseProvider("6LeYSV0sAAAAAFywdWhzKf9Vw8_gtMa0JeMPjgD8"),
+    isTokenAutoRefreshEnabled: true,
+  });
+}
 
 // Servisleri Dışa Aktar (Diğer dosyalar bunları kullanacak)
 export const auth = getAuth(app);
