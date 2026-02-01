@@ -52,6 +52,69 @@ function ensureUniqueDocs(list) {
   return Array.from(map.values());
 }
 
+function extractQuestionId(value) {
+  if (!value) return null;
+  if (typeof value === "string") return value;
+  if (typeof value.id === "string") return value.id;
+  if (typeof value.questionId === "string") return value.questionId;
+  return null;
+}
+
+function filterQuestionRefs(list, questionId) {
+  if (!Array.isArray(list)) return { filtered: list, changed: false };
+  const filtered = list.filter((item) => extractQuestionId(item) !== questionId);
+  return { filtered, changed: filtered.length !== list.length };
+}
+
+async function deleteDocsInBatches(docSnaps) {
+  if (!docSnaps.length) return;
+  const db = admin.firestore();
+  for (let i = 0; i < docSnaps.length; i += 450) {
+    const batch = db.batch();
+    docSnaps.slice(i, i + 450).forEach((docSnap) => batch.delete(docSnap.ref));
+    await batch.commit();
+  }
+}
+
+async function cleanupQuestionReferences(questionId) {
+  const db = admin.firestore();
+  const wrongsQuery = db.collectionGroup("wrongs").where("questionId", "==", questionId);
+  const favoritesQuery = db.collectionGroup("favorites").where("questionId", "==", questionId);
+  const lessonsQuery = db.collectionGroup("lessons").where("type", "==", "test");
+
+  const [wrongsSnap, favoritesSnap, lessonsSnap] = await Promise.all([
+    wrongsQuery.get(),
+    favoritesQuery.get(),
+    lessonsQuery.get(),
+  ]);
+
+  await deleteDocsInBatches([...wrongsSnap.docs, ...favoritesSnap.docs]);
+
+  const lessonUpdates = [];
+  lessonsSnap.forEach((lessonDoc) => {
+    const data = lessonDoc.data();
+    const { filtered, changed } = filterQuestionRefs(data.questions, questionId);
+    if (changed) {
+      lessonUpdates.push({
+        ref: lessonDoc.ref,
+        payload: {
+          questions: filtered,
+          qCount: filtered.length,
+          updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        },
+      });
+    }
+  });
+
+  if (lessonUpdates.length) {
+    for (let i = 0; i < lessonUpdates.length; i += 450) {
+      const batch = db.batch();
+      lessonUpdates.slice(i, i + 450).forEach((item) => batch.update(item.ref, item.payload));
+      await batch.commit();
+    }
+  }
+}
+
 async function writeAdminAuditLog({ action, targetId, context, success, details = {} }) {
   try {
     const actor = context?.auth
@@ -688,3 +751,31 @@ exports.onUserCreated = functions.firestore
         console.error("Sayaç güncelleme hatası:", error);
     }
 });
+
+exports.onQuestionDeleted = functions.firestore
+  .document("questions/{questionId}")
+  .onDelete(async (snap, context) => {
+    const { questionId } = context.params;
+    try {
+      await cleanupQuestionReferences(questionId);
+      console.log(`Soru silindi, ilişkili kayıtlar temizlendi: ${questionId}`);
+    } catch (error) {
+      console.error("Soru silme temizliği başarısız", error);
+    }
+  });
+
+exports.onQuestionSoftDeleted = functions.firestore
+  .document("questions/{questionId}")
+  .onUpdate(async (change, context) => {
+    const before = change.before.data();
+    const after = change.after.data();
+    if (!before?.isDeleted && after?.isDeleted) {
+      const { questionId } = context.params;
+      try {
+        await cleanupQuestionReferences(questionId);
+        console.log(`Soru çöp kutusuna taşındı, ilişkiler temizlendi: ${questionId}`);
+      } catch (error) {
+        console.error("Soru çöp kutusu temizliği başarısız", error);
+      }
+    }
+  });
