@@ -842,6 +842,18 @@
     border: 1px solid rgba(148, 163, 184, 0.2);
 }
 
+.reset-stats-btn {
+    border: 1px solid rgba(239, 68, 68, 0.4);
+    background: rgba(239, 68, 68, 0.12);
+    color: #ef4444;
+    cursor: pointer;
+}
+
+.reset-stats-btn:hover {
+    background: rgba(239, 68, 68, 0.2);
+    color: #f87171;
+}
+
 /* --- EXAM HISTORY TABLE (PREMIUM LIST) --- */
 .exam-list-container {
     display: flex;

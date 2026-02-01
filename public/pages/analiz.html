@@ -157,19 +157,24 @@
                     <div class="card-title">
                         <span>📚 Konu Hakimiyet Merkezi</span>
                     </div>
-                    <!-- Filtreler -->
-                    <div class="chip-group" id="topicFilterChips" style="display: flex; gap: 8px;">
-                        <button class="status-pill status-in-progress" style="cursor: pointer; border:none;"
-                            data-filter="all">Tümü</button>
-                        <button class="status-pill status-pending"
-                            style="cursor: pointer; border:none; background: transparent; color: var(--text-muted);"
-                            data-filter="in_progress">Çalışılanlar</button>
-                        <button class="status-pill status-pending"
-                            style="cursor: pointer; border:none; background: transparent; color: var(--text-muted);"
-                            data-filter="completed">Tamamlananlar</button>
-                        <button class="status-pill status-pending"
-                            style="cursor: pointer; border:none; background: transparent; color: var(--text-muted);"
-                            data-filter="pending">Bekleyenler</button>
+                    <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap; justify-content: flex-end;">
+                        <button class="status-pill reset-stats-btn" id="resetAllStatsBtn" type="button">
+                            Tüm İstatistikleri Sıfırla
+                        </button>
+                        <!-- Filtreler -->
+                        <div class="chip-group" id="topicFilterChips" style="display: flex; gap: 8px;">
+                            <button class="status-pill status-in-progress" style="cursor: pointer; border:none;"
+                                data-filter="all">Tümü</button>
+                            <button class="status-pill status-pending"
+                                style="cursor: pointer; border:none; background: transparent; color: var(--text-muted);"
+                                data-filter="in_progress">Çalışılanlar</button>
+                            <button class="status-pill status-pending"
+                                style="cursor: pointer; border:none; background: transparent; color: var(--text-muted);"
+                                data-filter="completed">Tamamlananlar</button>
+                            <button class="status-pill status-pending"
+                                style="cursor: pointer; border:none; background: transparent; color: var(--text-muted);"
+                                data-filter="pending">Bekleyenler</button>
+                        </div>
                     </div>
                 </div>
                 <div class="card-body" style="padding: 0;">
