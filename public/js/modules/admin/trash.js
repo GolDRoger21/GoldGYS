@@ -122,13 +122,29 @@ function renderTrashTable() {
         const isOrphan = item.type !== 'topic' && item.type !== 'question' && item.isOrphan;
         const rowClass = isOrphan ? 'table-warning' : '';
         const restoreBtnState = isOrphan ? 'disabled title="Konusu silindiği için geri alınamaz"' : '';
-        const typeLabel = item.type === 'topic'
-            ? 'Konu'
-            : (item.type === 'test'
-                ? 'Test'
-                : (item.type === 'question'
-                    ? 'Soru'
-                    : 'Ders'));
+
+        // Badge ve Etiket Seçimi
+        let typeBadgeClass = 'badge-secondary';
+        let typeLabel = 'İçerik';
+
+        switch (item.type) {
+            case 'topic':
+                typeBadgeClass = 'badge-admin'; // Gold
+                typeLabel = 'Konu';
+                break;
+            case 'lesson':
+                typeBadgeClass = 'badge-student'; // Gray/Blue
+                typeLabel = 'Ders';
+                break;
+            case 'test':
+                typeBadgeClass = 'badge-warning'; // Orange
+                typeLabel = 'Test';
+                break;
+            case 'question':
+                typeBadgeClass = 'badge-editor'; // Blue
+                typeLabel = 'Soru';
+                break;
+        }
 
         return `
         <tr class="${rowClass}">
@@ -138,10 +154,16 @@ function renderTrashTable() {
                 ${isOrphan ? '<br><small class="text-danger">⚠️ Konusu Bulunamadı</small>' : ''}
             </td>
             <td>${item.topicTitle || '—'}</td>
-            <td><span class="badge bg-light text-dark border">${typeLabel}</span></td>
+            <td class="text-center"><span class="badge ${typeBadgeClass}">${typeLabel}</span></td>
             <td class="text-end">
-                <button class="btn btn-success btn-sm" onclick="window.AdminTrash.restoreOne('${item.id}','${item.type}','${item.topicId}')" ${restoreBtnState}>Geri Al</button>
-                <button class="btn btn-danger btn-sm" onclick="window.AdminTrash.purgeOne('${item.id}','${item.type}','${item.topicId}')">Kalıcı Sil</button>
+                <div class="d-flex align-items-center justify-content-end gap-2">
+                    <button class="btn btn-success btn-sm" onclick="window.AdminTrash.restoreOne('${item.id}','${item.type}','${item.topicId}')" ${restoreBtnState}>
+                        <i class="fs-6">↺</i> Geri Al
+                    </button>
+                    <button class="btn btn-danger btn-sm" onclick="window.AdminTrash.purgeOne('${item.id}','${item.type}','${item.topicId}')">
+                        <i class="fs-6">🗑️</i> Kalıcı Sil
+                    </button>
+                </div>
             </td>
         </tr>
     `}).join('');
