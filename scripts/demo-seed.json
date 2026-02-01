@@ -5,14 +5,16 @@
       "title": "Türkiye Cumhuriyeti Anayasası",
       "category": "ortak",
       "order": 1,
-      "isActive": true
+      "isActive": true,
+      "description": "Anayasa ilkeleri, hak ve özgürlükler ile devlet organlarını sınav odaklı özetler."
     },
     {
       "id": "cmk",
       "title": "Ceza Muhakemesi Kanunu",
       "category": "alan",
       "order": 2,
-      "isActive": true
+      "isActive": true,
+      "description": "CMK'da soruşturma-kovuşturma ve koruma tedbirlerini temel düzeyde açıklar."
     }
   ],
   "tests": [
