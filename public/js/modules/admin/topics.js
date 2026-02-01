@@ -1169,7 +1169,16 @@ async function purgeSelectedTopics(idsParam = null) {
         tone: "error"
     });
     if (!shouldDelete) return;
-    await Promise.all(ids.map(id => deleteDoc(doc(db, "topics", id))));
+
+    await Promise.all(ids.map(async (id) => {
+        // Alt dersleri temizle
+        const lessonsSnap = await getDocs(collection(db, `topics/${id}/lessons`));
+        const deletePromises = lessonsSnap.docs.map(d => deleteDoc(d.ref));
+        await Promise.all(deletePromises);
+
+        // Konuyu sil
+        return deleteDoc(doc(db, "topics", id));
+    }));
     openTrash();
     loadTopics();
 }
