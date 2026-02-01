@@ -248,7 +248,10 @@ function setupEventListeners() {
                 const list = document.getElementById('notificationList');
                 if (list && list.innerText.includes("Yükleniyor...")) {
                     list.innerHTML = '<div style="padding:20px; text-align:center; color:var(--text-muted);">Henüz yeni bildirim yok.</div>';
-                    document.getElementById('notificationBadge').style.display = 'none';
+                    const badge = document.getElementById('notificationBadge');
+                    if (badge) {
+                        badge.style.display = 'none';
+                    }
                 }
             }
             return;

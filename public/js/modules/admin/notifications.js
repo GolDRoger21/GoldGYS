@@ -7,7 +7,7 @@ export function initNotifications() {
     const btn = document.getElementById('notificationBtn');
     const dropdown = document.getElementById('notificationDropdown');
 
-    if (!btn || !dropdown) return;
+    if (!btn || !dropdown || !badge || !list) return;
 
     // Dropdown Toggle
     btn.addEventListener('click', (e) => {
