@@ -5,7 +5,9 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/fi
 const state = {
     userId: null,
     results: [],
-    currentTopicId: null
+    currentTopicId: null,
+    statsResetAt: null,
+    topicResets: {}
 };
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -24,20 +26,35 @@ async function initAnalysis(userId) {
         const resultsRef = collection(db, `users/${userId}/exam_results`);
         // Son 100 sınavı çekip client-side filtreleyebiliriz veya 20 yeterli
         const q = query(resultsRef, orderBy('completedAt', 'desc'), limit(50));
-        const snapshot = await getDocs(q);
+        const [snapshot, userSnap] = await Promise.all([
+            getDocs(q),
+            getDoc(doc(db, "users", userId))
+        ]);
 
         const results = snapshot.docs.map(doc => doc.data());
-        state.results = results;
+        const userData = userSnap.exists() ? userSnap.data() : {};
 
-        calculateKPIs(results);
-        renderProgressChart(results);
-        renderTopicChart(results);
-        renderHistoryTable(results);
-        renderLevelSystem(userId, results); // Değişti: asenkron yükleme içine alındı
-        calculatePredictedScore(results);
+        state.statsResetAt = normalizeResetTimestamp(userData.statsResetAt);
+        state.topicResets = normalizeTopicResets(userData.topicResets);
+        state.currentTopicId = resolveCurrentTopicId(
+            userData.currentTopicId,
+            normalizeResetTimestamp(userData.currentTopicUpdatedAt),
+            state.statsResetAt,
+            state.topicResets
+        );
+
+        const filteredResults = applyGlobalReset(results, state.statsResetAt);
+        state.results = filteredResults;
+
+        calculateKPIs(filteredResults);
+        renderProgressChart(filteredResults);
+        renderHistoryTable(filteredResults);
+        calculatePredictedScore(filteredResults);
 
         // Topic loading
-        await loadTopicProgress(userId, results);
+        await loadTopicProgress(userId, filteredResults);
+        renderLevelSystem(userId, filteredResults, state.topicResets, state.statsResetAt); // Değişti: asenkron yükleme içine alındı
+        bindResetButtons();
 
         document.getElementById('lastUpdate').innerText = `Son Güncelleme: ${new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}`;
         document.getElementById('lastUpdate').classList.remove('status-in-progress');
@@ -49,6 +66,37 @@ async function initAnalysis(userId) {
     }
 }
 
+function normalizeResetTimestamp(timestamp) {
+    if (!timestamp) return null;
+    if (typeof timestamp.seconds === 'number') return timestamp.seconds;
+    if (typeof timestamp.toDate === 'function') return Math.floor(timestamp.toDate().getTime() / 1000);
+    return null;
+}
+
+function normalizeTopicResets(topicResets = {}) {
+    return Object.entries(topicResets).reduce((acc, [topicId, timestamp]) => {
+        const seconds = normalizeResetTimestamp(timestamp);
+        if (seconds) acc[topicId] = seconds;
+        return acc;
+    }, {});
+}
+
+function resolveCurrentTopicId(currentTopicId, currentTopicUpdatedAt, statsResetAt, topicResets) {
+    if (!currentTopicId) return null;
+    if (statsResetAt && (!currentTopicUpdatedAt || currentTopicUpdatedAt <= statsResetAt)) return null;
+    const topicResetAt = topicResets?.[currentTopicId];
+    if (topicResetAt && (!currentTopicUpdatedAt || currentTopicUpdatedAt <= topicResetAt)) return null;
+    return currentTopicId;
+}
+
+function applyGlobalReset(results, resetAtSeconds) {
+    if (!resetAtSeconds) return results;
+    return results.filter(result => {
+        const completedAt = result.completedAt?.seconds;
+        if (!completedAt) return true;
+        return completedAt > resetAtSeconds;
+    });
+}
 function calculateKPIs(results) {
     const totalExams = results.length;
     const totalScore = results.reduce((acc, curr) => acc + (curr.score || 0), 0);
@@ -136,8 +184,7 @@ function renderProgressChart(results) {
     });
 }
 
-function renderTopicChart(results) {
-    const categoryTotals = buildCategoryTotals(results);
+function renderTopicChart(categoryTotals) {
     // En düşük 5 konuyu gösterelim (Zayıflık Analizi)
     // Ya da hepsini gösterip radar ile genel durumu verelim.
     const labels = Object.keys(categoryTotals);
@@ -237,11 +284,16 @@ function renderHistoryTable(results) {
     }).join('');
 }
 
-function buildCategoryTotals(results) {
+function buildCategoryTotals(results, topics, topicResets) {
     const categoryTotals = {};
+    const titleToId = new Map(topics.map(topic => [topic.title, topic.id]));
     results.forEach(exam => {
         if (!exam.categoryStats) return;
+        const completedAt = exam.completedAt?.seconds;
         Object.entries(exam.categoryStats).forEach(([cat, stats]) => {
+            const topicId = titleToId.get(cat);
+            const resetAt = topicId ? topicResets?.[topicId] : null;
+            if (resetAt && completedAt && completedAt <= resetAt) return;
             if (!categoryTotals[cat]) categoryTotals[cat] = { correct: 0, total: 0 };
             categoryTotals[cat].correct += stats.correct || 0;
             categoryTotals[cat].total += stats.total || 0;
@@ -280,16 +332,24 @@ async function loadTopicProgress(userId, results) {
 
     const topics = topicsSnap.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() }));
     const progressMap = new Map(progressSnap.docs.map(docSnap => [docSnap.id, docSnap.data()]));
-    const currentTopicId = userSnap.exists() ? userSnap.data().currentTopicId : null;
-    state.currentTopicId = currentTopicId;
+    const userData = userSnap.exists() ? userSnap.data() : {};
+    state.statsResetAt = normalizeResetTimestamp(userData.statsResetAt);
+    state.topicResets = normalizeTopicResets(userData.topicResets);
+    state.currentTopicId = resolveCurrentTopicId(
+        userData.currentTopicId,
+        normalizeResetTimestamp(userData.currentTopicUpdatedAt),
+        state.statsResetAt,
+        state.topicResets
+    );
 
-    const categoryTotals = buildCategoryTotals(results);
+    const categoryTotals = buildCategoryTotals(results, topics, state.topicResets);
     const successMap = buildTopicSuccessMap(topics, categoryTotals);
 
-    renderTopicList(topics, progressMap, currentTopicId, successMap);
+    renderTopicList(topics, progressMap, state.currentTopicId, successMap, state.topicResets, state.statsResetAt);
+    renderTopicChart(categoryTotals);
 
     // Level datasını hesaplamak için de lazım olacak
-    return { topics, progressMap };
+    return categoryTotals;
 }
 
 function buildTopicSuccessMap(topics, categoryTotals) {
@@ -305,7 +365,7 @@ function buildTopicSuccessMap(topics, categoryTotals) {
     return successMap;
 }
 
-function renderTopicList(topics, progressMap, currentTopicId, successMap) {
+function renderTopicList(topics, progressMap, currentTopicId, successMap, topicResets, statsResetAt) {
     const container = document.getElementById('topicMasteryList');
     if (!container) return;
 
@@ -317,7 +377,7 @@ function renderTopicList(topics, progressMap, currentTopicId, successMap) {
     // Build Rows
     container.innerHTML = topics.map(topic => {
         const progress = progressMap.get(topic.id) || {};
-        const status = getTopicStatus(topic.id, progressMap, currentTopicId);
+        const status = getTopicStatus(topic.id, progressMap, currentTopicId, topicResets, statsResetAt);
         const success = successMap.get(topic.id) || 0;
 
         let statusBadge = '';
@@ -327,6 +387,8 @@ function renderTopicList(topics, progressMap, currentTopicId, successMap) {
 
         const isCurrent = topic.id === currentTopicId;
         const rowClass = isCurrent ? 'topic-row active-focus' : 'topic-row'; // active-focus CSS ekleyebiliriz sonra
+        const focusTitle = isCurrent ? 'Odaklanmayı kaldır' : 'Bu konuya odaklan';
+        const focusIcon = isCurrent ? '🚫' : '🎯';
 
         return `
             <tr class="${rowClass}" data-status="${status}">
@@ -348,8 +410,11 @@ function renderTopicList(topics, progressMap, currentTopicId, successMap) {
                         <button class="action-btn" title="Dışarıda tamamlandı olarak işaretle" onclick="window.toggleTopicStatus('${topic.id}', 'completed')">
                             ✅
                         </button>
-                        <button class="action-btn" title="Bu konuya odaklan" onclick="window.setFocusTopic('${topic.id}')">
-                            🎯
+                        <button class="action-btn" title="${focusTitle}" onclick="window.setFocusTopic('${topic.id}')">
+                            ${focusIcon}
+                        </button>
+                        <button class="action-btn" title="Konu istatistiklerini sıfırla" onclick="window.resetTopicStats('${topic.id}')">
+                            ♻️
                         </button>
                     </div>
                 </td>
@@ -360,8 +425,12 @@ function renderTopicList(topics, progressMap, currentTopicId, successMap) {
     bindTopicFilters();
 }
 
-function getTopicStatus(topicId, progressMap, currentTopicId) {
+function getTopicStatus(topicId, progressMap, currentTopicId, topicResets, statsResetAt) {
     const progress = progressMap.get(topicId);
+    const progressUpdatedAt = normalizeResetTimestamp(progress?.updatedAt);
+    if (statsResetAt && progressUpdatedAt && progressUpdatedAt <= statsResetAt) return 'pending';
+    const topicResetAt = topicResets?.[topicId];
+    if (topicResetAt && progressUpdatedAt && progressUpdatedAt <= topicResetAt) return 'pending';
     if (progress?.status === 'completed') return 'completed';
     if (progress?.status === 'in_progress' || topicId === currentTopicId) return 'in_progress';
     return 'pending';
@@ -423,15 +492,19 @@ window.toggleTopicStatus = async (topicId, newStatus) => {
 
 window.setFocusTopic = async (topicId) => {
     try {
+        const isCurrent = state.currentTopicId === topicId;
         await setDoc(doc(db, "users", state.userId), {
-            currentTopicId: topicId,
+            currentTopicId: isCurrent ? null : topicId,
+            currentTopicUpdatedAt: serverTimestamp(),
             updatedAt: serverTimestamp()
         }, { merge: true });
 
-        await setDoc(doc(db, `users/${state.userId}/topic_progress`, topicId), {
-            status: 'in_progress',
-            updatedAt: serverTimestamp()
-        }, { merge: true });
+        if (!isCurrent) {
+            await setDoc(doc(db, `users/${state.userId}/topic_progress`, topicId), {
+                status: 'in_progress',
+                updatedAt: serverTimestamp()
+            }, { merge: true });
+        }
 
         // Refresh UI
         loadTopicProgress(state.userId, state.results);
@@ -440,9 +513,62 @@ window.setFocusTopic = async (topicId) => {
     }
 }
 
+window.resetTopicStats = async (topicId) => {
+    if (!confirm("Bu konuya ait istatistikleri sıfırlamak istiyor musunuz?")) return;
+    try {
+        const updates = {
+            topicResets: {
+                [topicId]: serverTimestamp()
+            },
+            updatedAt: serverTimestamp()
+        };
+        if (state.currentTopicId === topicId) {
+            updates.currentTopicId = null;
+            updates.currentTopicUpdatedAt = serverTimestamp();
+        }
+
+        await setDoc(doc(db, "users", state.userId), updates, { merge: true });
+        await setDoc(doc(db, `users/${state.userId}/topic_progress`, topicId), {
+            status: 'pending',
+            manualCompleted: false,
+            updatedAt: serverTimestamp()
+        }, { merge: true });
+
+        loadTopicProgress(state.userId, state.results);
+    } catch (e) {
+        console.error("Reset topic stats error", e);
+        alert("Hata oluştu");
+    }
+};
+
+async function resetAllStats() {
+    if (!confirm("Tüm istatistiklerinizi sıfırlamak istediğinizden emin misiniz?")) return;
+    try {
+        await setDoc(doc(db, "users", state.userId), {
+            statsResetAt: serverTimestamp(),
+            topicResets: {},
+            currentTopicId: null,
+            currentTopicUpdatedAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
+        }, { merge: true });
+
+        initAnalysis(state.userId);
+    } catch (e) {
+        console.error("Reset all stats error", e);
+        alert("Hata oluştu");
+    }
+}
+
+function bindResetButtons() {
+    const resetAllButton = document.getElementById('resetAllStatsBtn');
+    if (!resetAllButton || resetAllButton.dataset.bound === 'true') return;
+    resetAllButton.addEventListener('click', resetAllStats);
+    resetAllButton.dataset.bound = 'true';
+}
+
 
 /* --- LEVEL SYSTEM (Önceki lojikten uyarlandı) --- */
-async function renderLevelSystem(userId, results) {
+async function renderLevelSystem(userId, results, topicResets, statsResetAt) {
     // Burada tekrar progress çekmek yerine cache'den kullanılabilir ama
     // fonksiyon yapısı gereği yeniden çekiyoruz, optimize edilebilir.
     const [topicsSnap, progressSnap] = await Promise.all([
@@ -456,7 +582,13 @@ async function renderLevelSystem(userId, results) {
     // XP Hesaplama
     const totalCorrect = results.reduce((acc, curr) => acc + (curr.correct || 0), 0);
     const totalSessions = results.length;
-    const completedTopics = [...progressMap.values()].filter(p => p.status === 'completed').length;
+    const completedTopics = [...progressMap.entries()].filter(([topicId, progress]) => {
+        const progressUpdatedAt = normalizeResetTimestamp(progress?.updatedAt);
+        if (statsResetAt && progressUpdatedAt && progressUpdatedAt <= statsResetAt) return false;
+        const topicResetAt = topicResets?.[topicId];
+        if (topicResetAt && progressUpdatedAt && progressUpdatedAt <= topicResetAt) return false;
+        return progress.status === 'completed';
+    }).length;
 
     // Basit XP Formülü
     const xp = (totalCorrect * 2) + (totalSessions * 20) + (completedTopics * 50);
@@ -523,4 +655,3 @@ function calculateStudyStreak(results) {
     });
     return dateSet.size; // Basit count şimdilik
 }
-
