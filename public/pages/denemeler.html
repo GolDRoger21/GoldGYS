@@ -20,30 +20,50 @@
         }
 
         .deneme-hero {
-            --hero-bg-start: rgba(212, 175, 55, 0.18);
-            --hero-bg-end: rgba(15, 23, 42, 0.9);
-            --hero-panel-bg: rgba(255, 255, 255, 0.12);
-            --hero-panel-border: rgba(255, 255, 255, 0.2);
-            --hero-panel-text: #f8fafc;
-            background: linear-gradient(135deg, var(--hero-bg-start), var(--hero-bg-end));
+            /* HAFİF BİR ALTIN GRADIENT: Siyahtan -> Koyu Altın Tonuna */
+            background: linear-gradient(135deg, rgba(212, 175, 55, 0.15) 0%, rgba(15, 23, 42, 1) 90%);
+            border: 1px solid rgba(212, 175, 55, 0.25);
             border-radius: var(--radius-lg);
             padding: 32px;
-            color: var(--text-on-gold);
+            color: var(--text-main);
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: 28px;
-            box-shadow: var(--shadow-lg);
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Arkaplana hafif bir ışıltı efekti */
+        .deneme-hero::before {
+            content: "";
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(212, 175, 55, 0.08) 0%, transparent 60%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .deneme-hero>* {
+            position: relative;
+            z-index: 1;
         }
 
         .deneme-hero h1 {
             font-size: 2rem;
             margin-bottom: 12px;
             font-family: var(--font-family-serif);
+            color: var(--color-primary);
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
         }
 
         .deneme-hero p {
             opacity: 0.9;
             margin-bottom: 20px;
+            color: var(--text-muted);
         }
 
         .hero-actions {
@@ -53,12 +73,13 @@
         }
 
         .hero-panel {
-            background: var(--hero-panel-bg);
+            background: rgba(15, 23, 42, 0.6);
             border-radius: var(--radius-lg);
             padding: 20px;
             display: grid;
             gap: 12px;
-            border: 1px solid var(--hero-panel-border);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            backdrop-filter: blur(10px);
         }
 
         .hero-panel-item {
@@ -66,17 +87,18 @@
             justify-content: space-between;
             align-items: center;
             font-weight: 600;
-            color: var(--hero-panel-text);
+            color: var(--text-main);
         }
 
         .hero-panel-item .label {
             font-size: 0.85rem;
-            opacity: 0.8;
+            color: var(--text-muted);
         }
 
         .hero-panel-item .value {
             font-size: 1.4rem;
             font-weight: 800;
+            color: var(--color-primary);
         }
 
         .info-section {
@@ -99,6 +121,7 @@
         .section-header h2 {
             font-size: 1.3rem;
             margin-bottom: 6px;
+            color: var(--text-main);
         }
 
         .info-grid {
@@ -117,6 +140,7 @@
         .info-card h3 {
             font-size: 1rem;
             margin-bottom: 8px;
+            color: var(--color-primary);
         }
 
         .info-card p {
@@ -137,6 +161,7 @@
             padding: 6px 12px;
             font-size: 0.85rem;
             font-weight: 600;
+            color: var(--text-main);
         }
 
         .exam-list-section {
@@ -162,8 +187,12 @@
             padding: 10px 12px;
             border-radius: 12px;
             border: 1px solid var(--border-color);
-            background: var(--bg-surface);
+            background: var(--bg-input);
             color: var(--text-main);
+        }
+
+        .filter-field label {
+            color: var(--text-muted);
         }
 
         .exam-grid {
@@ -181,6 +210,12 @@
             flex-direction: column;
             gap: 14px;
             box-shadow: var(--shadow-sm);
+            transition: transform 0.2s, border-color 0.2s;
+        }
+
+        .exam-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--color-primary);
         }
 
         .exam-card-header {
@@ -188,6 +223,10 @@
             justify-content: space-between;
             align-items: center;
             gap: 12px;
+        }
+
+        .exam-card h3 {
+            color: var(--text-main);
         }
 
         .exam-meta {
@@ -203,8 +242,8 @@
         }
 
         .exam-highlight {
-            border-color: var(--color-primary);
-            box-shadow: var(--shadow-md);
+            border: 1px solid var(--color-primary);
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.15);
         }
 
         .empty-state {
@@ -218,7 +257,7 @@
         .skeleton {
             height: 160px;
             border-radius: 16px;
-            background: linear-gradient(90deg, rgba(148, 163, 184, 0.2) 25%, rgba(148, 163, 184, 0.35) 37%, rgba(148, 163, 184, 0.2) 63%);
+            background: linear-gradient(90deg, var(--bg-hover) 25%, var(--bg-surface) 37%, var(--bg-hover) 63%);
             background-size: 400% 100%;
             animation: shimmer 1.4s ease infinite;
         }
@@ -233,19 +272,41 @@
             }
         }
 
+        /* --- LIGHT THEME OVERRIDES --- */
         [data-theme="light"] .deneme-hero {
-            --hero-bg-start: rgba(212, 175, 55, 0.14);
-            --hero-bg-end: rgba(255, 255, 255, 0.96);
-            --hero-panel-bg: rgba(255, 255, 255, 0.85);
-            --hero-panel-border: var(--border-color);
-            --hero-panel-text: var(--text-main);
-            color: var(--text-main);
+            background: linear-gradient(135deg, #FFF9E5 0%, #FFFFFF 100%);
+            border-color: #E8D29A;
+            box-shadow: 0 4px 20px rgba(212, 175, 55, 0.15);
         }
 
-        [data-theme="light"] .deneme-hero .btn-light {
-            border-color: var(--border-color);
+        [data-theme="light"] .deneme-hero h1 {
+            color: #856d20;
+            text-shadow: none;
         }
 
+        [data-theme="light"] .deneme-hero p {
+            color: #856d20;
+            opacity: 0.8;
+        }
+
+        [data-theme="light"] .hero-panel {
+            background: rgba(255, 255, 255, 0.7);
+            border-color: #E8D29A;
+        }
+
+        [data-theme="light"] .hero-panel-item .value {
+            color: #856d20;
+        }
+
+        [data-theme="light"] .hero-panel-item .label {
+            color: #B5952F;
+        }
+
+        [data-theme="light"] .exam-highlight {
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.25);
+        }
+
+        /* Mobil düzeltmeleri */
         @media (max-width: 768px) {
             .deneme-hero {
                 padding: 24px;
