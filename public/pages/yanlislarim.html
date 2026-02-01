@@ -557,7 +557,7 @@
       localStorage.setItem('customTestQuestionIds', JSON.stringify(filteredIds));
       localStorage.setItem('customTestTitle', title);
       localStorage.removeItem('customTestQuestions');
-      window.location.href = `/test?mode=custom&source=local&testMode=${mode}`;
+      window.location.href = `/test?mode=custom&source=local&testMode=${mode}&return=${encodeURIComponent('/yanlislarim')}`;
     }
 
     function setSolveButtonsEnabled(isEnabled) {
