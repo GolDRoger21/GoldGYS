@@ -761,9 +761,9 @@ body:not(.admin-body) .app-sidebar .nav-label {
     }
 
     #notificationDropdown {
-        right: -10px !important;
-        /* Mobile right adjustment */
-        width: min(90vw, 360px) !important;
+        right: 8px !important;
+        left: auto !important;
+        width: min(92vw, 360px) !important;
     }
 
     .dropdown-menu-items {
