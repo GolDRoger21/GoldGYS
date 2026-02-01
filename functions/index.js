@@ -214,7 +214,9 @@ async function ensureCallerIsAdmin(context) {
   await syncClaimsWithProfile(caller.uid, callerData, caller.token || {});
 }
 
-exports.setAdminClaim = functions.https.onCall(async (data, context) => {
+const appCheckRequired = functions.runWith({ enforceAppCheck: true });
+
+exports.setAdminClaim = appCheckRequired.https.onCall(async (data, context) => {
   await ensureCallerIsAdmin(context);
 
   const uid = data.uid;
@@ -245,7 +247,7 @@ exports.setAdminClaim = functions.https.onCall(async (data, context) => {
   }
 });
 
-exports.setUserRole = functions.https.onCall(async (data, context) => {
+exports.setUserRole = appCheckRequired.https.onCall(async (data, context) => {
   await ensureCallerIsAdmin(context);
 
   const { uid, role } = data || {};
@@ -320,7 +322,7 @@ exports.setUserRole = functions.https.onCall(async (data, context) => {
   }
 });
 
-exports.updateUserProfile = functions.https.onCall(async (data, context) => {
+exports.updateUserProfile = appCheckRequired.https.onCall(async (data, context) => {
   await ensureCallerIsAdmin(context);
 
   const { uid, role, status, roles, displayName, photoURL } = data || {};
@@ -409,7 +411,7 @@ exports.updateUserProfile = functions.https.onCall(async (data, context) => {
   }
 });
 
-exports.submitReport = functions.https.onCall(async (data, context) => {
+exports.submitReport = appCheckRequired.https.onCall(async (data, context) => {
   if (!context.auth) {
     throw new functions.https.HttpsError("unauthenticated", "Oturum gerekli.");
   }
@@ -531,7 +533,7 @@ async function deleteUserSubcollections(uid) {
   }
 }
 
-exports.deleteUserAccount = functions.https.onCall(async (data, context) => {
+exports.deleteUserAccount = appCheckRequired.https.onCall(async (data, context) => {
   await ensureCallerIsAdmin(context);
 
   const uid = data?.uid;
@@ -616,7 +618,7 @@ exports.deleteUserAccount = functions.https.onCall(async (data, context) => {
 });
 
 // Admin kullanıcılar için özel claim bilgilerini getirir
-exports.getUserClaims = functions.https.onCall(async (data, context) => {
+exports.getUserClaims = appCheckRequired.https.onCall(async (data, context) => {
   await ensureCallerIsAdmin(context);
 
   const uid = data?.uid;
@@ -822,7 +824,7 @@ async function summarizeAttempts(uid) {
   };
 }
 
-exports.getUserContentSummary = functions.https.onCall(async (data, context) => {
+exports.getUserContentSummary = appCheckRequired.https.onCall(async (data, context) => {
   await ensureCallerIsAdmin(context);
 
   const uid = data?.uid;
