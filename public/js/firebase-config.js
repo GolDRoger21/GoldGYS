@@ -24,8 +24,10 @@ export const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 
 // App Check'i Başlat
 if (typeof window !== "undefined") {
-  // Localhost testi için debug token'ı aktif et
-  self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
+  // Sadece localhost'ta debug token kullan
+  if (location.hostname === "localhost") {
+    self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
+  }
 
   initializeAppCheck(app, {
     provider: new ReCaptchaEnterpriseProvider("6LeYSV0sAAAAAFywdWhzKf9Vw8_gtMa0JeMPjgD8"),
