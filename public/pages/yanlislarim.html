@@ -371,13 +371,22 @@
           };
         });
 
-        const activeIds = await fetchActiveQuestionIds(rawMistakes.map(m => m.questionId));
-        const staleMistakes = rawMistakes.filter(m => !activeIds.has(m.questionId));
+        const questionMap = await fetchActiveQuestionsMap(rawMistakes.map(m => m.questionId));
+        const staleMistakes = rawMistakes.filter(m => !questionMap.has(m.questionId));
         if (staleMistakes.length > 0) {
           await Promise.all(staleMistakes.map(m => deleteDoc(doc(db, `users/${uid}/wrongs/${m.id}`))));
         }
 
-        state.allMistakes = rawMistakes.filter(m => activeIds.has(m.questionId));
+        state.allMistakes = rawMistakes
+          .filter(m => questionMap.has(m.questionId))
+          .map(m => {
+            const question = questionMap.get(m.questionId);
+            return {
+              ...m,
+              text: truncateText(question?.text || m.text),
+              category: question?.category || m.category || 'Genel'
+            };
+          });
 
         if (state.allMistakes.length === 0) {
           renderEmptyState();
@@ -413,12 +422,16 @@
     }
 
     function updateSummary() {
-      const total = state.allMistakes.length;
+      const questionCount = state.allMistakes.length;
+      const totalWrongCount = state.allMistakes.reduce((sum, item) => sum + (item.count || 0), 0);
       const categoryCount = new Set(state.allMistakes.map(m => m.category)).size;
-      const latest = state.allMistakes[0]?.lastAttempt;
+      const latest = state.allMistakes.reduce((latestDate, item) => {
+        if (!latestDate) return item.lastAttempt || null;
+        return compareDate(item.lastAttempt, latestDate) > 0 ? item.lastAttempt : latestDate;
+      }, null);
 
-      ui.totalMistakes.textContent = total;
-      ui.totalMistakesHint.textContent = total > 0 ? `${total} soruda tekrar fırsatın var.` : 'Harika! Şu an yanlışın yok.';
+      ui.totalMistakes.textContent = totalWrongCount;
+      ui.totalMistakesHint.textContent = questionCount > 0 ? `${questionCount} soruda tekrar fırsatın var.` : 'Harika! Şu an yanlışın yok.';
       ui.totalCategories.textContent = categoryCount;
       ui.lastAttempt.textContent = latest ? formatDate(latest) : '-';
     }
@@ -556,10 +569,15 @@
       return dateA - dateB;
     }
 
-    async function fetchActiveQuestionIds(ids) {
-      const activeIds = new Set();
+    function truncateText(text) {
+      if (!text) return 'Soru metni yüklenemedi...';
+      return text.length > 150 ? `${text.substring(0, 150)}...` : text;
+    }
+
+    async function fetchActiveQuestionsMap(ids) {
+      const activeQuestions = new Map();
       const uniqueIds = Array.from(new Set(ids.filter(Boolean)));
-      if (uniqueIds.length === 0) return activeIds;
+      if (uniqueIds.length === 0) return activeQuestions;
 
       for (let i = 0; i < uniqueIds.length; i += 10) {
         const chunk = uniqueIds.slice(i, i + 10);
@@ -568,11 +586,11 @@
         snap.docs.forEach(docSnap => {
           const data = docSnap.data();
           if (data?.isDeleted || data?.isActive === false) return;
-          activeIds.add(docSnap.id);
+          activeQuestions.set(docSnap.id, { id: docSnap.id, ...data });
         });
       }
 
-      return activeIds;
+      return activeQuestions;
     }
   </script>
 </body>

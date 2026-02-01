@@ -235,7 +235,8 @@ export class TestEngine {
                 selected: selectedOptionId,
                 isCorrect: isCorrect,
                 category: question.category || 'Genel',
-                timestamp: Date.now()
+                timestamp: Date.now(),
+                synced: false
             };
             this.markSelected(questionId, selectedOptionId);
             this.updateCounters();
@@ -250,7 +251,8 @@ export class TestEngine {
             selected: selectedOptionId,
             isCorrect: isCorrect,
             category: question.category || 'Genel',
-            timestamp: Date.now()
+            timestamp: Date.now(),
+            synced: false
         };
 
         // Çalışma Modu: Anlık geri bildirim ve çözüm gösterimi
@@ -263,6 +265,10 @@ export class TestEngine {
 
         if (isCorrect && auth.currentUser) {
             this.clearWrongAnswer(questionId);
+        }
+
+        if (this.answers[questionId]) {
+            this.answers[questionId].synced = true;
         }
 
         this.updateCounters();
@@ -506,13 +512,18 @@ export class TestEngine {
             // bu yüzden answers üzerinden gidilebilir veya constructor'daki mode saklanabilir. 
             // Şimdilik basitçe: Her yanlış cevap için update yapalım, firestore increment kullanıldığı için sorun olmaz)
 
-            const wrongAnswers = Object.keys(this.answers).filter(qId => !this.answers[qId].isCorrect);
+            const wrongAnswers = Object.keys(this.answers).filter(qId => !this.answers[qId].isCorrect && !this.answers[qId].synced);
             const batchPromises = wrongAnswers.map(qId => {
                 const q = this.questions.find(i => i.id === qId);
                 return this.saveWrongAnswer(qId, q);
             });
 
             await Promise.all(batchPromises);
+            wrongAnswers.forEach(qId => {
+                if (this.answers[qId]) {
+                    this.answers[qId].synced = true;
+                }
+            });
 
             const correctAnswers = Object.keys(this.answers).filter(qId => this.answers[qId].isCorrect);
             const clearPromises = correctAnswers.map(qId => this.clearWrongAnswer(qId));
