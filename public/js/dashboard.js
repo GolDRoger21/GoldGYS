@@ -3,7 +3,7 @@
 import { initLayout } from './ui-loader.js';
 import { auth, db } from "./firebase-config.js";
 import { getUserProfile, getLastActivity, getRecentActivities } from "./user-profile.js";
-import { collection, getDocs, limit, orderBy, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { collection, getDocs, limit, orderBy, query, where, Timestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // UI Elementleri
 const ui = {
@@ -19,8 +19,9 @@ const ui = {
     recentActivityList: document.getElementById("recentActivityList"),
     successRateBar: document.getElementById("successRateBar"),
     successRateText: document.getElementById("successRateText"),
-    solvedCount: document.getElementById("solvedCount"),
-    wrongCount: document.getElementById("wrongCount")
+    solvedTodayCount: document.getElementById("solvedTodayCount"),
+    solvedTotalCount: document.getElementById("solvedTotalCount"),
+    wrongTodayCount: document.getElementById("wrongTodayCount")
 };
 
 let examCountdownInterval = null;
@@ -48,7 +49,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 ui.welcomeMsg.textContent = `Hoş geldin, ${displayName}!`;
             }
 
-            updateStats(profile);
+            await loadDashboardStats(user.uid);
 
             // Sınav ilanını, duyuruları ve aktiviteleri yükle
             await Promise.all([
@@ -146,19 +147,52 @@ function showSmartTip() {
     }
 }
 
-function updateStats(profile) {
-    const totalSolved = profile?.stats?.totalSolved ?? profile?.totalSolved ?? 0;
-    const totalWrong = profile?.stats?.totalWrong ?? profile?.totalWrong ?? 0;
-    const totalCorrect = profile?.stats?.totalCorrect ?? profile?.totalCorrect ?? Math.max(totalSolved - totalWrong, 0);
+async function loadDashboardStats(uid) {
+    const [totalStats, todayStats] = await Promise.all([
+        fetchExamStats(uid),
+        fetchExamStats(uid, getTodayRange())
+    ]);
 
-    const successRate = totalSolved > 0
-        ? Math.round((totalCorrect / totalSolved) * 100)
+    const successRate = totalStats.total > 0
+        ? Math.round((totalStats.correct / totalStats.total) * 100)
         : 0;
 
-    if (ui.solvedCount) ui.solvedCount.textContent = totalSolved.toLocaleString('tr-TR');
-    if (ui.wrongCount) ui.wrongCount.textContent = totalWrong.toLocaleString('tr-TR');
+    if (ui.solvedTodayCount) ui.solvedTodayCount.textContent = todayStats.total.toLocaleString('tr-TR');
+    if (ui.solvedTotalCount) ui.solvedTotalCount.textContent = totalStats.total.toLocaleString('tr-TR');
+    if (ui.wrongTodayCount) ui.wrongTodayCount.textContent = todayStats.wrong.toLocaleString('tr-TR');
     if (ui.successRateText) ui.successRateText.textContent = `%${successRate}`;
     if (ui.successRateBar) ui.successRateBar.style.width = `${successRate}%`;
+}
+
+async function fetchExamStats(uid, range = null) {
+    if (!uid) return { total: 0, correct: 0, wrong: 0 };
+
+    const baseRef = collection(db, `users/${uid}/exam_results`);
+    const constraints = [];
+
+    if (range) {
+        constraints.push(where("completedAt", ">=", Timestamp.fromDate(range.start)));
+        constraints.push(where("completedAt", "<", Timestamp.fromDate(range.end)));
+    }
+
+    const q = constraints.length ? query(baseRef, ...constraints) : baseRef;
+    const snapshot = await getDocs(q);
+
+    return snapshot.docs.reduce((acc, docSnap) => {
+        const data = docSnap.data();
+        acc.total += data.total || 0;
+        acc.correct += data.correct || 0;
+        acc.wrong += data.wrong || 0;
+        return acc;
+    }, { total: 0, correct: 0, wrong: 0 });
+}
+
+function getTodayRange() {
+    const start = new Date();
+    start.setHours(0, 0, 0, 0);
+    const end = new Date(start);
+    end.setDate(end.getDate() + 1);
+    return { start, end };
 }
 
 async function loadExamAnnouncement() {
