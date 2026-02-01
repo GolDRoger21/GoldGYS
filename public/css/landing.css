@@ -114,19 +114,20 @@ main {
 
 .btn-primary {
     background-color: var(--gold-main);
-    color: var(--text-on-gold);
+    color: var(--navy-deep);
+    /* Ensure dark text */
     border: 1px solid var(--gold-main);
     box-shadow: 0 4px 15px rgba(212, 175, 55, 0.4);
     font-weight: 700;
-    /* Ensure bold */
-    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.35);
+    text-shadow: none;
+    /* Remove shadow for clarity */
 }
 
 .btn-primary:hover {
     background-color: #e5c145;
     transform: translateY(-2px);
     box-shadow: 0 8px 25px rgba(212, 175, 55, 0.5);
-    color: var(--text-on-gold);
+    color: var(--navy-deep);
 }
 
 .landing-nav .brand-logo {

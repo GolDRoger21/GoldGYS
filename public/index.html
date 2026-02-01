@@ -78,8 +78,8 @@
                         rakiplerinizin önüne geçin.
                     </p>
                     <div class="hero-buttons">
-                        <a href="login.html" class="btn btn-primary" id="heroCtaBtn">Ücretsiz Başla</a>
-                        <a href="#features" class="btn btn-secondary">Platformu Tanı</a>
+                        <a href="login.html?mode=register" class="btn btn-primary" id="heroRegisterBtn">Kayıt Ol</a>
+                        <a href="login.html?mode=login" class="btn btn-secondary" id="heroLoginBtn">Giriş Yap</a>
                     </div>
                     <div class="hero-trust">
                         <div>
@@ -279,15 +279,22 @@
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 const navBtn = document.getElementById("navLoginBtn");
-                const heroBtn = document.getElementById("heroCtaBtn");
+                const navRegBtn = document.getElementById("navRegisterBtn");
+                const heroRegBtn = document.getElementById("heroRegisterBtn");
 
+                // Giriş yapılmışsa butonları güncelle
                 if (navBtn) {
                     navBtn.textContent = "Panele Git";
                     navBtn.href = "/dashboard";
+                    navBtn.classList.remove("btn-secondary");
+                    navBtn.classList.add("btn-primary");
                 }
-                if (heroBtn) {
-                    heroBtn.textContent = "Panele Devam Et";
-                    heroBtn.href = "/dashboard";
+
+                // Kayıt ol butonlarını gizle veya panele yönlendir (tercihe bağlı, burada gizliyoruz)
+                if (navRegBtn) navRegBtn.style.display = "none";
+                if (heroRegBtn) {
+                    heroRegBtn.textContent = "Panele Devam Et";
+                    heroRegBtn.href = "/dashboard";
                 }
             }
         });
