@@ -29,7 +29,8 @@
                     "qTarget": 2,
                     "order": 3
                 }
-            ]
+            ],
+            "description": "Anayasanın temel ilkeleri, hak ve özgürlükler ile devlet organlarının görevlerini sınav odaklı özetler."
         },
         {
             "id": "topic_ortak_02",
@@ -53,7 +54,8 @@
                     "qTarget": 1,
                     "order": 2
                 }
-            ]
+            ],
+            "description": "İnkılap süreci, Atatürk ilkeleri ve ulusal güvenlik kavramlarını kronoloji ve kavram temelli işler."
         },
         {
             "id": "topic_ortak_03",
@@ -91,7 +93,8 @@
                     "qTarget": 3,
                     "order": 4
                 }
-            ]
+            ],
+            "description": "Merkezi ve yerel idare ile kamu kurumlarının yapısını ilgili mevzuat üzerinden açıklar."
         },
         {
             "id": "topic_ortak_04",
@@ -108,7 +111,8 @@
                     "qTarget": 6,
                     "order": 1
                 }
-            ]
+            ],
+            "description": "Memur hakları, ödevler, disiplin ve özlük işlemlerini 657 sayılı Kanun kapsamında ele alır."
         },
         {
             "id": "topic_ortak_05",
@@ -125,7 +129,8 @@
                     "qTarget": 2,
                     "order": 1
                 }
-            ]
+            ],
+            "description": "Türkçe dil bilgisi, imla-noktalama ve resmi yazışma kurallarını uygulama odaklı sunar."
         },
         {
             "id": "topic_ortak_06",
@@ -142,7 +147,8 @@
                     "qTarget": 1,
                     "order": 1
                 }
-            ]
+            ],
+            "description": "Kurum içi/dışı iletişim, vatandaşla iletişim ve halkla ilişkiler araçlarını sınav formatında işler."
         },
         {
             "id": "topic_ortak_07",
@@ -159,7 +165,8 @@
                     "qTarget": 1,
                     "order": 1
                 }
-            ]
+            ],
+            "description": "Kamu görevlisi etik ilkeleri, çıkar çatışması ve şeffaflık hükümlerini mevzuat temelli açıklar."
         },
         {
             "id": "topic_ortak_08",
@@ -176,7 +183,8 @@
                     "qTarget": 1,
                     "order": 1
                 }
-            ]
+            ],
+            "description": "Adalet Bakanlığı merkez teşkilatının birimleri, görevleri ve hiyerarşik yapısını kapsar."
         },
         {
             "id": "topic_ortak_09",
@@ -214,7 +222,8 @@
                     "qTarget": 0,
                     "order": 4
                 }
-            ]
+            ],
+            "description": "Adli-idari yargı komisyonları ve yargı örgütünün yapısı, görevleri ve yetkilerini özetler."
         },
         {
             "id": "topic_ortak_10",
@@ -231,7 +240,8 @@
                     "qTarget": 1,
                     "order": 1
                 }
-            ]
+            ],
+            "description": "UYAP modülleri, kullanıcı rolleri ve temel iş akışlarını pratik soru tipleriyle aktarır."
         },
         {
             "id": "topic_ortak_11",
@@ -248,7 +258,8 @@
                     "qTarget": 1,
                     "order": 1
                 }
-            ]
+            ],
+            "description": "Bütçe süreci, mali kontrol ve 5018 sayılı Kanun kapsamındaki görev ve sorumlulukları açıklar."
         },
         {
             "id": "topic_alan_01",
@@ -265,7 +276,8 @@
                     "qTarget": 3,
                     "order": 1
                 }
-            ]
+            ],
+            "description": "Adalet Bakanlığı taşra ve bağlı birim teşkilatını alan mevzuatı çerçevesinde inceler."
         },
         {
             "id": "topic_alan_02",
@@ -282,7 +294,8 @@
                     "qTarget": 1,
                     "order": 1
                 }
-            ]
+            ],
+            "description": "Adli ve idari yargı komisyonlarının oluşumu, görevleri ve çalışma usullerini sınav düzeyinde işler."
         },
         {
             "id": "topic_alan_03",
@@ -306,7 +319,8 @@
                     "qTarget": 2,
                     "order": 2
                 }
-            ]
+            ],
+            "description": "Yargı kademeleri, mahkeme türleri ve görev alanlarını alan odaklı şekilde açıklar."
         },
         {
             "id": "topic_alan_04",
@@ -330,7 +344,8 @@
                     "qTarget": 1,
                     "order": 2
                 }
-            ]
+            ],
+            "description": "Güvenli elektronik imza ve SEGBİS kullanım esaslarını uygulamalı sorularla destekler."
         },
         {
             "id": "topic_alan_05",
@@ -347,7 +362,8 @@
                     "qTarget": 6,
                     "order": 1
                 }
-            ]
+            ],
+            "description": "Resmi yazışma usul ve esaslarını, belge düzeni ve format kurallarıyla birlikte sunar."
         },
         {
             "id": "topic_alan_06",
@@ -378,7 +394,8 @@
                     "qTarget": 1,
                     "order": 3
                 }
-            ]
+            ],
+            "description": "Tebligat usulleri, süreler ve usulsüz tebligat sonuçlarını kanun hükümleriyle açıklar."
         },
         {
             "id": "topic_alan_07",
@@ -423,7 +440,8 @@
                     "qTarget": 2,
                     "order": 5
                 }
-            ]
+            ],
+            "description": "657 dışındaki memur mevzuatıyla ilgili sosyal haklar ve tamamlayıcı düzenlemeleri kapsar."
         },
         {
             "id": "topic_alan_08",
@@ -454,7 +472,8 @@
                     "qTarget": 4,
                     "order": 3
                 }
-            ]
+            ],
+            "description": "Yazı işleri süreçleri, kalem işleri ve harç/masraf kalemlerini uygulama odaklı işler."
         },
         {
             "id": "topic_alan_09",
@@ -513,7 +532,8 @@
                     "qTarget": 0,
                     "order": 7
                 }
-            ]
+            ],
+            "description": "CMK'nın soruşturma-kovuşturma süreçleri, koruma tedbirleri ve kanun yollarını özetler."
         },
         {
             "id": "topic_alan_10",
@@ -565,7 +585,8 @@
                     "qTarget": 0,
                     "order": 6
                 }
-            ]
+            ],
+            "description": "HMK'da dava şartları, usul işlemleri, deliller ve kanun yollarını sınav düzeyinde açıklar."
         },
         {
             "id": "topic_alan_11",
@@ -596,7 +617,8 @@
                     "qTarget": 0,
                     "order": 3
                 }
-            ]
+            ],
+            "description": "İdari yargılama usulü, dava türleri ve süreleri 2577 sayılı Kanun çerçevesinde işler."
         },
         {
             "id": "topic_alan_12",
@@ -620,7 +642,8 @@
                     "qTarget": 0,
                     "order": 2
                 }
-            ]
+            ],
+            "description": "İnfaz rejimi, kurum türleri ve koşullu salıverme gibi 5275 sayılı Kanun konularını kapsar."
         }
     ]
 }

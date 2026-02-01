@@ -24,7 +24,8 @@
           "title": "Cumhuriyetin Temel Organları",
           "description": "Yasama, Yürütme, Yargı"
         }
-      ]
+      ],
+      "description": "Anayasanın temel ilkeleri, hak ve özgürlükler ile devlet organlarını sınav odaklı özetler."
     },
     {
       "id": "topic_ataturk_inkilap",
@@ -43,7 +44,8 @@
           "title": "Ulusal Güvenlik",
           "description": "Ulusal güvenlik kavramı ve mevzuatı"
         }
-      ]
+      ],
+      "description": "İnkılap süreci, Atatürk ilkeleri ve ulusal güvenlik kavramlarını kronoloji temelli işler."
     },
     {
       "id": "topic_devlet_teskilati",
@@ -72,7 +74,8 @@
           "title": "1 Sayılı CB Kararnamesi (Genel)",
           "description": "Cumhurbaşkanlığı Teşkilatı Hakkında Kararname"
         }
-      ]
+      ],
+      "description": "Merkezi ve yerel idareyi ilgilendiren mevzuatı kurumlar ve görevler çerçevesinde açıklar."
     },
     {
       "id": "topic_dmk_657",
@@ -86,7 +89,8 @@
           "title": "657 Sayılı Devlet Memurları Kanunu",
           "description": "Kanunun tamamı"
         }
-      ]
+      ],
+      "description": "657 sayılı Kanun kapsamında memur hak/ödevleri, disiplin ve özlük işlemlerini kapsar."
     },
     {
       "id": "topic_dil_iletisim_etik",
@@ -110,7 +114,8 @@
           "title": "Etik Davranış İlkeleri",
           "description": "1 Soru"
         }
-      ]
+      ],
+      "description": "Dil bilgisi, etkili iletişim ve kamu etiği ilkelerini sınav formatında sunar."
     },
     {
       "id": "topic_bakanlik_merkez",
@@ -124,7 +129,8 @@
           "title": "1 Sayılı CB Kararnamesi (Md. 38-56)",
           "description": "Adalet Bakanlığı Teşkilatı Bölümü"
         }
-      ]
+      ],
+      "description": "Adalet Bakanlığı merkez teşkilatının birimleri, görevleri ve hiyerarşisini açıklar."
     },
     {
       "id": "topic_yargi_orgutu_ortak",
@@ -153,7 +159,8 @@
           "title": "Yazı İşleri Yönetmelikleri (İlgili Maddeler)",
           "description": "Adli ve İdari Yargı Yönetmeliklerinin ilgili kısımları"
         }
-      ]
+      ],
+      "description": "Yargı örgütü ve komisyonların yapısı, görevleri ve yetkilerini özetler."
     },
     {
       "id": "topic_uyap",
@@ -167,7 +174,8 @@
           "title": "UYAP Mevzuatı",
           "description": "HMK Md. 445, CMK Md. 38/A ve Yönetmelik Md. 5"
         }
-      ]
+      ],
+      "description": "UYAP modülleri, kullanıcı rolleri ve temel iş akışlarını pratik örneklerle açıklar."
     },
     {
       "id": "topic_mali_yonetim",
@@ -181,7 +189,8 @@
           "title": "5018 Sayılı Kamu Mali Yönetimi Kanunu",
           "description": "Genel esaslar"
         }
-      ]
+      ],
+      "description": "5018 sayılı Kanun çerçevesinde bütçe süreci ve mali yönetim kavramlarını kapsar."
     },
     {
       "id": "topic_bakanlik_teskilati_alan",
@@ -195,7 +204,8 @@
           "title": "1 Sayılı CB Kararnamesi (6. Kısım 1. Bölüm)",
           "description": "Bakanlık Teşkilatı detayları"
         }
-      ]
+      ],
+      "description": "Adalet Bakanlığı taşra/bağlı birim teşkilatını alan mevzuatına göre inceler."
     },
     {
       "id": "topic_komisyonlar_alan",
@@ -214,7 +224,8 @@
           "title": "İdari Yargı Yazı İşleri Yönetmeliği (Komisyonlar)",
           "description": "Üçüncü Kısım Birinci Bölüm"
         }
-      ]
+      ],
+      "description": "Adli ve idari komisyonların oluşumu, görev ve yetkilerini alan odaklı açıklar."
     },
     {
       "id": "topic_yargi_orgutu_alan",
@@ -233,7 +244,8 @@
           "title": "2576 Sayılı İdari Yargı Kanunu",
           "description": "Detaylı inceleme"
         }
-      ]
+      ],
+      "description": "Mahkeme türleri ve yargı kademelerini alan sınavlarına uygun biçimde işler."
     },
     {
       "id": "topic_elektronik_islemler",
@@ -257,7 +269,8 @@
           "title": "HMK Görüntü Nakli Yönetmeliği",
           "description": "Hukuk Muhakemelerinde ses ve görüntü nakli"
         }
-      ]
+      ],
+      "description": "Güvenli e-imza ve SEGBİS uygulamalarını mevzuat ve pratik sorularla destekler."
     },
     {
       "id": "topic_resmi_yazisma",
@@ -276,7 +289,8 @@
           "title": "Resmi Yazışma Kılavuzu",
           "description": "Cumhurbaşkanlığı Kılavuzu"
         }
-      ]
+      ],
+      "description": "Resmi yazışma usul ve esaslarını belge düzeni ve format kurallarıyla işler."
     },
     {
       "id": "topic_tebligat",
@@ -300,7 +314,8 @@
           "title": "Elektronik Tebligat Yönetmeliği",
           "description": "UETS ve elektronik tebligat"
         }
-      ]
+      ],
+      "description": "Tebligat usulleri, süreler ve usulsüz tebligat sonuçlarını kanun odaklı açıklar."
     },
     {
       "id": "topic_memur_mevzuati_diger",
@@ -334,7 +349,8 @@
           "title": "Memur Sınav, Atama ve Nakil Yönetmeliği",
           "description": "Atama ve nakil şartları"
         }
-      ]
+      ],
+      "description": "657 dışındaki memur mevzuatı ve tamamlayıcı düzenlemeleri sınav odaklı özetler."
     },
     {
       "id": "topic_yazi_isleri_harclar",
@@ -358,7 +374,8 @@
           "title": "Bölge İdare ve İdare Mahkemeleri Yazı İşleri Yönetmeliği",
           "description": "Hizmetlerin yürütülmesi"
         }
-      ]
+      ],
+      "description": "Yazı işleri süreçleri ve harç/masraf kalemlerini uygulama ağırlıklı ele alır."
     },
     {
       "id": "topic_cmk",
@@ -372,7 +389,8 @@
           "title": "CMK İlgili Maddeler",
           "description": "1, 2, 3, 4, 5, 6 ve 7. Kitapların sorumlu olunan bölümleri"
         }
-      ]
+      ],
+      "description": "CMK'da soruşturma-kovuşturma, koruma tedbirleri ve kanun yollarını kapsar."
     },
     {
       "id": "topic_hmk",
@@ -386,7 +404,8 @@
           "title": "HMK İlgili Maddeler",
           "description": "1. Kısımdan 10. Kısma kadar sorumlu olunan bölümler"
         }
-      ]
+      ],
+      "description": "HMK'da dava şartları, usul işlemleri ve delil sistematiğini sınav düzeyinde işler."
     },
     {
       "id": "topic_iyuk",
@@ -400,7 +419,8 @@
           "title": "İYUK 1, 2 ve 3. Bölümler",
           "description": "İdari dava açma ve yargılama usulleri"
         }
-      ]
+      ],
+      "description": "İdari dava türleri, süreler ve yürütmenin durdurulmasını 2577 kapsamında açıklar."
     },
     {
       "id": "topic_infaz",
@@ -414,7 +434,8 @@
           "title": "İnfaz Kanunu İlgili Bölümler",
           "description": "1. Kitap ve 4. Kısım ilgili bölümleri"
         }
-      ]
+      ],
+      "description": "5275 sayılı Kanun çerçevesinde infaz rejimi ve koşullu salıverme esaslarını kapsar."
     }
   ]
 }
