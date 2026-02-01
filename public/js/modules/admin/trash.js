@@ -77,7 +77,20 @@ async function loadTrashItems() {
             };
         });
 
-        state.items = [...deletedTopics, ...deletedLessons];
+        const deletedQuestionsSnap = await getDocs(query(collection(db, "questions"), where("isDeleted", "==", true)));
+        const deletedQuestions = deletedQuestionsSnap.docs.map(docSnap => {
+            const data = docSnap.data();
+            return {
+                id: docSnap.id,
+                title: data.text || '(başlıksız)',
+                type: 'question',
+                topicId: '',
+                topicTitle: data.category || 'Soru Bankası',
+                isOrphan: false
+            };
+        });
+
+        state.items = [...deletedTopics, ...deletedLessons, ...deletedQuestions];
         renderTrashTable();
     } catch (error) {
         console.error("Çöp kutusu yüklenirken hata:", error);
@@ -106,9 +119,16 @@ function renderTrashTable() {
     }
 
     tbody.innerHTML = filtered.map(item => {
-        const isOrphan = item.type !== 'topic' && item.isOrphan;
+        const isOrphan = item.type !== 'topic' && item.type !== 'question' && item.isOrphan;
         const rowClass = isOrphan ? 'table-warning' : '';
         const restoreBtnState = isOrphan ? 'disabled title="Konusu silindiği için geri alınamaz"' : '';
+        const typeLabel = item.type === 'topic'
+            ? 'Konu'
+            : (item.type === 'test'
+                ? 'Test'
+                : (item.type === 'question'
+                    ? 'Soru'
+                    : 'Ders'));
 
         return `
         <tr class="${rowClass}">
@@ -118,7 +138,7 @@ function renderTrashTable() {
                 ${isOrphan ? '<br><small class="text-danger">⚠️ Konusu Bulunamadı</small>' : ''}
             </td>
             <td>${item.topicTitle || '—'}</td>
-            <td><span class="badge bg-light text-dark border">${item.type === 'topic' ? 'Konu' : (item.type === 'test' ? 'Test' : 'Ders')}</span></td>
+            <td><span class="badge bg-light text-dark border">${typeLabel}</span></td>
             <td class="text-end">
                 <button class="btn btn-success btn-sm" onclick="window.AdminTrash.restoreOne('${item.id}','${item.type}','${item.topicId}')" ${restoreBtnState}>Geri Al</button>
                 <button class="btn btn-danger btn-sm" onclick="window.AdminTrash.purgeOne('${item.id}','${item.type}','${item.topicId}')">Kalıcı Sil</button>
@@ -142,7 +162,7 @@ function toggleAll(checked) {
 }
 
 async function restoreOne(id, type, topicId) {
-    if (type !== 'topic') {
+    if (type !== 'topic' && type !== 'question') {
         // Kontrol: Konu var mı?
         if (!state.topicMap.has(topicId)) {
             showToast("Bu içeriğin bağlı olduğu konu kalıcı olarak silinmiş. Geri alınamaz.", "error");
@@ -152,6 +172,8 @@ async function restoreOne(id, type, topicId) {
 
     if (type === 'topic') {
         await updateDoc(doc(db, "topics", id), { status: 'active', isActive: true, deletedAt: null });
+    } else if (type === 'question') {
+        await updateDoc(doc(db, "questions", id), { isDeleted: false, isActive: true, deletedAt: null });
     } else {
         await updateDoc(doc(db, `topics/${topicId}/lessons`, id), { status: 'active', isActive: true, deletedAt: null });
     }
@@ -180,6 +202,8 @@ async function purgeOne(id, type, topicId) {
             showToast("Silme işlemi sırasında hata oluştu.", "error");
             return;
         }
+    } else if (type === 'question') {
+        await deleteDoc(doc(db, "questions", id));
     } else {
         await deleteDoc(doc(db, `topics/${topicId}/lessons`, id));
     }
@@ -195,13 +219,15 @@ async function restoreSelectedItems() {
     let failCount = 0;
 
     await Promise.all(items.map(async (item) => {
-        if (item.type !== 'topic' && !state.topicMap.has(item.topicId)) {
+        if (item.type !== 'topic' && item.type !== 'question' && !state.topicMap.has(item.topicId)) {
             failCount++;
             return; // Atla
         }
 
         if (item.type === 'topic') {
             await updateDoc(doc(db, "topics", item.id), { status: 'active', isActive: true, deletedAt: null });
+        } else if (item.type === 'question') {
+            await updateDoc(doc(db, "questions", item.id), { isDeleted: false, isActive: true, deletedAt: null });
         } else {
             await updateDoc(doc(db, `topics/${item.topicId}/lessons`, item.id), { status: 'active', isActive: true, deletedAt: null });
         }
@@ -234,6 +260,9 @@ async function purgeSelectedItems() {
             const deletePromises = lessonsSnap.docs.map(d => deleteDoc(d.ref));
             await Promise.all(deletePromises);
             return deleteDoc(doc(db, "topics", item.id));
+        }
+        if (item.type === 'question') {
+            return deleteDoc(doc(db, "questions", item.id));
         }
         return deleteDoc(doc(db, `topics/${item.topicId}/lessons`, item.id));
     }));

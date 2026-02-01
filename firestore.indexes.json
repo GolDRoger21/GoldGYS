@@ -32,6 +32,13 @@
         { "fieldPath": "isDeleted", "order": "ASCENDING" },
         { "fieldPath": "deletedAt", "order": "DESCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "lessons",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        { "fieldPath": "status", "order": "ASCENDING" }
+      ]
     }
   ],
   "fieldOverrides": [
