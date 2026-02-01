@@ -186,27 +186,71 @@
       display: none;
       color: var(--text-muted);
       font-size: 0.9rem;
+      background: var(--bg-hover);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      box-shadow: inset 0 0 0 1px var(--border-color);
     }
 
     .fav-details.is-open {
       display: block;
     }
 
+    .fav-detail-block {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      margin-bottom: 12px;
+    }
+
+    .fav-detail-title {
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    .fav-detail-content p {
+      margin: 0 0 8px;
+      color: var(--text-primary);
+    }
+
+    .fav-detail-content p:last-child {
+      margin-bottom: 0;
+    }
+
     .fav-options {
       display: grid;
-      gap: 6px;
+      gap: 10px;
       margin-top: 8px;
     }
 
     .fav-option-item {
-      display: flex;
-      gap: 8px;
-      align-items: flex-start;
+      display: grid;
+      grid-template-columns: 28px 1fr;
+      gap: 10px;
+      align-items: start;
+      padding: 8px 10px;
+      border-radius: var(--radius-sm);
+      background: var(--bg-body);
+      border: 1px solid var(--border-color);
     }
 
     .fav-option-item span {
       font-weight: 600;
       color: var(--text-primary);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 26px;
+      height: 26px;
+      border-radius: 999px;
+      background: rgba(59, 130, 246, 0.15);
+      color: var(--color-primary);
+      font-size: 0.85rem;
     }
 
     .empty-state {
@@ -236,7 +280,6 @@
       <div class="favorites-hero-actions">
         <button class="btn btn-primary" id="btnSolveAllExam">🎯 Karma Test (Sınav)</button>
         <button class="btn btn-outline-primary" id="btnSolveAllPractice">📖 Karma Öğrenme</button>
-        <button class="btn btn-secondary" id="btnDownloadPdf">🖨️ PDF Olarak İndir</button>
       </div>
     </section>
 
@@ -304,8 +347,7 @@
       searchInput: document.getElementById('searchInput'),
       clearFilters: document.getElementById('btnClearFilters'),
       btnSolveAllExam: document.getElementById('btnSolveAllExam'),
-      btnSolveAllPractice: document.getElementById('btnSolveAllPractice'),
-      btnDownloadPdf: document.getElementById('btnDownloadPdf')
+      btnSolveAllPractice: document.getElementById('btnSolveAllPractice')
     };
 
     const state = {
@@ -337,10 +379,6 @@
 
     ui.btnSolveAllPractice.addEventListener('click', () => {
       startCustomTest(state.favorites.map(item => item.questionId), 'Favoriler - Karma Öğrenme', 'practice', true);
-    });
-
-    ui.btnDownloadPdf.addEventListener('click', () => {
-      showToast('PDF indirme yakında eklenecek.', 'info');
     });
 
     ui.categoryGrid.addEventListener('click', (event) => {
@@ -535,7 +573,7 @@
               <button class="btn btn-sm btn-outline-primary" data-action="toggle" data-id="${item.questionId}">Detayı Gör</button>
             </div>
             <div class="fav-details">
-              ${item.questionRoot ? `<p><strong>Soru Kökü:</strong> ${item.questionRoot}</p>` : ''}
+              ${item.questionRoot ? `<div class="fav-detail-block"><div class="fav-detail-title">Soru Kökü</div><div class="fav-detail-content"><p>${item.questionRoot}</p></div></div>` : ''}
               ${oncullerHtml}
               ${optionsHtml}
               ${solutionHtml}
@@ -548,7 +586,12 @@
     function renderOnculler(onculler) {
       if (!onculler || onculler.length === 0) return '';
       const items = onculler.map(item => `<li>${item}</li>`).join('');
-      return `<div><strong>Öncüller:</strong><ol>${items}</ol></div>`;
+      return `
+        <div class="fav-detail-block">
+          <div class="fav-detail-title">Öncüller</div>
+          <div class="fav-detail-content"><ol>${items}</ol></div>
+        </div>
+      `;
     }
 
     function renderOptions(options) {
@@ -559,7 +602,14 @@
         }
         return `<div class="fav-option-item"><span>${option.id || '•'}</span><div>${option.text || ''}</div></div>`;
       }).join('');
-      return `<div><strong>Şıklar:</strong><div class="fav-options">${list}</div></div>`;
+      return `
+        <div class="fav-detail-block">
+          <div class="fav-detail-title">Şıklar</div>
+          <div class="fav-detail-content">
+            <div class="fav-options">${list}</div>
+          </div>
+        </div>
+      `;
     }
 
     function renderSolution(solution, correctOption) {
@@ -572,7 +622,13 @@
       if (solution?.dayanakText) parts.push(`<p><strong>Dayanak:</strong> ${solution.dayanakText}</p>`);
       if (solution?.tuzak) parts.push(`<p><strong>Tuzak:</strong> ${solution.tuzak}</p>`);
       if (solution?.hap) parts.push(`<p><strong>HAP Bilgi:</strong> ${solution.hap}</p>`);
-      return parts.length ? `<div>${parts.join('')}</div>` : '';
+      if (!parts.length) return '';
+      return `
+        <div class="fav-detail-block">
+          <div class="fav-detail-title">Çözüm</div>
+          <div class="fav-detail-content">${parts.join('')}</div>
+        </div>
+      `;
     }
 
     function renderEmptyState() {
@@ -612,7 +668,8 @@
       localStorage.setItem('customTestQuestionIds', JSON.stringify(finalIds));
       localStorage.setItem('customTestTitle', title);
       localStorage.removeItem('customTestQuestions');
-      window.location.href = `/test?mode=custom&source=local&testMode=${mode}`;
+      const returnUrl = encodeURIComponent('/favoriler');
+      window.location.href = `/test?mode=custom&source=local&testMode=${mode}&return=${returnUrl}`;
     }
 
     async function fetchActiveQuestionsMap(ids) {
