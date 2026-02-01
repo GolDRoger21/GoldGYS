@@ -293,7 +293,8 @@ body:not(.admin-body) .app-sidebar .nav-label {
 
 #notificationDropdown {
     width: 320px;
-    right: -50px;
+    right: 0;
+    max-width: 90vw;
 }
 
 .google-dropdown.active {
@@ -761,7 +762,7 @@ body:not(.admin-body) .app-sidebar .nav-label {
     }
 
     #notificationDropdown {
-        right: 8px !important;
+        right: 0 !important;
         left: auto !important;
         width: min(92vw, 360px) !important;
     }

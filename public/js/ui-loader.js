@@ -243,6 +243,13 @@ function setupEventListeners() {
             if (notificationDropdown) {
                 notificationDropdown.classList.toggle('active');
                 document.getElementById('profileDropdown')?.classList.remove('active');
+                
+                // Eğer içerik "Yükleniyor..." ise ve admin değilse boş durumu göster
+                const list = document.getElementById('notificationList');
+                if (list && list.innerText.includes("Yükleniyor...")) {
+                    list.innerHTML = '<div style="padding:20px; text-align:center; color:var(--text-muted);">Henüz yeni bildirim yok.</div>';
+                    document.getElementById('notificationBadge').style.display = 'none';
+                }
             }
             return;
         }
