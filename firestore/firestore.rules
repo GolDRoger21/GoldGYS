@@ -100,8 +100,8 @@ service cloud.firestore {
 
     // Raporlar (Reports)
     match /reports/{reportId} {
-      // Her üye rapor oluşturabilir
-      allow create: if signedIn();
+      // Rapor oluşturma sadece Cloud Functions ile yapılır
+      allow create: if false;
       // Sadece editörler okuyup güncelleyebilir
       allow read, update, delete: if isEditor();
     }
