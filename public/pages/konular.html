@@ -349,11 +349,12 @@
 
   <script type="module">
     import { db, auth } from '../js/firebase-config.js';
-    import { collection, getDocs, query, orderBy, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { collection, getDocs, query, orderBy, doc, getDoc, where, getCountFromServer } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
     import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
     let allTopics = [];
     let userStats = {}; // { topicId: { solved: 10, correct: 8 } }
+    let questionCounts = new Map(); // { topicId: count }
 
     document.addEventListener('DOMContentLoaded', () => {
       onAuthStateChanged(auth, async (user) => {
@@ -393,12 +394,32 @@
           }
         });
 
+        await loadQuestionCounts(allTopics);
         renderTopics(allTopics);
 
       } catch (error) {
         console.error("Hata:", error);
         document.getElementById('topicsContainer').innerHTML = `<div class="text-danger p-4">Veriler yüklenemedi: ${error.message}</div>`;
       }
+    }
+
+    async function loadQuestionCounts(topics) {
+      const counts = new Map();
+      await Promise.all(topics.map(async (topic) => {
+        try {
+          const q = query(
+            collection(db, "questions"),
+            where("category", "==", topic.title),
+            where("isActive", "==", true)
+          );
+          const snap = await getCountFromServer(q);
+          counts.set(topic.id, snap.data().count || 0);
+        } catch (e) {
+          console.warn(`Soru sayısı alınamadı: ${topic.title}`, e);
+          counts.set(topic.id, 0);
+        }
+      }));
+      questionCounts = counts;
     }
 
     function renderTopics(topics, options = {}) {
@@ -438,6 +459,7 @@
       }
 
       container.innerHTML = '';
+      const getQuestionCount = (id) => questionCounts.get(id) || 0;
       visibleParents.forEach(t => {
         const iconRules = [
           { match: /anayasa|anayasal/i, icon: '⚖️' },
@@ -467,6 +489,7 @@
         const allChildren = (childrenByParent.get(t.id) || []).filter(child =>
           category === 'all' || child.category === category
         );
+        const allChildrenForTotals = childrenByParent.get(t.id) || [];
         const parentMatches = !searchTerm || t.title.toLowerCase().includes(searchTerm);
         const matchingChildren = searchTerm
           ? allChildren.filter(child => child.title.toLowerCase().includes(searchTerm))
@@ -479,6 +502,8 @@
         const progress = Math.min(100, Math.round((stats.solved / stats.total) * 100));
         const childrenTotal = (childrenByParent.get(t.id) || []).length;
         const questionTarget = t.totalQuestionTarget || stats.total || 0;
+        const totalQuestionCount = getQuestionCount(t.id)
+          + allChildrenForTotals.reduce((sum, child) => sum + getQuestionCount(child.id), 0);
 
         const card = document.createElement('a');
         card.href = `/konu/${encodeURIComponent(t.id)}`;
@@ -489,7 +514,7 @@
                         ${childrenToShow.map(child => `
                             <a class="subtopic-link" href="/konu/${encodeURIComponent(child.id)}">
                                 <span>${child.title}</span>
-                                <span class="subtopic-meta">Sıra ${child.order || '-'}</span>
+                                <span class="subtopic-meta">Sıra ${child.order || '-'} • ${getQuestionCount(child.id)} Soru</span>
                             </a>
                         `).join('')}
                     </div>
@@ -522,6 +547,7 @@
                     <p class="topic-desc">${t.description || 'Konu açıklaması bulunmuyor.'}</p>
                     <div class="topic-meta">
                         <span class="topic-meta-item">📌 ${childrenTotal} Alt Konu</span>
+                        <span class="topic-meta-item">🧮 ${totalQuestionCount} Soru</span>
                         <span class="topic-meta-item">🎯 ${questionTarget} Hedef Soru</span>
                     </div>
                     ${subtopicsHtml}
