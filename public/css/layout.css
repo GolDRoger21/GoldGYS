@@ -529,8 +529,194 @@ body.sidebar-collapsed .nav-label {
     justify-content: space-between;
 }
 
+/* --- NOTIFICATIONS & CONFIRMS --- */
+.toast-container {
+    position: fixed;
+    right: 24px;
+    bottom: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    z-index: 1100;
+    pointer-events: none;
+}
+
+.toast {
+    min-width: 260px;
+    max-width: min(420px, calc(100vw - 32px));
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    color: var(--text-main);
+    padding: 14px 18px;
+    border-radius: 14px;
+    box-shadow: var(--shadow-md);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 0.95rem;
+    pointer-events: auto;
+}
+
+.toast::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    background: var(--color-warning);
+    box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.2);
+    flex-shrink: 0;
+}
+
+.toast.success::before {
+    background: var(--color-success);
+    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.2);
+}
+
+.toast.error::before {
+    background: var(--color-danger);
+    box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.2);
+}
+
+.toast.info::before {
+    background: var(--color-primary);
+    box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.2);
+}
+
+.toast-close {
+    background: transparent;
+    border: none;
+    color: inherit;
+    font-size: 1.2rem;
+    cursor: pointer;
+    margin-left: auto;
+    padding: 0 2px;
+}
+
+.alert-banner {
+    position: fixed;
+    top: 18px;
+    left: 50%;
+    transform: translate(-50%, -10px);
+    width: min(720px, calc(100% - 32px));
+    background: var(--bg-surface);
+    color: var(--text-main);
+    border-radius: 14px;
+    border: 1px solid var(--border-color);
+    border-left: 4px solid var(--color-primary);
+    padding: 12px 16px;
+    box-shadow: var(--shadow-md);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--transition-fast), transform var(--transition-fast);
+    z-index: 1200;
+}
+
+.alert-banner.visible {
+    opacity: 1;
+    transform: translate(-50%, 0);
+    pointer-events: auto;
+}
+
+.alert-banner.success {
+    border-left-color: var(--color-success);
+}
+
+.alert-banner.error {
+    border-left-color: var(--color-danger);
+}
+
+.alert-banner.warning {
+    border-left-color: var(--color-warning);
+}
+
+.alert-banner.info {
+    border-left-color: var(--color-primary);
+}
+
+.confirm-overlay {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(8px);
+    z-index: 1200;
+}
+
+.confirm-dialog {
+    width: min(460px, 100%);
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    color: var(--text-main);
+    border-radius: 18px;
+    box-shadow: var(--shadow-md);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.confirm-title {
+    font-size: 1.1rem;
+    margin: 0;
+    font-weight: 600;
+}
+
+.confirm-message {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+.confirm-actions {
+    margin-top: 8px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.confirm-button {
+    border-radius: 999px;
+    padding: 10px 18px;
+    font-weight: 600;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.confirm-button.solid {
+    background: linear-gradient(110deg, var(--gold-dark) 0%, var(--gold-light) 45%, var(--gold-light) 55%, var(--gold-dark) 100%);
+    color: var(--text-on-gold);
+}
+
+.confirm-button.ghost {
+    background: var(--bg-hover);
+    color: var(--text-main);
+    border-color: var(--border-color);
+}
+
+.confirm-button:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+}
+
 /* --- MOBILE RESPONSIVE --- */
 @media (max-width: 768px) {
+    .toast-container {
+        left: 16px;
+        right: 16px;
+        bottom: 16px;
+        align-items: stretch;
+    }
+
+    .toast {
+        width: 100%;
+    }
+
     .app-layout {
         grid-template-columns: 1fr;
         grid-template-areas: "header" "content";
