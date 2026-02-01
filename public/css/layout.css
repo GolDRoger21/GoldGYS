@@ -284,6 +284,11 @@ body.sidebar-collapsed .nav-label {
     animation: dropdownFadeIn 0.2s ease-out;
 }
 
+#notificationDropdown {
+    width: 320px;
+    right: -50px;
+}
+
 .google-dropdown.active {
     display: flex;
 }
@@ -746,6 +751,12 @@ body.sidebar-collapsed .nav-label {
         left: auto !important;
         width: min(92vw, 360px);
         max-height: calc(100vh - var(--header-height) - 24px);
+    }
+
+    #notificationDropdown {
+        right: -10px !important;
+        /* Mobile right adjustment */
+        width: min(90vw, 360px) !important;
     }
 
     .dropdown-menu-items {
