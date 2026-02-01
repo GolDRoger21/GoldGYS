@@ -1,34 +1,24 @@
 <!DOCTYPE html>
 <html lang="tr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Giriş Yap | GOLD GYS</title>
     <meta name="description" content="Gold GYS Personel ve Yönetici Giriş Ekranı">
-    
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
-    
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230F172A'/><text x='50' y='70' font-family='serif' font-size='60' fill='%23D4AF37' text-anchor='middle' font-weight='bold'>G</text></svg>">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:wght@700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="styles/tokens.css">
+
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230F172A'/><text x='50' y='70' font-family='serif' font-size='60' fill='%23D4AF37' text-anchor='middle' font-weight='bold'>G</text></svg>">
 
     <style>
-        :root {
-            --bg-dark: #0F172A;
-            --bg-card: #1E293B;
-            --gold-primary: #D4AF37;
-            --gold-hover: #B5952F;
-            --text-light: #F8FAFC;
-            --text-muted: #94A3B8;
-            --border-color: #334155;
-            --error-color: #ef4444;
-            --success-color: #22c55e;
-            --logo-gold: #F6D78B;
-            --logo-khaki: #C26144;
-            --logo-highlight: #FBE7B1;
-            --gold-glow: rgba(212, 175, 55, 0.4);
-        }
-
+        /* Reset & Base overrides are handled by browser default, but ensure box-sizing */
         * {
             box-sizing: border-box;
             margin: 0;
@@ -36,16 +26,17 @@
         }
 
         body {
-            background-color: var(--bg-dark);
+            background-color: var(--bg-body);
             color: var(--text-light);
-            font-family: 'Inter', sans-serif;
+            /* Enforce light text generally */
+            font-family: var(--font-family-sans);
             min-height: 100vh;
             display: flex;
             flex-direction: column;
             position: relative;
-            overflow: hidden;
-            background-image: radial-gradient(circle at top, rgba(212, 175, 55, 0.12), transparent 55%),
-                radial-gradient(circle at bottom, rgba(212, 175, 55, 0.08), transparent 60%);
+            overflow-x: hidden;
+            background-image: radial-gradient(circle at top, rgba(212, 175, 55, 0.08), transparent 60%),
+                radial-gradient(circle at bottom, rgba(212, 175, 55, 0.05), transparent 60%);
         }
 
         /* Arkaplan Efekti */
@@ -56,7 +47,7 @@
             left: -50%;
             width: 200%;
             height: 200%;
-            background: radial-gradient(circle at center, rgba(212, 175, 55, 0.05) 0%, transparent 50%);
+            background: radial-gradient(circle at center, rgba(212, 175, 55, 0.03) 0%, transparent 50%);
             z-index: 0;
             pointer-events: none;
         }
@@ -78,11 +69,11 @@
             text-decoration: none;
             font-size: 0.9rem;
             font-weight: 500;
-            transition: color 0.2s;
+            transition: var(--transition-fast);
         }
 
         .btn-back:hover {
-            color: var(--gold-primary);
+            color: var(--color-primary);
         }
 
         /* Login Container */
@@ -91,65 +82,82 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 1rem;
+            padding: 1.5rem;
             z-index: 1;
         }
 
         .auth-card {
-            background: var(--bg-card);
-            border: 1px solid rgba(212, 175, 55, 0.35);
-            border-radius: 16px;
-            padding: 3rem 2.5rem;
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            padding: 0;
+            /* Reset default padding */
             width: 100%;
-            max-width: 420px;
-            text-align: center;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 35px rgba(212, 175, 55, 0.08);
+            max-width: 900px;
+            /* Wider card */
+            box-shadow: var(--shadow-gold), 0 25px 50px -12px rgba(0, 0, 0, 0.5);
             position: relative;
+            display: flex;
+            flex-direction: row;
+            /* Side by side on desktop */
+            overflow: hidden;
+        }
+
+        /* Sol Taraf: Giriş ve Logo */
+        .auth-main {
+            flex: 1;
+            padding: 3rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            text-align: center;
+            border-right: 1px solid var(--border-subtle);
+        }
+
+        /* Sağ Taraf: Sözleşme */
+        .auth-agreement-panel {
+            flex: 1;
+            padding: 3rem;
+            background: rgba(15, 23, 42, 0.3);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
 
         /* Logo & Başlıklar */
         .brand-logo {
-            font-family: 'Playfair Display', serif;
-            font-size: 2.5rem;
+            font-family: var(--font-family-serif);
+            font-size: 2.75rem;
             color: var(--text-light);
+            /* Ensure visible in light/dark */
             margin-bottom: 0.5rem;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 0.6rem;
+            gap: 0.75rem;
             letter-spacing: 0.05em;
         }
 
         .brand-logo span {
             color: var(--logo-khaki);
-            text-shadow: 0 0 18px rgba(194, 97, 68, 0.3);
+            text-shadow: 0 0 20px rgba(194, 97, 68, 0.2);
         }
 
         .brand-logo::before {
             content: '';
-            width: 36px;
-            height: 36px;
+            width: 42px;
+            height: 42px;
             border-radius: 50%;
             background: conic-gradient(from 210deg, var(--logo-gold), var(--logo-khaki), var(--logo-highlight), var(--logo-gold));
-            border: 1px solid rgba(255, 255, 255, 0.25);
-            box-shadow: 0 10px 20px rgba(212, 175, 55, 0.25);
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.3);
             flex-shrink: 0;
-        }
-
-        @supports (-webkit-background-clip: text) or (background-clip: text) {
-            .brand-logo {
-                background: linear-gradient(110deg, var(--logo-gold), var(--logo-highlight) 42%, var(--logo-khaki) 85%);
-                -webkit-background-clip: text;
-                background-clip: text;
-                color: transparent;
-            }
         }
 
         .card-subtitle {
             color: var(--text-muted);
             font-size: 1rem;
-            margin-bottom: 2.5rem;
-            line-height: 1.5;
+            margin-bottom: 2rem;
+            line-height: 1.6;
         }
 
         /* Google Butonu */
@@ -160,21 +168,21 @@
             width: 100%;
             background-color: white;
             color: #1f2937;
-            font-family: 'Inter', sans-serif;
-            font-weight: 500;
+            font-family: var(--font-family-sans);
+            font-weight: 600;
             font-size: 1rem;
-            padding: 0.875rem;
-            border-radius: 8px;
-            border: 1px solid rgba(212, 175, 55, 0.4);
+            padding: 1rem 1.25rem;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-color);
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: var(--transition-fast);
             gap: 12px;
         }
 
         .btn-google:hover {
             background-color: #f8fafc;
             transform: translateY(-1px);
-            box-shadow: 0 8px 20px rgba(212, 175, 55, 0.2);
+            box-shadow: var(--shadow-md);
         }
 
         .btn-google:disabled {
@@ -184,17 +192,113 @@
         }
 
         .btn-google svg {
-            width: 20px;
-            height: 20px;
+            width: 24px;
+            height: 24px;
         }
 
-        /* Durum Kutusu (Hata/Bilgi) */
+        /* Bilgi Kutusu */
+        .info-banner {
+            background: rgba(212, 175, 55, 0.1);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            color: var(--gold-light);
+            padding: 1rem;
+            border-radius: var(--radius-md);
+            font-size: 0.9rem;
+            line-height: 1.5;
+            text-align: left;
+            margin-bottom: 2rem;
+        }
+
+        .info-banner strong {
+            color: var(--color-primary);
+            display: block;
+            margin-bottom: 0.25rem;
+        }
+
+        /* Sözleşme Alanı */
+        .agreement-section h3 {
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            color: var(--color-primary);
+            font-family: var(--font-family-serif);
+        }
+
+        .agreement-text {
+            height: 300px;
+            /* Sabit yükseklik, daha geniş alan */
+            overflow-y: auto;
+            padding: 1rem;
+            font-size: 0.9rem;
+            line-height: 1.7;
+            color: var(--text-light);
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            margin-bottom: 1rem;
+        }
+
+        /* Scrollbar Styling */
+        .agreement-text::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .agreement-text::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .agreement-text::-webkit-scrollbar-thumb {
+            background: rgba(212, 175, 55, 0.3);
+            border-radius: 3px;
+        }
+
+        .agreement-text::-webkit-scrollbar-thumb:hover {
+            background: rgba(212, 175, 55, 0.5);
+        }
+
+        .agreement-text h4 {
+            font-size: 0.95rem;
+            margin: 1.25rem 0 0.5rem;
+            color: var(--gold-primary);
+            font-weight: 600;
+        }
+
+        .agreement-text h4:first-child {
+            margin-top: 0;
+        }
+
+        .agreement-text ol {
+            padding-left: 1.25rem;
+            margin-bottom: 1rem;
+        }
+
+        .agreement-text li {
+            margin-bottom: 0.5rem;
+        }
+
+        .agreement-ack {
+            display: flex;
+            gap: 0.75rem;
+            align-items: flex-start;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            cursor: pointer;
+        }
+
+        .agreement-ack input {
+            margin-top: 0.25rem;
+            width: 16px;
+            height: 16px;
+            accent-color: var(--color-primary);
+            cursor: pointer;
+        }
+
+        /* Status & Loader */
         .status-box {
             margin-top: 1.5rem;
             padding: 1rem;
-            border-radius: 8px;
+            border-radius: var(--radius-md);
             font-size: 0.9rem;
-            display: none; /* JS ile açılacak */
+            display: none;
             text-align: left;
         }
 
@@ -210,132 +314,81 @@
             color: #86efac;
         }
 
-        .info-banner {
-            background: rgba(212, 175, 55, 0.12);
-            border: 1px solid rgba(212, 175, 55, 0.3);
-            color: #f7e8a9;
-            padding: 0.9rem 1rem;
-            border-radius: 10px;
-            font-size: 0.9rem;
-            line-height: 1.5;
-            text-align: left;
-            margin-bottom: 1.5rem;
-        }
-
-        .info-banner strong {
-            color: var(--gold-primary);
-        }
-
-        .agreement-section {
-            text-align: left;
-            margin: 1.5rem 0;
-            padding: 1rem;
-            border-radius: 12px;
-            border: 1px solid rgba(212, 175, 55, 0.25);
-            background: rgba(15, 23, 42, 0.6);
-        }
-
-        .agreement-section h3 {
-            font-size: 1rem;
-            margin-bottom: 0.75rem;
-            color: var(--gold-primary);
-            letter-spacing: 0.02em;
-        }
-
-        .agreement-text {
-            max-height: 220px;
-            overflow: auto;
-            padding-right: 0.5rem;
-            font-size: 0.85rem;
-            line-height: 1.6;
-            color: var(--text-light);
-        }
-
-        .agreement-text h4 {
-            font-size: 0.9rem;
-            margin: 0.8rem 0 0.4rem;
-            color: var(--logo-gold);
-        }
-
-        .agreement-text ol {
-            padding-left: 1.2rem;
-            margin: 0.5rem 0 0.8rem;
-        }
-
-        .agreement-text li {
-            margin-bottom: 0.5rem;
-        }
-
-        .agreement-ack {
-            margin-top: 1rem;
-            display: flex;
-            gap: 0.6rem;
-            align-items: flex-start;
-            font-size: 0.85rem;
-            color: var(--text-muted);
-        }
-
-        .agreement-ack input {
-            margin-top: 0.2rem;
-            accent-color: var(--gold-primary);
-        }
-
-        .agreement-ack a {
-            color: var(--gold-primary);
-            text-decoration: none;
-        }
-
-        .agreement-ack a:hover {
-            text-decoration: underline;
-        }
-
-        /* Loader */
         .loader {
-            display: none; /* JS ile açılacak */
+            display: none;
             width: 24px;
             height: 24px;
             border: 2px solid var(--text-muted);
-            border-bottom-color: var(--gold-primary);
+            border-bottom-color: var(--color-primary);
             border-radius: 50%;
             animation: rotation 1s linear infinite;
             margin: 1.5rem auto 0;
         }
 
         @keyframes rotation {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
         }
 
         /* Footer */
         .auth-footer {
             margin-top: 2rem;
-            padding-top: 1.5rem;
-            border-top: 1px solid var(--border-color);
             font-size: 0.85rem;
             color: var(--text-muted);
+            opacity: 0.8;
         }
 
         .auth-footer a {
-            color: var(--gold-primary);
+            color: var(--color-primary);
             text-decoration: none;
         }
 
-        .auth-footer a:hover {
-            text-decoration: underline;
+        /* Responsive */
+        @media (max-width: 900px) {
+            .auth-card {
+                flex-direction: column;
+                max-width: 480px;
+            }
+
+            .auth-main {
+                padding: 2.5rem 2rem;
+                border-right: none;
+                border-bottom: 1px solid var(--border-subtle);
+            }
+
+            .auth-agreement-panel {
+                padding: 2rem;
+            }
+
+            .agreement-text {
+                height: 200px;
+            }
         }
 
-        /* Responsive */
         @media (max-width: 480px) {
             .auth-card {
-                padding: 2rem 1.5rem;
+                border: none;
+                background: transparent;
+                box-shadow: none;
             }
-            .brand-logo {
-                font-size: 2rem;
+
+            .auth-main,
+            .auth-agreement-panel {
+                background: var(--bg-surface);
+                border-radius: var(--radius-lg);
+                margin-bottom: 1rem;
+                border: 1px solid var(--border-subtle);
             }
         }
     </style>
     <link rel="manifest" href="/manifest.json">
 </head>
+
 <body>
 
     <nav class="auth-nav">
@@ -346,96 +399,123 @@
 
     <div class="auth-wrapper">
         <div class="auth-card">
-            <div class="brand-logo">
-                GOLD <span>GYS</span>
-            </div>
-            
-            <p class="card-subtitle">
-                Adalet Bakanlığı Personel Görevde Yükselme Portalına Hoş Geldiniz.
-            </p>
 
-            <div class="info-banner">
-                <strong>Bilgilendirme:</strong> Yeni üyelikler, yönetici onayı sonrasında aktif hale gelir. Onay
-                tamamlanana kadar sisteme giriş yapılamaz. Başvuru durumunuz e-posta ve panel üzerinden
-                bildirilecektir.
-            </div>
-
-            <div class="agreement-section">
-                <h3>Üyelik ve Kullanıcı Sözleşmesi</h3>
-                <div class="agreement-text" aria-label="GOLD GYS Üyelik Sözleşmesi">
-                    <p>
-                        İşbu Üyelik ve Kullanıcı Sözleşmesi (“Sözleşme”), GOLD GYS platformu (“Platform”) üzerinden
-                        sunulan dijital hizmetlerden yararlanacak kullanıcı (“Üye”) ile Platform’un işletmecisi
-                        arasında, Üye’nin platforma üyelik ve kullanım şartlarını düzenler. Üyelik başvurusu,
-                        aşağıdaki şartların okunup kabul edildiği anlamına gelir.
-                    </p>
-                    <h4>1. Taraflar</h4>
-                    <ol>
-                        <li>Platform: GOLD GYS (goldgys.web.app).</li>
-                        <li>Üye: Platforma Google hesabı ile giriş yaparak üyelik talebinde bulunan gerçek kişi.</li>
-                    </ol>
-                    <h4>2. Sözleşmenin Konusu</h4>
-                    <p>İşbu Sözleşme, Platform’un sağladığı sınav hazırlık, analiz ve dijital içerik hizmetlerinden
-                        yararlanma koşullarını belirler.</p>
-                    <h4>3. Üyelik ve Onay Süreci</h4>
-                    <ol>
-                        <li>Üyelik başvurusu yönetici onayına tabidir. Onay verilene kadar sisteme giriş yapılamaz.</li>
-                        <li>Üye, başvuru sırasında sağladığı tüm bilgilerin doğru ve güncel olduğunu beyan eder.</li>
-                        <li>Yanlış veya eksik beyan, üyeliğin askıya alınmasına veya sonlandırılmasına neden olabilir.</li>
-                    </ol>
-                    <h4>4. Kullanım Kuralları</h4>
-                    <ol>
-                        <li>Üye, Platform’u yürürlükteki mevzuata ve genel ahlak kurallarına uygun kullanmayı kabul eder.</li>
-                        <li>Platform’un güvenliğini zedeleyebilecek otomatik sorgu, veri kazıma veya spam faaliyetleri yasaktır.</li>
-                        <li>Üye, hesap bilgilerini üçüncü kişilerle paylaşamaz; tüm işlem ve kullanımından sorumludur.</li>
-                    </ol>
-                    <h4>5. Fikri Mülkiyet ve İçerik</h4>
-                    <ol>
-                        <li>Platform’daki içerikler, tasarımlar, metinler ve uygulamalar GOLD GYS’ye aittir.</li>
-                        <li>İçerikler izinsiz kopyalanamaz, çoğaltılamaz, dağıtılamaz veya ticari amaçla kullanılamaz.</li>
-                    </ol>
-                    <h4>6. Kişisel Veriler ve Gizlilik</h4>
-                    <p>Üye’nin kişisel verileri, yürürlükteki mevzuata uygun olarak, hizmetin sunulması ve güvenliğin
-                        sağlanması amacıyla işlenir. Platform, veri güvenliği için makul teknik ve idari tedbirleri alır.</p>
-                    <h4>7. Sorumluluğun Sınırlandırılması</h4>
-                    <ol>
-                        <li>Platform, teknik arızalar, bakım veya mücbir sebepler nedeniyle geçici hizmet kesintilerinden sorumlu değildir.</li>
-                        <li>Üye, Platform’un kullanımından doğabilecek dolaylı zararlar için tazminat talep etmeyeceğini kabul eder.</li>
-                    </ol>
-                    <h4>8. Sözleşmenin Feshi</h4>
-                    <p>Üye, üyeliğini dilediği zaman sonlandırabilir. Platform, işbu Sözleşme’nin ihlali halinde üyeliği
-                        askıya alma veya tek taraflı feshetme hakkına sahiptir.</p>
-                    <h4>9. Yürürlük</h4>
-                    <p>Üye’nin üyelik başvurusunu tamamlaması ve Sözleşme’yi onaylamasıyla işbu Sözleşme yürürlüğe girer.</p>
+            <!-- Left Side: Login -->
+            <div class="auth-main">
+                <div class="brand-logo">
+                    GOLD <span>GYS</span>
                 </div>
-                <label class="agreement-ack">
-                    <input type="checkbox" id="agreementCheck">
-                    <span>Kullanıcı sözleşmesini okudum, anladım ve kabul ediyorum. Onay vermeden giriş yapamayacağımı
-                        biliyorum.</span>
-                </label>
+
+                <p class="card-subtitle">
+                    Adalet Bakanlığı Personel Görevde Yükselme Portalına Hoş Geldiniz.
+                </p>
+
+                <div class="info-banner">
+                    <strong>Bilgilendirme</strong>
+                    Yeni üyelikler, yönetici onayı sonrasında aktif hale gelir.
+                </div>
+
+                <button id="googleLogin" class="btn-google">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path
+                            d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                            fill="#4285F4" />
+                        <path
+                            d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                            fill="#34A853" />
+                        <path
+                            d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                            fill="#FBBC05" />
+                        <path
+                            d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                            fill="#EA4335" />
+                    </svg>
+                    Google ile Giriş Yap
+                </button>
+
+                <div id="loader" class="loader"></div>
+                <div id="statusBox" class="status-box"></div>
+
+                <div class="auth-footer">
+                    <p>&copy; 2026 GOLD GYS.</p>
+                </div>
             </div>
 
-            <button id="googleLogin" class="btn-google">
-                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-                    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-                    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-                    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-                </svg>
-                Google ile Giriş Yap
-            </button>
-
-            <div id="loader" class="loader"></div>
-
-            <div id="statusBox" class="status-box"></div>
-            
-            <div class="auth-footer">
-                <p>&copy; 2026 GOLD GYS. Güvenli Giriş Sistemi.</p>
-                <p style="margin-top: 5px;"><a href="pages/yardim.html">Giriş yapamıyor musunuz?</a></p>
+            <!-- Right Side: Agreement -->
+            <div class="auth-agreement-panel">
+                <div class="agreement-section">
+                    <h3>Üyelik ve Kullanıcı Sözleşmesi</h3>
+                    <div class="agreement-text" aria-label="GOLD GYS Üyelik Sözleşmesi">
+                        <p>
+                            İşbu Üyelik ve Kullanıcı Sözleşmesi (“Sözleşme”), GOLD GYS platformu (“Platform”) üzerinden
+                            sunulan dijital hizmetlerden yararlanacak kullanıcı (“Üye”) ile Platform’un işletmecisi
+                            arasında, Üye’nin platforma üyelik ve kullanım şartlarını düzenler. Üyelik başvurusu,
+                            aşağıdaki şartların okunup kabul edildiği anlamına gelir.
+                        </p>
+                        <h4>1. Taraflar</h4>
+                        <ol>
+                            <li>Platform: GOLD GYS (goldgys.web.app).</li>
+                            <li>Üye: Platforma Google hesabı ile giriş yaparak üyelik talebinde bulunan gerçek kişi.
+                            </li>
+                        </ol>
+                        <h4>2. Sözleşmenin Konusu</h4>
+                        <p>İşbu Sözleşme, Platform’un sağladığı sınav hazırlık, analiz ve dijital içerik hizmetlerinden
+                            yararlanma koşullarını belirler.</p>
+                        <h4>3. Üyelik ve Onay Süreci</h4>
+                        <ol>
+                            <li>Üyelik başvurusu yönetici onayına tabidir. Onay verilene kadar sisteme giriş yapılamaz.
+                            </li>
+                            <li>Üye, başvuru sırasında sağladığı tüm bilgilerin doğru ve güncel olduğunu beyan eder.
+                            </li>
+                            <li>Yanlış veya eksik beyan, üyeliğin askıya alınmasına veya sonlandırılmasına neden
+                                olabilir.</li>
+                        </ol>
+                        <h4>4. Kullanım Kuralları</h4>
+                        <ol>
+                            <li>Üye, Platform’u yürürlükteki mevzuata ve genel ahlak kurallarına uygun kullanmayı kabul
+                                eder.</li>
+                            <li>Platform’un güvenliğini zedeleyebilecek otomatik sorgu, veri kazıma veya spam
+                                faaliyetleri yasaktır.</li>
+                            <li>Üye, hesap bilgilerini üçüncü kişilerle paylaşamaz; tüm işlem ve kullanımından
+                                sorumludur.</li>
+                        </ol>
+                        <h4>5. Fikri Mülkiyet ve İçerik</h4>
+                        <ol>
+                            <li>Platform’daki içerikler, tasarımlar, metinler ve uygulamalar GOLD GYS’ye aittir.</li>
+                            <li>İçerikler izinsiz kopyalanamaz, çoğaltılamaz, dağıtılamaz veya ticari amaçla
+                                kullanılamaz.</li>
+                        </ol>
+                        <h4>6. Kişisel Veriler ve Gizlilik</h4>
+                        <p>Üye’nin kişisel verileri, yürürlükteki mevzuata uygun olarak, hizmetin sunulması ve
+                            güvenliğin
+                            sağlanması amacıyla işlenir. Platform, veri güvenliği için makul teknik ve idari tedbirleri
+                            alır.</p>
+                        <h4>7. Sorumluluğun Sınırlandırılması</h4>
+                        <ol>
+                            <li>Platform, teknik arızalar, bakım veya mücbir sebepler nedeniyle geçici hizmet
+                                kesintilerinden sorumlu değildir.</li>
+                            <li>Üye, Platform’un kullanımından doğabilecek dolaylı zararlar için tazminat talep
+                                etmeyeceğini kabul eder.</li>
+                        </ol>
+                        <h4>8. Sözleşmenin Feshi</h4>
+                        <p>Üye, üyeliğini dilediği zaman sonlandırabilir. Platform, işbu Sözleşme’nin ihlali halinde
+                            üyeliği
+                            askıya alma veya tek taraflı feshetme hakkına sahiptir.</p>
+                        <h4>9. Yürürlük</h4>
+                        <p>Üye’nin üyelik başvurusunu tamamlaması ve Sözleşme’yi onaylamasıyla işbu Sözleşme yürürlüğe
+                            girer.</p>
+                    </div>
+                    <label class="agreement-ack">
+                        <input type="checkbox" id="agreementCheck">
+                        <span>Kullanıcı sözleşmesini okudum, anladım ve kabul ediyorum.</span>
+                    </label>
+                </div>
             </div>
+
         </div>
     </div>
 
     <script type="module" src="./js/auth.js"></script>
 </body>
+
 </html>
