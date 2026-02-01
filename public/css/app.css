@@ -1,3 +1,4 @@
+@import url("/styles/tokens.css");
 @import url("/css/layout.css");
 @import url("/css/typography.css");
 
@@ -29,7 +30,7 @@
     background: linear-gradient(110deg, var(--gold-dark) 0%, var(--gold-light) 45%, var(--gold-light) 55%, var(--gold-dark) 100%);
     background-size: 200% auto;
     animation: shimmer 4s linear infinite;
-    color: var(--navy-deep);
+    color: var(--text-on-gold);
     border: none;
     font-weight: 700;
 }
@@ -37,16 +38,6 @@
 .premium-gold-btn:hover {
     box-shadow: 0 0 15px rgba(212, 175, 55, 0.4);
     transform: translateY(-1px);
-}
-
-/* --- TEMEL SAYFA YAPISI --- */
-body {
-    font-family: 'Inter', sans-serif;
-    background-color: var(--navy-deep);
-    /* Arka planı koyu yaptım, landing page için daha şık */
-    color: var(--text-light);
-    line-height: 1.6;
-    overflow-x: hidden;
 }
 
 /* --- BİLDİRİM TOASTLARI (Moved to layout.css) --- */
@@ -90,25 +81,6 @@ body {
     background: rgba(15, 23, 42, 0.98);
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
     border-bottom: 1px solid var(--gold-main);
-}
-
-.brand-logo {
-    font-family: 'Playfair Display', serif;
-    font-size: 1.5rem;
-    font-weight: 700;
-    text-decoration: none;
-    color: var(--text-light);
-    display: flex;
-    align-items: center;
-    gap: 5px;
-}
-
-.brand-logo span {
-    color: var(--gold-main);
-}
-
-[data-theme="light"] .brand-logo {
-    color: var(--navy-deep);
 }
 
 .nav-right {
