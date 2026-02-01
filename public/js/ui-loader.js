@@ -309,7 +309,7 @@ async function checkUserAuthState() {
                 } catch (e) { console.error(e); }
             } else {
                 // Public sayfalarda değilsek login'e at
-                const isPublic = ['/login.html', '/', '/404.html'].includes(window.location.pathname);
+                const isPublic = ['/login.html', '/', '/404.html', '/pages/yardim.html', '/pages/yardim'].includes(window.location.pathname);
                 if (!isPublic) window.location.href = '/login.html';
             }
             resolve();
