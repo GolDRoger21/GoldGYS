@@ -622,6 +622,10 @@
     gap: 10px;
 }
 
+[data-theme="light"] .card-title {
+    color: var(--navy-deep);
+}
+
 .card-body {
     padding: 24px;
 }
@@ -656,6 +660,14 @@
     text-transform: uppercase;
     letter-spacing: 1px;
     font-weight: 600;
+}
+
+.current-level-value {
+    color: var(--text-light);
+}
+
+[data-theme="light"] .current-level-value {
+    color: var(--navy-deep);
 }
 
 /* --- KPI STAT CARDS (SMALL) --- */
@@ -790,6 +802,16 @@
     height: 100%;
     background: var(--gold-main);
     border-radius: 99px;
+}
+
+.progress-mini-percent {
+    font-weight: 700;
+    color: var(--text-light);
+    font-size: 0.9rem;
+}
+
+[data-theme="light"] .progress-mini-percent {
+    color: var(--navy-deep);
 }
 
 /* Action & Status */
