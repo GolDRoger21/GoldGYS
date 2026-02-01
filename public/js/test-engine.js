@@ -1,8 +1,9 @@
-import { db, auth } from "./firebase-config.js";
+import { auth, db, functions } from "./firebase-config.js";
 import { showConfirm, showToast } from "./notifications.js";
 import {
     doc, setDoc, addDoc, collection, serverTimestamp, increment, getDoc, deleteDoc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { httpsCallable } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-functions.js";
 
 export class TestEngine {
     constructor(containerId, questionsData, options = {}) {
@@ -621,17 +622,18 @@ export class TestEngine {
     openReportModal(qId) {
         const desc = prompt("Bu soruda ne gibi bir hata var? (Örn: Cevap yanlış, Yazım hatası)");
         if (desc && auth.currentUser) {
-            addDoc(collection(db, "reports"), {
+            const submitReport = httpsCallable(functions, "submitReport");
+            submitReport({
                 questionId: qId,
-                userId: auth.currentUser.uid,
-                userEmail: auth.currentUser.email,
-                userName: auth.currentUser.displayName,
                 description: desc,
                 type: "question_error",
-                status: "pending",
-                createdAt: serverTimestamp()
-            });
-            showToast("Bildiriminiz alındı. Teşekkürler!", "success");
+                source: "question_modal"
+            })
+                .then(() => showToast("Bildiriminiz alındı. Teşekkürler!", "success"))
+                .catch((error) => {
+                    console.error("Bildirimi gönderme hatası:", error);
+                    showToast(`Bildiriminiz gönderilemedi: ${error.message}`, "error");
+                });
         }
     }
 

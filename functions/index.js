@@ -5,6 +5,8 @@ admin.initializeApp();
 const ALLOWED_ROLES = ["student", "editor", "admin"];
 const ALLOWED_STATUS = ["pending", "active", "rejected", "suspended", "deleted"];
 const ADMIN_AUDIT_COLLECTION = "adminAuditLogs";
+const REPORT_RATE_LIMIT_SECONDS = 30;
+const REPORT_DAILY_LIMIT = 20;
 
 function normalizeDate(value) {
   if (!value) return null;
@@ -64,6 +66,15 @@ function filterQuestionRefs(list, questionId) {
   if (!Array.isArray(list)) return { filtered: list, changed: false };
   const filtered = list.filter((item) => extractQuestionId(item) !== questionId);
   return { filtered, changed: filtered.length !== list.length };
+}
+
+function normalizeString(value) {
+  if (typeof value !== "string") return "";
+  return value.trim();
+}
+
+function ensureLength(value, min, max) {
+  return value.length >= min && value.length <= max;
 }
 
 async function deleteDocsInBatches(docSnaps) {
@@ -396,6 +407,111 @@ exports.updateUserProfile = functions.https.onCall(async (data, context) => {
     });
     throw error;
   }
+});
+
+exports.submitReport = functions.https.onCall(async (data, context) => {
+  if (!context.auth) {
+    throw new functions.https.HttpsError("unauthenticated", "Oturum gerekli.");
+  }
+
+  const uid = context.auth.uid;
+  const userEmail = context.auth.token?.email || null;
+  const userName = context.auth.token?.name || null;
+
+  const type = normalizeString(data?.type);
+  const priority = normalizeString(data?.priority);
+  const description = normalizeString(data?.description);
+  const questionId = normalizeString(data?.questionId);
+  const source = normalizeString(data?.source);
+
+  if (!ensureLength(type, 3, 50)) {
+    throw new functions.https.HttpsError("invalid-argument", "Geçerli bir bildirim türü girin.");
+  }
+
+  if (!ensureLength(description, 5, 1000)) {
+    throw new functions.https.HttpsError("invalid-argument", "Açıklama 5-1000 karakter olmalı.");
+  }
+
+  if (priority && !ensureLength(priority, 2, 20)) {
+    throw new functions.https.HttpsError("invalid-argument", "Geçerli bir öncelik seçin.");
+  }
+
+  if (questionId && !ensureLength(questionId, 2, 128)) {
+    throw new functions.https.HttpsError("invalid-argument", "Geçersiz soru kimliği.");
+  }
+
+  if (source && !ensureLength(source, 2, 40)) {
+    throw new functions.https.HttpsError("invalid-argument", "Geçersiz kaynak bilgisi.");
+  }
+
+  const db = admin.firestore();
+  const userSnap = await db.collection("users").doc(uid).get();
+  const status = userSnap.data()?.status || "pending";
+
+  if (["suspended", "deleted", "rejected"].includes(status)) {
+    throw new functions.https.HttpsError("permission-denied", "Hesabınız bildirim göndermeye uygun değil.");
+  }
+
+  const now = admin.firestore.Timestamp.now();
+  const dayKey = now.toDate().toISOString().slice(0, 10);
+  const rateRef = db.collection("rateLimits").doc(uid);
+  const reportRef = db.collection("reports").doc();
+
+  await db.runTransaction(async (tx) => {
+    const rateSnap = await tx.get(rateRef);
+    const rateData = rateSnap.exists ? rateSnap.data() : {};
+    const lastSubmittedAt = rateData?.lastSubmittedAt?.toDate?.() || null;
+    const lastDayKey = rateData?.dayKey || null;
+    const currentCount =
+      lastDayKey === dayKey ? Number(rateData?.dailyCount || 0) : 0;
+
+    if (lastSubmittedAt) {
+      const diffSeconds = (now.toDate().getTime() - lastSubmittedAt.getTime()) / 1000;
+      if (diffSeconds < REPORT_RATE_LIMIT_SECONDS) {
+        throw new functions.https.HttpsError(
+          "resource-exhausted",
+          "Çok hızlı bildirim gönderiyorsunuz. Lütfen biraz bekleyin."
+        );
+      }
+    }
+
+    if (currentCount + 1 > REPORT_DAILY_LIMIT) {
+      throw new functions.https.HttpsError(
+        "resource-exhausted",
+        "Günlük bildirim sınırına ulaştınız."
+      );
+    }
+
+    tx.set(
+      rateRef,
+      {
+        uid,
+        dayKey,
+        dailyCount: currentCount + 1,
+        lastSubmittedAt: now,
+      },
+      { merge: true }
+    );
+
+    const reportPayload = {
+      userId: uid,
+      userEmail,
+      userName,
+      type,
+      description,
+      status: "pending",
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      isRead: false,
+    };
+
+    if (priority) reportPayload.priority = priority;
+    if (questionId) reportPayload.questionId = questionId;
+    if (source) reportPayload.source = source;
+
+    tx.set(reportRef, reportPayload);
+  });
+
+  return { ok: true, id: reportRef.id };
 });
 
 async function deleteCollectionDocs(collectionRef, field, value) {

@@ -366,9 +366,9 @@
   </div>
 
   <script type="module">
-    import { db, auth } from '../js/firebase-config.js';
+    import { auth, functions } from '../js/firebase-config.js';
     import { showToast } from '../js/notifications.js';
-    import { collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { httpsCallable } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-functions.js";
     import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
     // Kullanıcı Bilgilerini Doldur
@@ -404,17 +404,12 @@
       try {
         const priority = document.querySelector('input[name="priority"]:checked').value;
 
-        await addDoc(collection(db, "reports"), {
-          userId: auth.currentUser.uid,
-          userEmail: auth.currentUser.email,
-          userName: auth.currentUser.displayName,
+        const submitReport = httpsCallable(functions, "submitReport");
+        await submitReport({
           type: document.getElementById('inpSubject').value,
           priority: priority,
           description: document.getElementById('inpMessage').value,
-          status: 'pending',
-          createdAt: serverTimestamp(),
-          source: 'help_page',
-          isRead: false // Admin bildirimi için
+          source: 'help_page'
         });
 
         showToast("Destek talebiniz alındı. En kısa sürede dönüş yapacağız.", "success");

@@ -24,3 +24,4 @@ export const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 // Servisleri Dışa Aktar (Diğer dosyalar bunları kullanacak)
 export const auth = getAuth(app);
 export const db = getFirestore(app);
+export const functions = getFunctions(app);
