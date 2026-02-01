@@ -14,6 +14,8 @@ const googleLoginButton = document.getElementById("googleLogin");
 const loader = document.getElementById("loader");
 const statusBox = document.getElementById("statusBox");
 const agreementCheckbox = document.getElementById("agreementCheck");
+const agreementPanel = document.getElementById("agreementPanel");
+const authCard = document.getElementById("authCard");
 
 const provider = new GoogleAuthProvider();
 let isLoading = false;
@@ -29,13 +31,16 @@ if (isRegisterMode) {
     if (googleLoginButton) {
         googleLoginButton.innerHTML = googleLoginButton.innerHTML.replace("Giriş Yap", "Kayıt Ol");
     }
+} else {
+    if (authCard) authCard.classList.add("is-login");
+    if (agreementPanel) agreementPanel.style.display = "none";
 }
 
-const hasAcceptedAgreement = () => !agreementCheckbox || agreementCheckbox.checked;
+const hasAcceptedAgreement = () => !isRegisterMode || (agreementCheckbox && agreementCheckbox.checked);
 
 const updateLoginButtonState = () => {
     if (!googleLoginButton) return;
-    const isAgreementMissing = !hasAcceptedAgreement();
+    const isAgreementMissing = isRegisterMode && !hasAcceptedAgreement();
     googleLoginButton.disabled = isLoading || isAgreementMissing;
     googleLoginButton.style.opacity = googleLoginButton.disabled ? "0.6" : "1";
     googleLoginButton.style.pointerEvents = googleLoginButton.disabled ? "none" : "auto";
@@ -162,7 +167,7 @@ export const logout = async () => {
 // Event Listeners
 if (googleLoginButton) {
     googleLoginButton.addEventListener("click", async () => {
-        if (!hasAcceptedAgreement()) {
+        if (isRegisterMode && !hasAcceptedAgreement()) {
             showStatus("error", "Devam etmek için kullanıcı sözleşmesini okuduğunuzu ve kabul ettiğinizi onaylamalısınız.");
             return;
         }

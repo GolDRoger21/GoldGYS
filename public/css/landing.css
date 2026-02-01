@@ -114,11 +114,11 @@ main {
 
 .btn-primary {
     background-color: var(--gold-main);
-    color: var(--navy-deep);
+    color: var(--text-on-gold);
     /* Ensure dark text */
     border: 1px solid var(--gold-main);
     box-shadow: 0 4px 15px rgba(212, 175, 55, 0.4);
-    font-weight: 700;
+    font-weight: 600;
     text-shadow: none;
     /* Remove shadow for clarity */
 }

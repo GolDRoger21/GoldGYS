@@ -111,6 +111,18 @@
             overflow: hidden;
         }
 
+        .auth-card.is-login {
+            max-width: 520px;
+        }
+
+        .auth-card.is-login .auth-main {
+            border-right: none;
+        }
+
+        .auth-card.is-login .auth-agreement-panel {
+            display: none;
+        }
+
         /* Sol Taraf: Giriş ve Logo */
         .auth-main {
             flex: 1;
@@ -406,7 +418,7 @@
     </nav>
 
     <div class="auth-wrapper">
-        <div class="auth-card">
+        <div class="auth-card" id="authCard">
 
             <!-- Left Side: Login -->
             <div class="auth-main">
@@ -450,7 +462,7 @@
             </div>
 
             <!-- Right Side: Agreement -->
-            <div class="auth-agreement-panel">
+            <div class="auth-agreement-panel" id="agreementPanel">
                 <div class="agreement-section">
                     <h3>Üyelik ve Kullanıcı Sözleşmesi</h3>
                     <div class="agreement-text" aria-label="GOLD GYS Üyelik Sözleşmesi">
