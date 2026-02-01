@@ -63,14 +63,14 @@
   --bg-dropdown: #1E293B;
 
   /* Text */
-  --text-main: #F8FAFC;
-  /* Off-White */
-  --text-muted: #94A3B8;
-  /* Slate Gray */
+  --text-main: #F7E8A9;
+  /* Soft Gold */
+  --text-muted: #D4AF37;
+  /* Muted Gold */
   --text-on-gold: #0F172A;
   /* Dark text on gold bg */
-  --text-logo: #F8FAFC;
-  --text-light: #F8FAFC;
+  --text-logo: #F7E8A9;
+  --text-light: #F7E8A9;
   --text-white: #F8FAFC;
 
   /* Borders & Radius */
@@ -117,11 +117,12 @@
   --bg-dropdown: #FFFFFF;
 
   /* Text */
-  --text-main: #0F172A;
-  /* Dark Slate */
-  --text-muted: #64748B;
+  --text-main: #856d20;
+  /* Deep Gold */
+  --text-muted: #B5952F;
+  /* Muted Gold */
   --text-on-gold: var(--navy-deep);
-  --text-logo: #0F172A;
+  --text-logo: #856d20;
   --text-light: #F8FAFC;
   /* Keep this light for reverse contrast elements if needed, or check usage */
   --text-white: #F8FAFC;
