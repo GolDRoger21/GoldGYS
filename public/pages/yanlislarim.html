@@ -349,6 +349,7 @@
 
     async function loadMistakes(uid) {
       ui.mistakesList.innerHTML = '<div class="card p-4 text-center">Hatalarınız analiz ediliyor...</div>';
+      setSolveButtonsEnabled(false);
       try {
         const q = query(collection(db, `users/${uid}/wrongs`), orderBy('lastAttempt', 'desc'));
         const snapshot = await getDocs(q);
@@ -377,7 +378,7 @@
           await Promise.all(staleMistakes.map(m => deleteDoc(doc(db, `users/${uid}/wrongs/${m.id}`))));
         }
 
-        state.allMistakes = rawMistakes
+        const activeMistakes = rawMistakes
           .filter(m => questionMap.has(m.questionId))
           .map(m => {
             const question = questionMap.get(m.questionId);
@@ -388,18 +389,22 @@
             };
           });
 
-        if (state.allMistakes.length === 0) {
+        if (activeMistakes.length === 0) {
+          state.allMistakes = [];
           renderEmptyState();
           return;
         }
 
+        state.allMistakes = activeMistakes;
         populateCategorySelect();
         renderCategoryCards();
         applyFilters();
         updateSummary();
+        setSolveButtonsEnabled(true);
 
       } catch (error) {
         console.error(error);
+        setSolveButtonsEnabled(false);
         ui.mistakesList.innerHTML = '<div class="text-danger">Veriler alınamadı.</div>';
       }
     }
@@ -412,6 +417,7 @@
       ui.categoryCards.innerHTML = '<div class="empty-state">Hiç yanlış soru bulunamadı.</div>';
       ui.mistakesList.innerHTML = '<div class="empty-state">Yanlış yaptığın soru yok, böyle devam! 🎉</div>';
       ui.filteredCount.textContent = '0 soru';
+      setSolveButtonsEnabled(false);
     }
 
     function populateCategorySelect() {
@@ -552,6 +558,14 @@
       localStorage.setItem('customTestTitle', title);
       localStorage.removeItem('customTestQuestions');
       window.location.href = `/test?mode=custom&source=local&testMode=${mode}`;
+    }
+
+    function setSolveButtonsEnabled(isEnabled) {
+      [ui.btnSolveAllExam, ui.btnSolveAllPractice].forEach(btn => {
+        if (!btn) return;
+        btn.disabled = !isEnabled;
+        btn.classList.toggle('disabled', !isEnabled);
+      });
     }
 
     function formatDate(timestamp) {
