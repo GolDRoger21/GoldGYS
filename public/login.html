@@ -23,6 +23,9 @@
             --border-color: #334155;
             --error-color: #ef4444;
             --success-color: #22c55e;
+            --logo-gold: #F6D78B;
+            --logo-khaki: #C26144;
+            --logo-highlight: #FBE7B1;
         }
 
         * {
@@ -106,11 +109,36 @@
             font-size: 2.5rem;
             color: var(--text-light);
             margin-bottom: 0.5rem;
-            display: block;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.6rem;
+            letter-spacing: 0.05em;
         }
 
         .brand-logo span {
-            color: var(--gold-primary);
+            color: var(--logo-khaki);
+            text-shadow: 0 0 18px rgba(194, 97, 68, 0.3);
+        }
+
+        .brand-logo::before {
+            content: '';
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: conic-gradient(from 210deg, var(--logo-gold), var(--logo-khaki), var(--logo-highlight), var(--logo-gold));
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            box-shadow: 0 10px 20px rgba(212, 175, 55, 0.25);
+            flex-shrink: 0;
+        }
+
+        @supports (-webkit-background-clip: text) or (background-clip: text) {
+            .brand-logo {
+                background: linear-gradient(110deg, var(--logo-gold), var(--logo-highlight) 42%, var(--logo-khaki) 85%);
+                -webkit-background-clip: text;
+                background-clip: text;
+                color: transparent;
+            }
         }
 
         .card-subtitle {

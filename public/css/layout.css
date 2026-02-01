@@ -81,15 +81,37 @@ body.sidebar-collapsed .app-layout {
     font-size: 1.4rem;
     font-weight: 700;
     color: var(--text-logo);
-    /* Logo rengi temaya göre değişecek */
     text-decoration: none;
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 6px;
+    letter-spacing: 0.04em;
+    position: relative;
 }
 
 .brand-logo span {
-    color: var(--color-primary);
+    color: var(--logo-khaki);
+    text-shadow: 0 0 18px rgba(194, 97, 68, 0.25);
+}
+
+.brand-logo::before {
+    content: '';
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: conic-gradient(from 210deg, var(--logo-gold), var(--logo-khaki), var(--logo-highlight), var(--logo-gold));
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    box-shadow: 0 6px 14px rgba(212, 175, 55, 0.25);
+    flex-shrink: 0;
+}
+
+@supports (-webkit-background-clip: text) or (background-clip: text) {
+    .brand-logo {
+        background: linear-gradient(110deg, var(--logo-gold), var(--logo-highlight) 45%, var(--logo-khaki) 85%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+    }
 }
 
 /* --- SIDEBAR --- */

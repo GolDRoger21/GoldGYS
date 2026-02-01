@@ -72,6 +72,9 @@
   --text-logo: #F7E8A9;
   --text-light: #F7E8A9;
   --text-white: #F8FAFC;
+  --logo-gold: #F6D78B;
+  --logo-khaki: #C26144;
+  --logo-highlight: #FBE7B1;
 
   /* Borders & Radius */
   --border-color: #334155;
@@ -126,6 +129,9 @@
   --text-light: #F8FAFC;
   /* Keep this light for reverse contrast elements if needed, or check usage */
   --text-white: #F8FAFC;
+  --logo-gold: #C89B28;
+  --logo-khaki: #B4573C;
+  --logo-highlight: #E8D29A;
 
   /* Undo text-light override for general usage if it causes issues, but kept for compatibility */
 
