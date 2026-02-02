@@ -1,4 +1,5 @@
 const { onCall, onRequest, HttpsError } = require("firebase-functions/v2/https");
+const { onDocumentCreated, onDocumentDeleted, onDocumentUpdated } = require("firebase-functions/v2/firestore");
 const admin = require("firebase-admin");
 admin.initializeApp();
 
@@ -855,60 +856,59 @@ exports.getUserContentSummary = onCall({ enforceAppCheck: true }, async (request
 
 // --- İSTATİSTİK TETİKLEYİCİSİ (YENİ) ---
 // Yeni bir kullanıcı kayıt olduğunda çalışır ve günlük sayacı artırır.
-exports.onUserCreated = functions.firestore
-  .document("users/{uid}")
-  .onCreate(async (snap, context) => {
-    const data = snap.data();
-    let dateStr;
+exports.onUserCreated = onDocumentCreated("users/{uid}", async (event) => {
+  const snap = event.data;
+  if (!snap) return;
+  const data = snap.data();
+  let dateStr;
 
-    // Tarihi belirle (createdAt varsa kullan, yoksa sunucu zamanını al)
-    if (data.createdAt && typeof data.createdAt.toDate === 'function') {
-      dateStr = data.createdAt.toDate().toISOString().split('T')[0]; // YYYY-MM-DD
-    } else {
-      dateStr = new Date().toISOString().split('T')[0];
-    }
+  // Tarihi belirle (createdAt varsa kullan, yoksa sunucu zamanını al)
+  if (data.createdAt && typeof data.createdAt.toDate === 'function') {
+    dateStr = data.createdAt.toDate().toISOString().split('T')[0]; // YYYY-MM-DD
+  } else {
+    dateStr = new Date().toISOString().split('T')[0];
+  }
 
-    // 'stats/daily_users' dokümanını güncelle
-    const statsRef = admin.firestore().collection('stats').doc('daily_users');
+  // 'stats/daily_users' dokümanını güncelle
+  const statsRef = admin.firestore().collection('stats').doc('daily_users');
 
-    try {
-      // O günün sayacını atomik olarak +1 artır
-      await statsRef.set({
-        [dateStr]: admin.firestore.FieldValue.increment(1)
-      }, { merge: true });
-      console.log(`Yeni üye sayacı güncellendi: ${dateStr}`);
-    } catch (error) {
-      console.error("Sayaç güncelleme hatası:", error);
-    }
-  });
+  try {
+    // O günün sayacını atomik olarak +1 artır
+    await statsRef.set({
+      [dateStr]: admin.firestore.FieldValue.increment(1)
+    }, { merge: true });
+    console.log(`Yeni üye sayacı güncellendi: ${dateStr}`);
+  } catch (error) {
+    console.error("Sayaç güncelleme hatası:", error);
+  }
+});
 
-exports.onQuestionDeleted = functions.firestore
-  .document("questions/{questionId}")
-  .onDelete(async (snap, context) => {
-    const { questionId } = context.params;
+exports.onQuestionDeleted = onDocumentDeleted("questions/{questionId}", async (event) => {
+  const { questionId } = event.params;
+
+  try {
+    await cleanupQuestionReferences(questionId);
+    console.log(`Soru silindi, ilişkili kayıtlar temizlendi: ${questionId}`);
+  } catch (error) {
+    console.error("Soru silme temizliği başarısız", error);
+  }
+});
+
+exports.onQuestionSoftDeleted = onDocumentUpdated("questions/{questionId}", async (event) => {
+  const change = event.data;
+  if (!change) return;
+  const before = change.before.data();
+  const after = change.after.data();
+  if (!before?.isDeleted && after?.isDeleted) {
+    const { questionId } = event.params;
     try {
       await cleanupQuestionReferences(questionId);
-      console.log(`Soru silindi, ilişkili kayıtlar temizlendi: ${questionId}`);
+      console.log(`Soru çöp kutusuna taşındı, ilişkiler temizlendi: ${questionId}`);
     } catch (error) {
-      console.error("Soru silme temizliği başarısız", error);
+      console.error("Soru çöp kutusu temizliği başarısız", error);
     }
-  });
-
-exports.onQuestionSoftDeleted = functions.firestore
-  .document("questions/{questionId}")
-  .onUpdate(async (change, context) => {
-    const before = change.before.data();
-    const after = change.after.data();
-    if (!before?.isDeleted && after?.isDeleted) {
-      const { questionId } = context.params;
-      try {
-        await cleanupQuestionReferences(questionId);
-        console.log(`Soru çöp kutusuna taşındı, ilişkiler temizlendi: ${questionId}`);
-      } catch (error) {
-        console.error("Soru çöp kutusu temizliği başarısız", error);
-      }
-    }
-  });
+  }
+});
 
 // --- SITEMAP GENERATION ---
 exports.sitemap = onRequest(async (req, res) => {
