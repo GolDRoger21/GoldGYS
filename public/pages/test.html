@@ -634,6 +634,7 @@
 
     <script type="module">
         import { TestEngine } from "../js/test-engine.js";
+        import { TopicService } from "../js/topic-service.js"; // Added Import
         import { auth, db } from "../js/firebase-config.js";
         import { showToast } from "../js/notifications.js";
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
@@ -699,23 +700,24 @@
                 let totalCount = null;
 
                 if (mode === 'smart' && topicId) {
-                    // --- AKILLI ÇALIŞMA MODU ---
+                    // --- AKILLI ÇALIŞMA MODU (Optimize Edilmiş v2) ---
 
-                    // 1. Konu Başlığını Al (Kategori filtrelemesi için)
+                    // 1. Konu Başlığını Al
                     const topicSnap = await getDoc(doc(db, "topics", topicId));
                     const topicTitle = topicSnap.exists() ? topicSnap.data().title : "";
                     title = `${topicTitle} - Çalışma Modu`;
 
-                    // 2. Soruları Çek
+                    const user = auth.currentUser;
+
                     if (filter === 'favorites' || filter === 'wrongs') {
-                        const user = await waitForUser();
+                        // --- F,avoriler ve Yanlışlar (Eski Mantık) ---
                         if (!user) {
                             showToast("Bu modu kullanmak için giriş yapmalısınız.", "warning");
                             window.location.href = returnUrl;
                             return;
                         }
-
                         const subcollection = filter === 'favorites' ? 'favorites' : 'wrongs';
+
                         const baseQuery = query(
                             collection(db, `users/${user.uid}/${subcollection}`),
                             where("category", "==", topicTitle),
@@ -726,35 +728,65 @@
                             getCountFromServer(query(collection(db, `users/${user.uid}/${subcollection}`), where("category", "==", topicTitle)))
                         ]);
                         totalCount = countSnap.data().count || 0;
-                        const ids = snap.docs.map(docSnap => docSnap.data()?.questionId).filter(Boolean);
+                        const ids = snap.docs.map(dS => dS.data()?.questionId).filter(Boolean);
                         const questionMap = await fetchQuestionsByIds(ids);
                         questions = ids.map(id => questionMap.get(id)).filter(Boolean);
-                    } else {
-                        // Aktif soruları çek (Kategoriye göre)
-                        const baseQuery = query(
-                            collection(db, "questions"),
-                            where("category", "==", topicTitle),
-                            where("isActive", "==", true),
-                            limit(requestedLimit)
-                        );
-                        const [qSnap, countSnap] = await Promise.all([
-                            getDocs(baseQuery),
-                            getCountFromServer(query(collection(db, "questions"), where("category", "==", topicTitle), where("isActive", "==", true)))
-                        ]);
-                        questions = qSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-                        totalCount = countSnap.data().count || 0;
-                    }
 
-                    // 3. Filtreleme ve Sıralama
-                    if (filter === 'random') {
-                        questions = shuffleArray(questions);
-                    } else if (filter === 'order') {
-                        // Madde numarasına göre sırala (legislationRef.article)
-                        questions.sort((a, b) => {
-                            const artA = parseInt((a.legislationRef?.article || '0').replace(/\D/g, '')) || 9999;
-                            const artB = parseInt((b.legislationRef?.article || '0').replace(/\D/g, '')) || 9999;
-                            return artA - artB;
-                        });
+                    } else {
+                        // --- Karışık ve Sıralı Mod (Yeni Sistem) ---
+
+                        // A. ID'leri Getir
+                        const allQuestionIds = await TopicService.getTopicQuestionIds(topicTitle);
+                        totalCount = allQuestionIds.length;
+
+                        // B. İlerleme Kontrolü
+                        let solvedIds = [];
+                        if (user) {
+                            const progress = await TopicService.getUserProgress(user.uid, topicId);
+                            solvedIds = progress.solvedIds || [];
+                        }
+
+                        // C. Aday Sorular (Çözülmemişler)
+                        let candidates = allQuestionIds.filter(id => !solvedIds.includes(id));
+
+                        // Eğer hiç aday kalmadıysa (Hepsi çözüldü)
+                        if (candidates.length === 0 && allQuestionIds.length > 0) {
+                            const shouldReset = confirm("Tebrikler! Bu konudaki tüm soruları bitirdiniz. İlerlemenizi sıfırlayıp tekrar çözmek ister misiniz?");
+                            if (shouldReset && user) {
+                                await TopicService.resetProgress(user.uid, topicId);
+                                candidates = allQuestionIds; // Sıfırlandı, hepsi aday
+                            } else {
+                                window.location.href = returnUrl;
+                                return;
+                            }
+                        }
+
+                        // D. Seçim Yap
+                        let selectedIds = [];
+                        if (filter === 'order') {
+                            // Sıralı: ID listesinden sıradaki n taneyi al
+                            // Not: ID listesi Firestore'dan karışık gelmiş olabilir ama sabit durur.
+                            // Gerçek madde sırası için metadata gerekebilirdi ama ID cache sadece string array.
+                            // Şimdilik candidates içinden sırayla alıyoruz.
+                            selectedIds = candidates.slice(0, requestedLimit);
+                        } else {
+                            // Random: Karıştır ve al
+                            shuffleArray(candidates);
+                            selectedIds = candidates.slice(0, requestedLimit);
+                        }
+
+                        // E. Detayları Çek
+                        const questionMap = await fetchQuestionsByIds(selectedIds);
+                        questions = selectedIds.map(id => questionMap.get(id)).filter(Boolean);
+
+                        // F. Order Modu - Madde Sıralaması (Client Side)
+                        if (filter === 'order') {
+                            questions.sort((a, b) => {
+                                const artA = parseInt((a.legislationRef?.article || '0').replace(/\D/g, '')) || 9999;
+                                const artB = parseInt((b.legislationRef?.article || '0').replace(/\D/g, '')) || 9999;
+                                return artA - artB;
+                            });
+                        }
                     }
 
                 } else if (examId && topicId) {
@@ -871,7 +903,14 @@
                     duration: duration,
                     menuButton: true,
                     examId: examId || topicId || 'custom_practice',
-                    title: title
+                    title: title,
+                    onQuestionAnswered: async (data) => {
+                        // Smart modda ilerleme kaydı (Sadece cevaplandığında)
+                        if (mode === 'smart' && topicId && auth.currentUser) {
+                            // Doğru/Yanlış fark etmeksizin "Çözüldü" olarak işaretle
+                            await TopicService.saveProgress(auth.currentUser.uid, topicId, [data.questionId]);
+                        }
+                    }
                 });
 
                 // UI Aç

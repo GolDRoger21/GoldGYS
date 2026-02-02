@@ -336,8 +336,14 @@
       <div id="topicContentSection" data-tab-content="tests">
         <div class="study-mode-card">
           <h2 style="margin:0; font-size:1.5rem;">🚀 Serbest Çalışma Modu</h2>
-          <p id="studyModeStatus" style="opacity:0.8; margin-top:5px;">Bu konuya ait <strong id="totalQCount">0</strong>
-            soruyu dilediğin gibi çöz.</p>
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <p id="studyModeStatus" style="opacity:0.8; margin-top:5px; margin-bottom:0;">Bu konuya ait <strong
+                id="totalQCount">0</strong> soruyu dilediğin gibi çöz.</p>
+            <button id="resetProgressBtn" class="btn btn-sm btn-outline-danger" style="display:none;"
+              onclick="resetTopicProgress()">
+              <span class="material-icons" style="font-size:1rem; vertical-align:middle;">refresh</span> Sıfırla
+            </button>
+          </div>
 
           <div class="mode-options">
             <button class="mode-btn" onclick="startSmartTest('random')">
@@ -376,6 +382,7 @@
 
   <script type="module">
     import { db, auth } from '../js/firebase-config.js';
+    import { TopicService } from '../js/topic-service.js';
     import { doc, getDoc, collection, getDocs, query, orderBy, where, getCountFromServer } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
     import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
@@ -669,29 +676,76 @@
     async function loadQuestionCount() {
       if (!topicTitle) return;
       try {
-        const q = query(collection(db, "questions"), where("category", "==", topicTitle), where("isActive", "==", true));
-        const snap = await getCountFromServer(q);
-        updateStudyModeState(snap.data().count || 0);
+        // 1. Toplam Soru Sayısı (Cache'den veya DB'den)
+        const allIds = await TopicService.getTopicQuestionIds(topicTitle);
+        const totalCount = allIds.length;
+
+        // 2. Çözülenler
+        let solvedCount = 0;
+        if (auth.currentUser) {
+          const progress = await TopicService.getUserProgress(auth.currentUser.uid, currentTopicId);
+          solvedCount = (progress.solvedIds || []).length;
+        }
+
+        updateStudyModeState(totalCount, solvedCount);
       } catch (e) {
         console.warn("Soru sayısı çekilemedi:", e);
       }
     }
 
-    function updateStudyModeState(questionCount) {
+    function updateStudyModeState(totalCount, solvedCount) {
       const status = document.getElementById('studyModeStatus');
       const modeButtons = document.querySelectorAll('.mode-btn');
-      const hasQuestions = questionCount > 0;
+      const resetBtn = document.getElementById('resetProgressBtn');
+      const progressBar = document.getElementById('topicProgressBar');
+      const progressText = document.getElementById('progressText');
 
+      const hasQuestions = totalCount > 0;
+      const remaining = Math.max(0, totalCount - solvedCount);
+
+      // Butonları Yönet
       modeButtons.forEach((btn) => {
         btn.disabled = !hasQuestions;
       });
 
+      // Reset Butonu: Eğer çözülen varsa göster
+      if (resetBtn) {
+        resetBtn.style.display = (solvedCount > 0 && hasQuestions) ? 'inline-flex' : 'none';
+      }
+
+      // Progress Bar Güncelle
+      if (progressBar && totalCount > 0) {
+        const percent = Math.min(100, Math.round((solvedCount / totalCount) * 100));
+        progressBar.style.width = `${percent}%`;
+        if (progressText) progressText.innerText = `%${percent} Tamamlandı (${solvedCount}/${totalCount})`;
+      }
+
       if (status) {
-        status.innerHTML = hasQuestions
-          ? `Bu konuya ait <strong id="totalQCount">${questionCount}</strong> soruyu dilediğin gibi çöz.`
-          : 'Bu konu için henüz aktif soru bulunmuyor. Testler bölümünü kontrol ediniz.';
+        if (remaining === 0 && totalCount > 0) {
+          status.innerHTML = `🌟 Tebrikler! <strong>${totalCount}</strong> sorunun tamamını çözdünüz. Tekrar çözmek için sıfırlayabilirsiniz.`;
+        } else {
+          status.innerHTML = hasQuestions
+            ? `Bu konuda toplam <strong id="totalQCount">${totalCount}</strong> soru var. <br> <small>(${solvedCount} çözüldü, ${remaining} kaldı)</small>`
+            : 'Bu konu için henüz aktif soru bulunmuyor.';
+        }
       }
     }
+
+    window.resetTopicProgress = async () => {
+      if (!auth.currentUser) return;
+      if (!confirm("Bu konudaki ilerlemenizi sıfırlamak istiyor musunuz? Çözdüğünüz sorular tekrar karşınıza çıkacaktır.")) return;
+
+      const btn = document.getElementById('resetProgressBtn');
+      if (btn) btn.disabled = true;
+
+      await TopicService.resetProgress(auth.currentUser.uid, currentTopicId);
+      showToast("İlerleme sıfırlandı.", "success");
+
+      // Arayüzü yenile
+      await loadQuestionCount();
+
+      if (btn) btn.disabled = false;
+    };
 
     window.startSmartTest = (mode) => {
       const returnUrl = encodeURIComponent(`/konu/${currentTopicId}`);
