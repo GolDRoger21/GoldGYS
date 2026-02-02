@@ -3,8 +3,10 @@ import {
     doc, getDoc, setDoc, collection, query, where, getDocs,
     serverTimestamp, deleteDoc, writeBatch
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { CacheManager } from "./cache-manager.js";
 
 const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 Saat
+const PACK_CACHE_DURATION = 24 * 60 * 60 * 1000;
 
 export const TopicService = {
 
@@ -63,6 +65,66 @@ export const TopicService = {
         }
     },
 
+    async getTopicPackMeta(topicId) {
+        if (!topicId) return null;
+
+        try {
+            const metaSnap = await getDoc(doc(db, `topic_packs_meta/${topicId}`));
+            if (!metaSnap.exists()) return null;
+            return metaSnap.data();
+        } catch (error) {
+            console.warn("Paket meta verisi okunamadı:", error);
+            return null;
+        }
+    },
+
+    async fetchQuestionPack(topicId, options = {}) {
+        if (!topicId) return null;
+
+        const meta = await this.getTopicPackMeta(topicId);
+        const packCount = meta?.packCount || 0;
+        const packIndex = Number.isInteger(options.packIndex)
+            ? options.packIndex
+            : packCount > 0
+                ? Math.floor(Math.random() * packCount)
+                : 0;
+
+        const cacheKey = `${topicId}_pack_${packIndex}`;
+        const cached = CacheManager.getPack(cacheKey, PACK_CACHE_DURATION);
+        if (cached) {
+            return { ...cached, packIndex, cacheKey };
+        }
+
+        try {
+            const packId = `${topicId}_pack_${packIndex}`;
+            let packSnap = await getDoc(doc(db, "topic_packs", packId));
+
+            if (!packSnap.exists()) {
+                const fallbackQuery = query(
+                    collection(db, "topic_packs"),
+                    where("topicId", "==", topicId)
+                );
+                const fallbackSnap = await getDocs(fallbackQuery);
+                packSnap = fallbackSnap.docs[0] || null;
+            }
+
+            if (!packSnap || !packSnap.exists()) return null;
+
+            const packData = packSnap.data();
+            const payload = {
+                questions: packData.questions || [],
+                topicId: packData.topicId,
+                packIndex: packData.packIndex ?? packIndex
+            };
+
+            CacheManager.savePack(cacheKey, payload);
+            return { ...payload, cacheKey };
+        } catch (error) {
+            console.error("Soru paketi çekilemedi:", error);
+            return null;
+        }
+    },
+
     /**
      * Kullanıcının bu konudaki ilerlemesini çeker.
      * @param {string} userId
@@ -78,10 +140,15 @@ export const TopicService = {
 
             if (docSnap.exists()) {
                 const data = docSnap.data();
+                const answers = data.answers || {};
+                const solvedIds = Array.isArray(data.solvedIds)
+                    ? data.solvedIds
+                    : Object.keys(answers);
                 return {
-                    solvedIds: data.solvedIds || [], // Çözülen soru ID'leri (Array)
+                    solvedIds: solvedIds, // Çözülen soru ID'leri (Array)
+                    answers: answers,
                     lastDocId: data.lastDocId || null, // Sıralı mod için son kalınan yer
-                    totalSolved: (data.solvedIds || []).length
+                    totalSolved: solvedIds.length
                 };
             }
         } catch (error) {
@@ -99,28 +166,32 @@ export const TopicService = {
      */
     async saveProgress(userId, topicId, newSolvedIds) {
         if (!userId || !topicId || !newSolvedIds.length) return;
+        const answers = newSolvedIds.reduce((acc, id) => {
+            acc[id] = true;
+            return acc;
+        }, {});
+        await this.syncProgress(userId, topicId, answers);
+    },
+
+    async syncProgress(userId, topicId, answers) {
+        if (!userId || !topicId || !answers || Object.keys(answers).length === 0) return;
 
         try {
             const docRef = doc(db, `users/${userId}/topic_progress/${topicId}`);
             const docSnap = await getDoc(docRef);
-            let currentSolved = [];
-
-            if (docSnap.exists()) {
-                currentSolved = docSnap.data().solvedIds || [];
-            }
-
-            // Tekrarları önlemek için Set kullanımı
-            const updatedSolved = [...new Set([...currentSolved, ...newSolvedIds])];
+            const existingAnswers = docSnap.exists() ? (docSnap.data().answers || {}) : {};
+            const merged = { ...existingAnswers, ...answers };
 
             await setDoc(docRef, {
-                solvedIds: updatedSolved,
-                lastUpdate: serverTimestamp(),
-                topicId: topicId // Indexleme için
+                topicId: topicId,
+                answers: merged,
+                solvedCount: Object.keys(merged).length,
+                lastSyncedAt: serverTimestamp()
             }, { merge: true });
 
-            console.log(`${newSolvedIds.length} yeni soru ilerlemeye eklendi.`);
+            console.log(`${Object.keys(answers).length} cevap toplu olarak senkronize edildi.`);
         } catch (error) {
-            console.error("İlerleme kaydedilemedi:", error);
+            console.error("İlerleme senkronizasyonu başarısız:", error);
         }
     },
 

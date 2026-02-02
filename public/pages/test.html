@@ -635,6 +635,7 @@
     <script type="module">
         import { TestEngine } from "../js/test-engine.js";
         import { TopicService } from "../js/topic-service.js"; // Added Import
+        import { CacheManager } from "../js/cache-manager.js";
         import { auth, db } from "../js/firebase-config.js";
         import { showToast } from "../js/notifications.js";
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
@@ -698,6 +699,8 @@
                 let questions = [];
                 let title = "Test";
                 let totalCount = null;
+                let draftScopeKey = null;
+                let draftAnswers = {};
 
                 if (mode === 'smart' && topicId) {
                     // --- AKILLI ÇALIŞMA MODU (Optimize Edilmiş v2) ---
@@ -708,6 +711,8 @@
                     title = `${topicTitle} - Çalışma Modu`;
 
                     const user = auth.currentUser;
+                    draftScopeKey = `topic_${topicId}`;
+                    draftAnswers = CacheManager.getDraftAnswers(draftScopeKey);
 
                     if (filter === 'favorites' || filter === 'wrongs') {
                         // --- F,avoriler ve Yanlışlar (Eski Mantık) ---
@@ -735,49 +740,51 @@
                     } else {
                         // --- Karışık ve Sıralı Mod (Yeni Sistem) ---
 
-                        // A. ID'leri Getir
-                        const allQuestionIds = await TopicService.getTopicQuestionIds(topicTitle);
-                        totalCount = allQuestionIds.length;
+                        // A. Paket Meta Bilgisi
+                        const packMeta = await TopicService.getTopicPackMeta(topicId);
+                        totalCount = packMeta?.questionCount || null;
 
-                        // B. İlerleme Kontrolü
+                        // B. Paket Çek
+                        const packPayload = await TopicService.fetchQuestionPack(topicId);
+                        if (!packPayload?.questions?.length) {
+                            throw new Error("Bu konu için soru paketi bulunamadı.");
+                        }
+                        const packQuestions = packPayload.questions.filter(q => q && !q.isDeleted && q.isActive !== false);
+
+                        // C. İlerleme Kontrolü
                         let solvedIds = [];
                         if (user) {
                             const progress = await TopicService.getUserProgress(user.uid, topicId);
                             solvedIds = progress.solvedIds || [];
                         }
 
-                        // C. Aday Sorular (Çözülmemişler)
-                        let candidates = allQuestionIds.filter(id => !solvedIds.includes(id));
+                        // D. Aday Sorular (Çözülmemişler)
+                        const solvedSet = new Set(solvedIds);
+                        let candidates = packQuestions.filter(q => !solvedSet.has(q.id));
 
-                        // Eğer hiç aday kalmadıysa (Hepsi çözüldü)
-                        if (candidates.length === 0 && allQuestionIds.length > 0) {
+                        if (candidates.length === 0 && totalCount && totalCount > 0) {
                             const shouldReset = confirm("Tebrikler! Bu konudaki tüm soruları bitirdiniz. İlerlemenizi sıfırlayıp tekrar çözmek ister misiniz?");
                             if (shouldReset && user) {
                                 await TopicService.resetProgress(user.uid, topicId);
-                                candidates = allQuestionIds; // Sıfırlandı, hepsi aday
+                                candidates = packQuestions;
                             } else {
                                 window.location.href = returnUrl;
                                 return;
                             }
                         }
 
-                        // D. Seçim Yap
-                        let selectedIds = [];
+                        // E. Seçim Yap
                         if (filter === 'order') {
-                            // Sıralı: ID listesinden sıradaki n taneyi al
-                            // Not: ID listesi Firestore'dan karışık gelmiş olabilir ama sabit durur.
-                            // Gerçek madde sırası için metadata gerekebilirdi ama ID cache sadece string array.
-                            // Şimdilik candidates içinden sırayla alıyoruz.
-                            selectedIds = candidates.slice(0, requestedLimit);
+                            candidates = candidates.sort((a, b) => {
+                                const artA = parseInt((a.legislationRef?.article || '0').replace(/\D/g, '')) || 9999;
+                                const artB = parseInt((b.legislationRef?.article || '0').replace(/\D/g, '')) || 9999;
+                                return artA - artB;
+                            });
                         } else {
-                            // Random: Karıştır ve al
                             shuffleArray(candidates);
-                            selectedIds = candidates.slice(0, requestedLimit);
                         }
 
-                        // E. Detayları Çek
-                        const questionMap = await fetchQuestionsByIds(selectedIds);
-                        questions = selectedIds.map(id => questionMap.get(id)).filter(Boolean);
+                        questions = candidates.slice(0, requestedLimit);
 
                         // F. Order Modu - Madde Sıralaması (Client Side)
                         if (filter === 'order') {
@@ -904,11 +911,29 @@
                     menuButton: true,
                     examId: examId || topicId || 'custom_practice',
                     title: title,
+                    deferWrongWrites: mode === 'smart',
+                    initialAnswers: buildInitialAnswers(questions, draftAnswers),
                     onQuestionAnswered: async (data) => {
-                        // Smart modda ilerleme kaydı (Sadece cevaplandığında)
+                        if (mode === 'smart' && topicId) {
+                            const payload = {
+                                selected: data.selectedOptionId,
+                                isCorrect: data.isCorrect,
+                                category: data.question?.category || 'Genel',
+                                timestamp: Date.now(),
+                                synced: false
+                            };
+                            CacheManager.saveDraftAnswer(draftScopeKey, data.questionId, payload);
+                        }
+                    },
+                    onFinish: async ({ answers }) => {
                         if (mode === 'smart' && topicId && auth.currentUser) {
-                            // Doğru/Yanlış fark etmeksizin "Çözüldü" olarak işaretle
-                            await TopicService.saveProgress(auth.currentUser.uid, topicId, [data.questionId]);
+                            const syncPayload = Object.entries(answers || {}).reduce((acc, [questionId, value]) => {
+                                if (!value?.selected) return acc;
+                                acc[questionId] = value.selected;
+                                return acc;
+                            }, {});
+                            await TopicService.syncProgress(auth.currentUser.uid, topicId, syncPayload);
+                            CacheManager.clearDraftAnswers(draftScopeKey);
                         }
                     }
                 });
@@ -1012,6 +1037,16 @@
             }
 
             return questionMap;
+        }
+
+        function buildInitialAnswers(questions, draftAnswers = {}) {
+            if (!draftAnswers || !questions?.length) return {};
+            return questions.reduce((acc, question) => {
+                if (draftAnswers[question.id]) {
+                    acc[question.id] = draftAnswers[question.id];
+                }
+                return acc;
+            }, {});
         }
 
         function initThemeToggle() {
