@@ -1,7 +1,7 @@
 import { auth, db, functions } from "./firebase-config.js";
 import { showConfirm, showToast } from "./notifications.js";
 import {
-    doc, setDoc, addDoc, collection, serverTimestamp, increment, getDoc, deleteDoc
+    doc, setDoc, addDoc, collection, serverTimestamp, increment, getDoc, deleteDoc, arrayUnion
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { httpsCallable } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-functions.js";
 
@@ -28,6 +28,7 @@ export class TestEngine {
         this.timerInterval = null;
         this.remainingTime = this.duration * 60;
         this.startTime = Date.now();
+        this.pendingWrongAnswers = new Map();
 
         // UI Elementleri (HTML'de bu ID'lerin olduğundan emin olacağız)
         this.ui = {
@@ -532,12 +533,12 @@ export class TestEngine {
             // Şimdilik basitçe: Her yanlış cevap için update yapalım, firestore increment kullanıldığı için sorun olmaz)
 
             const wrongAnswers = Object.keys(this.answers).filter(qId => !this.answers[qId].isCorrect && !this.answers[qId].synced);
-            const batchPromises = wrongAnswers.map(qId => {
+            wrongAnswers.forEach(qId => {
                 const q = this.questions.find(i => i.id === qId);
-                return this.saveWrongAnswer(qId, q);
+                this.saveWrongAnswer(qId, q);
             });
 
-            await Promise.all(batchPromises);
+            await this.flushWrongAnswers();
             wrongAnswers.forEach(qId => {
                 if (this.answers[qId]) {
                     this.answers[qId].synced = true;
@@ -558,26 +559,60 @@ export class TestEngine {
     // Yanlış yapılan soruyu havuza atar veya sayacını artırır
     async saveWrongAnswer(qId, qData) {
         if (!auth.currentUser) return;
-        try {
-            const ref = doc(db, `users/${auth.currentUser.uid}/wrongs/${qId}`);
-            await setDoc(ref, {
-                questionId: qId,
-                text: qData.text.substring(0, 150) + "...", // Sadece önizleme için kısaltılmış metin
-                category: qData.category || 'Genel',
-                lastAttempt: serverTimestamp(),
-                count: increment(1), // Yanlış yapma sayısını artır
-                examId: this.examId
-            }, { merge: true });
-        } catch (e) { console.error("Yanlış soru kaydı hatası:", e); }
+        const safeText = qData?.text ? qData.text.substring(0, 150) + "..." : "";
+        const category = qData?.category || 'Genel';
+        const existing = this.pendingWrongAnswers.get(qId);
+        if (existing) {
+            existing.count += 1;
+            return;
+        }
+
+        this.pendingWrongAnswers.set(qId, {
+            questionId: qId,
+            text: safeText,
+            category,
+            examId: this.examId,
+            count: 1
+        });
+
+        if (!this.deferWrongWrites && this.pendingWrongAnswers.size >= 5) {
+            await this.flushWrongAnswers();
+        }
     }
 
     async clearWrongAnswer(qId) {
-        if (!auth.currentUser) return;
+        return;
+    }
+
+    async flushWrongAnswers() {
+        if (!auth.currentUser || this.pendingWrongAnswers.size === 0) return;
+        const dateKey = new Date().toISOString().slice(0, 10);
+        const ref = doc(db, `users/${auth.currentUser.uid}/wrong_summaries/${dateKey}`);
+        const updates = {
+            updatedAt: serverTimestamp()
+        };
+        const questionIds = [];
+
+        this.pendingWrongAnswers.forEach((payload, qId) => {
+            updates[`wrongCounts.${qId}`] = increment(payload.count);
+            updates[`questionMeta.${qId}`] = {
+                questionId: payload.questionId,
+                text: payload.text,
+                category: payload.category,
+                examId: payload.examId
+            };
+            questionIds.push(qId);
+        });
+
+        if (questionIds.length > 0) {
+            updates.questionIds = arrayUnion(...questionIds);
+        }
+
         try {
-            const ref = doc(db, `users/${auth.currentUser.uid}/wrongs/${qId}`);
-            await deleteDoc(ref);
+            await setDoc(ref, updates, { merge: true });
+            this.pendingWrongAnswers.clear();
         } catch (e) {
-            console.error("Yanlış soru temizleme hatası:", e);
+            console.error("Yanlış soru toplu kaydı hatası:", e);
         }
     }
 
