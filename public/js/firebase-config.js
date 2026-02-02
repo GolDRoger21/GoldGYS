@@ -7,6 +7,7 @@ import {
 import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getFirestore } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { getFunctions } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-functions.js";
+import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js";
 import { initializeAppCheck, ReCaptchaEnterpriseProvider } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app-check.js";
 
 // Senin Proje Ayarların
@@ -17,6 +18,7 @@ export const firebaseConfig = {
   storageBucket: "goldgys.appspot.com",
   messagingSenderId: "631874020828",
   appId: "1:631874020828:web:976ae1de5e7bc246909b19",
+  measurementId: "G-FST8W9F1ZZ",
 };
 
 // Firebase'i Başlat (önceden başlatıldıysa mevcut uygulamayı kullan)
@@ -39,3 +41,4 @@ if (typeof window !== "undefined") {
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const functions = getFunctions(app);
+export const analytics = getAnalytics(app);

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics Verify</title>
+</head>
+
+<body>
+    <h1>Analytics Verification</h1>
+    <div id="status">Checking...</div>
+    <script type="module">
+        import { analytics, app } from './js/firebase-config.js';
+
+        try {
+            console.log("App initialized:", app);
+            console.log("Analytics initialized:", analytics);
+
+            if (analytics) {
+                document.getElementById('status').innerText = 'SUCCESS: Analytics initialized. Check console for object details.';
+                document.getElementById('status').style.color = 'green';
+            } else {
+                document.getElementById('status').innerText = 'FAILURE: Analytics object is undefined.';
+                document.getElementById('status').style.color = 'red';
+            }
+        } catch (error) {
+            document.getElementById('status').innerText = 'ERROR: ' + error.message;
+            document.getElementById('status').style.color = 'red';
+            console.error(error);
+        }
+    </script>
+</body>
+
+</html>
