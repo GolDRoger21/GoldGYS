@@ -417,6 +417,8 @@ export class TestEngine {
     async finishTest(isTimeout = false) {
         if (this.timerInterval) clearInterval(this.timerInterval);
 
+        const modeAtFinish = this.mode;
+
         // İstatistikleri Hesapla
         const total = this.questions.length;
         const correctCount = Object.values(this.answers).filter(a => a.isCorrect).length;
@@ -453,7 +455,7 @@ export class TestEngine {
 
         // Veritabanına Kaydet
         await this.saveExamResult({
-            score, correctCount, wrongCount, emptyCount, total, timeSpent
+            score, correctCount, wrongCount, emptyCount, total, timeSpent, mode: modeAtFinish
         });
     }
 
@@ -516,7 +518,7 @@ export class TestEngine {
                 timeSpentSeconds: stats.timeSpent,
                 categoryStats: categoryBreakdown,
                 completedAt: serverTimestamp(),
-                mode: this.mode // Kayıt anındaki mod (Exam modunda başladıysa exam olarak kaydetmeliydik, ama yukarıda değiştirdik. Burayı düzeltelim)
+                mode: stats.mode || this.mode
             });
 
             // 2. Yanlış Yapılanları 'wrongs' koleksiyonuna işle (Sınav modunda toplu işlem)

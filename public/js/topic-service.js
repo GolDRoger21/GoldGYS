@@ -111,14 +111,16 @@ export const TopicService = {
             if (!packSnap || !packSnap.exists()) return null;
 
             const packData = packSnap.data();
+            const resolvedPackIndex = packData.packIndex ?? packIndex;
+            const resolvedCacheKey = packSnap.id || `${topicId}_pack_${resolvedPackIndex}`;
             const payload = {
                 questions: packData.questions || [],
                 topicId: packData.topicId,
-                packIndex: packData.packIndex ?? packIndex
+                packIndex: resolvedPackIndex
             };
 
-            CacheManager.savePack(cacheKey, payload);
-            return { ...payload, cacheKey };
+            CacheManager.savePack(resolvedCacheKey, payload);
+            return { ...payload, cacheKey: resolvedCacheKey };
         } catch (error) {
             console.error("Soru paketi çekilemedi:", error);
             return null;
