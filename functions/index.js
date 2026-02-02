@@ -1,4 +1,4 @@
-const functions = require("firebase-functions");
+const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const admin = require("firebase-admin");
 admin.initializeApp();
 
@@ -193,7 +193,7 @@ async function ensureCallerIsAdmin(context) {
   const caller = context.auth;
 
   if (!caller) {
-    throw new functions.https.HttpsError("permission-denied", "Oturum bulunamadı.");
+    throw new HttpsError("permission-denied", "Oturum bulunamadı.");
   }
 
   // Özel claim'de admin veya rol=admin varsa doğrudan izin ver
@@ -208,22 +208,22 @@ async function ensureCallerIsAdmin(context) {
     callerData?.role === "admin" || (Array.isArray(callerData?.roles) && callerData.roles.includes("admin"));
 
   if (!firestoreIsAdmin) {
-    throw new functions.https.HttpsError("permission-denied", "Admin yetkisi gerekli.");
+    throw new HttpsError("permission-denied", "Admin yetkisi gerekli.");
   }
 
   await syncClaimsWithProfile(caller.uid, callerData, caller.token || {});
 }
 
-const appCheckRequired = functions.runWith({ enforceAppCheck: true });
-
-exports.setAdminClaim = appCheckRequired.https.onCall(async (data, context) => {
+exports.setAdminClaim = onCall({ enforceAppCheck: true }, async (request) => {
+  const context = { auth: request.auth };
   await ensureCallerIsAdmin(context);
 
+  const data = request.data;
   const uid = data.uid;
   const role = data.role;
 
   if (!uid) {
-    throw new functions.https.HttpsError("invalid-argument", "uid gerekli.");
+    throw new HttpsError("invalid-argument", "uid gerekli.");
   }
   try {
     await admin.auth().setCustomUserClaims(uid, { admin: true });
@@ -247,17 +247,19 @@ exports.setAdminClaim = appCheckRequired.https.onCall(async (data, context) => {
   }
 });
 
-exports.setUserRole = appCheckRequired.https.onCall(async (data, context) => {
+exports.setUserRole = onCall({ enforceAppCheck: true }, async (request) => {
+  const context = { auth: request.auth };
   await ensureCallerIsAdmin(context);
 
+  const data = request.data;
   const { uid, role } = data || {};
 
   if (!uid || !role) {
-    throw new functions.https.HttpsError("invalid-argument", "Geçerli uid ve rol gereklidir.");
+    throw new HttpsError("invalid-argument", "Geçerli uid ve rol gereklidir.");
   }
 
   if (!ALLOWED_ROLES.includes(role)) {
-    throw new functions.https.HttpsError("invalid-argument", "İzin verilmeyen bir rol seçtiniz.");
+    throw new HttpsError("invalid-argument", "İzin verilmeyen bir rol seçtiniz.");
   }
 
   const claims = {
@@ -322,13 +324,15 @@ exports.setUserRole = appCheckRequired.https.onCall(async (data, context) => {
   }
 });
 
-exports.updateUserProfile = appCheckRequired.https.onCall(async (data, context) => {
+exports.updateUserProfile = onCall({ enforceAppCheck: true }, async (request) => {
+  const context = { auth: request.auth };
   await ensureCallerIsAdmin(context);
 
+  const data = request.data;
   const { uid, role, status, roles, displayName, photoURL } = data || {};
 
   if (!uid) {
-    throw new functions.https.HttpsError("invalid-argument", "Geçerli bir kullanıcı kimliği gerekli.");
+    throw new HttpsError("invalid-argument", "Geçerli bir kullanıcı kimliği gerekli.");
   }
 
   const actorInfo = {
@@ -346,7 +350,7 @@ exports.updateUserProfile = appCheckRequired.https.onCall(async (data, context) 
 
   if (status) {
     if (!ALLOWED_STATUS.includes(status)) {
-      throw new functions.https.HttpsError("invalid-argument", "Geçerli bir statü seçin.");
+      throw new HttpsError("invalid-argument", "Geçerli bir statü seçin.");
     }
     updates.status = status;
 
@@ -360,7 +364,7 @@ exports.updateUserProfile = appCheckRequired.https.onCall(async (data, context) 
 
   if (role) {
     if (!ALLOWED_ROLES.includes(role)) {
-      throw new functions.https.HttpsError("invalid-argument", "Geçerli bir rol seçin.");
+      throw new HttpsError("invalid-argument", "Geçerli bir rol seçin.");
     }
 
     updates.role = role;
@@ -411,11 +415,13 @@ exports.updateUserProfile = appCheckRequired.https.onCall(async (data, context) 
   }
 });
 
-exports.submitReport = appCheckRequired.https.onCall(async (data, context) => {
+exports.submitReport = onCall({ enforceAppCheck: true }, async (request) => {
+  const context = { auth: request.auth };
   if (!context.auth) {
-    throw new functions.https.HttpsError("unauthenticated", "Oturum gerekli.");
+    throw new HttpsError("unauthenticated", "Oturum gerekli.");
   }
 
+  const data = request.data;
   const uid = context.auth.uid;
   const userEmail = context.auth.token?.email || null;
   const userName = context.auth.token?.name || null;
@@ -427,23 +433,23 @@ exports.submitReport = appCheckRequired.https.onCall(async (data, context) => {
   const source = normalizeString(data?.source);
 
   if (!ensureLength(type, 3, 50)) {
-    throw new functions.https.HttpsError("invalid-argument", "Geçerli bir bildirim türü girin.");
+    throw new HttpsError("invalid-argument", "Geçerli bir bildirim türü girin.");
   }
 
   if (!ensureLength(description, 5, 1000)) {
-    throw new functions.https.HttpsError("invalid-argument", "Açıklama 5-1000 karakter olmalı.");
+    throw new HttpsError("invalid-argument", "Açıklama 5-1000 karakter olmalı.");
   }
 
   if (priority && !ensureLength(priority, 2, 20)) {
-    throw new functions.https.HttpsError("invalid-argument", "Geçerli bir öncelik seçin.");
+    throw new HttpsError("invalid-argument", "Geçerli bir öncelik seçin.");
   }
 
   if (questionId && !ensureLength(questionId, 2, 128)) {
-    throw new functions.https.HttpsError("invalid-argument", "Geçersiz soru kimliği.");
+    throw new HttpsError("invalid-argument", "Geçersiz soru kimliği.");
   }
 
   if (source && !ensureLength(source, 2, 40)) {
-    throw new functions.https.HttpsError("invalid-argument", "Geçersiz kaynak bilgisi.");
+    throw new HttpsError("invalid-argument", "Geçersiz kaynak bilgisi.");
   }
 
   const db = admin.firestore();
@@ -451,7 +457,7 @@ exports.submitReport = appCheckRequired.https.onCall(async (data, context) => {
   const status = userSnap.data()?.status || "pending";
 
   if (["suspended", "deleted", "rejected"].includes(status)) {
-    throw new functions.https.HttpsError("permission-denied", "Hesabınız bildirim göndermeye uygun değil.");
+    throw new HttpsError("permission-denied", "Hesabınız bildirim göndermeye uygun değil.");
   }
 
   const now = admin.firestore.Timestamp.now();
@@ -470,7 +476,7 @@ exports.submitReport = appCheckRequired.https.onCall(async (data, context) => {
     if (lastSubmittedAt) {
       const diffSeconds = (now.toDate().getTime() - lastSubmittedAt.getTime()) / 1000;
       if (diffSeconds < REPORT_RATE_LIMIT_SECONDS) {
-        throw new functions.https.HttpsError(
+        throw new HttpsError(
           "resource-exhausted",
           "Çok hızlı bildirim gönderiyorsunuz. Lütfen biraz bekleyin."
         );
@@ -478,7 +484,7 @@ exports.submitReport = appCheckRequired.https.onCall(async (data, context) => {
     }
 
     if (currentCount + 1 > REPORT_DAILY_LIMIT) {
-      throw new functions.https.HttpsError(
+      throw new HttpsError(
         "resource-exhausted",
         "Günlük bildirim sınırına ulaştınız."
       );
@@ -533,14 +539,16 @@ async function deleteUserSubcollections(uid) {
   }
 }
 
-exports.deleteUserAccount = appCheckRequired.https.onCall(async (data, context) => {
+exports.deleteUserAccount = onCall({ enforceAppCheck: true }, async (request) => {
+  const context = { auth: request.auth };
   await ensureCallerIsAdmin(context);
 
+  const data = request.data;
   const uid = data?.uid;
   const hard = data?.hard === true;
 
   if (!uid) {
-    throw new functions.https.HttpsError("invalid-argument", "Silinecek kullanıcı kimliği gerekli.");
+    throw new HttpsError("invalid-argument", "Silinecek kullanıcı kimliği gerekli.");
   }
 
   const actorInfo = {
@@ -618,12 +626,14 @@ exports.deleteUserAccount = appCheckRequired.https.onCall(async (data, context) 
 });
 
 // Admin kullanıcılar için özel claim bilgilerini getirir
-exports.getUserClaims = appCheckRequired.https.onCall(async (data, context) => {
+exports.getUserClaims = onCall({ enforceAppCheck: true }, async (request) => {
+  const context = { auth: request.auth };
   await ensureCallerIsAdmin(context);
 
+  const data = request.data;
   const uid = data?.uid;
   if (!uid) {
-    throw new functions.https.HttpsError("invalid-argument", "Kullanıcı kimliği gerekli.");
+    throw new HttpsError("invalid-argument", "Kullanıcı kimliği gerekli.");
   }
 
   try {
@@ -644,7 +654,7 @@ exports.getUserClaims = appCheckRequired.https.onCall(async (data, context) => {
       success: false,
       details: { error: error?.message },
     });
-    throw new functions.https.HttpsError(
+    throw new HttpsError(
       error?.code === "auth/user-not-found" ? "not-found" : "internal",
       "Claim bilgisi alınamadı."
     );
