@@ -634,13 +634,17 @@
 
     <script type="module">
         import { TestEngine } from "../js/test-engine.js";
-        import { db } from "../js/firebase-config.js";
+        import { auth, db } from "../js/firebase-config.js";
         import { showToast } from "../js/notifications.js";
-        import { doc, getDoc, collection, query, where, limit, getDocs, documentId } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { doc, getDoc, collection, query, where, limit, getDocs, documentId, getCountFromServer } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         document.addEventListener('DOMContentLoaded', async () => {
             const urlParams = new URLSearchParams(window.location.search);
             let examId = urlParams.get('id'); // Test ID (Lesson ID)
+            const DEFAULT_QUESTION_LIMIT = 30;
+            const MAX_QUESTION_LIMIT = 100;
+            const requestedLimit = normalizeLimit(urlParams.get('limit'), DEFAULT_QUESTION_LIMIT, MAX_QUESTION_LIMIT);
 
             if (!examId) {
                 const pathMatch = window.location.pathname.match(/^\/test\/([^/]+)$/);
@@ -692,6 +696,7 @@
             try {
                 let questions = [];
                 let title = "Test";
+                let totalCount = null;
 
                 if (mode === 'smart' && topicId) {
                     // --- AKILLI ÇALIŞMA MODU ---
@@ -702,29 +707,47 @@
                     title = `${topicTitle} - Çalışma Modu`;
 
                     // 2. Soruları Çek
-                    if (filter === 'favorites') {
-                        // TODO: Favorilerden çek
-                        showToast("Favoriler modu yakında eklenecek.", "info");
-                        window.history.back();
-                        return;
-                    }
-                    else if (filter === 'wrongs') {
-                        // TODO: Yanlışlardan çek
-                        showToast("Yanlışlar modu yakında eklenecek.", "info");
-                        window.history.back();
-                        return;
-                    }
-                    else {
-                        // Tüm aktif soruları çek (Kategoriye göre)
-                        // Not: İleride limit veya pagination eklenebilir
-                        const qQuery = query(collection(db, "questions"), where("category", "==", topicTitle), where("isActive", "==", true));
-                        const qSnap = await getDocs(qQuery);
+                    if (filter === 'favorites' || filter === 'wrongs') {
+                        const user = await waitForUser();
+                        if (!user) {
+                            showToast("Bu modu kullanmak için giriş yapmalısınız.", "warning");
+                            window.location.href = returnUrl;
+                            return;
+                        }
+
+                        const subcollection = filter === 'favorites' ? 'favorites' : 'wrongs';
+                        const baseQuery = query(
+                            collection(db, `users/${user.uid}/${subcollection}`),
+                            where("category", "==", topicTitle),
+                            limit(requestedLimit)
+                        );
+                        const [snap, countSnap] = await Promise.all([
+                            getDocs(baseQuery),
+                            getCountFromServer(query(collection(db, `users/${user.uid}/${subcollection}`), where("category", "==", topicTitle)))
+                        ]);
+                        totalCount = countSnap.data().count || 0;
+                        const ids = snap.docs.map(docSnap => docSnap.data()?.questionId).filter(Boolean);
+                        const questionMap = await fetchQuestionsByIds(ids);
+                        questions = ids.map(id => questionMap.get(id)).filter(Boolean);
+                    } else {
+                        // Aktif soruları çek (Kategoriye göre)
+                        const baseQuery = query(
+                            collection(db, "questions"),
+                            where("category", "==", topicTitle),
+                            where("isActive", "==", true),
+                            limit(requestedLimit)
+                        );
+                        const [qSnap, countSnap] = await Promise.all([
+                            getDocs(baseQuery),
+                            getCountFromServer(query(collection(db, "questions"), where("category", "==", topicTitle), where("isActive", "==", true)))
+                        ]);
                         questions = qSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+                        totalCount = countSnap.data().count || 0;
                     }
 
                     // 3. Filtreleme ve Sıralama
                     if (filter === 'random') {
-                        questions.sort(() => 0.5 - Math.random());
+                        questions = shuffleArray(questions);
                     } else if (filter === 'order') {
                         // Madde numarasına göre sırala (legislationRef.article)
                         questions.sort((a, b) => {
@@ -776,10 +799,11 @@
 
                     const storedDataIds = storedData.map(extractQuestionId).filter(Boolean);
                     const uniqueIds = Array.from(new Set([...(storedIds || []), ...storedDataIds]));
+                    const limitedIds = limitQuestionIds(uniqueIds, requestedLimit);
 
-                    if (uniqueIds.length > 0) {
-                        const questionMap = await fetchQuestionsByIds(uniqueIds);
-                        questions = uniqueIds.map(id => {
+                    if (limitedIds.length > 0) {
+                        const questionMap = await fetchQuestionsByIds(limitedIds);
+                        questions = limitedIds.map(id => {
                             const remote = questionMap.get(id);
                             if (!remote) return null;
                             return {
@@ -830,6 +854,7 @@
                     if (modeLabel) {
                         modeLabel.innerText = isExam ? 'Sınav Modu' : 'Öğrenme Modu';
                         modeLabel.style.display = 'block';
+                        applyQuestionCountLabel(modeLabel, questions.length, totalCount);
                     }
                     if (modeToggleText) {
                         modeToggleText.textContent = isExam ? 'Sınav Modu' : 'Öğrenme Modu';
@@ -888,6 +913,46 @@
             if (!value) return null;
             if (typeof value === 'string') return value;
             return value.id || value.questionId || null;
+        }
+
+        function normalizeLimit(rawValue, fallback, maxLimit) {
+            const parsed = parseInt(rawValue, 10);
+            if (Number.isNaN(parsed) || parsed <= 0) return fallback;
+            return Math.min(parsed, maxLimit);
+        }
+
+        function limitQuestionIds(ids, maxCount) {
+            if (!Array.isArray(ids)) return [];
+            if (ids.length <= maxCount) return ids;
+            return ids.slice(0, maxCount);
+        }
+
+        function shuffleArray(arr) {
+            const copy = [...arr];
+            for (let i = copy.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [copy[i], copy[j]] = [copy[j], copy[i]];
+            }
+            return copy;
+        }
+
+        function applyQuestionCountLabel(labelEl, shownCount, totalCount) {
+            if (!labelEl) return;
+            if (!totalCount || totalCount <= shownCount) {
+                labelEl.innerText = `${labelEl.innerText} • ${shownCount} soru`;
+                return;
+            }
+            labelEl.innerText = `${labelEl.innerText} • ${shownCount}/${totalCount} soru`;
+        }
+
+        async function waitForUser() {
+            if (auth.currentUser) return auth.currentUser;
+            return new Promise((resolve) => {
+                const unsub = onAuthStateChanged(auth, (user) => {
+                    unsub();
+                    resolve(user);
+                });
+            });
         }
 
         async function fetchQuestionsByIds(ids) {

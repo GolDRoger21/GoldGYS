@@ -289,6 +289,7 @@
       searchTerm: '',
       sort: 'recent'
     };
+    const CUSTOM_TEST_LIMIT = 30;
 
     const ui = {
       totalMistakes: document.getElementById('totalMistakes'),
@@ -554,10 +555,14 @@
         return;
       }
 
-      localStorage.setItem('customTestQuestionIds', JSON.stringify(filteredIds));
+      const finalIds = filteredIds.slice(0, CUSTOM_TEST_LIMIT);
+      if (filteredIds.length > CUSTOM_TEST_LIMIT) {
+        showToast(`Test ${CUSTOM_TEST_LIMIT} soru ile sınırlandı.`, 'info');
+      }
+      localStorage.setItem('customTestQuestionIds', JSON.stringify(finalIds));
       localStorage.setItem('customTestTitle', title);
       localStorage.removeItem('customTestQuestions');
-      window.location.href = `/test?mode=custom&source=local&testMode=${mode}&return=${encodeURIComponent('/yanlislarim')}`;
+      window.location.href = `/test?mode=custom&source=local&testMode=${mode}&limit=${CUSTOM_TEST_LIMIT}&return=${encodeURIComponent('/yanlislarim')}`;
     }
 
     function setSolveButtonsEnabled(isEnabled) {
