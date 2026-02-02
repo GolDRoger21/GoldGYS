@@ -17,6 +17,22 @@ function safeParse(raw) {
 }
 
 export const CacheManager = {
+    saveData(key, data) {
+        if (!key) return;
+        const payload = {
+            timestamp: Date.now(),
+            data
+        };
+        localStorage.setItem(buildKey('data', key), JSON.stringify(payload));
+    },
+
+    getData(key, maxAge = DEFAULT_PACK_TTL) {
+        if (!key) return null;
+        const payload = safeParse(localStorage.getItem(buildKey('data', key)));
+        if (!payload?.timestamp) return null;
+        if (Date.now() - payload.timestamp > maxAge) return null;
+        return { cached: true, data: payload.data ?? null };
+    },
     savePack(key, data) {
         if (!key) return;
         const payload = {
