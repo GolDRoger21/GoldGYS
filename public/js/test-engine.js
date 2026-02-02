@@ -9,6 +9,7 @@ export class TestEngine {
     constructor(containerId, questionsData, options = {}) {
         this.container = document.getElementById(containerId);
         this.questions = questionsData;
+        this.options = options;
 
         // Ayarlar
         this.examId = options.examId || 'custom_practice';
@@ -16,10 +17,13 @@ export class TestEngine {
         const rawMode = options.mode || 'practice';
         this.mode = rawMode === 'learning' ? 'practice' : rawMode; // 'exam' (Sınav) veya 'practice' (Çalışma)
         this.duration = options.duration || 0; // Dakika cinsinden
+        this.deferWrongWrites = Boolean(options.deferWrongWrites);
+        this.onQuestionAnswered = typeof options.onQuestionAnswered === 'function' ? options.onQuestionAnswered : null;
+        this.onFinish = typeof options.onFinish === 'function' ? options.onFinish : null;
 
         // Durum Değişkenleri
         this.currentIndex = 0;
-        this.answers = {}; // { qId: { selected: 'A', isCorrect: true, timeSpent: 12 } }
+        this.answers = options.initialAnswers ? { ...options.initialAnswers } : {}; // { qId: { selected: 'A', isCorrect: true, timeSpent: 12 } }
         this.favorites = new Set();
         this.timerInterval = null;
         this.remainingTime = this.duration * 60;
@@ -241,6 +245,9 @@ export class TestEngine {
             };
             this.markSelected(questionId, selectedOptionId);
             this.updateCounters();
+            if (this.onQuestionAnswered) {
+                this.onQuestionAnswered({ questionId, selectedOptionId, isCorrect, question });
+            }
             return;
         }
 
@@ -259,20 +266,25 @@ export class TestEngine {
         // Çalışma Modu: Anlık geri bildirim ve çözüm gösterimi
         this.showFeedback(questionId, selectedOptionId, isCorrect, question.correctOption);
 
-        // Yanlışsa hemen DB'ye işle (Kullanıcı bekletilmez, arka planda çalışır)
-        if (!isCorrect && auth.currentUser) {
-            this.saveWrongAnswer(questionId, question);
-        }
+        if (!this.deferWrongWrites) {
+            // Yanlışsa hemen DB'ye işle (Kullanıcı bekletilmez, arka planda çalışır)
+            if (!isCorrect && auth.currentUser) {
+                this.saveWrongAnswer(questionId, question);
+            }
 
-        if (isCorrect && auth.currentUser) {
-            this.clearWrongAnswer(questionId);
-        }
+            if (isCorrect && auth.currentUser) {
+                this.clearWrongAnswer(questionId);
+            }
 
-        if (this.answers[questionId]) {
-            this.answers[questionId].synced = true;
+            if (this.answers[questionId]) {
+                this.answers[questionId].synced = true;
+            }
         }
 
         this.updateCounters();
+        if (this.onQuestionAnswered) {
+            this.onQuestionAnswered({ questionId, selectedOptionId, isCorrect, question });
+        }
     }
 
     showFeedback(qId, selectedId, isCorrect, correctId) {
@@ -434,6 +446,10 @@ export class TestEngine {
         if (this.ui.modal) this.ui.modal.style.display = 'flex';
         const returnBtn = document.getElementById('btnReturnTopic');
         if (returnBtn) returnBtn.style.display = 'inline-flex';
+
+        if (this.onFinish) {
+            await this.onFinish({ answers: this.answers, isTimeout });
+        }
 
         // Veritabanına Kaydet
         await this.saveExamResult({
