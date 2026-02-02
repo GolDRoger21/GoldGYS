@@ -355,6 +355,7 @@
       filtered: [],
       categories: new Map()
     };
+    const CUSTOM_TEST_LIMIT = 30;
 
     document.addEventListener('DOMContentLoaded', () => {
       onAuthStateChanged(auth, async (user) => {
@@ -664,12 +665,16 @@
         return;
       }
 
-      const finalIds = shouldShuffle ? shuffle(filteredIds) : filteredIds;
+      const shuffled = shouldShuffle ? shuffle(filteredIds) : filteredIds;
+      const finalIds = shuffled.slice(0, CUSTOM_TEST_LIMIT);
+      if (shuffled.length > CUSTOM_TEST_LIMIT) {
+        showToast(`Test ${CUSTOM_TEST_LIMIT} soru ile sınırlandı.`, 'info');
+      }
       localStorage.setItem('customTestQuestionIds', JSON.stringify(finalIds));
       localStorage.setItem('customTestTitle', title);
       localStorage.removeItem('customTestQuestions');
       const returnUrl = encodeURIComponent('/favoriler');
-      window.location.href = `/test?mode=custom&source=local&testMode=${mode}&return=${returnUrl}`;
+      window.location.href = `/test?mode=custom&source=local&testMode=${mode}&limit=${CUSTOM_TEST_LIMIT}&return=${returnUrl}`;
     }
 
     async function fetchActiveQuestionsMap(ids) {

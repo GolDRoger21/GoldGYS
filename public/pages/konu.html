@@ -376,7 +376,7 @@
 
   <script type="module">
     import { db, auth } from '../js/firebase-config.js';
-    import { doc, getDoc, collection, getDocs, query, orderBy, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { doc, getDoc, collection, getDocs, query, orderBy, where, getCountFromServer } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
     import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
     let currentTopicId = null;
@@ -670,8 +670,8 @@
       if (!topicTitle) return;
       try {
         const q = query(collection(db, "questions"), where("category", "==", topicTitle), where("isActive", "==", true));
-        const snap = await getDocs(q);
-        updateStudyModeState(snap.size);
+        const snap = await getCountFromServer(q);
+        updateStudyModeState(snap.data().count || 0);
       } catch (e) {
         console.warn("Soru sayısı çekilemedi:", e);
       }
