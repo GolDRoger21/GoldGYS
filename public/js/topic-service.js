@@ -7,6 +7,7 @@ import { CacheManager } from "./cache-manager.js";
 
 const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 Saat
 const PACK_CACHE_DURATION = 24 * 60 * 60 * 1000;
+const PACK_INDEX_CACHE_DURATION = 24 * 60 * 60 * 1000;
 
 export const TopicService = {
 
@@ -78,16 +79,61 @@ export const TopicService = {
         }
     },
 
+    async getTopicPackIndexes(topicId) {
+        if (!topicId) return [];
+
+        const cached = CacheManager.getTopicPackIndexes(topicId, PACK_INDEX_CACHE_DURATION);
+        if (Array.isArray(cached) && cached.length > 0) {
+            return cached;
+        }
+
+        try {
+            const fallbackQuery = query(
+                collection(db, "topic_packs"),
+                where("topicId", "==", topicId)
+            );
+            const fallbackSnap = await getDocs(fallbackQuery);
+            const indexes = fallbackSnap.docs
+                .map(docSnap => {
+                    const data = docSnap.data();
+                    if (Number.isInteger(data?.packIndex)) {
+                        return data.packIndex;
+                    }
+                    const match = docSnap.id?.match(/_pack_(\d+)$/);
+                    return match ? Number(match[1]) : null;
+                })
+                .filter(index => Number.isInteger(index));
+
+            const uniqueIndexes = Array.from(new Set(indexes));
+            if (uniqueIndexes.length > 0) {
+                CacheManager.saveTopicPackIndexes(topicId, uniqueIndexes);
+            }
+            return uniqueIndexes;
+        } catch (error) {
+            console.warn("Paket indeksleri okunamadı:", error);
+            return [];
+        }
+    },
+
     async fetchQuestionPack(topicId, options = {}) {
         if (!topicId) return null;
 
         const meta = await this.getTopicPackMeta(topicId);
         const packCount = meta?.packCount || 0;
-        const packIndex = Number.isInteger(options.packIndex)
-            ? options.packIndex
-            : packCount > 0
-                ? Math.floor(Math.random() * packCount)
+        let packIndex = Number.isInteger(options.packIndex) ? options.packIndex : null;
+        let availableIndexes = [];
+
+        if (!Number.isInteger(packIndex)) {
+            if (packCount > 0) {
+                availableIndexes = Array.from({ length: packCount }, (_, index) => index);
+            } else {
+                availableIndexes = await this.getTopicPackIndexes(topicId);
+            }
+
+            packIndex = availableIndexes.length > 0
+                ? availableIndexes[Math.floor(Math.random() * availableIndexes.length)]
                 : 0;
+        }
 
         const cacheKey = `${topicId}_pack_${packIndex}`;
         const cached = CacheManager.getPack(cacheKey, PACK_CACHE_DURATION);
@@ -105,7 +151,22 @@ export const TopicService = {
                     where("topicId", "==", topicId)
                 );
                 const fallbackSnap = await getDocs(fallbackQuery);
-                packSnap = fallbackSnap.docs[0] || null;
+                if (fallbackSnap.empty) {
+                    return null;
+                }
+                if (fallbackSnap.docs.length > 1) {
+                    const docs = fallbackSnap.docs;
+                    packSnap = docs[Math.floor(Math.random() * docs.length)];
+                } else {
+                    packSnap = fallbackSnap.docs[0] || null;
+                }
+
+                const fallbackIndexes = fallbackSnap.docs
+                    .map(docSnap => docSnap.data()?.packIndex)
+                    .filter(index => Number.isInteger(index));
+                if (fallbackIndexes.length > 0) {
+                    CacheManager.saveTopicPackIndexes(topicId, Array.from(new Set(fallbackIndexes)));
+                }
             }
 
             if (!packSnap || !packSnap.exists()) return null;

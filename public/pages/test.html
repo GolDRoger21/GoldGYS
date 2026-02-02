@@ -746,10 +746,24 @@
 
                         // B. Paket Çek
                         const packPayload = await TopicService.fetchQuestionPack(topicId);
-                        if (!packPayload?.questions?.length) {
-                            throw new Error("Bu konu için soru paketi bulunamadı.");
+                        let packQuestions = [];
+
+                        if (packPayload?.questions?.length) {
+                            packQuestions = packPayload.questions.filter(q => q && !q.isDeleted && q.isActive !== false);
                         }
-                        const packQuestions = packPayload.questions.filter(q => q && !q.isDeleted && q.isActive !== false);
+
+                        if (!packQuestions.length) {
+                            console.warn("Paket bulunamadı, eski sistem ile sorular çekilecek.");
+                            const fallbackIds = await TopicService.getTopicQuestionIds(topicTitle);
+                            if (!fallbackIds.length) {
+                                throw new Error("Bu konu için soru paketi bulunamadı.");
+                            }
+                            totalCount = fallbackIds.length;
+                            const fallbackQuestionMap = await fetchQuestionsByIds(fallbackIds);
+                            packQuestions = fallbackIds
+                                .map(id => fallbackQuestionMap.get(id))
+                                .filter(Boolean);
+                        }
 
                         // C. İlerleme Kontrolü
                         let solvedIds = [];
