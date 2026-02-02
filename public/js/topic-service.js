@@ -42,21 +42,48 @@ export const TopicService = {
         // Cache yoksa veya süresi dolduysa Firestore'dan çek
         console.log(`[Cache Miss] ${topicTitle} için soru ID'leri Firestore'dan çekiliyor...`);
         try {
-            // Sadece ID'leri çekmek için hafif bir sorgu yapıyoruz
-            // Not: Firestore'da sadece ID getiren özel bir metod yok, ancak
-            // metadata ile dönen veri miktarını kısıtlayabiliriz veya sadece gerekli alanları.
-            // Fakat client SDK'da 'select' projeksiyonu tam da bu işe yarar ama JS SDK'da sınırlı.
-            // Yine de collection query yapacağız.
-            const q = query(
-                collection(db, "questions"),
-                where("category", "==", topicTitle),
-                where("isActive", "==", true)
-            );
-
-            const snapshot = await getDocs(q);
-            const ids = snapshot.docs.map(doc => doc.id);
+            const metaRef = doc(db, "topics_metadata", topicTitle);
+            const metaSnap = await getDoc(metaRef);
+            const metaData = metaSnap.exists() ? metaSnap.data() : null;
+            const ids = Array.isArray(metaData?.questionIds) ? metaData.questionIds : [];
 
             // Cache'e kaydet
+            localStorage.setItem(cacheKey, JSON.stringify({
+                timestamp: Date.now(),
+                ids: ids
+            }));
+
+            return ids;
+        } catch (error) {
+            console.error("Soru ID'leri çekilemedi:", error);
+            return [];
+        }
+    },
+
+    async getTopicQuestionIdsById(topicId) {
+        if (!topicId) return [];
+
+        const cacheKey = `topic_ids_by_id_${topicId}`;
+        const cachedData = localStorage.getItem(cacheKey);
+
+        if (cachedData) {
+            try {
+                const { timestamp, ids } = JSON.parse(cachedData);
+                if (Date.now() - timestamp < CACHE_DURATION && Array.isArray(ids)) {
+                    console.log(`[Cache Hit] ${topicId} için ${ids.length} soru ID'si yerel hafızadan alındı.`);
+                    return ids;
+                }
+            } catch (e) {
+                console.warn("Cache parse hatası, yenileniyor...", e);
+            }
+        }
+
+        console.log(`[Cache Miss] ${topicId} için soru ID'leri Firestore'dan çekiliyor...`);
+        try {
+            const metaSnap = await getDoc(doc(db, `topic_packs_meta/${topicId}`));
+            const metaData = metaSnap.exists() ? metaSnap.data() : null;
+            const ids = Array.isArray(metaData?.questionIds) ? metaData.questionIds : [];
+
             localStorage.setItem(cacheKey, JSON.stringify({
                 timestamp: Date.now(),
                 ids: ids

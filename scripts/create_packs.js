@@ -35,11 +35,13 @@ function chunkArray(arr, size) {
 async function createTopicPacks() {
     const topicsSnap = await db.collection('topics').get();
     const topicTitleToId = new Map();
+    const topicIdToTitle = new Map();
 
     topicsSnap.forEach(docSnap => {
         const data = docSnap.data();
         if (data?.title) {
             topicTitleToId.set(data.title, docSnap.id);
+            topicIdToTitle.set(docSnap.id, data.title);
         }
     });
 
@@ -81,8 +83,21 @@ async function createTopicPacks() {
             topicId,
             packCount: packs.length,
             questionCount: questions.length,
+            questionIds: questions.map(question => question.id),
             updatedAt: admin.firestore.FieldValue.serverTimestamp()
         }, { merge: true });
+
+        const topicTitle = topicIdToTitle.get(topicId);
+        if (topicTitle) {
+            const topicMetaRef = db.collection('topics_metadata').doc(topicTitle);
+            batch.set(topicMetaRef, {
+                topicId,
+                topicTitle,
+                questionCount: questions.length,
+                questionIds: questions.map(question => question.id),
+                updatedAt: admin.firestore.FieldValue.serverTimestamp()
+            }, { merge: true });
+        }
 
         await batch.commit();
         console.log(`✅ ${topicId} için ${packs.length} paket oluşturuldu (${questions.length} soru).`);
