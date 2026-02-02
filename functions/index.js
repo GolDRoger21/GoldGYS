@@ -851,24 +851,24 @@ exports.onUserCreated = functions.firestore
 
     // Tarihi belirle (createdAt varsa kullan, yoksa sunucu zamanını al)
     if (data.createdAt && typeof data.createdAt.toDate === 'function') {
-        dateStr = data.createdAt.toDate().toISOString().split('T')[0]; // YYYY-MM-DD
+      dateStr = data.createdAt.toDate().toISOString().split('T')[0]; // YYYY-MM-DD
     } else {
-        dateStr = new Date().toISOString().split('T')[0];
+      dateStr = new Date().toISOString().split('T')[0];
     }
 
     // 'stats/daily_users' dokümanını güncelle
     const statsRef = admin.firestore().collection('stats').doc('daily_users');
-    
+
     try {
-        // O günün sayacını atomik olarak +1 artır
-        await statsRef.set({
-            [dateStr]: admin.firestore.FieldValue.increment(1)
-        }, { merge: true });
-        console.log(`Yeni üye sayacı güncellendi: ${dateStr}`);
+      // O günün sayacını atomik olarak +1 artır
+      await statsRef.set({
+        [dateStr]: admin.firestore.FieldValue.increment(1)
+      }, { merge: true });
+      console.log(`Yeni üye sayacı güncellendi: ${dateStr}`);
     } catch (error) {
-        console.error("Sayaç güncelleme hatası:", error);
+      console.error("Sayaç güncelleme hatası:", error);
     }
-});
+  });
 
 exports.onQuestionDeleted = functions.firestore
   .document("questions/{questionId}")
@@ -897,3 +897,79 @@ exports.onQuestionSoftDeleted = functions.firestore
       }
     }
   });
+
+// --- SITEMAP GENERATION ---
+exports.sitemap = functions.https.onRequest(async (req, res) => {
+  const baseUrl = "https://goldgys.web.app";
+  const staticUrls = [
+    { loc: "/", changefreq: "weekly", priority: 1.0 },
+    { loc: "/login", changefreq: "monthly", priority: 0.6 },
+    { loc: "/dashboard", changefreq: "weekly", priority: 0.7 },
+    { loc: "/konular", changefreq: "weekly", priority: 0.7 },
+    { loc: "/test", changefreq: "weekly", priority: 0.6 },
+    { loc: "/denemeler", changefreq: "weekly", priority: 0.6 },
+    { loc: "/analiz", changefreq: "weekly", priority: 0.6 },
+    { loc: "/profil", changefreq: "monthly", priority: 0.5 },
+    { loc: "/yanlislarim", changefreq: "weekly", priority: 0.5 },
+    { loc: "/favoriler", changefreq: "weekly", priority: 0.5 },
+    { loc: "/yardim", changefreq: "monthly", priority: 0.4 },
+    { loc: "/yasal", changefreq: "yearly", priority: 0.3 },
+  ];
+
+  try {
+    const db = admin.firestore();
+    const [topicsSnap, testsSnap, examsSnap] = await Promise.all([
+      db.collection("topics").where("status", "==", "published").get(),
+      db.collection("tests").where("status", "==", "published").get(),
+      db.collection("exams").where("status", "==", "active").get(),
+    ]);
+
+    let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
+    xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n';
+
+    // Static URLs
+    staticUrls.forEach((url) => {
+      xml += "  <url>\n";
+      xml += `    <loc>${baseUrl}${url.loc}</loc>\n`;
+      xml += `    <changefreq>${url.changefreq}</changefreq>\n`;
+      xml += `    <priority>${url.priority}</priority>\n`;
+      xml += "  </url>\n";
+    });
+
+    // Dynamic Topics
+    topicsSnap.forEach((doc) => {
+      xml += "  <url>\n";
+      xml += `    <loc>${baseUrl}/konu/${doc.id}</loc>\n`;
+      xml += "    <changefreq>weekly</changefreq>\n";
+      xml += "    <priority>0.8</priority>\n";
+      xml += "  </url>\n";
+    });
+
+    // Dynamic Tests
+    testsSnap.forEach((doc) => {
+      xml += "  <url>\n";
+      xml += `    <loc>${baseUrl}/test/${doc.id}</loc>\n`;
+      xml += "    <changefreq>weekly</changefreq>\n";
+      xml += "    <priority>0.7</priority>\n";
+      xml += "  </url>\n";
+    });
+
+    // Dynamic Exams (as Deneme)
+    examsSnap.forEach((doc) => {
+      xml += "  <url>\n";
+      xml += `    <loc>${baseUrl}/deneme/${doc.id}</loc>\n`;
+      xml += "    <changefreq>weekly</changefreq>\n";
+      xml += "    <priority>0.7</priority>\n";
+      xml += "  </url>\n";
+    });
+
+    xml += "</urlset>";
+
+    res.set("Content-Type", "application/xml");
+    res.set("Cache-Control", "public, max-age=3600, s-maxage=7200");
+    res.status(200).send(xml);
+  } catch (error) {
+    console.error("Sitemap generation error:", error);
+    res.status(500).send("Error generating sitemap");
+  }
+});
