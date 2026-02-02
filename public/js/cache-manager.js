@@ -1,4 +1,5 @@
 const DEFAULT_PACK_TTL = 24 * 60 * 60 * 1000; // 24 saat
+const DEFAULT_INDEX_TTL = 24 * 60 * 60 * 1000;
 const CACHE_VERSION = 'v1';
 
 function buildKey(prefix, key) {
@@ -28,6 +29,23 @@ export const CacheManager = {
     getPack(key, maxAge = DEFAULT_PACK_TTL) {
         if (!key) return null;
         const payload = safeParse(localStorage.getItem(buildKey('pack', key)));
+        if (!payload?.data || !payload?.timestamp) return null;
+        if (Date.now() - payload.timestamp > maxAge) return null;
+        return payload.data;
+    },
+
+    saveTopicPackIndexes(topicId, indexes) {
+        if (!topicId || !Array.isArray(indexes)) return;
+        const payload = {
+            timestamp: Date.now(),
+            data: indexes
+        };
+        localStorage.setItem(buildKey('pack_indexes', topicId), JSON.stringify(payload));
+    },
+
+    getTopicPackIndexes(topicId, maxAge = DEFAULT_INDEX_TTL) {
+        if (!topicId) return null;
+        const payload = safeParse(localStorage.getItem(buildKey('pack_indexes', topicId)));
         if (!payload?.data || !payload?.timestamp) return null;
         if (Date.now() - payload.timestamp > maxAge) return null;
         return payload.data;
