@@ -676,9 +676,14 @@
     async function loadQuestionCount() {
       if (!topicTitle) return;
       try {
-        // 1. Toplam Soru Sayısı (Cache'den veya DB'den)
-        const allIds = await TopicService.getTopicQuestionIds(topicTitle);
-        const totalCount = allIds.length;
+        // 1. Toplam Soru Sayısı (Paket metadata veya fallback)
+        const meta = await TopicService.getTopicPackMeta(currentTopicId);
+        let totalCount = meta?.questionCount || 0;
+
+        if (!totalCount) {
+          const allIds = await TopicService.getTopicQuestionIds(topicTitle);
+          totalCount = allIds.length;
+        }
 
         // 2. Çözülenler
         let solvedCount = 0;
