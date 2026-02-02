@@ -93,6 +93,18 @@
       line-height: 1.2;
     }
 
+    .topic-back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 14px;
+      text-decoration: none;
+    }
+
+    .topic-back-btn .material-icons {
+      font-size: 1rem;
+    }
+
     .content-container {
       max-width: 1200px;
       margin: 0 auto;
@@ -295,8 +307,7 @@
 
   <header class="topic-header">
     <div style="max-width: 1200px; margin: 0 auto;">
-      <a href="/konular"
-        style="text-decoration:none; color:var(--text-muted); display:flex; align-items:center; gap:5px; margin-bottom:10px;">
+      <a href="/konular" class="btn btn-sm btn-outline-primary topic-back-btn" aria-label="Tüm konulara dön">
         <span class="material-icons">arrow_back</span> Tüm Konular
       </a>
       <h1 id="topicTitle" class="topic-title">Yükleniyor...</h1>

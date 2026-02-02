@@ -8,6 +8,9 @@ import { CacheManager } from "./cache-manager.js";
 const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 Saat
 const PACK_CACHE_DURATION = 24 * 60 * 60 * 1000;
 const PACK_INDEX_CACHE_DURATION = 24 * 60 * 60 * 1000;
+const PACK_META_CACHE_DURATION = 24 * 60 * 60 * 1000;
+
+const topicPackMetaMemoryCache = new Map();
 
 export const TopicService = {
 
@@ -27,7 +30,7 @@ export const TopicService = {
         if (cachedData) {
             try {
                 const { timestamp, ids } = JSON.parse(cachedData);
-                if (Date.now() - timestamp < CACHE_DURATION && Array.isArray(ids) && ids.length > 0) {
+                if (Date.now() - timestamp < CACHE_DURATION && Array.isArray(ids)) {
                     console.log(`[Cache Hit] ${topicTitle} için ${ids.length} soru ID'si yerel hafızadan alındı.`);
                     return ids;
                 }
@@ -70,9 +73,22 @@ export const TopicService = {
         if (!topicId) return null;
 
         try {
+            if (topicPackMetaMemoryCache.has(topicId)) {
+                return topicPackMetaMemoryCache.get(topicId);
+            }
+
+            const cacheKey = `topic_pack_meta_${topicId}`;
+            const cached = CacheManager.getData(cacheKey, PACK_META_CACHE_DURATION);
+            if (cached?.cached) {
+                topicPackMetaMemoryCache.set(topicId, cached.data);
+                return cached.data;
+            }
+
             const metaSnap = await getDoc(doc(db, `topic_packs_meta/${topicId}`));
-            if (!metaSnap.exists()) return null;
-            return metaSnap.data();
+            const metaData = metaSnap.exists() ? metaSnap.data() : null;
+            CacheManager.saveData(cacheKey, metaData);
+            topicPackMetaMemoryCache.set(topicId, metaData);
+            return metaData;
         } catch (error) {
             console.warn("Paket meta verisi okunamadı:", error);
             return null;
@@ -83,7 +99,7 @@ export const TopicService = {
         if (!topicId) return [];
 
         const cached = CacheManager.getTopicPackIndexes(topicId, PACK_INDEX_CACHE_DURATION);
-        if (Array.isArray(cached) && cached.length > 0) {
+        if (Array.isArray(cached)) {
             return cached;
         }
 
@@ -105,9 +121,7 @@ export const TopicService = {
                 .filter(index => Number.isInteger(index));
 
             const uniqueIndexes = Array.from(new Set(indexes));
-            if (uniqueIndexes.length > 0) {
-                CacheManager.saveTopicPackIndexes(topicId, uniqueIndexes);
-            }
+            CacheManager.saveTopicPackIndexes(topicId, uniqueIndexes);
             return uniqueIndexes;
         } catch (error) {
             console.warn("Paket indeksleri okunamadı:", error);
