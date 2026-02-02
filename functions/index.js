@@ -1,4 +1,4 @@
-const { onCall, HttpsError } = require("firebase-functions/v2/https");
+const { onCall, onRequest, HttpsError } = require("firebase-functions/v2/https");
 const admin = require("firebase-admin");
 admin.initializeApp();
 
@@ -834,12 +834,14 @@ async function summarizeAttempts(uid) {
   };
 }
 
-exports.getUserContentSummary = appCheckRequired.https.onCall(async (data, context) => {
+exports.getUserContentSummary = onCall({ enforceAppCheck: true }, async (request) => {
+  const context = { auth: request.auth };
   await ensureCallerIsAdmin(context);
 
+  const data = request.data;
   const uid = data?.uid;
   if (!uid) {
-    throw new functions.https.HttpsError("invalid-argument", "Kullanıcı kimliği gerekli.");
+    throw new HttpsError("invalid-argument", "Kullanıcı kimliği gerekli.");
   }
 
   const [topics, tests, attempts] = await Promise.all([
@@ -909,7 +911,7 @@ exports.onQuestionSoftDeleted = functions.firestore
   });
 
 // --- SITEMAP GENERATION ---
-exports.sitemap = functions.https.onRequest(async (req, res) => {
+exports.sitemap = onRequest(async (req, res) => {
   const baseUrl = "https://goldgys.web.app";
   const staticUrls = [
     { loc: "/", changefreq: "weekly", priority: 1.0 },
