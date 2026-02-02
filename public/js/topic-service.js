@@ -280,6 +280,7 @@ export const TopicService = {
 
         try {
             await deleteDoc(doc(db, `users/${userId}/topic_progress/${topicId}`));
+            CacheManager.clearDraftAnswers(`topic_${topicId}`);
             console.log("İlerleme sıfırlandı.");
             return true;
         } catch (error) {
