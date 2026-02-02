@@ -59,3 +59,6 @@
 
 ### `stats/daily_users`
 - `YYYY-MM-DD`: number (Günlük kayıt sayısı)
+- **Not:** Tek dokümana yoğun yazma yapılacağı için hotspot riski taşır.
+  - **Öneri 1:** Sharded counter (örn. `stats/daily_users_shards/{shardId}`) kullanın.
+  - **Öneri 2:** Bu metriği Firebase/Google Analytics ile takip edin.
