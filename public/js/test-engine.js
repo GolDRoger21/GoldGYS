@@ -51,6 +51,7 @@ export class TestEngine {
         await this.loadUserFavorites();
         this.renderAllQuestions();
         this.updateCounters();
+        this.setupLifecycleHandlers();
 
         // Sınav Moduysa Sayacı Başlat
         if (this.mode === 'exam') {
@@ -60,6 +61,22 @@ export class TestEngine {
             // Çalışma modunda sayaç gizlenebilir
             if (this.ui.timerDisplay) this.ui.timerDisplay.parentElement.style.display = 'none';
         }
+    }
+
+    setupLifecycleHandlers() {
+        const tryFlush = () => {
+            if (this.pendingWrongAnswers.size === 0) return;
+            void this.flushWrongAnswers();
+        };
+
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'hidden') {
+                tryFlush();
+            }
+        });
+
+        window.addEventListener('pagehide', tryFlush);
+        window.addEventListener('beforeunload', tryFlush);
     }
 
     // --- SAYAÇ YÖNETİMİ ---
