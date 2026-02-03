@@ -58,7 +58,7 @@
             top: 0;
             left: 0;
             width: 100%;
-            padding: 1.5rem 2rem;
+            padding: 1rem;
             z-index: 10;
         }
 
@@ -415,6 +415,22 @@
                 border: 1px solid var(--border-subtle);
                 padding: 1.5rem;
                 /* Reduced padding */
+                width: 100%;
+                /* Ensure full width */
+            }
+
+            .auth-wrapper {
+                align-items: flex-start;
+                /* Prevent centering issues on small screens */
+                padding-top: 4rem;
+                /* Space for nav */
+            }
+
+            .auth-agreement-panel {
+                order: 2;
+                /* Ensure it comes after login form if column direction */
+                display: flex;
+                /* Ensure it is visible if enabled */
             }
 
             .brand-logo {
