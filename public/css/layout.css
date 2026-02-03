@@ -18,6 +18,19 @@ body {
     /* Fontları pürüzsüzleştir */
 }
 
+img,
+video,
+canvas {
+    max-width: 100%;
+    height: auto;
+}
+
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
 /* --- APP SHELL --- */
 .app-layout {
     display: grid;
@@ -741,6 +754,17 @@ body:not(.admin-body) .app-sidebar .nav-label {
 
 /* --- MOBILE RESPONSIVE --- */
 @media (max-width: 768px) {
+    .app-main {
+        padding: 16px 14px calc(24px + env(safe-area-inset-bottom, 0px));
+    }
+
+    input,
+    select,
+    textarea,
+    button {
+        font-size: 16px;
+    }
+
     .app-header {
         padding: 0 12px;
     }

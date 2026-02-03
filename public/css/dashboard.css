@@ -6,6 +6,19 @@
     width: 100%;
 }
 
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+}
+
+.section-header h2 {
+    margin: 0;
+}
+
 /* --- WELCOME SECTION (Restored) --- */
 .welcome-section {
     background: linear-gradient(135deg, var(--navy-light), var(--navy-deep));
@@ -987,6 +1000,36 @@
 @media (max-width: 768px) {
     .dashboard-container {
         padding: 16px;
+    }
+
+    .section-header {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+    }
+
+    .card-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .chip-group {
+        flex-wrap: wrap;
+        row-gap: 8px;
+    }
+
+    .mastery-table th {
+        font-size: 0.75rem;
+        padding: 0 12px 6px 12px;
+    }
+
+    .mastery-table td {
+        padding: 12px;
+    }
+
+    .progress-mini-wrapper {
+        width: 80px;
+        margin-right: 8px;
     }
 
     .bento-grid {
