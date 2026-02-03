@@ -373,8 +373,7 @@
           <div class="study-mode-header">
             <p id="studyModeStatus" class="study-mode-status">Bu konuya ait <strong id="totalQCount">0</strong> soruyu
               dilediğin gibi çöz.</p>
-            <button id="resetProgressBtn" class="btn btn-sm btn-outline-danger reset-progress-btn"
-              style="display:none;"
+            <button id="resetProgressBtn" class="btn btn-sm btn-outline-danger reset-progress-btn" style="display:none;"
               onclick="resetTopicProgress()">
               <span class="material-icons" style="font-size:1rem; vertical-align:middle;">refresh</span> Sıfırla
             </button>
@@ -557,8 +556,12 @@
           if (isTest) {
             testCount += 1;
             const qCount = item.qCount || (item.questions ? item.questions.length : 0);
-            const returnUrl = encodeURIComponent(`/konu/${currentTopicId}`);
-            const testUrl = `/test/${encodeURIComponent(item.id)}?topic=${encodeURIComponent(currentTopicId)}&mode=select&return=${returnUrl}`;
+
+            // SEO-Friendly Link Generation
+            // Old: /test/${item.id}?topic=${currentTopicId}&mode=select&return=...
+            // New: /test/${currentTopicId}/${item.id}?mode=select (return is inferred by router)
+            const testUrl = `/test/${encodeURIComponent(currentTopicId)}/${encodeURIComponent(item.id)}?mode=select`;
+
             testsContainer.innerHTML += `
                       <div class="test-card">
                           <div style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;">
@@ -801,8 +804,11 @@
     };
 
     window.startSmartTest = (mode) => {
-      const returnUrl = encodeURIComponent(`/konu/${currentTopicId}`);
-      window.location.href = `/test?topic=${encodeURIComponent(currentTopicId)}&mode=smart&filter=${encodeURIComponent(mode)}&return=${returnUrl}`;
+      // SEO-Friendly Smart Mode Link
+      // Old: /test?topic=...&mode=smart&filter=...
+      // New: /test/${topicId}/smart?filter=...
+      const filter = encodeURIComponent(mode);
+      window.location.href = `/test/${encodeURIComponent(currentTopicId)}/smart?filter=${filter}`;
     };
 
     function initMobileTabs() {

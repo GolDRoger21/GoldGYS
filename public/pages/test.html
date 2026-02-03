@@ -645,32 +645,65 @@
 
         document.addEventListener('DOMContentLoaded', async () => {
             const urlParams = new URLSearchParams(window.location.search);
-            let examId = urlParams.get('id'); // Test ID (Lesson ID)
-            const DEFAULT_QUESTION_LIMIT = 30;
-            const MAX_QUESTION_LIMIT = 100;
-            const requestedLimit = normalizeLimit(urlParams.get('limit'), DEFAULT_QUESTION_LIMIT, MAX_QUESTION_LIMIT);
+            const path = window.location.pathname;
 
-            if (!examId) {
-                const pathMatch = window.location.pathname.match(/^\/test\/([^/]+)$/);
-                if (pathMatch) {
-                    examId = decodeURIComponent(pathMatch[1]);
+            // --- URL PARSING LOGIC ---
+            let examId = urlParams.get('id');
+            let topicId = urlParams.get('topic');
+            let mode = urlParams.get('mode') || 'select';
+            let filter = urlParams.get('filter'); // random, order, wrongs, favorites
+
+            // 1. Try calculating from path: /test/:topicId/:examId  OR  /test/:examId (legacy)
+            // Regex for: /test/TOPIC_ID/TEST_ID  or  /test/TOPIC_ID/smart
+            const routeMatch = path.match(/^\/test\/([^\/]+)(?:\/([^\/]+))?$/);
+
+            if (routeMatch) {
+                const segment1 = decodeURIComponent(routeMatch[1]); // Could be topicId OR examId (legacy)
+                const segment2 = routeMatch[2] ? decodeURIComponent(routeMatch[2]) : null;
+
+                if (segment2) {
+                    // New Format: /test/TOPIC/ID or /test/TOPIC/smart
+                    topicId = segment1;
+
+                    if (segment2 === 'smart') {
+                        mode = 'smart';
+                        examId = null; // No specific test ID in smart mode
+                    } else {
+                        examId = segment2;
+                        // Determine mode if not passed, default to 'select' implies normal test
+                        if (mode === 'select') mode = 'practice'; // 'select' is actually just a placeholder, commonly 'practice'
+                    }
+                } else {
+                    // Legacy Format: /test/ID  (No topic in path)
+                    // If calculation above failed to find topic, we assume segment1 is examId
+                    // BUT, checking if it might be a topic is hard without data.
+                    // We stick to legacy invalidation: if only 1 segment, it's examId.
+                    if (!examId) examId = segment1;
                 }
             }
 
-            const topicId = urlParams.get('topic'); // Konu ID
-            let mode = urlParams.get('mode'); // practice, exam, smart
-            const filter = urlParams.get('filter'); // random, order, wrongs, favorites
-            const duration = parseInt(urlParams.get('duration')) || 0;
-            const returnParam = urlParams.get('return');
-            const returnFallback = topicId ? `/konu/${encodeURIComponent(topicId)}` : '/denemeler';
-            const returnUrl = getSafeReturnUrl(returnParam, returnFallback);
-            const returnIcon = document.getElementById('btnReturnTopicIcon');
-
-            if (examId && !window.location.pathname.startsWith('/test/')) {
-                const nextUrl = new URL(window.location.href);
-                nextUrl.pathname = `/test/${encodeURIComponent(examId)}`;
-                window.history.replaceState({}, '', `${nextUrl.pathname}${nextUrl.search}${nextUrl.hash}`);
+            // Soft Redirect for Legacy Links with Query Params -> SEO Friendly
+            // If we have topicId and examId but path is old /test/ID, upgrade it visually.
+            if (examId && topicId && !path.includes(`/${topicId}/`)) {
+                const newPath = `/test/${encodeURIComponent(topicId)}/${encodeURIComponent(examId)}`;
+                // Preserve other relevant params like 'mode', but 'topic' and 'id' are now in path
+                const newParams = new URLSearchParams(window.location.search);
+                newParams.delete('topic');
+                newParams.delete('id');
+                window.history.replaceState({}, '', `${newPath}?${newParams.toString()}`);
+            } else if (mode === 'smart' && topicId && !path.includes('/smart')) {
+                const newPath = `/test/${encodeURIComponent(topicId)}/smart`;
+                const newParams = new URLSearchParams(window.location.search);
+                newParams.delete('topic');
+                newParams.delete('mode');
+                // filter param stays
+                window.history.replaceState({}, '', `${newPath}?${newParams.toString()}`);
             }
+
+
+            const DEFAULT_QUESTION_LIMIT = 30;
+            const MAX_QUESTION_LIMIT = 100;
+            const requestedLimit = normalizeLimit(urlParams.get('limit'), DEFAULT_QUESTION_LIMIT, MAX_QUESTION_LIMIT);
 
             const loadingScreen = document.getElementById('loadingScreen');
             const quizContainer = document.getElementById('quizContainer');
