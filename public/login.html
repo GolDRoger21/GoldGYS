@@ -84,6 +84,11 @@
             background: var(--bg-hover);
         }
 
+        .btn-back svg {
+            display: none;
+            flex-shrink: 0;
+        }
+
         /* Responsive Back Button */
         @media (max-width: 480px) {
             .btn-back span {
@@ -100,8 +105,14 @@
                 backdrop-filter: blur(4px);
             }
 
+            .btn-back svg {
+                display: block;
+                width: 20px;
+                height: 20px;
+            }
+
             .auth-nav {
-                padding: 10px;
+                padding: calc(10px + env(safe-area-inset-top)) 10px 10px;
                 top: 0.5rem;
                 /* Slight adjustment */
                 left: 0.5rem;
@@ -474,17 +485,14 @@
 <body>
 
     <nav class="auth-nav">
-        <nav class="auth-nav">
-            <a href="/" class="btn-back">
-                <span>← Ana Sayfaya Dön</span>
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                    style="display:none;">
-                    <line x1="19" y1="12" x2="5" y2="12"></line>
-                    <polyline points="12 19 5 12 12 5"></polyline>
-                </svg>
-            </a>
-        </nav>
+        <a href="/" class="btn-back" aria-label="Ana sayfaya dön">
+            <span>← Ana Sayfaya Dön</span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="19" y1="12" x2="5" y2="12"></line>
+                <polyline points="12 19 5 12 12 5"></polyline>
+            </svg>
+        </a>
     </nav>
 
     <div class="auth-wrapper">
