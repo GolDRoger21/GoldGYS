@@ -12,7 +12,12 @@
 - `lastLoginAt`: timestamp
 - **Alt Koleksiyonlar:**
   - `progress`: { topicId, completedTests, scoreAvg }
-  - `wrongs`: { questionId, count, lastAttempt }
+  - `wrongs`: { questionId, count, lastAttempt } (legacy)
+  - `wrong_summaries/{YYYY-MM-DD}`:
+    - `wrongCounts.{questionId}`: number
+    - `questionMeta.{questionId}`: { questionId, text, category, examId, lastAttempt }
+    - `questionIds`: array
+    - `updatedAt`: timestamp
   - `favorites`: { questionId, addedAt }
   - `exam_results`: { examId, score, correct, wrong, date }
 
@@ -58,7 +63,12 @@
 - `type`: "error" | "suggestion"
 
 ### `stats/daily_users`
-- `YYYY-MM-DD`: number (Günlük kayıt sayısı)
+- `YYYY-MM-DD`: number (Günlük kayıt sayısı, legacy kullanım)
 - **Not:** Tek dokümana yoğun yazma yapılacağı için hotspot riski taşır.
-  - **Öneri 1:** Sharded counter (örn. `stats/daily_users_shards/{shardId}`) kullanın.
+  - **Öneri 1:** Sharded counter (örn. `stats/daily_users_shards/...`) kullanın.
   - **Öneri 2:** Bu metriği Firebase/Google Analytics ile takip edin.
+
+### `stats/daily_users_shards/shards/{date}_{shard}`
+- `date`: string (YYYY-MM-DD)
+- `count`: number
+- `updatedAt`: timestamp

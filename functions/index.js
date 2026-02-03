@@ -869,13 +869,20 @@ exports.onUserCreated = onDocumentCreated("users/{uid}", async (event) => {
     dateStr = new Date().toISOString().split('T')[0];
   }
 
-  // 'stats/daily_users' dokümanını güncelle
-  const statsRef = admin.firestore().collection('stats').doc('daily_users');
+  const shardCount = 20;
+  const shardId = Math.floor(Math.random() * shardCount);
+  const shardRef = admin.firestore()
+    .collection('stats')
+    .doc('daily_users_shards')
+    .collection('shards')
+    .doc(`${dateStr}_${shardId}`);
 
   try {
     // O günün sayacını atomik olarak +1 artır
-    await statsRef.set({
-      [dateStr]: admin.firestore.FieldValue.increment(1)
+    await shardRef.set({
+      date: dateStr,
+      count: admin.firestore.FieldValue.increment(1),
+      updatedAt: admin.firestore.FieldValue.serverTimestamp()
     }, { merge: true });
     console.log(`Yeni üye sayacı güncellendi: ${dateStr}`);
   } catch (error) {

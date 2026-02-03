@@ -6,8 +6,7 @@ import {
     orderBy, 
     limit, 
     getDocs,
-    doc,     // <-- YENİ EKLENDİ
-    getDoc   // <-- YENİ EKLENDİ
+    where
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // Chart (Grafik) nesnelerini saklamak için global değişken
@@ -107,22 +106,34 @@ async function initChartsSafe() {
         let dataValues = [0];
 
         try {
-            const statsRef = doc(db, "stats", "daily_users");
-            const statsSnap = await getDoc(statsRef);
+            const endDate = new Date();
+            const startDate = new Date();
+            startDate.setDate(endDate.getDate() - 6);
+            const startKey = startDate.toISOString().slice(0, 10);
+            const endKey = endDate.toISOString().slice(0, 10);
 
-            if (statsSnap.exists()) {
-                const data = statsSnap.data();
-                // Tarihleri sırala ve son 7 günü al
-                const sortedDates = Object.keys(data).sort().slice(-7);
-                
-                if (sortedDates.length > 0) {
-                    labels = sortedDates.map(d => {
-                        // 2023-10-25 -> 25 Ekim formatı
-                        const dateObj = new Date(d);
-                        return dateObj.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' });
-                    });
-                    dataValues = sortedDates.map(d => data[d]);
-                }
+            const statsQuery = query(
+                collection(db, "stats", "daily_users_shards", "shards"),
+                where("date", ">=", startKey),
+                where("date", "<=", endKey)
+            );
+            const statsSnap = await getDocs(statsQuery);
+
+            const aggregated = new Map();
+            statsSnap.docs.forEach((docSnap) => {
+                const data = docSnap.data();
+                if (!data?.date) return;
+                const count = Number.isFinite(data.count) ? data.count : 0;
+                aggregated.set(data.date, (aggregated.get(data.date) || 0) + count);
+            });
+
+            const sortedDates = Array.from(aggregated.keys()).sort().slice(-7);
+            if (sortedDates.length > 0) {
+                labels = sortedDates.map(d => {
+                    const dateObj = new Date(d);
+                    return dateObj.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' });
+                });
+                dataValues = sortedDates.map(d => aggregated.get(d) || 0);
             }
         } catch (e) {
             console.warn("Grafik verisi çekilemedi (Henüz veri oluşmamış olabilir):", e);

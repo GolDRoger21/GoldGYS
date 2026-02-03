@@ -539,7 +539,7 @@ export class TestEngine {
                 mode: stats.mode || this.mode
             });
 
-            // 2. Yanlış Yapılanları 'wrongs' koleksiyonuna işle (Sınav modunda toplu işlem)
+            // 2. Yanlış Yapılanları 'wrong_summaries' koleksiyonuna işle (Sınav modunda toplu işlem)
             // Practice modunda anlık işleniyor, Exam modunda burada işlenmeli.
             // Ancak basitlik adına: Practice modunda anlık işledik. Exam modunda ise burada döngüyle işleyelim.
             // Not: Practice modunda zaten işlendiği için tekrar işlememek lazım.
@@ -616,7 +616,8 @@ export class TestEngine {
                 questionId: payload.questionId,
                 text: payload.text,
                 category: payload.category,
-                examId: payload.examId
+                examId: payload.examId,
+                lastAttempt: serverTimestamp()
             };
             questionIds.push(qId);
         });

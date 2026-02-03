@@ -636,10 +636,11 @@
         import { TestEngine } from "../js/test-engine.js";
         import { TopicService } from "../js/topic-service.js"; // Added Import
         import { CacheManager } from "../js/cache-manager.js";
+        import { WrongSummaryService } from "../js/wrong-summary-service.js";
         import { auth, db } from "../js/firebase-config.js";
         import { showToast } from "../js/notifications.js";
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { doc, getDoc, collection, query, where, limit, getDocs, documentId, getCountFromServer } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { doc, getDoc, collection, query, where, limit, getDocs, documentId } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         document.addEventListener('DOMContentLoaded', async () => {
             const urlParams = new URLSearchParams(window.location.search);
@@ -715,27 +716,32 @@
                     draftAnswers = CacheManager.getDraftAnswers(draftScopeKey);
 
                     if (filter === 'favorites' || filter === 'wrongs') {
-                        // --- F,avoriler ve Yanlışlar (Eski Mantık) ---
+                        // --- Favoriler ve Yanlışlar ---
                         if (!user) {
                             showToast("Bu modu kullanmak için giriş yapmalısınız.", "warning");
                             window.location.href = returnUrl;
                             return;
                         }
-                        const subcollection = filter === 'favorites' ? 'favorites' : 'wrongs';
-
-                        const baseQuery = query(
-                            collection(db, `users/${user.uid}/${subcollection}`),
-                            where("category", "==", topicTitle),
-                            limit(requestedLimit)
-                        );
-                        const [snap, countSnap] = await Promise.all([
-                            getDocs(baseQuery),
-                            getCountFromServer(query(collection(db, `users/${user.uid}/${subcollection}`), where("category", "==", topicTitle)))
-                        ]);
-                        totalCount = countSnap.data().count || 0;
-                        const ids = snap.docs.map(dS => dS.data()?.questionId).filter(Boolean);
-                        const questionMap = await fetchQuestionsByIds(ids);
-                        questions = ids.map(id => questionMap.get(id)).filter(Boolean);
+                        if (filter === 'favorites') {
+                            const baseQuery = query(
+                                collection(db, `users/${user.uid}/favorites`),
+                                where("category", "==", topicTitle),
+                                limit(requestedLimit)
+                            );
+                            const snap = await getDocs(baseQuery);
+                            const ids = snap.docs.map(dS => dS.data()?.questionId).filter(Boolean);
+                            totalCount = null;
+                            const questionMap = await fetchQuestionsByIds(ids);
+                            questions = ids.map(id => questionMap.get(id)).filter(Boolean);
+                        } else {
+                            const wrongSummary = await WrongSummaryService.getUserWrongSummary(user.uid);
+                            const filteredWrongs = wrongSummary.filter(item => item.category === topicTitle);
+                            const ids = filteredWrongs.map(item => item.questionId).filter(Boolean);
+                            totalCount = ids.length;
+                            const limitedIds = ids.slice(0, requestedLimit);
+                            const questionMap = await fetchQuestionsByIds(limitedIds);
+                            questions = limitedIds.map(id => questionMap.get(id)).filter(Boolean);
+                        }
 
                     } else {
                         // --- Karışık ve Sıralı Mod (Yeni Sistem) ---
@@ -1057,9 +1063,21 @@
 
         async function fetchQuestionsByIds(ids) {
             const questionMap = new Map();
+            const uniqueIds = Array.from(new Set(ids.filter(Boolean)));
+            const missingIds = [];
+
+            for (const id of uniqueIds) {
+                const cachedQ = await CacheManager.getQuestion(id);
+                if (cachedQ) {
+                    questionMap.set(id, cachedQ);
+                } else {
+                    missingIds.push(id);
+                }
+            }
+
             const chunks = [];
-            for (let i = 0; i < ids.length; i += 10) {
-                chunks.push(ids.slice(i, i + 10));
+            for (let i = 0; i < missingIds.length; i += 10) {
+                chunks.push(missingIds.slice(i, i + 10));
             }
 
             for (const chunk of chunks) {
@@ -1068,7 +1086,9 @@
                 qSnap.docs.forEach(docSnap => {
                     const data = docSnap.data();
                     if (data?.isDeleted || data?.isActive === false) return;
-                    questionMap.set(docSnap.id, { id: docSnap.id, ...data });
+                    const payload = { id: docSnap.id, ...data };
+                    questionMap.set(docSnap.id, payload);
+                    CacheManager.saveQuestion(payload);
                 });
             }
 
