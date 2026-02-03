@@ -13,7 +13,8 @@ import {
 const googleLoginButton = document.getElementById("googleLogin");
 const loader = document.getElementById("loader");
 const statusBox = document.getElementById("statusBox");
-const agreementCheckbox = document.getElementById("agreementCheck");
+// Checkbox removed
+const agreementCheckbox = null;
 const agreementPanel = document.getElementById("agreementPanel");
 const authCard = document.getElementById("authCard");
 
@@ -40,7 +41,8 @@ if (isRegisterMode) {
     if (agreementPanel) agreementPanel.style.display = "none";
 }
 
-const hasAcceptedAgreement = () => !isRegisterMode || (agreementCheckbox && agreementCheckbox.checked);
+// Acceptance is implied by clicking register
+const hasAcceptedAgreement = () => true;
 
 const updateLoginButtonState = () => {
     if (!googleLoginButton) return;
@@ -180,19 +182,20 @@ export const logout = async () => {
 // Event Listeners
 if (googleLoginButton) {
     googleLoginButton.addEventListener("click", async () => {
+        // Agreement is now implied, no check needed
+        /*
         if (isRegisterMode && !hasAcceptedAgreement()) {
             showStatus("error", "Devam etmek için kullanıcı sözleşmesini okuduğunuzu ve kabul ettiğinizi onaylamalısınız.");
             return;
         }
+        */
         toggleLoading(true);
         statusBox.style.display = 'none'; // Önceki mesajı temizle
         await loginWithPopup();
     });
 }
 
-if (agreementCheckbox) {
-    agreementCheckbox.addEventListener("change", updateLoginButtonState);
-}
+
 
 updateLoginButtonState();
 
