@@ -713,8 +713,18 @@
             const testFooter = document.getElementById('testFooter');
             const exitLink = document.getElementById('exitToList');
             const returnBtn = document.getElementById('btnReturnTopic');
+            const returnIcon = document.getElementById('btnReturnTopicIcon');
+            const explicitReturnUrl = getSafeReturnUrl(urlParams.get('return'), null);
+            const inferredReturnUrl = topicId
+                ? `/konu/${encodeURIComponent(topicId)}`
+                : '/denemeler';
+            const returnUrl = explicitReturnUrl || inferredReturnUrl;
+
             if (exitLink) exitLink.href = returnUrl;
-            if (returnBtn) returnBtn.href = returnUrl;
+            if (returnBtn) {
+                returnBtn.href = returnUrl;
+                returnBtn.style.display = returnUrl ? 'inline-flex' : 'none';
+            }
             if (returnIcon) {
                 returnIcon.href = returnUrl;
                 returnIcon.style.display = returnUrl ? 'inline-flex' : 'none';
