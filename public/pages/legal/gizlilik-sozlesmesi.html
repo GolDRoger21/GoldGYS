@@ -5,20 +5,40 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gizlilik Sözleşmesi | GOLD GYS</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:wght@700;800&display=swap"
+        rel="stylesheet">
+
     <link rel="stylesheet" href="/styles/tokens.css">
+    <link rel="stylesheet" href="/css/app.css">
+    <link rel="stylesheet" href="/css/landing.css">
+
     <style>
         body {
             background-color: var(--bg-body);
             color: var(--text-light);
             font-family: var(--font-family-sans);
             line-height: 1.6;
-            margin: 0;
-            padding: 2rem 1rem;
         }
 
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
+        .landing-nav {
+            position: sticky;
+            top: 0;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .limit-width {
+            max-width: 900px;
+            margin: 4rem auto;
+            padding: 0 1.5rem;
+        }
+
+        .legal-content {
             background: var(--bg-surface);
             padding: 2.5rem;
             border-radius: var(--radius-lg);
@@ -26,7 +46,7 @@
             box-shadow: var(--shadow-lg);
         }
 
-        h1 {
+        .legal-content h1 {
             color: var(--color-primary);
             font-family: var(--font-family-serif);
             font-size: 2rem;
@@ -36,7 +56,7 @@
             padding-bottom: 1rem;
         }
 
-        h2 {
+        .legal-content h2 {
             color: var(--color-primary);
             font-size: 1.25rem;
             margin-top: 2rem;
@@ -44,138 +64,143 @@
             font-weight: 600;
         }
 
-        p {
+        .legal-content p {
             margin-bottom: 1rem;
             color: var(--text-muted);
+        }
+
+        footer.landing-footer {
+            margin-top: auto;
         }
     </style>
 </head>
 
 <body>
-    <div class="container">
-        <h1>Gizlilik Sözleşmesi</h1>
 
-        <h2>GİZLİLİK VE GÜVENLİK POLİTİKASI</h2>
+    <nav class="landing-nav">
+        <div class="header-inner">
+            <a href="/" class="brand-logo">GOLD <span>GYS</span></a>
+            <div class="header-actions-group">
+                <button id="themeToggle" class="btn-theme-toggle" aria-label="Tema Değiştir">
+                    <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                    <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                </button>
+                <div class="auth-buttons-desktop">
+                    <a href="/login.html?mode=login" class="btn btn-secondary btn-sm">Giriş Yap</a>
+                    <a href="/login.html?mode=register" class="btn btn-primary btn-sm">Kayıt Ol</a>
+                </div>
+            </div>
+        </div>
+    </nav>
 
-        <p>www.guncelders.com sitesinde verilen tüm servisler ve hizmetler Kemalpaşa Mahallesi Özsaraç Sokak No:40
-            Daire:7 İnegöl/BURSA adresinde kayıtlı Hasan Hüseyin SÜMER-www.guncelders.com firmamıza aittir ve firmamız
-            tarafından işletilir.</p>
+    <div class="limit-width">
+        <div class="legal-content">
+            <h1>Gizlilik Sözleşmesi</h1>
 
-        <p>Firmamız, çeşitli amaçlarla kişisel veriler toplayabilir. Aşağıda, toplanan kişisel verilerin nasıl ve ne
-            şekilde toplandığı, bu verilerin nasıl ve ne şekilde korunduğu belirtilmiştir.</p>
+            <h2>GİZLİLİK VE GÜVENLİK POLİTİKASI</h2>
 
-        <p>Üyelik veya diğer iletişim kanaları üzerindeki çeşitli form ve anketlerin doldurulması suretiyle üyelerin
-            kendileriyle ilgili bir takım kişisel bilgiler (isim-soy isim, firma bilgileri, telefon, adres veya e-posta
-            adresleri gibi) Firmamız tarafından işin doğası gereği toplanmaktadır.</p>
+            <p>GOLD GYS (<a href="https://goldgys.web.app/"
+                    style="color:var(--color-primary)">https://goldgys.web.app/</a>) sitesinde verilen tüm servisler ve
+                hizmetler GOLD GYS Platform Yönetimi tarafından işletilir.</p>
 
-        <p>Firmamız bazı dönemlerde müşterilerine ve üyelerine kampanya bilgileri, yeni ürünler hakkında bilgiler,
-            promosyon teklifleri gönderebilir. Üyelerimiz bu gibi bilgileri alıp almama konusunda her türlü seçimi üye
-            olurken yapabilir, sonrasında üye girişi yaptıktan sonra hesap bilgileri bölümünden bu seçimi
-            değiştirilebilir ya da kendisine gelen bilgilendirme iletisindeki linkle bildirim yapabilir.</p>
+            <p>Platformumuz, çeşitli amaçlarla kişisel veriler toplayabilir. Bu verilerin toplanma, işlenme ve korunma
+                süreçleri, yasal düzenlemelere uygun olarak yürütülmektedir.</p>
 
-        <p>Firmamız üzerinden veya eposta ile gerçekleştirilen onay sürecinde, üyelerimiz tarafından mağazamıza
-            elektronik ortamdan iletilen kişisel bilgiler, Üyelerimiz ile yaptığımız "Kullanıcı Sözleşmesi" ile
-            belirlenen amaçlar ve kapsam dışında üçüncü kişilere açıklanmayacaktır.</p>
+            <p>Üyelik veya diğer iletişim kanalları üzerindeki çeşitli formların doldurulması suretiyle üyelerin
+                kendileriyle ilgili birtakım kişisel bilgiler (Ad, soyad, e-posta vb.) Platformumuz tarafından işin
+                doğası gereği toplanmaktadır.</p>
 
-        <p>Sistemle ilgili sorunların tanımlanması ve verilen hizmet ile ilgili çıkabilecek sorunların veya
-            uyuşmazlıkların hızla çözülmesi için, Firmamız, üyelerinin IP adresini kaydetmekte ve bunu kullanmaktadır.
-            IP adresleri, kullanıcıları genel bir şekilde tanımlamak ve kapsamlı demografik bilgi toplamak amacıyla da
-            kullanılabilir.</p>
+            <p>Platformumuz üzerinden gerçekleştirilen işlemlerden elde edilen bilgiler, "Üyelik Sözleşmesi" ile
+                belirlenen amaçlar dışında üçüncü kişilerle paylaşılmayacaktır.</p>
 
-        <p>Firmamız, Üyelik Sözleşmesi ile belirlenen amaçlar ve kapsam dışında da, talep edilen bilgileri kendisi veya
-            işbirliği içinde olduğu kişiler tarafından doğrudan pazarlama yapmak amacıyla kullanabilir. Kişisel
-            bilgiler, gerektiğinde kullanıcıyla temas kurmak için de kullanılabilir. Firmamız tarafından talep edilen
-            bilgiler veya kullanıcı tarafından sağlanan bilgiler veya Mağazamız üzerinden yapılan işlemlerle ilgili
-            bilgiler; Firmamız ve iş birliği içinde olduğu kişiler tarafından, "Üyelik Sözleşmesi" ile belirlenen
-            amaçlar ve kapsam dışında da, üyelerimizin kimliği ifşa edilmeden çeşitli istatistiksel değerlendirmeler,
-            veri tabanı oluşturma ve pazar araştırmalarında kullanılabilir.</p>
+            <p>Sistemle ilgili sorunların tanımlanması ve verilen hizmet ile ilgili çıkabilecek sorunların hızla
+                çözülmesi için, firmamız, kullanıcıların IP adresini kaydedebilir ve bunu kullanabilir.</p>
 
-        <p>Firmamız, gizli bilgileri kesinlikle özel ve gizli tutmayı, bunu bir sır saklama yükümü olarak addetmeyi ve
-            gizliliğin sağlanması ve sürdürülmesi, gizli bilginin tamamının veya herhangi bir kısmının kamu alanına
-            girmesini veya yetkisiz kullanımını veya üçüncü bir kişiye ifşasını önlemek için gerekli tüm tedbirleri
-            almayı ve gerekli özeni göstermeyi taahhüt etmektedir.</p>
+            <h2>VERİ GÜVENLİĞİ</h2>
+            <p>Platformumuz, kullanıcı verilerinin güvenliğini sağlamak için endüstri standardı güvenlik önlemleri
+                almaktadır. Üye bilgileri yetkisiz erişime karşı korunmakta olup, 128 bit SSL şifreleme teknolojileri
+                kullanılmaktadır.</p>
 
-        <h2>KREDİ KARTI GÜVENLİĞİ</h2>
-        <p>Firmamız, alışveriş sitelerimizden alışveriş yapan kredi kartı sahiplerinin güvenliğini ilk planda
-            tutmaktadır. Kredi kartı bilgileriniz hiçbir şekilde sistemimizde saklanmamaktadır.</p>
+            <h2>ÜÇÜNCÜ TARAF WEB SİTELERİ</h2>
+            <p>Platformumuz, site dâhilinde başka sitelere link verebilir. Bu linkler vasıtasıyla erişilen sitelerin
+                gizlilik uygulamaları ve içeriklerine yönelik herhangi bir sorumluluk taşımamaktayız.</p>
 
-        <p>İşlemler sürecine girdiğinizde güvenli bir sitede olduğunuzu anlamak için dikkat etmeniz gereken iki şey
-            vardır. Bunlardan biri tarayıcınızın en alt satırında bulunan bir anahtar ya da kilit simgesidir. Bu güvenli
-            bir internet sayfasında olduğunuzu gösterir ve her türlü bilgileriniz şifrelenerek korunur. Bu bilgiler,
-            ancak satış işlemleri sürecine bağlı olarak ve verdiğiniz talimat istikametinde kullanılır. Alışveriş
-            sırasında kullanılan kredi kartı ile ilgili bilgiler alışveriş sitelerimizden bağımsız olarak 128 bit SSL
-            (Secure Sockets Layer) protokolü ile şifrelenip sorgulanmak üzere ilgili bankaya ulaştırılır. Kartın
-            kullanılabilirliği onaylandığı takdirde alışverişe devam edilir. Kartla ilgili hiçbir bilgi tarafımızdan
-            görüntülenemediğinden ve kaydedilmediğinden, üçüncü şahısların herhangi bir koşulda bu bilgileri ele
-            geçirmesi engellenmiş olur.</p>
+            <h2>İSTİSNAİ HALLER</h2>
+            <p>Yasal zorunluluklar, yetkili adli ve idari makamların talepleri veya kullanıcıların haklarının
+                korunmasının gerekli olduğu durumlarda, kişisel bilgiler Gizlilik Politikası hükümleri dışında üçüncü
+                kişilere açıklanabilir.</p>
 
-        <p>Online olarak kredi kartı ile verilen siparişlerin ödeme/fatura/teslimat adresi bilgilerinin güvenilirliği
-            firmamız tarafından Kredi Kartları Dolandırıcılığına karşı denetlenmektedir. Bu yüzden, alışveriş
-            sitelerimizden ilk defa sipariş veren müşterilerin siparişlerinin tedarik ve teslimat aşamasına gelebilmesi
-            için öncelikle finansal ve adres/telefon bilgilerinin doğruluğunun onaylanması gereklidir. Bu bilgilerin
-            kontrolü için gerekirse kredi kartı sahibi müşteri ile veya ilgili banka ile irtibata geçilmektedir.</p>
+            <h2>TARAYICI ÇEREZLERİ</h2>
+            <p>Sitemizi ziyaret eden kullanıcıların site kullanımı hakkındaki bilgileri, teknik bir iletişim dosyası
+                (Çerez-Cookie) kullanarak elde edebiliriz. Çerezler, sitenin kullanımını kolaylaştırmak, kullanıcı
+                deneyimini iyileştirmek ve istatistiksel veriler elde etmek amacıyla kullanılır. Kullanıcılar, tarayıcı
+                ayarlarından çerezleri diledikleri zaman engelleyebilirler.</p>
 
-        <p>Üye olurken verdiğiniz tüm bilgilere sadece siz ulaşabilir ve siz değiştirebilirsiniz. Üye giriş
-            bilgilerinizi güvenle koruduğunuz takdirde başkalarının sizinle ilgili bilgilere ulaşması ve bunları
-            değiştirmesi mümkün değildir. Bu amaçla, üyelik işlemleri sırasında 128 bit SSL güvenlik alanı içinde
-            hareket edilir. Bu sistem kırılması mümkün olmayan bir uluslararası şifreleme standardıdır.</p>
-
-        <p>Bilgi hattı veya müşteri hizmetleri servisi bulunan ve açık adres ve telefon bilgilerinin belirtildiği
-            İnternet alışveriş siteleri günümüzde daha fazla tercih edilmektedir. Bu sayede aklınıza takılan bütün
-            konular hakkında detaylı bilgi alabilir, online alışveriş hizmeti sağlayan firmanın güvenirliği konusunda
-            daha sağlıklı bilgi edinebilirsiniz.</p>
-
-        <h2>ÜÇÜNCÜ TARAF WEB SİTELERİ VE UYGULAMALAR</h2>
-        <p>Firmamız, web sitesi dâhilinde başka sitelere link verebilir. Firmamız, bu linkler vasıtasıyla erişilen
-            sitelerin gizlilik uygulamaları ve içeriklerine yönelik herhangi bir sorumluluk taşımamaktadır. Firmamıza
-            ait sitede yayınlanan reklamlar, reklamcılık yapan iş ortaklarımız aracılığı ile kullanıcılarımıza
-            dağıtılır. İş bu sözleşmedeki Gizlilik Politikası Prensipleri, sadece Mağazamızın kullanımına ilişkindir,
-            üçüncü taraf web sitelerini kapsamaz.</p>
-
-        <h2>İSTİSNAİ HALLER</h2>
-        <p>Aşağıda belirtilen sınırlı hallerde Firmamız, işbu "Gizlilik Politikası" hükümleri dışında kullanıcılara ait
-            bilgileri üçüncü kişilere açıklayabilir. Bu durumlar sınırlı sayıda olmak üzere;</p>
-        <p>Kanun, Kanun Hükmünde Kararname, Yönetmelik v.b. yetkili hukuki otorite tarafından çıkarılan ve yürürlükte
-            olan hukuk kurallarının getirdiği zorunluluklara uymak;</p>
-        <p>Firmamızın kullanıcılarla akdettiği "Üyelik Sözleşmesi"'nin ve diğer sözleşmelerin gereklerini yerine
-            getirmek ve bunları uygulamaya koymak amacıyla;</p>
-        <p>Yetkili idari ve adli otorite tarafından usulüne göre yürütülen bir araştırma veya soruşturmanın yürütümü
-            amacıyla kullanıcılarla ilgili bilgi talep edilmesi;</p>
-        <p>Kullanıcıların hakları veya güvenliklerini korumak için bilgi vermenin gerekli olduğu hallerdir.</p>
-
-        <h2>E-POSTA GÜVENLİĞİ</h2>
-        <p>Firmamızın Müşteri Hizmetleri’ne, herhangi bir siparişinizle ilgili olarak göndereceğiniz e-postalarda, asla
-            kredi kartı numaranızı veya şifrelerinizi yazmayınız. E-postalarda yer alan bilgiler üçüncü şahıslar
-            tarafından görülebilir. Firmamız e-postalarınızdan aktarılan bilgilerin güvenliğini hiçbir koşulda garanti
-            edemez.</p>
-
-        <h2>TARAYICI ÇEREZLERİ</h2>
-        <p>Firmamız, www.guncelders.com adresini ziyaret eden kullanıcılar ve kullanıcıların web sitesini kullanımı
-            hakkındaki bilgileri teknik bir iletişim dosyası (Çerez-Cookie) kullanarak elde edebilir. Bahsi geçen teknik
-            iletişim dosyaları, ana bellekte saklanmak üzere bir internet sitesinin kullanıcının tarayıcısına (browser)
-            gönderdiği küçük metin dosyalarıdır. Teknik iletişim dosyası site hakkında durum ve tercihleri saklayarak
-            İnternetin kullanımını kolaylaştırır.</p>
-
-        <p>Teknik iletişim dosyası, siteyi kaç kişinin ziyaret ettiğini, bir kişinin siteyi hangi amaçla, kaç kez
-            ziyaret ettiğini ve ne kadar sitede kaldıkları hakkında istatistiksel bilgileri elde etmeye ve kullanıcılar
-            için özel tasarlanmış kullanıcı sayfalarından dinamik olarak reklam ve içerik üretilmesine yardımcı olur.
-            Teknik iletişim dosyası, ana bellekte veya e-postanızdan veri veya başkaca herhangi bir kişisel bilgi almak
-            için tasarlanmamıştır. Tarayıcıların pek çoğu başta teknik iletişim dosyasını kabul eder biçimde
-            tasarlanmıştır ancak kullanıcılar dilerse teknik iletişim dosyasının gelmemesi veya teknik iletişim
-            dosyasının gönderildiğinde uyarı verilmesini sağlayacak biçimde ayarları değiştirebilirler.</p>
-
-        <p>Firmamız, işbu "Gizlilik Politikası" hükümlerini dilediği zaman sitede yayınlamak veya kullanıcılara
-            elektronik posta göndermek veya sitesinde yayınlamak suretiyle değiştirebilir. Gizlilik Politikası hükümleri
-            değiştiği takdirde, yayınlandığı tarihte yürürlük kazanır.</p>
-
-        <p>Gizlilik politikamız ile ilgili her türlü soru ve önerileriniz için iletisim@guncelders.com adresine e-mail
-            gönderebilirsiniz. Firmamıza ait aşağıdaki iletişim bilgilerinden ulaşabilirsiniz.</p>
-
-        <p>Firma Ünvanı: Hasan Hüseyin SÜMER</p>
-        <p>Adres: Kemalpaşa Mahallesi Özsaraç Sokak No: 40 Daire : 7 İnegöl/BURSA</p>
-        <p>Eposta: iletisim@guncelders.com</p>
-        <p>WhatsApp: 0850 255 00 16</p>
+            <p>Gizlilik politikamız ile ilgili her türlü soru ve önerileriniz için iletişim kanallarımızdan bize
+                ulaşabilirsiniz.</p>
+        </div>
     </div>
+
+    <footer class="landing-footer">
+        <div class="header-inner" style="flex-wrap: wrap; height: auto; gap: 2rem; padding: 2rem 0;">
+            <div class="footer-brand">
+                <a href="/" class="brand-logo" style="margin-bottom: 1rem;">GOLD <span>GYS</span></a>
+                <p style="color: var(--text-muted); font-size: 0.9rem;">Adalet Bakanlığı personeli için geliştirilmiş,
+                    yeni nesil görevde yükselme sınavı hazırlık platformu.</p>
+            </div>
+            <div
+                style="text-align: center; width: 100%; border-top: 1px solid rgba(255,255,255,0.05); margin-top: 1rem; padding-top: 1rem; color: var(--text-muted); font-size: 0.85rem;">
+                &copy; 2026 GOLD GYS. Tüm Hakları Saklıdır.
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        const themeToggle = document.getElementById('themeToggle');
+        const htmlElement = document.documentElement;
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        htmlElement.setAttribute('data-theme', savedTheme);
+        updateThemeIcon(savedTheme);
+
+        if (themeToggle) {
+            themeToggle.addEventListener('click', () => {
+                const currentTheme = htmlElement.getAttribute('data-theme');
+                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                htmlElement.setAttribute('data-theme', newTheme);
+                localStorage.setItem('theme', newTheme);
+                updateThemeIcon(newTheme);
+            });
+        }
+        function updateThemeIcon(theme) {
+            const sunIcon = document.querySelector('.icon-sun');
+            const moonIcon = document.querySelector('.icon-moon');
+            if (sunIcon && moonIcon) {
+                if (theme === 'dark') {
+                    sunIcon.style.display = 'block';
+                    moonIcon.style.display = 'none';
+                } else {
+                    sunIcon.style.display = 'none';
+                    moonIcon.style.display = 'block';
+                }
+            }
+        }
+    </script>
 </body>
 
 </html>

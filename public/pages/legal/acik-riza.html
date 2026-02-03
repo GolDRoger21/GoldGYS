@@ -5,20 +5,41 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Açık Rıza Metni | GOLD GYS</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:wght@700;800&display=swap"
+        rel="stylesheet">
+
     <link rel="stylesheet" href="/styles/tokens.css">
+    <link rel="stylesheet" href="/css/app.css">
+    <link rel="stylesheet" href="/css/landing.css">
+
     <style>
         body {
             background-color: var(--bg-body);
             color: var(--text-light);
             font-family: var(--font-family-sans);
             line-height: 1.6;
-            margin: 0;
-            padding: 2rem 1rem;
         }
 
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
+        /* Landing Nav Adjustment for subpages */
+        .landing-nav {
+            position: sticky;
+            top: 0;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .limit-width {
+            max-width: 900px;
+            margin: 4rem auto;
+            padding: 0 1.5rem;
+        }
+
+        .legal-content {
             background: var(--bg-surface);
             padding: 2.5rem;
             border-radius: var(--radius-lg);
@@ -26,7 +47,7 @@
             box-shadow: var(--shadow-lg);
         }
 
-        h1 {
+        .legal-content h1 {
             color: var(--color-primary);
             font-family: var(--font-family-serif);
             font-size: 2rem;
@@ -36,109 +57,171 @@
             padding-bottom: 1rem;
         }
 
-        p {
+        .legal-content p {
             margin-bottom: 1rem;
             color: var(--text-muted);
         }
 
-        strong {
+        .legal-content strong {
             color: var(--text-light);
-            font-weight: 600;
         }
 
-        ul,
-        ol {
+        .legal-content ul,
+        .legal-content ol {
             margin-bottom: 1rem;
             padding-left: 1.5rem;
             color: var(--text-muted);
         }
 
-        li {
+        .legal-content li {
             margin-bottom: 0.5rem;
+        }
+
+        footer.landing-footer {
+            margin-top: auto;
         }
     </style>
 </head>
 
 <body>
-    <div class="container">
-        <h1>Açık Rıza Metni</h1>
 
-        <p><strong>6698 SAYILI KİŞİSEL VERİLERİN KORUNMASI KANUNU ("KVKK") UYARINCA KİŞİSEL VERİLERİN İŞLENMESİNE
-                İLİŞKİN RIZA METNİ</strong></p>
+    <!-- Header -->
+    <nav class="landing-nav">
+        <div class="header-inner">
+            <a href="/" class="brand-logo">GOLD <span>GYS</span></a>
 
-        <p>Şirketimiz Hasan Hüseyin SÜMER-www.güncelders.com (bundan sonra “güncelders” olarak anılacaktır) tarafından
-            www.güncelders.com internet sitesi üzerinden yürütülen faaliyetlerle ilgili olarak sizleri bilgilendirmek
-            isteriz. Güncelders olarak misafir ziyareti, canlı sohbet deneyimleri, üyelik seçeneği; alışkanlıkları,
-            alışveriş geçmişi, incelemeleri takip edilip değerlendirilerek kendisine özgü kişiselleştirilmiş bir hizmet
-            almak isteyen kullanıcılar için tasarlanmıştır. Kişiye özgü bu avantajların sunulması için ise bazı kişisel
-            verilerinizin aşağıda detaylandırıldığı şekilde belirtilen amaçlarla işlenmesi, profesyonel iş
-            ortaklarımızla paylaşılması ve teknoloji alanındaki tedarikçilerimiz tarafından sağlanan programlarımıza
-            ve/veya sistemlerimize kaydedilmesi gerekebilmektedir. Siz müşterilerimizin memnuniyetinin sağlanması için
-            işlenmesi gereken kişisel verilerinizden bazıları; Kişisel Verilerin Korunması Kanunu’nda yer alan ve rızaya
-            tabi olmayan veri işleme şartlarının kapsamında olmaması nedeniyle, ancak siz müşterilerimizin konu özelinde
-            beyan edeceği açık rızaya bağlıdır.</p>
+            <div class="header-actions-group">
+                <button id="themeToggle" class="btn-theme-toggle" aria-label="Tema Değiştir">
+                    <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                    <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                </button>
 
-        <p>Açık rızanıza bağlı olarak;</p>
+                <div class="auth-buttons-desktop">
+                    <a href="/login.html?mode=login" class="btn btn-secondary btn-sm">Giriş Yap</a>
+                    <a href="/login.html?mode=register" class="btn btn-primary btn-sm">Kayıt Ol</a>
+                </div>
+            </div>
+        </div>
+    </nav>
 
-        <p><strong>a. İşlenen Kişisel Veriler ve Toplama Yöntemleri:</strong></p>
-        <p>Siz Müşterilerimizin çevrimiçi ve/veya basılı formlar vasıtasıyla paylaştığı kimlik bilgileriniz (isim,
-            soyisim, doğum tarihi, uyruk, T.C. kimlik numarası, cinsiyet), iletişim bilgileriniz (e-posta adresi, fatura
-            ve teslimat adresleri, cep telefonu numarası); internet sitemizi kullanımınız sırasında toplanan müşteri
-            işlem bilgileriniz (talep bilgileri, sipariş bilgileri, fatura bilgileri, müşteri yorumları, miles&smiles
-            numarası, hes kodu), işitsel kayıt bilgileriniz: çağrı merkeziyle görüşmeniz halinde ses kaydınız, pazarlama
-            bilgileriniz (çerez kayıtları, alışveriş geçmişi, açık veya örtülü kullanıcı reytingleri), işlem güvenliği
-            bilgileri (IP Adresi Bilgileri, İnternet Sitesi Giriş Çıkış Bilgileri, Kullanıcı Adı Bilgileri, Şifre
-            Bilgileri, Bağlantı Zamanı / Süresi gibi Trafik Verileri) ile internet tarayıcınız ve/veya Şirketimiz mobil
-            uygulamasındaki veya internet sitemizi kullanırken internet tarayıcınızdaki tercihlerinize göre
-            toplanabilecek lokasyon verileriniz işlenecektir.</p>
+    <div class="limit-width">
+        <div class="legal-content">
+            <h1>Açık Rıza Metni</h1>
 
-        <p><strong>b. İşlenen Kişisel Verilerin İşleme Amaçları ve Hukuki Sebebi:</strong></p>
-        <p>Yukarıda sayılan kişisel verileriniz, üye olup veya üye olmadan rıza göstermeniz halinde; size özel reklam,
-            promosyon ve kampanyaların oluşturulması, elektronik ileti gönderilmesi (mail, sms), çapraz satış yapılması,
-            hedef kitle belirlenmesi, müşteri hareketleriniz takip edilerek kullanıcı deneyiminizi arttırıcı
-            faaliyetlerin yürütülmesi ve Güncelders’e ait internet sitesi ile mobil uygulamanın işleyişinin
-            geliştirilmesi ve müşteri ihtiyaçlarına göre kişiselleştirilmesi, doğrudan ve doğrudan olmayan pazarlama,
-            kişiye özel pazarlama ve yeniden pazarlama faaliyetlerinin yürütülmesi, kişiye özel segmentasyon, hedefleme,
-            analiz ve şirket içi raporlama faaliyetlerinin yürütülmesi, pazar araştırmaları, müşteri memnuniyeti
-            aktivitelerinin planlanması ve icrası ile müşteri ilişkileri yönetimi süreçlerinin planlanması ve icrası
-            amaçlarıyla dahil olmak üzere dahil olmak üzere Güncelders’in ve Güncelders ile anlaşmalı profesyonel iş
-            ortaklarının ürün ve/veya hizmetlerinin satış ve pazarlama süreçlerinin planlanması ve icrası, Güncelders’in
-            sunduğu ürün ve/veya hizmetlere bağlılık oluşturulması ve/veya arttırılması süreçlerinin planlanması ve
-            icrası, tüm bu açıklanan kapsamlarda sizinle iletişim faaliyetlerinin yürütülmesi kapsamında; KVKK’nın 5.
-            maddesinin 1. fıkrası “açık rıza” hukuki sebebine bağlı olarak işlenebilecek ve aynı amaçlar ve hukuki sebep
-            kapsamında yurtiçindeki üçüncü kişilerle ve KVKK’nın 9. maddesindeki kurallara uyularak yurtdışındaki üçüncü
-            kişilerle, iş ortaklarımızla/tedarikçilerimizle paylaşılabilecektir.</p>
+            <p><strong>6698 SAYILI KİŞİSEL VERİLERİN KORUNMASI KANUNU ("KVKK") UYARINCA KİŞİSEL VERİLERİN İŞLENMESİNE
+                    İLİŞKİN RIZA METNİ</strong></p>
 
-        <p><strong>c. İşlenen Kişisel Verilere İlişkin Haklarınız:</strong></p>
-        <p>KVKK’nın 11. maddesi kapsamında;</p>
-        <ul>
-            <li>Kişisel verilerinizin işlenip işlenmediğini öğrenme,</li>
-            <li>Kişisel verileriniz işlenmişse buna ilişkin bilgi talep etme,</li>
-            <li>Kişisel verilerinizin işlenme amacını ve bunların amacına uygun kullanılıp kullanılmadığını öğrenme,
-            </li>
-            <li>Yurt içinde veya yurt dışında kişisel verilerinizin aktarıldığı üçüncü kişileri bilme,</li>
-            <li>Kişisel verilerinizin eksik veya yanlış işlenmiş olması halinde bunların düzeltilmesini isteme,</li>
-            <li>KVKK mevzuatında öngörülen şartlar çerçevesinde kişisel verilerinizin silinmesini veya yok edilmesini
-                isteme,</li>
-            <li>Eksik veya yanlış verilerinizin düzeltilmesi ile kişisel verilerinizin silinmesi veya yok edilmesini
-                talep ettiğinizde, bu durumun kişisel verilerinizin aktarıldığı üçüncü kişilere bildirilmesini isteme,
-            </li>
-            <li>İşlenen verilerinizin münhasıran otomatik sistemler vasıtasıyla analiz edilmesi suretiyle aleyhe bir
-                sonucun ortaya çıkması durumunda sonuca itiraz etme ve</li>
-            <li>Kişisel verilerinizin kanuna aykırı olarak işlenmesi sebebiyle zarara uğraması halinde bu zararın
-                giderilmesini talep etme,</li>
-        </ul>
-        <p>haklarına sahipsiniz.</p>
+            <p>GOLD GYS Platformu (bundan sonra “GOLD GYS” olarak anılacaktır) tarafından <a
+                    href="https://goldgys.web.app/">https://goldgys.web.app/</a> internet sitesi üzerinden yürütülen
+                faaliyetlerle ilgili olarak sizleri bilgilendirmek isteriz. GOLD GYS, görevde yükselme sınavlarına
+                hazırlanan personeller için kişiselleştirilmiş eğitim deneyimi, deneme sınavları ve performans takibi
+                sunmak üzere tasarlanmıştır. Kişiye özgü bu avantajların sunulması için ise bazı kişisel verilerinizin
+                aşağıda detaylandırıldığı şekilde belirtilen amaçlarla işlenmesi gerekebilmektedir. Siz
+                kullanıcılarımızın memnuniyetinin sağlanması için işlenmesi gereken kişisel verilerinizden bazıları;
+                Kişisel Verilerin Korunması Kanunu’nda yer alan ve rızaya tabi olmayan veri işleme şartlarının
+                kapsamında olmaması nedeniyle, ancak siz kullanıcılarımızın konu özelinde beyan edeceği açık rızaya
+                bağlıdır.</p>
 
-        <p>Yukarıda yer alan tüm kişisel verilerinizin belirtilen işleme amaçları ile sınırlı olmak üzere işlenmesine
-            hiçbir baskı altında kalmadan ve açık biçimde Güncelders sitelerine üye olarak veya üye olmadan siteler
-            üzerinde doldurabileceğiniz çevrimiçi form, anket, canlı sohbet gibi uygulamalarda “Açık Rıza Metni”
-            sayfasında beyan ettiğiniz açık rıza doğrultusunda muvafakat ettiğiniz kabul edilecektir.</p>
+            <p>Açık rızanıza bağlı olarak;</p>
 
-        <p><strong>Rıza Metni Hakkında</strong></p>
-        <p>Güncelders işbu Kişisel Verilerin Korunması Hakkında Rıza metnini yürürlükteki mevzuatta yapılabilecek
-            değişiklikler çerçevesinde her zaman güncelleme hakkını saklı tutar.</p>
+            <p><strong>a. İşlenen Kişisel Veriler ve Toplama Yöntemleri:</strong></p>
+            <p>Siz kullanıcılarımızın çevrimiçi formlar vasıtasıyla paylaştığı kimlik bilgileriniz (isim, soyisim),
+                iletişim bilgileriniz (e-posta adresi); internet sitemizi kullanımınız sırasında toplanan kullanıcı
+                işlem bilgileriniz (sınav sonuçları, favori sorular, yanlış cevaplar, talep bilgileri), işlem güvenliği
+                bilgileri (IP Adresi, Giriş Çıkış Bilgileri, Kullanıcı Adı, Şifre Bilgileri, Bağlantı Zamanı) ile
+                internet tarayıcınızdaki tercihlerinize göre toplanabilecek verileriniz işlenecektir.</p>
+
+            <p><strong>b. İşlenen Kişisel Verilerin İşleme Amaçları ve Hukuki Sebebi:</strong></p>
+            <p>Yukarıda sayılan kişisel verileriniz, üye olmanız halinde; size özel çalışma programlarının
+                oluşturulması, sınav performansınızın analizi, eksik konularınızın belirlenmesi, kullanıcı deneyiminizi
+                arttırıcı faaliyetlerin yürütülmesi ve GOLD GYS internet sitesinin işleyişinin geliştirilmesi ve
+                kullanıcı ihtiyaçlarına göre kişiselleştirilmesi, gerekli iletişim faaliyetlerinin yürütülmesi,
+                istatistiksel analiz ve raporlama faaliyetlerinin yürütülmesi amaçlarıyla; KVKK’nın 5. maddesinin 1.
+                fıkrası “açık rıza” hukuki sebebine bağlı olarak işlenebilecek ve aynı amaçlar doğrultusunda
+                yurtiçindeki çözüm ortaklarımızla ve KVKK’nın 9. maddesindeki kurallara uyularak (Google Cloud Platform
+                gibi altyapı sağlayıcıları kapsamında) paylaşılabilecektir.</p>
+
+            <p><strong>c. İşlenen Kişisel Verilere İlişkin Haklarınız:</strong></p>
+            <p>KVKK’nın 11. maddesi kapsamında; kişisel verilerinizin işlenip işlenmediğini öğrenme, işlenmişse buna
+                ilişkin bilgi talep etme, işlenme amacını öğrenme, verilerinizin eksik veya yanlış işlenmiş olması
+                halinde bunların düzeltilmesini isteme, silinmesini veya yok edilmesini isteme ve kanuna aykırı olarak
+                işlenmesi sebebiyle zarara uğramanız halinde zararın giderilmesini talep etme haklarına sahipsiniz.</p>
+
+            <p>Yukarıda yer alan tüm kişisel verilerinizin belirtilen işleme amaçları ile sınırlı olmak üzere
+                işlenmesine, "Açık Rıza Metni" sayfasında veya kayıt formunda beyan ettiğiniz açık rıza doğrultusunda
+                muvafakat ettiğiniz kabul edilecektir.</p>
+
+            <p><strong>Rıza Metni Hakkında</strong></p>
+            <p>GOLD GYS işbu Kişisel Verilerin Korunması Hakkında Rıza metnini yürürlükteki mevzuatta yapılabilecek
+                değişiklikler çerçevesinde her zaman güncelleme hakkını saklı tutar.</p>
+        </div>
     </div>
+
+    <footer class="landing-footer">
+        <div class="header-inner" style="flex-wrap: wrap; height: auto; gap: 2rem; padding: 2rem 0;">
+            <div class="footer-brand">
+                <a href="/" class="brand-logo" style="margin-bottom: 1rem;">GOLD <span>GYS</span></a>
+                <p style="color: var(--text-muted); font-size: 0.9rem;">Adalet Bakanlığı personeli için geliştirilmiş,
+                    yeni nesil görevde yükselme sınavı hazırlık platformu.</p>
+            </div>
+            <div
+                style="text-align: center; width: 100%; border-top: 1px solid rgba(255,255,255,0.05); margin-top: 1rem; padding-top: 1rem; color: var(--text-muted); font-size: 0.85rem;">
+                &copy; 2026 GOLD GYS. Tüm Hakları Saklıdır.
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Theme Toggle Logic
+        const themeToggle = document.getElementById('themeToggle');
+        const htmlElement = document.documentElement;
+
+        // Check saved theme
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        htmlElement.setAttribute('data-theme', savedTheme);
+        updateThemeIcon(savedTheme);
+
+        if (themeToggle) {
+            themeToggle.addEventListener('click', () => {
+                const currentTheme = htmlElement.getAttribute('data-theme');
+                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+                htmlElement.setAttribute('data-theme', newTheme);
+                localStorage.setItem('theme', newTheme);
+                updateThemeIcon(newTheme);
+            });
+        }
+
+        function updateThemeIcon(theme) {
+            const sunIcon = document.querySelector('.icon-sun');
+            const moonIcon = document.querySelector('.icon-moon');
+            if (sunIcon && moonIcon) {
+                if (theme === 'dark') {
+                    sunIcon.style.display = 'block';
+                    moonIcon.style.display = 'none';
+                } else {
+                    sunIcon.style.display = 'none';
+                    moonIcon.style.display = 'block';
+                }
+            }
+        }
+    </script>
 </body>
 
 </html>

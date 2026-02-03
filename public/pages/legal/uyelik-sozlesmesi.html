@@ -5,20 +5,40 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Üyelik Sözleşmesi | GOLD GYS</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:wght@700;800&display=swap"
+        rel="stylesheet">
+
     <link rel="stylesheet" href="/styles/tokens.css">
+    <link rel="stylesheet" href="/css/app.css">
+    <link rel="stylesheet" href="/css/landing.css">
+
     <style>
         body {
             background-color: var(--bg-body);
             color: var(--text-light);
             font-family: var(--font-family-sans);
             line-height: 1.6;
-            margin: 0;
-            padding: 2rem 1rem;
         }
 
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
+        .landing-nav {
+            position: sticky;
+            top: 0;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .limit-width {
+            max-width: 900px;
+            margin: 4rem auto;
+            padding: 0 1.5rem;
+        }
+
+        .legal-content {
             background: var(--bg-surface);
             padding: 2.5rem;
             border-radius: var(--radius-lg);
@@ -26,7 +46,7 @@
             box-shadow: var(--shadow-lg);
         }
 
-        h1 {
+        .legal-content h1 {
             color: var(--color-primary);
             font-family: var(--font-family-serif);
             font-size: 2rem;
@@ -36,317 +56,147 @@
             padding-bottom: 1rem;
         }
 
-        h2 {
-            color: var(--color-primary);
-            font-size: 1.25rem;
-            margin-top: 2rem;
-            margin-bottom: 1rem;
-            font-weight: 600;
-        }
-
-        p {
+        .legal-content p {
             margin-bottom: 1rem;
             color: var(--text-muted);
         }
 
-        ul,
-        ol {
-            margin-bottom: 1rem;
-            padding-left: 1.5rem;
-            color: var(--text-muted);
-        }
-
-        li {
+        .legal-content strong {
+            color: var(--text-light);
+            display: block;
+            margin-top: 1.5rem;
             margin-bottom: 0.5rem;
+        }
+
+        footer.landing-footer {
+            margin-top: auto;
         }
     </style>
 </head>
 
 <body>
-    <div class="container">
-        <h1>Üyelik Sözleşmesi</h1>
 
-        <p><strong>1.Taraflar</strong></p>
-        <p>A)<br>www.guncelders.com internet sitesinin faaliyetlerini yürüten Kemalpaşa Mahallesi Özsaraç Sokak No: 40
-            D:7 İnegöl/BURSA adresinde mukim HASAN HÜSEYİN SÜMER-www.guncelders.com; bundan sonra SİTE olarak
-            anılacaktır.</p>
-        <p>B)<br>www.guncelders.com internet sitesine üye olan internet kullanıcısı; bundan sonra ÜYE olarak
-            anılacaktır.</p>
+    <nav class="landing-nav">
+        <div class="header-inner">
+            <a href="/" class="brand-logo">GOLD <span>GYS</span></a>
+            <div class="header-actions-group">
+                <button id="themeToggle" class="btn-theme-toggle" aria-label="Tema Değiştir">
+                    <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                    <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                </button>
+                <div class="auth-buttons-desktop">
+                    <a href="/login.html?mode=login" class="btn btn-secondary btn-sm">Giriş Yap</a>
+                    <a href="/login.html?mode=register" class="btn btn-primary btn-sm">Kayıt Ol</a>
+                </div>
+            </div>
+        </div>
+    </nav>
 
-        <p><strong>2. Sözleşmenin Konusu</strong></p>
-        <p>İşbu Sözleşme’nin konusu www.guncelders.com‘un sahip olduğu internet sitesi www.guncelders.com‘dan üyenin
-            faydalanma şartlarının belirlenmesidir. Aynı zamanda, bu internet sitesi aracılığıyla, ilgili üyenin
-            internet üzerinden satışa sunulan emtiaya/ürüne ulaşabilmesi için sanal bir pazaryeri yaratılması amaçlanır.
-        </p>
+    <div class="limit-width">
+        <div class="legal-content">
+            <h1>Üyelik Sözleşmesi</h1>
 
-        <p><strong>3. Tarafların Hak ve Yükümlülükleri</strong></p>
+            <p><strong>1. TARAFLAR</strong></p>
+            <p>İşbu Üyelik Sözleşmesi, <a href="https://goldgys.web.app/"
+                    style="color:var(--color-primary)">goldgys.web.app</a> (bundan sonra "SİTE" olarak anılacaktır) ile
+                bu siteye üye olan kullanıcı (bundan sonra "ÜYE" olarak anılacaktır) arasında akdedilmiştir.</p>
 
-        <p><strong>3.1</strong><br>Üyelik sonrası kullanıma açılan internet sitesi üzerindeki tüm kullanım ve tasarruf
-            hakkı “www.guncelders.com”a aittir. Bu kullanım koşulları gerektiği zaman değiştirilebilir; ancak bu
-            değişiklikler düzenli olarak SİTE'de yayınlanacak ve aynı tarihten itibaren geçerli olacaktır.</p>
+            <p><strong>2. SÖZLEŞMENİN KONUSU</strong></p>
+            <p>İşbu Sözleşme'nin konusu, SİTE üzerinden sunulan görevde yükselme sınavı hazırlık hizmetlerinden ÜYE'nin
+                faydalanma şartlarının belirlenmesidir.</p>
 
-        <p><strong>3.2</strong><br>SİTE hizmetlerinden yararlanan ve SİTE'ye erişim sağlayan her gerçek ve tüzel kişi,
-            www.guncelders.com tarafından işbu kullanım koşulları hükümlerinde yapılan her değişikliği, önceden kabul
-            etmiş sayılmaktadır. Bu SİTE'de yer alan veya alacak olan bilgilerin, formların ve içeriğin dilediği zaman
-            değiştirilme hakkı www.guncelders.com tarafından saklı tutulmaktadır.</p>
+            <p><strong>3. TARAFLARIN HAK VE YÜKÜMLÜLÜKLERİ</strong></p>
 
-        <p><strong>3.3</strong><br>SİTE üzerinden sunulan hizmetler genel itibariyle Tüketici Hukuku mevzuatında
-            tanımlanan elektronik ticaretten ibarettir.</p>
+            <p>3.1. ÜYE, SİTE'ye üye olurken verdiği kişisel ve diğer sair bilgilerin kanunlar önünde doğru olduğunu,
+                SİTE'nin bu bilgilerin gerçeğe aykırılığı nedeniyle uğrayacağı tüm zararları aynen ve derhal tazmin
+                edeceğini beyan ve taahhüt eder.</p>
 
-        <p><strong>3.4</strong><br>SİTE üzerinden vereceği hizmetler sınırlı sayıda olmamak üzere; www.guncelders.com
-            adresinde satışa sunulan ürünlerin; ÜYE tarafından bedeli ödendikten sonra, tedarikçinin stok durumunun
-            müsait olması halinde "yani sözleşmenin satıcıya yüklediği; malın teslim edilmesi" borcunun ifa edilebilir
-            olması durumunda; taahhüt edilen sürede malın müşteriye kargo firması tarafından ayıpsız olarak teslimi
-            hedeflenmektedir.</p>
+            <p>3.2. ÜYE, SİTE tarafından kendisine verilmiş olan şifreyi başka kişi ya da kuruluşlara veremez, üyenin
+                söz konusu şifreyi kullanma hakkı bizzat kendisine aittir. Bu sebeple doğabilecek tüm sorumluluk ÜYE'ye
+                aittir.</p>
 
-        <p><strong>3.5</strong><br>“www.guncelders.com”; SİTE üzerinden sunacağı hizmetlerin kapsamını ve niteliğini
-            belirlemekte tamamen serbest olup, hizmetlere ilişkin olarak yapacağı değişiklikleri SİTE'de yayınlamasıyla
-            yürürlüğe koymuş addedilir.</p>
+            <p>3.3. ÜYE, SİTE'yi kullanırken yasal mevzuat hükümlerine riayet etmeyi ve bunları ihlal etmemeyi baştan
+                kabul ve taahhüt eder.</p>
 
-        <p><strong>3.6</strong><br>Tüm üyeler; üyelik işlemlerinin tamamlanmasını müteakip, ürün ve/veya hizmet satışı
-            niteliği taşımayan, sadece para transferini sağlayacak hiçbir işlem yapmamayı, Site'nin işleyişini manipüle
-            edecek davranışlarda bulunmamayı, www.guncelders.com’un zararına yol açacak aldatıcı, hileli, yanıltıcı
-            işlemler yapmamayı kabul ve taahhüt etmektedir. Tüm gerçek ve tüzel kişi üyeler, bu maddede yer alan
-            taahhütlerine aykırı işlemleri nedeniyle www.guncelders.com’un uğrayacağı, avukatlık ücreti ve mahkeme
-            masrafları dahil ve fakat bunlarla sınırlı olmamak üzere tüm doğrudan ve dolaylı zarar ve ziyandan sorumlu
-            olacağını ve ayrıca www.guncelders.com’un söz konusu fiilleri işleyen kimseler hakkında Cumhuriyet
-            Başsavcılıklarına suç duyurusunda bulunma hakkını saklı tuttuğunu kabul ve beyan eder.</p>
+            <p>3.4. SİTE, üyelerinin kişisel bilgilerini saklı tutar ve yasal zorunluluklar haricinde üçüncü şahıslarla
+                paylaşmaz. (Detaylar Gizlilik Sözleşmesi'nde yer almaktadır)</p>
 
-        <p><strong>3.7</strong><br>Siteye girdiğinizde veya www.guncelders.com hizmetlerini kullanırken aşağıda
-            belirtilen işlemlerin yapılması sözleşmeye açıkça aykırılık olarak kabul edilecektir.<br>
-            Mevzuata aykırılık, üçüncü kişilerin haklarının ve/veya işbu sözleşme veya eklerinin ihlali,<br>
-            Üçüncü kişilere ait telif, marka gibi fikri ve/veya sınai mülkiyet haklarının ihlali,<br>
-            Üyelikten men edildiğiniz halde www.guncelders.com hizmetlerinin kullanılması,<br>
-            Ürün ve/veya hizmetlerin üyeden kaynaklı sebeplerle teslim/ifa edilmemesinin veya satın alınan ürün ve/veya
-            hizmet bedelinin ödenmemesi,<br>
-            Ürün ve/veya hizmetlerin teslim/ifa edilmemesi veya satın alınan ürün ve/veya hizmet bedelinin
-            ödenmemesi,<br>
-            Aldatıcı, yanıltıcı, eksik, yanlış içerik yerleştirilmesi,<br>
-            Kullanıcı profili değerlendirme sistemini bozmaya yönelik davranışlar dahil, www.guncelders.com altyapısına,
-            sistemine zarar verilmesi.</p>
+            <p>3.5. SİTE, gerekli gördüğü durumlarda ÜYE'nin üyeliğini, ilişkisini, yasalara veya ahlaka aykırı tutum ve
+                davranışlar nedeniyle kalıcı olarak durdurma hakkına sahiptir.</p>
 
-        <p><strong>3.8</strong><br>Üye, www.guncelders.com internet sitesine üye olurken verdiği kişisel ve diğer sair
-            bilgilerin hukuka ve dürüstlük kurallarına uygun olduğunu; doğru ve gerektiğinde güncel olduğunu
-            www.guncelders.com’un bu bilgilerin gerçeğe aykırılığı nedeniyle uğrayacağı tüm zararları aynen ve derhal
-            tazmin edeceğini kabul, beyan ve taahhüt eder. Yurtdışından kayıt olan üyeler için www.guncelders.com
-            tarafından; yurt dışında kayıtlı olup olmadığı hususunda bir çelişki yaşanması durumunda bu üyelerin
-            yurtdışında olduğuna dair resmi makamlarca onaylanmış evrak suretinin (pasaport, oturma izni vs.) bir
-            örneğinin gönderilmesi talep edilebilir. Üye, uygun güvenlik düzeyini temin etmeye yönelik tedbirlerin
-            alınması bakımından kişisel verilerin değiştirilmesi işlemlerinin www.guncelders.com’un yetkilendirdiği
-            müşteri temsilcisi aracılığıyla yapılacağını kabul, beyan ve taahhüt eder. Kişisel verilerin eksik veya
-            yanlış işlenmiş olmasından üye kendisinin sorumlu olduğunu kabul ederek gerekli değişiklikleri yine bu yolla
-            talep eder.</p>
+            <p>3.6. İşbu SİTE yazılımı ve tasarımı üzerindeki fikri mülkiyet hakları yasalarca korunmaktadır. İzinsiz
+                kopyalanamaz ve kullanılamaz.</p>
 
-        <p><strong>3.9</strong><br>Üye, www.guncelders.com tarafından kendisine verilmiş olan şifreyi başka kişi ya da
-            kuruluşlara veremez, üyenin söz konusu şifreyi kullanma hakkı bizzat kendisine aittir. Bu sebeple
-            doğabilecek tüm sorumluluk ile üçüncü kişiler veya yetkili merciler tarafından www.guncelders.com’a karşı
-            ileri sürülebilecek tüm iddia ve taleplere karşı, www.guncelders.com’un söz konusu izinsiz kullanımdan
-            kaynaklanan her türlü tazminat ve sair talep hakkı saklıdır.</p>
+            <p><strong>4. SÖZLEŞMENİN FESHİ</strong></p>
+            <p>İşbu sözleşme, ÜYE'nin üyeliğini iptal etmesi veya SİTE tarafından üyeliğinin iptal edilmesine kadar
+                yürürlükte kalacaktır.</p>
 
-        <p><strong>3.10</strong><br>Üye, www.guncelders.com’un yazılı izni olmadan iş bu sözleşmeyi veya sözleşme
-            kapsamındaki hak ve yükümlülüklerini kısmen veya tamamen -aile üyesi, eş nişanlı, sevgili vb. dahil olmak
-            üzere- üçüncü bir kişiye kısmen veya tamamen devredemeyeceğini; başkasına devretmesi veya kullanıma açması
-            halinde www.guncelders.com’un tek taraflı olarak ve ihbarda bulunmadan iş bu sözleşmeyi feshetme, üyeliğe
-            son verme hakkı bulunduğunu kabul ve beyan eder. Üye, kendisine ait hesaba en fazla 3(üç) cihaz tanıtabilme
-            hakkına sahip olup hesabın tekli kullanılmadığı ve çoklu kullanımların tespit edildiği hallerde
-            www.guncelders.com’un hesabı herhangi bir bildirim yapmaksızın kapatabilme, iade yapmama ve hukuki yollara
-            başvurma hakkı saklıdır.</p>
-
-        <p><strong>3.11</strong><br>Üyenin, iş bu sözleşmeyle kayıt derslerde dersin yapıldığı saatten itibaren 24
-            saatte yükleneceği bilgisine sahip olduğu kabul edilmektedir. Üye, www.guncelders.com internet sitesini
-            kullanırken yasal mevzuat hükümlerine riayet etmeyi ve bunları ihlal etmemeyi baştan kabul ve taahhüt eder.
-            Aksi takdirde, doğacak tüm hukuki ve cezai yükümlülükler tamamen ve münhasıran hesap bilgilerinde yer alan
-            üyeyi bağlayacaktır.</p>
-
-        <p><strong>3.12</strong><br>ÜYE, www.guncelders.com internet sitesini hiçbir şekilde kamu düzenini bozucu, genel
-            ahlaka aykırı, başkalarını rahatsız ve taciz edici şekilde, yasalara aykırı bir amaç için, başkalarının
-            fikri ve telif haklarına tecavüz edecek şekilde kullanamaz. Ayrıca, üye başkalarının hizmetleri kullanmasını
-            önleyici veya zorlaştırıcı faaliyet (spam, virus, truva atı, vb.) ve işlemlerde bulunamaz. ÜYE, SİTE'deki,
-            yüklenmeye (download) ve/veya paylaşıma müsait dosya, bilgi ve belgelerin, virüslerden, wormlardan, truva
-            atlarından, dialer programlarından spam, spyware veya bunlar gibi diğer her türlü kötü ve zarar verme amaçlı
-            kodlardan veya materyallerden arındırılamamış olabileceğini ve bu hususlarda SİTE'nin garanti vermediğini
-            kabul etmektedir. Bu tip kötü ve zarar verme amaçlı programların, kodların veya materyallerin önlenmesi,
-            veri giriş-çıkışlarının doğruluğu veya herhangi bir kayıp verinin geri kazanılması için gereken tüm yazılım
-            ve donanım ihtiyaçlarını karşılamak, bakım ve güncellemelerini yapmak tamamen ÜYE'nin sorumluluğundadır. Bu
-            tür kötü amaçlı programlar, kodlar veya materyallerin sebep olabileceği, veri yanlışlıkları veya
-            kayıplarından dolayı ÜYE'nin veya üçüncü kişilerin uğrayabileceği hiçbir zarardan www.guncelders.com sorumlu
-            değildir. Bu tür kötü amaçlı programlar, kodlar veya materyaller, veri yanlışlıkları veya kayıplarından
-            dolayı ÜYE'nin veya üçüncü kişilerin uğrayabileceği hiçbir zarardan www.guncelders.com sorumlu değildir.
-            Üyeye iş bu maddeye aykırı davranması sebebiyle bir dava ve talep yöneltilmesi halinde; üye bu dava ve talep
-            sonucunda www.guncelders.com’un herhangi bir zarara uğraması durumunda bahsi geçen zararın (tazminat hakları
-            saklı kalmak kaydıyla) kendisine rücu ettirilebileceğini kabul, beyan ve taahhüt eder. Üye, iş bu madde
-            hükmüne aykırı olarak yapacağı tüm elektronik iletişimin sorumluluğunun kendisine ait olduğunu, her ne
-            sebeple olursa olsun bu iletişimlerden kaynaklı (mail, tartışma ve geri bildirimlerde yapılacak her türlü
-            hakaretlerde) yapılacak hukuki işlemlerin sonucuna katlanacağını kabul, beyan ve taahhüt eder.</p>
-
-        <p><strong>3.13</strong><br>www.guncelders.com internet sitesinde üyeler tarafından beyan edilen, yazılan,
-            kullanılan fikir ve düşünceler, tamamen üyelerin kendi kişisel görüşleridir ve görüş sahibini bağlar. Bu
-            görüş ve düşüncelerin www.guncelders.com ile hiçbir ilgi ve bağlantısı yoktur. www.guncelders.com’un üyenin
-            beyan edeceği fikir ve görüşler nedeniyle üçüncü kişilerin uğrayabileceği zararlardan ve üçüncü kişilerin
-            beyan edeceği fikir ve görüşler nedeniyle üyenin uğrayabileceği zararlardan dolayı herhangi bir sorumluluğu
-            bulunmamaktadır. Üye, www.guncelders.com’dan hizmet alırken, aldığı hizmete dair şikayet ve taleplerini
-            www.guncelders.com yetkilileri ile çözmeye çalışmayı taahhüt eder. Üye, her ne surette olursa olsun
-            www.guncelders.com yetkilileri ile iletişime geçilmeksizin sitenin kullanımı sırasında sosyal medya vb.
-            herhangi bir mecrada www.guncelders.com’u küçük düşürücü, hakaret içerikli paylaşım yapması halinde
-            www.guncelders.com’un tazminat ve dava hakkının saklı tutulduğunu kabul, beyan ve taahhüt eder.</p>
-
-        <p><strong>3.14</strong><br>www.guncelders.com üye verilerinin yetkisiz kişilerce okunmasından ve üye yazılım ve
-            verilerine gelebilecek zararlardan dolayı sorumlu olmayacaktır. Üye, www.guncelders.com internet sitesinin
-            kullanılmasından dolayı uğrayabileceği herhangi bir zarar yüzünden www.guncelders.com’dan tazminat talep
-            etmemeyi peşinen kabul etmiştir.</p>
-
-        <p><strong>3.15</strong><br>Üye, diğer internet kullanıcılarının yazılımlarına ve verilerine izinsiz olarak
-            ulaşmamayı veya bunları kullanmamayı kabul etmiştir. Aksi takdirde, bundan doğacak hukuki ve cezai
-            sorumluluklar tamamen üyeye aittir.</p>
-
-        <p><strong>3.16</strong><br>İşbu üyelik sözleşmesi içerisinde sayılan maddelerden bir ya da birkaçını ihlal eden
-            üye işbu ihlal nedeniyle cezai ve hukuki olarak şahsen sorumlu olup, www.guncelders.com’u bu ihlallerin
-            hukuki ve cezai sonuçlarından ari tutacaktır. Ayrıca; işbu ihlal nedeniyle, olayın hukuk alanına intikal
-            ettirilmesi halinde, www.guncelders.com’un üyeye karşı üyelik sözleşmesine uyulmamasından dolayı tazminat
-            talebinde bulunma hakkı saklıdır. Kayıt olan üyelerin online dersleri izleme veya izlememe sorumluluğu
-            kendisine aittir. Hiçbir sebeple online ders tekrarı yapılma/ders süresinin uzatılması söz konusu değildir.
-        </p>
-
-        <p><strong>3.17</strong><br>www.guncelders.com her zaman tek taraflı olarak gerektiğinde üyenin üyeliğini silme,
-            müşteriye ait dosya, belge ve bilgileri silme hakkı vardır. Üye işbu tasarrufu önceden kabul eder. Bu
-            durumda, www.guncelders.com’un hiçbir sorumluluğu yoktur.</p>
-
-        <p><strong>3.18</strong><br>www.guncelders.com internet sitesi yazılım ve tasarımı www.guncelders.com
-            mülkiyetinde olup, bunlara ilişkin telif hakkı ve/veya diğer fikri mülkiyet hakları ilgili kanunlarca
-            korunmakta olup, bunlar üye tarafından izinsiz kullanılamaz, iktisap edilemez ve değiştirilemez. Bu web
-            sitesinde adı geçen başkaca şirketler ve ürünleri sahiplerinin ticari markalarıdır ve ayrıca fikri mülkiyet
-            hakları kapsamında korunmaktadır. Bu SİTE'de bulunan bilgiler, yazılar, resimler, markalar, slogan ve diğer
-            işaretler ile sair sınaî ve fikri mülkiyet haklarına ilişkin bilgilerin korunmasına yönelik programlarla,
-            sayfa düzeni ve SİTE'nin sunumu www.guncelders.com'un ya da bu sitenin izin ve lisans aldığı kuruluşların
-            mülkiyetindedir. İşbu SİTE'deki bilgilerin ya da SİTE sayfalarına ilişkin her tür veritabanı, web sitesi,
-            software- code'ların html kodu ve diğer kodlar vs. ile SİTE içeriğinde bulunan ürünlerin, tasarımların,
-            resimlerin, metinlerin, görsel, işitsel vesair imgelerin, video kliplerin, dosyaların, katalogların ve
-            listelerin kısmen ya da tamamen kopyalanması, değiştirilmesi, yayınlanması, online ya da diğer bir medya
-            kullanılmak suretiyle gönderimi, dağıtımı, satılması yasaktır. ÜYE, yukarıda sayılan ve bunlarla sınırlı
-            olmayan SİTE yazılım, donanım ve içeriğini çoğaltmayacağını, kopyalamayacağını, dağıtmayacağını,
-            işlemeyeceğini, gerek bu eylemleri ile gerekse de başka yollarla www.guncelders.com ile doğrudan ve/veya
-            dolaylı olarak rekabete girmeyeceğini kabul ve taahhüt etmektedir. ÜYE, bu sitedeki hizmetleri, bilgileri ve
-            telif haklarına tâbi çalışmaları yeniden satmak, işlemek, paylaşmak, dağıtmak, sergilemek veya başkasının bu
-            hizmetlere erişmesi veya kullanmasına izin vermek hakkına sahip değildir. Bu sayfadaki bilgilerin kısmen
-            kopyalanması, basılması, işlenmesi, dağıtılması, çoğaltılması, sergilenmesi ancak ticari olmayan kişisel
-            ihtiyaçlar için ve www.guncelders.com'nun yazılı izni ile mümkündür.</p>
-
-        <p><strong>3.19</strong><br>www.guncelders.com tarafından internet sitesinin iyileştirilmesi, geliştirilmesine
-            yönelik olarak ve/veya yasal mevzuat çerçevesinde siteye erişmek için kullanılan internet servis
-            sağlayıcısının adı ve Internet Protokol (IP) adresi, siteye erişilen tarih ve saat, sitede bulunulan sırada
-            erişilen sayfalar ve siteye doğrudan bağlanılmasını sağlayan web sitesinin Internet adresi gibi birtakım
-            bilgiler toplanabilir.</p>
-
-        <p><strong>3.20</strong><br>www.guncelders.com kullanıcılarına daha iyi hizmet sunmak, ürünlerini ve
-            hizmetlerini iyileştirmek, sitenin kullanımını kolaylaştırmak için kullanımını kullanıcılarının özel
-            tercihlerine ve ilgi alanlarına yönelik çalışmalarda üyelerin kişisel bilgilerini kullanabilir.
-            www.guncelders.com üyenin www.guncelders.com internet sitesi üzerinde yaptığı hareketlerin kaydını
-            bulundurma hakkını saklı tutar.</p>
-
-        <p><strong>3.21</strong><br>www.guncelders.com’a üye olan kişi, yürürlükte bulunan ve/veya yürürlüğe alınacak
-            uygulamalar kapsamında www.guncelders.com tarafından kendisine ürün ve hizmet tanıtımları, reklamlar,
-            kampanyalar, avantajlar, anketler ve diğer müşteri memnuniyeti uygulamaları sunulmasına izin verdiğini beyan
-            ve kabul eder. Üye, www.guncelders.com’a üye olurken ve/veya başka yollarla geçmişte vermiş olduğu ve/veya
-            gelecekte vereceği kişisel ve alışveriş bilgilerinin ve alışveriş ve/veya tüketici davranış bilgilerinin
-            yukarıdaki amaçlarla toplanmasına www.guncelders.com tarafından kullanılmasına ve arşivlenmesine izin
-            verdiğini beyan ve kabul eder. Üye aksini bildirmediği sürece üyeliği sona erdiğinde de verilerin
-            toplanmasına ve arşivlenmesine izin verdiğini beyan ve kabul eder. Üye aksini bildirmediği sürece
-            www.guncelders.com kendisi ile internet, telefon, SMS, vb iletişim kanalları kullanarak irtibata geçmesine
-            izin verdiğini beyan ve kabul eder. Üye yukarıda bahsi geçen bilgilerin toplanması, paylaşılması,
-            kullanılması, arşivlenmesi ve kendisine erişilmesi nedeniyle doğrudan ve/veya dolaylı maddi ve/veya manevi
-            menfi ve/veya müsbet, velhasıl herhangi bir zarara uğradığı konusunda talepte bulunmayacağını ve
-            www.guncelders.com’u sorumlu tutmayacağını beyan ve kabul eder. Üye veri paylaşım tercihlerini değiştirmek
-            isterse, bu talebini www.guncelders.com’un müşteri hizmetleri çağrı merkezlerine iletebilir. Ancak, SİTE
-            üzerinden ÜYE'ler tarafından kendisine iletilen bilgileri "Gizlilik Politikası" ve "Web Sitesi Kullanım
-            Koşulları" hükümleri doğrultusunda kullanabilir. Bu bilgileri işleyebilir, bir veri tabanı üzerinde tasnif
-            edip muhafaza edebilir. Aynı zamanda; ÜYE'nin kimliği, adresi, elektronik posta adresi, telefon numarası, IP
-            adresi, SİTE'nin hangi bölümlerini ziyaret ettiği, domain tipi, browser tipi, ziyaret tarihi, saati vs
-            bilgileri de istatistiki değerlendirme, kampanyaların duyurusunu yapma ve kişiye yönelik hizmetler sunma
-            gibi amaçlarla kullanabilir. ÜYE'lere ait kişisel bilgiler, kanunla yetkili kılınan mercilerin talebi ve bu
-            sözleşme ile belirlenen haller hariç olmak üzere gerçek ve tüzel üçüncü kişilere açıklanmayacaktır. Kişisel
-            bilgi ender olarak www.guncelders.com için veya onun adına davranan üçüncü taraflara veya
-            www.guncelders.com'un işi ile ilgili olanlara verilerin özgün olarak kullanım amaçlarını daha iyi işlemek ya
-            da ÜYE'lerin önerdiği amaçlara uygun olarak daha iyi hizmet verebilmek üzere verilir. İşbu SİTE Kullanım
-            Koşulları dâhilinde www.guncelders.com tarafından açıkça yetki verilmediği hallerde sitede verilen
-            hizmetler, bilgiler, telif haklarına tâbi çalışmaları, ticari markalar, sitenin ticari görünümü veya bu SİTE
-            vasıtasıyla sağlanan başkaca varlık ve bilgilere yönelik tüm haklar saklı tutulmaktadır.</p>
-
-        <p><strong>3.22</strong><br>www.guncelders.com üyenin kişisel bilgilerini yasal bir zorunluluk olarak
-            istendiğinde veya (a) yasal gereklere uygun hareket etmek veya www.guncelders.com’a tebliğ edilen yasal
-            işlemlere uymak; (b) www.guncelders.com ve www.guncelders.com web sitesi ailesinin haklarını ve mülkiyetini
-            korumak ve savunmak için gerekli olduğuna iyi niyetle kanaat getirdiği hallerde açıklayabilir.</p>
-
-        <p><strong>3.23</strong><br>www.guncelders.com hizmet sağlarken birlikte çalıştığı firmalarla sözleşme kurulması
-            veya ifasıyla ilgili olması halinde üyenin açık rızası olmaksızın kişisel verileri aktarabilir.</p>
-
-        <p><strong>3.24</strong><br>www.guncelders.com web sitesinin virüs ve benzeri amaçlı yazılımlardan arındırılmış
-            olması için mevcut imkanlar dahilinde tedbir alınmıştır. Bunun yanında nihai güvenliğin sağlanması için
-            kullanıcının, kendi virüs koruma sistemini tedarik etmesi ve gerekli korunmayı sağlaması gerekmektedir. Bu
-            bağlamda üye Remzi Hoca web sitesine girmesiyle, kendi yazılım ve işletim sistemlerinde oluşabilecek tüm
-            hata ve bunların doğrudan ya da dolaylı sonuçlarından kendisinin sorumlu olduğunu kabul etmiş sayılır.</p>
-
-        <p><strong>3.25</strong><br>www.guncelders.com sitenin içeriğini dilediği zaman değiştirme, kullanıcılara
-            sağlanan herhangi bir hizmeti değiştirme ya da sona erdirme veya www.guncelders.com web sitesinde kayıtlı
-            kullanıcı bilgi ve verilerini silme hakkını saklı tutar.</p>
-
-        <p><strong>3.26</strong><br>www.guncelders.com, üyelik sözleşmesinin koşullarını hiçbir şekil ve surette ön
-            ihbara ve/veya ihtara gerek kalmaksızın her zaman değiştirebilir, güncelleyebilir veya iptal edebilir.
-            Değiştirilen, güncellenen ya da yürürlükten kaldırılan her hüküm, yayın tarihinde tüm üyeler bakımından
-            hüküm ifade edecektir.</p>
-
-        <p><strong>3.27</strong><br>Taraflar, www.guncelders.com’a ait tüm bilgisayar kayıtlarının tek ve gerçek
-            münhasır delil olarak, HUMK madde 287'ye uygun şekilde esas alınacağını ve söz konusu kayıtların bir delil
-            sözleşmesi teşkil ettiği hususunu kabul ve beyan eder.</p>
-
-        <p><strong>3.28</strong><br>Sitede oluşturulan çalışma paketlerinin kullanım süresi ürün açıklamalarında
-            belirtilmektedir. Bu süre yapılacak sınav tarihinden bağımsızdır. Sınav tarihinden önce sürenin bitmesi
-            halinde alıcının hizmeti kullanmak için yeniden çalışma paketi satın alması gerekmektedir. Site çalışma
-            paketlerinin içeriğini ve fiyatlarını değiştirebilir.</p>
-
-        <p><strong>4. Sözleşmenin Feshi</strong></p>
-        <p>İşbu sözleşme üyenin üyeliğini iptal etmesi veya Remzi Hoca tarafından üyeliğinin iptal edilmesine kadar
-            yürürlükte kalacaktır. www.guncelders.com üyenin üyelik sözleşmesinin herhangi bir hükmünü ihlal etmesi
-            durumunda üyenin üyeliğini iptal ederek sözleşmeyi tek taraflı olarak feshedebilecektir.</p>
-
-        <p><strong>5. Sözleşmenin Devri</strong></p>
-        <p>www.guncelders.com, bu sözleşmeyi bildirimsiz olarak istediği zaman kısmen veya bütünüyle devredebilir. Ancak
-            ilgili ÜYE bu sözleşmeyi veya herhangi bir kısmını başka bir tarafa devredemez. Bu türden bir devir girişimi
-            geçerliliği haiz değildir.</p>
-
-        <p><strong>6. Mücbir Sebep</strong></p>
-        <p>Hukuken mücbir sebep sayılan tüm durumlarda, www.guncelders.com işbu "WEB SİTESİ KULLANIM KOŞULLARI"nı geç
-            ifa etmekten veya ifa etmemekten dolayı yükümlü değildir. Bu ve bunun gibi durumlar, www.guncelders.com
-            açısından, gecikme veya ifa etmeme veya temerrüt addedilmeyecek veya bu durumlar için www.guncelders.com 'un
-            herhangi bir tazminat yükümlülüğü doğmayacaktır.</p>
-
-        <p><strong>7. İhtilafların Halli</strong></p>
-        <p>İşbu "WEB SİTESİ KULLANIM KOŞULLARI VE ÜYELİK SÖZLEŞMESİ"nden kaynaklanacak ihtilaflar Türk Hukuku'na tabidir
-            ve İnegöl Mahkemeleri ve İcra Daireleri yetkilidir. www.guncelders.com'un, ÜYELERİ'nin bulunduğu ülkede dava
-            açma hakkı saklıdır.</p>
-
-        <p><strong>8. Yürürlük</strong></p>
-        <p>Üyenin, üyelik kaydı yapması üyenin üyelik sözleşmesinde yer alan tüm maddeleri okuduğu ve üyelik
-            sözleşmesinde yer alan maddeleri kabul ettiği anlamına gelir. Üye, işbu üyelik sözleşmesinde belirtilen
-            şartları tamamlamak suretiyle sözleşmede tanımlanan üye olma hak ve yetkisine sahip olacağı gibi işbu
-            sözleşme, üyenin üye olması anında akdedilmiş ve karşılıklı olarak yürürlüğe girmiştir.</p>
-
-        <p><strong>9. HÜKÜMSÜZLÜK</strong></p>
-        <p>Bu Sözleşme maddelerinden ya da hükümlerinden herhangi biri, ya da birkaçı, kanun koyucu tarafından, ya da
-            mahkeme kararı Bu sözleşme maddelerinden ya da hükümlerinden herhangi biri ya da birkaçı, kanun koyucu
-            tarafından, ya da mahkeme kararı ile yahut başka bir nedenle geçersiz kılınır, ya da kalırsa; bu durum,
-            sözleşmenin diğer hükümlerinin ya da maddelerinin, Sözleşmenin Tarafları için geçerliliklerini yitirmelerine
-            neden olmayacaktır. Böyle bir durumun ortaya çıkması halinde, hangi nedenle olursa olsun geçersiz kalan
-            hükmün ya da maddelerin geri kalan bölümleri yasa ya da mahkeme kararlarını izin vereceği ölçülerde geçerli
-            ve uygulanabilir olmaya devam edeceklerdir.</p>
-
-        <p><strong>10. SON HÜKÜMLER</strong></p>
-        <p>Sözleşme (11) maddeden ve (..) sayfadan oluşmakta olup …………………tarihinde düzenlenmiş olup, Taraflarca
-            okunduktan sonra kabul ve imza edilerek yürürlüğe girmiştir.</p>
-
-        <p><strong>11. GİZLİLİK</strong></p>
-        <p>Üye, iş bu üyelik sözleşmesini onaylamakla sözleşmenin ayrılmaz parçası niteliğindeki Gizlilik Sözleşmesi’ni
-            de okuyup kabul ettiğini beyan ve taahhüt eder.</p>
+            <p><strong>5. YÜRÜRLÜK</strong></p>
+            <p>ÜYE'nin, üyelik kaydı yapması, işbu sözleşmede yer alan tüm maddeleri okuduğu ve kabul ettiği anlamına
+                gelir. İşbu Sözleşme, ÜYE'nin üye olması anında akdedilmiş ve karşılıklı olarak yürürlüğe girmiştir.</p>
+        </div>
     </div>
+
+    <footer class="landing-footer">
+        <div class="header-inner" style="flex-wrap: wrap; height: auto; gap: 2rem; padding: 2rem 0;">
+            <div class="footer-brand">
+                <a href="/" class="brand-logo" style="margin-bottom: 1rem;">GOLD <span>GYS</span></a>
+                <p style="color: var(--text-muted); font-size: 0.9rem;">Adalet Bakanlığı personeli için geliştirilmiş,
+                    yeni nesil görevde yükselme sınavı hazırlık platformu.</p>
+            </div>
+            <div
+                style="text-align: center; width: 100%; border-top: 1px solid rgba(255,255,255,0.05); margin-top: 1rem; padding-top: 1rem; color: var(--text-muted); font-size: 0.85rem;">
+                &copy; 2026 GOLD GYS. Tüm Hakları Saklıdır.
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        const themeToggle = document.getElementById('themeToggle');
+        const htmlElement = document.documentElement;
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        htmlElement.setAttribute('data-theme', savedTheme);
+        updateThemeIcon(savedTheme);
+
+        if (themeToggle) {
+            themeToggle.addEventListener('click', () => {
+                const currentTheme = htmlElement.getAttribute('data-theme');
+                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                htmlElement.setAttribute('data-theme', newTheme);
+                localStorage.setItem('theme', newTheme);
+                updateThemeIcon(newTheme);
+            });
+        }
+        function updateThemeIcon(theme) {
+            const sunIcon = document.querySelector('.icon-sun');
+            const moonIcon = document.querySelector('.icon-moon');
+            if (sunIcon && moonIcon) {
+                if (theme === 'dark') {
+                    sunIcon.style.display = 'block';
+                    moonIcon.style.display = 'none';
+                } else {
+                    sunIcon.style.display = 'none';
+                    moonIcon.style.display = 'block';
+                }
+            }
+        }
+    </script>
 </body>
 
 </html>

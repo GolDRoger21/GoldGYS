@@ -548,22 +548,24 @@
                 <!-- Agreement Section (Now embedded, hidden by default) -->
                 <div class="agreement-section" id="agreementPanel"
                     style="display:none; text-align: left; margin-bottom: 1.5rem;">
-                    <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.6;">
-                        Siteye yeni kayıt olanlar için Kayıt olarak
-                        <a href="/pages/legal/acik-riza.html" target="_blank"
-                            style="color: var(--color-primary); text-decoration: underline; transition: opacity 0.2s;">Açık
-                            Rıza Metni</a>,
-                        <a href="/pages/legal/aydinlatma-metni.html" target="_blank"
-                            style="color: var(--color-primary); text-decoration: underline; transition: opacity 0.2s;">Aydınlatma
-                            Metni</a>,
-                        <a href="/pages/legal/gizlilik-sozlesmesi.html" target="_blank"
-                            style="color: var(--color-primary); text-decoration: underline; transition: opacity 0.2s;">Gizlilik
-                            Sözleşmesi</a> ve
-                        <a href="/pages/legal/uyelik-sozlesmesi.html" target="_blank"
-                            style="color: var(--color-primary); text-decoration: underline; transition: opacity 0.2s;">Üyelik
-                            Sözleşmesi</a>
-                        sözleşmelerini kabul etmiş sayılıyorsunuz.
-                    </p>
+                    <label class="agreement-ack"
+                        style="display: flex; gap: 0.75rem; align-items: flex-start; cursor: pointer;">
+                        <input type="checkbox" id="agreementCheck"
+                            style="margin-top: 0.2rem; width: 16px; height: 16px; accent-color: var(--color-primary); flex-shrink: 0;">
+                        <span style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5;">
+                            Kayıt olarak
+                            <a href="/pages/legal/acik-riza.html" target="_blank"
+                                style="color: var(--color-primary); text-decoration: underline;">Açık Rıza Metni</a>,
+                            <a href="/pages/legal/aydinlatma-metni.html" target="_blank"
+                                style="color: var(--color-primary); text-decoration: underline;">Aydınlatma Metni</a>,
+                            <a href="/pages/legal/gizlilik-sozlesmesi.html" target="_blank"
+                                style="color: var(--color-primary); text-decoration: underline;">Gizlilik Sözleşmesi</a>
+                            ve
+                            <a href="/pages/legal/uyelik-sozlesmesi.html" target="_blank"
+                                style="color: var(--color-primary); text-decoration: underline;">Üyelik Sözleşmesi</a>ni
+                            okudum ve kabul ediyorum.
+                        </span>
+                    </label>
                 </div>
 
                 <button id="googleLogin" class="btn-google">
