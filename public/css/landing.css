@@ -658,6 +658,17 @@ main {
 }
 
 /* Responsive */
+/* Responsive */
+@media (max-width: 1024px) {
+    .hero-title {
+        font-size: clamp(2.5rem, 5vw, 4rem);
+    }
+
+    .hero-grid {
+        gap: 2rem;
+    }
+}
+
 @media (max-width: 768px) {
     .header-inner {
         padding: 0 1.5rem;
@@ -667,21 +678,25 @@ main {
         display: block;
     }
 
+    /* Mobile Menu - Full Screen Glass */
     .nav-links {
         position: fixed;
         top: 70px;
+        /* Header height */
         left: 0;
         width: 100%;
         height: calc(100vh - 70px);
-        background-color: var(--landing-mobile-nav-bg);
-        backdrop-filter: blur(10px);
+        background: var(--landing-mobile-nav-bg);
+        backdrop-filter: blur(16px);
         flex-direction: column;
-        justify-content: center;
+        justify-content: flex-start;
         align-items: center;
+        padding-top: 4rem;
         gap: 2rem;
         transform: translateX(100%);
-        transition: transform 0.3s ease-in-out;
+        transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         border-top: 1px solid var(--landing-mobile-nav-border);
+        overflow-y: auto;
     }
 
     .nav-links.open {
@@ -689,8 +704,14 @@ main {
     }
 
     .nav-links a.nav-link {
-        font-size: 1.25rem;
+        font-size: 1.5rem;
+        font-weight: 600;
         display: block;
+        color: var(--text-main);
+    }
+
+    .nav-links a.nav-link:hover {
+        color: var(--gold-main);
     }
 
     .nav-auth-buttons {
@@ -698,39 +719,142 @@ main {
         gap: 1rem;
         margin-left: 0;
         width: 100%;
+        margin-top: 2rem;
     }
 
     .nav-auth-buttons .btn {
-        width: min(260px, 80%);
+        width: min(280px, 80%);
+        padding: 0.8rem 1.5rem;
+        font-size: 1rem;
+        justify-content: center;
     }
 
-    .hero-title {
-        font-size: 2.5rem;
-    }
-
+    /* Hero Mobile Adjustments */
     .hero-section {
-        padding: 120px 1.5rem 80px;
-    }
-
-    .features-grid {
-        grid-template-columns: 1fr;
+        padding: 120px 1.5rem 60px;
+        min-height: auto;
+        text-align: center;
     }
 
     .hero-grid {
+        grid-template-columns: 1fr;
+        gap: 3rem;
         text-align: center;
+    }
+
+    .hero-content {
+        margin: 0 auto;
+        animation: none;
+        /* Mobilde bazen performansı etkiler, isteğe bağlı */
+    }
+
+    .hero-title {
+        font-size: 2.25rem;
+        line-height: 1.2;
+    }
+
+    .hero-desc {
+        font-size: 1rem;
+        margin: 0 auto 2rem;
     }
 
     .hero-buttons {
         justify-content: center;
+        flex-direction: column;
+        gap: 1rem;
     }
 
-    .hero-trust {
-        text-align: center;
+    .hero-buttons .btn {
+        width: 100%;
+        max-width: 320px;
+        margin: 0 auto;
+        justify-content: center;
     }
 
+    .hero-visual {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .hero-card {
+        padding: 1.5rem;
+    }
+
+    /* Features & Journey */
+    .features-section,
+    .journey-section,
+    .cta-section {
+        padding: 4rem 1.5rem;
+    }
+
+    .section-header h2 {
+        font-size: 2rem;
+    }
+
+    .features-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+
+    .journey-steps {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+
+    /* CTA Card Mobile */
     .cta-card {
         flex-direction: column;
         text-align: center;
-        padding: 2rem;
+        padding: 2rem 1.5rem;
+        gap: 2rem;
+    }
+
+    .cta-buttons {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .cta-buttons .btn {
+        width: 100%;
+    }
+
+    /* Footer Mobile */
+    .landing-footer {
+        padding: 3rem 1.5rem 2rem;
+    }
+
+    .footer-links {
+        flex-direction: column;
+        gap: 2rem !important;
+        text-align: left;
+    }
+
+    .header-inner[style*="flex-wrap"] {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 3rem !important;
+    }
+
+    .footer-brand {
+        max-width: 100% !important;
+        margin-bottom: 0 !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .header-inner {
+        padding: 0 1rem;
+    }
+
+    .hero-title {
+        font-size: 2rem;
+    }
+
+    .feature-card,
+    .journey-card {
+        padding: 1.5rem;
     }
 }

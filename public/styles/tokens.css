@@ -7,16 +7,36 @@
   --header-height: 64px;
   --sidebar-width: 260px;
   --sidebar-width-collapsed: 72px;
+  
+  --radius-sm: 6px;
   --radius-md: 8px;
   --radius-lg: 12px;
+  --radius-xl: 18px;
   --radius-full: 9999px;
+
+  /* Fixed Spacing */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-2xl: 48px;
+
+  /* Responsive Typography Base */
+  --font-size-base: 1rem;
+  --font-size-sm: 0.875rem;
+  --font-size-xs: 0.75rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.25rem;
 
   /* --- Z-Index Layers --- */
   --z-content: 1;
   --z-header: 1000;
   --z-sidebar: 1001;
-  --z-overlay: 999;
-  --z-dropdown: 1100;
+  --z-backdrop: 1050;
+  --z-overlay: 1100;
+  --z-dropdown: 1200;
+  --z-toast: 1300;
   --z-modal: 2000;
 
   /* --- Transitions --- */
@@ -50,6 +70,7 @@
   --color-danger: #ef4444;
   --color-success: #10b981;
   --color-warning: #f59e0b;
+  --color-info: #3b82f6;
 
   /* Backgrounds */
   --bg-body: #0F172A;
@@ -61,6 +82,7 @@
   --bg-hover: rgba(255, 255, 255, 0.08);
   --bg-input: #0F172A;
   --bg-dropdown: #1E293B;
+  --bg-backdrop: rgba(15, 23, 42, 0.8);
 
   /* Text */
   --text-main: #F7E8A9;
@@ -83,6 +105,7 @@
   /* Shadows */
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
   --shadow-gold: 0 0 15px rgba(212, 175, 55, 0.15);
 }
 
@@ -108,6 +131,7 @@
   --color-danger: #dc2626;
   --color-success: #059669;
   --color-warning: #d97706;
+  --color-info: #0284c7;
 
   /* Backgrounds */
   --bg-body: #F1F5F9;
@@ -118,6 +142,7 @@
   --bg-hover: #F8FAFC;
   --bg-input: #FFFFFF;
   --bg-dropdown: #FFFFFF;
+  --bg-backdrop: rgba(241, 245, 249, 0.8);
 
   /* Text */
   --text-main: #856d20;
@@ -133,8 +158,6 @@
   --logo-khaki: #B4573C;
   --logo-highlight: #E8D29A;
 
-  /* Undo text-light override for general usage if it causes issues, but kept for compatibility */
-
   /* Borders */
   --border-color: #E2E8F0;
   --border-subtle: rgba(0, 0, 0, 0.05);
@@ -142,5 +165,17 @@
   /* Shadows */
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
   --shadow-gold: 0 4px 12px rgba(181, 149, 47, 0.15);
+}
+
+/* --- Mobile Specific Overrides --- */
+@media (max-width: 768px) {
+  :root {
+      --header-height: 56px;
+      --sidebar-width: 280px; /* Slightly wider for touch targets */
+      --space-lg: 20px;
+      --space-xl: 24px;
+      --space-2xl: 32px;
+  }
 }

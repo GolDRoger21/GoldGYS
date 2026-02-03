@@ -205,7 +205,7 @@ function setupEventListeners() {
         if (toggleBtn) {
             e.stopPropagation();
             if (window.innerWidth <= 768) {
-                document.body.classList.toggle('sidebar-open');
+                document.body.classList.toggle('mobile-sidebar-active');
             } else {
                 document.body.classList.toggle('sidebar-collapsed');
                 localStorage.setItem('sidebarCollapsed', document.body.classList.contains('sidebar-collapsed'));
@@ -243,7 +243,7 @@ function setupEventListeners() {
             if (notificationDropdown) {
                 notificationDropdown.classList.toggle('active');
                 document.getElementById('profileDropdown')?.classList.remove('active');
-                
+
                 // Eğer içerik "Yükleniyor..." ise ve admin değilse boş durumu göster
                 const list = document.getElementById('notificationList');
                 if (list && list.innerText.includes("Yükleniyor...")) {
@@ -286,11 +286,11 @@ function setupEventListeners() {
 
         // Mobil Sidebar Overlay Tıklama
         if (target.id === 'sidebarOverlay') {
-            document.body.classList.remove('sidebar-open');
+            document.body.classList.remove('mobile-sidebar-active');
         }
 
         if (window.innerWidth <= 768 && target.closest('.app-sidebar a')) {
-            document.body.classList.remove('sidebar-open');
+            document.body.classList.remove('mobile-sidebar-active');
         }
     });
 }

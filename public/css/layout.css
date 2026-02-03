@@ -9,13 +9,10 @@ body {
     background-color: var(--bg-body);
     color: var(--text-main);
     font-family: var(--font-family-sans);
-    /* Inter fontu */
     overflow-x: hidden;
     transition: background-color var(--transition-medium), color var(--transition-medium);
     line-height: 1.5;
-    /* Okunabilirlik için */
     -webkit-font-smoothing: antialiased;
-    /* Fontları pürüzsüzleştir */
 }
 
 /* --- APP SHELL --- */
@@ -223,6 +220,18 @@ body:not(.admin-body) .app-sidebar .nav-label {
     color: var(--text-muted);
     text-transform: uppercase;
     letter-spacing: 0.5px;
+}
+
+/* Sidebar Backdrop (Mobile Only) */
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: var(--bg-backdrop);
+    backdrop-filter: blur(4px);
+    z-index: var(--z-backdrop);
+    opacity: 0;
+    transition: opacity var(--transition-medium);
 }
 
 /* --- MAIN CONTENT --- */
@@ -802,12 +811,15 @@ body:not(.admin-body) .app-sidebar .nav-label {
         padding-top: calc(var(--header-height) + env(safe-area-inset-top, 0px));
     }
 
-    body.sidebar-open .app-sidebar {
+    /* When active */
+    body.mobile-sidebar-active .app-sidebar {
         transform: translateX(0);
     }
 
-    body.sidebar-collapsed .app-sidebar {
-        width: min(85vw, 320px);
+    /* Backdrop */
+    body.mobile-sidebar-active .sidebar-overlay {
+        display: block;
+        opacity: 1;
     }
 
     body.sidebar-collapsed .nav-item {

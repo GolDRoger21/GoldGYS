@@ -426,80 +426,87 @@
 
         @media (max-width: 768px) {
             .test-header {
-                flex-direction: row;
-                align-items: center;
-                flex-wrap: nowrap;
-                gap: 10px;
-                padding: 10px 12px;
+                flex-direction: column;
+                align-items: stretch;
+                gap: 8px;
+                padding: 8px 12px;
             }
 
             .test-header-main {
-                display: none;
+                display: flex;
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+                border-bottom: 1px solid var(--border-color);
+                padding-bottom: 8px;
+                margin-bottom: 4px;
             }
 
             .test-title {
-                font-size: 0.95rem;
+                font-size: 0.9rem;
                 white-space: nowrap;
                 overflow: hidden;
                 text-overflow: ellipsis;
+                max-width: 200px;
             }
 
             .test-meta-line {
                 font-size: 0.75rem;
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                min-width: 0;
             }
 
             .score-board {
-                flex-wrap: nowrap;
-                gap: 6px;
-                flex: 1;
+                width: 100%;
+                justify-content: space-between;
+                gap: 4px;
             }
 
             .score-item {
-                font-size: 0.72rem;
-                padding: 2px 6px;
-                white-space: nowrap;
+                font-size: 0.8rem;
+                padding: 4px 8px;
+                flex: 1;
+                justify-content: center;
+                background: var(--bg-surface);
             }
 
             .test-header-actions {
-                gap: 8px;
-                flex: 1;
-                flex-wrap: nowrap;
+                width: 100%;
                 justify-content: space-between;
+                gap: 8px;
+            }
+
+            /* Hide less important actions to save space if needed, or keep them */
+            .theme-toggle-btn {
+                display: none;
+                /* Hide theme toggle during exam on mobile to save distraction/space */
             }
 
             .soru-kart {
-                padding: 18px;
+                padding: 16px;
+                margin-bottom: 80px;
+                /* Space for fixed footer if any */
+            }
+
+            .sik-btn {
+                padding: 16px;
+                /* Larger touch target */
+                min-height: 56px;
             }
 
             .quiz-container {
                 margin: 12px auto;
                 padding: 0 12px;
+                max-width: 100%;
             }
 
             .mode-toggle-btn {
-                width: 40px;
-                height: 40px;
-                padding: 0;
-                font-size: 0.85rem;
+                flex: 1;
                 justify-content: center;
             }
 
             .mode-toggle-text {
-                display: none;
-            }
-
-            .mode-choice-text {
-                display: none;
-            }
-
-            .mode-choice-btn {
-                width: 48px;
-                height: 44px;
-                padding: 0;
+                display: block;
+                /* Show text on new layout */
+                font-size: 0.8rem;
             }
         }
 
