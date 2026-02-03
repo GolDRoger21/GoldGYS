@@ -54,12 +54,12 @@
 
         /* Navbar / Geri Dön Butonu */
         .auth-nav {
-            position: absolute;
+            position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             padding: 1rem;
-            z-index: 10;
+            z-index: 100;
         }
 
         .btn-back {
@@ -427,19 +427,41 @@
 
         @media (max-width: 480px) {
             .auth-nav {
-                padding: 1rem;
+                padding: 0.75rem;
+                background: rgba(15, 23, 42, 0.95);
+                backdrop-filter: blur(10px);
+                border-bottom: 1px solid var(--border-subtle);
             }
 
             .btn-back {
-                padding: 0.75rem 1rem;
-                /* Larger touch target */
-                font-size: 1rem;
+                padding: 0.5rem 0.75rem;
+                /* Larger touch target but compact */
+                width: auto;
+                height: auto;
+                justify-content: flex-start;
+                border-radius: var(--radius-md);
+                background: transparent;
+                backdrop-filter: none;
+                border: none;
+            }
+
+            .btn-back span {
+                display: inline;
+                /* Show text on mobile as requested implicitly by "sanki mobilde sayfa aşağı doğru gereksiz uzunlukta" - wait, actually standard is icon only, but "ana sayfaya dön" visible is better if we have space. Let's keep icon only if space is tight, but actually user just said "mobilde sayfa yapısını iyileştir". Previous code hid span. Let's make the button look cleaner. */
+                display: none;
+            }
+
+            .btn-back svg {
+                display: block;
+                width: 24px;
+                height: 24px;
             }
 
             .auth-card {
                 border: none;
                 background: transparent;
                 box-shadow: none;
+                margin-top: 0;
             }
 
             .auth-main,
@@ -448,34 +470,44 @@
                 border-radius: var(--radius-lg);
                 margin-bottom: 1rem;
                 border: 1px solid var(--border-subtle);
-                padding: 1.5rem;
-                /* Reduced padding */
+                padding: 1.25rem;
+                /* Further reduced padding */
                 width: 100%;
-                /* Ensure full width */
             }
 
             .auth-wrapper {
                 align-items: flex-start;
-                /* Prevent centering issues on small screens */
-                padding-top: 4rem;
-                /* Space for nav */
+                padding-top: 5rem;
+                /* More space for the fixed header */
+                padding-left: 1rem;
+                padding-right: 1rem;
+                padding-bottom: 2rem;
             }
 
             .auth-agreement-panel {
                 order: 2;
-                /* Ensure it comes after login form if column direction */
                 display: flex;
-                /* Ensure it is visible if enabled */
             }
 
             .brand-logo {
-                font-size: 2rem;
+                font-size: 1.75rem;
+                /* Smaller logo */
+                margin-bottom: 0.25rem;
+            }
+
+            .card-subtitle {
+                font-size: 0.9rem;
+                margin-bottom: 1.25rem;
             }
 
             .btn-google {
-                padding: 0.85rem;
-                /* Better touch target */
-                font-size: 0.95rem;
+                padding: 0.75rem;
+                font-size: 0.9rem;
+            }
+
+            .agreement-text {
+                height: 180px;
+                /* Shorter agreement box */
             }
         }
     </style>
