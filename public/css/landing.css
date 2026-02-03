@@ -135,23 +135,43 @@ main {
     border-radius: 6px;
 }
 
-.nav-auth-buttons {
+/* --- Header & Nav Updates --- */
+.header-actions-group {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    margin-left: 1.5rem;
+    gap: 12px;
 }
 
-.nav-auth-buttons .btn {
+.auth-buttons-desktop {
+    display: flex;
+    gap: 12px;
+}
+
+.auth-buttons-mobile {
+    display: none;
+}
+
+.btn-icon-mobile {
+    background: transparent;
+    color: var(--text-main);
+    border: none;
+    padding: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Accessibility Utility */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
     white-space: nowrap;
-}
-
-.landing-nav .btn-primary {
-    color: #0f172a;
-}
-
-.landing-nav .btn-primary:hover {
-    color: #0f172a;
+    border-width: 0;
 }
 
 /* Theme Toggle Button */
@@ -168,7 +188,25 @@ main {
     transition: all 0.3s ease;
     width: 36px;
     height: 36px;
-    margin-right: 0.5rem;
+}
+
+@media (max-width: 768px) {
+    .auth-buttons-desktop {
+        display: none;
+    }
+
+    .auth-buttons-mobile {
+        display: flex;
+    }
+
+    .header-actions-group {
+        gap: 4px;
+    }
+
+    .nav-links {
+        /* Adjust top padding since buttons are now in header */
+        justify-content: center;
+    }
 }
 
 .btn-theme-toggle:hover {
@@ -626,27 +664,31 @@ main {
 }
 
 /* --- Mobile Nav Toggle (Default Hidden) --- */
+/* --- Mobile Nav Toggle --- */
 .mobile-nav-toggle {
     display: none;
-    background: none;
+    background: transparent;
     border: none;
     cursor: pointer;
-    padding: 0.5rem;
+    padding: 8px;
     z-index: 101;
+    color: var(--text-main);
 }
 
 .mobile-nav-toggle .icon-bar {
     display: block;
-    width: 25px;
-    height: 3px;
-    background-color: var(--landing-icon-bar);
-    margin: 5px 0;
+    width: 22px;
+    height: 2px;
+    background-color: currentColor;
+    /* Use current text color */
+    margin: 4px 0;
     border-radius: 2px;
     transition: all 0.3s ease;
 }
 
+/* Correction for 3 bars */
 .mobile-nav-toggle.open .icon-bar:nth-child(2) {
-    transform: rotate(45deg) translate(5px, 6px);
+    transform: rotate(45deg) translate(5px, 5px);
 }
 
 .mobile-nav-toggle.open .icon-bar:nth-child(3) {
