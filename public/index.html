@@ -45,12 +45,6 @@
         <div class="header-inner">
             <a href="/" class="brand-logo">GOLD <span>GYS</span></a>
 
-            <div class="nav-links" id="navLinks">
-                <a href="#features" class="nav-link">Özellikler</a>
-                <a href="#journey" class="nav-link desktop-only">Yolculuk</a>
-                <a href="/denemeler" class="nav-link desktop-only">Denemeler</a>
-            </div>
-
             <div class="header-actions-group">
                 <button id="themeToggle" class="btn-theme-toggle" aria-label="Tema Değiştir">
                     <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
@@ -89,12 +83,6 @@
                     </a>
                 </div>
 
-                <button class="mobile-nav-toggle" aria-controls="navLinks" aria-expanded="false">
-                    <span class="sr-only">Menü</span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                </button>
             </div>
         </div>
     </nav>
@@ -306,18 +294,7 @@
             }
         }
 
-        // Mobile Nav Toggle
-        const navToggle = document.querySelector('.mobile-nav-toggle');
-        const navLinks = document.querySelector('.nav-links');
         const nav = document.querySelector('.landing-nav');
-
-        if (navToggle) {
-            navToggle.addEventListener('click', () => {
-                const isOpened = navLinks.classList.toggle('open');
-                navToggle.classList.toggle('open');
-                navToggle.setAttribute('aria-expanded', isOpened);
-            });
-        }
 
         // Scroll Effect
         window.addEventListener('scroll', () => {
