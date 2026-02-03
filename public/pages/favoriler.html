@@ -334,7 +334,8 @@
   <script type="module">
     import { db, auth } from '../js/firebase-config.js';
     import { showConfirm, showToast } from '../js/notifications.js';
-    import { collection, getDocs, deleteDoc, doc, where, documentId, query } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { CacheManager } from '../js/cache-manager.js';
+    import { collection, getDocs, deleteDoc, doc, where, documentId, query, limit, startAfter, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
     import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
     const ui = {
@@ -347,20 +348,26 @@
       searchInput: document.getElementById('searchInput'),
       clearFilters: document.getElementById('btnClearFilters'),
       btnSolveAllExam: document.getElementById('btnSolveAllExam'),
-      btnSolveAllPractice: document.getElementById('btnSolveAllPractice')
+      btnSolveAllPractice: document.getElementById('btnSolveAllPractice'),
+      loadMoreBtn: null // Dinamik oluşturulacak
     };
 
     const state = {
       favorites: [],
       filtered: [],
-      categories: new Map()
+      categories: new Map(),
+      lastVisible: null,
+      isLoading: false,
+      hasMore: true,
+      PAGE_SIZE: 20
     };
     const CUSTOM_TEST_LIMIT = 30;
 
     document.addEventListener('DOMContentLoaded', () => {
       onAuthStateChanged(auth, async (user) => {
         if (user) {
-          await loadFavorites(user.uid);
+          // İlk yükleme
+          await loadFavorites(user.uid, true);
           document.body.style.visibility = 'visible';
         }
       });
@@ -403,9 +410,15 @@
 
     ui.list.addEventListener('click', (event) => {
       const button = event.target.closest('button[data-action]');
-      if (!button) return;
+      if (!button || button.disabled) return;
       const action = button.dataset.action;
       const id = button.dataset.id;
+
+      if (action === 'load-more') {
+        loadFavorites(auth.currentUser.uid, false);
+        return;
+      }
+
       if (action === 'solve') {
         startCustomTest([id], 'Favoriler - Tek Soru', 'practice');
       }
@@ -420,17 +433,45 @@
       }
     });
 
-    async function loadFavorites(uid) {
-      ui.list.innerHTML = '<div class="card p-4 text-center">Yükleniyor...</div>';
-      ui.categoryGrid.innerHTML = '<div class="card p-4 text-center">Yükleniyor...</div>';
+    async function loadFavorites(uid, isInitial = false) {
+      if (state.isLoading || (!state.hasMore && !isInitial)) return;
+      state.isLoading = true;
+
+      // Eğer ilk yüklemeyse UI'ı temizle
+      if (isInitial) {
+        ui.list.innerHTML = '<div class="card p-4 text-center">Yükleniyor...</div>';
+        state.favorites = [];
+        state.categories.clear();
+        state.lastVisible = null;
+        state.hasMore = true;
+      } else {
+        // Yükleniyor butonu göster
+        const existingBtn = document.getElementById('btnLoadMore');
+        if (existingBtn) existingBtn.textContent = 'Yükleniyor...';
+      }
 
       try {
-        const snapshot = await getDocs(collection(db, `users/${uid}/favorites`));
+        let q = query(
+          collection(db, `users/${uid}/favorites`),
+          // orderBy('addedAt', 'desc'), // Eğer addedAt varsa eklenmeli, şimdilik default
+          limit(state.PAGE_SIZE)
+        );
+
+        if (state.lastVisible) {
+          q = query(q, startAfter(state.lastVisible));
+        }
+
+        const snapshot = await getDocs(q);
 
         if (snapshot.empty) {
-          renderEmptyState();
+          state.hasMore = false;
+          if (isInitial) renderEmptyState();
+          else updateLoadMoreButton(); // Butonu kaldır
+          state.isLoading = false;
           return;
         }
+
+        state.lastVisible = snapshot.docs[snapshot.docs.length - 1];
 
         const rawFavorites = snapshot.docs.map(docSnap => ({
           id: docSnap.id,
@@ -438,44 +479,70 @@
           data: docSnap.data()
         }));
 
-        const activeQuestions = await fetchActiveQuestionsMap(rawFavorites.map(fav => fav.questionId));
-        const staleFavorites = rawFavorites.filter(fav => !activeQuestions.has(fav.questionId));
-        if (staleFavorites.length > 0) {
-          await Promise.all(staleFavorites.map(fav => deleteDoc(doc(db, `users/${uid}/favorites/${fav.id}`))));
-        }
+        // Soruları Çek (Cache -> Firestore)
+        const activeQuestions = await fetchActiveQuestionsEfficiently(rawFavorites.map(fav => fav.questionId));
 
-        const favorites = rawFavorites
-          .filter(fav => activeQuestions.has(fav.questionId))
-          .map(fav => {
-            const question = activeQuestions.get(fav.questionId) || {};
-            const fallback = fav.data || {};
-            return {
-              id: fav.id,
-              questionId: fav.questionId,
-              category: question.category || fallback.category || 'Genel',
-              text: question.text || fallback.text || 'Soru metni yüklenemedi.',
-              questionRoot: question.questionRoot || fallback.questionRoot || null,
-              onculler: question.onculler || fallback.onculler || [],
-              options: question.options || fallback.options || [],
-              correctOption: question.correctOption || fallback.correctOption || null,
-              solution: question.solution || fallback.solution || {}
-            };
-          });
+        // Veriyi zenginleştir
+        const newFavorites = rawFavorites.map(fav => {
+          const question = activeQuestions.get(fav.questionId) || {};
+          const fallback = fav.data || {};
+          return {
+            id: fav.id,
+            questionId: fav.questionId,
+            category: question.category || fallback.category || 'Genel',
+            text: question.text || fallback.text || 'Soru metni yüklenemedi.',
+            questionRoot: question.questionRoot || fallback.questionRoot || null,
+            onculler: question.onculler || fallback.onculler || [],
+            options: question.options || fallback.options || [],
+            correctOption: question.correctOption || fallback.correctOption || null,
+            solution: question.solution || fallback.solution || {}
+          };
+        });
 
-        if (favorites.length === 0) {
-          renderEmptyState();
-          return;
-        }
+        state.favorites = [...state.favorites, ...newFavorites];
 
-        state.favorites = favorites;
+        // Kategori verisini güncelle
         buildCategoryData();
         populateCategorySelect();
         renderCategoryCards();
+
+        // Listeyi güncelle (append etmiyoruz, renderFavoritesList durumu yönetiyor)
         applyFilters();
-        setSolveButtonsEnabled(true);
+
+        state.isLoading = false;
       } catch (error) {
-        ui.list.innerHTML = '<div class="text-danger">Hata oluştu.</div>';
+        console.error("Favoriler yüklenirken hata:", error);
+        ui.list.innerHTML = '<div class="text-danger">Hata oluştu. Lütfen sayfayı yenileyin.</div>';
+        state.isLoading = false;
       }
+    }
+
+    // Cache Öncelikli Soru Çekme
+    async function fetchActiveQuestionsEfficiently(ids) {
+      const questionMap = new Map();
+      const missingIds = [];
+
+      // 1. Önce Cache'e bak
+      for (const id of ids) {
+        const cachedQ = await CacheManager.getQuestion(id);
+        if (cachedQ) {
+          questionMap.set(id, cachedQ);
+        } else {
+          missingIds.push(id);
+        }
+      }
+
+      // 2. Eksikleri Firestore'dan çek (Batch ile)
+      if (missingIds.length > 0) {
+        const remoteMap = await fetchActiveQuestionsMap(missingIds);
+        remoteMap.forEach((val, key) => {
+          questionMap.set(key, val);
+          // Yeni geleni cachele
+          CacheManager.saveQuestion(val);
+        });
+      }
+
+      return questionMap;
     }
 
     function buildCategoryData() {
@@ -488,11 +555,12 @@
         categoryMap.get(category).push(item);
       });
       state.categories = categoryMap;
-      ui.totalFavorites.textContent = state.favorites.length;
+      ui.totalFavorites.textContent = state.favorites.length; // Toplam yüklenen
       ui.totalCategories.textContent = categoryMap.size;
     }
 
     function populateCategorySelect() {
+      const currentVal = ui.categorySelect.value;
       const categories = Array.from(state.categories.keys()).sort((a, b) => a.localeCompare(b, 'tr'));
       ui.categorySelect.innerHTML = '<option value="all">Tüm Konular</option>';
       categories.forEach(category => {
@@ -501,9 +569,13 @@
         option.textContent = category;
         ui.categorySelect.appendChild(option);
       });
+      ui.categorySelect.value = currentVal; // Seçimi koru
     }
 
     function renderCategoryCards() {
+      // Sadece 'all' seçiliyken kategori kartlarını güncellemek mantıklı olabilir
+      if (ui.categorySelect.value !== 'all') return;
+
       if (state.categories.size === 0) {
         ui.categoryGrid.innerHTML = '<div class="empty-state">Favori konu bulunamadı.</div>';
         return;
@@ -554,7 +626,7 @@
         return;
       }
 
-      ui.list.innerHTML = state.filtered.map(item => {
+      const listHtml = state.filtered.map(item => {
         const optionsHtml = renderOptions(item.options);
         const oncullerHtml = renderOnculler(item.onculler);
         const solutionHtml = renderSolution(item.solution, item.correctOption);
@@ -582,6 +654,26 @@
           </div>
         `;
       }).join('');
+
+      ui.list.innerHTML = listHtml;
+
+      // Load More Butonu
+      updateLoadMoreButton();
+    }
+
+    function updateLoadMoreButton() {
+      // Eğer arama veya filtre varsa Load More gösterme (tüm liste içinde filtreleme yaptığımız için karmaşa olabilir, 
+      // veya sadece filtrelenmemiş modda göster. Kullanıcı deneyimi açısından 'Yüklendikçe' filtreye eklenmesi kafa karıştırabilir)
+      // Basitlik : Filtre aktifse gizle.
+
+      const isFiltering = ui.categorySelect.value !== 'all' || ui.searchInput.value.trim().length > 0;
+
+      if (state.hasMore && !isFiltering) {
+        const btnDiv = document.createElement('div');
+        btnDiv.className = 'text-center mt-3';
+        btnDiv.innerHTML = `<button id="btnLoadMore" class="btn btn-outline-secondary" data-action="load-more">Daha Fazla Yükle</button>`;
+        ui.list.appendChild(btnDiv);
+      }
     }
 
     function renderOnculler(onculler) {

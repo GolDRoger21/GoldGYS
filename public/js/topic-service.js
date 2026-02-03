@@ -105,7 +105,7 @@ export const TopicService = {
             }
 
             const cacheKey = `topic_pack_meta_${topicId}`;
-            const cached = CacheManager.getData(cacheKey, PACK_META_CACHE_DURATION);
+            const cached = await CacheManager.getData(cacheKey, PACK_META_CACHE_DURATION);
             if (cached?.cached) {
                 topicPackMetaMemoryCache.set(topicId, cached.data);
                 return cached.data;
@@ -113,7 +113,7 @@ export const TopicService = {
 
             const metaSnap = await getDoc(doc(db, `topic_packs_meta/${topicId}`));
             const metaData = metaSnap.exists() ? metaSnap.data() : null;
-            CacheManager.saveData(cacheKey, metaData);
+            await CacheManager.saveData(cacheKey, metaData);
             topicPackMetaMemoryCache.set(topicId, metaData);
             return metaData;
         } catch (error) {
@@ -125,7 +125,7 @@ export const TopicService = {
     async getTopicPackIndexes(topicId) {
         if (!topicId) return [];
 
-        const cached = CacheManager.getTopicPackIndexes(topicId, PACK_INDEX_CACHE_DURATION);
+        const cached = await CacheManager.getTopicPackIndexes(topicId, PACK_INDEX_CACHE_DURATION);
         if (Array.isArray(cached)) {
             return cached;
         }
@@ -148,7 +148,7 @@ export const TopicService = {
                 .filter(index => Number.isInteger(index));
 
             const uniqueIndexes = Array.from(new Set(indexes));
-            CacheManager.saveTopicPackIndexes(topicId, uniqueIndexes);
+            await CacheManager.saveTopicPackIndexes(topicId, uniqueIndexes);
             return uniqueIndexes;
         } catch (error) {
             console.warn("Paket indeksleri okunamadı:", error);
@@ -177,7 +177,7 @@ export const TopicService = {
         }
 
         const cacheKey = `${topicId}_pack_${packIndex}`;
-        const cached = CacheManager.getPack(cacheKey, PACK_CACHE_DURATION);
+        const cached = await CacheManager.getPack(cacheKey, PACK_CACHE_DURATION);
         if (cached) {
             return { ...cached, packIndex, cacheKey };
         }
@@ -206,7 +206,7 @@ export const TopicService = {
                     .map(docSnap => docSnap.data()?.packIndex)
                     .filter(index => Number.isInteger(index));
                 if (fallbackIndexes.length > 0) {
-                    CacheManager.saveTopicPackIndexes(topicId, Array.from(new Set(fallbackIndexes)));
+                    await CacheManager.saveTopicPackIndexes(topicId, Array.from(new Set(fallbackIndexes)));
                 }
             }
 
@@ -221,7 +221,7 @@ export const TopicService = {
                 packIndex: resolvedPackIndex
             };
 
-            CacheManager.savePack(resolvedCacheKey, payload);
+            await CacheManager.savePack(resolvedCacheKey, payload);
             return { ...payload, cacheKey: resolvedCacheKey };
         } catch (error) {
             console.error("Soru paketi çekilemedi:", error);
@@ -307,7 +307,7 @@ export const TopicService = {
 
         try {
             await deleteDoc(doc(db, `users/${userId}/topic_progress/${topicId}`));
-            CacheManager.clearDraftAnswers(`topic_${topicId}`);
+            await CacheManager.clearDraftAnswers(`topic_${topicId}`);
             console.log("İlerleme sıfırlandı.");
             return true;
         } catch (error) {

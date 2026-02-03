@@ -811,36 +811,58 @@
                     }
 
                 } else if (examId && topicId) {
-                    // --- KLASİK TEST MODU (Lesson içindeki test) ---
-                    // Test verisi 'lessons' koleksiyonunda saklı
+                    // --- KLASİK TEST MODU (Lesson/Deneme içindeki test) ---
                     const lessonRef = doc(db, `topics/${topicId}/lessons`, examId);
                     const lessonSnap = await getDoc(lessonRef);
 
                     if (lessonSnap.exists()) {
                         const data = lessonSnap.data();
                         title = data.title;
-                        const rawQuestions = data.questions || []; // Test oluştururken kaydettiğimiz sorular
-                        const questionIds = rawQuestions.map(extractQuestionId).filter(Boolean);
-                        const activeQuestions = await fetchQuestionsByIds(questionIds);
-                        questions = rawQuestions.map((question) => {
-                            const id = extractQuestionId(question);
-                            if (!id) return null;
-                            const remote = activeQuestions.get(id);
-                            return remote
-                                ? {
-                                    id: remote.id,
-                                    text: remote.text,
-                                    questionRoot: remote.questionRoot ?? null,
-                                    onculler: remote.onculler || [],
-                                    options: remote.options || [],
-                                    correctOption: remote.correctOption,
-                                    solution: remote.solution || {},
-                                    type: remote.type || 'standard',
-                                    category: remote.category,
-                                    legislationRef: remote.legislationRef
-                                }
-                                : null;
-                        }).filter(Boolean);
+                        const rawQuestions = data.embeddedQuestions || data.questions || [];
+
+                        // Optimize Edilmiş Paket Kontrolü (Full Soru Objesi mi?)
+                        const isBundled = rawQuestions.length > 0 && (!!rawQuestions[0].text || !!rawQuestions[0].questionRoot);
+
+                        if (isBundled) {
+                            // --- SORULAR ZATEN GÖMÜLÜ ---
+                            console.log("[Optimize] Sorular paket içinde bulundu, veritabanı okuması yapılmayacak.");
+                            questions = rawQuestions.map(q => ({
+                                id: q.id || q.questionId || String(Math.random()),
+                                text: q.text,
+                                questionRoot: q.questionRoot ?? null,
+                                onculler: q.onculler || [],
+                                options: q.options || [],
+                                correctOption: q.correctOption,
+                                solution: q.solution || {},
+                                type: q.type || 'standard',
+                                category: q.category,
+                                legislationRef: q.legislationRef
+                            }));
+                        } else {
+                            // --- ESKİ YÖNTEM (Sadece ID'ler var) ---
+                            console.log("[Legacy] Soru ID'leri üzerinden çekiliyor...");
+                            const questionIds = rawQuestions.map(extractQuestionId).filter(Boolean);
+                            const activeQuestions = await fetchQuestionsByIds(questionIds);
+                            questions = rawQuestions.map((question) => {
+                                const id = extractQuestionId(question);
+                                if (!id) return null;
+                                const remote = activeQuestions.get(id);
+                                return remote
+                                    ? {
+                                        id: remote.id,
+                                        text: remote.text,
+                                        questionRoot: remote.questionRoot ?? null,
+                                        onculler: remote.onculler || [],
+                                        options: remote.options || [],
+                                        correctOption: remote.correctOption,
+                                        solution: remote.solution || {},
+                                        type: remote.type || 'standard',
+                                        category: remote.category,
+                                        legislationRef: remote.legislationRef
+                                    }
+                                    : null;
+                            }).filter(Boolean);
+                        }
                     }
                 }
                 else if (mode === 'custom' && urlParams.get('source') === 'local') {

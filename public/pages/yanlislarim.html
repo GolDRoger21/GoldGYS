@@ -279,7 +279,8 @@
   <script type="module">
     import { db, auth } from '../js/firebase-config.js';
     import { showToast } from '../js/notifications.js';
-    import { collection, getDocs, query, orderBy, deleteDoc, doc, where, documentId } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { CacheManager } from '../js/cache-manager.js';
+    import { collection, getDocs, query, orderBy, deleteDoc, doc, where, documentId, limit, startAfter } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
     import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
     const state = {
@@ -287,7 +288,11 @@
       filteredMistakes: [],
       selectedCategory: 'all',
       searchTerm: '',
-      sort: 'recent'
+      sort: 'recent',
+      lastVisible: null,
+      isLoading: false,
+      hasMore: true,
+      PAGE_SIZE: 20
     };
     const CUSTOM_TEST_LIMIT = 30;
 
@@ -310,7 +315,7 @@
     document.addEventListener('DOMContentLoaded', () => {
       onAuthStateChanged(auth, async (user) => {
         if (user) {
-          await loadMistakes(user.uid);
+          await loadMistakes(user.uid, true);
         }
       });
 
@@ -346,20 +351,53 @@
       ui.btnSolveAllPractice.addEventListener('click', () => {
         startCustomTest(state.allMistakes.map(m => m.questionId), 'Yanlışlarım - Karma Öğrenme', 'practice');
       });
+
+      // Load More Event Delegation
+      ui.mistakesList.addEventListener('click', (e) => {
+        if (e.target.id === 'btnLoadMore') {
+          loadMistakes(auth.currentUser.uid, false);
+        }
+      });
     });
 
-    async function loadMistakes(uid) {
-      ui.mistakesList.innerHTML = '<div class="card p-4 text-center">Hatalarınız analiz ediliyor...</div>';
-      setSolveButtonsEnabled(false);
+    async function loadMistakes(uid, isInitial = false) {
+      if (state.isLoading || (!state.hasMore && !isInitial)) return;
+      state.isLoading = true;
+
+      // Initial cleanup
+      if (isInitial) {
+        ui.mistakesList.innerHTML = '<div class="card p-4 text-center">Hatalarınız analiz ediliyor...</div>';
+        setSolveButtonsEnabled(false);
+        state.allMistakes = [];
+        state.lastVisible = null;
+        state.hasMore = true;
+      } else {
+        const existingBtn = document.getElementById('btnLoadMore');
+        if (existingBtn) existingBtn.textContent = 'Yükleniyor...';
+      }
+
       try {
-        const q = query(collection(db, `users/${uid}/wrongs`), orderBy('lastAttempt', 'desc'));
+        let q = query(
+          collection(db, `users/${uid}/wrongs`),
+          orderBy('lastAttempt', 'desc'),
+          limit(state.PAGE_SIZE)
+        );
+
+        if (state.lastVisible) {
+          q = query(q, startAfter(state.lastVisible));
+        }
+
         const snapshot = await getDocs(q);
 
         if (snapshot.empty) {
-          state.allMistakes = [];
-          renderEmptyState();
+          state.hasMore = false;
+          updateLoadMoreButton(); // Remove or update
+          if (isInitial) renderEmptyState();
+          state.isLoading = false;
           return;
         }
+
+        state.lastVisible = snapshot.docs[snapshot.docs.length - 1];
 
         const rawMistakes = snapshot.docs.map(docSnap => {
           const data = docSnap.data();
@@ -373,10 +411,13 @@
           };
         });
 
-        const questionMap = await fetchActiveQuestionsMap(rawMistakes.map(m => m.questionId));
+        // Cache Optimized Fetch
+        const questionMap = await fetchActiveQuestionsEfficiently(rawMistakes.map(m => m.questionId));
+
+        // Clean stale data (fire and forget delete)
         const staleMistakes = rawMistakes.filter(m => !questionMap.has(m.questionId));
         if (staleMistakes.length > 0) {
-          await Promise.all(staleMistakes.map(m => deleteDoc(doc(db, `users/${uid}/wrongs/${m.id}`))));
+          staleMistakes.forEach(m => deleteDoc(doc(db, `users/${uid}/wrongs/${m.id}`)).catch(console.error));
         }
 
         const activeMistakes = rawMistakes
@@ -386,28 +427,57 @@
             return {
               ...m,
               text: truncateText(question?.text || m.text),
-              category: question?.category || m.category || 'Genel'
+              category: question?.category || m.category || 'Genel' // Cache'den güncel kategori al
             };
           });
 
-        if (activeMistakes.length === 0) {
-          state.allMistakes = [];
+        if (activeMistakes.length === 0 && isInitial) {
           renderEmptyState();
+          state.isLoading = false;
           return;
         }
 
-        state.allMistakes = activeMistakes;
+        state.allMistakes = [...state.allMistakes, ...activeMistakes];
+
         populateCategorySelect();
         renderCategoryCards();
         applyFilters();
         updateSummary();
         setSolveButtonsEnabled(true);
+        state.isLoading = false;
 
       } catch (error) {
         console.error(error);
-        setSolveButtonsEnabled(false);
-        ui.mistakesList.innerHTML = '<div class="text-danger">Veriler alınamadı.</div>';
+        if (isInitial) {
+          ui.mistakesList.innerHTML = '<div class="text-danger">Veriler alınamadı.</div>';
+          setSolveButtonsEnabled(false);
+        }
+        state.isLoading = false;
       }
+    }
+
+    // Cache Optimized Fetch Helper
+    async function fetchActiveQuestionsEfficiently(ids) {
+      const questionMap = new Map();
+      const missingIds = [];
+
+      for (const id of ids) {
+        const cachedQ = await CacheManager.getQuestion(id);
+        if (cachedQ) {
+          questionMap.set(id, cachedQ);
+        } else {
+          missingIds.push(id);
+        }
+      }
+
+      if (missingIds.length > 0) {
+        const remoteMap = await fetchActiveQuestionsMap(missingIds);
+        remoteMap.forEach((val, key) => {
+          questionMap.set(key, val);
+          CacheManager.saveQuestion(val);
+        });
+      }
+      return questionMap;
     }
 
     function renderEmptyState() {
@@ -422,10 +492,12 @@
     }
 
     function populateCategorySelect() {
+      const current = ui.categorySelect.value;
       const categories = ['all', ...new Set(state.allMistakes.map(m => m.category))];
       ui.categorySelect.innerHTML = categories.map(cat => {
         return `<option value="${cat}">${cat === 'all' ? 'Tümü' : cat}</option>`;
       }).join('');
+      ui.categorySelect.value = current;
     }
 
     function updateSummary() {
@@ -444,6 +516,9 @@
     }
 
     function renderCategoryCards() {
+      // Only re-render if we are in 'all' category mode to avoid confusing jumps while filtering
+      if (ui.categorySelect.value !== 'all') return;
+
       if (state.allMistakes.length === 0) {
         ui.categoryCards.innerHTML = '<div class="empty-state">Konu kartı oluşturulacak veri bulunamadı.</div>';
         return;
@@ -524,7 +599,7 @@
         return;
       }
 
-      ui.mistakesList.innerHTML = data.map(item => {
+      const listHtml = data.map(item => {
         return `
           <div class="mistake-card" id="mistake-${item.questionId}">
             <div class="mistake-card-header">
@@ -540,12 +615,32 @@
         `;
       }).join('');
 
+      ui.mistakesList.innerHTML = listHtml;
+
+      updateLoadMoreButton();
+
+      // Re-attach listeners for dynamically created buttons
       ui.mistakesList.querySelectorAll('button[data-question]').forEach(btn => {
-        btn.addEventListener('click', () => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation(); // Bubbling'i durdur ki load more'a gitmesin
           const id = btn.dataset.question;
           startCustomTest([id], 'Yanlışlarım - Tekrar Sorusu', 'practice');
         });
       });
+    }
+
+    function updateLoadMoreButton() {
+      // Remove existing button if any inside the list container (not strictly necessary with innerHTML reset but good practice)
+      // Actually we append it to the list container.
+
+      const isFiltering = state.selectedCategory !== 'all' || state.searchTerm.length > 0;
+
+      if (state.hasMore && !isFiltering) {
+        const btnDiv = document.createElement('div');
+        btnDiv.className = 'text-center mt-3';
+        btnDiv.innerHTML = `<button id="btnLoadMore" class="btn btn-outline-secondary" style="width: 200px;">Daha Fazla Yükle</button>`;
+        ui.mistakesList.appendChild(btnDiv);
+      }
     }
 
     function startCustomTest(ids, title, mode) {
