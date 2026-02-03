@@ -1014,14 +1014,46 @@
                         }
                     },
                     onFinish: async ({ answers }) => {
-                        if (mode === 'smart' && topicId && auth.currentUser) {
-                            const syncPayload = Object.entries(answers || {}).reduce((acc, [questionId, value]) => {
-                                if (!value?.selected) return acc;
-                                acc[questionId] = value.selected;
-                                return acc;
-                            }, {});
-                            await TopicService.syncProgress(auth.currentUser.uid, topicId, syncPayload);
-                            CacheManager.clearDraftAnswers(draftScopeKey);
+                        if (auth.currentUser) {
+                            // 1. İlerleme Kaydı (Her zaman kaydet)
+                            if (topicId) {
+                                const syncPayload = Object.entries(answers || {}).reduce((acc, [questionId, value]) => {
+                                    if (!value?.selected) return acc;
+                                    acc[questionId] = value.selected;
+                                    return acc;
+                                }, {});
+                                await TopicService.syncProgress(auth.currentUser.uid, topicId, syncPayload);
+                            }
+
+                            // 2. Draft Temizle (Smart mod ise)
+                            if (mode === 'smart' && topicId) {
+                                CacheManager.clearDraftAnswers(draftScopeKey);
+                            }
+
+                            // 3. Testi Tamamlandı Olarak İşaretle (Eğer examId/testId varsa)
+                            // Lesson içindeki testler için examId genelde lessonId'dir.
+                            const finishedTestId = examId || (urlParams.get('mode') === 'select' ? urlParams.get('testId') : null);
+
+                            // Test ID'yi URL'den de yakalamaya çalışalım (routing yapısına göre değişebilir)
+                            const pathParts = window.location.pathname.split('/');
+                            // /test/topicId/testId yapısını kontrol et
+                            const potentialTestId = pathParts.length >= 4 ? pathParts[3] : null;
+                            const finalTestId = finishedTestId || potentialTestId;
+
+                            if (finalTestId && finalTestId !== 'custom_practice' && finalTestId !== topicId) {
+                                try {
+                                    const completedRef = doc(db, `users/${auth.currentUser.uid}/completed_tests/${finalTestId}`);
+                                    await setDoc(completedRef, {
+                                        completedAt: serverTimestamp(),
+                                        topicId: topicId || null,
+                                        score: engine.calculateScore(), // TestEngine'e bu metodu eklememiz gerekebilir veya hesaplayalım
+                                        examTitle: title || 'Test'
+                                    }, { merge: true });
+                                    console.log("Test tamamlandı olarak işaretlendi:", finalTestId);
+                                } catch (e) {
+                                    console.error("Tamamlandı işaretleme hatası:", e);
+                                }
+                            }
                         }
                     }
                 });

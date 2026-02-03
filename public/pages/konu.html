@@ -541,6 +541,18 @@
 
       let testCount = 0;
       let materialCount = 0;
+      const validCompletedIds = new Set();
+
+      if (auth.currentUser) {
+        try {
+          const completedRef = collection(db, `users/${auth.currentUser.uid}/completed_tests`);
+          const q = query(completedRef, where("topicId", "==", currentTopicId));
+          const snap = await getDocs(q);
+          snap.forEach(d => validCompletedIds.add(d.id));
+        } catch (e) {
+          console.warn("Tamamlanan testler çekilemedi:", e);
+        }
+      }
 
       try {
         const lessonsQuery = query(collection(db, `topics/${currentTopicId}/lessons`), orderBy("order", "asc"));
@@ -562,14 +574,24 @@
             // New: /test/${currentTopicId}/${item.id}?mode=select (return is inferred by router)
             const testUrl = `/test/${encodeURIComponent(currentTopicId)}/${encodeURIComponent(item.id)}?mode=select`;
 
+            let badgeHtml = '';
+            if (validCompletedIds.has(item.id)) {
+              badgeHtml = '<span class="badge bg-success text-white" style="margin-left:auto;">✅ Tamamlandı</span>';
+            }
+
             testsContainer.innerHTML += `
-                      <div class="test-card">
-                          <div style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;">
-                              <strong style="font-size:1.05rem;">${item.title}</strong>
-                              <span class="badge bg-light text-dark">${qCount} Soru</span>
+                      <div class="test-card" style="${validCompletedIds.has(item.id) ? 'border-color:var(--color-success); background:rgba(25, 135, 84, 0.03);' : ''}">
+                          <div style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; align-items:center;">
+                              <div style="display:flex; flex-direction:column;">
+                                <strong style="font-size:1.05rem;">${item.title}</strong>
+                                <span class="badge bg-light text-dark" style="width:fit-content; margin-top:4px;">${qCount} Soru</span>
+                              </div>
+                              ${badgeHtml}
                           </div>
                           <div style="margin-top:10px;">
-                              <a href="${testUrl}" class="btn btn-sm btn-outline-primary w-100">Testi Çöz</a>
+                              <a href="${testUrl}" class="btn btn-sm ${validCompletedIds.has(item.id) ? 'btn-success' : 'btn-outline-primary'} w-100">
+                                ${validCompletedIds.has(item.id) ? 'Tekrar Çöz' : 'Testi Çöz'}
+                              </a>
                           </div>
                       </div>
                   `;

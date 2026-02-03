@@ -477,6 +477,13 @@ export class TestEngine {
         });
     }
 
+    calculateScore() {
+        const total = this.questions.length;
+        if (total === 0) return 0;
+        const correctCount = Object.values(this.answers).filter(a => a.isCorrect).length;
+        return Math.round((correctCount / total) * 100);
+    }
+
     showExamInfoModal(message) {
         const modal = document.getElementById('examInfoModal');
         const messageEl = document.getElementById('examInfoMessage');
@@ -708,5 +715,5 @@ export class TestEngine {
         }
     }
 
-    setupMobileGestures() {}
+    setupMobileGestures() { }
 }

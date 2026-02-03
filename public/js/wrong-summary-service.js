@@ -2,7 +2,7 @@ import { db } from "./firebase-config.js";
 import { CacheManager } from "./cache-manager.js";
 import { collection, getDocs, orderBy, query } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-const SUMMARY_CACHE_TTL = 60 * 60 * 1000; // 1 saat
+const SUMMARY_CACHE_TTL = 5 * 60 * 1000; // 5 dakika
 
 function normalizeTimestamp(value) {
     if (!value) return null;
