@@ -4,6 +4,7 @@ import {
     doc, setDoc, addDoc, collection, serverTimestamp, increment, getDoc, deleteDoc, arrayUnion
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { httpsCallable } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-functions.js";
+import { WrongSummaryService } from "./wrong-summary-service.js";
 
 export class TestEngine {
     constructor(containerId, questionsData, options = {}) {
@@ -562,158 +563,169 @@ export class TestEngine {
                 this.saveWrongAnswer(qId, q);
             });
 
+            // YENİ: Optimistic Cache Update için listeyi hazırla
+            const pendingList = Array.from(this.pendingWrongAnswers.values());
+
             await this.flushWrongAnswers();
+
+            // Cache'i güncelle (Firestore yazımından bağımsız, UI için)
+            if (pendingList.length > 0) {
+                WrongSummaryService.updateCacheWithNewWrongs(auth.currentUser.uid, pendingList)
+                    .catch(err => console.error("Cache update silent fail:", err));
+            }
+
             wrongAnswers.forEach(qId => {
-                if (this.answers[qId]) {
-                    this.answers[qId].synced = true;
-                }
-            });
+                wrongAnswers.forEach(qId => {
+                    if (this.answers[qId]) {
+                        this.answers[qId].synced = true;
+                    }
+                });
 
-            const correctAnswers = Object.keys(this.answers).filter(qId => this.answers[qId].isCorrect);
-            const clearPromises = correctAnswers.map(qId => this.clearWrongAnswer(qId));
-            await Promise.all(clearPromises);
+                const correctAnswers = Object.keys(this.answers).filter(qId => this.answers[qId].isCorrect);
+                const clearPromises = correctAnswers.map(qId => this.clearWrongAnswer(qId));
+                await Promise.all(clearPromises);
 
-        } catch (e) {
-            console.error("Sonuç kaydetme hatası:", e);
+            } catch (e) {
+                console.error("Sonuç kaydetme hatası:", e);
+            }
         }
-    }
 
     // --- YARDIMCI FONKSİYONLAR ---
 
     // Yanlış yapılan soruyu havuza atar veya sayacını artırır
     async saveWrongAnswer(qId, qData) {
-        if (!auth.currentUser) return;
-        const safeText = qData?.text ? qData.text.substring(0, 150) + "..." : "";
-        const category = qData?.category || 'Genel';
-        const existing = this.pendingWrongAnswers.get(qId);
-        if (existing) {
-            existing.count += 1;
-            return;
-        }
+            if (!auth.currentUser) return;
+            const safeText = qData?.text ? qData.text.substring(0, 150) + "..." : "";
+            const category = qData?.category || 'Genel';
+            const existing = this.pendingWrongAnswers.get(qId);
+            if (existing) {
+                existing.count += 1;
+                return;
+            }
 
-        this.pendingWrongAnswers.set(qId, {
-            questionId: qId,
-            text: safeText,
-            category,
-            examId: this.examId,
-            count: 1
-        });
+            this.pendingWrongAnswers.set(qId, {
+                questionId: qId,
+                text: safeText,
+                category,
+                examId: this.examId,
+                count: 1
+            });
 
-        if (!this.deferWrongWrites && this.pendingWrongAnswers.size >= 5) {
-            await this.flushWrongAnswers();
+            if (!this.deferWrongWrites && this.pendingWrongAnswers.size >= 5) {
+                await this.flushWrongAnswers();
+            }
         }
-    }
 
     async clearWrongAnswer(qId) {
-        return;
-    }
-
-    async flushWrongAnswers() {
-        if (!auth.currentUser || this.pendingWrongAnswers.size === 0) return;
-        const dateKey = new Date().toISOString().slice(0, 10);
-        const ref = doc(db, `users/${auth.currentUser.uid}/wrong_summaries/${dateKey}`);
-        const updates = {
-            updatedAt: serverTimestamp()
-        };
-        const questionIds = [];
-
-        this.pendingWrongAnswers.forEach((payload, qId) => {
-            updates[`wrongCounts.${qId}`] = increment(payload.count);
-            updates[`questionMeta.${qId}`] = {
-                questionId: payload.questionId,
-                text: payload.text,
-                category: payload.category,
-                examId: payload.examId,
-                lastAttempt: serverTimestamp()
-            };
-            questionIds.push(qId);
-        });
-
-        if (questionIds.length > 0) {
-            updates.questionIds = arrayUnion(...questionIds);
-        }
-
-        try {
-            await setDoc(ref, updates, { merge: true });
-            this.pendingWrongAnswers.clear();
-        } catch (e) {
-            console.error("Yanlış soru toplu kaydı hatası:", e);
-        }
-    }
-
-    updateCounters() {
-        const correct = Object.values(this.answers).filter(a => a.isCorrect).length;
-        const wrong = Object.values(this.answers).filter(a => a.isCorrect === false).length;
-        const answered = Object.keys(this.answers).length;
-
-        if (this.ui.trueVal) this.ui.trueVal.innerText = correct;
-        if (this.ui.falseVal) this.ui.falseVal.innerText = wrong;
-        if (this.ui.remainVal) this.ui.remainVal.innerText = this.questions.length - answered;
-    }
-
-    async loadUserFavorites() {
-        if (!auth.currentUser) return;
-        try {
-            // Favorileri çek (Sadece ID'leri tutuyoruz)
-            // Not: Çok fazla favori varsa bu yöntem optimize edilmeli, şimdilik yeterli.
-            const snap = await getDoc(doc(db, `users/${auth.currentUser.uid}/favorites/_index`));
-            // Alternatif: Subcollection'dan çekmek daha maliyetli olabilir, 
-            // ama veri modelinde subcollection demiştik. O yüzden collection query yapalım.
-            // Ancak performans için sadece ID'leri çekmek daha iyi olurdu.
-            // Şimdilik basit yöntem:
-            // (Gerçek uygulamada favori ID'lerini user profilinde array olarak tutmak daha hızlıdır)
-        } catch (e) { }
-    }
-
-    async toggleFavorite(qId) {
-        if (!auth.currentUser) {
-            showToast("Bu işlem için giriş yapmalısınız.", "error");
             return;
         }
 
-        const btn = document.querySelector(`#q-${qId} .fav-btn`);
-        const ref = doc(db, `users/${auth.currentUser.uid}/favorites/${qId}`);
+    async flushWrongAnswers() {
+            if (!auth.currentUser || this.pendingWrongAnswers.size === 0) return;
+            const dateKey = new Date().toISOString().slice(0, 10);
+            const ref = doc(db, `users/${auth.currentUser.uid}/wrong_summaries/${dateKey}`);
+            const updates = {
+                updatedAt: serverTimestamp()
+            };
+            const questionIds = [];
 
-        if (this.favorites.has(qId)) {
-            this.favorites.delete(qId);
-            if (btn) {
-                btn.innerText = '☆';
-                btn.classList.remove('active');
-            }
-            await deleteDoc(ref);
-        } else {
-            this.favorites.add(qId);
-            if (btn) {
-                btn.innerText = '★';
-                btn.classList.add('active');
-            }
-            const q = this.questions.find(i => i.id === qId);
-            await setDoc(ref, {
-                questionId: q.id,
-                text: q.text,
-                category: q.category,
-                addedAt: serverTimestamp()
+            this.pendingWrongAnswers.forEach((payload, qId) => {
+                updates[`wrongCounts.${qId}`] = increment(payload.count);
+                updates[`questionMeta.${qId}`] = {
+                    questionId: payload.questionId,
+                    text: payload.text,
+                    category: payload.category,
+                    examId: payload.examId,
+                    lastAttempt: serverTimestamp()
+                };
+                questionIds.push(qId);
             });
-        }
-    }
 
-    openReportModal(qId) {
-        const desc = prompt("Bu soruda ne gibi bir hata var? (Örn: Cevap yanlış, Yazım hatası)");
-        if (desc && auth.currentUser) {
-            const submitReport = httpsCallable(functions, "submitReport");
-            submitReport({
-                questionId: qId,
-                description: desc,
-                type: "question_error",
-                source: "question_modal"
-            })
-                .then(() => showToast("Bildiriminiz alındı. Teşekkürler!", "success"))
-                .catch((error) => {
-                    console.error("Bildirimi gönderme hatası:", error);
-                    showToast(`Bildiriminiz gönderilemedi: ${error.message}`, "error");
+            if (questionIds.length > 0) {
+                updates.questionIds = arrayUnion(...questionIds);
+            }
+
+            try {
+                await setDoc(ref, updates, { merge: true });
+                this.pendingWrongAnswers.clear();
+            } catch (e) {
+                console.error("Yanlış soru toplu kaydı hatası:", e);
+            }
+        }
+
+        updateCounters() {
+            const correct = Object.values(this.answers).filter(a => a.isCorrect).length;
+            const wrong = Object.values(this.answers).filter(a => a.isCorrect === false).length;
+            const answered = Object.keys(this.answers).length;
+
+            if (this.ui.trueVal) this.ui.trueVal.innerText = correct;
+            if (this.ui.falseVal) this.ui.falseVal.innerText = wrong;
+            if (this.ui.remainVal) this.ui.remainVal.innerText = this.questions.length - answered;
+        }
+
+    async loadUserFavorites() {
+            if (!auth.currentUser) return;
+            try {
+                // Favorileri çek (Sadece ID'leri tutuyoruz)
+                // Not: Çok fazla favori varsa bu yöntem optimize edilmeli, şimdilik yeterli.
+                const snap = await getDoc(doc(db, `users/${auth.currentUser.uid}/favorites/_index`));
+                // Alternatif: Subcollection'dan çekmek daha maliyetli olabilir, 
+                // ama veri modelinde subcollection demiştik. O yüzden collection query yapalım.
+                // Ancak performans için sadece ID'leri çekmek daha iyi olurdu.
+                // Şimdilik basit yöntem:
+                // (Gerçek uygulamada favori ID'lerini user profilinde array olarak tutmak daha hızlıdır)
+            } catch (e) { }
+        }
+
+    async toggleFavorite(qId) {
+            if (!auth.currentUser) {
+                showToast("Bu işlem için giriş yapmalısınız.", "error");
+                return;
+            }
+
+            const btn = document.querySelector(`#q-${qId} .fav-btn`);
+            const ref = doc(db, `users/${auth.currentUser.uid}/favorites/${qId}`);
+
+            if (this.favorites.has(qId)) {
+                this.favorites.delete(qId);
+                if (btn) {
+                    btn.innerText = '☆';
+                    btn.classList.remove('active');
+                }
+                await deleteDoc(ref);
+            } else {
+                this.favorites.add(qId);
+                if (btn) {
+                    btn.innerText = '★';
+                    btn.classList.add('active');
+                }
+                const q = this.questions.find(i => i.id === qId);
+                await setDoc(ref, {
+                    questionId: q.id,
+                    text: q.text,
+                    category: q.category,
+                    addedAt: serverTimestamp()
                 });
+            }
         }
-    }
 
-    setupMobileGestures() { }
-}
+        openReportModal(qId) {
+            const desc = prompt("Bu soruda ne gibi bir hata var? (Örn: Cevap yanlış, Yazım hatası)");
+            if (desc && auth.currentUser) {
+                const submitReport = httpsCallable(functions, "submitReport");
+                submitReport({
+                    questionId: qId,
+                    description: desc,
+                    type: "question_error",
+                    source: "question_modal"
+                })
+                    .then(() => showToast("Bildiriminiz alındı. Teşekkürler!", "success"))
+                    .catch((error) => {
+                        console.error("Bildirimi gönderme hatası:", error);
+                        showToast(`Bildiriminiz gönderilemedi: ${error.message}`, "error");
+                    });
+            }
+        }
+
+        setupMobileGestures() { }
+    }
