@@ -67,6 +67,11 @@ export async function initLayout() {
 async function loadRequiredHTML(isAdminPage) {
     // Admin ve User için aynı header yapısını kullanıyoruz artık (tutarlılık için)
     // Ancak içerik farklı olabilir diye dosya isimlerini koruyoruz.
+
+    // Distraction-Free Mode for Test Pages
+    // Test sayfalarında header ve sidebar'ı yükleme
+    if (window.location.pathname.startsWith('/test/')) return;
+
     const headerUrl = isAdminPage ? '/partials/admin-header.html' : '/partials/header.html';
     const sidebarUrl = isAdminPage ? '/partials/admin-sidebar.html' : '/partials/sidebar.html';
 
