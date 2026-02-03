@@ -24,7 +24,7 @@ export async function ensureUserDocument(user) {
                 email: user.email || null
             }).catch(err => console.warn("Profil güncelleme uyarısı (Önemsiz):", err));
 
-            return userSnap.data();
+            return { ...userSnap.data(), _isNew: false };
         } else {
             // Kullanıcı yoksa: Yeni kayıt oluştur
             const newUserData = {
@@ -40,7 +40,8 @@ export async function ensureUserDocument(user) {
             };
 
             await setDoc(userRef, newUserData);
-            return newUserData;
+            await setDoc(userRef, newUserData);
+            return { ...newUserData, _isNew: true };
         }
     } catch (error) {
         console.error("ensureUserDocument hatası:", error);

@@ -84,6 +84,15 @@ const handleLoginSuccess = async (user) => {
         // 1. Veritabanı kontrolü yap (Yoksa oluşturur)
         const userProfile = await ensureUserDocument(user);
 
+        // 1.5. YENİ KULLANICI KONTROLÜ (Login modunda kayıt olmaya çalışanlar için)
+        if (userProfile._isNew && !isRegisterMode) {
+            showStatus("error", "Kaydınız bulunamadı. Üye olmak için Kayıt Ol sayfasına yönlendiriliyorsunuz...");
+            setTimeout(() => {
+                window.location.href = "login.html?mode=register";
+            }, 2000);
+            return;
+        }
+
         // 2. Statü Kontrolü
         if (userProfile.status === "pending") {
             // YENİ ÜYE veya ONAY BEKLEYEN ÜYE
