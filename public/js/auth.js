@@ -31,8 +31,12 @@ if (isRegisterMode) {
     if (googleLoginButton) {
         googleLoginButton.innerHTML = googleLoginButton.innerHTML.replace("Giriş Yap", "Kayıt Ol");
     }
+    // Force show agreement in register mode
+    if (agreementPanel) agreementPanel.style.display = "block";
 } else {
+    // Login Mode
     if (authCard) authCard.classList.add("is-login");
+    // Ensure hidden in login check
     if (agreementPanel) agreementPanel.style.display = "none";
 }
 
