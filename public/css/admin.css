@@ -1939,3 +1939,70 @@ tr.highlight {
         grid-template-columns: 1fr;
     }
 }
+
+/* --- Maintenance Center --- */
+.maintenance-grid {
+    display: grid;
+    gap: 20px;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.maintenance-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 12px;
+    margin-bottom: 16px;
+}
+
+.maintenance-summary {
+    display: grid;
+    gap: 10px;
+    font-size: 0.9rem;
+}
+
+.maintenance-checklist {
+    display: grid;
+    gap: 8px;
+    padding-left: 18px;
+    margin: 0 0 16px 0;
+    color: var(--text-muted);
+}
+
+.maintenance-note {
+    padding: 12px;
+    border-radius: var(--radius-md);
+    background: var(--bg-hover);
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}
+
+.maintenance-log-list {
+    display: grid;
+    gap: 12px;
+}
+
+.maintenance-log-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    border-radius: var(--radius-md);
+    background: var(--bg-hover);
+}
+
+.maintenance-log-title {
+    font-weight: 600;
+}
+
+.maintenance-task-title {
+    font-weight: 600;
+}
+
+.maintenance-task-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: flex-end;
+}
