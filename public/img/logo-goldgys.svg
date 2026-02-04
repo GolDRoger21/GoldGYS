@@ -1,0 +1,35 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Gold GYS logo">
+  <defs>
+    <linearGradient id="gold-stroke" x1="96" y1="64" x2="416" y2="448" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#F6D78B"/>
+      <stop offset="0.5" stop-color="#D4AF37"/>
+      <stop offset="1" stop-color="#A8853A"/>
+    </linearGradient>
+    <linearGradient id="gold-fill" x1="180" y1="120" x2="360" y2="392" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FBE7B1"/>
+      <stop offset="0.6" stop-color="#D4AF37"/>
+      <stop offset="1" stop-color="#A8853A"/>
+    </linearGradient>
+    <filter id="soft-shadow" x="0" y="0" width="512" height="512" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#000000" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+  <g filter="url(#soft-shadow)">
+    <path d="M256 56L416 144V320L256 456L96 320V144L256 56Z" fill="#0B1224" stroke="url(#gold-stroke)" stroke-width="14"/>
+    <path d="M256 92L386 164V300L256 392L126 300V164L256 92Z" stroke="rgba(246, 215, 139, 0.35)" stroke-width="6"/>
+  </g>
+  <g stroke="url(#gold-fill)" stroke-width="12" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M256 168V310"/>
+    <path d="M210 200H302"/>
+    <path d="M224 200L188 246"/>
+    <path d="M288 200L324 246"/>
+    <path d="M170 246H230"/>
+    <path d="M282 246H342"/>
+  </g>
+  <g fill="url(#gold-fill)">
+    <path d="M170 246C170 266 186 282 206 282C226 282 242 266 242 246H170Z"/>
+    <path d="M270 246C270 266 286 282 306 282C326 282 342 266 342 246H270Z"/>
+    <path d="M240 312H272V352C272 364 262 374 250 374C238 374 228 364 228 352V312H240Z"/>
+  </g>
+  <path d="M256 136L286 176H226L256 136Z" fill="url(#gold-fill)"/>
+</svg>
