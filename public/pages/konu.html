@@ -735,13 +735,18 @@
     }
 
     async function loadQuestionCount() {
-      if (!topicTitle) return;
+      if (!currentTopicId) return;
       try {
         // 1. Toplam Soru Sayısı (Paket metadata veya fallback)
         const meta = await TopicService.getTopicPackMeta(currentTopicId);
-        let totalCount = meta?.questionCount || 0;
+        let totalCount = meta?.questionCount || meta?.questionIds?.length || 0;
 
         if (!totalCount) {
+          const allIds = await TopicService.getTopicQuestionIdsById(currentTopicId);
+          totalCount = allIds.length;
+        }
+
+        if (!totalCount && topicTitle) {
           const allIds = await TopicService.getTopicQuestionIds(topicTitle);
           totalCount = allIds.length;
         }
