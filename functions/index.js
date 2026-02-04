@@ -992,3 +992,90 @@ exports.sitemap = onRequest(async (req, res) => {
     res.status(500).send("Error generating sitemap");
   }
 });
+
+exports.systemHealthCheck = onCall({ enforceAppCheck: true }, async (request) => {
+  const context = { auth: request.auth };
+  await ensureCallerIsAdmin(context);
+
+  const db = admin.firestore();
+  const healthStatus = {
+    database: { status: "unknown", latency: 0 },
+    auth: { status: "unknown" },
+    storage: { status: "unknown" },
+    timestamp: admin.firestore.Timestamp.now()
+  };
+
+  try {
+    const start = Date.now();
+    const checkRef = db.collection("_healthCheck").doc("ping");
+    await checkRef.set({ lastCheck: admin.firestore.FieldValue.serverTimestamp() });
+    await checkRef.get();
+    healthStatus.database.latency = Date.now() - start;
+    healthStatus.database.status = "healthy";
+  } catch (error) {
+    healthStatus.database.status = "unhealthy";
+    healthStatus.database.error = error.message;
+  }
+
+  try {
+    await admin.auth().listUsers(1);
+    healthStatus.auth.status = "healthy";
+  } catch (error) {
+    healthStatus.auth.status = "unhealthy";
+    healthStatus.auth.error = error.message;
+  }
+
+  return healthStatus;
+});
+
+exports.scanContentIntegrity = onCall({ enforceAppCheck: true }, async (request) => {
+  const context = { auth: request.auth };
+  await ensureCallerIsAdmin(context);
+
+  const db = admin.firestore();
+  const issues = [];
+  const limit = 50;
+
+  try {
+    const usersSnap = await db.collection("users").limit(limit).get();
+    usersSnap.forEach(doc => {
+      const data = doc.data();
+      if (data.role && !ALLOWED_ROLES.includes(data.role)) {
+        issues.push({
+          type: "invalid_role",
+          id: doc.id,
+          message: `User has invalid role: ${data.role}`
+        });
+      }
+    });
+  } catch (e) {
+    issues.push({ type: "scan_error", message: "Failed to scan users: " + e.message });
+  }
+
+  try {
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    const reportsSnap = await db.collection("reports")
+      .where("status", "==", "pending")
+      .where("createdAt", "<", admin.firestore.Timestamp.fromDate(thirtyDaysAgo))
+      .limit(limit)
+      .get();
+
+    reportsSnap.forEach(doc => {
+      issues.push({
+        type: "stale_report",
+        id: doc.id,
+        message: "Report details are pending for >30 days"
+      });
+    });
+  } catch (e) {
+    // Ignore
+  }
+
+  return {
+    issuesFound: issues.length,
+    issues: issues,
+    scannedAt: admin.firestore.Timestamp.now()
+  };
+});

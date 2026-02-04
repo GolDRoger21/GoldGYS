@@ -1,4 +1,4 @@
-import { auth, db } from "../../firebase-config.js";
+import { auth, db, functions } from "../../firebase-config.js";
 import { showConfirm, showToast } from "../../notifications.js";
 import {
     addDoc,
@@ -14,6 +14,7 @@ import {
     setDoc,
     updateDoc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { httpsCallable } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-functions.js";
 
 const CONFIG_DOC = doc(db, "maintenanceConfig", "main");
 const LOGS_COLLECTION = collection(db, "maintenanceLogs");
@@ -377,38 +378,199 @@ async function handleQuickAction(button) {
     const label = button.dataset.label || "Bakım aksiyonu";
     if (!action) return;
 
-    const shouldProceed = await showConfirm(`${label} işlemini günlüğe eklemek istiyor musunuz?`, {
-        title: "Bakım Aksiyonu",
-        confirmText: "Kaydet",
+    let confirmMsg = `${label} işlemini başlatmak istediğinize emin misiniz?`;
+    if (action === "cache") {
+        confirmMsg += "\nBu işlem tarayıcı önbelleğini temizleyecek ve sizi çıkışa zorlayabilir.";
+    }
+
+    const shouldProceed = await showConfirm(confirmMsg, {
+        title: label,
+        confirmText: "Başlat",
         cancelText: "Vazgeç"
     });
     if (!shouldProceed) return;
 
+    // Execute Logic
     try {
+        const result = await executeActionLogic(action);
+
+        // Log action
         await addDoc(LOGS_COLLECTION, {
             action,
             label,
-            status: "completed",
+            status: result.success ? "completed" : "failed",
+            details: result.details || {},
             createdAt: serverTimestamp(),
             createdBy: getCurrentUserLabel()
         });
 
-        const updateFields = {
-            updatedAt: serverTimestamp()
-        };
-
+        // Update timestamps
+        const updateFields = { updatedAt: serverTimestamp() };
         const actionConfig = QUICK_ACTIONS.find((entry) => entry.id === action);
         if (actionConfig?.summaryKey) {
             updateFields[actionConfig.summaryKey] = serverTimestamp();
         }
-
         await setDoc(CONFIG_DOC, updateFields, { merge: true });
+
+        // Feedback
+        if (result.success) {
+            showToast(`${label} başarıyla tamamlandı.`, "success");
+            if (result.message) showToast(result.message, "info");
+        } else {
+            showToast(`${label} sırasında hata oluştu: ${result.error}`, "error");
+        }
+
         await Promise.all([loadConfig(), loadLogs()]);
-        showToast("Bakım aksiyonu kaydedildi.", "success");
+
     } catch (error) {
-        console.error("Bakım aksiyonu kaydedilemedi:", error);
-        showToast("Bakım aksiyonu kaydedilemedi.", "error");
+        console.error("Aksiyon hatası:", error);
+        showToast("İşlem gerçekleştirilemedi.", "error");
     }
+}
+
+async function executeActionLogic(action) {
+    switch (action) {
+        case "cache":
+            return await performCacheClear();
+        case "backup":
+            return await performBackupCheck();
+        case "health":
+            return await performHealthCheck();
+        case "content":
+            return await performContentScan();
+        case "performance":
+            return await performPerformanceCheck();
+        case "billing":
+            return await performBillingCheck();
+        case "security":
+            return await performSecurityCheck();
+        case "index":
+            return await performIndexRebuild();
+        default:
+            return { success: true, details: { note: "Log only action" } };
+    }
+}
+
+async function performCacheClear() {
+    try {
+        // Clear Local Storage
+        localStorage.clear();
+        sessionStorage.clear();
+
+        // Try clearing Cache API
+        if ('caches' in window) {
+            const keys = await caches.keys();
+            await Promise.all(keys.map(key => caches.delete(key)));
+        }
+
+        return {
+            success: true,
+            message: "Önbellek temizlendi. Sayfa yenileniyor...",
+            details: { scope: "local" }
+        };
+    } catch (e) {
+        return { success: false, error: e.message };
+    }
+}
+
+async function performBackupCheck() {
+    // Direct user to console
+    const url = "https://console.firebase.google.com/project/goldgys/firestore/data/~2F_backups";
+    window.open(url, "_blank");
+    return { success: true, message: "Yedekleme konsolu açıldı.", details: { manual: true } };
+}
+
+async function performBillingCheck() {
+    const url = "https://console.firebase.google.com/project/goldgys/usage/details";
+    window.open(url, "_blank");
+    return { success: true, message: "Faturalandırma paneli açıldı.", details: { manual: true } };
+}
+
+async function performHealthCheck() {
+    try {
+        const checkFn = httpsCallable(functions, 'systemHealthCheck');
+        const result = await checkFn();
+        const data = result.data;
+
+        const isHealthy = data.database?.status === "healthy" && data.auth?.status === "healthy";
+
+        // Show result in a simple alert for now (or modal if available)
+        alert(`Sistem Durumu: ${isHealthy ? "✅ Sağlam" : "⚠️ Sorunlu"}\n\nDatabase: ${data.database?.status} (${data.database?.latency}ms)\nAuth: ${data.auth?.status}`);
+
+        return {
+            success: isHealthy,
+            details: data,
+            message: isHealthy ? "Sistem sağlığı yerinde." : "Sistemde sorunlar tespit edildi."
+        };
+    } catch (e) {
+        return { success: false, error: e.message };
+    }
+}
+
+async function performContentScan() {
+    try {
+        const scanFn = httpsCallable(functions, 'scanContentIntegrity');
+        showToast("Tarama başlatıldı, lütfen bekleyin...", "info");
+
+        const result = await scanFn();
+        const data = result.data;
+
+        let msg = `Tarama Tamamlandı.\nBulunan Sorunlar: ${data.issuesFound}`;
+        if (data.issuesFound > 0) {
+            msg += "\n\nDetaylar:\n" + data.issues.map(i => `- ${i.type}: ${i.message}`).join("\n");
+        }
+        alert(msg);
+
+        return { success: true, details: data };
+    } catch (e) {
+        return { success: false, error: e.message };
+    }
+}
+
+async function performPerformanceCheck() {
+    try {
+        const metrics = {
+            memory: performance.memory ? Math.round(performance.memory.usedJSHeapSize / 1024 / 1024) + " MB" : "N/A",
+            navigation: performance.getEntriesByType("navigation")[0]?.type || "unknown",
+            loadTime: performance.timing.loadEventEnd - performance.timing.navigationStart + "ms",
+            userAgent: navigator.userAgent
+        };
+
+        alert(`Performans Özeti:\n\nBellek: ${metrics.memory}\nYükleme: ${metrics.loadTime}\nTip: ${metrics.navigation}`);
+
+        return { success: true, details: metrics };
+    } catch (e) {
+        return { success: false, error: e.message };
+    }
+}
+
+async function performSecurityCheck() {
+    try {
+        const user = auth.currentUser;
+        if (!user) throw new Error("Kullanıcı yok");
+
+        const tokenResult = await user.getIdTokenResult();
+        const claims = tokenResult.claims;
+
+        const info = `
+            Kullanıcı: ${user.email}
+            Admin: ${claims.admin ? "✅" : "❌"}
+            Editor: ${claims.editor ? "✅" : "❌"}
+            Son Oturum: ${tokenResult.authTime}
+        `;
+
+        alert(`Güvenlik Denetimi:\n${info}`);
+        return { success: true, details: { claims } };
+    } catch (e) {
+        return { success: false, error: e.message };
+    }
+}
+
+async function performIndexRebuild() {
+    showToast("İndeksler Firestore tarafından otomatik yönetilir. Konsol kontrol ediliyor...", "info");
+    const url = "https://console.firebase.google.com/project/goldgys/firestore/indexes";
+    window.open(url, "_blank");
+    return { success: true, details: { manual: true, note: "Opened index console" } };
 }
 
 async function handleTaskSubmit(event) {
