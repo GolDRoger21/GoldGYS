@@ -17,6 +17,7 @@
     --landing-text-muted: rgba(248, 231, 180, 0.72);
     --landing-gold-soft: rgba(212, 175, 55, 0.16);
     --landing-gold-glow: 0 24px 60px rgba(212, 175, 55, 0.2);
+    --brand-secondary: rgba(248, 231, 180, 0.85);
 }
 
 [data-theme="light"] {
@@ -34,6 +35,7 @@
     --landing-text-muted: rgba(15, 23, 42, 0.7);
     --landing-gold-soft: rgba(212, 175, 55, 0.12);
     --landing-gold-glow: 0 18px 40px rgba(181, 149, 47, 0.18);
+    --brand-secondary: rgba(133, 109, 32, 0.9);
 }
 
 * {
@@ -90,6 +92,10 @@ main {
     text-decoration: none;
 }
 
+.brand-logo::before {
+    content: none;
+}
+
 .brand-mark {
     width: 42px;
     height: 42px;
@@ -100,19 +106,24 @@ main {
     font-family: "Cinzel", serif;
     font-weight: 600;
     letter-spacing: 0.16em;
-    color: var(--landing-text-strong);
     text-transform: uppercase;
     font-size: 1.1rem;
+    color: var(--brand-secondary);
 }
 
 .brand-gold {
-    color: var(--gold-main);
+    background: linear-gradient(110deg, #f7e8a9 0%, #d4af37 55%, #a8853a 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
 }
 
 .nav-right {
     display: flex;
     align-items: center;
     gap: 1.5rem;
+    justify-content: flex-end;
+    flex: 1;
 }
 
 .nav-links {
@@ -890,6 +901,15 @@ main {
 }
 
 @media (max-width: 900px) {
+    .header-inner {
+        gap: 1rem;
+    }
+
+    .brand-text {
+        font-size: 1rem;
+        letter-spacing: 0.12em;
+    }
+
     .nav-links {
         position: fixed;
         top: var(--landing-header-height);
@@ -931,6 +951,10 @@ main {
 }
 
 @media (max-width: 768px) {
+    .header-inner {
+        padding: 0 1.25rem;
+    }
+
     .hero-section {
         padding: 130px 1.5rem 90px;
     }
@@ -971,8 +995,8 @@ main {
     }
 
     .brand-text {
-        font-size: 0.95rem;
-        letter-spacing: 0.12em;
+        font-size: 0.9rem;
+        letter-spacing: 0.1em;
     }
 
     .hero-title {
