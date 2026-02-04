@@ -86,42 +86,64 @@ body.sidebar-collapsed .app-layout {
     background-color: var(--bg-hover);
 }
 
-.brand-logo {
-    font-family: var(--font-family-serif);
-    font-size: 1.4rem;
-    font-weight: 700;
-    color: var(--text-logo);
-    text-decoration: none;
-    display: flex;
+.theme-toggle {
+    background: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 999px;
+    display: inline-flex;
     align-items: center;
-    gap: 6px;
-    letter-spacing: 0.04em;
-    position: relative;
+    justify-content: center;
+    transition: all var(--transition-fast);
 }
 
-.brand-logo span {
-    color: var(--logo-khaki);
-    text-shadow: 0 0 18px rgba(194, 97, 68, 0.25);
+.theme-toggle:hover {
+    border-color: var(--gold-main);
+    color: var(--gold-main);
+    background: rgba(212, 175, 55, 0.12);
+}
+
+.theme-toggle svg {
+    width: 18px;
+    height: 18px;
+}
+
+.brand-logo {
+    font-family: var(--font-family-serif);
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--text-logo);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    letter-spacing: 0.12em;
+    position: relative;
+    text-transform: uppercase;
 }
 
 .brand-logo::before {
-    content: '';
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    background: conic-gradient(from 210deg, var(--logo-gold), var(--logo-khaki), var(--logo-highlight), var(--logo-gold));
-    border: 1px solid rgba(255, 255, 255, 0.25);
-    box-shadow: 0 6px 14px rgba(212, 175, 55, 0.25);
-    flex-shrink: 0;
+    content: none;
 }
 
-@supports (-webkit-background-clip: text) or (background-clip: text) {
-    .brand-logo {
-        background: linear-gradient(110deg, var(--logo-gold), var(--logo-highlight) 45%, var(--logo-khaki) 85%);
-        -webkit-background-clip: text;
-        background-clip: text;
-        color: transparent;
-    }
+.brand-mark {
+    width: 34px;
+    height: 34px;
+    flex-shrink: 0;
+    filter: drop-shadow(0 6px 14px rgba(212, 175, 55, 0.25));
+}
+
+.brand-text {
+    color: var(--text-logo);
+}
+
+.brand-gold {
+    background: linear-gradient(110deg, var(--gold-light) 0%, var(--gold-main) 55%, var(--gold-dark) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
 }
 
 /* --- SIDEBAR --- */
@@ -862,7 +884,8 @@ body:not(.admin-body) .app-sidebar .nav-label {
     }
 
     .brand-logo {
-        font-size: 1.1rem;
+        font-size: 1rem;
+        letter-spacing: 0.08em;
     }
 
     .google-dropdown {

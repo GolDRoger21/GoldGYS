@@ -126,13 +126,15 @@
 }
 
 .btn-primary {
-    background-color: var(--gold-main);
-    color: var(--navy-deep);
+    background: linear-gradient(110deg, var(--gold-light) 0%, var(--gold-main) 55%, var(--gold-dark) 100%);
+    color: var(--text-on-gold);
+    border: 1px solid rgba(212, 175, 55, 0.7);
+    box-shadow: var(--shadow-gold);
 }
 
 .btn-primary:hover {
-    background-color: #c5a02e;
     transform: translateY(-1px);
+    box-shadow: 0 14px 30px rgba(212, 175, 55, 0.35);
 }
 
 .btn-outline {

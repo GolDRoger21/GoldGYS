@@ -85,6 +85,20 @@ main {
     gap: 2rem;
 }
 
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    flex: 1;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+}
+
 .brand-logo {
     display: flex;
     align-items: center;
@@ -116,14 +130,6 @@ main {
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
-}
-
-.nav-right {
-    display: flex;
-    align-items: center;
-    gap: 1.5rem;
-    justify-content: flex-end;
-    flex: 1;
 }
 
 .nav-links {
@@ -905,6 +911,11 @@ main {
         gap: 1rem;
     }
 
+    .header-left {
+        flex: 1;
+        gap: 1rem;
+    }
+
     .brand-text {
         font-size: 1rem;
         letter-spacing: 0.12em;
@@ -922,7 +933,9 @@ main {
         padding-top: 3rem;
         background: var(--landing-nav-scrolled-bg);
         transform: translateX(100%);
-        transition: transform 0.3s ease;
+        opacity: 0;
+        pointer-events: none;
+        transition: transform 0.35s ease, opacity 0.25s ease;
         gap: 2rem;
         border-top: 1px solid var(--landing-nav-border);
         z-index: 20;
@@ -930,6 +943,8 @@ main {
 
     .nav-links.open {
         transform: translateX(0);
+        opacity: 1;
+        pointer-events: auto;
     }
 
     .nav-link {
