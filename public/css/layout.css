@@ -167,7 +167,8 @@ body.sidebar-collapsed .app-sidebar {
     width: var(--sidebar-width-collapsed);
 }
 
-body:not(.admin-body) .app-sidebar .nav-item {
+/* Shared Sidebar Item Styles (Admin & Dashboard) */
+.app-sidebar .nav-item {
     display: flex;
     align-items: center;
     padding: 10px 16px;
@@ -180,81 +181,91 @@ body:not(.admin-body) .app-sidebar .nav-item {
     border-radius: var(--radius-md);
     margin: 0 4px 10px;
     border: 1px solid transparent;
-    background: var(--bg-surface);
-    box-shadow: var(--shadow-sm);
+    background: transparent; /* Default transparent unless active/hover */
     transition: all var(--transition-fast);
-    white-space: nowrap;
-    position: relative;
-
-    /* Modern Flex Layout (Matches Admin) */
+    
+    /* Flex & Overflow for smooth collapsing */
     gap: 12px;
     flex-wrap: nowrap;
     min-width: 0;
     overflow: hidden;
-    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
-body:not(.admin-body) .app-sidebar .nav-item:hover {
+/* Dashboard specific override for background if needed, 
+   but Admin uses transparent by default too until hovered. 
+   Let's keep the dashboard card-like look if preferred, but simpler is better.
+   The original had background: var(--bg-surface) and shadow. 
+   Let's restore that for non-admin if desired, or unify. 
+   For now, we'll keep the unified "clean" look. */
+
+.app-sidebar .nav-item:hover {
     background-color: var(--bg-hover);
     color: var(--color-primary);
     border-color: var(--border-color);
-    box-shadow: var(--shadow-md);
 }
 
-body:not(.admin-body) .app-sidebar .nav-item.active {
+.app-sidebar .nav-item.active {
     background-color: rgba(212, 175, 55, 0.15);
     color: var(--color-primary);
     font-weight: 600;
     border-color: var(--color-primary);
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
 }
 
-body:not(.admin-body) .app-sidebar .nav-item .icon {
+.app-sidebar .nav-item .icon {
     font-size: 1.25rem;
-    /* min-width: 24px; */
-    /* margin-right: 24px;  <- REMOVED (Converted to gap) */
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
+    width: 24px; /* Fixed width for alignment */
 }
 
-body:not(.admin-body) .app-sidebar .nav-item span:not(.icon) {
+.app-sidebar .nav-item span:not(.icon) {
     flex: 1 1 auto;
     min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    opacity: 1;
+    transition: opacity 0.2s ease, transform 0.2s ease;
 }
 
 /* Collapsed Sidebar Adjustments */
-body.sidebar-collapsed:not(.admin-body) .app-sidebar .nav-item {
+body.sidebar-collapsed .app-sidebar .nav-item {
     padding: 0;
     justify-content: center;
     border-radius: 10px;
     margin: 6px 8px;
-    box-shadow: var(--shadow-sm);
 }
 
-body.sidebar-collapsed:not(.admin-body) .app-sidebar .nav-item .icon {
+body.sidebar-collapsed .app-sidebar .nav-item .icon {
     margin-right: 0;
 }
 
-body.sidebar-collapsed:not(.admin-body) .app-sidebar .nav-item span:not(.icon) {
+/* Hide text gracefully when collapsed */
+body.sidebar-collapsed .app-sidebar .nav-item span:not(.icon) {
+    opacity: 0;
+    width: 0;
+    margin: 0;
+    overflow: hidden;
+}
+
+body.sidebar-collapsed .app-sidebar .nav-label {
     display: none;
 }
 
-body.sidebar-collapsed:not(.admin-body) .app-sidebar .nav-label {
-    display: none;
-}
-
-body:not(.admin-body) .app-sidebar .nav-label {
+.app-sidebar .nav-label {
     padding: 24px 24px 8px;
     font-size: 0.75rem;
     font-weight: 700;
     color: var(--text-muted);
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 /* Sidebar Backdrop (Mobile Only) */
