@@ -30,7 +30,7 @@ export const TopicService = {
         if (cachedData) {
             try {
                 const { timestamp, ids } = JSON.parse(cachedData);
-                if (Date.now() - timestamp < CACHE_DURATION && Array.isArray(ids)) {
+                if (Date.now() - timestamp < CACHE_DURATION && Array.isArray(ids) && ids.length > 0) {
                     console.log(`[Cache Hit] ${topicTitle} için ${ids.length} soru ID'si yerel hafızadan alındı.`);
                     return ids;
                 }
@@ -48,10 +48,13 @@ export const TopicService = {
             const ids = Array.isArray(metaData?.questionIds) ? metaData.questionIds : [];
 
             // Cache'e kaydet
-            localStorage.setItem(cacheKey, JSON.stringify({
-                timestamp: Date.now(),
-                ids: ids
-            }));
+            // Cache'e kaydet (Sadece veri varsa)
+            if (ids.length > 0) {
+                localStorage.setItem(cacheKey, JSON.stringify({
+                    timestamp: Date.now(),
+                    ids: ids
+                }));
+            }
 
             return ids;
         } catch (error) {
@@ -69,7 +72,7 @@ export const TopicService = {
         if (cachedData) {
             try {
                 const { timestamp, ids } = JSON.parse(cachedData);
-                if (Date.now() - timestamp < CACHE_DURATION && Array.isArray(ids)) {
+                if (Date.now() - timestamp < CACHE_DURATION && Array.isArray(ids) && ids.length > 0) {
                     console.log(`[Cache Hit] ${topicId} için ${ids.length} soru ID'si yerel hafızadan alındı.`);
                     return ids;
                 }
@@ -84,10 +87,12 @@ export const TopicService = {
             const metaData = metaSnap.exists() ? metaSnap.data() : null;
             const ids = Array.isArray(metaData?.questionIds) ? metaData.questionIds : [];
 
-            localStorage.setItem(cacheKey, JSON.stringify({
-                timestamp: Date.now(),
-                ids: ids
-            }));
+            if (ids.length > 0) {
+                localStorage.setItem(cacheKey, JSON.stringify({
+                    timestamp: Date.now(),
+                    ids: ids
+                }));
+            }
 
             return ids;
         } catch (error) {
