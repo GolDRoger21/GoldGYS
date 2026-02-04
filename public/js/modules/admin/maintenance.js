@@ -19,6 +19,57 @@ const CONFIG_DOC = doc(db, "maintenanceConfig", "main");
 const LOGS_COLLECTION = collection(db, "maintenanceLogs");
 const TASKS_COLLECTION = collection(db, "maintenanceTasks");
 
+const QUICK_ACTIONS = [
+    {
+        id: "cache",
+        label: "Önbellek Temizliği",
+        button: "🧹 Önbellek Temizle",
+        summaryKey: "lastCacheClearAt"
+    },
+    {
+        id: "backup",
+        label: "Yedekleme",
+        button: "💾 Yedek Alındı",
+        summaryKey: "lastBackupAt"
+    },
+    {
+        id: "index",
+        label: "İndeks Yenileme",
+        button: "🧭 İndeks Yenile",
+        summaryKey: "lastIndexRebuildAt"
+    },
+    {
+        id: "health",
+        label: "Sağlık Kontrolü",
+        button: "🩺 Sağlık Kontrolü",
+        summaryKey: "lastHealthCheckAt"
+    },
+    {
+        id: "security",
+        label: "Erişim Denetimi",
+        button: "🔐 Erişim Denetimi",
+        summaryKey: "lastSecurityAuditAt"
+    },
+    {
+        id: "performance",
+        label: "Performans Raporu",
+        button: "📊 Performans Raporu",
+        summaryKey: "lastPerformanceAuditAt"
+    },
+    {
+        id: "content",
+        label: "İçerik Tutarlılık Taraması",
+        button: "🧾 İçerik Taraması",
+        summaryKey: "lastContentAuditAt"
+    },
+    {
+        id: "billing",
+        label: "Faturalandırma Kontrolü",
+        button: "💳 Faturalandırma Kontrolü",
+        summaryKey: "lastBillingCheckAt"
+    }
+];
+
 let hasRendered = false;
 let hasBoundEvents = false;
 
@@ -80,10 +131,11 @@ function renderInterface() {
                     </div>
                 </div>
                 <div class="maintenance-actions">
-                    <button class="btn btn-secondary" data-maintenance-action="cache" data-label="Önbellek Temizliği">🧹 Önbellek Temizle</button>
-                    <button class="btn btn-secondary" data-maintenance-action="backup" data-label="Yedekleme">💾 Yedek Alındı</button>
-                    <button class="btn btn-secondary" data-maintenance-action="index" data-label="İndeks Yenileme">🧭 İndeks Yenile</button>
-                    <button class="btn btn-secondary" data-maintenance-action="health" data-label="Sağlık Kontrolü">🩺 Sağlık Kontrolü</button>
+                    ${QUICK_ACTIONS.map((action) => `
+                        <button class="btn btn-secondary" data-maintenance-action="${action.id}" data-label="${action.label}">
+                            ${action.button}
+                        </button>
+                    `).join("")}
                 </div>
                 <div class="maintenance-summary">
                     <div>
@@ -102,6 +154,22 @@ function renderInterface() {
                         <span class="text-muted">Son Sağlık Kontrolü:</span>
                         <strong id="maintenanceLastHealth">-</strong>
                     </div>
+                    <div>
+                        <span class="text-muted">Son Erişim Denetimi:</span>
+                        <strong id="maintenanceLastSecurity">-</strong>
+                    </div>
+                    <div>
+                        <span class="text-muted">Son Performans Raporu:</span>
+                        <strong id="maintenanceLastPerformance">-</strong>
+                    </div>
+                    <div>
+                        <span class="text-muted">Son İçerik Taraması:</span>
+                        <strong id="maintenanceLastContent">-</strong>
+                    </div>
+                    <div>
+                        <span class="text-muted">Son Faturalandırma Kontrolü:</span>
+                        <strong id="maintenanceLastBilling">-</strong>
+                    </div>
                 </div>
             </div>
 
@@ -117,6 +185,7 @@ function renderInterface() {
                     <li>Haftalık: Önbellek temizliği + kritik sayfa performans raporu.</li>
                     <li>Aylık: Yedekleri doğrulayın, erişim yetkilerini denetleyin.</li>
                     <li>Periyodik: Deneme ve içerik tutarlılık taraması yapın.</li>
+                    <li>3 Aylık: Faturalandırma limitlerini ve kullanım trendlerini gözden geçirin.</li>
                 </ul>
                 <div class="maintenance-note">
                     Bu panelde oluşturduğunuz görev ve loglar ekip içi takip için saklanır.
@@ -249,7 +318,11 @@ async function loadConfig() {
             lastBackupAt: data.lastBackupAt,
             lastCacheClearAt: data.lastCacheClearAt,
             lastIndexRebuildAt: data.lastIndexRebuildAt,
-            lastHealthCheckAt: data.lastHealthCheckAt
+            lastHealthCheckAt: data.lastHealthCheckAt,
+            lastSecurityAuditAt: data.lastSecurityAuditAt,
+            lastPerformanceAuditAt: data.lastPerformanceAuditAt,
+            lastContentAuditAt: data.lastContentAuditAt,
+            lastBillingCheckAt: data.lastBillingCheckAt
         });
 
         // Preview button handler (dynamic inject if missing)
@@ -324,10 +397,10 @@ async function handleQuickAction(button) {
             updatedAt: serverTimestamp()
         };
 
-        if (action === "backup") updateFields.lastBackupAt = serverTimestamp();
-        if (action === "cache") updateFields.lastCacheClearAt = serverTimestamp();
-        if (action === "index") updateFields.lastIndexRebuildAt = serverTimestamp();
-        if (action === "health") updateFields.lastHealthCheckAt = serverTimestamp();
+        const actionConfig = QUICK_ACTIONS.find((entry) => entry.id === action);
+        if (actionConfig?.summaryKey) {
+            updateFields[actionConfig.summaryKey] = serverTimestamp();
+        }
 
         await setDoc(CONFIG_DOC, updateFields, { merge: true });
         await Promise.all([loadConfig(), loadLogs()]);
@@ -523,16 +596,33 @@ function updateMaintenanceBadge(isActive, windowStart, windowEnd) {
     }
 }
 
-function updateSummary({ lastBackupAt, lastCacheClearAt, lastIndexRebuildAt, lastHealthCheckAt }) {
+function updateSummary({
+    lastBackupAt,
+    lastCacheClearAt,
+    lastIndexRebuildAt,
+    lastHealthCheckAt,
+    lastSecurityAuditAt,
+    lastPerformanceAuditAt,
+    lastContentAuditAt,
+    lastBillingCheckAt
+}) {
     const lastBackupEl = document.getElementById("maintenanceLastBackup");
     const lastCacheEl = document.getElementById("maintenanceLastCache");
     const lastIndexEl = document.getElementById("maintenanceLastIndex");
     const lastHealthEl = document.getElementById("maintenanceLastHealth");
+    const lastSecurityEl = document.getElementById("maintenanceLastSecurity");
+    const lastPerformanceEl = document.getElementById("maintenanceLastPerformance");
+    const lastContentEl = document.getElementById("maintenanceLastContent");
+    const lastBillingEl = document.getElementById("maintenanceLastBilling");
 
     if (lastBackupEl) lastBackupEl.textContent = formatDate(lastBackupAt);
     if (lastCacheEl) lastCacheEl.textContent = formatDate(lastCacheClearAt);
     if (lastIndexEl) lastIndexEl.textContent = formatDate(lastIndexRebuildAt);
     if (lastHealthEl) lastHealthEl.textContent = formatDate(lastHealthCheckAt);
+    if (lastSecurityEl) lastSecurityEl.textContent = formatDate(lastSecurityAuditAt);
+    if (lastPerformanceEl) lastPerformanceEl.textContent = formatDate(lastPerformanceAuditAt);
+    if (lastContentEl) lastContentEl.textContent = formatDate(lastContentAuditAt);
+    if (lastBillingEl) lastBillingEl.textContent = formatDate(lastBillingCheckAt);
 }
 
 function formatDate(value) {
