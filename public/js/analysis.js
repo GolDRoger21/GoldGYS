@@ -1,6 +1,7 @@
 import { db, auth } from "./firebase-config.js";
 import { collection, query, orderBy, limit, getDocs, doc, setDoc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { showConfirm, showToast } from "./notifications.js";
 
 const state = {
     userId: null,
@@ -472,7 +473,13 @@ function bindTopicFilters() {
 
 // Global actions for onclick handlers
 window.toggleTopicStatus = async (topicId, newStatus) => {
-    if (!confirm("Konu durumunu güncellemek istiyor musunuz?")) return;
+    const shouldUpdate = await showConfirm("Konu durumunu güncellemek istiyor musunuz?", {
+        title: "Durumu Güncelle",
+        confirmText: "Evet, güncelle",
+        cancelText: "Vazgeç",
+        tone: "warning"
+    });
+    if (!shouldUpdate) return;
     try {
         await setDoc(doc(db, `users/${state.userId}/topic_progress`, topicId), {
             status: newStatus,
@@ -486,7 +493,7 @@ window.toggleTopicStatus = async (topicId, newStatus) => {
         // initAnalysis(state.userId); // Bu biraz ağır olabilir, sadece ilgili kısımları update etmek daha iyi
     } catch (e) {
         console.error("Status update error", e);
-        alert("Hata oluştu");
+        showToast("İşlem sırasında bir hata oluştu.", "error");
     }
 };
 
@@ -514,7 +521,13 @@ window.setFocusTopic = async (topicId) => {
 }
 
 window.resetTopicStats = async (topicId) => {
-    if (!confirm("Bu konuya ait istatistikleri sıfırlamak istiyor musunuz?")) return;
+    const shouldReset = await showConfirm("Bu konuya ait istatistikleri sıfırlamak istiyor musunuz?", {
+        title: "Konu İstatistiklerini Sıfırla",
+        confirmText: "Evet, sıfırla",
+        cancelText: "Vazgeç",
+        tone: "warning"
+    });
+    if (!shouldReset) return;
     try {
         const updates = {
             topicResets: {
@@ -537,12 +550,18 @@ window.resetTopicStats = async (topicId) => {
         loadTopicProgress(state.userId, state.results);
     } catch (e) {
         console.error("Reset topic stats error", e);
-        alert("Hata oluştu");
+        showToast("Konu istatistikleri sıfırlanamadı.", "error");
     }
 };
 
 async function resetAllStats() {
-    if (!confirm("Tüm istatistiklerinizi sıfırlamak istediğinizden emin misiniz?")) return;
+    const shouldReset = await showConfirm("Tüm istatistiklerinizi sıfırlamak istediğinizden emin misiniz?", {
+        title: "Tüm İstatistikleri Sıfırla",
+        confirmText: "Evet, sıfırla",
+        cancelText: "Vazgeç",
+        tone: "warning"
+    });
+    if (!shouldReset) return;
     try {
         await setDoc(doc(db, "users", state.userId), {
             statsResetAt: serverTimestamp(),
@@ -555,7 +574,7 @@ async function resetAllStats() {
         initAnalysis(state.userId);
     } catch (e) {
         console.error("Reset all stats error", e);
-        alert("Hata oluştu");
+        showToast("İstatistikler sıfırlanamadı.", "error");
     }
 }
 

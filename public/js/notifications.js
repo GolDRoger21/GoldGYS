@@ -36,7 +36,16 @@ export function showToast(message, type = 'info', options = {}) {
   const toast = document.createElement('div');
   toast.className = `toast ${type}`;
 
+  const icon = document.createElement('span');
+  icon.className = 'toast-icon';
+  icon.setAttribute('aria-hidden', 'true');
+  icon.textContent = getNotificationSymbol(type);
+
+  const content = document.createElement('div');
+  content.className = 'toast-content';
+
   const textSpan = document.createElement('span');
+  textSpan.className = 'toast-message';
   textSpan.textContent = message;
 
   const closeBtn = document.createElement('button');
@@ -46,7 +55,9 @@ export function showToast(message, type = 'info', options = {}) {
   closeBtn.innerHTML = '&times;';
   closeBtn.addEventListener('click', () => toast.remove());
 
-  toast.appendChild(textSpan);
+  content.appendChild(textSpan);
+  toast.appendChild(icon);
+  toast.appendChild(content);
   toast.appendChild(closeBtn);
   toastContainer.appendChild(toast);
 
@@ -59,13 +70,37 @@ export function showAlert(message, type = 'info', options = {}) {
   initNotificationContext();
   const { duration = 3800 } = options;
 
-  alertContainer.textContent = message;
+  alertContainer.innerHTML = '';
+  const icon = document.createElement('span');
+  icon.className = 'alert-icon';
+  icon.setAttribute('aria-hidden', 'true');
+  icon.textContent = getNotificationSymbol(type);
+
+  const text = document.createElement('span');
+  text.className = 'alert-message';
+  text.textContent = message;
+
+  alertContainer.append(icon, text);
   alertContainer.className = `alert-banner ${type}`;
   alertContainer.classList.add('visible');
 
   if (duration !== 'sticky') {
     clearTimeout(alertTimeout);
     alertTimeout = setTimeout(() => alertContainer.classList.remove('visible'), duration);
+  }
+}
+
+function getNotificationSymbol(type) {
+  switch (type) {
+    case 'success':
+      return '✓';
+    case 'error':
+      return '!';
+    case 'warning':
+      return '!';
+    case 'info':
+    default:
+      return 'i';
   }
 }
 
