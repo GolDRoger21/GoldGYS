@@ -417,6 +417,7 @@
   <script type="module">
     import { db, auth } from '../js/firebase-config.js';
     import { TopicService } from '../js/topic-service.js';
+    import { showConfirm, showToast } from '../js/notifications.js';
     import { doc, getDoc, collection, getDocs, query, orderBy, where, getCountFromServer } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
     import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
@@ -798,7 +799,13 @@
 
     window.resetTopicProgress = async () => {
       if (!auth.currentUser) return;
-      if (!confirm("Bu konudaki ilerlemenizi sıfırlamak istiyor musunuz? Çözdüğünüz sorular tekrar karşınıza çıkacaktır.")) return;
+      const shouldReset = await showConfirm("Bu konudaki ilerlemenizi sıfırlamak istiyor musunuz? Çözdüğünüz sorular tekrar karşınıza çıkacaktır.", {
+        title: "İlerlemeyi Sıfırla",
+        confirmText: "Evet, sıfırla",
+        cancelText: "Vazgeç",
+        tone: "warning"
+      });
+      if (!shouldReset) return;
 
       const btn = document.getElementById('resetProgressBtn');
       const originalLabel = btn?.innerHTML;

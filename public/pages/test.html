@@ -640,7 +640,7 @@
         import { CacheManager } from "/js/cache-manager.js";
         import { WrongSummaryService } from "/js/wrong-summary-service.js";
         import { auth, db } from "/js/firebase-config.js";
-        import { showToast } from "/js/notifications.js";
+        import { showConfirm, showToast } from "/js/notifications.js";
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { doc, getDoc, collection, query, where, limit, getDocs, documentId } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
@@ -829,7 +829,12 @@
                         let candidates = packQuestions.filter(q => !solvedSet.has(q.id));
 
                         if (candidates.length === 0 && totalCount && totalCount > 0) {
-                            const shouldReset = confirm("Tebrikler! Bu konudaki tüm soruları bitirdiniz. İlerlemenizi sıfırlayıp tekrar çözmek ister misiniz?");
+                            const shouldReset = await showConfirm("Tebrikler! Bu konudaki tüm soruları bitirdiniz. İlerlemenizi sıfırlayıp tekrar çözmek ister misiniz?", {
+                                title: "Tüm Sorular Tamamlandı",
+                                confirmText: "Evet, sıfırla",
+                                cancelText: "Vazgeç",
+                                tone: "warning"
+                            });
                             if (shouldReset && user) {
                                 await TopicService.resetProgress(user.uid, topicId);
                                 candidates = packQuestions;
