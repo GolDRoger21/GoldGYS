@@ -2,6 +2,7 @@ import { auth } from './firebase-config.js';
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getUserProfile } from './user-profile.js';
 import { showConfirm } from './notifications.js';
+import { MaintenanceGuard } from './modules/maintenance-guard.js';
 
 const PAGE_CONFIG = {
     '/dashboard': { id: 'dashboard', title: 'Genel Bakış' },
@@ -33,6 +34,9 @@ export async function initLayout() {
         const config = PAGE_CONFIG[path] || { id: 'unknown', title: 'Gold GYS' };
 
         try {
+            // 0. Bakım Modu Kontrolü
+            await MaintenanceGuard.check();
+
             // 1. HTML Parçalarını Yükle
             await loadRequiredHTML(isAdminPage);
 

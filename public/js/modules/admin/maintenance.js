@@ -251,6 +251,23 @@ async function loadConfig() {
             lastIndexRebuildAt: data.lastIndexRebuildAt,
             lastHealthCheckAt: data.lastHealthCheckAt
         });
+
+        // Preview button handler (dynamic inject if missing)
+        let previewBtn = document.getElementById("maintenancePreviewBtn");
+        if (!previewBtn) {
+            const formActions = document.querySelector("#maintenanceModeForm .form-actions");
+            if (formActions) {
+                previewBtn = document.createElement("button");
+                previewBtn.type = "button";
+                previewBtn.id = "maintenancePreviewBtn";
+                previewBtn.className = "btn btn-outline-secondary";
+                previewBtn.innerHTML = "👁️ Önizle";
+                previewBtn.style.marginLeft = "10px";
+                previewBtn.onclick = () => window.open("/maintenance.html?force=true", "_blank");
+                formActions.appendChild(previewBtn);
+            }
+        }
+
     } catch (error) {
         console.error("Bakım ayarları yüklenemedi:", error);
         showToast("Bakım ayarları yüklenemedi.", "error");
