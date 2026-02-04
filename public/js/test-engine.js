@@ -575,20 +575,18 @@ export class TestEngine {
             }
 
             wrongAnswers.forEach(qId => {
-                wrongAnswers.forEach(qId => {
-                    if (this.answers[qId]) {
-                        this.answers[qId].synced = true;
-                    }
-                });
+                if (this.answers[qId]) {
+                    this.answers[qId].synced = true;
+                }
+            });
 
-                const correctAnswers = Object.keys(this.answers).filter(qId => this.answers[qId].isCorrect);
-                const clearPromises = correctAnswers.map(qId => this.clearWrongAnswer(qId));
-                await Promise.all(clearPromises);
-
-            } catch (e) {
-                console.error("Sonuç kaydetme hatası:", e);
-            }
+            const correctAnswers = Object.keys(this.answers).filter(qId => this.answers[qId].isCorrect);
+            const clearPromises = correctAnswers.map(qId => this.clearWrongAnswer(qId));
+            await Promise.all(clearPromises);
+        } catch (e) {
+            console.error("Sonuç kaydetme hatası:", e);
         }
+    }
 
     // --- YARDIMCI FONKSİYONLAR ---
 
