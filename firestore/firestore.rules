@@ -43,10 +43,13 @@ service cloud.firestore {
       // Okuma: Kişi kendisi veya Admin
       allow read: if isSelf(uid) || isAdmin();
       
-      // Oluşturma (Kayıt): Rol 'user' ve statü 'pending' olmalı
+      // Oluşturma (Kayıt): Rol 'user' ve statü 'pending' olmalı. Şema kontrolü.
       allow create: if isSelf(uid) 
                     && request.resource.data.role == 'user'
-                    && request.resource.data.status == 'pending';
+                    && request.resource.data.status == 'pending'
+                    && request.resource.data.keys().hasOnly(
+                        ['uid', 'email', 'displayName', 'photoURL', 'role', 'status', 'createdAt', 'lastLoginAt', 'ad', 'soyad', 'phone', 'title', 'targetExam']
+                       );
       
       // Güncelleme: 
       // Admin her şeyi güncelleyebilir.
