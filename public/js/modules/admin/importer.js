@@ -3,6 +3,27 @@ import { showConfirm, showToast } from "../../notifications.js";
 import { collection, writeBatch, doc, serverTimestamp, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import * as XLSX from "https://cdn.sheetjs.com/xlsx-latest/package/xlsx.mjs";
 
+// Hukuk terimleri için eş anlamlılar ve düzeltmeler
+const SYNONYMS = {
+    "nolu": "sayili",
+    "no": "sayili",
+    "cb": "cumhurbaskanligi",
+    "cbk": "cumhurbaskanligi kararnamesi",
+    "kHK": "kanun hukmunde kararname",
+    "tbmm": "turkiye buyuk millet meclisi",
+    "tck": "turk ceza kanunu",
+    "cmk": "ceza muhakemesi kanunu",
+    "tmk": "turk medeni kanunu",
+    "tbk": "turk borclar kanunu",
+    "iyuk": "idari yargilama usulu kanunu",
+    "av": "avukatlik",
+    "huk": "hukuk",
+    "yarg": "yargitay",
+    "dan": "danistay",
+    "aym": "anayasa mahkemesi",
+    "khk": "kanun hukmunde kararname"
+};
+
 export function initImporterPage() {
     const container = document.getElementById('section-importer');
     container.innerHTML = `
@@ -41,10 +62,18 @@ export function initImporterPage() {
                     </div>
                     <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
                         <table class="admin-table table-sm">
-                            <thead><tr><th>#</th><th>Kategori</th><th>Soru</th><th>Düzeltmeler</th><th>Durum</th></tr></thead>
+                            <thead>
+                                <tr>
+                                    <th style="width: 40px;">#</th>
+                                    <th style="min-width: 250px;">Kategori</th>
+                                    <th>Soru</th>
+                                    <th>Durum</th>
+                                </tr>
+                            </thead>
                             <tbody id="previewTableBody"></tbody>
                         </table>
                     </div>
+                    <datalist id="categoryListOptions"></datalist>
                 </div>
             </div>
         </div>
@@ -106,47 +135,6 @@ export function initImporterPage() {
                         <li>Çözüm Analiz / analiz, Mevzuat Dayanak / dayanak, Hap Bilgi / hap, Sınav Tuzağı / tuzak</li>
                         <li>Öncüller / Onculler (A|B|C şeklinde ayrılabilir)</li>
                     </ul>
-                    <h5>Yapay Zeka Promptu (JSON üretimi için)</h5>
-                    <p>Aşağıdaki promptu kopyalayıp yapay zekaya verin. Çıktıyı sadece JSON olarak üretmesini isteyin. Kategori için kendi kısa adlarınızı yazabilirsiniz; sistem en yakın kategoriyle eşleştirir.</p>
-                    <pre style="background:var(--bg-hover); color:var(--text-main); padding:10px; border-radius:5px; border:1px solid var(--border-color); white-space: pre-wrap;">
-Sen bir hukuk sınavı soru üretim asistanısın. Aşağıdaki kurallara uyarak SADECE JSON dizi çıktısı üret:
-- Çıktı bir JSON array olmalı.
-- Her nesnede şu alanlar zorunlu: category, difficulty (1-5), type, text, options (A-E), correctOption, legislationRef, solution.
-- options alanı A, B, C, D, E id’lerine sahip 5 seçenek içermeli.
-- correctOption yalnızca "A", "B", "C", "D" veya "E" olabilir.
-- legislationRef alanında code ve article string olmalı (bilinmiyorsa boş string).
-- solution alanında analiz, dayanakText, hap, tuzak alanları string olmalı (bilinmiyorsa boş string).
-- questionRoot null olabilir, onculler ise string dizisi olabilir.
-- Asla açıklama, markdown veya ek metin yazma; yalnızca JSON döndür.
-- category alanında uzun resmi isim yerine kısa isim kullanılabilir (örn. "Anayasa"). Sistem otomatik eşleştirir.
-
-Örnek çıktı formatı:
-[
-  {
-    "category": "Anayasa",
-    "difficulty": 3,
-    "type": "standard",
-    "text": "Soru metni...",
-    "questionRoot": null,
-    "onculler": [],
-    "options": [
-      {"id": "A", "text": "Seçenek A"},
-      {"id": "B", "text": "Seçenek B"},
-      {"id": "C", "text": "Seçenek C"},
-      {"id": "D", "text": "Seçenek D"},
-      {"id": "E", "text": "Seçenek E"}
-    ],
-    "correctOption": "A",
-    "legislationRef": { "code": "5271", "article": "12" },
-    "solution": {
-      "analiz": "Detaylı açıklama",
-      "dayanakText": "",
-      "hap": "",
-      "tuzak": ""
-    }
-  }
-]
-                    </pre>
                 </div>
             </div>
         </div>
@@ -193,6 +181,13 @@ async function handleFileSelect(event) {
         }
 
         await ensureCategoryIndex();
+
+        // Datalist'i güncelle
+        const datalist = document.getElementById('categoryListOptions');
+        if (datalist && categoryList.length) {
+            datalist.innerHTML = categoryList.map(cat => `<option value="${cat}">`).join('');
+        }
+
         validateAndPreview();
 
     } catch (error) {
@@ -321,13 +316,22 @@ function findCorrectOptionFromText(rawValue, options) {
 }
 
 function normalizeText(value) {
-    return String(value || '')
+    if (!value) return '';
+
+    // Temel temizlik
+    let processed = String(value)
         .toLowerCase()
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')
-        .replace(/[^a-z0-9\s]/g, ' ')
-        .replace(/\s+/g, ' ')
+        .normalize('NFD') // Aksanları ayır (örn. â -> a + ^)
+        .replace(/[\u0300-\u036f]/g, '') // Aksan karakterlerini sil
+        .replace(/[^a-z0-9\s]/g, ' ') // Alfanumerik olmayanları boşluk yap
+        .replace(/\s+/g, ' ') // Çoklu boşlukları tekile indir
         .trim();
+
+    // Eş anlamlı kelime değişimi
+    const tokens = processed.split(' ');
+    const replacedTokens = tokens.map(token => SYNONYMS[token] || token);
+
+    return replacedTokens.join(' ');
 }
 
 async function ensureCategoryIndex() {
@@ -363,12 +367,10 @@ function buildCategoryIndex(categories) {
     categories.forEach(category => {
         const normalized = normalizeCategoryName(category);
         if (normalized) map.set(normalized, category);
-        getCategoryAliases(category).forEach(alias => {
-            const aliasKey = normalizeCategoryName(alias);
-            if (aliasKey && !map.has(aliasKey)) {
-                map.set(aliasKey, category);
-            }
-        });
+
+        // Ekstra varyasyonlar ekleyebiliriz
+        const noSpaces = normalized.replace(/\s+/g, '');
+        if (noSpaces !== normalized) map.set(noSpaces, category);
     });
     return map;
 }
@@ -377,62 +379,55 @@ function normalizeCategoryName(value) {
     return normalizeText(value);
 }
 
-function getCategoryAliases(category) {
-    const aliases = new Set();
-    const normalized = normalizeCategoryName(category);
-    if (normalized) aliases.add(normalized);
-
-    const tokens = normalized.split(' ').filter(Boolean);
-    const filteredTokens = tokens.filter(token => !['turkiye', 'cumhuriyeti', 'cumhuriyet', 'tc', 't', 'c', 'hakkinda'].includes(token));
-    if (filteredTokens.length) {
-        aliases.add(filteredTokens.join(' '));
-    }
-
-    const withoutSuffix = filteredTokens.filter(token => !['kanunu', 'kanun', 'mevzuati', 'mevzuat'].includes(token));
-    if (withoutSuffix.length) {
-        aliases.add(withoutSuffix.join(' '));
-    }
-
-    if (tokens.length) {
-        aliases.add(tokens.map(token => token[0]).join(''));
-    }
-
-    return Array.from(aliases).filter(Boolean);
-}
-
 function matchCategory(inputCategory) {
     const normalized = normalizeCategoryName(inputCategory);
-    if (!normalized) return '';
+    if (!normalized) return { match: '', score: 0 };
+
     if (!categoryList.length) {
-        return inputCategory;
-    }
-    if (categoryIndex?.has(normalized)) {
-        return categoryIndex.get(normalized);
+        return { match: inputCategory, score: 0 }; // Liste yoksa
     }
 
+    // Tam eşleşme (Doğrudan map'te var mı?)
+    if (categoryIndex?.has(normalized)) {
+        return { match: categoryIndex.get(normalized), score: 1 };
+    }
+
+    // Levenshtein / Token çakışması ile en iyi tahmini bul
     let bestMatch = '';
     let bestScore = 0;
     const inputTokens = new Set(normalized.split(' '));
+
     categoryList.forEach(candidate => {
         const candidateNormalized = normalizeCategoryName(candidate);
         if (!candidateNormalized) return;
+
+        // 1. İçerme kontrolü (biri diğerini içeriyor mu?)
         if (candidateNormalized.includes(normalized) || normalized.includes(candidateNormalized)) {
-            const score = Math.min(candidateNormalized.length, normalized.length) / Math.max(candidateNormalized.length, normalized.length);
-            if (score > bestScore) {
-                bestScore = score;
+            // Uzunluk oranı skoru
+            const lenScore = Math.min(candidateNormalized.length, normalized.length) / Math.max(candidateNormalized.length, normalized.length);
+            if (lenScore > bestScore) {
+                bestScore = lenScore;
                 bestMatch = candidate;
             }
         }
+
+        // 2. Token (Kelime) bazlı benzerlik (Jaccard Index benzeri)
         const candidateTokens = new Set(candidateNormalized.split(' '));
-        const overlap = [...inputTokens].filter(token => candidateTokens.has(token)).length;
-        const score = overlap / Math.max(candidateTokens.size, inputTokens.size);
-        if (score > bestScore) {
-            bestScore = score;
+        const intersection = [...inputTokens].filter(x => candidateTokens.has(x));
+        const union = new Set([...inputTokens, ...candidateTokens]);
+
+        const tokenScore = intersection.length / union.size; // Jaccard
+
+        // Ağırlıklı Token Skoru: "sayili", "kanunu" gibi kelimeler çok sık geçer, ayırt edici kısımlar önemli.
+        // Basit tutalım şimdilik.
+
+        if (tokenScore > bestScore) {
+            bestScore = tokenScore;
             bestMatch = candidate;
         }
     });
 
-    return bestScore >= 0.45 ? bestMatch : '';
+    return { match: bestMatch, score: bestScore };
 }
 
 function validateAndPreview() {
@@ -448,23 +443,30 @@ function validateAndPreview() {
     };
 
     parsedQuestions.forEach((q, index) => {
+        // Her seferinde yeniden doğrulama yap
         const fixes = [];
         const warnings = [];
         const errors = [];
 
-        const cleanedCategory = String(q.category || '').trim();
-        const categoryMatch = matchCategory(cleanedCategory);
-        if (categoryMatch && categoryMatch !== cleanedCategory) {
-            q.category = categoryMatch;
-            fixes.push(`Kategori → ${categoryMatch}`);
-            summary.categoryFixes += 1;
-        } else if (!categoryMatch && cleanedCategory) {
-            warnings.push('Kategori eşleşmedi');
-            summary.warningCount += 1;
-        } else if (!cleanedCategory) {
-            q.category = 'Genel';
-            fixes.push('Kategori → Genel');
-            summary.categoryFixes += 1;
+        // Kategori Kontrolü - ARTIK DAHA AKILLI VE MANUEL SEÇİME AÇIK
+        if (!q._manualCategory) { // Manuel seçim yapılmadıysa otomatik bul
+            const cleanedCategory = String(q.category || '').trim();
+            const { match, score } = matchCategory(cleanedCategory);
+
+            if (match && score > 0.4) { // Güven eşiği
+                if (match !== cleanedCategory) {
+                    q.category = match;
+                    fixes.push(`Otomatik Kategori: ${match} (%${Math.round(score * 100)})`);
+                    summary.categoryFixes += 1;
+                }
+            } else if (cleanedCategory) {
+                warnings.push('Kategori bulunamadı, lütfen seçin.');
+                summary.warningCount += 1;
+                // Eşleşme yoksa bile mevcut olanı koru ama uyarı ver
+            } else {
+                q.category = '';
+                warnings.push('Kategori boş.');
+            }
         }
 
         const difficulty = Number(q.difficulty);
@@ -472,11 +474,6 @@ function validateAndPreview() {
             q.difficulty = 3;
             fixes.push('Zorluk → 3');
             summary.difficultyFixes += 1;
-        }
-
-        if (!q.type || !String(q.type).trim()) {
-            q.type = 'standard';
-            fixes.push('Tip → standard');
         }
 
         const optionIds = new Set(q.options.map(option => option.id));
@@ -487,13 +484,6 @@ function validateAndPreview() {
 
         if (!q.text || !String(q.text).trim()) {
             errors.push('Soru metni eksik');
-        } else {
-            q.text = String(q.text).trim();
-        }
-
-        if (q.legislationRef) {
-            if (q.legislationRef.code) q.legislationRef.code = String(q.legislationRef.code).trim();
-            if (q.legislationRef.article) q.legislationRef.article = String(q.legislationRef.article).trim();
         }
 
         const hasCorrectOption = q.correctOption && optionIds.has(q.correctOption);
@@ -508,68 +498,107 @@ function validateAndPreview() {
             }
         }
 
-        q._meta = { fixes, warnings, errors };
-        const isValid = errors.length === 0;
-        q._isValid = isValid;
-        if (isValid) {
-            validCount++;
-        } else {
-            invalidCount++;
+        // Kategori geçerliliğini kontrol et: Listede var mı?
+        const isCategoryValid = categoryList.includes(q.category);
+        if (!isCategoryValid) {
+            // Eğer kategori listede yoksa bu bir "HATA" sayılmalı mı?
+            // Kullanıcı yeni kategori eklemek istiyor olabilir mi?
+            // Şimdilik sistemde var olan kategorilere zorlayalım.
+            errors.push('Geçersiz Kategori');
         }
 
+        const isValid = errors.length === 0;
+        q._isValid = isValid;
+        if (isValid) validCount++; else invalidCount++;
+
+        // --- Render ---
         const shortText = q.text ? (q.text.length > 50 ? q.text.substring(0, 50) + '...' : q.text) : '---';
         const titleText = q.text || errors[0] || 'Geçersiz veri';
-        const statusText = errors.length ? `❌ ${errors.join(', ')}` : '✅ Hazır';
-        const fixText = [...fixes, ...warnings.map(w => `⚠️ ${w}`)].join('<br>') || '—';
 
-        table.innerHTML += `
-            <tr style="${!isValid ? 'background:rgba(255,0,0,0.08)' : ''}">
-                <td>${index + 1}</td>
-                <td>${q.category || '-'}</td>
-                <td title="${titleText}">${shortText}</td>
-                <td>${fixText}</td>
-                <td>${statusText}</td>
-            </tr>
-        `;
+        // Durum Mesajı
+        let statusBadge = '';
+        if (errors.length) statusBadge = `<span class="badge bg-danger">Hata: ${errors.join(', ')}</span>`;
+        else if (warnings.length) statusBadge = `<span class="badge bg-warning text-dark">Uyarı: ${warnings.join(', ')}</span>`;
+        else statusBadge = `<span class="badge bg-success">Hazır</span>`;
+
+        if (fixes.length) statusBadge += `<br><small class="text-info">${fixes.join('<br>')}</small>`;
+
+        const tr = document.createElement('tr');
+        if (!isValid) tr.style.backgroundColor = 'rgba(255,0,0,0.05)';
+
+        // Kategori Input'u Oluştur
+        const categoryInput = document.createElement('input');
+        categoryInput.type = 'text';
+        categoryInput.className = `form-control form-control-sm ${!isCategoryValid ? 'is-invalid' : 'is-valid'}`;
+        categoryInput.setAttribute('list', 'categoryListOptions');
+        categoryInput.value = q.category || '';
+        categoryInput.placeholder = 'Kategori Seçin...';
+
+        categoryInput.addEventListener('change', (e) => {
+            const newVal = e.target.value;
+            // Kullanıcı değiştirdiğinde
+            q.category = newVal;
+            q._manualCategory = true; // Artık otomatik düzeltme yapma
+            validateAndPreview(); // Tabloyu güncelle
+        });
+
+        const tdIndex = document.createElement('td'); tdIndex.textContent = index + 1;
+        const tdCat = document.createElement('td'); tdCat.appendChild(categoryInput);
+        const tdQ = document.createElement('td'); tdQ.textContent = shortText; tdQ.title = titleText;
+        const tdStatus = document.createElement('td'); tdStatus.innerHTML = statusBadge;
+
+        tr.appendChild(tdIndex);
+        tr.appendChild(tdCat);
+        tr.appendChild(tdQ);
+        tr.appendChild(tdStatus);
+
+        table.appendChild(tr);
     });
 
     document.getElementById('previewCard').style.display = 'block';
     const btn = document.getElementById('btnStartImport');
 
+    // Valid count ve invalid count
+    // Eğer tüm sorular valid ise buton açılır
+    // Ancak sadece WARNINGS varsa (örn: kategori emin değiliz) yine de açılmalı ama kullanıcı düzeltse iyi olur.
+
+    // Bizim mantığımızda: Errors varsa import edilemez. Warnings varsa edilebilir.
+    // Ancak "Geçersiz Kategori" bir ERROR olarak eklendi, yani kategori seçilene kadar import butonu açılmaz.
+
     if (validCount > 0) {
         btn.disabled = false;
-        btn.innerText = `🚀 ${validCount} Soruyu Yükle`;
-        log(`${validCount} geçerli soru bulundu. Yüklemeye hazır.`, "success");
+        btn.innerHTML = `🚀 ${validCount} Soruyu Yükle`;
+
         if (invalidCount > 0) {
-            log(`${invalidCount} soru hatalı olduğu için atlanacak.`, "error");
-        }
-        if (summary.categoryFixes || summary.answerFixes || summary.difficultyFixes) {
-            log(`Otomatik düzeltmeler: ${summary.categoryFixes} kategori, ${summary.answerFixes} cevap, ${summary.difficultyFixes} zorluk.`, "success");
+            btn.innerHTML += ` (${invalidCount} Hatalı)`;
+            // Hatalı olanları yine de yükleyemeyiz, sadece geçerliler yüklenir
         }
     } else {
         btn.disabled = true;
-        btn.innerText = "Yüklenecek Soru Yok";
-        log("Geçerli soru bulunamadı. Lütfen dosya formatını kontrol edin.", "error");
+        btn.innerText = invalidCount > 0 ? `${invalidCount} Soruda Hata Var` : "Yüklenecek Soru Yok";
     }
 }
 
 async function startBatchImport() {
     const validQuestions = parsedQuestions.filter(q => q._isValid);
-    const invalidCount = parsedQuestions.length - validQuestions.length;
-    const shouldImport = await showConfirm(`${validQuestions.length} soruyu veritabanına yüklemek istiyor musunuz?${invalidCount ? ` (${invalidCount} soru hatalı olduğu için atlanacak.)` : ''}`, {
-        title: "Toplu Yükleme",
-        confirmText: "Yüklemeyi Başlat",
-        cancelText: "Vazgeç"
-    });
-    if (!shouldImport) return;
     if (validQuestions.length === 0) return;
+
+    const shouldImport = await showConfirm(
+        `${validQuestions.length} soru yüklenecek.\n(Hatalı olan ${parsedQuestions.length - validQuestions.length} soru atlanacak)\nOnaylıyor musunuz?`,
+        {
+            title: "Toplu Yükleme Onayı",
+            confirmText: "Evet, Yükle",
+            cancelText: "İptal"
+        }
+    );
+
+    if (!shouldImport) return;
 
     const btn = document.getElementById('btnStartImport');
     btn.disabled = true;
     btn.innerText = "Yükleniyor...";
 
     try {
-        // Firestore Batch limiti 500'dür. Büyük dosyaları parçalayalım.
         const batchSize = 450;
         const chunks = [];
 
@@ -577,7 +606,7 @@ async function startBatchImport() {
             chunks.push(validQuestions.slice(i, i + batchSize));
         }
 
-        log(`Toplam ${chunks.length} paket halinde yüklenecek...`);
+        log(`Toplam ${validQuestions.length} soru, ${chunks.length} paket halinde yükleniyor...`);
 
         for (let i = 0; i < chunks.length; i++) {
             const batch = writeBatch(db);
@@ -585,16 +614,17 @@ async function startBatchImport() {
 
             chunk.forEach(q => {
                 const docRef = doc(collection(db, "questions"));
-                const { _meta, _isValid, ...payload } = q;
+                // _meta, _manualCategory, _isValid gibi geçici alanları temizle
+                const { _meta, _isValid, _manualCategory, _rowIndex, ...payload } = q;
                 batch.set(docRef, payload);
             });
 
             await batch.commit();
-            log(`Paket ${i + 1}/${chunks.length} yüklendi (${chunk.length} soru).`, "success");
+            log(`Paket ${i + 1}/${chunks.length} başarıyla yüklendi.`, "success");
         }
 
-        log("✅ TÜM İŞLEMLER BAŞARIYLA TAMAMLANDI!", "success");
-        showToast("Yükleme başarıyla tamamlandı.", "success");
+        log("✅ Tüm işlemler tamamlandı!", "success");
+        showToast("Tüm sorular başarıyla yüklendi.", "success");
 
         // Temizlik
         document.getElementById('previewCard').style.display = 'none';
@@ -603,7 +633,7 @@ async function startBatchImport() {
 
     } catch (e) {
         console.error(e);
-        log("Yükleme sırasında hata: " + e.message, "error");
+        log("Hata oluştu: " + e.message, "error");
         btn.disabled = false;
         btn.innerText = "Tekrar Dene";
     }
