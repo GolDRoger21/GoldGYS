@@ -111,7 +111,7 @@ body.sidebar-collapsed .app-layout {
 }
 
 .brand-logo {
-    font-family: var(--font-family-serif);
+    font-family: var(--font-family-brand);
     font-size: 1.2rem;
     font-weight: 600;
     color: var(--text-logo);
