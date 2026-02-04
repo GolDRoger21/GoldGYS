@@ -24,6 +24,20 @@ const SYNONYMS = {
     "khk": "kanun hukmunde kararname"
 };
 
+const CATEGORY_MATCH_THRESHOLDS = {
+    high: 0.72,
+    low: 0.45
+};
+
+const CATEGORY_REWRITES = [
+    { pattern: /\bkararnamesi\b/g, replace: "kararname" },
+    { pattern: /\bkararnameleri\b/g, replace: "kararname" },
+    { pattern: /\bkanunu\b/g, replace: "kanun" },
+    { pattern: /\bkanunlari\b/g, replace: "kanun" },
+    { pattern: /\bmahkemesi\b/g, replace: "mahkeme" },
+    { pattern: /\bmahkemeleri\b/g, replace: "mahkeme" }
+];
+
 export function initImporterPage() {
     const container = document.getElementById('section-importer');
     container.innerHTML = `
@@ -118,6 +132,7 @@ export function initImporterPage() {
                     <h5>Otomatik Eşleştirme & Düzeltmeler</h5>
                     <ul class="text-muted small">
                         <li>Kategori isimleri normalize edilir ve en yakın sistem kategorisi bulunur (kısaltma, büyük/küçük harf ve noktalama hataları düzeltilir).</li>
+                        <li>Eşleşme şüpheliyse sistem öneri verir ve kategori doğrulaması ister; kullanıcı seçim yapmadan yükleme yapılamaz.</li>
                         <li>Doğru cevap "A)", "a", "1" gibi formatlarda yazılsa bile A-E şıklarına eşleştirilir.</li>
                         <li>Zorluk değeri 1-5 aralığında değilse otomatik olarak 3 yapılır.</li>
                         <li>Eksik şık veya eksik soru metni varsa ilgili satır önizlemede işaretlenir ve yüklemeye alınmaz.</li>
@@ -376,7 +391,49 @@ function buildCategoryIndex(categories) {
 }
 
 function normalizeCategoryName(value) {
-    return normalizeText(value);
+    let normalized = normalizeText(value);
+    if (!normalized) return '';
+
+    CATEGORY_REWRITES.forEach(({ pattern, replace }) => {
+        normalized = normalized.replace(pattern, replace);
+    });
+
+    normalized = normalized.replace(/\b(\d+)\s*(inci|nci|uncu|ncu|nci|ncu|ncu|ncu)\b/g, '$1');
+
+    return normalized.trim();
+}
+
+function tokenizeCategory(value) {
+    if (!value) return [];
+    return value.split(' ').map(token => token.trim()).filter(Boolean);
+}
+
+function weightToken(token) {
+    if (!token) return 0;
+    if (/^\d+$/.test(token)) return 3;
+    if (['sayili', 'cumhurbaskanligi', 'kararname', 'kanun', 'anayasa'].includes(token)) return 2;
+    if (token.length >= 7) return 1.5;
+    return 1;
+}
+
+function calculateWeightedJaccard(inputTokens, candidateTokens) {
+    const inputSet = new Set(inputTokens);
+    const candidateSet = new Set(candidateTokens);
+    const union = new Set([...inputSet, ...candidateSet]);
+
+    let intersectionWeight = 0;
+    let unionWeight = 0;
+
+    union.forEach(token => {
+        const weight = weightToken(token);
+        unionWeight += weight;
+        if (inputSet.has(token) && candidateSet.has(token)) {
+            intersectionWeight += weight;
+        }
+    });
+
+    if (!unionWeight) return 0;
+    return intersectionWeight / unionWeight;
 }
 
 function matchCategory(inputCategory) {
@@ -395,34 +452,48 @@ function matchCategory(inputCategory) {
     // Levenshtein / Token çakışması ile en iyi tahmini bul
     let bestMatch = '';
     let bestScore = 0;
-    const inputTokens = new Set(normalized.split(' '));
+    const inputTokens = tokenizeCategory(normalized);
+    const inputTokenSet = new Set(inputTokens);
+    const inputNumbers = inputTokens.filter(token => /^\d+$/.test(token));
 
     categoryList.forEach(candidate => {
         const candidateNormalized = normalizeCategoryName(candidate);
         if (!candidateNormalized) return;
 
         // 1. İçerme kontrolü (biri diğerini içeriyor mu?)
+        let candidateScore = 0;
+
         if (candidateNormalized.includes(normalized) || normalized.includes(candidateNormalized)) {
             // Uzunluk oranı skoru
             const lenScore = Math.min(candidateNormalized.length, normalized.length) / Math.max(candidateNormalized.length, normalized.length);
-            if (lenScore > bestScore) {
-                bestScore = lenScore;
-                bestMatch = candidate;
+            candidateScore = Math.max(candidateScore, lenScore);
+        }
+
+        // 2. Token (Kelime) bazlı benzerlik (Ağırlıklı Jaccard)
+        const candidateTokens = tokenizeCategory(candidateNormalized);
+        const candidateTokenSet = new Set(candidateTokens);
+        const tokenScore = calculateWeightedJaccard(inputTokens, candidateTokens);
+
+        candidateScore = Math.max(candidateScore, tokenScore);
+
+        // Sayı ve kritik kelimeler ekstra güven sağlar
+        if (inputNumbers.length) {
+            const candidateNumbers = candidateTokens.filter(token => /^\d+$/.test(token));
+            if (candidateNumbers.some(num => inputNumbers.includes(num))) {
+                candidateScore = Math.min(1, candidateScore + 0.15);
             }
         }
 
-        // 2. Token (Kelime) bazlı benzerlik (Jaccard Index benzeri)
-        const candidateTokens = new Set(candidateNormalized.split(' '));
-        const intersection = [...inputTokens].filter(x => candidateTokens.has(x));
-        const union = new Set([...inputTokens, ...candidateTokens]);
+        if (inputTokenSet.has('cumhurbaskanligi') && candidateTokenSet.has('cumhurbaskanligi')) {
+            candidateScore = Math.min(1, candidateScore + 0.05);
+        }
 
-        const tokenScore = intersection.length / union.size; // Jaccard
+        if (inputTokenSet.has('kararname') && candidateTokenSet.has('kararname')) {
+            candidateScore = Math.min(1, candidateScore + 0.05);
+        }
 
-        // Ağırlıklı Token Skoru: "sayili", "kanunu" gibi kelimeler çok sık geçer, ayırt edici kısımlar önemli.
-        // Basit tutalım şimdilik.
-
-        if (tokenScore > bestScore) {
-            bestScore = tokenScore;
+        if (candidateScore > bestScore) {
+            bestScore = candidateScore;
             bestMatch = candidate;
         }
     });
@@ -453,20 +524,32 @@ function validateAndPreview() {
             const cleanedCategory = String(q.category || '').trim();
             const { match, score } = matchCategory(cleanedCategory);
 
-            if (match && score > 0.4) { // Güven eşiği
+            if (match && score >= CATEGORY_MATCH_THRESHOLDS.high) { // Yüksek güven
                 if (match !== cleanedCategory) {
                     q.category = match;
                     fixes.push(`Otomatik Kategori: ${match} (%${Math.round(score * 100)})`);
                     summary.categoryFixes += 1;
                 }
+                q._needsCategoryConfirm = false;
+                q._suggestedCategory = '';
+            } else if (match && score >= CATEGORY_MATCH_THRESHOLDS.low) {
+                q.category = match;
+                q._suggestedCategory = match;
+                q._needsCategoryConfirm = true;
+                warnings.push(`Kategori şüpheli. Öneri: ${match} (%${Math.round(score * 100)})`);
+                summary.warningCount += 1;
             } else if (cleanedCategory) {
+                q._needsCategoryConfirm = true;
                 warnings.push('Kategori bulunamadı, lütfen seçin.');
                 summary.warningCount += 1;
-                // Eşleşme yoksa bile mevcut olanı koru ama uyarı ver
             } else {
                 q.category = '';
+                q._needsCategoryConfirm = true;
                 warnings.push('Kategori boş.');
             }
+        } else {
+            q._needsCategoryConfirm = false;
+            q._suggestedCategory = '';
         }
 
         const difficulty = Number(q.difficulty);
@@ -499,11 +582,16 @@ function validateAndPreview() {
         }
 
         // Kategori geçerliliğini kontrol et: Listede var mı?
-        const isCategoryValid = categoryList.includes(q.category);
-        if (!isCategoryValid) {
-            // Eğer kategori listede yoksa bu bir "HATA" sayılmalı mı?
-            // Kullanıcı yeni kategori eklemek istiyor olabilir mi?
-            // Şimdilik sistemde var olan kategorilere zorlayalım.
+        const hasCategoryList = categoryList.length > 0;
+        if (!hasCategoryList) {
+            q._needsCategoryConfirm = false;
+            q._suggestedCategory = '';
+        }
+        const isCategoryValid = !hasCategoryList || categoryList.includes(q.category);
+        if (q._needsCategoryConfirm) {
+            const suggestionNote = q._suggestedCategory ? ` (Öneri: ${q._suggestedCategory})` : '';
+            errors.push(`Kategori doğrulaması gerekli${suggestionNote}`);
+        } else if (!isCategoryValid) {
             errors.push('Geçersiz Kategori');
         }
 
@@ -528,11 +616,15 @@ function validateAndPreview() {
 
         // Kategori Input'u Oluştur
         const categoryInput = document.createElement('input');
+        const needsCategoryConfirm = Boolean(q._needsCategoryConfirm);
         categoryInput.type = 'text';
-        categoryInput.className = `form-control form-control-sm ${!isCategoryValid ? 'is-invalid' : 'is-valid'}`;
+        categoryInput.className = `form-control form-control-sm ${(needsCategoryConfirm || !isCategoryValid) ? 'is-invalid' : 'is-valid'}`;
         categoryInput.setAttribute('list', 'categoryListOptions');
         categoryInput.value = q.category || '';
         categoryInput.placeholder = 'Kategori Seçin...';
+        if (q._suggestedCategory) {
+            categoryInput.title = `Önerilen kategori: ${q._suggestedCategory}`;
+        }
 
         categoryInput.addEventListener('change', (e) => {
             const newVal = e.target.value;
