@@ -64,7 +64,8 @@ const CATEGORY_REWRITES = [
     { pattern: /\bkanunu\b/g, replace: "kanun" },
     { pattern: /\bkanunlari\b/g, replace: "kanun" },
     { pattern: /\bmahkemesi\b/g, replace: "mahkeme" },
-    { pattern: /\bmahkemeleri\b/g, replace: "mahkeme" }
+    { pattern: /\bmahkemeleri\b/g, replace: "mahkeme" },
+    { pattern: /\bsegbis\b/g, replace: "ses ve goruntu bilisim sistemi" }
 ];
 
 export function initImporterPage() {
@@ -459,6 +460,10 @@ function normalizeCategoryName(value) {
     let normalized = normalizeText(value);
     if (!normalized) return '';
 
+    // Parantez içindeki açıklamaları temizle (örn: (Genel), (Ortak), (CMK))
+    // Bunlar genellikle ayırt edici değil, gruplayıcıdır.
+    normalized = normalized.replace(/\s*\([^)]*\)/g, ' ');
+
     CATEGORY_REWRITES.forEach(({ pattern, replace }) => {
         normalized = normalized.replace(pattern, replace);
     });
@@ -617,26 +622,68 @@ function scoreCategoryCandidate(profile, signals) {
     let textScore = 0;
     let codeBoost = 0;
 
-    if (signals.inputCategoryTokens.length && profile.tokens.length) {
-        inputScore = calculateWeightedJaccard(signals.inputCategoryTokens, profile.tokens);
-    }
+    let combined = 0;
 
+    // 1. Jaccard Score (Geleneksel benzerlik)
     if (signals.textTokens.length && profile.tokens.length) {
         textScore = calculateWeightedJaccard(signals.textTokens, profile.tokens);
     }
 
-    if (signals.lawCodes.size && profile.lawCodeHints.size) {
-        const matchedCodes = [...signals.lawCodes].filter(code => profile.lawCodeHints.has(code));
-        if (matchedCodes.length) {
-            codeBoost = Math.min(0.35, 0.15 + matchedCodes.length * 0.1);
+    if (signals.inputCategoryTokens.length && profile.tokens.length) {
+        inputScore = calculateWeightedJaccard(signals.inputCategoryTokens, profile.tokens);
+    }
+
+    // 2. Subset Score (Kapsama oranı)
+    // Adayın tokenlarının kaçı input içinde geçiyor?
+    // Örn Input: "1 Nolu Cumhurbaşkanlığı Teşkilatı Hakkında Kararname"
+    // Aday: "1 Sayılı Cumhurbaşkanlığı Kararnamesi" -> Tokens: 1, sayili, cumhurbaskanligi, kararname
+    // Input Tokens (Synonym sonrası): 1, sayili, cumhurbaskanligi, teskilati, hakkinda, kararname
+    // Adayın tüm önemli tokenları inputta var!
+
+    let subsetScore = 0;
+    if (profile.tokens.length > 0) {
+        const profileTokensSet = new Set(profile.tokens);
+        let intersectionWeight = 0;
+        let profileWeight = 0;
+
+        const inputAllTokens = new Set([...signals.inputCategoryTokens, ...signals.textTokens]);
+
+        profileTokensSet.forEach(token => {
+            const w = weightToken(token);
+            profileWeight += w;
+            if (inputAllTokens.has(token)) {
+                intersectionWeight += w;
+            }
+        });
+
+        if (profileWeight > 0) {
+            subsetScore = intersectionWeight / profileWeight;
         }
     }
 
-    const combined = Math.min(1, Math.max(inputScore * 0.7 + textScore * 0.6, textScore, inputScore * 0.9) + codeBoost);
+    // 3. Kanun Kodu Eşleşmesi
+    if (signals.lawCodes.size && profile.lawCodeHints.size) {
+        const matchedCodes = [...signals.lawCodes].filter(code => profile.lawCodeHints.has(code));
+        if (matchedCodes.length) {
+            codeBoost = Math.min(0.40, 0.20 + matchedCodes.length * 0.1);
+        }
+    }
+
+    // Skor hesaplama: Subset skoru çok güçlü bir sinyaldir, input verbose olduğunda jaccard düşer ama subset yüksek kalır.
+    const baseScore = Math.max(inputScore, textScore);
+
+    // Eğer subset skoru çok yüksekse ve kritik kelimeler tutuyorsa (profileWeight yeterince büyükse)
+    // Subset skorunu ana skor olarak kullan.
+    combined = Math.max(baseScore, subsetScore * 0.95) + codeBoost;
+
+    // Sınırla
+    combined = Math.min(1, combined);
+
     return {
         combined,
         inputScore,
         textScore,
+        subsetScore,
         codeBoost
     };
 }
@@ -673,10 +720,12 @@ function smartMatchCategory(question) {
     return best;
 }
 
-function buildMatchReason({ inputScore, textScore, codeBoost, profile, signals }) {
+function buildMatchReason({ inputScore, textScore, subsetScore, codeBoost, profile, signals }) {
     const reasons = [];
-    if (inputScore >= 0.5) reasons.push('Kategori adı benzerliği yüksek');
-    if (textScore >= 0.45) reasons.push('Soru metni/çözüm benzerliği');
+    if (subsetScore >= 0.85) reasons.push('Tam kapsam eşleşmesi');
+    else if (inputScore >= 0.5) reasons.push('Kategori adı benzerliği');
+
+    if (textScore >= 0.55) reasons.push('Soru içeriği benzerliği');
     if (codeBoost > 0) {
         const matchedCodes = [...signals.lawCodes].filter(code => profile.lawCodeHints.has(code));
         if (matchedCodes.length) reasons.push(`Kanun kodu eşleşti (${matchedCodes.join(', ')})`);
@@ -797,6 +846,8 @@ function validateAndPreview() {
         q._isValid = isValid;
         if (isValid) validCount++; else invalidCount++;
 
+        // ... (Previous existing code)
+
         // --- Render ---
         const shortText = q.text ? (q.text.length > 50 ? q.text.substring(0, 50) + '...' : q.text) : '---';
         const titleText = q.text || errors[0] || 'Geçersiz veri';
@@ -820,26 +871,58 @@ function validateAndPreview() {
         categoryInput.setAttribute('list', 'categoryListOptions');
         categoryInput.value = q.category || '';
         categoryInput.placeholder = 'Kategori Seçin...';
+
         if (q._suggestedCategory) {
-            categoryInput.title = `Önerilen kategori: ${q._suggestedCategory}`;
+            categoryInput.title = `Önerilen: ${q._suggestedCategory}`;
+            // Eğer öneri varsa ve henüz onaylanmamışsa, placeholder'da göster
+            if (!categoryInput.value) categoryInput.placeholder = `Öneri: ${q._suggestedCategory}`;
         }
 
         categoryInput.addEventListener('change', (e) => {
             const newVal = e.target.value;
-            // Kullanıcı değiştirdiğinde
             q.category = newVal;
-            q._manualCategory = true; // Artık otomatik düzeltme yapma
-            validateAndPreview(); // Tabloyu güncelle
+            q._manualCategory = true;
+            validateAndPreview();
         });
 
-        const tdIndex = document.createElement('td'); tdIndex.textContent = index + 1;
-        const tdCat = document.createElement('td'); tdCat.appendChild(categoryInput);
-        const tdQ = document.createElement('td'); tdQ.textContent = shortText; tdQ.title = titleText;
+        // "Göster" Butonu
+        const btnView = document.createElement('button');
+        btnView.className = 'btn btn-sm btn-outline-info ms-2';
+        btnView.innerHTML = '🔍';
+        btnView.title = 'Detaylı İncele';
+        btnView.onclick = () => showDetailModal(index);
+
+        const tdIndex = document.createElement('td');
+        tdIndex.textContent = index + 1;
+
+        const tdCat = document.createElement('td');
+        tdCat.style.display = 'flex';
+        tdCat.style.alignItems = 'center';
+        tdCat.appendChild(categoryInput);
+
+        // Eğer öneri varsa hızlı onay butonu koyalım (küçük tik)
+        if (q._suggestedCategory && needsCategoryConfirm) {
+            const btnQuickConfirm = document.createElement('button');
+            btnQuickConfirm.className = 'btn btn-xs btn-success ms-1';
+            btnQuickConfirm.innerHTML = '✓';
+            btnQuickConfirm.title = `Öneriyi Onayla: ${q._suggestedCategory}`;
+            btnQuickConfirm.onclick = () => {
+                q.category = q._suggestedCategory;
+                q._manualCategory = true;
+                validateAndPreview();
+            };
+            tdCat.appendChild(btnQuickConfirm);
+        }
+
+        const tdQ = document.createElement('td');
+        tdQ.innerHTML = `<span>${shortText}</span>`;
+        tdQ.appendChild(btnView); // Göster butonunu buraya ekledik
+
         const tdSmart = document.createElement('td');
         tdSmart.innerHTML = `
             <div class="small">
                 <strong>%${Math.round((q._matchScore || 0) * 100)}</strong>
-                <div class="text-muted">${q._matchReason || '---'}</div>
+                <div class="text-muted" style="font-size:0.75rem">${q._matchReason || '---'}</div>
             </div>
         `;
         const tdStatus = document.createElement('td'); tdStatus.innerHTML = statusBadge;
@@ -856,39 +939,154 @@ function validateAndPreview() {
     document.getElementById('previewCard').style.display = 'block';
     const btn = document.getElementById('btnStartImport');
 
-    // Valid count ve invalid count
-    // Eğer tüm sorular valid ise buton açılır
-    // Ancak sadece WARNINGS varsa (örn: kategori emin değiliz) yine de açılmalı ama kullanıcı düzeltse iyi olur.
-
-    // Bizim mantığımızda: Errors varsa import edilemez. Warnings varsa edilebilir.
-    // Ancak "Geçersiz Kategori" bir ERROR olarak eklendi, yani kategori seçilene kadar import butonu açılmaz.
-
+    // ÖZET KARTI Render
     const summaryEl = document.getElementById('smartSummary');
     if (summaryEl) {
         summaryEl.innerHTML = `
-            <div><strong>Toplam:</strong> ${parsedQuestions.length}</div>
-            <div><strong>Otomatik eşleşti:</strong> ${autoMatched}</div>
-            <div><strong>İnceleme gerektiren:</strong> ${needsReview}</div>
-            <div><strong>Düşük güven:</strong> ${lowConfidence}</div>
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <strong>Durum Özeti</strong>
+                ${needsReview > 0 ? `<button onclick="window.confirmAllSuggestions()" class="btn btn-warning btn-sm py-0" style="font-size:0.8rem">⚠️ ${needsReview} Öneriyi Onayla</button>` : ''}
+            </div>
+            <div class="row text-center" style="font-size:0.9rem">
+                <div class="col-3 border-end">
+                    <div class="h4 m-0">${parsedQuestions.length}</div>
+                    <div class="text-muted small">Toplam</div>
+                </div>
+                <div class="col-3 border-end">
+                    <div class="h4 m-0 text-success">${autoMatched}</div>
+                    <div class="text-muted small">Otomatik</div>
+                </div>
+                <div class="col-3 border-end">
+                    <div class="h4 m-0 text-warning">${needsReview}</div>
+                    <div class="text-muted small">İncelenecek</div>
+                </div>
+                <div class="col-3">
+                    <div class="h4 m-0 text-danger">${lowConfidence}</div>
+                    <div class="text-muted small">Tanımsız</div>
+                </div>
+            </div>
+            ${summary.categoryFixes ? `<div class="mt-2 text-success small">✨ ${summary.categoryFixes} kategori otomatik düzeltildi.</div>` : ''}
         `;
     }
 
     if (validCount > 0) {
         btn.disabled = false;
         btn.innerHTML = `🚀 ${validCount} Soruyu Yükle`;
-
         if (invalidCount > 0) {
-            btn.innerHTML += ` (${invalidCount} Hatalı)`;
-            // Hatalı olanları yine de yükleyemeyiz, sadece geçerliler yüklenir
+            btn.innerHTML += ` <span class="badge bg-danger ms-2">${invalidCount} Hatalı (Atlanacak)</span>`;
         }
     } else {
         btn.disabled = true;
-        btn.innerText = invalidCount > 0 ? `${invalidCount} Soruda Hata Var` : "Yüklenecek Soru Yok";
+        btn.innerText = invalidCount > 0 ? `${invalidCount} Hatalı Soru Mevcut` : "Yüklenecek Soru Yok";
     }
 }
 
+// --- Yeni Fonksiyonlar ---
+
+window.confirmAllSuggestions = () => {
+    let appliedCount = 0;
+    parsedQuestions.forEach(q => {
+        if (q._needsCategoryConfirm && q._suggestedCategory) {
+            q.category = q._suggestedCategory;
+            q._manualCategory = true; // Artık manuel kabul edildi
+            appliedCount++;
+        }
+    });
+    if (appliedCount > 0) {
+        showToast(`${appliedCount} kategori önerisi onaylandı.`, "success");
+        validateAndPreview();
+    } else {
+        showToast("Onaylanacak öneri bulunamadı.", "info");
+    }
+};
+
+window.showDetailModal = (index) => {
+    const q = parsedQuestions[index];
+    if (!q) return;
+
+    // Modal varsa önce temizle (basit implementasyon için DOM'a injection yapalım)
+    let modal = document.getElementById('detailModal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'detailModal';
+        modal.className = 'modal-overlay';
+        modal.style.display = 'none';
+        modal.style.justifyContent = 'center';
+        modal.style.alignItems = 'flex-start'; // Üstten başlasın
+        modal.style.paddingTop = '50px';
+        modal.style.zIndex = '9999';
+        document.body.appendChild(modal);
+    }
+
+    const optionsHtml = q.options.map(opt => {
+        const isCorrect = opt.id === q.correctOption;
+        return `
+            <div class="p-2 mb-1 border rounded ${isCorrect ? 'bg-success text-white' : 'bg-light text-dark'}">
+                <strong>${opt.id})</strong> ${opt.text}
+            </div>
+        `;
+    }).join('');
+
+    // Kategori Seçim Dropdown'ı (Datalist ile)
+    // Modal içindeki değişikliği ana veriye yansıtmak için onchange event
+
+    modal.innerHTML = `
+        <div class="modal-content admin-modal-content" style="max-width: 800px; width: 90%;">
+            <div class="modal-header bg-dark text-white p-3 rounded-top d-flex justify-content-between">
+                <h5 class="m-0">Soru Detayı #${index + 1}</h5>
+                <button onclick="document.getElementById('detailModal').style.display='none'" class="close-btn text-white">&times;</button>
+            </div>
+            <div class="modal-body p-4" style="max-height: 70vh; overflow-y: auto;">
+                <div class="row">
+                    <div class="col-md-8">
+                        <h6>Soru Metni</h6>
+                        <div class="p-3 bg-light border rounded mb-3">${q.text || 'Metin Yok'}</div>
+                        ${q.questionRoot ? `<div class="mb-3"><strong>Kök:</strong> ${q.questionRoot}</div>` : ''}
+                        <h6>Şıklar</h6>
+                        <div class="mb-3">${optionsHtml}</div>
+                        
+                        <h6>Çözüm / Açıklama</h6>
+                        <div class="p-2 bg-warning bg-opacity-10 border border-warning rounded">
+                            ${q.solution.analiz || 'Analiz yok.'}
+                        </div>
+                    </div>
+                    <div class="col-md-4 border-start">
+                        <div class="mb-3">
+                            <label class="form-label small text-muted">Mevcut Kategori</label>
+                            <input type="text" id="modalCategoryInput" class="form-control" list="categoryListOptions" value="${q.category}">
+                            <div class="form-text small text-info mt-1">
+                                Güven Skoru: %${Math.round((q._matchScore || 0) * 100)}<br>
+                                Öneri: ${q._suggestedCategory || 'Yok'}
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small text-muted">Mevzuat Referansı</label>
+                            <input type="text" class="form-control form-control-sm" value="${q.legislationRef.code || ''} md. ${q.legislationRef.article || ''}" readonly>
+                        </div>
+                        <button onclick="saveModalChanges(${index})" class="btn btn-primary w-100">Kaydet ve Kapat</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    modal.style.display = 'flex';
+};
+
+window.saveModalChanges = (index) => {
+    const input = document.getElementById('modalCategoryInput');
+    if (input) {
+        parsedQuestions[index].category = input.value;
+        parsedQuestions[index]._manualCategory = true;
+        validateAndPreview();
+        document.getElementById('detailModal').style.display = 'none';
+        showToast("Değişiklik kaydedildi.", "success");
+    }
+};
+
 async function startBatchImport() {
     const validQuestions = parsedQuestions.filter(q => q._isValid);
+    // ... lines 891+ default
     if (validQuestions.length === 0) return;
 
     const shouldImport = await showConfirm(
@@ -923,7 +1121,7 @@ async function startBatchImport() {
             chunk.forEach(q => {
                 const docRef = doc(collection(db, "questions"));
                 // _meta, _manualCategory, _isValid gibi geçici alanları temizle
-                const { _meta, _isValid, _manualCategory, _rowIndex, ...payload } = q;
+                const { _meta, _matchScore, _matchReason, _needsCategoryConfirm, _suggestedCategory, _isValid, _manualCategory, _rowIndex, ...payload } = q;
                 batch.set(docRef, payload);
             });
 
@@ -957,3 +1155,4 @@ function log(msg, type = "info") {
 window.showGuide = () => {
     document.getElementById('guideModal').style.display = 'flex';
 };
+
