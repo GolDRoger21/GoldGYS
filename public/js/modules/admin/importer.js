@@ -842,6 +842,42 @@ function validateAndPreview() {
             errors.push('Geçersiz Kategori');
         }
 
+        // --- YENİ EKLENEN VALIDATIONLAR ---
+        // 1. Şıklar Arasında Dublike Kontrolü
+        if (hasRequiredOptions) {
+            const seenTexts = new Map();
+            q.options.forEach(opt => {
+                const normalizedText = normalizeText(opt.text);
+                if (normalizedText.length < 2) return; // Çok kısa şıkları atla
+                if (seenTexts.has(normalizedText)) {
+                    warnings.push(`Tekrar eden şık: ${opt.id} ve ${seenTexts.get(normalizedText)}`);
+                    summary.warningCount += 1;
+                } else {
+                    seenTexts.set(normalizedText, opt.id);
+                }
+            });
+        }
+
+        // 2. Format Kontrolü (Örn: A) Ankara)
+        q.options.forEach(opt => {
+            if (/^[A-E][).]\s/.test(opt.text)) {
+                fixes.push(`Şık temizlendi: ${opt.id}`);
+                opt.text = opt.text.replace(/^[A-E][).]\s/, '').trim();
+                summary.answerFixes += 1;
+            }
+            if (opt.text.length < 1) {
+                errors.push(`Şık ${opt.id} boş`);
+            }
+        });
+
+        // 3. Uzunluk Kontrolü
+        if (q.text && q.text.length < 10) {
+            warnings.push('Soru metni çok kısa (<10)');
+            summary.warningCount += 1;
+        }
+
+
+
         const isValid = errors.length === 0;
         q._isValid = isValid;
         if (isValid) validCount++; else invalidCount++;
@@ -852,16 +888,18 @@ function validateAndPreview() {
         const shortText = q.text ? (q.text.length > 50 ? q.text.substring(0, 50) + '...' : q.text) : '---';
         const titleText = q.text || errors[0] || 'Geçersiz veri';
 
+
         // Durum Mesajı
         let statusBadge = '';
-        if (errors.length) statusBadge = `<span class="badge bg-danger">Hata: ${errors.join(', ')}</span>`;
-        else if (warnings.length) statusBadge = `<span class="badge bg-warning text-dark">Uyarı: ${warnings.join(', ')}</span>`;
-        else statusBadge = `<span class="badge bg-success">Hazır</span>`;
+        if (errors.length) statusBadge = `<span class="badge badge-danger">Hata: ${errors.join(', ')}</span>`;
+        else if (warnings.length) statusBadge = `<span class="badge badge-warning text-dark"><i class="validation-warning">⚠️</i> ${warnings.join(', ')}</span>`;
+        else statusBadge = `<span class="badge badge-success">Hazır</span>`;
 
         if (fixes.length) statusBadge += `<br><small class="text-info">${fixes.join('<br>')}</small>`;
 
         const tr = document.createElement('tr');
-        if (!isValid) tr.style.backgroundColor = 'rgba(255,0,0,0.05)';
+        if (!isValid) tr.style.backgroundColor = 'rgba(239, 68, 68, 0.05)';
+        if (warnings.length > 0 && isValid) tr.style.backgroundColor = 'rgba(245, 158, 11, 0.05)';
 
         // Kategori Input'u Oluştur
         const categoryInput = document.createElement('input');
@@ -1009,61 +1047,70 @@ window.showDetailModal = (index) => {
     if (!modal) {
         modal = document.createElement('div');
         modal.id = 'detailModal';
-        modal.className = 'modal-overlay';
-        modal.style.display = 'none';
-        modal.style.justifyContent = 'center';
-        modal.style.alignItems = 'flex-start'; // Üstten başlasın
-        modal.style.paddingTop = '50px';
-        modal.style.zIndex = '9999';
+        modal.className = 'admin-modal-overlay';
         document.body.appendChild(modal);
     }
 
     const optionsHtml = q.options.map(opt => {
         const isCorrect = opt.id === q.correctOption;
         return `
-            <div class="p-2 mb-1 border rounded ${isCorrect ? 'bg-success text-white' : 'bg-light text-dark'}">
+            <div class="option-item ${isCorrect ? 'correct' : ''}">
                 <strong>${opt.id})</strong> ${opt.text}
+                ${isCorrect ? ' <span class="ms-2 badge badge-success">Doğru Cevap</span>' : ''}
             </div>
         `;
     }).join('');
 
-    // Kategori Seçim Dropdown'ı (Datalist ile)
-    // Modal içindeki değişikliği ana veriye yansıtmak için onchange event
-
     modal.innerHTML = `
-        <div class="modal-content admin-modal-content" style="max-width: 800px; width: 90%;">
-            <div class="modal-header bg-dark text-white p-3 rounded-top d-flex justify-content-between">
-                <h5 class="m-0">Soru Detayı #${index + 1}</h5>
-                <button onclick="document.getElementById('detailModal').style.display='none'" class="close-btn text-white">&times;</button>
+        <div class="admin-modal-content">
+            <div class="modal-header">
+                <div>
+                    <h5 class="m-0 text-white">Soru Detayı #${index + 1}</h5>
+                    <div class="small text-muted">ID: ${index}</div>
+                </div>
+                <button onclick="document.getElementById('detailModal').style.display='none'" class="close-btn">&times;</button>
             </div>
-            <div class="modal-body p-4" style="max-height: 70vh; overflow-y: auto;">
+            <div class="modal-body">
                 <div class="row">
-                    <div class="col-md-8">
-                        <h6>Soru Metni</h6>
-                        <div class="p-3 bg-light border rounded mb-3">${q.text || 'Metin Yok'}</div>
-                        ${q.questionRoot ? `<div class="mb-3"><strong>Kök:</strong> ${q.questionRoot}</div>` : ''}
-                        <h6>Şıklar</h6>
-                        <div class="mb-3">${optionsHtml}</div>
+                    <div class="col-md-8 border-end border-secondary">
+                        <div class="modal-section-title">SORU METNİ</div>
+                        <div class="p-3 bg-surface border rounded text-main">${q.text || 'Metin Yok'}</div>
+                        ${q.questionRoot ? `<div class="mt-2 text-main"><strong>Kök:</strong> ${q.questionRoot}</div>` : ''}
                         
-                        <h6>Çözüm / Açıklama</h6>
-                        <div class="p-2 bg-warning bg-opacity-10 border border-warning rounded">
-                            ${q.solution.analiz || 'Analiz yok.'}
+                        <div class="modal-section-title">ŞIKLAR</div>
+                        <div>${optionsHtml}</div>
+                        
+                        <div class="modal-section-title">ÇÖZÜM & ANALİZ</div>
+                        <div class="p-3 bg-hover border rounded text-muted small">
+                            ${q.solution.analiz || 'Analiz bulunmuyor.'}
                         </div>
                     </div>
-                    <div class="col-md-4 border-start">
-                        <div class="mb-3">
-                            <label class="form-label small text-muted">Mevcut Kategori</label>
-                            <input type="text" id="modalCategoryInput" class="form-control" list="categoryListOptions" value="${q.category}">
-                            <div class="form-text small text-info mt-1">
-                                Güven Skoru: %${Math.round((q._matchScore || 0) * 100)}<br>
-                                Öneri: ${q._suggestedCategory || 'Yok'}
+                    <div class="col-md-4">
+                        <div class="p-3 rounded bg-hover mb-3">
+                            <label class="form-label small text-muted text-uppercase fw-bold">Kategori Yönetimi</label>
+                            <input type="text" id="modalCategoryInput" class="form-control mb-2" list="categoryListOptions" value="${q.category}">
+                            
+                            <div class="d-flex justify-content-between align-items-center small">
+                                <span class="text-muted">Güven Skoru:</span>
+                                <span class="fw-bold text-main">%${Math.round((q._matchScore || 0) * 100)}</span>
                             </div>
+                            ${q._suggestedCategory ?
+            `<div class="mt-2 p-2 border border-warning rounded bg-surface">
+                                    <div class="text-warning small mb-1">💡 Öneri Mevcut</div>
+                                    <div class="small text-main">${q._suggestedCategory}</div>
+                                    <button class="btn btn-sm btn-outline-warning w-100 mt-2" onclick="applySuggestionInModal(${index})">Öneriyi Uygula</button>
+                                </div>`
+            : ''}
                         </div>
+
                         <div class="mb-3">
                             <label class="form-label small text-muted">Mevzuat Referansı</label>
-                            <input type="text" class="form-control form-control-sm" value="${q.legislationRef.code || ''} md. ${q.legislationRef.article || ''}" readonly>
+                            <input type="text" class="form-control form-control-sm bg-surface text-muted" value="${q.legislationRef.code || ''} md. ${q.legislationRef.article || ''}" readonly>
                         </div>
-                        <button onclick="saveModalChanges(${index})" class="btn btn-primary w-100">Kaydet ve Kapat</button>
+
+                        <button onclick="saveModalChanges(${index})" class="btn btn-primary w-100 py-3">
+                            💾 Değişiklikleri Kaydet
+                        </button>
                     </div>
                 </div>
             </div>
@@ -1071,6 +1118,13 @@ window.showDetailModal = (index) => {
     `;
 
     modal.style.display = 'flex';
+};
+
+window.applySuggestionInModal = (index) => {
+    const q = parsedQuestions[index];
+    if (q && q._suggestedCategory) {
+        document.getElementById('modalCategoryInput').value = q._suggestedCategory;
+    }
 };
 
 window.saveModalChanges = (index) => {
