@@ -24,9 +24,38 @@ const SYNONYMS = {
     "khk": "kanun hukmunde kararname"
 };
 
-const CATEGORY_MATCH_THRESHOLDS = {
-    high: 0.72,
-    low: 0.45
+const SMART_MATCH_THRESHOLDS = {
+    high: 0.78,
+    low: 0.55,
+    minMargin: 0.08
+};
+
+const STOPWORDS = new Set([
+    "ve", "veya", "ile", "ama", "fakat", "ancak", "yalniz", "yalnız", "icin", "için", "olarak",
+    "ile", "bir", "birisi", "birkaç", "bu", "su", "şu", "o", "de", "da", "mi", "mı", "mu", "mü",
+    "ne", "neden", "nasil", "nasıl", "hangi", "kac", "kaç", "kim", "kime", "kimin", "kadar",
+    "her", "hic", "hiç", "gibi", "olan", "olanlar", "olanin", "olar", "olur", "olabilir",
+    "ayni", "aynı", "tanim", "tanimi", "tanımı", "yukumluluk", "yükümlülük"
+]);
+
+const LAW_CODE_KEYWORDS = {
+    "5237": ["turk ceza kanunu", "tck"],
+    "5271": ["ceza muhakemesi kanunu", "cmk"],
+    "4721": ["turk medeni kanunu", "tmk"],
+    "6098": ["turk borclar kanunu", "tbk"],
+    "2577": ["idari yargilama usulu kanunu", "iyuk"],
+    "6100": ["hukuk muhakemeleri kanunu", "hmk"],
+    "1136": ["avukatlik kanunu", "avukatlik"]
+};
+
+const LAW_ABBREV_MAP = {
+    "tck": "5237",
+    "cmk": "5271",
+    "tmk": "4721",
+    "tbk": "6098",
+    "iyuk": "2577",
+    "hmk": "6100",
+    "avk": "1136"
 };
 
 const CATEGORY_REWRITES = [
@@ -66,6 +95,13 @@ export function initImporterPage() {
                         <span class="text-muted">> Hazır...</span>
                     </div>
                 </div>
+
+                <div class="card mt-3">
+                    <div class="card-header py-2"><small>Akıllı Eşleştirme Özeti</small></div>
+                    <div class="card-body p-3 small" id="smartSummary">
+                        <div class="text-muted">Dosya yüklenince özet burada görünecek.</div>
+                    </div>
+                </div>
             </div>
 
             <div class="col-md-7">
@@ -81,6 +117,7 @@ export function initImporterPage() {
                                     <th style="width: 40px;">#</th>
                                     <th style="min-width: 250px;">Kategori</th>
                                     <th>Soru</th>
+                                    <th style="min-width: 160px;">Akıllı Eşleşme</th>
                                     <th>Durum</th>
                                 </tr>
                             </thead>
@@ -132,6 +169,7 @@ export function initImporterPage() {
                     <h5>Otomatik Eşleştirme & Düzeltmeler</h5>
                     <ul class="text-muted small">
                         <li>Kategori isimleri normalize edilir ve en yakın sistem kategorisi bulunur (kısaltma, büyük/küçük harf ve noktalama hataları düzeltilir).</li>
+                        <li>Sistem sadece kategori alanına değil, soru metni + çözüm + mevzuat kodlarına bakarak akıllı eşleştirme yapar.</li>
                         <li>Eşleşme şüpheliyse sistem öneri verir ve kategori doğrulaması ister; kullanıcı seçim yapmadan yükleme yapılamaz.</li>
                         <li>Doğru cevap "A)", "a", "1" gibi formatlarda yazılsa bile A-E şıklarına eşleştirilir.</li>
                         <li>Zorluk değeri 1-5 aralığında değilse otomatik olarak 3 yapılır.</li>
@@ -164,6 +202,7 @@ export function initImporterPage() {
 let parsedQuestions = [];
 let categoryIndex = null;
 let categoryList = [];
+let categoryProfiles = [];
 let categoryIndexPromise = null;
 
 async function handleFileSelect(event) {
@@ -364,12 +403,14 @@ async function ensureCategoryIndex() {
                 }
             });
             categoryIndex = buildCategoryIndex(categoryList);
+            categoryProfiles = buildCategoryProfiles(categoryList);
             log(`Kategori listesi yüklendi (${categoryList.length} kayıt).`, "success");
         } catch (error) {
             console.error("Kategoriler yüklenemedi:", error);
             log("Kategori listesi alınamadı. Eşleştirme sınırlı çalışacak.", "error");
             categoryIndex = new Map();
             categoryList = [];
+            categoryProfiles = [];
         }
         return categoryIndex;
     })();
@@ -388,6 +429,30 @@ function buildCategoryIndex(categories) {
         if (noSpaces !== normalized) map.set(noSpaces, category);
     });
     return map;
+}
+
+function buildCategoryProfiles(categories) {
+    return categories.map(category => {
+        const normalized = normalizeCategoryName(category);
+        const tokens = tokenizeCategory(normalized).filter(token => !STOPWORDS.has(token));
+        const tokenSet = new Set(tokens);
+        const lawCodeHints = new Set();
+
+        Object.entries(LAW_CODE_KEYWORDS).forEach(([code, keywords]) => {
+            const normalizedKeywords = keywords.map(keyword => normalizeCategoryName(keyword));
+            if (normalizedKeywords.some(keyword => keyword && normalized.includes(keyword))) {
+                lawCodeHints.add(code);
+            }
+        });
+
+        return {
+            title: category,
+            normalized,
+            tokens,
+            tokenSet,
+            lawCodeHints
+        };
+    });
 }
 
 function normalizeCategoryName(value) {
@@ -441,42 +506,34 @@ function matchCategory(inputCategory) {
     if (!normalized) return { match: '', score: 0 };
 
     if (!categoryList.length) {
-        return { match: inputCategory, score: 0 }; // Liste yoksa
+        return { match: inputCategory, score: 0 };
     }
 
-    // Tam eşleşme (Doğrudan map'te var mı?)
     if (categoryIndex?.has(normalized)) {
         return { match: categoryIndex.get(normalized), score: 1 };
     }
 
-    // Levenshtein / Token çakışması ile en iyi tahmini bul
     let bestMatch = '';
     let bestScore = 0;
-    const inputTokens = tokenizeCategory(normalized);
+    const inputTokens = tokenizeCategory(normalized).filter(token => !STOPWORDS.has(token));
     const inputTokenSet = new Set(inputTokens);
     const inputNumbers = inputTokens.filter(token => /^\d+$/.test(token));
 
-    categoryList.forEach(candidate => {
-        const candidateNormalized = normalizeCategoryName(candidate);
-        if (!candidateNormalized) return;
+    categoryProfiles.forEach(profile => {
+        const candidateTokens = profile.tokens;
+        const candidateTokenSet = profile.tokenSet;
+        if (!candidateTokens.length) return;
 
-        // 1. İçerme kontrolü (biri diğerini içeriyor mu?)
         let candidateScore = 0;
 
-        if (candidateNormalized.includes(normalized) || normalized.includes(candidateNormalized)) {
-            // Uzunluk oranı skoru
-            const lenScore = Math.min(candidateNormalized.length, normalized.length) / Math.max(candidateNormalized.length, normalized.length);
+        if (profile.normalized.includes(normalized) || normalized.includes(profile.normalized)) {
+            const lenScore = Math.min(profile.normalized.length, normalized.length) / Math.max(profile.normalized.length, normalized.length);
             candidateScore = Math.max(candidateScore, lenScore);
         }
 
-        // 2. Token (Kelime) bazlı benzerlik (Ağırlıklı Jaccard)
-        const candidateTokens = tokenizeCategory(candidateNormalized);
-        const candidateTokenSet = new Set(candidateTokens);
         const tokenScore = calculateWeightedJaccard(inputTokens, candidateTokens);
-
         candidateScore = Math.max(candidateScore, tokenScore);
 
-        // Sayı ve kritik kelimeler ekstra güven sağlar
         if (inputNumbers.length) {
             const candidateNumbers = candidateTokens.filter(token => /^\d+$/.test(token));
             if (candidateNumbers.some(num => inputNumbers.includes(num))) {
@@ -494,11 +551,138 @@ function matchCategory(inputCategory) {
 
         if (candidateScore > bestScore) {
             bestScore = candidateScore;
-            bestMatch = candidate;
+            bestMatch = profile.title;
         }
     });
 
     return { match: bestMatch, score: bestScore };
+}
+
+function normalizeQuestionText(question) {
+    const textParts = [
+        question.text,
+        question.questionRoot,
+        question.solution?.analiz,
+        question.solution?.dayanakText,
+        question.solution?.hap,
+        question.solution?.tuzak
+    ].filter(Boolean);
+
+    return normalizeText(textParts.join(' '));
+}
+
+function extractLawCodesFromText(text) {
+    const codes = new Set();
+    if (!text) return codes;
+
+    const numberMatches = text.match(/\b\d{4,5}\b/g) || [];
+    numberMatches.forEach(match => {
+        if (LAW_CODE_KEYWORDS[match]) {
+            codes.add(match);
+        }
+    });
+
+    Object.keys(LAW_ABBREV_MAP).forEach(abbrev => {
+        const regex = new RegExp(`\\b${abbrev}\\b`, 'i');
+        if (regex.test(text)) {
+            codes.add(LAW_ABBREV_MAP[abbrev]);
+        }
+    });
+
+    return codes;
+}
+
+function buildQuestionSignals(question) {
+    const questionText = normalizeQuestionText(question);
+    const textTokens = tokenizeCategory(questionText).filter(token => token && !STOPWORDS.has(token));
+    const inputCategoryTokens = tokenizeCategory(normalizeCategoryName(question.category || '')).filter(token => token && !STOPWORDS.has(token));
+
+    const lawCodes = new Set();
+    if (question.legislationRef?.code) {
+        const code = String(question.legislationRef.code).trim();
+        if (LAW_CODE_KEYWORDS[code]) lawCodes.add(code);
+    }
+
+    extractLawCodesFromText(questionText).forEach(code => lawCodes.add(code));
+
+    return {
+        textTokens,
+        inputCategoryTokens,
+        lawCodes
+    };
+}
+
+function scoreCategoryCandidate(profile, signals) {
+    let inputScore = 0;
+    let textScore = 0;
+    let codeBoost = 0;
+
+    if (signals.inputCategoryTokens.length && profile.tokens.length) {
+        inputScore = calculateWeightedJaccard(signals.inputCategoryTokens, profile.tokens);
+    }
+
+    if (signals.textTokens.length && profile.tokens.length) {
+        textScore = calculateWeightedJaccard(signals.textTokens, profile.tokens);
+    }
+
+    if (signals.lawCodes.size && profile.lawCodeHints.size) {
+        const matchedCodes = [...signals.lawCodes].filter(code => profile.lawCodeHints.has(code));
+        if (matchedCodes.length) {
+            codeBoost = Math.min(0.35, 0.15 + matchedCodes.length * 0.1);
+        }
+    }
+
+    const combined = Math.min(1, Math.max(inputScore * 0.7 + textScore * 0.6, textScore, inputScore * 0.9) + codeBoost);
+    return {
+        combined,
+        inputScore,
+        textScore,
+        codeBoost
+    };
+}
+
+function smartMatchCategory(question) {
+    if (!categoryProfiles.length) {
+        return { match: question.category || '', score: 0, reason: 'Kategori listesi yok.' };
+    }
+
+    const signals = buildQuestionSignals(question);
+    let best = { match: '', score: 0, reason: '' };
+    let secondBest = 0;
+
+    categoryProfiles.forEach(profile => {
+        const { combined, inputScore, textScore, codeBoost } = scoreCategoryCandidate(profile, signals);
+        if (combined > best.score) {
+            secondBest = best.score;
+            best = {
+                match: profile.title,
+                score: combined,
+                reason: buildMatchReason({ inputScore, textScore, codeBoost, profile, signals })
+            };
+        } else if (combined > secondBest) {
+            secondBest = combined;
+        }
+    });
+
+    const margin = best.score - secondBest;
+    if (margin < SMART_MATCH_THRESHOLDS.minMargin) {
+        best.score = Math.max(0, best.score - 0.08);
+        best.reason = `${best.reason} | Benzer adaylar var`;
+    }
+
+    return best;
+}
+
+function buildMatchReason({ inputScore, textScore, codeBoost, profile, signals }) {
+    const reasons = [];
+    if (inputScore >= 0.5) reasons.push('Kategori adı benzerliği yüksek');
+    if (textScore >= 0.45) reasons.push('Soru metni/çözüm benzerliği');
+    if (codeBoost > 0) {
+        const matchedCodes = [...signals.lawCodes].filter(code => profile.lawCodeHints.has(code));
+        if (matchedCodes.length) reasons.push(`Kanun kodu eşleşti (${matchedCodes.join(', ')})`);
+    }
+    if (!reasons.length) return 'Genel benzerlik';
+    return reasons.join(' • ');
 }
 
 function validateAndPreview() {
@@ -506,6 +690,9 @@ function validateAndPreview() {
     table.innerHTML = '';
     let validCount = 0;
     let invalidCount = 0;
+    let autoMatched = 0;
+    let needsReview = 0;
+    let lowConfidence = 0;
     const summary = {
         categoryFixes: 0,
         answerFixes: 0,
@@ -519,37 +706,48 @@ function validateAndPreview() {
         const warnings = [];
         const errors = [];
 
-        // Kategori Kontrolü - ARTIK DAHA AKILLI VE MANUEL SEÇİME AÇIK
-        if (!q._manualCategory) { // Manuel seçim yapılmadıysa otomatik bul
-            const cleanedCategory = String(q.category || '').trim();
-            const { match, score } = matchCategory(cleanedCategory);
+        // Kategori Kontrolü - Akıllı sistem (metin + mevzuat kodu + başlık)
+        const cleanedCategory = String(q.category || '').trim();
+        const smartMatch = smartMatchCategory(q);
+        q._matchScore = smartMatch.score;
+        q._matchReason = smartMatch.reason;
 
-            if (match && score >= CATEGORY_MATCH_THRESHOLDS.high) { // Yüksek güven
-                if (match !== cleanedCategory) {
-                    q.category = match;
-                    fixes.push(`Otomatik Kategori: ${match} (%${Math.round(score * 100)})`);
+        if (!q._manualCategory) {
+            if (smartMatch.match && smartMatch.score >= SMART_MATCH_THRESHOLDS.high) {
+                if (smartMatch.match !== cleanedCategory) {
+                    q.category = smartMatch.match;
+                    fixes.push(`Akıllı Kategori: ${smartMatch.match} (%${Math.round(smartMatch.score * 100)})`);
                     summary.categoryFixes += 1;
                 }
                 q._needsCategoryConfirm = false;
                 q._suggestedCategory = '';
-            } else if (match && score >= CATEGORY_MATCH_THRESHOLDS.low) {
-                q.category = match;
-                q._suggestedCategory = match;
+                autoMatched += 1;
+            } else if (smartMatch.match && smartMatch.score >= SMART_MATCH_THRESHOLDS.low) {
+                q.category = smartMatch.match;
+                q._suggestedCategory = smartMatch.match;
                 q._needsCategoryConfirm = true;
-                warnings.push(`Kategori şüpheli. Öneri: ${match} (%${Math.round(score * 100)})`);
+                warnings.push(`Kategori şüpheli. Öneri: ${smartMatch.match} (%${Math.round(smartMatch.score * 100)})`);
                 summary.warningCount += 1;
+                needsReview += 1;
             } else if (cleanedCategory) {
                 q._needsCategoryConfirm = true;
                 warnings.push('Kategori bulunamadı, lütfen seçin.');
                 summary.warningCount += 1;
+                lowConfidence += 1;
             } else {
                 q.category = '';
                 q._needsCategoryConfirm = true;
                 warnings.push('Kategori boş.');
+                lowConfidence += 1;
             }
         } else {
             q._needsCategoryConfirm = false;
             q._suggestedCategory = '';
+            if (smartMatch.match && smartMatch.score >= SMART_MATCH_THRESHOLDS.high && smartMatch.match !== cleanedCategory) {
+                warnings.push(`Manuel kategori ile çelişen öneri: ${smartMatch.match} (%${Math.round(smartMatch.score * 100)})`);
+                summary.warningCount += 1;
+                needsReview += 1;
+            }
         }
 
         const difficulty = Number(q.difficulty);
@@ -637,11 +835,19 @@ function validateAndPreview() {
         const tdIndex = document.createElement('td'); tdIndex.textContent = index + 1;
         const tdCat = document.createElement('td'); tdCat.appendChild(categoryInput);
         const tdQ = document.createElement('td'); tdQ.textContent = shortText; tdQ.title = titleText;
+        const tdSmart = document.createElement('td');
+        tdSmart.innerHTML = `
+            <div class="small">
+                <strong>%${Math.round((q._matchScore || 0) * 100)}</strong>
+                <div class="text-muted">${q._matchReason || '---'}</div>
+            </div>
+        `;
         const tdStatus = document.createElement('td'); tdStatus.innerHTML = statusBadge;
 
         tr.appendChild(tdIndex);
         tr.appendChild(tdCat);
         tr.appendChild(tdQ);
+        tr.appendChild(tdSmart);
         tr.appendChild(tdStatus);
 
         table.appendChild(tr);
@@ -656,6 +862,16 @@ function validateAndPreview() {
 
     // Bizim mantığımızda: Errors varsa import edilemez. Warnings varsa edilebilir.
     // Ancak "Geçersiz Kategori" bir ERROR olarak eklendi, yani kategori seçilene kadar import butonu açılmaz.
+
+    const summaryEl = document.getElementById('smartSummary');
+    if (summaryEl) {
+        summaryEl.innerHTML = `
+            <div><strong>Toplam:</strong> ${parsedQuestions.length}</div>
+            <div><strong>Otomatik eşleşti:</strong> ${autoMatched}</div>
+            <div><strong>İnceleme gerektiren:</strong> ${needsReview}</div>
+            <div><strong>Düşük güven:</strong> ${lowConfidence}</div>
+        `;
+    }
 
     if (validCount > 0) {
         btn.disabled = false;
