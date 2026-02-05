@@ -23,6 +23,9 @@ const PAGE_CONFIG = {
     '/pages/analiz.html': { id: 'analysis', title: 'Analiz' }
 };
 
+const PUBLIC_ROUTES = ['/', '/login.html', '/404.html', '/pages/yardim.html', '/pages/yardim'];
+const PUBLIC_LAYOUT_ROUTES = ['/pages/yardim.html', '/pages/yardim'];
+
 let layoutInitPromise = null;
 
 export async function initLayout() {
@@ -32,27 +35,43 @@ export async function initLayout() {
         const path = window.location.pathname;
         const isAdminPage = path.includes('/admin');
         const config = PAGE_CONFIG[path] || { id: 'unknown', title: 'Gold GYS' };
+        const usePublicLayout = PUBLIC_LAYOUT_ROUTES.includes(path);
 
         try {
             // 0. Bakım Modu Kontrolü
             await MaintenanceGuard.check();
 
-            // 1. HTML Parçalarını Yükle
-            await loadRequiredHTML(isAdminPage);
+            // 1. Auth Durumunu Al
+            const authState = await resolveAuthState(path);
+            const shouldUsePublicLayout = usePublicLayout && !authState.user;
 
-            // 2. Tema ve Sidebar Durumunu Yükle
+            if (authState.redirecting) {
+                document.body.style.visibility = 'visible';
+                return true;
+            }
+
+            // 2. HTML Parçalarını Yükle
+            await loadRequiredHTML(isAdminPage, shouldUsePublicLayout);
+
+            // 3. Tema ve Sidebar Durumunu Yükle
             initThemeAndSidebar();
 
-            // 3. Auth Kontrolü ve UI Güncelleme
-            await checkUserAuthState();
+            // 4. UI Güncelleme
+            if (authState.user) {
+                updateUIWithUserData(authState.user, authState.profile, authState.hasPrivilege);
+            }
 
-            // 4. Event Listener'ları Bağla
+            // 5. Event Listener'ları Bağla
             setupEventListeners();
 
-            // 5. Aktif Menüyü İşaretle
-            setActiveMenuItem(config.id);
+            if (shouldUsePublicLayout) {
+                setupLandingNav();
+            } else {
+                // 6. Aktif Menüyü İşaretle
+                setActiveMenuItem(config.id);
+            }
 
-            // 6. Sayfayı Göster
+            // 7. Sayfayı Göster
             document.body.style.visibility = 'visible';
             document.title = `${config.title} | GOLD GYS`;
 
@@ -68,13 +87,29 @@ export async function initLayout() {
     return layoutInitPromise;
 }
 
-async function loadRequiredHTML(isAdminPage) {
+async function loadRequiredHTML(isAdminPage, usePublicLayout = false) {
     // Admin ve User için aynı header yapısını kullanıyoruz artık (tutarlılık için)
     // Ancak içerik farklı olabilir diye dosya isimlerini koruyoruz.
 
     // Distraction-Free Mode for Test Pages
     // Test sayfalarında header ve sidebar'ı yükleme
     if (window.location.pathname.startsWith('/test/')) return;
+
+    if (usePublicLayout) {
+        ensureLandingStyles(true);
+
+        let publicHeader = document.querySelector('.landing-nav');
+        if (!publicHeader) {
+            publicHeader = document.createElement('nav');
+            publicHeader.className = 'landing-nav';
+            document.body.prepend(publicHeader);
+        }
+
+        await loadHTML('/partials/landing-header.html', publicHeader);
+        return;
+    }
+
+    ensureLandingStyles(false);
 
     const headerUrl = isAdminPage ? '/partials/admin-header.html' : '/partials/header.html';
     const sidebarUrl = isAdminPage ? '/partials/admin-sidebar.html' : '/partials/sidebar.html';
@@ -304,7 +339,7 @@ function setupEventListeners() {
     });
 }
 
-async function checkUserAuthState() {
+async function resolveAuthState(path) {
     return new Promise((resolve) => {
         onAuthStateChanged(auth, async (user) => {
             if (user) {
@@ -314,16 +349,81 @@ async function checkUserAuthState() {
                     const isAdmin = tokenResult.claims.admin === true || profile?.role === 'admin';
                     const isEditor = tokenResult.claims.editor === true || profile?.role === 'editor';
 
-                    updateUIWithUserData(user, profile, isAdmin || isEditor);
-                } catch (e) { console.error(e); }
+                    resolve({
+                        user,
+                        profile,
+                        hasPrivilege: isAdmin || isEditor,
+                        redirecting: false
+                    });
+                } catch (e) {
+                    console.error(e);
+                    resolve({
+                        user,
+                        profile: null,
+                        hasPrivilege: false,
+                        redirecting: false
+                    });
+                }
             } else {
-                // Public sayfalarda değilsek login'e at
-                const isPublic = ['/login.html', '/', '/404.html', '/pages/yardim.html', '/pages/yardim'].includes(window.location.pathname);
-                if (!isPublic) window.location.href = '/login.html';
+                if (!PUBLIC_ROUTES.includes(path)) {
+                    window.location.href = '/login.html';
+                    resolve({ user: null, profile: null, hasPrivilege: false, redirecting: true });
+                    return;
+                }
+
+                resolve({ user: null, profile: null, hasPrivilege: false, redirecting: false });
             }
-            resolve();
         });
     });
+}
+
+function setupLandingNav() {
+    const nav = document.querySelector('.landing-nav');
+    const mobileToggle = document.getElementById('mobileNavToggle');
+    const primaryNav = document.getElementById('primaryNav');
+
+    if (nav) {
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 40) {
+                nav.classList.add('scrolled');
+            } else {
+                nav.classList.remove('scrolled');
+            }
+        });
+    }
+
+    if (mobileToggle && primaryNav) {
+        mobileToggle.addEventListener('click', () => {
+            const isOpen = primaryNav.classList.toggle('open');
+            mobileToggle.classList.toggle('open', isOpen);
+            mobileToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        });
+
+        primaryNav.querySelectorAll('a').forEach((link) => {
+            link.addEventListener('click', () => {
+                primaryNav.classList.remove('open');
+                mobileToggle.classList.remove('open');
+                mobileToggle.setAttribute('aria-expanded', 'false');
+            });
+        });
+    }
+}
+
+function ensureLandingStyles(enable) {
+    const existing = document.getElementById('landingStyles');
+    if (enable) {
+        if (existing) return;
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = '/css/landing.css';
+        link.id = 'landingStyles';
+        document.head.appendChild(link);
+        return;
+    }
+
+    if (existing) {
+        existing.remove();
+    }
 }
 
 function updateUIWithUserData(user, profile, hasPrivilege) {
