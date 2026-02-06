@@ -171,12 +171,12 @@
     .nav-links {
         position: fixed;
         top: 70px;
-        right: 0;
+        left: 0;
         width: 100%;
         background-color: var(--navy-light);
         flex-direction: column;
-        align-items: center;
-        padding: 2rem;
+        align-items: flex-start;
+        padding: 2rem 2rem 2.5rem;
         gap: 1.5rem;
         border-bottom: 1px solid var(--navy-border);
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
@@ -186,6 +186,11 @@
         visibility: hidden;
         transform: translateY(-20px);
         transition: all 0.3s ease-in-out;
+    }
+
+    .nav-links a {
+        width: 100%;
+        text-align: left;
     }
 
     .nav-links.open {
