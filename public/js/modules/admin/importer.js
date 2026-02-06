@@ -134,9 +134,15 @@ export function initImporterPage() {
                             </select>
                     </div>
                         <div class="importer-toolbar__section importer-toolbar__actions">
-                            <button id="btnApplySelectedSuggestions" class="btn btn-outline-warning btn-sm" disabled>✨ Öneriyi uygula</button>
-                            <button id="btnConfirmSelectedCategories" class="btn btn-outline-success btn-sm" disabled>✅ Kategori doğru</button>
-                            <button id="btnClearSelection" class="btn btn-outline-secondary btn-sm" disabled>Temizle</button>
+                            <button id="btnApplySelectedSuggestions" class="btn btn-outline-warning btn-sm btn-icon importer-action-btn" title="Öneriyi uygula" aria-label="Öneriyi uygula" disabled>
+                                <span aria-hidden="true">✨</span>
+                            </button>
+                            <button id="btnConfirmSelectedCategories" class="btn btn-outline-success btn-sm btn-icon importer-action-btn" title="Kategori doğru" aria-label="Kategori doğru" disabled>
+                                <span aria-hidden="true">✅</span>
+                            </button>
+                            <button id="btnClearSelection" class="btn btn-outline-secondary btn-sm btn-icon importer-action-btn" title="Seçimi temizle" aria-label="Seçimi temizle" disabled>
+                                <span aria-hidden="true">🧹</span>
+                            </button>
                         </div>
                         <div class="importer-toolbar__section importer-toolbar__status">
                             <span id="previewSelectionInfo" class="badge bg-secondary">0 soru seçili</span>
@@ -1366,9 +1372,11 @@ window.showDetailModal = (index) => {
                                     ${categoryOptions}
                                 </select>
                             ` : `<div class="small text-warning mb-2">Kategori listesi yüklenemedi. Manuel giriş yapabilirsiniz.</div>`}
-                            <div class="d-flex gap-2">
-                                <button class="btn btn-sm btn-outline-success flex-fill" onclick="confirmCategoryInModal(${index})">✅ Kategori doğru</button>
-                                ${q._suggestedCategory ? `<button class="btn btn-sm btn-warning flex-fill" onclick="applySuggestionInModal(${index})">✨ Öneriyi uygula</button>` : ''}
+                            <div class="d-flex gap-2 align-items-center importer-modal-actions">
+                                <button class="btn btn-sm btn-outline-success btn-icon importer-action-btn flex-fill" title="Kategori doğru" aria-label="Kategori doğru" onclick="confirmCategoryInModal(${index})">
+                                    <span aria-hidden="true">✅</span>
+                                </button>
+                                ${q._suggestedCategory ? `<button class="btn btn-sm btn-warning btn-icon importer-action-btn flex-fill" title="Öneriyi uygula" aria-label="Öneriyi uygula" onclick="applySuggestionInModal(${index})"><span aria-hidden="true">✨</span></button>` : ''}
                             </div>
                             
                             <div class="d-flex justify-content-between align-items-center small mt-3">
