@@ -301,6 +301,22 @@
     font-weight: 600;
 }
 
+.importer-toolbar__actions {
+    flex-wrap: nowrap;
+    gap: 8px;
+}
+
+.importer-action-btn {
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    border-radius: 10px;
+}
+
+.importer-modal-actions .importer-action-btn {
+    flex: 0 0 auto;
+}
+
 .importer-toolbar__status {
     justify-content: flex-end;
 }
