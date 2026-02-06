@@ -937,15 +937,15 @@ main {
     .nav-links {
         position: fixed;
         top: var(--landing-header-height);
-        left: 0;
+        right: 0;
         width: 100%;
         height: calc(100vh - var(--landing-header-height));
         flex-direction: column;
         justify-content: flex-start;
-        align-items: flex-start;
-        padding: 3rem 2rem 0;
+        align-items: flex-end;
+        padding: 3rem 2rem 0 3rem;
         background: var(--landing-nav-scrolled-bg);
-        transform: translateX(-100%);
+        transform: translateX(100%);
         opacity: 0;
         pointer-events: none;
         transition: transform 0.35s ease, opacity 0.25s ease;
@@ -963,6 +963,8 @@ main {
     .nav-link {
         font-size: 1.2rem;
         color: var(--landing-text-strong);
+        width: 100%;
+        text-align: right;
     }
 
     .auth-buttons-desktop {
