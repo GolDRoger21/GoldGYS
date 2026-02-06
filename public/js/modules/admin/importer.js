@@ -1059,35 +1059,40 @@ function validateAndPreview() {
     const summaryEl = document.getElementById('smartSummary');
     if (summaryEl) {
         summaryEl.innerHTML = `
-            <div class="d-flex justify-content-between align-items-center mb-2">
-                <strong>Durum Özeti</strong>
-                ${needsReview > 0 ? `<button onclick="window.confirmAllSuggestions()" class="btn btn-warning btn-sm py-0" style="font-size:0.8rem">⚠️ ${needsReview} Öneriyi Uygula</button>` : ''}
+            <div class="smart-summary">
+                <div class="smart-summary__header">
+                    <div>
+                        <strong>Durum Özeti</strong>
+                        <div class="text-muted small">Akıllı eşleştirme sonuçlarının hızlı görünümü</div>
+                    </div>
+                    ${needsReview > 0 ? `<button onclick="window.confirmAllSuggestions()" class="btn btn-warning btn-sm smart-summary__action">⚠️ ${needsReview} Öneriyi Onayla</button>` : ''}
+                </div>
+                <div class="smart-summary__metrics">
+                    <div class="smart-summary__metric">
+                        <div class="smart-summary__value">${parsedQuestions.length}</div>
+                        <div class="text-muted small">Toplam</div>
+                    </div>
+                    <div class="smart-summary__metric">
+                        <div class="smart-summary__value text-success">${autoMatched}</div>
+                        <div class="text-muted small">Otomatik</div>
+                    </div>
+                    <div class="smart-summary__metric">
+                        <div class="smart-summary__value text-warning">${needsReview}</div>
+                        <div class="text-muted small">İncelenecek</div>
+                    </div>
+                    <div class="smart-summary__metric">
+                        <div class="smart-summary__value text-danger">${lowConfidence}</div>
+                        <div class="text-muted small">Tanımsız</div>
+                    </div>
+                </div>
+                <div class="smart-summary__badges">
+                    <span class="badge bg-danger">Hatalı: ${invalidCount}</span>
+                    <span class="badge bg-warning text-dark">Uyarılı: ${warningCount}</span>
+                    <span class="badge bg-secondary">Sorunlu: ${issueCount}</span>
+                </div>
+                ${summary.categoryFixes ? `<div class="smart-summary__note text-success small">✨ ${summary.categoryFixes} kategori otomatik düzeltildi.</div>` : ''}
+                ${categoryList.length ? `<div class="smart-summary__note text-muted small">Kategori listesi yüklendi.</div>` : `<div class="smart-summary__note text-warning small">Kategori listesi yüklenemedi. Manuel giriş açık.</div>`}
             </div>
-            <div class="row text-center" style="font-size:0.9rem">
-                <div class="col-3 border-end">
-                    <div class="h4 m-0">${parsedQuestions.length}</div>
-                    <div class="text-muted small">Toplam</div>
-                </div>
-                <div class="col-3 border-end">
-                    <div class="h4 m-0 text-success">${autoMatched}</div>
-                    <div class="text-muted small">Otomatik</div>
-                </div>
-                <div class="col-3 border-end">
-                    <div class="h4 m-0 text-warning">${needsReview}</div>
-                    <div class="text-muted small">İncelenecek</div>
-                </div>
-                <div class="col-3">
-                    <div class="h4 m-0 text-danger">${lowConfidence}</div>
-                    <div class="text-muted small">Tanımsız</div>
-                </div>
-            </div>
-            <div class="mt-2 d-flex flex-wrap gap-2 small">
-                <span class="badge bg-danger">Hatalı: ${invalidCount}</span>
-                <span class="badge bg-warning text-dark">Uyarılı: ${warningCount}</span>
-                <span class="badge bg-secondary">Sorunlu: ${issueCount}</span>
-            </div>
-            ${summary.categoryFixes ? `<div class="mt-2 text-success small">✨ ${summary.categoryFixes} kategori otomatik düzeltildi.</div>` : ''}
-            ${categoryList.length ? `<div class="mt-2 text-muted small">Kategori listesi yüklendi.</div>` : `<div class="mt-2 text-warning small">Kategori listesi yüklenemedi. Manuel giriş açık.</div>`}
         `;
     }
 
