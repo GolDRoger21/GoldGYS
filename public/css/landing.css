@@ -61,6 +61,8 @@ main {
     left: 0;
     width: 100%;
     z-index: 100;
+    display: block;
+    padding: 0;
     background: var(--landing-nav-bg);
     backdrop-filter: blur(18px);
     border-bottom: 1px solid var(--landing-nav-border);
