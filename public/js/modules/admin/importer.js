@@ -115,7 +115,7 @@ export function initImporterPage() {
                         <button id="btnStartImport" class="btn btn-success btn-sm" disabled>Yüklemeyi Başlat</button>
                     </div>
                     <div class="importer-toolbar">
-                        <div class="toolbar-group">
+                        <div class="importer-toolbar__section">
                             <label class="form-check mb-0">
                                 <input type="checkbox" id="selectAllPreview" class="form-check-input">
                                 <span class="form-check-label">Görünenleri seç</span>
@@ -130,12 +130,14 @@ export function initImporterPage() {
                                 <option value="low-confidence">Tanımsız</option>
                             </select>
                         </div>
-                        <div class="toolbar-group">
-                            <button id="btnApplySelectedSuggestions" class="btn btn-outline-warning btn-sm" disabled>Seçili önerileri uygula</button>
-                            <button id="btnConfirmSelectedCategories" class="btn btn-outline-success btn-sm" disabled>Kategori doğru</button>
-                            <button id="btnClearSelection" class="btn btn-outline-secondary btn-sm" disabled>Seçimi temizle</button>
+                        <div class="importer-toolbar__section importer-toolbar__actions">
+                            <button id="btnApplySelectedSuggestions" class="btn btn-outline-warning btn-sm" disabled>✨ Öneriyi uygula</button>
+                            <button id="btnConfirmSelectedCategories" class="btn btn-outline-success btn-sm" disabled>✅ Kategori doğru</button>
+                            <button id="btnClearSelection" class="btn btn-outline-secondary btn-sm" disabled>Temizle</button>
                         </div>
-                        <div id="previewSelectionInfo" class="text-muted small">0 soru seçili</div>
+                        <div class="importer-toolbar__section importer-toolbar__status">
+                            <span id="previewSelectionInfo" class="badge bg-secondary">0 soru seçili</span>
+                        </div>
                     </div>
                     <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
                         <table class="admin-table table-sm">
@@ -972,7 +974,7 @@ function validateAndPreview() {
 
         // "Göster" Butonu
         const btnView = document.createElement('button');
-        btnView.className = 'btn btn-sm btn-outline-info ms-2';
+        btnView.className = 'btn btn-sm btn-outline-info btn-icon';
         btnView.innerHTML = '🔍';
         btnView.title = 'Detaylı İncele';
         btnView.onclick = () => showDetailModal(index);
@@ -1001,7 +1003,7 @@ function validateAndPreview() {
         if (needsCategoryConfirm) {
             const btnConfirmCategory = document.createElement('button');
             btnConfirmCategory.className = 'btn btn-compact btn-outline-success';
-            btnConfirmCategory.innerHTML = 'Kategori doğru';
+            btnConfirmCategory.innerHTML = '✅ Kategori doğru';
             btnConfirmCategory.title = 'Seçili kategori doğru, onayla';
             btnConfirmCategory.onclick = () => {
                 q._categoryConfirmed = true;
@@ -1014,7 +1016,7 @@ function validateAndPreview() {
         if (q._suggestedCategory && needsCategoryConfirm) {
             const btnQuickConfirm = document.createElement('button');
             btnQuickConfirm.className = 'btn btn-compact btn-warning';
-            btnQuickConfirm.innerHTML = 'Öneriyi uygula';
+            btnQuickConfirm.innerHTML = '✨ Öneriyi uygula';
             btnQuickConfirm.title = `Öneriyi uygula: ${q._suggestedCategory}`;
             btnQuickConfirm.onclick = () => {
                 q.category = q._suggestedCategory;
@@ -1028,7 +1030,8 @@ function validateAndPreview() {
         tdCat.appendChild(categoryControls);
 
         const tdQ = document.createElement('td');
-        tdQ.innerHTML = `<span>${shortText}</span>`;
+        tdQ.className = 'importer-question-cell';
+        tdQ.innerHTML = `<span class="importer-question-text">${shortText}</span>`;
         tdQ.appendChild(btnView); // Göster butonunu buraya ekledik
 
         const tdSmart = document.createElement('td');
@@ -1184,6 +1187,7 @@ function updateSelectionState() {
 
     if (selectionInfo) {
         selectionInfo.textContent = `${selected.length} soru seçili`;
+        selectionInfo.className = `badge ${selected.length ? 'bg-primary' : 'bg-secondary'}`;
     }
 
     if (applyBtn) applyBtn.disabled = selectedSuggestions.length === 0;
@@ -1306,8 +1310,8 @@ window.showDetailModal = (index) => {
                                 </select>
                             ` : `<div class="small text-warning mb-2">Kategori listesi yüklenemedi. Manuel giriş yapabilirsiniz.</div>`}
                             <div class="d-flex gap-2">
-                                <button class="btn btn-sm btn-outline-success flex-fill" onclick="confirmCategoryInModal(${index})">Kategori doğru</button>
-                                ${q._suggestedCategory ? `<button class="btn btn-sm btn-warning flex-fill" onclick="applySuggestionInModal(${index})">Öneriyi uygula</button>` : ''}
+                                <button class="btn btn-sm btn-outline-success flex-fill" onclick="confirmCategoryInModal(${index})">✅ Kategori doğru</button>
+                                ${q._suggestedCategory ? `<button class="btn btn-sm btn-warning flex-fill" onclick="applySuggestionInModal(${index})">✨ Öneriyi uygula</button>` : ''}
                             </div>
                             
                             <div class="d-flex justify-content-between align-items-center small mt-3">
