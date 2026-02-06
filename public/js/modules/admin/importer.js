@@ -107,15 +107,42 @@ export function initImporterPage() {
 
             <div class="col-md-7">
                 <div class="card h-100" id="previewCard" style="display:none;">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <h5 class="m-0">Önizleme</h5>
+                    <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+                        <div>
+                            <h5 class="m-0">Önizleme</h5>
+                            <small id="previewMeta" class="text-muted">Dosya yüklenince sonuçlar burada görünecek.</small>
+                        </div>
                         <button id="btnStartImport" class="btn btn-success btn-sm" disabled>Yüklemeyi Başlat</button>
+                    </div>
+                    <div class="importer-toolbar">
+                        <div class="toolbar-group">
+                            <label class="form-check mb-0">
+                                <input type="checkbox" id="selectAllPreview" class="form-check-input">
+                                <span class="form-check-label">Görünenleri seç</span>
+                            </label>
+                            <select id="previewFilter" class="form-select form-select-sm">
+                                <option value="all">Tümü</option>
+                                <option value="issues">Sorunlu (hata/uyarı)</option>
+                                <option value="invalid">Hatalı</option>
+                                <option value="needs-review">Kategori onayı gereken</option>
+                                <option value="warnings">Uyarılı</option>
+                                <option value="auto">Otomatik eşleşen</option>
+                                <option value="low-confidence">Tanımsız</option>
+                            </select>
+                        </div>
+                        <div class="toolbar-group">
+                            <button id="btnApplySelectedSuggestions" class="btn btn-outline-warning btn-sm" disabled>Seçili önerileri uygula</button>
+                            <button id="btnConfirmSelectedCategories" class="btn btn-outline-success btn-sm" disabled>Kategori doğru</button>
+                            <button id="btnClearSelection" class="btn btn-outline-secondary btn-sm" disabled>Seçimi temizle</button>
+                        </div>
+                        <div id="previewSelectionInfo" class="text-muted small">0 soru seçili</div>
                     </div>
                     <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
                         <table class="admin-table table-sm">
                             <thead>
                                 <tr>
-                                    <th style="width: 40px;">#</th>
+                                    <th style="width: 40px;"></th>
+                                    <th style="width: 60px;">#</th>
                                     <th style="min-width: 250px;">Kategori</th>
                                     <th>Soru</th>
                                     <th style="min-width: 160px;">Akıllı Eşleşme</th>
@@ -196,6 +223,11 @@ export function initImporterPage() {
 
     document.getElementById('fileInput').addEventListener('change', handleFileSelect);
     document.getElementById('btnStartImport').addEventListener('click', startBatchImport);
+    document.getElementById('previewFilter').addEventListener('change', validateAndPreview);
+    document.getElementById('selectAllPreview').addEventListener('change', handleSelectAllToggle);
+    document.getElementById('btnApplySelectedSuggestions').addEventListener('click', applySelectedSuggestions);
+    document.getElementById('btnConfirmSelectedCategories').addEventListener('click', confirmSelectedCategories);
+    document.getElementById('btnClearSelection').addEventListener('click', clearSelectedQuestions);
 
     ensureCategoryIndex();
 }
@@ -205,6 +237,7 @@ let categoryIndex = null;
 let categoryList = [];
 let categoryProfiles = [];
 let categoryIndexPromise = null;
+let previewFilter = 'all';
 
 async function handleFileSelect(event) {
     const file = event.target.files[0];
@@ -321,7 +354,10 @@ function normalizeQuestionData(rawQuestion, index = 0) {
         isFlaggedForReview: false,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
-        _rowIndex: index + 1
+        _rowIndex: index + 1,
+        _manualCategory: false,
+        _categoryConfirmed: false,
+        _selected: false
     };
 }
 
@@ -742,6 +778,8 @@ function validateAndPreview() {
     let autoMatched = 0;
     let needsReview = 0;
     let lowConfidence = 0;
+    let warningCount = 0;
+    let issueCount = 0;
     const summary = {
         categoryFixes: 0,
         answerFixes: 0,
@@ -761,7 +799,8 @@ function validateAndPreview() {
         q._matchScore = smartMatch.score;
         q._matchReason = smartMatch.reason;
 
-        if (!q._manualCategory) {
+        const isManualOrConfirmed = Boolean(q._manualCategory || q._categoryConfirmed);
+        if (!isManualOrConfirmed) {
             if (smartMatch.match && smartMatch.score >= SMART_MATCH_THRESHOLDS.high) {
                 if (smartMatch.match !== cleanedCategory) {
                     q.category = smartMatch.match;
@@ -772,28 +811,29 @@ function validateAndPreview() {
                 q._suggestedCategory = '';
                 autoMatched += 1;
             } else if (smartMatch.match && smartMatch.score >= SMART_MATCH_THRESHOLDS.low) {
-                q.category = smartMatch.match;
                 q._suggestedCategory = smartMatch.match;
                 q._needsCategoryConfirm = true;
                 warnings.push(`Kategori şüpheli. Öneri: ${smartMatch.match} (%${Math.round(smartMatch.score * 100)})`);
                 summary.warningCount += 1;
                 needsReview += 1;
             } else if (cleanedCategory) {
+                q._suggestedCategory = smartMatch.match || '';
                 q._needsCategoryConfirm = true;
                 warnings.push('Kategori bulunamadı, lütfen seçin.');
                 summary.warningCount += 1;
                 lowConfidence += 1;
             } else {
                 q.category = '';
+                q._suggestedCategory = smartMatch.match || '';
                 q._needsCategoryConfirm = true;
                 warnings.push('Kategori boş.');
                 lowConfidence += 1;
             }
         } else {
             q._needsCategoryConfirm = false;
-            q._suggestedCategory = '';
+            q._suggestedCategory = smartMatch.match || '';
             if (smartMatch.match && smartMatch.score >= SMART_MATCH_THRESHOLDS.high && smartMatch.match !== cleanedCategory) {
-                warnings.push(`Manuel kategori ile çelişen öneri: ${smartMatch.match} (%${Math.round(smartMatch.score * 100)})`);
+                warnings.push(`Seçilen kategori ile çelişen öneri: ${smartMatch.match} (%${Math.round(smartMatch.score * 100)})`);
                 summary.warningCount += 1;
                 needsReview += 1;
             }
@@ -832,7 +872,7 @@ function validateAndPreview() {
         const hasCategoryList = categoryList.length > 0;
         if (!hasCategoryList) {
             q._needsCategoryConfirm = false;
-            q._suggestedCategory = '';
+            q._suggestedCategory = q._suggestedCategory || '';
         }
         const isCategoryValid = !hasCategoryList || categoryList.includes(q.category);
         if (q._needsCategoryConfirm) {
@@ -880,7 +920,13 @@ function validateAndPreview() {
 
         const isValid = errors.length === 0;
         q._isValid = isValid;
+        q._hasWarnings = warnings.length > 0;
+        q._hasErrors = errors.length > 0;
+        q._hasIssues = q._hasWarnings || q._hasErrors || q._needsCategoryConfirm;
+        q._autoMatched = !q._needsCategoryConfirm && !q._manualCategory && smartMatch.score >= SMART_MATCH_THRESHOLDS.high;
         if (isValid) validCount++; else invalidCount++;
+        warningCount += warnings.length > 0 ? 1 : 0;
+        issueCount += q._hasIssues ? 1 : 0;
 
         // ... (Previous existing code)
 
@@ -920,6 +966,7 @@ function validateAndPreview() {
             const newVal = e.target.value;
             q.category = newVal;
             q._manualCategory = true;
+            q._categoryConfirmed = true;
             validateAndPreview();
         });
 
@@ -930,27 +977,55 @@ function validateAndPreview() {
         btnView.title = 'Detaylı İncele';
         btnView.onclick = () => showDetailModal(index);
 
+        const tdSelect = document.createElement('td');
+        const rowSelect = document.createElement('input');
+        rowSelect.type = 'checkbox';
+        rowSelect.className = 'form-check-input';
+        rowSelect.checked = Boolean(q._selected);
+        rowSelect.addEventListener('change', (e) => {
+            q._selected = e.target.checked;
+            updateSelectionState();
+        });
+        tdSelect.appendChild(rowSelect);
+
         const tdIndex = document.createElement('td');
         tdIndex.textContent = index + 1;
 
         const tdCat = document.createElement('td');
-        tdCat.style.display = 'flex';
-        tdCat.style.alignItems = 'center';
-        tdCat.appendChild(categoryInput);
-
-        // Eğer öneri varsa hızlı onay butonu koyalım (küçük tik)
-        if (q._suggestedCategory && needsCategoryConfirm) {
-            const btnQuickConfirm = document.createElement('button');
-            btnQuickConfirm.className = 'btn btn-xs btn-success ms-1';
-            btnQuickConfirm.innerHTML = '✓';
-            btnQuickConfirm.title = `Öneriyi Onayla: ${q._suggestedCategory}`;
-            btnQuickConfirm.onclick = () => {
-                q.category = q._suggestedCategory;
+        tdCat.className = 'importer-category-cell';
+        const categoryControls = document.createElement('div');
+        categoryControls.className = 'importer-category-controls';
+        categoryControls.appendChild(categoryInput);
+        const actionGroup = document.createElement('div');
+        actionGroup.className = 'importer-category-actions';
+        if (needsCategoryConfirm) {
+            const btnConfirmCategory = document.createElement('button');
+            btnConfirmCategory.className = 'btn btn-compact btn-outline-success';
+            btnConfirmCategory.innerHTML = 'Kategori doğru';
+            btnConfirmCategory.title = 'Seçili kategori doğru, onayla';
+            btnConfirmCategory.onclick = () => {
+                q._categoryConfirmed = true;
                 q._manualCategory = true;
                 validateAndPreview();
             };
-            tdCat.appendChild(btnQuickConfirm);
+            actionGroup.appendChild(btnConfirmCategory);
         }
+
+        if (q._suggestedCategory && needsCategoryConfirm) {
+            const btnQuickConfirm = document.createElement('button');
+            btnQuickConfirm.className = 'btn btn-compact btn-warning';
+            btnQuickConfirm.innerHTML = 'Öneriyi uygula';
+            btnQuickConfirm.title = `Öneriyi uygula: ${q._suggestedCategory}`;
+            btnQuickConfirm.onclick = () => {
+                q.category = q._suggestedCategory;
+                q._manualCategory = true;
+                q._categoryConfirmed = true;
+                validateAndPreview();
+            };
+            actionGroup.appendChild(btnQuickConfirm);
+        }
+        categoryControls.appendChild(actionGroup);
+        tdCat.appendChild(categoryControls);
 
         const tdQ = document.createElement('td');
         tdQ.innerHTML = `<span>${shortText}</span>`;
@@ -965,13 +1040,16 @@ function validateAndPreview() {
         `;
         const tdStatus = document.createElement('td'); tdStatus.innerHTML = statusBadge;
 
+        tr.appendChild(tdSelect);
         tr.appendChild(tdIndex);
         tr.appendChild(tdCat);
         tr.appendChild(tdQ);
         tr.appendChild(tdSmart);
         tr.appendChild(tdStatus);
 
-        table.appendChild(tr);
+        if (shouldRenderRow(q)) {
+            table.appendChild(tr);
+        }
     });
 
     document.getElementById('previewCard').style.display = 'block';
@@ -983,7 +1061,7 @@ function validateAndPreview() {
         summaryEl.innerHTML = `
             <div class="d-flex justify-content-between align-items-center mb-2">
                 <strong>Durum Özeti</strong>
-                ${needsReview > 0 ? `<button onclick="window.confirmAllSuggestions()" class="btn btn-warning btn-sm py-0" style="font-size:0.8rem">⚠️ ${needsReview} Öneriyi Onayla</button>` : ''}
+                ${needsReview > 0 ? `<button onclick="window.confirmAllSuggestions()" class="btn btn-warning btn-sm py-0" style="font-size:0.8rem">⚠️ ${needsReview} Öneriyi Uygula</button>` : ''}
             </div>
             <div class="row text-center" style="font-size:0.9rem">
                 <div class="col-3 border-end">
@@ -1003,9 +1081,18 @@ function validateAndPreview() {
                     <div class="text-muted small">Tanımsız</div>
                 </div>
             </div>
+            <div class="mt-2 d-flex flex-wrap gap-2 small">
+                <span class="badge bg-danger">Hatalı: ${invalidCount}</span>
+                <span class="badge bg-warning text-dark">Uyarılı: ${warningCount}</span>
+                <span class="badge bg-secondary">Sorunlu: ${issueCount}</span>
+            </div>
             ${summary.categoryFixes ? `<div class="mt-2 text-success small">✨ ${summary.categoryFixes} kategori otomatik düzeltildi.</div>` : ''}
+            ${categoryList.length ? `<div class="mt-2 text-muted small">Kategori listesi yüklendi.</div>` : `<div class="mt-2 text-warning small">Kategori listesi yüklenemedi. Manuel giriş açık.</div>`}
         `;
     }
+
+    updatePreviewMeta(validCount, invalidCount, needsReview, issueCount);
+    updateSelectionState();
 
     if (validCount > 0) {
         btn.disabled = false;
@@ -1027,6 +1114,7 @@ window.confirmAllSuggestions = () => {
         if (q._needsCategoryConfirm && q._suggestedCategory) {
             q.category = q._suggestedCategory;
             q._manualCategory = true; // Artık manuel kabul edildi
+            q._categoryConfirmed = true;
             appliedCount++;
         }
     });
@@ -1037,6 +1125,119 @@ window.confirmAllSuggestions = () => {
         showToast("Onaylanacak öneri bulunamadı.", "info");
     }
 };
+
+function updatePreviewMeta(validCount, invalidCount, needsReview, issueCount) {
+    const meta = document.getElementById('previewMeta');
+    if (!meta) return;
+    meta.textContent = `${parsedQuestions.length} soru • ${validCount} hazır • ${invalidCount} hatalı • ${needsReview} inceleme • ${issueCount} sorunlu`;
+}
+
+function shouldRenderRow(question) {
+    const filterEl = document.getElementById('previewFilter');
+    if (!filterEl) return true;
+    previewFilter = filterEl.value;
+    switch (previewFilter) {
+        case 'issues':
+            return question._hasIssues;
+        case 'invalid':
+            return question._hasErrors;
+        case 'needs-review':
+            return question._needsCategoryConfirm;
+        case 'warnings':
+            return question._hasWarnings;
+        case 'auto':
+            return question._autoMatched;
+        case 'low-confidence':
+            return question._needsCategoryConfirm && !question._suggestedCategory;
+        default:
+            return true;
+    }
+}
+
+function handleSelectAllToggle(event) {
+    const shouldSelect = event.target.checked;
+    parsedQuestions.forEach(q => {
+        if (shouldRenderRow(q)) {
+            q._selected = shouldSelect;
+        }
+    });
+    updateSelectionState();
+    validateAndPreview();
+}
+
+function updateSelectionState() {
+    const selectAll = document.getElementById('selectAllPreview');
+    const selectionInfo = document.getElementById('previewSelectionInfo');
+    const applyBtn = document.getElementById('btnApplySelectedSuggestions');
+    const confirmBtn = document.getElementById('btnConfirmSelectedCategories');
+    const clearBtn = document.getElementById('btnClearSelection');
+
+    const visibleQuestions = parsedQuestions.filter(q => shouldRenderRow(q));
+    const selected = parsedQuestions.filter(q => q._selected);
+    const selectedVisible = visibleQuestions.filter(q => q._selected);
+    const selectedSuggestions = selected.filter(q => q._suggestedCategory);
+
+    if (selectionInfo) {
+        selectionInfo.textContent = `${selected.length} soru seçili`;
+    }
+
+    if (applyBtn) applyBtn.disabled = selectedSuggestions.length === 0;
+    if (confirmBtn) confirmBtn.disabled = selected.length === 0;
+    if (clearBtn) clearBtn.disabled = selected.length === 0;
+
+    if (selectAll) {
+        if (visibleQuestions.length === 0) {
+            selectAll.checked = false;
+            selectAll.indeterminate = false;
+        } else {
+            selectAll.checked = selectedVisible.length === visibleQuestions.length;
+            selectAll.indeterminate = selectedVisible.length > 0 && selectedVisible.length < visibleQuestions.length;
+        }
+    }
+}
+
+function applySelectedSuggestions() {
+    let appliedCount = 0;
+    parsedQuestions.forEach(q => {
+        if (q._selected && q._suggestedCategory) {
+            q.category = q._suggestedCategory;
+            q._manualCategory = true;
+            q._categoryConfirmed = true;
+            appliedCount++;
+        }
+    });
+    if (appliedCount > 0) {
+        showToast(`${appliedCount} öneri uygulandı.`, "success");
+        validateAndPreview();
+    } else {
+        showToast("Uygulanacak öneri bulunamadı.", "info");
+    }
+}
+
+function confirmSelectedCategories() {
+    let confirmedCount = 0;
+    parsedQuestions.forEach(q => {
+        if (q._selected) {
+            q._manualCategory = true;
+            q._categoryConfirmed = true;
+            confirmedCount++;
+        }
+    });
+    if (confirmedCount > 0) {
+        showToast(`${confirmedCount} kategori onaylandı.`, "success");
+        validateAndPreview();
+    } else {
+        showToast("Onaylanacak soru seçilmedi.", "info");
+    }
+}
+
+function clearSelectedQuestions() {
+    parsedQuestions.forEach(q => {
+        q._selected = false;
+    });
+    updateSelectionState();
+    validateAndPreview();
+}
 
 window.showDetailModal = (index) => {
     const q = parsedQuestions[index];
@@ -1060,6 +1261,10 @@ window.showDetailModal = (index) => {
             </div>
         `;
     }).join('');
+
+    const categoryOptions = categoryList.length
+        ? categoryList.map(cat => `<option value="${cat}" ${cat === q.category ? 'selected' : ''}>${cat}</option>`).join('')
+        : '';
 
     modal.innerHTML = `
         <div class="admin-modal-content">
@@ -1089,18 +1294,21 @@ window.showDetailModal = (index) => {
                         <div class="p-3 rounded bg-hover mb-3">
                             <label class="form-label small text-muted text-uppercase fw-bold">Kategori Yönetimi</label>
                             <input type="text" id="modalCategoryInput" class="form-control mb-2" list="categoryListOptions" value="${q.category}">
+                            ${categoryList.length ? `
+                                <select id="modalCategorySelect" class="form-select form-select-sm mb-2" onchange="window.syncModalCategorySelect()">
+                                    <option value="">Kategori seçin...</option>
+                                    ${categoryOptions}
+                                </select>
+                            ` : `<div class="small text-warning mb-2">Kategori listesi yüklenemedi. Manuel giriş yapabilirsiniz.</div>`}
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-sm btn-outline-success flex-fill" onclick="confirmCategoryInModal(${index})">Kategori doğru</button>
+                                ${q._suggestedCategory ? `<button class="btn btn-sm btn-warning flex-fill" onclick="applySuggestionInModal(${index})">Öneriyi uygula</button>` : ''}
+                            </div>
                             
-                            <div class="d-flex justify-content-between align-items-center small">
+                            <div class="d-flex justify-content-between align-items-center small mt-3">
                                 <span class="text-muted">Güven Skoru:</span>
                                 <span class="fw-bold text-main">%${Math.round((q._matchScore || 0) * 100)}</span>
                             </div>
-                            ${q._suggestedCategory ?
-            `<div class="mt-2 p-2 border border-warning rounded bg-surface">
-                                    <div class="text-warning small mb-1">💡 Öneri Mevcut</div>
-                                    <div class="small text-main">${q._suggestedCategory}</div>
-                                    <button class="btn btn-sm btn-outline-warning w-100 mt-2" onclick="applySuggestionInModal(${index})">Öneriyi Uygula</button>
-                                </div>`
-            : ''}
                         </div>
 
                         <div class="mb-3">
@@ -1123,8 +1331,25 @@ window.showDetailModal = (index) => {
 window.applySuggestionInModal = (index) => {
     const q = parsedQuestions[index];
     if (q && q._suggestedCategory) {
-        document.getElementById('modalCategoryInput').value = q._suggestedCategory;
+        const input = document.getElementById('modalCategoryInput');
+        const select = document.getElementById('modalCategorySelect');
+        if (input) input.value = q._suggestedCategory;
+        if (select) select.value = q._suggestedCategory;
     }
+};
+
+window.syncModalCategorySelect = () => {
+    const select = document.getElementById('modalCategorySelect');
+    const input = document.getElementById('modalCategoryInput');
+    if (select && input) {
+        input.value = select.value;
+    }
+};
+
+window.confirmCategoryInModal = (index) => {
+    parsedQuestions[index]._manualCategory = true;
+    parsedQuestions[index]._categoryConfirmed = true;
+    saveModalChanges(index);
 };
 
 window.saveModalChanges = (index) => {
@@ -1132,6 +1357,7 @@ window.saveModalChanges = (index) => {
     if (input) {
         parsedQuestions[index].category = input.value;
         parsedQuestions[index]._manualCategory = true;
+        parsedQuestions[index]._categoryConfirmed = true;
         validateAndPreview();
         document.getElementById('detailModal').style.display = 'none';
         showToast("Değişiklik kaydedildi.", "success");
@@ -1175,7 +1401,7 @@ async function startBatchImport() {
             chunk.forEach(q => {
                 const docRef = doc(collection(db, "questions"));
                 // _meta, _manualCategory, _isValid gibi geçici alanları temizle
-                const { _meta, _matchScore, _matchReason, _needsCategoryConfirm, _suggestedCategory, _isValid, _manualCategory, _rowIndex, ...payload } = q;
+                const { _meta, _matchScore, _matchReason, _needsCategoryConfirm, _suggestedCategory, _isValid, _manualCategory, _categoryConfirmed, _selected, _rowIndex, ...payload } = q;
                 batch.set(docRef, payload);
             });
 
@@ -1209,4 +1435,3 @@ function log(msg, type = "info") {
 window.showGuide = () => {
     document.getElementById('guideModal').style.display = 'flex';
 };
-
