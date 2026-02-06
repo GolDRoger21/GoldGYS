@@ -232,6 +232,43 @@
         grid-template-columns: 1fr;
       }
     }
+
+    @media (max-width: 600px) {
+      .help-hero {
+        padding: calc(var(--landing-header-height) + 30px) 16px 40px;
+        margin-bottom: 28px;
+      }
+
+      .help-hero h1 {
+        font-size: 2rem;
+      }
+
+      .help-hero p {
+        font-size: 1rem;
+      }
+
+      .quick-contact {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .qc-btn {
+        justify-content: center;
+        width: 100%;
+      }
+
+      .faq-question {
+        padding: 16px 18px;
+      }
+
+      .faq-item.active .faq-answer {
+        padding: 16px 18px;
+      }
+
+      .contact-wrapper {
+        padding: 22px;
+      }
+    }
   </style>
 </head>
 
