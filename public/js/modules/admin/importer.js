@@ -134,14 +134,14 @@ export function initImporterPage() {
                             </select>
                     </div>
                         <div class="importer-toolbar__section importer-toolbar__actions">
-                            <button id="btnApplySelectedSuggestions" class="btn btn-outline-warning btn-sm btn-icon importer-action-btn" title="Öneriyi uygula" aria-label="Öneriyi uygula" disabled>
-                                <span aria-hidden="true">✨</span>
+                            <button id="btnApplySelectedSuggestions" class="btn btn-outline-warning btn-sm importer-action-btn-text" disabled>
+                                <span aria-hidden="true">✨</span> Öneriyi Uygula
                             </button>
-                            <button id="btnConfirmSelectedCategories" class="btn btn-outline-success btn-sm btn-icon importer-action-btn" title="Kategori doğru" aria-label="Kategori doğru" disabled>
-                                <span aria-hidden="true">✅</span>
+                            <button id="btnConfirmSelectedCategories" class="btn btn-outline-success btn-sm importer-action-btn-text" disabled>
+                                <span aria-hidden="true">✅</span> Kategori Doğru
                             </button>
-                            <button id="btnClearSelection" class="btn btn-outline-secondary btn-sm btn-icon importer-action-btn" title="Seçimi temizle" aria-label="Seçimi temizle" disabled>
-                                <span aria-hidden="true">🧹</span>
+                            <button id="btnClearSelection" class="btn btn-outline-secondary btn-sm importer-action-btn-text" disabled>
+                                <span aria-hidden="true">🧹</span> Seçimi Temizle
                             </button>
                         </div>
                         <div class="importer-toolbar__section importer-toolbar__status">
@@ -1194,19 +1194,19 @@ function shouldRenderRow(question) {
     previewFilter = filterEl.value;
     const matchesStateFilter = (() => {
         switch (previewFilter) {
-        case 'issues':
+            case 'issues':
                 return question._hasIssues;
-        case 'invalid':
+            case 'invalid':
                 return question._hasErrors;
-        case 'needs-review':
+            case 'needs-review':
                 return question._needsCategoryConfirm;
-        case 'warnings':
+            case 'warnings':
                 return question._hasWarnings;
-        case 'auto':
+            case 'auto':
                 return question._autoMatched;
-        case 'low-confidence':
+            case 'low-confidence':
                 return question._isUndefined;
-        default:
+            default:
                 return true;
         }
     })();
