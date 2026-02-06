@@ -276,21 +276,34 @@
 }
 
 .importer-toolbar {
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
     align-items: center;
-    justify-content: space-between;
     gap: 12px;
     padding: 12px 16px;
     border-bottom: 1px solid var(--border-color);
     background: var(--bg-hover);
 }
 
-.importer-toolbar .toolbar-group {
+.importer-toolbar__section {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
+}
+
+.importer-toolbar__actions .btn {
+    min-height: 32px;
+    font-weight: 600;
+}
+
+.importer-toolbar__status {
+    justify-content: flex-end;
+}
+
+.importer-toolbar__status .badge {
+    font-weight: 600;
+    letter-spacing: 0.2px;
 }
 
 .importer-category-cell {
@@ -307,6 +320,30 @@
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
+}
+
+.importer-category-actions .btn {
+    font-weight: 600;
+}
+
+.importer-question-cell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.importer-question-text {
+    flex: 1;
+    min-width: 0;
+}
+
+.btn-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
 }
 
 .smart-summary {
@@ -410,15 +447,16 @@
 
 @media (max-width: 768px) {
     .importer-toolbar {
+        grid-template-columns: 1fr;
         align-items: stretch;
     }
 
-    .importer-toolbar .toolbar-group {
+    .importer-toolbar__section {
         width: 100%;
     }
 
-    .importer-toolbar .toolbar-group .btn,
-    .importer-toolbar .toolbar-group .form-select {
+    .importer-toolbar__section .btn,
+    .importer-toolbar__section .form-select {
         flex: 1 1 100%;
     }
 
