@@ -91,7 +91,7 @@ main {
     display: flex;
     align-items: center;
     flex-shrink: 0;
-    gap: 2rem;
+    gap: 1.5rem;
 }
 
 .header-center {
@@ -943,7 +943,7 @@ main {
         flex-direction: column;
         justify-content: flex-start;
         align-items: flex-start;
-        padding: 3rem 3rem 0 2rem;
+        padding: 6rem 1.5rem 0 1.5rem;
         background: var(--landing-nav-scrolled-bg);
         transform: translateX(-100%);
         opacity: 0;
@@ -977,6 +977,8 @@ main {
 
     .mobile-nav-toggle {
         display: block;
+        order: -1;
+        margin-right: 0.5rem;
     }
 }
 
