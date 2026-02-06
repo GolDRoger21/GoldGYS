@@ -292,6 +292,10 @@
     gap: 10px;
 }
 
+.importer-toolbar__filters .form-select {
+    min-width: 160px;
+}
+
 .importer-toolbar__actions .btn {
     min-height: 32px;
     font-weight: 600;
