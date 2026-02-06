@@ -1010,9 +1010,10 @@ function validateAndPreview() {
         actionGroup.className = 'importer-category-actions';
         if (needsCategoryConfirm) {
             const btnConfirmCategory = document.createElement('button');
-            btnConfirmCategory.className = 'btn btn-compact btn-outline-success';
-            btnConfirmCategory.innerHTML = '✅ Kategori doğru';
-            btnConfirmCategory.title = 'Seçili kategori doğru, onayla';
+            btnConfirmCategory.className = 'btn btn-compact btn-outline-success btn-icon importer-row-action';
+            btnConfirmCategory.innerHTML = '<span aria-hidden="true">✅</span>';
+            btnConfirmCategory.title = 'Kategori doğru';
+            btnConfirmCategory.setAttribute('aria-label', 'Kategori doğru');
             btnConfirmCategory.onclick = () => {
                 q._categoryConfirmed = true;
                 q._manualCategory = true;
@@ -1023,9 +1024,10 @@ function validateAndPreview() {
 
         if (q._suggestedCategory && needsCategoryConfirm) {
             const btnQuickConfirm = document.createElement('button');
-            btnQuickConfirm.className = 'btn btn-compact btn-warning';
-            btnQuickConfirm.innerHTML = '✨ Öneriyi uygula';
+            btnQuickConfirm.className = 'btn btn-compact btn-warning btn-icon importer-row-action';
+            btnQuickConfirm.innerHTML = '<span aria-hidden="true">✨</span>';
             btnQuickConfirm.title = `Öneriyi uygula: ${q._suggestedCategory}`;
+            btnQuickConfirm.setAttribute('aria-label', 'Öneriyi uygula');
             btnQuickConfirm.onclick = () => {
                 q.category = q._suggestedCategory;
                 q._manualCategory = true;

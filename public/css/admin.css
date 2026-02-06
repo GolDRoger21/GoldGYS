@@ -324,10 +324,18 @@
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
+    align-items: center;
 }
 
 .importer-category-actions .btn {
     font-weight: 600;
+}
+
+.importer-row-action {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border-radius: 10px;
 }
 
 .importer-question-cell {
