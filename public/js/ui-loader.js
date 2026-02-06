@@ -23,8 +23,25 @@ const PAGE_CONFIG = {
     '/pages/analiz.html': { id: 'analysis', title: 'Analiz' }
 };
 
-const PUBLIC_ROUTES = ['/', '/login.html', '/404.html', '/pages/yardim.html', '/pages/yardim'];
-const PUBLIC_LAYOUT_ROUTES = ['/pages/yardim.html', '/pages/yardim'];
+const PUBLIC_ROUTES = [
+    '/',
+    '/login.html',
+    '/404.html',
+    '/pages/yardim.html',
+    '/pages/yardim',
+    '/pages/gizlilik.html',
+    '/pages/gizlilik',
+    '/pages/kullanim-sartlari.html',
+    '/pages/kullanim-sartlari'
+];
+const PUBLIC_LAYOUT_ROUTES = [
+    '/pages/yardim.html',
+    '/pages/yardim',
+    '/pages/gizlilik.html',
+    '/pages/gizlilik',
+    '/pages/kullanim-sartlari.html',
+    '/pages/kullanim-sartlari'
+];
 
 let layoutInitPromise = null;
 
@@ -43,7 +60,7 @@ export async function initLayout() {
 
             // 1. Auth Durumunu Al
             const authState = await resolveAuthState(path);
-            const shouldUsePublicLayout = usePublicLayout && !authState.user;
+            const shouldUsePublicLayout = usePublicLayout;
 
             if (authState.redirecting) {
                 document.body.style.visibility = 'visible';
@@ -52,6 +69,7 @@ export async function initLayout() {
 
             // 2. HTML Parçalarını Yükle
             await loadRequiredHTML(isAdminPage, shouldUsePublicLayout);
+            updateLandingAuthButtons(!!authState.user);
 
             // 3. Tema ve Sidebar Durumunu Yükle
             initThemeAndSidebar();
@@ -413,6 +431,11 @@ function ensureLandingStyles(enable) {
     const existing = document.getElementById('landingStyles');
     if (enable) {
         if (existing) return;
+        const existingLink = document.querySelector('link[href="/css/landing.css"]');
+        if (existingLink) {
+            if (!existingLink.id) existingLink.id = 'landingStyles';
+            return;
+        }
         const link = document.createElement('link');
         link.rel = 'stylesheet';
         link.href = '/css/landing.css';
@@ -462,6 +485,61 @@ function updateUIWithUserData(user, profile, hasPrivilege) {
     adminLinks.forEach(link => {
         link.style.display = hasPrivilege ? 'flex' : 'none';
     });
+}
+
+function updateLandingAuthButtons(isLoggedIn) {
+    const navBtn = document.getElementById('navLoginBtn');
+    const navRegBtn = document.getElementById('navRegisterBtn');
+    const mobLoginBtn = document.getElementById('mobileLoginBtn');
+    const mobRegBtn = document.getElementById('mobileRegisterBtn');
+
+    if (!navBtn && !navRegBtn && !mobLoginBtn && !mobRegBtn) return;
+
+    if (isLoggedIn) {
+        if (navBtn) {
+            navBtn.textContent = 'Panele Git';
+            navBtn.href = '/dashboard';
+            navBtn.classList.remove('btn-secondary');
+            navBtn.classList.add('btn-primary');
+        }
+        if (navRegBtn) navRegBtn.style.display = 'none';
+
+        if (mobLoginBtn) {
+            mobLoginBtn.href = '/dashboard';
+            mobLoginBtn.classList.add('text-success');
+            mobLoginBtn.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="7" height="7"></rect>
+                    <rect x="14" y="3" width="7" height="7"></rect>
+                    <rect x="14" y="14" width="7" height="7"></rect>
+                    <rect x="3" y="14" width="7" height="7"></rect>
+                </svg>
+            `;
+        }
+        if (mobRegBtn) mobRegBtn.style.display = 'none';
+    } else {
+        if (navBtn) {
+            navBtn.textContent = 'Giriş Yap';
+            navBtn.href = '/login.html?mode=login';
+            navBtn.classList.remove('btn-primary');
+            navBtn.classList.add('btn-secondary');
+        }
+        if (navRegBtn) navRegBtn.style.display = '';
+
+        if (mobLoginBtn) {
+            mobLoginBtn.href = '/login.html?mode=login';
+            mobLoginBtn.classList.remove('text-success');
+            mobLoginBtn.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+                    <polyline points="10 17 15 12 10 7" />
+                    <line x1="15" y1="12" x2="3" y2="12" />
+                </svg>
+            `;
+        }
+        if (mobRegBtn) mobRegBtn.style.display = '';
+    }
 }
 
 function setActiveMenuItem(pageId) {
