@@ -115,12 +115,12 @@ export function initImporterPage() {
                         <button id="btnStartImport" class="btn btn-success btn-sm" disabled>Yüklemeyi Başlat</button>
                     </div>
                     <div class="importer-toolbar">
-                        <div class="importer-toolbar__section">
-                            <label class="form-check mb-0">
-                                <input type="checkbox" id="selectAllPreview" class="form-check-input">
-                                <span class="form-check-label">Görünenleri seç</span>
-                            </label>
-                            <select id="previewFilter" class="form-select form-select-sm">
+                    <div class="importer-toolbar__section importer-toolbar__filters">
+                        <label class="form-check mb-0">
+                            <input type="checkbox" id="selectAllPreview" class="form-check-input">
+                            <span class="form-check-label">Görünenleri seç</span>
+                        </label>
+                        <select id="previewFilter" class="form-select form-select-sm">
                                 <option value="all">Tümü</option>
                                 <option value="issues">Sorunlu (hata/uyarı)</option>
                                 <option value="invalid">Hatalı</option>
@@ -129,7 +129,10 @@ export function initImporterPage() {
                                 <option value="auto">Otomatik eşleşen</option>
                                 <option value="low-confidence">Tanımsız</option>
                             </select>
-                        </div>
+                            <select id="previewCategoryFilter" class="form-select form-select-sm">
+                                <option value="all">Tüm Kategoriler</option>
+                            </select>
+                    </div>
                         <div class="importer-toolbar__section importer-toolbar__actions">
                             <button id="btnApplySelectedSuggestions" class="btn btn-outline-warning btn-sm" disabled>✨ Öneriyi uygula</button>
                             <button id="btnConfirmSelectedCategories" class="btn btn-outline-success btn-sm" disabled>✅ Kategori doğru</button>
@@ -226,6 +229,7 @@ export function initImporterPage() {
     document.getElementById('fileInput').addEventListener('change', handleFileSelect);
     document.getElementById('btnStartImport').addEventListener('click', startBatchImport);
     document.getElementById('previewFilter').addEventListener('change', validateAndPreview);
+    document.getElementById('previewCategoryFilter').addEventListener('change', validateAndPreview);
     document.getElementById('selectAllPreview').addEventListener('change', handleSelectAllToggle);
     document.getElementById('btnApplySelectedSuggestions').addEventListener('click', applySelectedSuggestions);
     document.getElementById('btnConfirmSelectedCategories').addEventListener('click', confirmSelectedCategories);
@@ -240,6 +244,7 @@ let categoryList = [];
 let categoryProfiles = [];
 let categoryIndexPromise = null;
 let previewFilter = 'all';
+let previewCategoryFilter = 'all';
 
 async function handleFileSelect(event) {
     const file = event.target.files[0];
@@ -736,13 +741,13 @@ function smartMatchCategory(question) {
     let secondBest = 0;
 
     categoryProfiles.forEach(profile => {
-        const { combined, inputScore, textScore, codeBoost } = scoreCategoryCandidate(profile, signals);
+        const { combined, inputScore, textScore, subsetScore, codeBoost } = scoreCategoryCandidate(profile, signals);
         if (combined > best.score) {
             secondBest = best.score;
             best = {
                 match: profile.title,
                 score: combined,
-                reason: buildMatchReason({ inputScore, textScore, codeBoost, profile, signals })
+                reason: buildMatchReason({ inputScore, textScore, subsetScore, codeBoost, profile, signals })
             };
         } else if (combined > secondBest) {
             secondBest = combined;
@@ -802,6 +807,7 @@ function validateAndPreview() {
         q._matchReason = smartMatch.reason;
 
         const isManualOrConfirmed = Boolean(q._manualCategory || q._categoryConfirmed);
+        let isUndefinedCategory = false;
         if (!isManualOrConfirmed) {
             if (smartMatch.match && smartMatch.score >= SMART_MATCH_THRESHOLDS.high) {
                 if (smartMatch.match !== cleanedCategory) {
@@ -823,13 +829,13 @@ function validateAndPreview() {
                 q._needsCategoryConfirm = true;
                 warnings.push('Kategori bulunamadı, lütfen seçin.');
                 summary.warningCount += 1;
-                lowConfidence += 1;
+                isUndefinedCategory = true;
             } else {
                 q.category = '';
                 q._suggestedCategory = smartMatch.match || '';
                 q._needsCategoryConfirm = true;
                 warnings.push('Kategori boş.');
-                lowConfidence += 1;
+                isUndefinedCategory = true;
             }
         } else {
             q._needsCategoryConfirm = false;
@@ -926,7 +932,9 @@ function validateAndPreview() {
         q._hasErrors = errors.length > 0;
         q._hasIssues = q._hasWarnings || q._hasErrors || q._needsCategoryConfirm;
         q._autoMatched = !q._needsCategoryConfirm && !q._manualCategory && smartMatch.score >= SMART_MATCH_THRESHOLDS.high;
+        q._isUndefined = q._needsCategoryConfirm && (isUndefinedCategory || q._matchScore < SMART_MATCH_THRESHOLDS.low || !q._suggestedCategory);
         if (isValid) validCount++; else invalidCount++;
+        if (q._isUndefined) lowConfidence += 1;
         warningCount += warnings.length > 0 ? 1 : 0;
         issueCount += q._hasIssues ? 1 : 0;
 
@@ -1099,6 +1107,7 @@ function validateAndPreview() {
         `;
     }
 
+    updateCategoryFilterOptions();
     updatePreviewMeta(validCount, invalidCount, needsReview, issueCount);
     updateSelectionState();
 
@@ -1140,26 +1149,74 @@ function updatePreviewMeta(validCount, invalidCount, needsReview, issueCount) {
     meta.textContent = `${parsedQuestions.length} soru • ${validCount} hazır • ${invalidCount} hatalı • ${needsReview} inceleme • ${issueCount} sorunlu`;
 }
 
+function getQuestionCategoryLabel(question) {
+    const category = String(question.category || '').trim();
+    if (!category || question._isUndefined) return 'Tanımsız';
+    return category;
+}
+
+function updateCategoryFilterOptions() {
+    const filterEl = document.getElementById('previewCategoryFilter');
+    if (!filterEl) return;
+
+    const current = filterEl.value || 'all';
+    const categorySet = new Set();
+
+    parsedQuestions.forEach(question => {
+        categorySet.add(getQuestionCategoryLabel(question));
+    });
+
+    const categories = Array.from(categorySet).sort((a, b) => a.localeCompare(b, 'tr'));
+    const options = [
+        { value: 'all', label: 'Tüm Kategoriler' },
+        ...categories.map(category => ({
+            value: category === 'Tanımsız' ? '__uncategorized__' : category,
+            label: category
+        }))
+    ];
+
+    filterEl.innerHTML = options.map(option => `<option value="${option.value}">${option.label}</option>`).join('');
+    filterEl.value = options.some(option => option.value === current) ? current : 'all';
+    previewCategoryFilter = filterEl.value;
+}
+
 function shouldRenderRow(question) {
     const filterEl = document.getElementById('previewFilter');
     if (!filterEl) return true;
     previewFilter = filterEl.value;
-    switch (previewFilter) {
+    const matchesStateFilter = (() => {
+        switch (previewFilter) {
         case 'issues':
-            return question._hasIssues;
+                return question._hasIssues;
         case 'invalid':
-            return question._hasErrors;
+                return question._hasErrors;
         case 'needs-review':
-            return question._needsCategoryConfirm;
+                return question._needsCategoryConfirm;
         case 'warnings':
-            return question._hasWarnings;
+                return question._hasWarnings;
         case 'auto':
-            return question._autoMatched;
+                return question._autoMatched;
         case 'low-confidence':
-            return question._needsCategoryConfirm && !question._suggestedCategory;
+                return question._isUndefined;
         default:
-            return true;
+                return true;
+        }
+    })();
+
+    const categoryFilterEl = document.getElementById('previewCategoryFilter');
+    if (categoryFilterEl) {
+        previewCategoryFilter = categoryFilterEl.value;
     }
+
+    if (!matchesStateFilter) return false;
+
+    if (!previewCategoryFilter || previewCategoryFilter === 'all') return true;
+
+    if (previewCategoryFilter === '__uncategorized__') {
+        return question._isUndefined || !String(question.category || '').trim();
+    }
+
+    return String(question.category || '').trim() === previewCategoryFilter;
 }
 
 function handleSelectAllToggle(event) {
