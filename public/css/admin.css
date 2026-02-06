@@ -275,6 +275,47 @@
     vertical-align: middle;
 }
 
+.importer-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-color);
+    background: var(--bg-hover);
+}
+
+.importer-toolbar .toolbar-group {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+.importer-category-cell {
+    vertical-align: middle;
+}
+
+.importer-category-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.importer-category-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.btn-compact {
+    padding: 4px 8px;
+    font-size: 0.72rem;
+    line-height: 1.2;
+    border-radius: 6px;
+}
+
 .question-actions {
     display: flex;
     gap: 6px;
@@ -316,6 +357,28 @@
 }
 
 @media (max-width: 768px) {
+    .importer-toolbar {
+        align-items: stretch;
+    }
+
+    .importer-toolbar .toolbar-group {
+        width: 100%;
+    }
+
+    .importer-toolbar .toolbar-group .btn,
+    .importer-toolbar .toolbar-group .form-select {
+        flex: 1 1 100%;
+    }
+
+    .importer-category-controls {
+        gap: 8px;
+    }
+
+    .importer-category-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
     .question-actions {
         flex-wrap: wrap;
     }
@@ -2152,4 +2215,3 @@ tr.highlight {
     gap: 4px;
     margin-top: 4px;
 }
-
