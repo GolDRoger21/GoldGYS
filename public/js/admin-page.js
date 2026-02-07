@@ -18,7 +18,10 @@ import { showConfirm, showToast } from "./notifications.js";
 
 // --- SAYFA BAŞLANGICI ---
 let currentRole = null;
-document.addEventListener("DOMContentLoaded", async () => {
+
+export async function init() {
+    console.log("Admin page init started");
+
     try {
         // 1. Arayüzü Yükle
         await initLayout();
@@ -76,7 +79,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         console.error("Başlatma Hatası:", error);
         showToast(`Panel yüklenirken bir hata oluştu: ${error.message}`, "error");
     }
-});
+}
 
 // --- DİĞER FONKSİYONLAR (Aynı kalabilir) ---
 function activateTab(tabId, role) {

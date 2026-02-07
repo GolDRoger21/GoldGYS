@@ -829,13 +829,21 @@ async function loadPageScript(path) {
             // Dinamik import ile modülü yükle
             const module = await import(scriptPath);
 
-            // init fonksiyonunu çağır
-            if (module.init && typeof module.init === 'function') {
-                await module.init();
-            } else if (module.initProfilePage && typeof module.initProfilePage === 'function') {
-                // Özel durum: Profile page için
-                await module.initProfilePage();
-            }
+            // init fonksiyonunu çağır with timeout
+            const initPromise = (async () => {
+                if (module.init && typeof module.init === 'function') {
+                    await module.init();
+                } else if (module.initProfilePage && typeof module.initProfilePage === 'function') {
+                    await module.initProfilePage();
+                }
+            })();
+
+            // 10 saniyelik timeout (Firestore soğuk başlangıcı bazen uzun sürebilir)
+            const timeoutPromise = new Promise((_, reject) =>
+                setTimeout(() => reject(new Error("Script initialization timed out")), 10000)
+            );
+
+            await Promise.race([initPromise, timeoutPromise]);
 
             // Temizlik fonksiyonunu sakla (eğer varsa)
             if (module.cleanup && typeof module.cleanup === 'function') {
@@ -846,6 +854,10 @@ async function loadPageScript(path) {
             console.log(`Page script loaded and initialized: ${scriptPath}`);
         } catch (e) {
             console.error(`Failed to load/init script ${scriptPath}:`, e);
+            if (e.message === "Script initialization timed out") {
+                // Timeout durumunda kullanıcıya bilgi ver ama uygulamayı kırma (belki arka planda yüklenir)
+                console.warn("Script yüklemesi zaman aşımına uğradı, ancak işlem devam ediyor olabilir.");
+            }
         }
     }
 }
