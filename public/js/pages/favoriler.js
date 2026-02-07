@@ -1,14 +1,16 @@
-import { db, auth } from '../firebase-config.js';
-import { showConfirm, showToast } from '../notifications.js';
-import { CacheManager } from '../cache-manager.js';
-import { collection, getDocs, deleteDoc, doc, where, documentId, query, limit, startAfter, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { auth } from '../firebase-config.js';
+import { showToast } from '../notifications.js';
+import { db } from '../firebase-config.js';
+import { collection, query, where, getDocs, doc, getDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { CacheManager } from "../modules/cache-manager.js";
 
 const INITIAL_STATE = {
-    favorites: [],
+    allFavorites: [], // All favorites loaded from DB/cache
+    favorites: [], // Currently displayed favorites (after pagination/load more)
     filtered: [],
     categories: new Map(),
-    lastVisible: null,
+    visibleCount: 0, // For pagination
     isLoading: false,
     hasMore: true,
     PAGE_SIZE: 20
@@ -21,8 +23,9 @@ let unsubscribeAuth = null;
 export async function init() {
     console.log('Favoriler sayfası başlatılıyor...');
 
-    // 1. State'i Sıfırla
+    // 1. State ve UI'ı Sıfırla
     resetState();
+    ui = {}; // UI referanslarını temizle
 
     // UI referanslarını güncelle
     ui = {
@@ -36,7 +39,8 @@ export async function init() {
         clearFilters: document.getElementById('btnClearFilters'),
         btnSolveAllExam: document.getElementById('btnSolveAllExam'),
         btnSolveAllPractice: document.getElementById('btnSolveAllPractice'),
-        loadMoreBtn: null
+        loadMoreBtn: null,
+        favoritesList: document.getElementById('favoritesList') // Added for new loadFavorites
     };
 
     attachEventListeners();
@@ -48,8 +52,19 @@ export async function init() {
 
     unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
         if (user) {
-            await loadFavorites(user.uid, true);
+            await loadFavorites(user.uid); // Changed to new loadFavorites
             document.body.style.visibility = 'visible';
+        } else {
+            // Kullanıcı çıkış yaptığında veya oturum yoksa state'i temizle
+            resetState();
+            if (ui.list) ui.list.innerHTML = '<div class="empty-state">Favorileri görmek için giriş yapmalısınız.</div>';
+            if (ui.totalFavorites) ui.totalFavorites.textContent = '0';
+            if (ui.totalCategories) ui.totalCategories.textContent = '0';
+            if (ui.filteredCount) ui.filteredCount.textContent = '0';
+            if (ui.categoryGrid) ui.categoryGrid.innerHTML = '';
+            populateCategorySelect(); // Select'i sıfırla
+            setSolveButtonsEnabled(false);
+            document.body.style.visibility = 'visible'; // UI'ı göster
         }
     });
 
@@ -66,8 +81,10 @@ export function cleanup() {
         unsubscribeAuth();
         unsubscribeAuth = null;
     }
-    state = { ...INITIAL_STATE }; // Memory release
-    ui = {};
+    resetState(); // State'i tamamen sıfırla
+    ui = {}; // UI referanslarını temizle
+    // Cache'i temizlemek isteyebiliriz, ancak bu modül özelinde değil, genel bir CacheManager temizliği olabilir.
+    // CacheManager.clearAll(); // Eğer tüm cache'i temizlemek isteniyorsa
 }
 
 function resetState() {
@@ -90,13 +107,13 @@ function attachEventListeners() {
 
     if (ui.btnSolveAllExam) {
         ui.btnSolveAllExam.addEventListener('click', () => {
-            startCustomTest(state.favorites.map(item => item.questionId), 'Favoriler - Karma Test', 'exam', true);
+            startCustomTest(state.filtered.map(item => item.id), 'Favoriler - Karma Test', 'exam', true);
         });
     }
 
     if (ui.btnSolveAllPractice) {
         ui.btnSolveAllPractice.addEventListener('click', () => {
-            startCustomTest(state.favorites.map(item => item.questionId), 'Favoriler - Karma Öğrenme', 'practice', true);
+            startCustomTest(state.filtered.map(item => item.id), 'Favoriler - Karma Öğrenme', 'practice', true);
         });
     }
 
@@ -114,7 +131,7 @@ function attachEventListeners() {
                 return;
             }
 
-            const ids = state.favorites.filter(item => item.category === category).map(item => item.questionId);
+            const ids = state.allFavorites.filter(item => item.category === category).map(item => item.id);
             const title = `Favoriler - ${category}`;
             const mode = action === 'exam' ? 'exam' : 'practice';
             startCustomTest(ids, title, mode, true);
@@ -126,15 +143,11 @@ function attachEventListeners() {
             const button = event.target.closest('button[data-action]');
             if (!button || button.disabled) return;
             const action = button.dataset.action;
-            const id = button.dataset.id;
-            const questionId = button.dataset.id; // Some buttons use dataset.id for questionId, others use dataset.question (which is not consistent in original code, but 'solve' uses dataset.id -> questionId)
-            // Correction based on original code analysis:
-            // remove: dataset.id (favorite doc id?) No, remove needs id but originally `removeFavorite(id)` was called using `item.id`.
-            // toggle: dataset.id (questionId)
-            // solve: dataset.id (questionId)
+            const id = button.dataset.id; // This is the questionId for solve/toggle
+            const favoriteDocId = button.dataset.favdocid; // This is the favorite document ID for remove
 
             if (action === 'load-more') {
-                loadFavorites(auth.currentUser.uid, false);
+                loadMoreFavorites();
                 return;
             }
 
@@ -148,98 +161,103 @@ function attachEventListeners() {
                 button.textContent = details.classList.contains('is-open') ? 'Detayı Gizle' : 'Detayı Gör';
             }
             if (action === 'remove') {
-                removeFavorite(id);
+                if (favoriteDocId) {
+                    removeFavorite(favoriteDocId, id); // Pass both favorite doc ID and question ID
+                } else {
+                    console.error("Favori doküman ID'si bulunamadı.");
+                    showToast('Favori kaldırılamadı: Doküman ID eksik.', 'error');
+                }
             }
         });
     }
 }
 
-async function loadFavorites(uid, isInitial = false) {
-    if (state.isLoading || (!state.hasMore && !isInitial)) return;
+async function loadFavorites(uid) {
+    if (state.isLoading) return;
     state.isLoading = true;
 
-    // Eğer ilk yüklemeyse UI'ı temizle
-    if (isInitial) {
-        if (ui.list) ui.list.innerHTML = '<div class="card p-4 text-center">Yükleniyor...</div>';
-        state.favorites = [];
-        state.categories.clear();
-        state.lastVisible = null;
-        state.hasMore = true;
-    } else {
-        // Yükleniyor butonu göster
-        const existingBtn = document.getElementById('btnLoadMore');
-        if (existingBtn) existingBtn.textContent = 'Yükleniyor...';
-    }
+    // Clear list but keep loading state visible if desired, or show spinner
+    if (ui.favoritesList) ui.favoritesList.innerHTML = '<div class="text-center p-5"><div class="spinner-border text-primary" role="status"></div><div class="mt-2">Favoriler yükleniyor...</div></div>';
 
     try {
-        let q = query(
-            collection(db, `users/${uid}/favorites`),
-            // orderBy('addedAt', 'desc'), // Eğer addedAt varsa eklenmeli, şimdilik default
-            limit(state.PAGE_SIZE)
-        );
+        const cacheKey = `favorites_${uid}`;
+        let favoritesData = CacheManager.get(cacheKey);
 
-        if (state.lastVisible) {
-            q = query(q, startAfter(state.lastVisible));
+        if (!favoritesData) {
+            // 1. Kullanıcının favorilerini çek
+            const q = query(collection(db, `users/${uid}/favorites`)); // Removed where("isActive", "==", true) as it's not in original code
+            const snapshot = await getDocs(q);
+
+            if (snapshot.empty) {
+                renderEmptyState();
+                state.isLoading = false;
+                return;
+            }
+
+            const rawFavorites = snapshot.docs.map(docSnap => ({
+                favDocId: docSnap.id, // Store the favorite document ID
+                questionId: docSnap.data().questionId || docSnap.id,
+                data: docSnap.data()
+            }));
+
+            // 2. Soru detaylarını çek (Cache -> Firestore)
+            const activeQuestions = await fetchActiveQuestionsEfficiently(rawFavorites.map(fav => fav.questionId));
+
+            // Veriyi zenginleştir
+            favoritesData = rawFavorites.map(fav => {
+                const question = activeQuestions.get(fav.questionId) || {};
+                const fallback = fav.data || {};
+                return {
+                    favDocId: fav.favDocId, // Favorite document ID
+                    id: fav.questionId, // Question ID
+                    category: question.category || fallback.category || 'Genel',
+                    text: question.text || fallback.text || 'Soru metni yüklenemedi.',
+                    questionRoot: question.questionRoot || fallback.questionRoot || null,
+                    onculler: question.onculler || fallback.onculler || [],
+                    options: question.options || fallback.options || [],
+                    correctOption: question.correctOption || fallback.correctOption || null,
+                    solution: question.solution || fallback.solution || {}
+                };
+            });
+
+            CacheManager.set(cacheKey, favoritesData, 5 * 60 * 1000); // Cache for 5 minutes
+        } else {
+            console.log("Favorites loaded from cache");
         }
 
-        const snapshot = await Promise.race([
-            getDocs(q),
-            new Promise((_, reject) => setTimeout(() => reject(new Error("Favoriler yüklenirken zaman aşımı oluştu.")), 8000))
-        ]);
+        state.allFavorites = favoritesData;
+        state.visibleCount = Math.min(state.PAGE_SIZE, state.allFavorites.length);
+        state.favorites = state.allFavorites.slice(0, state.visibleCount);
+        state.hasMore = state.allFavorites.length > state.visibleCount;
 
-        if (snapshot.empty) {
-            state.hasMore = false;
-            if (isInitial) renderEmptyState();
-            else updateLoadMoreButton(); // Butonu kaldır
-            state.isLoading = false;
-            return;
-        }
-
-        state.lastVisible = snapshot.docs[snapshot.docs.length - 1];
-
-        const rawFavorites = snapshot.docs.map(docSnap => ({
-            id: docSnap.id,
-            questionId: docSnap.data().questionId || docSnap.id,
-            data: docSnap.data()
-        }));
-
-        // Soruları Çek (Cache -> Firestore)
-        const activeQuestions = await fetchActiveQuestionsEfficiently(rawFavorites.map(fav => fav.questionId));
-
-        // Veriyi zenginleştir
-        const newFavorites = rawFavorites.map(fav => {
-            const question = activeQuestions.get(fav.questionId) || {};
-            const fallback = fav.data || {};
-            return {
-                id: fav.id, // This is expected to be the favorite doc ID or questionID? Original code used removeFavorite(id) but dataset.id was item.id. Let's assume item.id is favorite doc ID.
-                // Wait, removeFavorite logic: `deleteDoc(doc(db, users/${uid}/favorites, id))` -> so it needs favorite doc ID.
-                questionId: fav.questionId,
-                category: question.category || fallback.category || 'Genel',
-                text: question.text || fallback.text || 'Soru metni yüklenemedi.',
-                questionRoot: question.questionRoot || fallback.questionRoot || null,
-                onculler: question.onculler || fallback.onculler || [],
-                options: question.options || fallback.options || [],
-                correctOption: question.correctOption || fallback.correctOption || null,
-                solution: question.solution || fallback.solution || {}
-            };
-        });
-
-        state.favorites = [...state.favorites, ...newFavorites];
-
-        // Kategori verisini güncelle
         buildCategoryData();
         populateCategorySelect();
         renderCategoryCards();
-
-        // Listeyi güncelle
-        applyFilters();
-
+        applyFilters(); // This will call renderFavoritesList and update counts
+        setSolveButtonsEnabled(state.allFavorites.length > 0);
         state.isLoading = false;
+
     } catch (error) {
         console.error("Favoriler yüklenirken hata:", error);
-        if (ui.list) ui.list.innerHTML = '<div class="text-danger">Hata oluştu. Lütfen sayfayı yenileyin.</div>';
+        if (ui.favoritesList) ui.favoritesList.innerHTML = `<div class="text-danger p-3">Veriler alınamadı: ${error.message}</div>`;
         state.isLoading = false;
     }
+}
+
+async function loadMoreFavorites() {
+    if (state.isLoading || !state.hasMore) return;
+    state.isLoading = true;
+
+    const existingBtn = document.getElementById('btnLoadMore');
+    if (existingBtn) existingBtn.textContent = 'Yükleniyor...';
+
+    const nextVisibleCount = state.visibleCount + state.PAGE_SIZE;
+    state.favorites = state.allFavorites.slice(0, nextVisibleCount);
+    state.visibleCount = nextVisibleCount;
+    state.hasMore = state.allFavorites.length > state.visibleCount;
+
+    applyFilters(); // Re-render with more items
+    state.isLoading = false;
 }
 
 // Cache Öncelikli Soru Çekme

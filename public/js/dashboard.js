@@ -3,9 +3,12 @@
 import { auth, db } from "./firebase-config.js";
 import { getUserProfile, getLastActivity, getRecentActivities } from "./user-profile.js";
 import { collection, doc, getDoc, getDocs, limit, orderBy, query, where, Timestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { CacheManager } from "./modules/cache-manager.js";
 
-// UI Elementleri
-const ui = {};
+// UI Elementleri (Init içinde sıfırlanacak)
+let ui = {};
+let examCountdownInterval = null;
+
 
 function refreshUI() {
     ui.loader = document.getElementById("pageLoader");
@@ -25,10 +28,10 @@ function refreshUI() {
     ui.wrongTodayCount = document.getElementById("wrongTodayCount");
 }
 
-let examCountdownInterval = null;
-
 export async function init() {
     try {
+        // Reset state
+        ui = {};
         refreshUI();
         if (ui.loaderText) ui.loaderText.textContent = "Sistem başlatılıyor...";
 
@@ -81,10 +84,8 @@ export function cleanup() {
         clearInterval(examCountdownInterval);
         examCountdownInterval = null;
     }
-    // Clear UI references to avoid holding on to detached DOM elements
-    for (const key in ui) {
-        ui[key] = null;
-    }
+    // Clear UI references
+    ui = {};
 }
 
 // Backwards compatibility for full reload if needed, but module execution shouldn't rely on it event listener if called by loader
@@ -105,12 +106,25 @@ async function loadDashboardStats(uid) {
     if (!uid) return;
 
     try {
-        // Bugünün istatistikleri
-        const todayRange = getTodayRange();
-        const todayStats = await fetchExamStats(uid, { range: todayRange });
+        const cacheKey = `dashboard_stats_${uid}`;
+        let cachedStats = CacheManager.get(cacheKey);
 
-        // Genel istatistikler
-        const totalStats = await fetchExamStats(uid);
+        let todayStats, totalStats;
+
+        if (cachedStats) {
+            console.log("Dashboard stats loaded from cache");
+            ({ todayStats, totalStats } = cachedStats);
+        } else {
+            console.log("Fetching dashboard stats from Firestore...");
+            // Bugünün istatistikleri
+            const todayRange = getTodayRange();
+            todayStats = await fetchExamStats(uid, { range: todayRange });
+
+            // Genel istatistikler
+            totalStats = await fetchExamStats(uid);
+
+            CacheManager.set(cacheKey, { todayStats, totalStats }, 5 * 60 * 1000); // 5 dk cache
+        }
 
         // UI Güncelleme
         if (ui.solvedTodayCount) ui.solvedTodayCount.textContent = todayStats.total || 0;
@@ -201,8 +215,9 @@ function showSmartTip() {
 
     const tipDiv = document.createElement('div');
     tipDiv.className = 'alert alert-info mb-4';
-    tipDiv.style.background = 'rgba(59, 130, 246, 0.1)';
-    tipDiv.style.border = '1px solid rgba(59, 130, 246, 0.2)';
+    // Use CSS variables for theme compatibility
+    tipDiv.style.background = 'var(--bg-info-subtle, rgba(59, 130, 246, 0.1))';
+    tipDiv.style.border = '1px solid var(--border-info-subtle, rgba(59, 130, 246, 0.2))';
     tipDiv.style.color = 'var(--text-main)';
     tipDiv.innerHTML = randomTip;
 
@@ -436,7 +451,13 @@ async function loadRecentActivities(uid) {
     if (!ui.recentActivityList) return;
 
     try {
-        const activities = await getRecentActivities(uid, 4);
+        const cacheKey = `recent_activities_${uid}`;
+        let activities = CacheManager.get(cacheKey);
+
+        if (!activities) {
+            activities = await getRecentActivities(uid, 4);
+            CacheManager.set(cacheKey, activities, 2 * 60 * 1000); // 2 dk cache
+        }
 
         if (!activities.length) {
             ui.recentActivityList.innerHTML = `

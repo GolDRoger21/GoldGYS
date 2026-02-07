@@ -3,6 +3,23 @@
 @import url("/css/typography.css");
 
 /* --- ANA TEMA DEĞİŞKENLERİ --- */
+/* Fallback/Additional Variables if not in tokens.css */
+:root {
+    --bg-info-subtle: rgba(59, 130, 246, 0.1);
+    --border-info-subtle: rgba(59, 130, 246, 0.2);
+    --bg-surface: #ffffff;
+    --bg-hover: #f8fafc;
+    --text-main: #0f172a;
+    --color-primary: #d4af37;
+}
+
+[data-theme="dark"] {
+    --bg-info-subtle: rgba(59, 130, 246, 0.15);
+    --border-info-subtle: rgba(59, 130, 246, 0.3);
+    --bg-surface: #1e293b;
+    --bg-hover: #334155;
+    --text-main: #f1f5f9;
+}
 /* --- VARIABLES NOW IN TOKENS.CSS --- */
 
 /* --- HAREKETLİ ALTIN ANİMASYONU --- */

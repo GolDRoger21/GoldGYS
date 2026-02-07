@@ -2,6 +2,7 @@ import { auth } from '../firebase-config.js';
 import { showToast } from '../notifications.js';
 import { WrongSummaryService } from '../wrong-summary-service.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { CacheManager } from "../modules/cache-manager.js";
 
 const INITIAL_STATE = {
     allMistakes: [],
@@ -136,10 +137,20 @@ async function loadMistakes(uid) {
     state.allMistakes = [];
 
     try {
-        const summary = await Promise.race([
-            WrongSummaryService.getUserWrongSummary(uid),
-            new Promise((_, reject) => setTimeout(() => reject(new Error("Yanlışlarınız yüklenirken zaman aşımı oluştu.")), 8000))
-        ]);
+        const cacheKey = `wrong_summary_${uid}`;
+        let summary = CacheManager.get(cacheKey);
+
+        if (!summary) {
+            console.log("Fetching wrong summary...");
+            summary = await Promise.race([
+                WrongSummaryService.getUserWrongSummary(uid),
+                new Promise((_, reject) => setTimeout(() => reject(new Error("Yanlışlarınız yüklenirken zaman aşımı oluştu.")), 8000))
+            ]);
+            // Cache it briefly
+            CacheManager.set(cacheKey, summary, 2 * 60 * 1000);
+        } else {
+            console.log("Wrong summary loaded from cache");
+        }
 
         if (!summary.length) {
             renderEmptyState();

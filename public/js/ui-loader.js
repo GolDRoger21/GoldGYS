@@ -934,42 +934,51 @@ async function loadPageScript(path) {
     let scriptPath = null;
     const { config, normalizedPath } = getConfigForPath(path);
 
-    // Admin catch-all rule: if path starts with /admin and no specific config, use admin-page.js
+    // Admin catch-all rule
     if (!config && normalizedPath.startsWith('/admin')) {
         scriptPath = '/js/admin-page.js';
     } else if (config) {
         scriptPath = config.script;
     }
 
-    // Script yoksa çık (Örn: Sadece statik sayfa)
+    // Script yoksa çık
     if (!scriptPath) return;
 
     try {
-        // Önceki sayfanın temizliğini yap
+        // A. Önceki Sayfa Temizliği (Strict Cleanup)
         if (currentCleanupFunction) {
             try {
-                currentCleanupFunction();
+                // Cleanup semkron veya asenkron olabilir, await ile garantiye alalım
+                await Promise.resolve(currentCleanupFunction());
+                console.log('Previous page cleaned up.');
             } catch (cleanupError) {
-                console.warn("Önceki sayfa temizlenirken hata:", cleanupError);
+                console.warn("Önceki sayfa temizlenirken hata (göz ardı ediliyor):", cleanupError);
             }
             currentCleanupFunction = null;
         }
 
-        // Scripti dinamik import et
+        // B. Scripti Dinamik Import Et
+        // Cache-busting: Modülün tekrar çalışmasını garanti etmek için (özellikle development'ta)
+        // Production'da bu browser önbelleğini bypass edebilir, dikkatli olunmalı.
+        // Şimdilik sadece timestamp ekleyerek modülün yeniden değerlendirilmesini SAĞLAMIYORUZ çünkü
+        // ES Module standartlarında import edilen URL aynıysa modül tekrar execute edilmez.
+        // Ancak bizim `init()` fonksiyonumuz var, bu yüzden modül referansı almak yeterli.
+
         console.log(`Loading script: ${scriptPath}`);
         const module = await import(scriptPath);
 
-        // Varsa init fonksiyonunu çalıştır
+        // C. Yeni Sayfa Başlatma (Init)
         if (module.init) {
             await module.init();
         } else if (module.default && typeof module.default.init === 'function') {
-            // Handle default export with init
             await module.default.init();
         }
 
-        // Varsa cleanup fonksiyonunu sakla
+        // D. Cleanup Fonksiyonunu Kaydet
         if (module.cleanup) {
             currentCleanupFunction = module.cleanup;
+        } else if (module.default && typeof module.default.cleanup === 'function') {
+            currentCleanupFunction = module.default.cleanup;
         }
 
         loadedScripts.add(scriptPath);
@@ -982,15 +991,20 @@ async function loadPageScript(path) {
         if (mainContent) {
             const errorDiv = document.createElement('div');
             errorDiv.className = 'alert alert-danger m-4';
+            errorDiv.role = 'alert';
             errorDiv.innerHTML = `
-                <h4>Sayfa Yüklenemedi</h4>
-                <p>Üzgünüz, sayfa işlevleri yüklenirken bir hata oluştu.</p>
-                <small class="text-muted">${error.message}</small>
+                <h4 class="alert-heading">Sayfa Yüklenemedi</h4>
+                <p>Sayfa bileşenleri yüklenirken bir sorun oluştu.</p>
+                <hr>
+                <p class="mb-0 small text-muted">${error.message}</p>
                 <div class="mt-3">
                     <button onclick="window.location.reload()" class="btn btn-sm btn-outline-danger">Sayfayı Yenile</button>
+                    <a href="/dashboard" class="btn btn-sm btn-outline-secondary ms-2">Ana Sayfaya Dön</a>
                 </div>
             `;
-            mainContent.prepend(errorDiv); // İçeriğin başına ekle
+            // İçeriği silip hatayı gösterelim ki bozuk UI kalmasın
+            mainContent.innerHTML = '';
+            mainContent.appendChild(errorDiv);
         }
     }
 }

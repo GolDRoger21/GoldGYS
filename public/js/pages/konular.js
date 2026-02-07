@@ -1,6 +1,7 @@
 import { db, auth } from '../firebase-config.js';
 import { collection, getDocs, query, orderBy, getCountFromServer, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { CacheManager } from "../modules/cache-manager.js";
 
 let allTopics = [];
 let userStats = {}; // { topicId: { solved: 10, correct: 8 } }
@@ -91,23 +92,38 @@ async function loadUserStats(uid) {
 
 async function loadTopics() {
     try {
-        const q = query(collection(db, "topics"), orderBy("order", "asc"));
+        let cachedTopics = CacheManager.get('all_topics_with_counts');
 
-        // Timeout Eklemesi
-        const snapshot = await Promise.race([
-            getDocs(q),
-            new Promise((_, reject) => setTimeout(() => reject(new Error("Konular yüklenirken zaman aşımı oluştu.")), 8000))
-        ]);
+        if (cachedTopics) {
+            console.log("Topics loaded from cache");
+            allTopics = cachedTopics.topics;
+            questionCounts = new Map(cachedTopics.counts); // Map serialization needs handling
+        } else {
+            console.log("Fetching topics from Firestore...");
+            const q = query(collection(db, "topics"), orderBy("order", "asc"));
 
-        allTopics = [];
-        snapshot.forEach(doc => {
-            const data = doc.data();
-            if (data.isActive) {
-                allTopics.push({ id: doc.id, ...data });
-            }
-        });
+            const snapshot = await Promise.race([
+                getDocs(q),
+                new Promise((_, reject) => setTimeout(() => reject(new Error("Konular yüklenirken zaman aşımı oluştu.")), 8000))
+            ]);
 
-        await loadQuestionCounts(allTopics);
+            allTopics = [];
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                if (data.isActive) {
+                    allTopics.push({ id: doc.id, ...data });
+                }
+            });
+
+            await loadQuestionCounts(allTopics);
+
+            // Map cannot be JSON stringified directly
+            CacheManager.set('all_topics_with_counts', {
+                topics: allTopics,
+                counts: Array.from(questionCounts.entries())
+            }, 60 * 60 * 1000); // 1 hour cache
+        }
+
         renderTopics(allTopics);
 
     } catch (error) {

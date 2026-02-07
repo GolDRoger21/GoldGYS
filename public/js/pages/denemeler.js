@@ -1,6 +1,7 @@
 import { db } from "../firebase-config.js";
-import { initLayout } from '../ui-loader.js'; // Imported but mostly handled by ui-loader itself
+import { initLayout } from '../ui-loader.js';
 import { collection, getDocs, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { CacheManager } from "../modules/cache-manager.js";
 
 const INITIAL_STATE = {
     exams: []
@@ -11,16 +12,28 @@ let abortController = null;
 export async function init() {
     console.log('Denemeler sayfası başlatılıyor...');
 
-    // Reset state
+    // Reset state & Cleanup old controller if exists (though loader should have called cleanup)
+    if (abortController) {
+        abortController.abort();
+    }
     state = { ...INITIAL_STATE };
-
     abortController = new AbortController();
     const signal = abortController.signal;
+
+    // UI'yi temizle (skeleton gösterimi için)
+    const grid = document.getElementById('examsGrid');
+    if (grid) {
+        grid.innerHTML = `
+            <div class="skeleton"></div>
+            <div class="skeleton"></div>
+            <div class="skeleton"></div>
+        `;
+    }
 
     // Event listeners
     attachEventListeners(signal);
 
-    await loadExams();
+    await loadExams(signal);
 }
 
 export function cleanup() {
@@ -153,45 +166,57 @@ const showEmptyExamsState = () => {
     }
 };
 
-const loadExams = async () => {
+const loadExams = async (signal) => {
     const grid = document.getElementById('examsGrid');
-    if (grid) {
-        grid.innerHTML = `
-            <div class="skeleton"></div>
-            <div class="skeleton"></div>
-            <div class="skeleton"></div>
-        `;
-    }
+    // Grid zaten init'te skeleton ile dolduruldu, burada tekrar yazmaya gerek yok
+    // Ancak hata durumunda veya boş durumda güncellenecek
 
     try {
-        const q = query(
-            collection(db, "exams"),
-            where("isActive", "==", true),
-            orderBy("createdAt", "desc")
-        );
+        let exams = CacheManager.get('exams_list');
 
-        const snapshot = await Promise.race([
-            getDocs(q),
-            new Promise((_, reject) => setTimeout(() => reject(new Error("Denemeler yüklenirken zaman aşımı oluştu.")), 8000))
-        ]);
+        if (!exams) {
+            console.log("Fetching exams locally...");
+            const q = query(
+                collection(db, "exams"),
+                where("isActive", "==", true),
+                orderBy("createdAt", "desc")
+            );
 
-        if (snapshot.empty) {
-            state.exams = [];
+            const snapshot = await getDocs(q); // getDocs doesn't natively support signal in v9 lite SDK easily but we can check signal after
+
+            if (signal && signal.aborted) return;
+
+            exams = snapshot.docs.map((docSnap) => ({
+                id: docSnap.id,
+                ...docSnap.data()
+            }));
+
+            // Timestamp convert for caching (Firestore timestamps are objects, need serialization friendly format if deep)
+            // But CacheManager stores as JSON. JSON.stringify handles basic objects. 
+            // Firestore timestamps .toDate() might need handling if we rely on it later.
+            // Our formatDate function handles seconds/nanoseconds.
+
+            CacheManager.set('exams_list', exams, 5 * 60 * 1000);
+        } else {
+            console.log("Exams loaded from cache");
+        }
+
+        if (signal && signal.aborted) return;
+
+        state.exams = exams;
+
+        if (!state.exams.length) {
             renderStats(state.exams);
             updateRoleFilter(state.exams);
             showEmptyExamsState();
             return;
         }
 
-        state.exams = snapshot.docs.map((docSnap) => ({
-            id: docSnap.id,
-            ...docSnap.data()
-        }));
-
         renderStats(state.exams);
         updateRoleFilter(state.exams);
         renderExams(state.exams);
     } catch (error) {
+        if (signal && signal.aborted) return;
         console.error("Hata:", error);
         if (grid) grid.innerHTML = `<div class="empty-state">Bağlantı hatası: ${error.message}</div>`;
     }
