@@ -2,6 +2,7 @@
 <html lang="tr">
 
 <head>
+    <script src="/js/theme-init.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Test Çöz | GOLD GYS</title>
@@ -1192,6 +1193,7 @@
             const themeToggle = document.getElementById('themeToggle');
             const savedTheme = localStorage.getItem('theme') || 'dark';
             document.documentElement.setAttribute('data-theme', savedTheme);
+            document.documentElement.style.colorScheme = savedTheme;
             updateThemeIcon(savedTheme);
 
             if (themeToggle) {
@@ -1199,6 +1201,7 @@
                     const current = document.documentElement.getAttribute('data-theme') || 'dark';
                     const next = current === 'dark' ? 'light' : 'dark';
                     document.documentElement.setAttribute('data-theme', next);
+                    document.documentElement.style.colorScheme = next;
                     localStorage.setItem('theme', next);
                     updateThemeIcon(next);
                 });
