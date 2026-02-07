@@ -1,5 +1,4 @@
 import { db } from "../firebase-config.js";
-import { initLayout } from '../ui-loader.js';
 import { collection, getDocs, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { CacheManager } from "../modules/cache-manager.js";
 

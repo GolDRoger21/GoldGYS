@@ -52,5 +52,27 @@ export const CacheManager = {
                 sessionStorage.removeItem(key);
             }
         });
+    },
+
+    // --- Question Cache Helpers (Session-level) ---
+    // Use sessionStorage to avoid extra Firestore reads within the same session.
+    async saveQuestion(question, ttl = 24 * 60 * 60 * 1000) {
+        if (!question?.id) return;
+        const key = `question_${question.id}`;
+        this.set(key, question, ttl);
+    },
+
+    async getQuestion(id) {
+        if (!id) return null;
+        return this.get(`question_${id}`);
+    },
+
+    async getQuestions(ids = []) {
+        const results = new Map();
+        ids.forEach((id) => {
+            const cached = this.get(`question_${id}`);
+            if (cached) results.set(id, cached);
+        });
+        return results;
     }
 };

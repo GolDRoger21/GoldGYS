@@ -7,6 +7,8 @@ let allTopics = [];
 let userStats = {}; // { topicId: { solved: 10, correct: 8 } }
 let questionCounts = new Map(); // { topicId: count }
 let unsubscribeAuth = null;
+const QUESTION_COUNT_CACHE_KEY = 'topic_question_counts_v2';
+const QUESTION_COUNT_CACHE_TTL = 24 * 60 * 60 * 1000; // 24 saat
 
 export async function init() {
     console.log('Konular sayfası başlatılıyor...');
@@ -74,6 +76,13 @@ function attachEventListeners() {
     };
 }
 
+function getCurrentFilter() {
+    const activeTab = document.querySelector('.tab-btn.active');
+    const category = activeTab?.dataset?.category || 'all';
+    const search = document.getElementById('searchInput')?.value.toLowerCase() || '';
+    return { category, search };
+}
+
 // Kullanıcı İstatistiklerini Çek (Mock veya Gerçek)
 async function loadUserStats(uid) {
     try {
@@ -115,7 +124,21 @@ async function loadTopics() {
                 }
             });
 
-            await loadQuestionCounts(allTopics);
+            // 1) Question counts: use cache or topic fields first for speed and quota savings
+            const cachedCounts = CacheManager.get(QUESTION_COUNT_CACHE_KEY);
+            if (cachedCounts && Array.isArray(cachedCounts)) {
+                questionCounts = new Map(cachedCounts);
+            }
+
+            // 2) If topics already have count fields, prefer them and avoid extra reads
+            allTopics.forEach((topic) => {
+                const countValue = Number.isFinite(topic.questionCount)
+                    ? topic.questionCount
+                    : (Number.isFinite(topic.questionCountActive) ? topic.questionCountActive : null);
+                if (Number.isFinite(countValue)) {
+                    questionCounts.set(topic.id, countValue);
+                }
+            });
 
             // Map cannot be JSON stringified directly
             CacheManager.set('all_topics_with_counts', {
@@ -124,7 +147,18 @@ async function loadTopics() {
             }, 60 * 60 * 1000); // 1 hour cache
         }
 
-        renderTopics(allTopics);
+        renderTopics(allTopics, getCurrentFilter());
+
+        // Count queries are expensive: run in background and cache for longer
+        const topicsMissingCounts = allTopics.filter(t => !questionCounts.has(t.id));
+        if (topicsMissingCounts.length > 0) {
+            loadQuestionCounts(topicsMissingCounts)
+                .then(() => {
+                    CacheManager.set(QUESTION_COUNT_CACHE_KEY, Array.from(questionCounts.entries()), QUESTION_COUNT_CACHE_TTL);
+                    renderTopics(allTopics, getCurrentFilter());
+                })
+                .catch(() => { /* ignore background count errors */ });
+        }
 
     } catch (error) {
         console.error("Hata:", error);
@@ -151,7 +185,7 @@ async function loadQuestionCounts(topics) {
             counts.set(topic.id, 0);
         }
     }));
-    questionCounts = counts;
+    counts.forEach((val, key) => questionCounts.set(key, val));
 }
 
 function renderTopics(topics, options = {}) {
@@ -193,7 +227,10 @@ function renderTopics(topics, options = {}) {
     }
 
     container.innerHTML = '';
-    const getQuestionCount = (id) => questionCounts.get(id) || 0;
+    const getQuestionCount = (id) => {
+        if (!questionCounts.has(id)) return null;
+        return questionCounts.get(id);
+    };
     visibleParents.forEach(t => {
         const iconRules = [
             { match: /anayasa|anayasal/i, icon: '⚖️' },
@@ -236,8 +273,12 @@ function renderTopics(topics, options = {}) {
         const progress = Math.min(100, Math.round((stats.solved / stats.total) * 100));
         const childrenTotal = (childrenByParent.get(t.id) || []).length;
         const questionTarget = t.totalQuestionTarget || stats.total || 0;
-        const totalQuestionCount = getQuestionCount(t.id)
-            + allChildrenForTotals.reduce((sum, child) => sum + getQuestionCount(child.id), 0);
+        const parentCount = getQuestionCount(t.id);
+        const childCounts = allChildrenForTotals.map(child => getQuestionCount(child.id));
+        const hasUnknown = [parentCount, ...childCounts].some(val => val === null);
+        const totalQuestionCount = (parentCount || 0)
+            + childCounts.reduce((sum, val) => sum + (val || 0), 0);
+        const totalQuestionLabel = hasUnknown ? `${totalQuestionCount}+` : `${totalQuestionCount}`;
 
         const card = document.createElement('a');
         card.href = `/konu/${encodeURIComponent(t.id)}`;
@@ -248,7 +289,7 @@ function renderTopics(topics, options = {}) {
                         ${childrenToShow.map(child => `
                             <a class="subtopic-link" href="/konu/${encodeURIComponent(child.id)}">
                                 <span>${child.title}</span>
-                                <span class="subtopic-meta">Sıra ${child.order || '-'} • ${getQuestionCount(child.id)} Soru</span>
+                                <span class="subtopic-meta">Sıra ${child.order || '-'} • ${getQuestionCount(child.id) ?? '—'} Soru</span>
                             </a>
                         `).join('')}
                     </div>
@@ -281,7 +322,7 @@ function renderTopics(topics, options = {}) {
                     <p class="topic-desc">${t.description || 'Konu açıklaması bulunmuyor.'}</p>
                     <div class="topic-meta">
                         <span class="topic-meta-item">📌 ${childrenTotal} Alt Konu</span>
-                        <span class="topic-meta-item">🧮 ${totalQuestionCount} Soru</span>
+                        <span class="topic-meta-item">🧮 ${totalQuestionLabel} Soru</span>
                         <span class="topic-meta-item">🎯 ${questionTarget} Hedef Soru</span>
                     </div>
                     ${subtopicsHtml}
