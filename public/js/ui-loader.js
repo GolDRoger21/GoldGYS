@@ -84,6 +84,11 @@ function getConfigForPath(path) {
     return { config: null, normalizedPath };
 }
 
+function resolveContentUrl(path) {
+    const { config } = getConfigForPath(path);
+    return config?.html || path;
+}
+
 export async function initLayout() {
     if (layoutInitPromise) return layoutInitPromise;
 
@@ -742,13 +747,7 @@ async function loadPageContent(url, { signal } = {}) {
     if (!mainContent) return;
 
     // 1. Config'den doğru HTML dosya yolunu bul
-    const { config } = getConfigForPath(url);
-
-    let contentUrl = url; // Varsayılan (fallback)
-
-    if (config && config.html) {
-        contentUrl = config.html;
-    }
+    const contentUrl = resolveContentUrl(url);
 
     try {
         const html = await fetchPageHTML(contentUrl, { signal });
@@ -775,18 +774,24 @@ async function loadPageContent(url, { signal } = {}) {
 
         // İçeriği güncelle
         // NOT: innerHTML değiştirmek mevcut event listenerları siler (ki istediğimiz bu)
-        mainContent.innerHTML = '';
+        if (!content) {
+            throw new Error('Sayfa içeriği bulunamadı.');
+        }
         if (content.tagName && content.tagName.toLowerCase() !== 'body') {
-            mainContent.appendChild(content.cloneNode(true));
+            mainContent.replaceChildren(content.cloneNode(true));
         } else {
             mainContent.innerHTML = content.innerHTML;
         }
+
+        syncBodyClasses(doc);
 
         // Sayfa başlığını da güncelle (gerekirse)
         const title = doc.querySelector('title');
         if (title) {
             document.title = title.innerText;
         }
+
+        document.body.style.visibility = 'visible';
 
     } catch (e) {
         if (e?.name === 'AbortError') return;
@@ -856,13 +861,14 @@ function setCachedPageHTML(url, html) {
 }
 
 function prefetchPage(url) {
-    if (pageFetches.has(url) || getCachedPageHTML(url)) return;
+    const contentUrl = resolveContentUrl(url);
+    if (pageFetches.has(contentUrl) || getCachedPageHTML(contentUrl)) return;
 
     // 1. HTML Prefetch
     const run = () => {
-        fetchPageHTML(url).catch((e) => {
+        fetchPageHTML(contentUrl).catch((e) => {
             if (e?.name !== 'AbortError') {
-                console.warn(`Prefetch failed for ${url}`, e);
+                console.warn(`Prefetch failed for ${contentUrl}`, e);
             }
         });
     };
@@ -881,6 +887,21 @@ function prefetchPage(url) {
     } else {
         setTimeout(run, 200);
     }
+}
+
+function syncBodyClasses(doc) {
+    if (!doc?.body) return;
+    const preservedClasses = new Set(['sidebar-collapsed', 'mobile-sidebar-active']);
+    const existingClasses = new Set(document.body.classList);
+    const nextClasses = new Set(doc.body.classList);
+
+    preservedClasses.forEach((cls) => {
+        if (existingClasses.has(cls)) {
+            nextClasses.add(cls);
+        }
+    });
+
+    document.body.className = Array.from(nextClasses).join(' ');
 }
 
 async function fetchPageHTML(url, { signal } = {}) {

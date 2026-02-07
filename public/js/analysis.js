@@ -3,7 +3,7 @@ import { collection, query, orderBy, limit, getDocs, doc, setDoc, getDoc, server
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { showConfirm, showToast } from "./notifications.js";
 
-const state = {
+const INITIAL_STATE = {
     userId: null,
     results: [],
     currentTopicId: null,
@@ -11,6 +11,8 @@ const state = {
     topicResets: {}
 };
 
+let state = { ...INITIAL_STATE };
+let unsubscribeAuth = null;
 let chartJsPromise = null;
 
 async function ensureChartJs() {
