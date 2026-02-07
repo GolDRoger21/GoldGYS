@@ -981,10 +981,10 @@ function renderPoolList() {
                     <div class="qc-text" style="font-size:0.8rem;">${shortText}</div>
                 </div>
                 <div class="qc-actions">
-                    <button class="btn-icon" style="background:#dcfce7; color:#166534;" 
+                    <button class="btn-icon bg-soft-success" 
                         onclick="event.stopPropagation(); window.Studio.wizard.add('${q.id}')" 
                         ${isAdded ? 'disabled style="opacity:0.5"' : ''} title="Teste Ekle">
-                        +
+                        ➕
                     </button>
                 </div>
             </div>`;
@@ -1033,8 +1033,8 @@ function renderTestPaper() {
                 ${answerText ? `<div class="qc-answer"><span class="qc-answer-label">Cevap:</span> ${answerText}</div>` : ''}
             </div>
             <div class="qc-actions">
-                <button class="btn-icon" style="background:#e0f2fe; color:#075985;" onclick="event.stopPropagation(); window.Studio.wizard.fullEdit('${q.id}')" title="Düzenle">✏️</button>
-                <button class="btn-icon delete" onclick="event.stopPropagation(); window.Studio.wizard.remove(${i})" title="Çıkar">🗑️</button>
+                <button class="btn-icon bg-soft-primary" onclick="event.stopPropagation(); window.Studio.wizard.fullEdit('${q.id}')" title="Düzenle">✏️</button>
+                <button class="btn-icon bg-soft-danger" onclick="event.stopPropagation(); window.Studio.wizard.remove(${i})" title="Çıkar">🗑️</button>
             </div>
         </div>`;
     }).join('');

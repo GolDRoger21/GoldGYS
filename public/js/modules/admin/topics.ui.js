@@ -3,16 +3,16 @@
 export const UI_SHELL = `
     <div class="section-header">
         <h2>📑 Konu Yönetimi</h2>
-        <div class="d-flex gap-2">
-            <button class="btn btn-primary btn-sm" onclick="window.Studio.open()">➕ Yeni Konu</button>
-            <button class="btn btn-outline-secondary btn-sm" onclick="window.Studio.trash.open()">🗑️ Çöp Kutusu</button>
+        <div class="qc-actions">
+            <button class="btn-icon bg-soft-primary" onclick="window.Studio.open()" title="Yeni Konu">➕</button>
+            <button class="btn-icon bg-soft-secondary" onclick="window.Studio.trash.open()" title="Çöp Kutusu">🗑️</button>
         </div>
     </div>
 
     <div class="card p-0">
-        <div class="p-3 border-bottom d-flex flex-wrap gap-2 align-items-center justify-content-between">
-            <div class="d-flex flex-wrap gap-2 align-items-center">
-                <input type="text" id="searchTopic" class="form-control form-control-sm" placeholder="Konu ara..." oninput="window.filterTopics()">
+        <div class="p-3 border-bottom d-flex flex-wrap gap-3 align-items-center justify-content-between">
+            <div class="d-flex flex-wrap gap-2 align-items-center flex-grow-1">
+                <input type="text" id="searchTopic" class="form-control form-control-sm" style="max-width: 250px;" placeholder="Konu ara..." oninput="window.filterTopics()">
                 <select id="filterCategory" class="form-select form-select-sm" onchange="window.filterTopics()">
                     <option value="all">Tüm Kategoriler</option>
                     <option value="ortak">Ortak Konular</option>
@@ -99,12 +99,16 @@ export const UI_SHELL = `
                             </div>
                             <div class="editor-actions">
                                 <span id="saveIndicator" class="save-indicator">Otomatik kayıt açık</span>
-                                <div class="input-group input-group-sm" style="width: 100px;">
+                                <div class="input-group input-group-sm">
                                     <span class="input-group-text">Sıra</span>
-                                    <input type="number" id="inpContentOrder" class="form-control text-center">
+                                    <input type="number" id="inpContentOrder" class="form-control">
                                 </div>
-                                <button class="btn btn-outline-danger btn-sm" onclick="window.Studio.deleteContent()">Sil</button>
-                                <button class="btn btn-success btn-sm px-4 fw-bold" onclick="window.Studio.saveContent()">Kaydet</button>
+                                <button class="btn btn-danger btn-sm" onclick="window.Studio.deleteContent()">
+                                    <i>🗑️</i> Sil
+                                </button>
+                                <button class="btn btn-success btn-sm px-4 fw-bold" onclick="window.Studio.saveContent()">
+                                    <i>💾</i> Kaydet
+                                </button>
                             </div>
                         </div>
 
