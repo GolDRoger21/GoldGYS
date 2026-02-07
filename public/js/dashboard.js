@@ -1,6 +1,5 @@
 // public/js/dashboard.js
 
-import { initLayout } from './ui-loader.js';
 import { auth, db } from "./firebase-config.js";
 import { getUserProfile, getLastActivity, getRecentActivities } from "./user-profile.js";
 import { collection, doc, getDoc, getDocs, limit, orderBy, query, where, Timestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -33,10 +32,7 @@ export async function init() {
         refreshUI();
         if (ui.loaderText) ui.loaderText.textContent = "Sistem başlatılıyor...";
 
-        // 1. Merkezi Layout Yükleyicisini Bekle (SPA'da zaten yüklü ama garanti olsun)
-        await initLayout();
-
-        // 2. Dashboard'a Özel İçeriği Hazırla
+        // 1. Dashboard'a Özel İçeriği Hazırla
         const user = auth.currentUser;
 
         if (user) {

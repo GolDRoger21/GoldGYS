@@ -1,5 +1,4 @@
 import { requireAdminOrEditor } from "./role-guard.js";
-import { initLayout } from "./ui-loader.js";
 
 // --- MODÜL IMPORTLARI ---
 import * as DashboardModule from "./modules/admin/dashboard.js";
@@ -23,19 +22,15 @@ export async function init() {
     console.log("Admin page init started");
 
     try {
-        // 1. Arayüzü Yükle
-        await initLayout();
-        console.log("✅ Arayüz yüklendi.");
-
         // Bildirim Sistemini Başlat (Sadece Admin Panelinde)
         initNotifications();
 
-        // 2. Yetki Kontrolü
+        // 1. Yetki Kontrolü
         const { role, user } = await requireAdminOrEditor();
         currentRole = role;
         console.log(`✅ Giriş Başarılı: ${role}`);
 
-        // 3. Kullanıcı Bilgilerini Güncelle
+        // 2. Kullanıcı Bilgilerini Güncelle
         const roleBadge = document.getElementById('userRoleBadge');
         const sidebarRole = document.getElementById('sidebarUserRole');
         const sidebarName = document.getElementById('sidebarUserName');
@@ -66,7 +61,7 @@ export async function init() {
         }
         // --- KRİTİK DÜZELTME BİTİŞİ ---
 
-        // 4. Global Fonksiyonlar ve Başlatma
+        // 3. Global Fonksiyonlar ve Başlatma
         window.openQuestionEditor = ContentModule.openQuestionEditor;
         window.AdminReports = ReportsModule.AdminReports;
 

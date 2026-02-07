@@ -52,6 +52,14 @@
         "destination": "/pages/analiz.html"
       },
       {
+        "source": "/admin",
+        "destination": "/admin/index.html"
+      },
+      {
+        "source": "/admin/",
+        "destination": "/admin/index.html"
+      },
+      {
         "source": "/pending-approval",
         "destination": "/pages/pending-approval.html"
       },
