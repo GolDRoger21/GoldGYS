@@ -349,7 +349,13 @@
 </head>
 
 <body>
-
+    <!-- UI Loader: Layout, Header, Sidebar ve Auth Yönetimi -->
+    <script type="module">
+        import { initLayout } from '../js/ui-loader.js';
+        document.addEventListener('DOMContentLoaded', () => {
+            initLayout();
+        });
+    </script>
 
     <div class="dashboard-container denemeler-page">
         <section class="deneme-hero">
