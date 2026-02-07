@@ -58,6 +58,7 @@ const pageCache = new Map();
 const pageFetches = new Map();
 let activeNavController = null;
 const PAGE_CACHE_PREFIX = 'cached_page_';
+let currentLayoutType = null;
 
 export async function initLayout() {
     if (layoutInitPromise) return layoutInitPromise;
@@ -67,6 +68,7 @@ export async function initLayout() {
         const isAdminPage = path.includes('/admin');
         const config = PAGE_CONFIG[path] || { id: 'unknown', title: 'Gold GYS' };
         const usePublicLayout = PUBLIC_LAYOUT_ROUTES.includes(path);
+        currentLayoutType = usePublicLayout ? 'public' : (isAdminPage ? 'admin' : 'app');
 
         try {
             // 0. Bakım Modu Kontrolü
@@ -602,9 +604,13 @@ function hijackNavigation() {
         if (target && target.href) {
             const url = new URL(target.href);
             const currentUrl = new URL(window.location.href);
+            const nextLayout = getLayoutType(url.pathname);
 
             // Sadece aynı origin içindeki linkleri ele al
             if (url.origin === currentUrl.origin) {
+                if (currentLayoutType && nextLayout !== currentLayoutType) {
+                    return;
+                }
                 // Aynı sayfadaki hash geçişlerini tarayıcıya bırak
                 if (url.pathname === currentUrl.pathname && url.search === currentUrl.search && url.hash) {
                     return;
@@ -657,6 +663,12 @@ async function handleNavigation(url, pushState = true) {
     if (!mainContent) {
         console.error('Main content area not found!');
         window.location.href = url; // Fallback to full page reload
+        return;
+    }
+
+    const nextLayout = getLayoutType(url);
+    if (currentLayoutType && nextLayout !== currentLayoutType) {
+        window.location.href = url;
         return;
     }
 
@@ -714,6 +726,8 @@ async function loadPageContent(url, { signal } = {}) {
         const parser = new DOMParser();
         const doc = parser.parseFromString(html, 'text/html');
 
+        syncPageStyles(doc, url);
+
         // İçeriği bul: .dashboard-container > main > body
         // Öncelik: .dashboard-container (bizim sayfaların ana wrapper'ı)
         let content = doc.querySelector('.dashboard-container') || doc.querySelector('main') || doc.querySelector('#main-content');
@@ -744,6 +758,41 @@ async function loadPageContent(url, { signal } = {}) {
         mainContent.innerHTML = '<div class="error-message">Sayfa içeriği yüklenemedi.</div>';
         throw e;
     }
+}
+
+function syncPageStyles(doc, url) {
+    const baseUrl = new URL(url, window.location.origin);
+    const nextStyles = new Set();
+    const headLinks = doc.querySelectorAll('link[rel="stylesheet"]');
+
+    headLinks.forEach(link => {
+        const href = link.getAttribute('href');
+        if (!href) return;
+        const resolvedHref = new URL(href, baseUrl).toString();
+        nextStyles.add(resolvedHref);
+
+        const existing = document.head.querySelector(`link[data-page-style="true"][href="${resolvedHref}"]`);
+        if (existing) return;
+
+        const newLink = document.createElement('link');
+        newLink.rel = 'stylesheet';
+        newLink.href = resolvedHref;
+        newLink.dataset.pageStyle = 'true';
+        const media = link.getAttribute('media');
+        const crossOrigin = link.getAttribute('crossorigin');
+        const referrerPolicy = link.getAttribute('referrerpolicy');
+        if (media) newLink.media = media;
+        if (crossOrigin) newLink.crossOrigin = crossOrigin;
+        if (referrerPolicy) newLink.referrerPolicy = referrerPolicy;
+        document.head.appendChild(newLink);
+    });
+
+    document.querySelectorAll('link[data-page-style="true"]').forEach(existing => {
+        const existingHref = existing.getAttribute('href');
+        if (!nextStyles.has(existingHref)) {
+            existing.remove();
+        }
+    });
 }
 
 function getCacheKey(url) {
@@ -866,4 +915,11 @@ async function loadPageScript(path) {
     } catch (error) {
         console.error(`Script yükleme/başlatma hatası (${scriptPath}):`, error);
     }
+}
+
+function getLayoutType(path) {
+    const cleanPath = path.split('?')[0];
+    if (PUBLIC_LAYOUT_ROUTES.includes(cleanPath)) return 'public';
+    if (cleanPath.startsWith('/admin')) return 'admin';
+    return 'app';
 }
