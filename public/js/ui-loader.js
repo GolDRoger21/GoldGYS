@@ -234,6 +234,7 @@ function initThemeAndSidebar() {
     // Tema Kontrolü
     const savedTheme = localStorage.getItem('theme') || 'dark'; // Varsayılan Dark
     document.documentElement.setAttribute('data-theme', savedTheme);
+    document.documentElement.style.colorScheme = savedTheme;
     updateThemeIcon(savedTheme);
 
     // Sidebar Kontrolü (Desktop için collapsed durumu)
@@ -292,6 +293,7 @@ function setupEventListeners() {
             const current = document.documentElement.getAttribute('data-theme');
             const next = current === 'dark' ? 'light' : 'dark';
             document.documentElement.setAttribute('data-theme', next);
+            document.documentElement.style.colorScheme = next;
             localStorage.setItem('theme', next);
             updateThemeIcon(next);
             return;

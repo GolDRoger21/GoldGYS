@@ -2,6 +2,7 @@
 <html lang="tr">
 
 <head>
+    <script src="/js/theme-init.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Üyelik Sözleşmesi | GOLD GYS</title>
@@ -217,6 +218,7 @@
         const htmlElement = document.documentElement;
         const savedTheme = localStorage.getItem('theme') || 'dark';
         htmlElement.setAttribute('data-theme', savedTheme);
+        htmlElement.style.colorScheme = savedTheme;
         updateThemeIcon(savedTheme);
 
         if (themeToggle) {
@@ -224,6 +226,7 @@
                 const currentTheme = htmlElement.getAttribute('data-theme');
                 const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
                 htmlElement.setAttribute('data-theme', newTheme);
+                htmlElement.style.colorScheme = newTheme;
                 localStorage.setItem('theme', newTheme);
                 updateThemeIcon(newTheme);
             });
