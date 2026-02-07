@@ -99,7 +99,15 @@ function handleTabChange(target, role) {
             case 'users': if (role === 'admin') UserModule.initUsersPage(); break;
             case 'content': ContentModule.initContentPage(); break;
             case 'legislation': if (role === 'admin') LegislationModule.initLegislationPage(); break;
-            case 'reports': if (role === 'admin') ReportsModule.initReportsPage(); break;
+            case 'reports':
+                if (role === 'admin') {
+                    ReportsModule.initReportsPage().catch(e => {
+                        console.error("Rapor sayfası yüklenirken hata (Async):", e);
+                        const el = document.getElementById('reportsList');
+                        if (el) el.innerHTML = `<div class="alert alert-danger">Raporlar yüklenemedi: ${e.message}</div>`;
+                    });
+                }
+                break;
             case 'exams': ExamsModule.initExamsPage(); break;
             case 'announcements': if (role === 'admin') AnnouncementsModule.initAnnouncementsPage(); break;
             case 'importer': ImporterModule.initImporterPage(); break;

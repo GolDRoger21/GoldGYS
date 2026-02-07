@@ -31,7 +31,16 @@ export async function initReportsPage() {
 
     try {
         const q = query(collection(db, "reports"), orderBy("createdAt", "desc"));
-        const snapshot = await getDocs(q);
+
+        // Timeout logic to prevent indefinite hanging
+        const timeoutPromise = new Promise((_, reject) =>
+            setTimeout(() => reject(new Error("Firebase sunucusuna bağlanılamadı (Timeout). İnternet bağlantınızı vpn/dns ayarlarınızı kontrol edin.")), 10000)
+        );
+
+        const snapshot = await Promise.race([
+            getDocs(q),
+            timeoutPromise
+        ]);
 
         if (snapshot.empty) {
             listContainer.innerHTML = '<div class="alert alert-info">Henüz bekleyen bildirim yok.</div>';
