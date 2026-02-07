@@ -46,6 +46,10 @@ const PUBLIC_LAYOUT_ROUTES = [
 let layoutInitPromise = null;
 const loadedScripts = new Set();
 let currentCleanupFunction = null; // To store the cleanup function for the currently loaded script
+const pageCache = new Map();
+const pageFetches = new Map();
+let activeNavController = null;
+const PAGE_CACHE_PREFIX = 'cached_page_';
 
 export async function initLayout() {
     if (layoutInitPromise) return layoutInitPromise;
@@ -593,6 +597,11 @@ function hijackNavigation() {
 
             // Sadece aynı origin içindeki linkleri ele al
             if (url.origin === currentUrl.origin) {
+                // Aynı sayfadaki hash geçişlerini tarayıcıya bırak
+                if (url.pathname === currentUrl.pathname && url.search === currentUrl.search && url.hash) {
+                    return;
+                }
+
                 // Tamamen aynı URL ise bir şey yapma
                 if (url.pathname === currentUrl.pathname && url.search === currentUrl.search) {
                     e.preventDefault();
@@ -618,6 +627,21 @@ function hijackNavigation() {
     window.addEventListener('popstate', (e) => {
         handleNavigation(window.location.pathname + window.location.search, false); // false: don't push state again
     });
+
+    const prefetchHandler = (e) => {
+        const target = e.target.closest('a');
+        if (!target || !target.href) return;
+        const url = new URL(target.href);
+        const currentUrl = new URL(window.location.href);
+        if (url.origin !== currentUrl.origin) return;
+        if (target.hasAttribute('download') || target.getAttribute('target') === '_blank' || target.classList.contains('no-spa')) return;
+        if (url.pathname.includes('/login.html') || PUBLIC_ROUTES.includes(url.pathname)) return;
+        if (url.pathname === currentUrl.pathname && url.search === currentUrl.search) return;
+        prefetchPage(url.pathname + url.search);
+    };
+
+    document.body.addEventListener('mouseover', prefetchHandler, { passive: true });
+    document.body.addEventListener('focusin', prefetchHandler);
 }
 
 async function handleNavigation(url, pushState = true) {
@@ -640,7 +664,12 @@ async function handleNavigation(url, pushState = true) {
             window.history.pushState({ path: url }, config.title, url);
         }
 
-        await loadPageContent(url);
+        if (activeNavController) {
+            activeNavController.abort();
+        }
+        activeNavController = new AbortController();
+
+        await loadPageContent(url, { signal: activeNavController.signal });
         await loadPageScript(url);
         setActiveMenuItem(config.id);
 
@@ -654,7 +683,7 @@ async function handleNavigation(url, pushState = true) {
     }
 }
 
-async function loadPageContent(url) {
+async function loadPageContent(url, { signal } = {}) {
     const mainContent = document.getElementById('main-content');
     if (!mainContent) return;
 
@@ -671,9 +700,7 @@ async function loadPageContent(url) {
     }
 
     try {
-        const res = await fetch(url);
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const html = await res.text();
+        const html = await fetchPageHTML(contentUrl, { signal });
 
         // HTML'i parse et
         const parser = new DOMParser();
@@ -704,9 +731,76 @@ async function loadPageContent(url) {
         }
 
     } catch (e) {
+        if (e?.name === 'AbortError') return;
         console.error(`Failed to load content for ${url}:`, e);
         mainContent.innerHTML = '<div class="error-message">Sayfa içeriği yüklenemedi.</div>';
         throw e;
+    }
+}
+
+function getCacheKey(url) {
+    return `${PAGE_CACHE_PREFIX}${url}`;
+}
+
+function getCachedPageHTML(url) {
+    if (pageCache.has(url)) return pageCache.get(url);
+    const cacheKey = getCacheKey(url);
+    const cached = sessionStorage.getItem(cacheKey);
+    if (cached) {
+        pageCache.set(url, cached);
+        return cached;
+    }
+    return null;
+}
+
+function setCachedPageHTML(url, html) {
+    pageCache.set(url, html);
+    try {
+        sessionStorage.setItem(getCacheKey(url), html);
+    } catch (e) {
+        console.warn('Cache quota exceeded:', e);
+    }
+}
+
+function prefetchPage(url) {
+    if (pageFetches.has(url) || getCachedPageHTML(url)) return;
+    const run = () => {
+        fetchPageHTML(url).catch((e) => {
+            if (e?.name !== 'AbortError') {
+                console.warn(`Prefetch failed for ${url}`, e);
+            }
+        });
+    };
+
+    if ('requestIdleCallback' in window) {
+        window.requestIdleCallback(run, { timeout: 1500 });
+    } else {
+        setTimeout(run, 200);
+    }
+}
+
+async function fetchPageHTML(url, { signal } = {}) {
+    const cached = getCachedPageHTML(url);
+    if (cached) return cached;
+
+    if (pageFetches.has(url)) {
+        return pageFetches.get(url);
+    }
+
+    const fetchPromise = (async () => {
+        const res = await fetch(url, { signal });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const html = await res.text();
+        setCachedPageHTML(url, html);
+        return html;
+    })();
+
+    pageFetches.set(url, fetchPromise);
+
+    try {
+        return await fetchPromise;
+    } finally {
+        pageFetches.delete(url);
     }
 }
 
