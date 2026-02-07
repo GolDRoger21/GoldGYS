@@ -1263,12 +1263,7 @@ async function openContentTrash() {
     if (tbody) tbody.innerHTML = '<tr><td colspan="4" class="p-3">Yükleniyor...</td></tr>';
 
     try {
-        const q = query(
-            collection(db, `topics/${state.activeTopicId}/lessons`),
-            where("status", "==", "deleted"),
-            orderBy("updatedAt", "desc")
-        );
-        const snap = await getDocs(q);
+        const { snap, sorted } = await fetchDeletedContentItems();
         const rows = [];
         const defaultFilter = document.getElementById('contentTrashTypeFilter');
         if (defaultFilter) defaultFilter.value = 'active';
@@ -1276,12 +1271,45 @@ async function openContentTrash() {
         snap.forEach(d => {
             const data = d.data();
             const type = data.type || 'lesson';
-            rows.push({ id: d.id, ...data });
+            rows.push({ id: d.id, ...data, type });
         });
+
+        if (!sorted) {
+            rows.sort((a, b) => getTimestampMs(b.updatedAt) - getTimestampMs(a.updatedAt));
+        }
 
         state.contentTrashItems = rows;
         renderContentTrashTable();
-    } catch (e) { console.error(e); }
+    } catch (e) {
+        console.error(e);
+        showToast("Silinen içerikler yüklenemedi: " + (e.message || e), "error");
+    }
+}
+
+async function fetchDeletedContentItems() {
+    const baseRef = collection(db, `topics/${state.activeTopicId}/lessons`);
+    const orderedQuery = query(
+        baseRef,
+        where("status", "==", "deleted"),
+        orderBy("updatedAt", "desc")
+    );
+
+    try {
+        const snap = await getDocs(orderedQuery);
+        return { snap, sorted: true };
+    } catch (e) {
+        const needsIndex = e?.code === "failed-precondition" || `${e?.message || ""}`.includes("requires an index");
+        if (!needsIndex) throw e;
+        const fallbackSnap = await getDocs(query(baseRef, where("status", "==", "deleted")));
+        return { snap: fallbackSnap, sorted: false };
+    }
+}
+
+function getTimestampMs(value) {
+    if (!value) return 0;
+    if (typeof value.toMillis === 'function') return value.toMillis();
+    if (typeof value.seconds === 'number') return value.seconds * 1000;
+    return 0;
 }
 
 async function restoreContentItem(id) {

@@ -1187,7 +1187,23 @@ tr.highlight {
 
 .trash-modal-overlay {
     z-index: 100010 !important;
-    background: rgba(0, 0, 0, 0.75);
+    background: var(--bg-backdrop);
+}
+
+.trash-modal-overlay .admin-modal-content {
+    background: var(--bg-surface);
+    color: var(--text-main);
+    border: 1px solid var(--border-color);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+}
+
+.trash-modal-overlay .modal-header,
+.trash-modal-overlay .modal-body-scroll {
+    background: var(--bg-surface);
+}
+
+.trash-modal-overlay .admin-table tbody tr:nth-child(even) td {
+    background-color: var(--bg-hover);
 }
 
 /* Modal İçeriği - Studio için */
