@@ -88,25 +88,11 @@ export function cleanup() {
     ui = {};
 }
 
-// Backwards compatibility for full reload if needed, but module execution shouldn't rely on it event listener if called by loader
-// However, if the page is loaded directly and this script is included via <script type="module" src="..."> in HTML (legacy), 
-// we might want to keep a self-executing part. 
-// BUT `ui-loader` loads it dynamically. 
-// If dashboard.html still has <script type="module" src="/js/dashboard.js"></script>, it will run this module.
-// Since we removed the event listener, it won't run automatically via script tag unless we add a check.
-// Using `if (document.readyState ...)` check or just calling init() if not imported?
-// Actually best to remove script tag from dashboard.html and rely on ui-loader.
-// Check if dashboard.html has inline script tag. I haven't checked dashboard.html content yet.
-// I will assume ui-loader is responsible for calling init(). 
-
-
-// ... existing code ...
-
 async function loadDashboardStats(uid) {
     if (!uid) return;
 
     try {
-        const cacheKey = `dashboard_stats_${uid}`;
+        const cacheKey = \`dashboard_stats_\${uid}\`;
         let cachedStats = CacheManager.get(cacheKey);
 
         let todayStats, totalStats;
@@ -136,9 +122,9 @@ async function loadDashboardStats(uid) {
             ? Math.round((totalStats.correct / totalStats.total) * 100)
             : 0;
 
-        if (ui.successRateText) ui.successRateText.textContent = `%${successRate}`;
+        if (ui.successRateText) ui.successRateText.textContent = \`%\${successRate}\`;
         if (ui.successRateBar) {
-            ui.successRateBar.style.width = `${successRate}%`;
+            ui.successRateBar.style.width = \`\${successRate}%\`;
             ui.successRateBar.setAttribute('aria-valuenow', successRate);
 
             // Renk ayarı
@@ -154,7 +140,6 @@ async function loadDashboardStats(uid) {
 }
 
 function hideLoader() {
-    // ... existing code ...
     refreshUI();
     if (ui.loader) {
         ui.loader.style.opacity = "0";
@@ -178,18 +163,18 @@ async function checkLastActivity(user) {
     if (activity && card) {
         const timeAgo = new Date(activity.timestamp.seconds * 1000).toLocaleDateString('tr-TR');
 
-        card.innerHTML = `
+        card.innerHTML = \`
             <div class="card p-3 d-flex justify-content-between align-items-center" style="background: linear-gradient(to right, var(--bg-surface), var(--bg-hover)); border-left: 4px solid var(--color-primary);">
                 <div>
                     <small class="text-muted text-uppercase" style="font-size:0.75rem;">Son Çalışılan</small>
-                    <h4 class="m-0" style="color:var(--text-main);">${activity.title}</h4>
-                    <small class="text-muted">${activity.subTitle || 'Konu Çalışması'} • ${timeAgo}</small>
+                    <h4 class="m-0" style="color:var(--text-main);">\${activity.title}</h4>
+                    <small class="text-muted">\${activity.subTitle || 'Konu Çalışması'} • \${timeAgo}</small>
                 </div>
-                <a href="/konu/${encodeURIComponent(activity.id)}" class="btn btn-sm btn-primary">
+                <a href="/konu/\${encodeURIComponent(activity.id)}" class="btn btn-sm btn-primary">
                     Devam Et ▶
                 </a>
             </div>
-        `;
+        \`;
         card.style.display = 'block';
     }
 }
@@ -204,12 +189,6 @@ function showSmartTip() {
 
     const randomTip = tips[Math.floor(Math.random() * tips.length)];
 
-    // Dashboard'da uygun bir yere ekle (Örn: Quick Access altına veya üstüne)
-    // Şimdilik container'ın başına veya sonuna ekleyebiliriz ama hoşdurması için stats-grid'den hemen sonraya ekleyelim
-    // Veya welcome bölümünün altına. Kullanıcının isteği: "Dashboard'da uygun bir yere ekle"
-
-    // Mevcut yapıda welcome-section bittikten sonra, lastActivityCard var. Onun da altına koyabiliriz.
-    // Ancak daha temiz görünmesi için lastActivityCard varsa onun altına, yoksa welcome altına.
     const container = document.querySelector('.dashboard-container');
     const target = document.getElementById('lastActivityCard');
 
@@ -230,17 +209,11 @@ function showSmartTip() {
         container.appendChild(tipDiv);
     }
 }
-function normalizeResetTimestamp(timestamp) {
-    if (!timestamp) return null;
-    if (typeof timestamp.seconds === 'number') return timestamp.seconds;
-    if (typeof timestamp.toDate === 'function') return Math.floor(timestamp.toDate().getTime() / 1000);
-    return null;
-}
 
 async function fetchExamStats(uid, options = {}) {
     if (!uid) return { total: 0, correct: 0, wrong: 0 };
 
-    const baseRef = collection(db, `users/${uid}/exam_results`);
+    const baseRef = collection(db, \`users/\${uid}/exam_results\`);
     const constraints = [];
     const range = options.range || null;
     const resetAtSeconds = typeof options.resetAtSeconds === 'number' ? options.resetAtSeconds : null;
@@ -291,16 +264,39 @@ async function loadExamAnnouncement() {
     if (!ui.examPanelBody) return;
 
     try {
-        const examQuery = query(
-            collection(db, "examAnnouncements"),
-            where("isActive", "==", true),
-            orderBy("examDate", "asc"),
-            limit(1)
-        );
-        const snapshot = await getDocs(examQuery);
+        const cacheKey = 'dashboard_exam_announcement';
+        let cachedData = CacheManager.get(cacheKey);
+        let data = null;
 
-        if (snapshot.empty) {
-            ui.examPanelBody.innerHTML = `
+        if (cachedData) {
+            data = cachedData;
+        } else {
+            const examQuery = query(
+                collection(db, "examAnnouncements"),
+                where("isActive", "==", true),
+                orderBy("examDate", "asc"),
+                limit(1)
+            );
+            const snapshot = await getDocs(examQuery);
+            
+            if (!snapshot.empty) {
+                const docData = snapshot.docs[0].data();
+                // Store serializable data
+                data = {
+                    ...docData,
+                    examDate: normalizeTimestamp(docData.examDate),
+                    applicationStart: normalizeTimestamp(docData.applicationStart),
+                    applicationEnd: normalizeTimestamp(docData.applicationEnd)
+                };
+                CacheManager.set(cacheKey, data, 60 * 60 * 1000); // 1 saat cache
+            } else {
+                CacheManager.set(cacheKey, { empty: true }, 60 * 60 * 1000); // Boş sonucu da cachele
+                data = { empty: true };
+            }
+        }
+
+        if (data.empty) {
+            ui.examPanelBody.innerHTML = \`
                 <div class="panel-item">
                     <div class="panel-item-content">
                         <div class="panel-item-icon gold">📌</div>
@@ -311,25 +307,23 @@ async function loadExamAnnouncement() {
                     </div>
                     <span class="panel-pill">Takipte</span>
                 </div>
-            `;
+            \`;
             setCountdownState(null);
             if (ui.examStatusBadge) ui.examStatusBadge.textContent = "İlan Yok";
             return;
         }
 
-        const doc = snapshot.docs[0];
-        const data = doc.data();
         const examDate = parseDate(data.examDate);
         const applyStart = parseDate(data.applicationStart);
         const applyEnd = parseDate(data.applicationEnd);
 
-        ui.examPanelBody.innerHTML = `
+        ui.examPanelBody.innerHTML = \`
             <div class="panel-item">
                 <div class="panel-item-content">
                     <div class="panel-item-icon gold">🗓️</div>
                     <div>
-                        <strong>${data.title || 'Sınav İlanı'}</strong>
-                        <div class="panel-meta">${data.description || 'Sınav detayları güncellendi.'}</div>
+                        <strong>\${data.title || 'Sınav İlanı'}</strong>
+                        <div class="panel-meta">\${data.description || 'Sınav detayları güncellendi.'}</div>
                     </div>
                 </div>
                 <span class="panel-pill">Aktif</span>
@@ -338,29 +332,29 @@ async function loadExamAnnouncement() {
                 <div class="panel-item-content">
                     <div class="panel-item-icon purple">📅</div>
                     <div>
-                        <strong>${examDate ? formatDate(examDate, true) : 'Tarih açıklanacak'}</strong>
+                        <strong>\${examDate ? formatDate(examDate, true) : 'Tarih açıklanacak'}</strong>
                         <div class="panel-meta">Sınav Tarihi</div>
                     </div>
                 </div>
-                <span class="panel-pill">${data.location || 'Konum belirlenecek'}</span>
+                <span class="panel-pill">\${data.location || 'Konum belirlenecek'}</span>
             </div>
             <div class="panel-item">
                 <div class="panel-item-content">
                     <div class="panel-item-icon teal">📝</div>
                     <div>
-                        <strong>${formatRange(applyStart, applyEnd)}</strong>
+                        <strong>\${formatRange(applyStart, applyEnd)}</strong>
                         <div class="panel-meta">Başvuru Takvimi</div>
                     </div>
                 </div>
-                ${data.applicationLink ? `<a class="btn btn-sm btn-outline-primary" href="${data.applicationLink}" target="_blank" rel="noopener">Başvur</a>` : ''}
+                \${data.applicationLink ? \`<a class="btn btn-sm btn-outline-primary" href="\${data.applicationLink}" target="_blank" rel="noopener">Başvur</a>\` : ''}
             </div>
-        `;
+        \`;
 
         if (ui.examStatusBadge) ui.examStatusBadge.textContent = "Aktif";
         setCountdownState(examDate);
     } catch (error) {
         console.error("Sınav ilanı yüklenemedi:", error);
-        ui.examPanelBody.innerHTML = `<p class="text-muted">Sınav bilgileri yüklenemedi.</p>`;
+        ui.examPanelBody.innerHTML = \`<p class="text-muted">Sınav bilgileri yüklenemedi.</p>\`;
         setCountdownState(null);
         if (ui.examStatusBadge) ui.examStatusBadge.textContent = "Kontrol Edin";
     }
@@ -401,16 +395,38 @@ async function loadAnnouncements() {
     if (!ui.announcementList) return;
 
     try {
-        const announcementQuery = query(
-            collection(db, "announcements"),
-            where("isActive", "==", true),
-            orderBy("createdAt", "desc"),
-            limit(5)
-        );
-        const snapshot = await getDocs(announcementQuery);
+        const cacheKey = 'dashboard_announcements';
+        let cachedList = CacheManager.get(cacheKey);
+        let list = null;
 
-        if (snapshot.empty) {
-            ui.announcementList.innerHTML = `
+        if (cachedList) {
+            list = cachedList;
+        } else {
+            const announcementQuery = query(
+                collection(db, "announcements"),
+                where("isActive", "==", true),
+                orderBy("createdAt", "desc"),
+                limit(5)
+            );
+            const snapshot = await getDocs(announcementQuery);
+
+            if (snapshot.empty) {
+                CacheManager.set(cacheKey, [], 30 * 60 * 1000);
+                list = [];
+            } else {
+                list = snapshot.docs.map(doc => {
+                    const data = doc.data();
+                    return {
+                        ...data,
+                        createdAt: normalizeTimestamp(data.createdAt)
+                    };
+                });
+                CacheManager.set(cacheKey, list, 30 * 60 * 1000); // 30 dk cache
+            }
+        }
+
+        if (list.length === 0) {
+            ui.announcementList.innerHTML = \`
                 <div class="panel-item">
                     <div class="panel-item-content">
                         <div class="panel-item-icon purple">📭</div>
@@ -420,30 +436,29 @@ async function loadAnnouncements() {
                         </div>
                     </div>
                 </div>
-            `;
+            \`;
             return;
         }
 
-        ui.announcementList.innerHTML = snapshot.docs.map(doc => {
-            const data = doc.data();
+        ui.announcementList.innerHTML = list.map(data => {
             const createdAt = parseDate(data.createdAt);
-            return `
+            return \`
                 <div class="panel-item">
                     <div class="panel-item-content">
                         <div class="panel-item-icon gold">📣</div>
                         <div>
-                            <strong>${data.title || 'Duyuru'}</strong>
-                            <div class="panel-meta">${data.body || ''}</div>
-                            <div class="panel-meta">${createdAt ? formatDate(createdAt) : ''}</div>
+                            <strong>\${data.title || 'Duyuru'}</strong>
+                            <div class="panel-meta">\${data.body || ''}</div>
+                            <div class="panel-meta">\${createdAt ? formatDate(createdAt) : ''}</div>
                         </div>
                     </div>
-                    <span class="panel-pill">${data.level || 'Bilgi'}</span>
+                    <span class="panel-pill">\${data.level || 'Bilgi'}</span>
                 </div>
-            `;
+            \`;
         }).join('');
     } catch (error) {
         console.error("Duyurular yüklenemedi:", error);
-        ui.announcementList.innerHTML = `<p class="text-muted">Duyurular yüklenemedi.</p>`;
+        ui.announcementList.innerHTML = \`<p class="text-muted">Duyurular yüklenemedi.</p>\`;
     }
 }
 
@@ -451,7 +466,7 @@ async function loadRecentActivities(uid) {
     if (!ui.recentActivityList) return;
 
     try {
-        const cacheKey = `recent_activities_${uid}`;
+        const cacheKey = \`recent_activities_\${uid}\`;
         let activities = CacheManager.get(cacheKey);
 
         if (!activities) {
@@ -460,7 +475,7 @@ async function loadRecentActivities(uid) {
         }
 
         if (!activities.length) {
-            ui.recentActivityList.innerHTML = `
+            ui.recentActivityList.innerHTML = \`
                 <div class="panel-item">
                     <div class="panel-item-content">
                         <div class="panel-item-icon teal">✨</div>
@@ -470,38 +485,48 @@ async function loadRecentActivities(uid) {
                         </div>
                     </div>
                 </div>
-            `;
+            \`;
             return;
         }
 
-        ui.recentActivityList.innerHTML = `
+        ui.recentActivityList.innerHTML = \`
             <div class="activity-list">
-                ${activities.map(activity => {
+                \${activities.map(activity => {
             const timeAgo = activity.timestamp?.toDate
                 ? activity.timestamp.toDate().toLocaleDateString('tr-TR')
-                : '';
+                : (activity.timestamp ? new Date(activity.timestamp).toLocaleDateString('tr-TR') : '');
+            
             const icon = activity.type === 'test' ? '📝' : '📖';
-            return `
+            return \`
                         <div class="activity-item">
-                            <div class="activity-icon">${icon}</div>
+                            <div class="activity-icon">\${icon}</div>
                             <div>
-                                <div class="activity-title">${activity.title || 'Çalışma'}</div>
-                                <div class="panel-meta">${activity.subTitle || 'Konu Çalışması'} • ${timeAgo}</div>
+                                <div class="activity-title">\${activity.title || 'Çalışma'}</div>
+                                <div class="panel-meta">\${activity.subTitle || 'Konu Çalışması'} • \${timeAgo}</div>
                             </div>
                         </div>
-                    `;
+                    \`;
         }).join('')}
             </div>
-        `;
+        \`;
     } catch (error) {
         console.error("Aktiviteler yüklenemedi:", error);
-        ui.recentActivityList.innerHTML = `<p class="text-muted">Aktivite bilgisi yüklenemedi.</p>`;
+        ui.recentActivityList.innerHTML = \`<p class="text-muted">Aktivite bilgisi yüklenemedi.</p>\`;
     }
+}
+
+function normalizeTimestamp(ts) {
+    if (!ts) return null;
+    if (ts.seconds) return ts.seconds * 1000;
+    if (typeof ts === 'string') return ts;
+    if (typeof ts === 'number') return ts;
+    return null; 
 }
 
 function parseDate(value) {
     if (!value) return null;
     if (value.toDate) return value.toDate();
+    if (typeof value === 'number') return new Date(value);
     if (value.seconds) return new Date(value.seconds * 1000);
     const date = new Date(value);
     return Number.isNaN(date.getTime()) ? null : date;
@@ -518,7 +543,7 @@ function formatDate(date, withTime = false) {
 function formatRange(start, end) {
     if (!start && !end) return 'Takvim açıklanacak';
     if (start && end) {
-        return `${formatDate(start)} - ${formatDate(end)}`;
+        return \`\${formatDate(start)} - \${formatDate(end)}\`;
     }
-    return start ? `${formatDate(start)} itibariyle` : `${formatDate(end)} tarihine kadar`;
+    return start ? \`\${formatDate(start)} itibariyle\` : \`\${formatDate(end)} tarihine kadar\`;
 }

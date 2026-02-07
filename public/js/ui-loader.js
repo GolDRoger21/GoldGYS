@@ -57,6 +57,7 @@ const pageFetches = new Map();
 let activeNavController = null;
 const PAGE_CACHE_PREFIX = 'cached_page_';
 let currentLayoutType = null;
+let currentNavigationId = 0; // Unique ID for each navigation intent
 
 function normalizePath(path) {
     const cleanPath = path.split('?')[0];
@@ -142,10 +143,14 @@ export async function initLayout() {
             document.title = `${pageConfig.title} | GOLD GYS`;
 
             // YENİ: Sayfa içeriğini yükle (Eksik olan buydu!)
-            await loadPageContent(window.location.pathname);
+            // Initialize navigation ID
+            currentNavigationId++;
+            const navId = currentNavigationId;
+
+            await loadPageContent(window.location.pathname, { navId });
 
             // Yeni: Sayfa scriptini yükle
-            await loadPageScript(window.location.pathname);
+            await loadPageScript(window.location.pathname, { navId });
 
             return true;
 
@@ -710,6 +715,13 @@ async function handleNavigation(url, pushState = true) {
         return;
     }
 
+    // A. ATOMIC NAVIGATION ID & CLEANUP START
+    currentNavigationId++;
+    const navId = currentNavigationId;
+
+    // Hemen temizlik yap
+    await executeCleanup();
+
     // Loading indicator
     mainContent.innerHTML = '<div class="loading-spinner-container"><div class="loading-spinner"></div></div>';
     mainContent.scrollTop = 0; // Scroll to top on new page load
@@ -728,21 +740,46 @@ async function handleNavigation(url, pushState = true) {
         }
         activeNavController = new AbortController();
 
-        await loadPageContent(url, { signal: activeNavController.signal });
-        await loadPageScript(url);
+        // Check if navigation is still valid
+        if (navId !== currentNavigationId) {
+            console.log('Navigation aborted by new request');
+            return;
+        }
+
+        await loadPageContent(url, { signal: activeNavController.signal, navId });
+
+        if (navId !== currentNavigationId) return;
+
+        await loadPageScript(url, { navId });
         setActiveMenuItem(pageConfig.id);
 
         // Mobil sidebar açıksa kapat
         document.body.classList.remove('mobile-sidebar-active');
 
     } catch (error) {
+        if (navId !== currentNavigationId) return; // Ignore errors from aborted navs
+
         console.error('Navigation error:', error);
         mainContent.innerHTML = '<div class="error-message">Sayfa yüklenirken bir hata oluştu. Lütfen tekrar deneyin.</div>';
-        // Optionally, redirect to a 404 page or show a more specific error
     }
 }
 
-async function loadPageContent(url, { signal } = {}) {
+async function executeCleanup() {
+    if (currentCleanupFunction) {
+        try {
+            console.log('Cleaning up previous page...');
+            await Promise.resolve(currentCleanupFunction());
+        } catch (cleanupError) {
+            console.warn("Error during cleanup:", cleanupError);
+        }
+        currentCleanupFunction = null;
+    }
+}
+
+async function loadPageContent(url, { signal, navId } = {}) {
+    // Navigasyon kontrolü
+    if (navId && navId !== currentNavigationId) return;
+
     const mainContent = document.getElementById('main-content');
     if (!mainContent) return;
 
@@ -751,6 +788,8 @@ async function loadPageContent(url, { signal } = {}) {
 
     try {
         const html = await fetchPageHTML(contentUrl, { signal });
+
+        if (navId && navId !== currentNavigationId) return;
 
         // HTML'i parse et
         const parser = new DOMParser();
@@ -795,6 +834,7 @@ async function loadPageContent(url, { signal } = {}) {
 
     } catch (e) {
         if (e?.name === 'AbortError') return;
+        if (navId && navId !== currentNavigationId) return;
         console.error(`Failed to load content for ${url}:`, e);
         mainContent.innerHTML = '<div class="error-message">Sayfa içeriği yüklenemedi.</div>';
         throw e;
@@ -929,7 +969,9 @@ async function fetchPageHTML(url, { signal } = {}) {
     }
 }
 
-async function loadPageScript(path) {
+async function loadPageScript(path, { navId } = {}) {
+    if (navId && navId !== currentNavigationId) return;
+
     // 1. Config'den script yolunu bul
     let scriptPath = null;
     const { config, normalizedPath } = getConfigForPath(path);
@@ -945,27 +987,14 @@ async function loadPageScript(path) {
     if (!scriptPath) return;
 
     try {
-        // A. Önceki Sayfa Temizliği (Strict Cleanup)
-        if (currentCleanupFunction) {
-            try {
-                // Cleanup semkron veya asenkron olabilir, await ile garantiye alalım
-                await Promise.resolve(currentCleanupFunction());
-                console.log('Previous page cleaned up.');
-            } catch (cleanupError) {
-                console.warn("Önceki sayfa temizlenirken hata (göz ardı ediliyor):", cleanupError);
-            }
-            currentCleanupFunction = null;
-        }
-
-        // B. Scripti Dinamik Import Et
-        // Cache-busting: Modülün tekrar çalışmasını garanti etmek için (özellikle development'ta)
-        // Production'da bu browser önbelleğini bypass edebilir, dikkatli olunmalı.
-        // Şimdilik sadece timestamp ekleyerek modülün yeniden değerlendirilmesini SAĞLAMIYORUZ çünkü
-        // ES Module standartlarında import edilen URL aynıysa modül tekrar execute edilmez.
-        // Ancak bizim `init()` fonksiyonumuz var, bu yüzden modül referansı almak yeterli.
-
         console.log(`Loading script: ${scriptPath}`);
         const module = await import(scriptPath);
+
+        // Check again after dynamic import
+        if (navId && navId !== currentNavigationId) {
+            console.log('Script init aborted due to navigation change');
+            return;
+        }
 
         // C. Yeni Sayfa Başlatma (Init)
         if (module.init) {
@@ -975,15 +1004,19 @@ async function loadPageScript(path) {
         }
 
         // D. Cleanup Fonksiyonunu Kaydet
-        if (module.cleanup) {
-            currentCleanupFunction = module.cleanup;
-        } else if (module.default && typeof module.default.cleanup === 'function') {
-            currentCleanupFunction = module.default.cleanup;
+        // Önemli: Cleanup register etmek için yeni sayfaya geçişi bekliyoruz
+        if (navId === currentNavigationId) {
+            if (module.cleanup) {
+                currentCleanupFunction = module.cleanup;
+            } else if (module.default && typeof module.default.cleanup === 'function') {
+                currentCleanupFunction = module.default.cleanup;
+            }
         }
 
         loadedScripts.add(scriptPath);
 
     } catch (error) {
+        if (navId && navId !== currentNavigationId) return;
         console.error(`Script yükleme/başlatma hatası (${scriptPath}):`, error);
 
         // Kullanıcıya hata göster
