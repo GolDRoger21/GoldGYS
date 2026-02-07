@@ -71,8 +71,8 @@ const QUICK_ACTIONS = [
     }
 ];
 
-let hasRendered = false;
-let hasBoundEvents = false;
+// State flags removed to support SPA navigation re-rendering
+
 
 export async function initMaintenancePage() {
     renderInterface();
@@ -82,7 +82,11 @@ export async function initMaintenancePage() {
 
 function renderInterface() {
     const container = document.getElementById("section-maintenance");
-    if (!container || hasRendered) return;
+    if (!container) return;
+
+    // Eğer içerik zaten varsa tekrar render etme (SPA geçişlerinde içerik siliniyor, bu kontrol güvenli)
+    if (container.children.length > 0) return;
+
 
     container.innerHTML = `
         <div class="section-header">
@@ -272,11 +276,14 @@ function renderInterface() {
         </div>
     `;
 
-    hasRendered = true;
+    // Flag removal
 }
 
 function bindEvents() {
-    if (hasBoundEvents) return;
+    // Event delegation kullanıldığı için tekrar bind etmek sorun yaratmaz, 
+    // ancak elementler yenilendiği için event listener'lar kayboluyor.
+    // Bu yüzden her render sonrası tekrar bind etmeliyiz.
+
 
     const saveBtn = document.getElementById("maintenanceSaveBtn");
     if (saveBtn) saveBtn.addEventListener("click", handleSaveConfig);
@@ -296,7 +303,7 @@ function bindEvents() {
         tasksBody.addEventListener("click", handleTaskAction);
     }
 
-    hasBoundEvents = true;
+    // Flag removal
 }
 
 async function loadConfig() {

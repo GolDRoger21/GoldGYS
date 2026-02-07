@@ -105,7 +105,17 @@ function handleTabChange(target, role) {
             case 'importer': ImporterModule.initImporterPage(); break;
             case 'topics': TopicsModule.initTopicsPage(); break;
             case 'trash': TrashModule.initTrashPage(); break;
-            case 'maintenance': if (role === 'admin') MaintenanceModule.initMaintenancePage(); break;
+            case 'maintenance':
+                if (role === 'admin') {
+                    try {
+                        MaintenanceModule.initMaintenancePage();
+                    } catch (e) {
+                        console.error("Bakım sayfası yüklenirken hata:", e);
+                        const el = document.getElementById('section-maintenance');
+                        if (el) el.innerHTML = '<div class="alert alert-danger">Bakım modülü yüklenemedi.</div>';
+                    }
+                }
+                break;
         }
     }
 }
