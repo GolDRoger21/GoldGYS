@@ -108,6 +108,9 @@ export async function initLayout() {
             document.body.style.visibility = 'visible';
             document.title = `${config.title} | GOLD GYS`;
 
+            // YENİ: Sayfa içeriğini yükle (Eksik olan buydu!)
+            await loadPageContent(window.location.pathname);
+
             // Yeni: Sayfa scriptini yükle
             await loadPageScript(window.location.pathname);
 
