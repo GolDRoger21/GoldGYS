@@ -38,8 +38,8 @@
 
         body {
             background-color: var(--bg-body);
-            color: var(--text-light);
-            /* Enforce light text generally */
+            color: var(--text-main);
+            /* Use theme-aware main text color */
             font-family: var(--font-family-sans);
             min-height: 100vh;
             display: flex;
@@ -194,7 +194,7 @@
         .brand-logo {
             font-family: var(--font-family-brand);
             font-size: 2.75rem;
-            color: var(--text-light);
+            color: var(--text-logo);
             /* Ensure visible in light/dark */
             margin-bottom: 0.5rem;
             display: inline-flex;
@@ -223,7 +223,7 @@
         }
 
         .brand-text .brand-gold {
-            color: var(--text-light);
+            color: var(--text-logo);
         }
 
         .card-subtitle {
@@ -273,7 +273,7 @@
         .info-banner {
             background: rgba(212, 175, 55, 0.1);
             border: 1px solid rgba(212, 175, 55, 0.2);
-            color: var(--gold-light);
+            color: var(--text-main);
             padding: 1rem;
             border-radius: var(--radius-md);
             font-size: 0.9rem;
@@ -303,7 +303,7 @@
             padding: 1rem;
             font-size: 0.9rem;
             line-height: 1.7;
-            color: var(--text-light);
+            color: var(--text-main);
             background: rgba(0, 0, 0, 0.2);
             border: 1px solid var(--border-subtle);
             border-radius: var(--radius-md);
@@ -419,6 +419,32 @@
         .auth-footer a {
             color: var(--color-primary);
             text-decoration: none;
+        }
+
+        [data-theme="light"] .auth-agreement-panel {
+            background: rgba(15, 23, 42, 0.04);
+        }
+
+        [data-theme="light"] .agreement-text {
+            background: var(--bg-hover);
+            border-color: var(--border-color);
+        }
+
+        [data-theme="light"] .btn-back:hover {
+            background: #FFFFFF;
+        }
+
+        [data-theme="light"] .info-banner {
+            background: rgba(212, 175, 55, 0.15);
+            border-color: rgba(212, 175, 55, 0.3);
+        }
+
+        [data-theme="light"] .status-error {
+            color: #b91c1c;
+        }
+
+        [data-theme="light"] .status-pending {
+            color: #166534;
         }
 
         /* Responsive */
