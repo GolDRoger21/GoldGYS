@@ -186,6 +186,7 @@ async function loadRequiredHTML(isAdminPage, usePublicLayout = false) {
         }
     }
 
+
     // Sidebar container oluştur
     let sidebarContainer = document.getElementById('sidebar-placeholder')
         || document.getElementById('sidebar-area')
@@ -221,9 +222,26 @@ async function loadRequiredHTML(isAdminPage, usePublicLayout = false) {
 
 async function loadHTML(url, element) {
     try {
+        // Cache kontrolü (SessionStorage)
+        const cacheKey = `cached_html_${url}`;
+        const cached = sessionStorage.getItem(cacheKey);
+
+        if (cached) {
+            element.innerHTML = cached;
+            return;
+        }
+
         const res = await fetch(url);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const html = await res.text();
+
+        // Cache'e kaydet
+        try {
+            sessionStorage.setItem(cacheKey, html);
+        } catch (e) {
+            console.warn('Cache quota exceeded:', e);
+        }
+
         element.innerHTML = html;
     } catch (e) {
         console.error(`${url} yüklenemedi:`, e);
@@ -231,11 +249,18 @@ async function loadHTML(url, element) {
 }
 
 function initThemeAndSidebar() {
-    // Tema Kontrolü
-    const savedTheme = localStorage.getItem('theme') || 'dark'; // Varsayılan Dark
-    document.documentElement.setAttribute('data-theme', savedTheme);
-    document.documentElement.style.colorScheme = savedTheme;
-    updateThemeIcon(savedTheme);
+    // Tema Kontrolü - theme-init.js ile birebir aynı mantık
+    const storedTheme = localStorage.getItem('theme');
+    const prefersLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
+    const theme = storedTheme || (prefersLight ? 'light' : 'dark');
+
+    // Gereksiz DOM güncellemesini önle
+    if (document.documentElement.getAttribute('data-theme') !== theme) {
+        document.documentElement.setAttribute('data-theme', theme);
+        document.documentElement.style.colorScheme = theme;
+    }
+
+    updateThemeIcon(theme);
 
     // Sidebar Kontrolü (Desktop için collapsed durumu)
     const isCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
