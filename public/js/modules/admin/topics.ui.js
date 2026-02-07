@@ -233,7 +233,7 @@ export const UI_SHELL = `
                 </div>
             </aside>
 
-            <div id="contentTrashModal" class="modal-overlay" style="display:none; z-index:100010;">
+            <div id="contentTrashModal" class="modal-overlay trash-modal-overlay" style="display:none;">
                 <div class="admin-modal-content">
                     <div class="modal-header">
                         <h5 class="m-0">🗑️ Silinen İçerikler</h5>
@@ -275,7 +275,7 @@ export const UI_SHELL = `
                 </div>
             </div>
 
-            <div id="trashModal" class="modal-overlay" style="display:none;">
+            <div id="trashModal" class="modal-overlay trash-modal-overlay" style="display:none;">
                 <div class="admin-modal-content" style="max-width:600px;">
                     <div class="modal-header">
                         <h5 class="m-0">🗑️ Konu Çöp Kutusu</h5>

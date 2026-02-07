@@ -1185,6 +1185,11 @@ tr.highlight {
     backdrop-filter: blur(4px);
 }
 
+.trash-modal-overlay {
+    z-index: 100010 !important;
+    background: rgba(0, 0, 0, 0.75);
+}
+
 /* Modal İçeriği - Studio için */
 .studio-modal-container {
     width: 95vw !important;
