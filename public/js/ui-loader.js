@@ -976,6 +976,22 @@ async function loadPageScript(path) {
 
     } catch (error) {
         console.error(`Script yükleme/başlatma hatası (${scriptPath}):`, error);
+
+        // Kullanıcıya hata göster
+        const mainContent = document.getElementById('main-content');
+        if (mainContent) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'alert alert-danger m-4';
+            errorDiv.innerHTML = `
+                <h4>Sayfa Yüklenemedi</h4>
+                <p>Üzgünüz, sayfa işlevleri yüklenirken bir hata oluştu.</p>
+                <small class="text-muted">${error.message}</small>
+                <div class="mt-3">
+                    <button onclick="window.location.reload()" class="btn btn-sm btn-outline-danger">Sayfayı Yenile</button>
+                </div>
+            `;
+            mainContent.prepend(errorDiv); // İçeriğin başına ekle
+        }
     }
 }
 
