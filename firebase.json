@@ -16,6 +16,46 @@
         "function": "sitemap"
       },
       {
+        "source": "/dashboard",
+        "destination": "/pages/dashboard.html"
+      },
+      {
+        "source": "/profil",
+        "destination": "/pages/profil.html"
+      },
+      {
+        "source": "/konular",
+        "destination": "/pages/konular.html"
+      },
+      {
+        "source": "/konu",
+        "destination": "/pages/konu.html"
+      },
+      {
+        "source": "/denemeler",
+        "destination": "/pages/denemeler.html"
+      },
+      {
+        "source": "/deneme",
+        "destination": "/pages/deneme.html"
+      },
+      {
+        "source": "/yanlislarim",
+        "destination": "/pages/yanlislarim.html"
+      },
+      {
+        "source": "/favoriler",
+        "destination": "/pages/favoriler.html"
+      },
+      {
+        "source": "/analiz",
+        "destination": "/pages/analiz.html"
+      },
+      {
+        "source": "/pending-approval",
+        "destination": "/pages/pending-approval.html"
+      },
+      {
         "source": "**",
         "destination": "/index.html"
       }
