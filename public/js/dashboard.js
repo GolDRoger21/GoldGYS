@@ -99,7 +99,48 @@ export function cleanup() {
 // I will assume ui-loader is responsible for calling init(). 
 
 
+// ... existing code ...
+
+async function loadDashboardStats(uid) {
+    if (!uid) return;
+
+    try {
+        // Bugünün istatistikleri
+        const todayRange = getTodayRange();
+        const todayStats = await fetchExamStats(uid, { range: todayRange });
+
+        // Genel istatistikler
+        const totalStats = await fetchExamStats(uid);
+
+        // UI Güncelleme
+        if (ui.solvedTodayCount) ui.solvedTodayCount.textContent = todayStats.total || 0;
+        if (ui.wrongTodayCount) ui.wrongTodayCount.textContent = todayStats.wrong || 0;
+        if (ui.solvedTotalCount) ui.solvedTotalCount.textContent = totalStats.total || 0;
+
+        // Başarı Oranı
+        const successRate = totalStats.total > 0
+            ? Math.round((totalStats.correct / totalStats.total) * 100)
+            : 0;
+
+        if (ui.successRateText) ui.successRateText.textContent = `%${successRate}`;
+        if (ui.successRateBar) {
+            ui.successRateBar.style.width = `${successRate}%`;
+            ui.successRateBar.setAttribute('aria-valuenow', successRate);
+
+            // Renk ayarı
+            ui.successRateBar.className = 'progress-bar';
+            if (successRate >= 70) ui.successRateBar.classList.add('bg-success');
+            else if (successRate >= 40) ui.successRateBar.classList.add('bg-warning');
+            else ui.successRateBar.classList.add('bg-danger');
+        }
+
+    } catch (error) {
+        console.error("İstatistik yükleme hatası:", error);
+    }
+}
+
 function hideLoader() {
+    // ... existing code ...
     refreshUI();
     if (ui.loader) {
         ui.loader.style.opacity = "0";

@@ -197,9 +197,3 @@ const loadExams = async () => {
     }
 };
 
-export function cleanup() {
-    if (abortController) {
-        abortController.abort();
-        abortController = null;
-    }
-}
