@@ -165,7 +165,7 @@ const loadExams = async () => {
 
         const snapshot = await Promise.race([
             getDocs(q),
-            new Promise((_, reject) => setTimeout(() => reject(new Error("Denemeler yüklenirken zaman aşımı oluştu.")), 5000))
+            new Promise((_, reject) => setTimeout(() => reject(new Error("Denemeler yüklenirken zaman aşımı oluştu.")), 8000))
         ]);
 
         if (snapshot.empty) {

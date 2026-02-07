@@ -115,7 +115,11 @@ async function loadMistakes(uid) {
     state.allMistakes = [];
 
     try {
-        const summary = await WrongSummaryService.getUserWrongSummary(uid);
+        const summary = await Promise.race([
+            WrongSummaryService.getUserWrongSummary(uid),
+            new Promise((_, reject) => setTimeout(() => reject(new Error("Yanlışlarınız yüklenirken zaman aşımı oluştu.")), 8000))
+        ]);
+
         if (!summary.length) {
             renderEmptyState();
             state.isLoading = false;
@@ -141,7 +145,7 @@ async function loadMistakes(uid) {
 
     } catch (error) {
         console.error(error);
-        if (ui.mistakesList) ui.mistakesList.innerHTML = '<div class="text-danger">Veriler alınamadı.</div>';
+        if (ui.mistakesList) ui.mistakesList.innerHTML = `<div class="text-danger p-3">Veriler alınamadı: ${error.message}</div>`;
         setSolveButtonsEnabled(false);
         state.isLoading = false;
     }

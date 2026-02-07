@@ -69,7 +69,12 @@ async function loadUserStats(uid) {
 async function loadTopics() {
     try {
         const q = query(collection(db, "topics"), orderBy("order", "asc"));
-        const snapshot = await getDocs(q);
+
+        // Timeout Eklemesi
+        const snapshot = await Promise.race([
+            getDocs(q),
+            new Promise((_, reject) => setTimeout(() => reject(new Error("Konular yüklenirken zaman aşımı oluştu.")), 8000))
+        ]);
 
         allTopics = [];
         snapshot.forEach(doc => {
@@ -86,7 +91,7 @@ async function loadTopics() {
         console.error("Hata:", error);
         const container = document.getElementById('topicsContainer');
         if (container) {
-            container.innerHTML = `<div class="text-danger p-4">Veriler yüklenemedi: ${error.message}</div>`;
+            container.innerHTML = `<div class="text-danger p-4">Veriler yüklenemedi: ${error.message}<br><button class="btn btn-outline-primary mt-2" onclick="window.location.reload()">Tekrar Dene</button></div>`;
         }
     }
 }

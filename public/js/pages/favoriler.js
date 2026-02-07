@@ -156,7 +156,10 @@ async function loadFavorites(uid, isInitial = false) {
             q = query(q, startAfter(state.lastVisible));
         }
 
-        const snapshot = await getDocs(q);
+        const snapshot = await Promise.race([
+            getDocs(q),
+            new Promise((_, reject) => setTimeout(() => reject(new Error("Favoriler yüklenirken zaman aşımı oluştu.")), 8000))
+        ]);
 
         if (snapshot.empty) {
             state.hasMore = false;

@@ -170,28 +170,6 @@ function showSmartTip() {
         container.appendChild(tipDiv);
     }
 }
-
-async function loadDashboardStats(uid) {
-    const userSnap = await getDoc(doc(db, "users", uid));
-    const userData = userSnap.exists() ? userSnap.data() : {};
-    const statsResetAt = normalizeResetTimestamp(userData.statsResetAt);
-
-    const [totalStats, todayStats] = await Promise.all([
-        fetchExamStats(uid, { resetAtSeconds: statsResetAt }),
-        fetchExamStats(uid, { range: getTodayRange(), resetAtSeconds: statsResetAt })
-    ]);
-
-    const successRate = totalStats.total > 0
-        ? Math.round((totalStats.correct / totalStats.total) * 100)
-        : 0;
-
-    if (ui.solvedTodayCount) ui.solvedTodayCount.textContent = todayStats.total.toLocaleString('tr-TR');
-    if (ui.solvedTotalCount) ui.solvedTotalCount.textContent = totalStats.total.toLocaleString('tr-TR');
-    if (ui.wrongTodayCount) ui.wrongTodayCount.textContent = todayStats.wrong.toLocaleString('tr-TR');
-    if (ui.successRateText) ui.successRateText.textContent = `%${successRate}`;
-    if (ui.successRateBar) ui.successRateBar.style.width = `${successRate}%`;
-}
-
 function normalizeResetTimestamp(timestamp) {
     if (!timestamp) return null;
     if (typeof timestamp.seconds === 'number') return timestamp.seconds;
