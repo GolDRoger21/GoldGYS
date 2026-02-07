@@ -774,7 +774,12 @@ async function loadPageContent(url, { signal } = {}) {
 
         // İçeriği güncelle
         // NOT: innerHTML değiştirmek mevcut event listenerları siler (ki istediğimiz bu)
-        mainContent.innerHTML = content.innerHTML;
+        mainContent.innerHTML = '';
+        if (content.tagName && content.tagName.toLowerCase() !== 'body') {
+            mainContent.appendChild(content.cloneNode(true));
+        } else {
+            mainContent.innerHTML = content.innerHTML;
+        }
 
         // Sayfa başlığını da güncelle (gerekirse)
         const title = doc.querySelector('title');

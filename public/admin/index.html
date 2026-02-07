@@ -48,7 +48,8 @@
         document.addEventListener('DOMContentLoaded', async () => {
             await initLayout(); // Header ve Sidebar'ı yükler
             document.body.classList.add('loaded'); // Sayfayı göster
-            document.getElementById('pageLoader').style.display = 'none'; // Loader'ı gizle
+            const loader = document.getElementById('pageLoader');
+            if (loader) loader.style.display = 'none'; // Loader'ı gizle
         });
     </script>
 

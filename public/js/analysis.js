@@ -11,6 +11,23 @@ const state = {
     topicResets: {}
 };
 
+let chartJsPromise = null;
+
+async function ensureChartJs() {
+    if (window.Chart) return;
+    if (!chartJsPromise) {
+        chartJsPromise = new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/npm/chart.js';
+            script.async = true;
+            script.onload = () => resolve();
+            script.onerror = () => reject(new Error('Chart.js yüklenemedi'));
+            document.head.appendChild(script);
+        });
+    }
+    await chartJsPromise;
+}
+
 export async function init() {
     onAuthStateChanged(auth, async (user) => {
         if (user) {
@@ -25,6 +42,7 @@ export async function init() {
 
 async function initAnalysis(userId) {
     try {
+        await ensureChartJs();
         const resultsRef = collection(db, `users/${userId}/exam_results`);
         // Son 100 sınavı çekip client-side filtreleyebiliriz veya 20 yeterli
         const q = query(resultsRef, orderBy('completedAt', 'desc'), limit(50));
