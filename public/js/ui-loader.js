@@ -10,15 +10,21 @@ const PAGE_CONFIG = {
     '/admin/index.html': { id: 'admin', title: 'Yönetim Paneli', script: '/js/admin-page.js' },
     '/profil': { id: 'profile', title: 'Profilim', script: '/js/profile-page.js' },
     '/pages/profil.html': { id: 'profile', title: 'Profilim', script: '/js/profile-page.js' },
-    '/konular': { id: 'lessons', title: 'Dersler', script: '/js/pages/lessons.js' },
-    '/pages/konular.html': { id: 'lessons', title: 'Dersler', script: '/js/pages/lessons.js' },
-    '/pages/testler.html': { id: 'tests', title: 'Testler', script: '/js/pages/tests.js' },
-    '/denemeler': { id: 'trials', title: 'Denemeler', script: '/js/pages/trials.js' },
-    '/pages/denemeler.html': { id: 'trials', title: 'Denemeler', script: '/js/pages/trials.js' },
-    '/yanlislarim': { id: 'mistakes', title: 'Yanlışlarım', script: '/js/pages/mistakes.js' },
-    '/pages/yanlislarim.html': { id: 'mistakes', title: 'Yanlışlarım', script: '/js/pages/mistakes.js' },
-    '/favoriler': { id: 'favorites', title: 'Favoriler', script: '/js/pages/favorites.js' },
-    '/pages/favoriler.html': { id: 'favorites', title: 'Favoriler', script: '/js/pages/favorites.js' },
+    '/konular': { id: 'lessons', title: 'Dersler', script: '/js/pages/konular.js' },
+    '/pages/konular.html': { id: 'lessons', title: 'Dersler', script: '/js/pages/konular.js' },
+    '/konu': { id: 'lesson-detail', title: 'Konu Detay', script: '/js/pages/konu.js' },
+    '/pages/konu.html': { id: 'lesson-detail', title: 'Konu Detay', script: '/js/pages/konu.js' },
+    // Wildcard mapping needs special handling in loadPageScript, but having base entry helps if we strip params
+
+
+    '/denemeler': { id: 'trials', title: 'Denemeler', script: '/js/pages/denemeler.js' },
+    '/pages/denemeler.html': { id: 'trials', title: 'Denemeler', script: '/js/pages/denemeler.js' },
+    '/deneme': { id: 'trial-detail', title: 'Deneme Çöz', script: '/js/pages/deneme.js' },
+    '/pages/deneme.html': { id: 'trial-detail', title: 'Deneme Çöz', script: '/js/pages/deneme.js' },
+    '/yanlislarim': { id: 'mistakes', title: 'Yanlışlarım', script: '/js/pages/yanlislarim.js' },
+    '/pages/yanlislarim.html': { id: 'mistakes', title: 'Yanlışlarım', script: '/js/pages/yanlislarim.js' },
+    '/favoriler': { id: 'favorites', title: 'Favoriler', script: '/js/pages/favoriler.js' },
+    '/pages/favoriler.html': { id: 'favorites', title: 'Favoriler', script: '/js/pages/favoriler.js' },
     '/analiz': { id: 'analysis', title: 'Analiz', script: '/js/pages/analysis.js' },
     '/pages/analiz.html': { id: 'analysis', title: 'Analiz', script: '/js/pages/analysis.js' }
 };
