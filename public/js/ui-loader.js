@@ -25,8 +25,10 @@ const PAGE_CONFIG = {
     '/pages/yanlislarim.html': { id: 'mistakes', title: 'Yanlışlarım', script: '/js/pages/yanlislarim.js' },
     '/favoriler': { id: 'favorites', title: 'Favoriler', script: '/js/pages/favoriler.js' },
     '/pages/favoriler.html': { id: 'favorites', title: 'Favoriler', script: '/js/pages/favoriler.js' },
-    '/analiz': { id: 'analysis', title: 'Analiz', script: '/js/pages/analysis.js' },
-    '/pages/analiz.html': { id: 'analysis', title: 'Analiz', script: '/js/pages/analysis.js' }
+    '/analiz': { id: 'analysis', title: 'Analiz', script: '/js/analysis.js' },
+    '/pages/analiz.html': { id: 'analysis', title: 'Analiz', script: '/js/analysis.js' },
+    '/admin': { id: 'admin', title: 'Yönetim Paneli', script: '/js/admin-page.js' },
+    '/admin/': { id: 'admin', title: 'Yönetim Paneli', script: '/js/admin-page.js' }
 };
 
 const PUBLIC_ROUTES = [
@@ -811,54 +813,57 @@ async function fetchPageHTML(url, { signal } = {}) {
 }
 
 async function loadPageScript(path) {
-    const normalizedPath = path.split('?')[0];
-    const wildcardPath = normalizedPath.startsWith('/konu/')
-        ? '/konu'
-        : normalizedPath.startsWith('/deneme/')
-            ? '/deneme'
-            : normalizedPath;
-    const config = PAGE_CONFIG[path] || PAGE_CONFIG[normalizedPath] || PAGE_CONFIG[wildcardPath];
-    const scriptPath = config?.script;
+    // 1. Config'den script yolunu bul
+    let scriptPath = null;
+    let config = PAGE_CONFIG[path];
 
-    if (scriptPath) {
-        try {
-            // Önceki sayfanın temizliğini yap (varsa)
-            if (currentCleanupFunction && typeof currentCleanupFunction === 'function') {
-                try {
-                    currentCleanupFunction();
-                } catch (cleanupError) {
-                    console.warn("Cleanup error:", cleanupError);
-                }
-                currentCleanupFunction = null;
+    if (!config) {
+        // Query param varsa temizle ve tekrar dene
+        const cleanPath = path.split('?')[0];
+        config = PAGE_CONFIG[cleanPath];
+    }
+
+    // Admin catch-all rule: if path starts with /admin and no specific config, use admin-page.js
+    if (!config && path.startsWith('/admin')) {
+        scriptPath = '/js/admin-page.js';
+    } else if (config) {
+        scriptPath = config.script;
+    }
+
+    // Script yoksa çık (Örn: Sadece statik sayfa)
+    if (!scriptPath) return;
+
+    try {
+        // Önceki sayfanın temizliğini yap
+        if (currentCleanupFunction) {
+            try {
+                currentCleanupFunction();
+            } catch (cleanupError) {
+                console.warn("Önceki sayfa temizlenirken hata:", cleanupError);
             }
-
-            // Dinamik import ile modülü yükle
-            const module = await import(scriptPath);
-
-            // init fonksiyonunu çağır
-            const initPromise = (async () => {
-                if (module.init && typeof module.init === 'function') {
-                    await module.init();
-                } else if (module.initProfilePage && typeof module.initProfilePage === 'function') {
-                    await module.initProfilePage();
-                }
-            })();
-
-            // 10 saniyelik uyarı (Firestore soğuk başlangıcı bazen uzun sürebilir)
-            const timeoutId = setTimeout(() => {
-                console.warn("Script yüklemesi zaman aşımına uğradı, ancak işlem devam ediyor olabilir.");
-            }, 10000);
-            await initPromise.finally(() => clearTimeout(timeoutId));
-
-            // Temizlik fonksiyonunu sakla (eğer varsa)
-            if (module.cleanup && typeof module.cleanup === 'function') {
-                currentCleanupFunction = module.cleanup;
-            }
-
-            loadedScripts.add(scriptPath);
-            console.log(`Page script loaded and initialized: ${scriptPath}`);
-        } catch (e) {
-            console.error(`Failed to load/init script ${scriptPath}:`, e);
+            currentCleanupFunction = null;
         }
+
+        // Scripti dinamik import et
+        console.log(`Loading script: ${scriptPath}`);
+        const module = await import(scriptPath);
+
+        // Varsa init fonksiyonunu çalıştır
+        if (module.init) {
+            await module.init();
+        } else if (module.default && typeof module.default.init === 'function') {
+            // Handle default export with init
+            await module.default.init();
+        }
+
+        // Varsa cleanup fonksiyonunu sakla
+        if (module.cleanup) {
+            currentCleanupFunction = module.cleanup;
+        }
+
+        loadedScripts.add(scriptPath);
+
+    } catch (error) {
+        console.error(`Script yükleme/başlatma hatası (${scriptPath}):`, error);
     }
 }
