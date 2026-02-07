@@ -58,14 +58,42 @@ let activeNavController = null;
 const PAGE_CACHE_PREFIX = 'cached_page_';
 let currentLayoutType = null;
 
+function normalizePath(path) {
+    const cleanPath = path.split('?')[0];
+    if (cleanPath.length > 1 && cleanPath.endsWith('/')) {
+        return cleanPath.slice(0, -1);
+    }
+    return cleanPath;
+}
+
+function getConfigForPath(path) {
+    const normalizedPath = normalizePath(path);
+
+    if (PAGE_CONFIG[normalizedPath]) {
+        return { config: PAGE_CONFIG[normalizedPath], normalizedPath };
+    }
+
+    const segments = normalizedPath.split('/').filter(Boolean);
+    if (segments.length > 1) {
+        const basePath = `/${segments[0]}`;
+        if (PAGE_CONFIG[basePath]) {
+            return { config: PAGE_CONFIG[basePath], normalizedPath: basePath };
+        }
+    }
+
+    return { config: null, normalizedPath };
+}
+
 export async function initLayout() {
     if (layoutInitPromise) return layoutInitPromise;
 
     layoutInitPromise = (async () => {
         const path = window.location.pathname;
-        const isAdminPage = path.includes('/admin');
-        const config = PAGE_CONFIG[path] || { id: 'unknown', title: 'Gold GYS' };
-        const usePublicLayout = PUBLIC_LAYOUT_ROUTES.includes(path);
+        const normalizedPath = normalizePath(path);
+        const isAdminPage = normalizedPath.includes('/admin');
+        const { config } = getConfigForPath(path);
+        const pageConfig = config || { id: 'unknown', title: 'Gold GYS' };
+        const usePublicLayout = PUBLIC_LAYOUT_ROUTES.includes(normalizedPath);
         currentLayoutType = usePublicLayout ? 'public' : (isAdminPage ? 'admin' : 'app');
 
         try {
@@ -101,12 +129,12 @@ export async function initLayout() {
                 setupLandingNav();
             } else {
                 // 6. Aktif Menüyü İşaretle
-                setActiveMenuItem(config.id);
+                setActiveMenuItem(pageConfig.id);
             }
 
             // 7. Sayfayı Göster
             document.body.style.visibility = 'visible';
-            document.title = `${config.title} | GOLD GYS`;
+            document.title = `${pageConfig.title} | GOLD GYS`;
 
             // YENİ: Sayfa içeriğini yükle (Eksik olan buydu!)
             await loadPageContent(window.location.pathname);
@@ -431,7 +459,8 @@ async function resolveAuthState(path) {
                     });
                 }
             } else {
-                if (!PUBLIC_ROUTES.includes(path)) {
+                const normalizedPath = normalizePath(path);
+                if (!PUBLIC_ROUTES.includes(normalizedPath)) {
                     window.location.href = '/login.html';
                     resolve({ user: null, profile: null, hasPrivilege: false, redirecting: true });
                     return;
@@ -629,7 +658,8 @@ function hijackNavigation() {
                 }
 
                 // Firebase auth linkleri veya public rotalar için tam sayfa yenileme
-                if (url.pathname.includes('/login.html') || PUBLIC_ROUTES.includes(url.pathname)) {
+                const normalizedPath = normalizePath(url.pathname);
+                if (normalizedPath.includes('/login.html') || PUBLIC_ROUTES.includes(normalizedPath)) {
                     return;
                 }
 
@@ -650,7 +680,8 @@ function hijackNavigation() {
         const currentUrl = new URL(window.location.href);
         if (url.origin !== currentUrl.origin) return;
         if (target.hasAttribute('download') || target.getAttribute('target') === '_blank' || target.classList.contains('no-spa')) return;
-        if (url.pathname.includes('/login.html') || PUBLIC_ROUTES.includes(url.pathname)) return;
+        const normalizedPath = normalizePath(url.pathname);
+        if (normalizedPath.includes('/login.html') || PUBLIC_ROUTES.includes(normalizedPath)) return;
         if (url.pathname === currentUrl.pathname && url.search === currentUrl.search) return;
         prefetchPage(url.pathname + url.search);
     };
@@ -678,11 +709,12 @@ async function handleNavigation(url, pushState = true) {
     mainContent.scrollTop = 0; // Scroll to top on new page load
 
     try {
-        const config = PAGE_CONFIG[url] || PAGE_CONFIG[url.split('?')[0]] || { id: 'unknown', title: 'Gold GYS' };
-        document.title = `${config.title} | GOLD GYS`;
+        const { config } = getConfigForPath(url);
+        const pageConfig = config || { id: 'unknown', title: 'Gold GYS' };
+        document.title = `${pageConfig.title} | GOLD GYS`;
 
         if (pushState) {
-            window.history.pushState({ path: url }, config.title, url);
+            window.history.pushState({ path: url }, pageConfig.title, url);
         }
 
         if (activeNavController) {
@@ -692,7 +724,7 @@ async function handleNavigation(url, pushState = true) {
 
         await loadPageContent(url, { signal: activeNavController.signal });
         await loadPageScript(url);
-        setActiveMenuItem(config.id);
+        setActiveMenuItem(pageConfig.id);
 
         // Mobil sidebar açıksa kapat
         document.body.classList.remove('mobile-sidebar-active');
@@ -709,18 +741,12 @@ async function loadPageContent(url, { signal } = {}) {
     if (!mainContent) return;
 
     // 1. Config'den doğru HTML dosya yolunu bul
-    const cleanPath = url.split('?')[0];
-    const config = PAGE_CONFIG[cleanPath];
+    const { config } = getConfigForPath(url);
 
     let contentUrl = url; // Varsayılan (fallback)
 
     if (config && config.html) {
         contentUrl = config.html;
-    } else if (!url.endsWith('.html') && !url.includes('?')) {
-        // Eğer config'de yoksa ve html değilse, root admin değilse 404'e yönlendir veya index'e düşmesini engelle
-        if (!url.startsWith('/admin')) {
-            // contentUrl = '/pages/404.html'; // İstersen bunu açabilirsin
-        }
     }
 
     try {
@@ -730,7 +756,7 @@ async function loadPageContent(url, { signal } = {}) {
         const parser = new DOMParser();
         const doc = parser.parseFromString(html, 'text/html');
 
-        syncPageStyles(doc, url);
+        syncPageStyles(doc, contentUrl);
 
         // İçeriği bul: .dashboard-container > main > body
         // Öncelik: .dashboard-container (bizim sayfaların ana wrapper'ı)
@@ -836,8 +862,7 @@ function prefetchPage(url) {
     };
 
     // 2. Script Module Prefetch
-    const cleanPath = url.split('?')[0];
-    const config = PAGE_CONFIG[cleanPath];
+    const { config } = getConfigForPath(url);
     if (config && config.script) {
         const link = document.createElement('link');
         link.rel = 'modulepreload';
@@ -880,16 +905,10 @@ async function fetchPageHTML(url, { signal } = {}) {
 async function loadPageScript(path) {
     // 1. Config'den script yolunu bul
     let scriptPath = null;
-    let config = PAGE_CONFIG[path];
-
-    if (!config) {
-        // Query param varsa temizle ve tekrar dene
-        const cleanPath = path.split('?')[0];
-        config = PAGE_CONFIG[cleanPath];
-    }
+    const { config, normalizedPath } = getConfigForPath(path);
 
     // Admin catch-all rule: if path starts with /admin and no specific config, use admin-page.js
-    if (!config && path.startsWith('/admin')) {
+    if (!config && normalizedPath.startsWith('/admin')) {
         scriptPath = '/js/admin-page.js';
     } else if (config) {
         scriptPath = config.script;
@@ -934,7 +953,7 @@ async function loadPageScript(path) {
 }
 
 function getLayoutType(path) {
-    const cleanPath = path.split('?')[0];
+    const cleanPath = normalizePath(path);
     if (PUBLIC_LAYOUT_ROUTES.includes(cleanPath)) return 'public';
     if (cleanPath.startsWith('/admin')) return 'admin';
     return 'app';
