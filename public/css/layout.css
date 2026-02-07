@@ -181,9 +181,10 @@ body.sidebar-collapsed .app-sidebar {
     border-radius: var(--radius-md);
     margin: 0 4px 10px;
     border: 1px solid transparent;
-    background: transparent; /* Default transparent unless active/hover */
+    background: transparent;
+    /* Default transparent unless active/hover */
     transition: all var(--transition-fast);
-    
+
     /* Flex & Overflow for smooth collapsing */
     gap: 12px;
     flex-wrap: nowrap;
@@ -219,7 +220,8 @@ body.sidebar-collapsed .app-sidebar {
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    width: 24px; /* Fixed width for alignment */
+    width: 24px;
+    /* Fixed width for alignment */
 }
 
 .app-sidebar .nav-item span:not(.icon) {
@@ -627,7 +629,8 @@ body.sidebar-collapsed .app-sidebar .nav-label {
     display: flex;
     flex-direction: column;
     gap: 12px;
-    z-index: 1100;
+    z-index: 100200;
+    /* Increased to be above Studio Pro modal (100005) */
     pointer-events: none;
 }
 
@@ -722,7 +725,8 @@ body.sidebar-collapsed .app-sidebar .nav-label {
     opacity: 0;
     pointer-events: none;
     transition: opacity var(--transition-fast), transform var(--transition-fast);
-    z-index: 1200;
+    z-index: 100210;
+    /* Increased to be above Studio Pro modal */
 }
 
 .alert-icon {
@@ -793,7 +797,8 @@ body.sidebar-collapsed .app-sidebar .nav-label {
     padding: 24px;
     background: var(--bg-backdrop);
     backdrop-filter: blur(10px);
-    z-index: 1200;
+    z-index: 100210;
+    /* Increased to be above Studio Pro modal */
 }
 
 .confirm-dialog {
