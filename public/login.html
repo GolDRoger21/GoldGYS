@@ -2,7 +2,17 @@
 <html lang="tr">
 
 <head>
-    <script src="/js/theme-init.js"></script>
+    <script>
+        (function () {
+            try {
+                const storedTheme = localStorage.getItem('theme');
+                const prefersLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
+                const theme = storedTheme || (prefersLight ? 'light' : 'dark');
+                document.documentElement.setAttribute('data-theme', theme);
+                document.documentElement.style.colorScheme = theme;
+            } catch (e) { }
+        })();
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Giriş Yap | GOLD GYS</title>
