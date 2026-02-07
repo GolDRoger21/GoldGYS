@@ -298,6 +298,7 @@ async function loadHTML(url, element) {
 }
 
 function initThemeAndSidebar() {
+    if (!localStorage.getItem('theme')) localStorage.setItem('theme', 'dark');
     // Tema Kontrolü - theme-init.js ile birebir aynı mantık
     const storedTheme = localStorage.getItem('theme');
     const prefersLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;

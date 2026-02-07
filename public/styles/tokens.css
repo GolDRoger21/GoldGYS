@@ -148,18 +148,16 @@
   --bg-backdrop: rgba(241, 245, 249, 0.8);
 
   /* Text */
-  --text-main: #856d20;
-  /* Deep Gold */
-  --text-muted: #B5952F;
-  /* Muted Gold */
+  --text-main: #332D18; /* Dark Brown/Gold - High contrast */
+  --text-muted: #856d20; /* Deep Gold */
   --text-on-gold: var(--navy-deep);
-  --text-logo: #856d20;
+  --text-logo: #5C4A15; /* Darker Gold for Logo Text */
   --text-light: #F8FAFC;
   /* Keep this light for reverse contrast elements if needed, or check usage */
   --text-white: #F8FAFC;
-  --logo-gold: #C89B28;
-  --logo-khaki: #B4573C;
-  --logo-highlight: #E8D29A;
+  --logo-gold: #B48B24; /* Darker Gold for Logo Icon */
+  --logo-khaki: #A34E34;
+  --logo-highlight: #D4AF37;
 
   /* Borders */
   --border-color: #E2E8F0;

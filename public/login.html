@@ -7,7 +7,9 @@
             try {
                 const storedTheme = localStorage.getItem('theme');
                 const prefersLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
-                const theme = storedTheme || (prefersLight ? 'light' : 'dark');
+                // Force dark as default if no storage, or respect storage. 
+                // Any logic that defaulted to light is now removed/updated.
+                const theme = storedTheme || 'dark';
                 document.documentElement.setAttribute('data-theme', theme);
                 document.documentElement.style.colorScheme = theme;
             } catch (e) { }
