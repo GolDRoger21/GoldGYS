@@ -811,7 +811,13 @@ async function fetchPageHTML(url, { signal } = {}) {
 }
 
 async function loadPageScript(path) {
-    const config = PAGE_CONFIG[path] || PAGE_CONFIG[path.split('?')[0]];
+    const normalizedPath = path.split('?')[0];
+    const wildcardPath = normalizedPath.startsWith('/konu/')
+        ? '/konu'
+        : normalizedPath.startsWith('/deneme/')
+            ? '/deneme'
+            : normalizedPath;
+    const config = PAGE_CONFIG[path] || PAGE_CONFIG[normalizedPath] || PAGE_CONFIG[wildcardPath];
     const scriptPath = config?.script;
 
     if (scriptPath) {
@@ -829,7 +835,7 @@ async function loadPageScript(path) {
             // Dinamik import ile modülü yükle
             const module = await import(scriptPath);
 
-            // init fonksiyonunu çağır with timeout
+            // init fonksiyonunu çağır
             const initPromise = (async () => {
                 if (module.init && typeof module.init === 'function') {
                     await module.init();
@@ -838,12 +844,11 @@ async function loadPageScript(path) {
                 }
             })();
 
-            // 10 saniyelik timeout (Firestore soğuk başlangıcı bazen uzun sürebilir)
-            const timeoutPromise = new Promise((_, reject) =>
-                setTimeout(() => reject(new Error("Script initialization timed out")), 10000)
-            );
-
-            await Promise.race([initPromise, timeoutPromise]);
+            // 10 saniyelik uyarı (Firestore soğuk başlangıcı bazen uzun sürebilir)
+            const timeoutId = setTimeout(() => {
+                console.warn("Script yüklemesi zaman aşımına uğradı, ancak işlem devam ediyor olabilir.");
+            }, 10000);
+            await initPromise.finally(() => clearTimeout(timeoutId));
 
             // Temizlik fonksiyonunu sakla (eğer varsa)
             if (module.cleanup && typeof module.cleanup === 'function') {
@@ -854,10 +859,6 @@ async function loadPageScript(path) {
             console.log(`Page script loaded and initialized: ${scriptPath}`);
         } catch (e) {
             console.error(`Failed to load/init script ${scriptPath}:`, e);
-            if (e.message === "Script initialization timed out") {
-                // Timeout durumunda kullanıcıya bilgi ver ama uygulamayı kırma (belki arka planda yüklenir)
-                console.warn("Script yüklemesi zaman aşımına uğradı, ancak işlem devam ediyor olabilir.");
-            }
         }
     }
 }

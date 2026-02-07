@@ -6,28 +6,31 @@ import { getUserProfile, getLastActivity, getRecentActivities } from "./user-pro
 import { collection, doc, getDoc, getDocs, limit, orderBy, query, where, Timestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // UI Elementleri
-const ui = {
-    loader: document.getElementById("pageLoader"),
-    loaderText: document.getElementById("loaderText"),
-    welcomeMsg: document.getElementById("welcomeMsg"),
-    mainWrapper: document.getElementById("mainWrapper"),
-    countdown: document.getElementById("countdownDays"),
-    countdownLabel: document.getElementById("countdownLabel"),
-    examPanelBody: document.getElementById("examPanelBody"),
-    examStatusBadge: document.getElementById("examStatusBadge"),
-    announcementList: document.getElementById("announcementList"),
-    recentActivityList: document.getElementById("recentActivityList"),
-    successRateBar: document.getElementById("successRateBar"),
-    successRateText: document.getElementById("successRateText"),
-    solvedTodayCount: document.getElementById("solvedTodayCount"),
-    solvedTotalCount: document.getElementById("solvedTotalCount"),
-    wrongTodayCount: document.getElementById("wrongTodayCount")
-};
+const ui = {};
+
+function refreshUI() {
+    ui.loader = document.getElementById("pageLoader");
+    ui.loaderText = document.getElementById("loaderText");
+    ui.welcomeMsg = document.getElementById("welcomeMsg");
+    ui.mainWrapper = document.getElementById("mainWrapper");
+    ui.countdown = document.getElementById("countdownDays");
+    ui.countdownLabel = document.getElementById("countdownLabel");
+    ui.examPanelBody = document.getElementById("examPanelBody");
+    ui.examStatusBadge = document.getElementById("examStatusBadge");
+    ui.announcementList = document.getElementById("announcementList");
+    ui.recentActivityList = document.getElementById("recentActivityList");
+    ui.successRateBar = document.getElementById("successRateBar");
+    ui.successRateText = document.getElementById("successRateText");
+    ui.solvedTodayCount = document.getElementById("solvedTodayCount");
+    ui.solvedTotalCount = document.getElementById("solvedTotalCount");
+    ui.wrongTodayCount = document.getElementById("wrongTodayCount");
+}
 
 let examCountdownInterval = null;
 
 export async function init() {
     try {
+        refreshUI();
         if (ui.loaderText) ui.loaderText.textContent = "Sistem başlatılıyor...";
 
         // 1. Merkezi Layout Yükleyicisini Bekle (SPA'da zaten yüklü ama garanti olsun)
@@ -97,6 +100,7 @@ export function cleanup() {
 
 
 function hideLoader() {
+    refreshUI();
     if (ui.loader) {
         ui.loader.style.opacity = "0";
         setTimeout(() => {
@@ -161,9 +165,12 @@ function showSmartTip() {
     tipDiv.style.color = 'var(--text-main)';
     tipDiv.innerHTML = randomTip;
 
-    if (target) {
+    if (target && target.parentNode) {
         target.parentNode.insertBefore(tipDiv, target.nextSibling);
-    } else {
+        return;
+    }
+
+    if (container) {
         container.appendChild(tipDiv);
     }
 }
