@@ -6,9 +6,15 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/fi
 
 let currentTopicId = null;
 let topicTitle = "";
+let unsubscribeAuth = null;
 
 export async function init() {
     console.log("Konu page init started");
+
+    // Reset State
+    currentTopicId = null;
+    topicTitle = "";
+
     const urlParams = new URLSearchParams(window.location.search);
     currentTopicId = urlParams.get('id');
 
@@ -45,16 +51,22 @@ export async function init() {
         }
     }
 
-    await loadQuestionCount();
+    // Auth listener to update progress dynamically
+    if (unsubscribeAuth) unsubscribeAuth();
 
-    // Auth state listener is tricky in SPA. 
-    // If we add it, we must ensure we don't duplicate it or leak it.
-    // Ideally, we just check current auth, as init() is called when page loads.
-    // But if user logs in *while* on this page (unlikely without reload), it might matter.
-    // For now, let's just check immediate state, assuming ui-loader handles global auth.
-    if (auth.currentUser) {
+    unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
         await loadQuestionCount();
+    });
+}
+
+export function cleanup() {
+    if (unsubscribeAuth) {
+        unsubscribeAuth();
+        unsubscribeAuth = null;
     }
+    currentTopicId = null;
+    topicTitle = "";
+    // Clean up window functions if possible, but HTML usage prevents it easily without rewriting HTML.
 }
 
 // Mobile Tab Functionality

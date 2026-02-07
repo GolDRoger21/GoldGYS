@@ -2,18 +2,17 @@ import { db } from "../firebase-config.js";
 import { initLayout } from '../ui-loader.js'; // Imported but mostly handled by ui-loader itself
 import { collection, getDocs, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-const state = {
+const INITIAL_STATE = {
     exams: []
 };
-
+let state = { ...INITIAL_STATE };
 let abortController = null;
 
 export async function init() {
     console.log('Denemeler sayfası başlatılıyor...');
 
-    // Auth check event listeners or initial load
-    // Assuming framework handles auth wait before calling init if possible,
-    // or we just trigger loadExams and let it handle empty/loading states.
+    // Reset state
+    state = { ...INITIAL_STATE };
 
     abortController = new AbortController();
     const signal = abortController.signal;
@@ -22,6 +21,14 @@ export async function init() {
     attachEventListeners(signal);
 
     await loadExams();
+}
+
+export function cleanup() {
+    if (abortController) {
+        abortController.abort();
+        abortController = null;
+    }
+    state = { ...INITIAL_STATE };
 }
 
 function attachEventListeners(signal) {

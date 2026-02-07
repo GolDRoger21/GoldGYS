@@ -32,6 +32,8 @@ const getDom = () => ({
     statTestsCompleted: document.getElementById("statTestsCompleted"),
 });
 
+let cleanupFuncs = [];
+
 export function initProfilePage() {
     const user = auth.currentUser;
     if (user) {
@@ -40,19 +42,29 @@ export function initProfilePage() {
 
         const dom = getDom();
         if (dom.profileForm) {
-            dom.profileForm.onsubmit = (e) => {
+            const handler = (e) => {
                 e.preventDefault();
                 saveProfile(user.uid);
             };
+            dom.profileForm.onsubmit = handler;
+            // No need to cleanup 'onsubmit' specifically as it's a property setter, new init will overwrite.
+            // But if we used addEventListener, we would need to remove it.
         }
 
         if (dom.btnResetPassword) {
+            // overwriting onclick is fine
             dom.btnResetPassword.onclick = () => handlePasswordReset(user.email);
         }
     }
 }
 
 export const init = initProfilePage;
+
+export function cleanup() {
+    // Nothing specific needed as we used onsubmit/onclick properties which get overwritten.
+    // If we had strict addEventListener we would track them.
+    // But to be safe, we can nullify handlers if we want, though not strictly required if DOM is removed.
+}
 
 async function loadFullProfile(user) {
     const dom = getDom();

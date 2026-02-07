@@ -29,7 +29,12 @@ async function ensureChartJs() {
 }
 
 export async function init() {
-    onAuthStateChanged(auth, async (user) => {
+    // Reset state
+    state = { ...INITIAL_STATE };
+
+    if (unsubscribeAuth) unsubscribeAuth();
+
+    unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
         if (user) {
             state.userId = user.uid;
             await initAnalysis(user.uid);
@@ -38,6 +43,14 @@ export async function init() {
             window.location.href = '/login.html';
         }
     });
+}
+
+export function cleanup() {
+    if (unsubscribeAuth) {
+        unsubscribeAuth();
+        unsubscribeAuth = null;
+    }
+    state = { ...INITIAL_STATE };
 }
 
 async function initAnalysis(userId) {

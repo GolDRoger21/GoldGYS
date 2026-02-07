@@ -58,7 +58,7 @@ export async function init() {
         // Bitir Butonu
         const btnFinish = document.getElementById('btnFinishExam');
         if (btnFinish) {
-            // Remove old listeners ideally, but replaceWith trick works or assume clean DOM
+            // Remove old listeners using cloneNode
             const newBtn = btnFinish.cloneNode(true);
             btnFinish.parentNode.replaceChild(newBtn, btnFinish);
 
@@ -79,4 +79,11 @@ export async function init() {
         showToast(`Bir hata oluştu: ${error.message}`, "error");
         window.location.href = '/denemeler';
     }
+}
+
+export function cleanup() {
+    // No specific cleanup needed as `init` handles listener removal via `cloneNode` hack.
+    // TestEngine might need cleanup if it sets global timers?
+    // TestEngine usually handles its own state, but if it sets `window.interval`, we might need reference.
+    // Assuming TestEngine is self-contained or cleaned up by GC when DOM is removed (quizContainer).
 }

@@ -3,7 +3,7 @@ import { showToast } from '../notifications.js';
 import { WrongSummaryService } from '../wrong-summary-service.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-const state = {
+const INITIAL_STATE = {
     allMistakes: [],
     filteredMistakes: [],
     selectedCategory: 'all',
@@ -13,12 +13,18 @@ const state = {
     PAGE_SIZE: 20,
     visibleCount: 20
 };
+
+let state = { ...INITIAL_STATE };
 const CUSTOM_TEST_LIMIT = 30;
 
 let ui = {};
+let unsubscribeAuth = null;
 
 export async function init() {
     console.log('Yanlışlarım sayfası başlatılıyor...');
+
+    // 1. State'i Sıfırla
+    state = { ...INITIAL_STATE };
 
     // UI referanslarını güncelle (DOM yenilendiği için)
     ui = {
@@ -39,14 +45,29 @@ export async function init() {
 
     attachEventListeners();
 
-    const user = auth.currentUser;
-    if (user) {
-        await loadMistakes(user.uid);
-    } else {
-        onAuthStateChanged(auth, async (user) => {
-            if (user) await loadMistakes(user.uid);
-        });
+    // Init Auth listener safely
+    if (unsubscribeAuth) unsubscribeAuth();
+
+    unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            await loadMistakes(user.uid);
+            // Ensure visibility if hidden
+            document.body.style.visibility = 'visible';
+        }
+    });
+
+    if (auth.currentUser) {
+        // Optional: load immediately if auth is known, but listener handles it.
     }
+}
+
+export function cleanup() {
+    if (unsubscribeAuth) {
+        unsubscribeAuth();
+        unsubscribeAuth = null;
+    }
+    state = { ...INITIAL_STATE };
+    ui = {};
 }
 
 function attachEventListeners() {

@@ -4,9 +4,7 @@ import { CacheManager } from '../cache-manager.js';
 import { collection, getDocs, deleteDoc, doc, where, documentId, query, limit, startAfter, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-let ui = {};
-
-const state = {
+const INITIAL_STATE = {
     favorites: [],
     filtered: [],
     categories: new Map(),
@@ -15,10 +13,16 @@ const state = {
     hasMore: true,
     PAGE_SIZE: 20
 };
-const CUSTOM_TEST_LIMIT = 30;
+
+let state = { ...INITIAL_STATE };
+let ui = {};
+let unsubscribeAuth = null;
 
 export async function init() {
     console.log('Favoriler sayfası başlatılıyor...');
+
+    // 1. State'i Sıfırla
+    resetState();
 
     // UI referanslarını güncelle
     ui = {
@@ -37,18 +41,40 @@ export async function init() {
 
     attachEventListeners();
 
-    const user = auth.currentUser;
-    if (user) {
-        await loadFavorites(user.uid, true);
-        document.body.style.visibility = 'visible';
-    } else {
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                await loadFavorites(user.uid, true);
-                document.body.style.visibility = 'visible';
-            }
-        });
+    // Auth Listener Yönetimi
+    if (unsubscribeAuth) {
+        unsubscribeAuth(); // Varsa önceki listener'ı kaldır
     }
+
+    unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            await loadFavorites(user.uid, true);
+            document.body.style.visibility = 'visible';
+        }
+    });
+
+    // Eğer zaten user varsa direkt yükle (Auth listener asenkron bekletmesin)
+    if (auth.currentUser) {
+        // Listener zaten tetiklenecek ama UI hızlandırmak için manuel çağrı yapılabilir mi?
+        // Firebase Auth SDK'sı listener'ı hemen tetikler local state varsa.
+        // Ancak clean bir start için listener'a bırakmak daha güvenli, double-fetch olmasın.
+    }
+}
+
+export function cleanup() {
+    if (unsubscribeAuth) {
+        unsubscribeAuth();
+        unsubscribeAuth = null;
+    }
+    state = { ...INITIAL_STATE }; // Memory release
+    ui = {};
+}
+
+function resetState() {
+    state = {
+        ...INITIAL_STATE,
+        categories: new Map() // Deep copy for Map
+    };
 }
 
 function attachEventListeners() {

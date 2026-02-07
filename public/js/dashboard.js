@@ -81,6 +81,10 @@ export function cleanup() {
         clearInterval(examCountdownInterval);
         examCountdownInterval = null;
     }
+    // Clear UI references to avoid holding on to detached DOM elements
+    for (const key in ui) {
+        ui[key] = null;
+    }
 }
 
 // Backwards compatibility for full reload if needed, but module execution shouldn't rely on it event listener if called by loader

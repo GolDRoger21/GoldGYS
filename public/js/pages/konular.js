@@ -5,28 +5,51 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/fi
 let allTopics = [];
 let userStats = {}; // { topicId: { solved: 10, correct: 8 } }
 let questionCounts = new Map(); // { topicId: count }
+let unsubscribeAuth = null;
 
 export async function init() {
     console.log('Konular sayfası başlatılıyor...');
 
+    // Reset State
+    allTopics = [];
+    userStats = {};
+    questionCounts = new Map();
+
     // Event listener'ları temizle veya yeniden bağla
     attachEventListeners();
 
-    // Firebase Auth Listener
-    // Not: onAuthStateChanged global olarak ui-loader'da zaten var, 
-    // ama burada sayfa içi verilere ihtiyaç var. 
-    // SPA geçişinde auth zaten hazırdır muhtemelen.
+    // Init Auth listener safely
+    if (unsubscribeAuth) unsubscribeAuth();
+
+    unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            await loadUserStats(user.uid);
+            await loadTopics();
+        } else {
+            await loadTopics(); // Guest mode to see topics? Or redirect? Original code waited for auth.
+            // Original logic: if (user) loadStats else wait.
+        }
+    });
+
+    // If already logged in, maybe fire immediately or wait for listener
     const user = auth.currentUser;
     if (user) {
-        await loadUserStats(user.uid);
-    } else {
-        onAuthStateChanged(auth, async (user) => {
-            if (user) await loadUserStats(user.uid);
-            await loadTopics();
-        });
-        return; // wait for auth callback
+        // Listener will fire, but we can pre-fetch if needed.
+        // Let's stick to listener to avoid race conditions.
     }
-    await loadTopics();
+}
+
+export function cleanup() {
+    if (unsubscribeAuth) {
+        unsubscribeAuth();
+        unsubscribeAuth = null;
+    }
+    allTopics = [];
+    userStats = {};
+    questionCounts = new Map();
+    // Also remove window.filterTopics if we want to be strict, but it might be used by HTML onclicks.
+    // Ideally we should remove it, but if HTML relies on it, keeping it is safer until HTML is refactored.
+    // window.filterTopics = null; 
 }
 
 function attachEventListeners() {
