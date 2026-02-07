@@ -6,6 +6,8 @@ const state = {
     exams: []
 };
 
+let abortController = null;
+
 export async function init() {
     console.log('Denemeler sayfası başlatılıyor...');
 
@@ -13,21 +15,24 @@ export async function init() {
     // Assuming framework handles auth wait before calling init if possible,
     // or we just trigger loadExams and let it handle empty/loading states.
 
+    abortController = new AbortController();
+    const signal = abortController.signal;
+
     // Event listeners
-    attachEventListeners();
+    attachEventListeners(signal);
 
     await loadExams();
 }
 
-function attachEventListeners() {
+function attachEventListeners(signal) {
     const searchInput = document.getElementById('examSearch');
     if (searchInput) {
-        searchInput.addEventListener('input', applyFilters);
+        searchInput.addEventListener('input', applyFilters, { signal });
     }
 
     const roleFilter = document.getElementById('roleFilter');
     if (roleFilter) {
-        roleFilter.addEventListener('change', applyFilters);
+        roleFilter.addEventListener('change', applyFilters, { signal });
     }
 }
 
@@ -184,3 +189,10 @@ const loadExams = async () => {
         if (grid) grid.innerHTML = `<div class="empty-state">Bağlantı hatası: ${error.message}</div>`;
     }
 };
+
+export function cleanup() {
+    if (abortController) {
+        abortController.abort();
+        abortController = null;
+    }
+}

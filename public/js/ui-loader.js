@@ -5,30 +5,28 @@ import { showConfirm } from './notifications.js';
 import { MaintenanceGuard } from './modules/maintenance-guard.js';
 
 const PAGE_CONFIG = {
-    '/dashboard': { id: 'dashboard', title: 'Genel Bakış', script: '/js/dashboard.js' }, // Admin dashboard
-    '/pages/dashboard.html': { id: 'dashboard', title: 'Genel Bakış', script: '/js/dashboard.js' }, // User dashboard
-    '/admin/index.html': { id: 'admin', title: 'Yönetim Paneli', script: '/js/admin-page.js' },
-    '/profil': { id: 'profile', title: 'Profilim', script: '/js/profile-page.js' },
-    '/pages/profil.html': { id: 'profile', title: 'Profilim', script: '/js/profile-page.js' },
-    '/konular': { id: 'lessons', title: 'Dersler', script: '/js/pages/konular.js' },
-    '/pages/konular.html': { id: 'lessons', title: 'Dersler', script: '/js/pages/konular.js' },
-    '/konu': { id: 'lesson-detail', title: 'Konu Detay', script: '/js/pages/konu.js' },
-    '/pages/konu.html': { id: 'lesson-detail', title: 'Konu Detay', script: '/js/pages/konu.js' },
-    // Wildcard mapping needs special handling in loadPageScript, but having base entry helps if we strip params
+    '/dashboard': { id: 'dashboard', title: 'Genel Bakış', script: '/js/dashboard.js', html: '/pages/dashboard.html' },
+    '/pages/dashboard.html': { id: 'dashboard', title: 'Genel Bakış', script: '/js/dashboard.js', html: '/pages/dashboard.html' },
+    '/admin/index.html': { id: 'admin', title: 'Yönetim Paneli', script: '/js/admin-page.js', html: '/admin/index.html' },
+    '/profil': { id: 'profile', title: 'Profilim', script: '/js/profile-page.js', html: '/pages/profil.html' },
+    '/pages/profil.html': { id: 'profile', title: 'Profilim', script: '/js/profile-page.js', html: '/pages/profil.html' },
+    '/konular': { id: 'lessons', title: 'Dersler', script: '/js/pages/konular.js', html: '/pages/konular.html' },
+    '/pages/konular.html': { id: 'lessons', title: 'Dersler', script: '/js/pages/konular.js', html: '/pages/konular.html' },
+    '/konu': { id: 'lesson-detail', title: 'Konu Detay', script: '/js/pages/konu.js', html: '/pages/konu.html' },
+    '/pages/konu.html': { id: 'lesson-detail', title: 'Konu Detay', script: '/js/pages/konu.js', html: '/pages/konu.html' },
 
-
-    '/denemeler': { id: 'trials', title: 'Denemeler', script: '/js/pages/denemeler.js' },
-    '/pages/denemeler.html': { id: 'trials', title: 'Denemeler', script: '/js/pages/denemeler.js' },
-    '/deneme': { id: 'trial-detail', title: 'Deneme Çöz', script: '/js/pages/deneme.js' },
-    '/pages/deneme.html': { id: 'trial-detail', title: 'Deneme Çöz', script: '/js/pages/deneme.js' },
-    '/yanlislarim': { id: 'mistakes', title: 'Yanlışlarım', script: '/js/pages/yanlislarim.js' },
-    '/pages/yanlislarim.html': { id: 'mistakes', title: 'Yanlışlarım', script: '/js/pages/yanlislarim.js' },
-    '/favoriler': { id: 'favorites', title: 'Favoriler', script: '/js/pages/favoriler.js' },
-    '/pages/favoriler.html': { id: 'favorites', title: 'Favoriler', script: '/js/pages/favoriler.js' },
-    '/analiz': { id: 'analysis', title: 'Analiz', script: '/js/analysis.js' },
-    '/pages/analiz.html': { id: 'analysis', title: 'Analiz', script: '/js/analysis.js' },
-    '/admin': { id: 'admin', title: 'Yönetim Paneli', script: '/js/admin-page.js' },
-    '/admin/': { id: 'admin', title: 'Yönetim Paneli', script: '/js/admin-page.js' }
+    '/denemeler': { id: 'trials', title: 'Denemeler', script: '/js/pages/denemeler.js', html: '/pages/denemeler.html' },
+    '/pages/denemeler.html': { id: 'trials', title: 'Denemeler', script: '/js/pages/denemeler.js', html: '/pages/denemeler.html' },
+    '/deneme': { id: 'trial-detail', title: 'Deneme Çöz', script: '/js/pages/deneme.js', html: '/pages/deneme.html' },
+    '/pages/deneme.html': { id: 'trial-detail', title: 'Deneme Çöz', script: '/js/pages/deneme.js', html: '/pages/deneme.html' },
+    '/yanlislarim': { id: 'mistakes', title: 'Yanlışlarım', script: '/js/pages/yanlislarim.js', html: '/pages/yanlislarim.html' },
+    '/pages/yanlislarim.html': { id: 'mistakes', title: 'Yanlışlarım', script: '/js/pages/yanlislarim.js', html: '/pages/yanlislarim.html' },
+    '/favoriler': { id: 'favorites', title: 'Favoriler', script: '/js/pages/favoriler.js', html: '/pages/favoriler.html' },
+    '/pages/favoriler.html': { id: 'favorites', title: 'Favoriler', script: '/js/pages/favoriler.js', html: '/pages/favoriler.html' },
+    '/analiz': { id: 'analysis', title: 'Analiz', script: '/js/analysis.js', html: '/pages/analiz.html' },
+    '/pages/analiz.html': { id: 'analysis', title: 'Analiz', script: '/js/analysis.js', html: '/pages/analiz.html' },
+    '/admin': { id: 'admin', title: 'Yönetim Paneli', script: '/js/admin-page.js', html: '/admin/index.html' },
+    '/admin/': { id: 'admin', title: 'Yönetim Paneli', script: '/js/admin-page.js', html: '/admin/index.html' }
 };
 
 const PUBLIC_ROUTES = [
@@ -707,15 +705,18 @@ async function loadPageContent(url, { signal } = {}) {
     const mainContent = document.getElementById('main-content');
     if (!mainContent) return;
 
-    // Eğer URL bir HTML dosyası değilse, partials klasöründen ilgili HTML'i yüklemeye çalış
-    let contentUrl = url;
-    if (!url.endsWith('.html') && !url.includes('?')) {
-        // ... (URL mapping logic remains same, but let's simplify validation)
-        const pageId = (PAGE_CONFIG[url] || {}).id;
-        if (pageId) {
-            // Try to map to known partial or file if needed, but usually fetch(url) works because of rewrites
-            // Ideally we shouldn't guess partials path if we are fetching "pages" which are full files.
-            // Rely on fetch(url) returning the served HTML.
+    // 1. Config'den doğru HTML dosya yolunu bul
+    const cleanPath = url.split('?')[0];
+    const config = PAGE_CONFIG[cleanPath];
+
+    let contentUrl = url; // Varsayılan (fallback)
+
+    if (config && config.html) {
+        contentUrl = config.html;
+    } else if (!url.endsWith('.html') && !url.includes('?')) {
+        // Eğer config'de yoksa ve html değilse, root admin değilse 404'e yönlendir veya index'e düşmesini engelle
+        if (!url.startsWith('/admin')) {
+            // contentUrl = '/pages/404.html'; // İstersen bunu açabilirsin
         }
     }
 
@@ -821,6 +822,8 @@ function setCachedPageHTML(url, html) {
 
 function prefetchPage(url) {
     if (pageFetches.has(url) || getCachedPageHTML(url)) return;
+
+    // 1. HTML Prefetch
     const run = () => {
         fetchPageHTML(url).catch((e) => {
             if (e?.name !== 'AbortError') {
@@ -828,6 +831,16 @@ function prefetchPage(url) {
             }
         });
     };
+
+    // 2. Script Module Prefetch
+    const cleanPath = url.split('?')[0];
+    const config = PAGE_CONFIG[cleanPath];
+    if (config && config.script) {
+        const link = document.createElement('link');
+        link.rel = 'modulepreload';
+        link.href = config.script;
+        document.head.appendChild(link);
+    }
 
     if ('requestIdleCallback' in window) {
         window.requestIdleCallback(run, { timeout: 1500 });
