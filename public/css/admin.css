@@ -2444,3 +2444,30 @@ tr.highlight {
     gap: 4px;
     margin-top: 4px;
 }
+
+/* Responsive Toolbars */
+.studio-toolbar-responsive {
+    gap: 12px;
+}
+
+@media (max-width: 768px) {
+    .studio-toolbar-responsive {
+        flex-direction: column !important;
+        align-items: stretch !important;
+    }
+
+    .studio-toolbar-responsive>div {
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .studio-toolbar-responsive select,
+    .studio-toolbar-responsive input {
+        width: 100%;
+        max-width: none;
+    }
+
+    .studio-toolbar-responsive .d-flex {
+        flex-wrap: wrap;
+    }
+}

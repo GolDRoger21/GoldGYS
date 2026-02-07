@@ -385,7 +385,9 @@ function renderContentNav() {
 // --- STÜDYO: İÇERİK YÖNETİMİ (EKLE/DÜZENLE) ---
 // ============================================================
 
-function createNewContent(type) {
+async function createNewContent(type) {
+    if (await checkUnsaved()) return;
+
     if (!state.activeTopicId) {
         showToast("Lütfen önce konuyu oluşturup kaydedin.", "info");
         showMetaEditor();
@@ -395,6 +397,11 @@ function createNewContent(type) {
     const contentType = type || state.sidebarTab;
     state.activeLessonId = null;
     state.activeLessonType = contentType;
+
+    // Yeni içerik, temiz durum
+    state._isDirty = false;
+    setSaveIndicator('', '');
+    window.onbeforeunload = null;
 
     prepareEditorUI(contentType);
     document.getElementById('inpContentTitle').value = "";
@@ -428,12 +435,38 @@ function createNewContent(type) {
     scheduleAutosave();
 }
 
-function selectContentItem(id) {
+
+// Yardımcı: Kaydedilmemiş değişiklik kontrolü
+async function checkUnsaved() {
+    if (state._isDirty) {
+        const confirm = await showConfirm(
+            "Kaydedilmemiş değişiklikleriniz var. Kaydetmeden devam etmek istiyor musunuz?",
+            {
+                title: "Kaydedilmemiş Değişiklik",
+                confirmText: "Kaydetmeden Devam Et",
+                cancelText: "İptal",
+                tone: "warning"
+            }
+        );
+        return !confirm; // Eğer iptal derse true döner (işlemi durdur)
+    }
+    return false;
+}
+
+async function selectContentItem(id) {
+    // Eğer şu anki içerikte değişiklik varsa sor
+    if (state.activeLessonId && id !== state.activeLessonId) {
+        if (await checkUnsaved()) return;
+    }
+
     const item = state.currentLessons.find(x => x.id === id);
     if (!item) return;
 
     state.activeLessonId = id;
     state.activeLessonType = item.type || 'lesson';
+    state._isDirty = false; // Yeni içerik yüklendi, temiz durum
+    setSaveIndicator('', ''); // Göstergeyi temizle
+    window.onbeforeunload = null;
 
     prepareEditorUI(state.activeLessonType);
     document.getElementById('inpContentTitle').value = item.title;
@@ -529,48 +562,46 @@ async function saveTopicMeta() {
     }
 }
 
-// Otomatik Kaydetme Mekanizması
+// Otomatik Kayıt Yerine -> Manuel Kayıt & Değişiklik Takibi
 function setSaveIndicator(stateName, text) {
     const el = document.getElementById('saveIndicator');
     if (!el) return;
-    el.classList.remove('saving', 'saved', 'error');
+    el.classList.remove('saving', 'saved', 'error', 'modified'); // 'modified' eklendi
     if (stateName) el.classList.add(stateName);
-    el.innerText = text || 'Otomatik kayıt açık';
+
+    // Duruma göre metin ve stil
+    if (stateName === 'modified') {
+        el.innerHTML = `<span>⚠️ Kaydedilmemiş Değişiklikler</span>`;
+        // Kaydet butonu yanıp sönsün veya dikkat çeksin isterseniz burada class ekleyebilirsiniz
+        const saveBtn = document.querySelector('#contentEditor .btn-success');
+        if (saveBtn) saveBtn.classList.add('pulse-animation');
+    } else {
+        el.innerText = text || '';
+        const saveBtn = document.querySelector('#contentEditor .btn-success');
+        if (saveBtn) saveBtn.classList.remove('pulse-animation');
+    }
 }
 
 function formatTimeLabel(date = new Date()) {
     return date.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
 }
 
+// Artık otomatik kayıt yapmıyor, sadece "Değişiklik Var" diye işaretliyor
 function scheduleAutosave() {
+    if (state._isDeleting) return; // Silme işlemi sürüyorsa takibi durdur
     state._isDirty = true;
-    setSaveIndicator('', 'Değişiklik var');
-    if (!state.activeTopicId) return;
+    setSaveIndicator('modified', 'Kaydedilmemiş Değişiklikler');
 
-    clearTimeout(state._autosaveTimer);
-    state._autosaveTimer = setTimeout(async () => {
-        try {
-            state._isSaving = true;
-            setSaveIndicator('saving', 'Kaydediliyor…');
-            await saveContent(true); // Sessiz kayıt
-            state._isSaving = false;
-            state._isDirty = false;
-            setSaveIndicator('saved', `Otomatik kaydedildi • ${formatTimeLabel()}`);
-            clearTimeout(state._autosaveTimer2);
-            state._autosaveTimer2 = setTimeout(() => setSaveIndicator('', 'Otomatik kayıt açık'), 2500);
-        } catch (e) {
-            console.error(e);
-            state._isSaving = false;
-            state._isDirty = true;
-            setSaveIndicator('error', 'Hata');
-        }
-    }, 2000); // 2 saniye bekle
+    // Tarayıcı kapanırken uyarı ver
+    window.onbeforeunload = () => "Kaydedilmemiş değişiklikleriniz var. Çıkmak istediğinize emin misiniz?";
 }
 
 async function saveContent(silent = false) {
-    if (!state.activeTopicId) return;
+    if (!state.activeTopicId || state._isDeleting) return;
 
     state._isSaving = true;
+    setSaveIndicator('saving', 'Kaydediliyor...');
+
     let title = document.getElementById('inpContentTitle').value.trim();
 
     // Başlık boşsa varsayılan ver
@@ -603,17 +634,25 @@ async function saveContent(silent = false) {
             state.activeLessonId = ref.id;
         }
 
-        if (!silent) {
-            const btn = document.querySelector('#contentEditor .btn-success');
-            if (btn) {
-                const oldText = btn.innerHTML;
-                btn.innerHTML = '✅ Kaydedildi';
-                setTimeout(() => btn.innerHTML = oldText, 1500);
-            }
-        }
+        state._isDirty = false;
+        state._isSaving = false;
+        window.onbeforeunload = null; // Uyarıyı kaldır
+
+        setSaveIndicator('saved', `Kaydedildi • ${formatTimeLabel()}`);
+
+        // 3 saniye sonra saved yazısını kaldır
+        setTimeout(() => {
+            if (!state._isDirty) setSaveIndicator('', '');
+        }, 3000);
 
         loadLessons(state.activeTopicId);
+
+        if (!silent) showToast("İçerik başarıyla kaydedildi.", "success");
+
     } catch (e) {
+        console.error(e);
+        state._isSaving = false;
+        setSaveIndicator('error', 'Hata: Kaydedilemedi');
         if (!silent) showToast(e.message, "error");
         throw e;
     }
@@ -624,22 +663,46 @@ async function deleteContent() {
         showToast("Silmek için önce kaydedilmiş bir içerik seçin.", "info");
         return;
     }
+
     const shouldDelete = await showConfirm("Bu içeriği silmek istediğinize emin misiniz?", {
         title: "İçeriği Sil",
         confirmText: "Sil",
         cancelText: "Vazgeç",
         tone: "error"
     });
+
     if (!shouldDelete) return;
 
-    await updateDoc(doc(db, `topics/${state.activeTopicId}/lessons`, state.activeLessonId), {
-        status: 'deleted',
-        isActive: false,
-        deletedAt: serverTimestamp(),
-        updatedAt: serverTimestamp()
-    });
-    loadLessons(state.activeTopicId);
-    showMetaEditor(); // Ana ekrana dön
+    try {
+        state._isDeleting = true; // Guard: Auto-save veya manuel save engelle
+
+        await updateDoc(doc(db, `topics/${state.activeTopicId}/lessons`, state.activeLessonId), {
+            status: 'deleted',
+            isActive: false,
+            deletedAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
+        });
+
+        showToast("İçerik silindi ve çöp kutusuna taşındı.", "success");
+
+        // State temizliği
+        state._isDirty = false;
+        window.onbeforeunload = null;
+        state.activeLessonId = null;
+
+        // UI Reset (Ayarlara gitme, boş duruma dön)
+        document.getElementById('emptyState').style.display = 'flex';
+        document.getElementById('contentEditor').style.display = 'none';
+
+        // Listeyi güncelle
+        await loadLessons(state.activeTopicId);
+
+    } catch (e) {
+        console.error(e);
+        showToast("Silme işlemi başarısız: " + e.message, "error");
+    } finally {
+        state._isDeleting = false;
+    }
 }
 
 async function promoteToSubtopic(id, ev) {
