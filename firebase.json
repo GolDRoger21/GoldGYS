@@ -78,8 +78,39 @@
     ],
     "headers": [
       {
+        "source": "**/*.@(eot|otf|ttf|ttc|woff|font.css)",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "public, max-age=31536000"
+          }
+        ]
+      },
+      {
+        "source": "**/*.@(jpg|jpeg|gif|png|svg|webp|ico)",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "public, max-age=31536000"
+          }
+        ]
+      },
+      {
+        "source": "**/*.@(js|css)",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "public, max-age=31536000"
+          }
+        ]
+      },
+      {
         "source": "**",
         "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache"
+          },
           {
             "key": "Content-Security-Policy",
             "value": "default-src 'self' https://apis.google.com https://www.gstatic.com https://www.google.com https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com; script-src 'self' 'unsafe-inline' https://apis.google.com https://www.gstatic.com https://www.google.com https://www.googletagmanager.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://cdn.sheetjs.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://lh3.googleusercontent.com https://www.google.com; connect-src 'self' https://apis.google.com https://www.gstatic.com https://www.google.com https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firebase.googleapis.com https://www.google-analytics.com https://content-firebaseappcheck.googleapis.com https://cdn.jsdelivr.net; frame-src 'self' https://*.firebaseapp.com https://apis.google.com https://www.google.com;"

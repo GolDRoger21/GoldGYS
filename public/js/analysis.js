@@ -11,16 +11,17 @@ const state = {
     topicResets: {}
 };
 
-document.addEventListener('DOMContentLoaded', () => {
+export async function init() {
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             state.userId = user.uid;
-            initAnalysis(user.uid);
+            await initAnalysis(user.uid);
         } else {
+            // ui-loader checks auth, but double check
             window.location.href = '/login.html';
         }
     });
-});
+}
 
 async function initAnalysis(userId) {
     try {

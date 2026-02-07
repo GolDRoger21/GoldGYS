@@ -5,22 +5,22 @@ import { showConfirm } from './notifications.js';
 import { MaintenanceGuard } from './modules/maintenance-guard.js';
 
 const PAGE_CONFIG = {
-    '/dashboard': { id: 'dashboard', title: 'Genel Bakış' },
-    '/pages/dashboard.html': { id: 'dashboard', title: 'Genel Bakış' },
-    '/admin/index.html': { id: 'admin', title: 'Yönetim Paneli' },
-    '/profil': { id: 'profile', title: 'Profilim' },
-    '/pages/profil.html': { id: 'profile', title: 'Profilim' },
-    '/konular': { id: 'lessons', title: 'Dersler' },
-    '/pages/konular.html': { id: 'lessons', title: 'Dersler' },
-    '/pages/testler.html': { id: 'tests', title: 'Testler' },
-    '/denemeler': { id: 'trials', title: 'Denemeler' },
-    '/pages/denemeler.html': { id: 'trials', title: 'Denemeler' },
-    '/yanlislarim': { id: 'mistakes', title: 'Yanlışlarım' },
-    '/pages/yanlislarim.html': { id: 'mistakes', title: 'Yanlışlarım' },
-    '/favoriler': { id: 'favorites', title: 'Favoriler' },
-    '/pages/favoriler.html': { id: 'favorites', title: 'Favoriler' },
-    '/analiz': { id: 'analysis', title: 'Analiz' },
-    '/pages/analiz.html': { id: 'analysis', title: 'Analiz' }
+    '/dashboard': { id: 'dashboard', title: 'Genel Bakış', script: '/js/dashboard.js' }, // Admin dashboard
+    '/pages/dashboard.html': { id: 'dashboard', title: 'Genel Bakış', script: '/js/dashboard.js' }, // User dashboard
+    '/admin/index.html': { id: 'admin', title: 'Yönetim Paneli', script: '/js/admin-page.js' },
+    '/profil': { id: 'profile', title: 'Profilim', script: '/js/profile-page.js' },
+    '/pages/profil.html': { id: 'profile', title: 'Profilim', script: '/js/profile-page.js' },
+    '/konular': { id: 'lessons', title: 'Dersler', script: '/js/pages/lessons.js' },
+    '/pages/konular.html': { id: 'lessons', title: 'Dersler', script: '/js/pages/lessons.js' },
+    '/pages/testler.html': { id: 'tests', title: 'Testler', script: '/js/pages/tests.js' },
+    '/denemeler': { id: 'trials', title: 'Denemeler', script: '/js/pages/trials.js' },
+    '/pages/denemeler.html': { id: 'trials', title: 'Denemeler', script: '/js/pages/trials.js' },
+    '/yanlislarim': { id: 'mistakes', title: 'Yanlışlarım', script: '/js/pages/mistakes.js' },
+    '/pages/yanlislarim.html': { id: 'mistakes', title: 'Yanlışlarım', script: '/js/pages/mistakes.js' },
+    '/favoriler': { id: 'favorites', title: 'Favoriler', script: '/js/pages/favorites.js' },
+    '/pages/favoriler.html': { id: 'favorites', title: 'Favoriler', script: '/js/pages/favorites.js' },
+    '/analiz': { id: 'analysis', title: 'Analiz', script: '/js/pages/analysis.js' },
+    '/pages/analiz.html': { id: 'analysis', title: 'Analiz', script: '/js/pages/analysis.js' }
 };
 
 const PUBLIC_ROUTES = [
@@ -44,6 +44,8 @@ const PUBLIC_LAYOUT_ROUTES = [
 ];
 
 let layoutInitPromise = null;
+const loadedScripts = new Set();
+let currentCleanupFunction = null; // To store the cleanup function for the currently loaded script
 
 export async function initLayout() {
     if (layoutInitPromise) return layoutInitPromise;
@@ -81,6 +83,7 @@ export async function initLayout() {
 
             // 5. Event Listener'ları Bağla
             setupEventListeners();
+            hijackNavigation(); // Yeni: Navigasyonu ele geçir
 
             if (shouldUsePublicLayout) {
                 setupLandingNav();
@@ -92,6 +95,9 @@ export async function initLayout() {
             // 7. Sayfayı Göster
             document.body.style.visibility = 'visible';
             document.title = `${config.title} | GOLD GYS`;
+
+            // Yeni: Sayfa scriptini yükle
+            await loadPageScript(window.location.pathname);
 
             return true;
 
@@ -575,4 +581,171 @@ function setActiveMenuItem(pageId) {
     // Hem data-page hem data-tab (admin için) kontrol et
     const activeItem = document.querySelector(`.nav-item[data-page="${pageId}"], .nav-item[data-tab="${pageId}"]`);
     if (activeItem) activeItem.classList.add('active');
+}
+
+// Yeni Fonksiyonlar: SPA Navigasyon
+function hijackNavigation() {
+    document.body.addEventListener('click', (e) => {
+        const target = e.target.closest('a');
+        if (target && target.href) {
+            const url = new URL(target.href);
+            const currentUrl = new URL(window.location.href);
+
+            // Sadece aynı origin içindeki linkleri ele al
+            if (url.origin === currentUrl.origin) {
+                // Tamamen aynı URL ise bir şey yapma
+                if (url.pathname === currentUrl.pathname && url.search === currentUrl.search) {
+                    e.preventDefault();
+                    return;
+                }
+
+                // Harici linkler, dosya indirmeleri veya özel nitelikli linkleri atla
+                if (target.hasAttribute('download') || target.getAttribute('target') === '_blank' || target.classList.contains('no-spa')) {
+                    return;
+                }
+
+                // Firebase auth linkleri veya public rotalar için tam sayfa yenileme
+                if (url.pathname.includes('/login.html') || PUBLIC_ROUTES.includes(url.pathname)) {
+                    return;
+                }
+
+                e.preventDefault();
+                handleNavigation(url.pathname + url.search);
+            }
+        }
+    });
+
+    window.addEventListener('popstate', (e) => {
+        handleNavigation(window.location.pathname + window.location.search, false); // false: don't push state again
+    });
+}
+
+async function handleNavigation(url, pushState = true) {
+    const mainContent = document.getElementById('main-content');
+    if (!mainContent) {
+        console.error('Main content area not found!');
+        window.location.href = url; // Fallback to full page reload
+        return;
+    }
+
+    // Loading indicator
+    mainContent.innerHTML = '<div class="loading-spinner-container"><div class="loading-spinner"></div></div>';
+    mainContent.scrollTop = 0; // Scroll to top on new page load
+
+    try {
+        const config = PAGE_CONFIG[url] || PAGE_CONFIG[url.split('?')[0]] || { id: 'unknown', title: 'Gold GYS' };
+        document.title = `${config.title} | GOLD GYS`;
+
+        if (pushState) {
+            window.history.pushState({ path: url }, config.title, url);
+        }
+
+        await loadPageContent(url);
+        await loadPageScript(url);
+        setActiveMenuItem(config.id);
+
+        // Mobil sidebar açıksa kapat
+        document.body.classList.remove('mobile-sidebar-active');
+
+    } catch (error) {
+        console.error('Navigation error:', error);
+        mainContent.innerHTML = '<div class="error-message">Sayfa yüklenirken bir hata oluştu. Lütfen tekrar deneyin.</div>';
+        // Optionally, redirect to a 404 page or show a more specific error
+    }
+}
+
+async function loadPageContent(url) {
+    const mainContent = document.getElementById('main-content');
+    if (!mainContent) return;
+
+    // Eğer URL bir HTML dosyası değilse, partials klasöründen ilgili HTML'i yüklemeye çalış
+    let contentUrl = url;
+    if (!url.endsWith('.html') && !url.includes('?')) {
+        // ... (URL mapping logic remains same, but let's simplify validation)
+        const pageId = (PAGE_CONFIG[url] || {}).id;
+        if (pageId) {
+            // Try to map to known partial or file if needed, but usually fetch(url) works because of rewrites
+            // Ideally we shouldn't guess partials path if we are fetching "pages" which are full files.
+            // Rely on fetch(url) returning the served HTML.
+        }
+    }
+
+    try {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const html = await res.text();
+
+        // HTML'i parse et
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+
+        // İçeriği bul: .dashboard-container > main > body
+        // Öncelik: .dashboard-container (bizim sayfaların ana wrapper'ı)
+        let content = doc.querySelector('.dashboard-container') || doc.querySelector('main') || doc.querySelector('#main-content');
+
+        // Eğer wrapper bulamazsak body'nin içini al ama scriptleri temizle
+        if (!content) {
+            content = doc.body;
+        }
+
+        // Script taglerini temizle (zaten modül olarak yüklüyoruz ve double-execution önlemek için)
+        // Ayrıca partials içinde script varsa DOMParser ile execute edilmez ama temizkalması iyidir.
+        const scripts = content.querySelectorAll('script');
+        scripts.forEach(s => s.remove());
+
+        // İçeriği güncelle
+        // NOT: innerHTML değiştirmek mevcut event listenerları siler (ki istediğimiz bu)
+        mainContent.innerHTML = content.innerHTML;
+
+        // Sayfa başlığını da güncelle (gerekirse)
+        const title = doc.querySelector('title');
+        if (title) {
+            document.title = title.innerText;
+        }
+
+    } catch (e) {
+        console.error(`Failed to load content for ${url}:`, e);
+        mainContent.innerHTML = '<div class="error-message">Sayfa içeriği yüklenemedi.</div>';
+        throw e;
+    }
+}
+
+async function loadPageScript(path) {
+    const config = PAGE_CONFIG[path] || PAGE_CONFIG[path.split('?')[0]];
+    const scriptPath = config?.script;
+
+    if (scriptPath) {
+        try {
+            // Önceki sayfanın temizliğini yap (varsa)
+            if (currentCleanupFunction && typeof currentCleanupFunction === 'function') {
+                try {
+                    currentCleanupFunction();
+                } catch (cleanupError) {
+                    console.warn("Cleanup error:", cleanupError);
+                }
+                currentCleanupFunction = null;
+            }
+
+            // Dinamik import ile modülü yükle
+            const module = await import(scriptPath);
+
+            // init fonksiyonunu çağır
+            if (module.init && typeof module.init === 'function') {
+                await module.init();
+            } else if (module.initProfilePage && typeof module.initProfilePage === 'function') {
+                // Özel durum: Profile page için
+                await module.initProfilePage();
+            }
+
+            // Temizlik fonksiyonunu sakla (eğer varsa)
+            if (module.cleanup && typeof module.cleanup === 'function') {
+                currentCleanupFunction = module.cleanup;
+            }
+
+            loadedScripts.add(scriptPath);
+            console.log(`Page script loaded and initialized: ${scriptPath}`);
+        } catch (e) {
+            console.error(`Failed to load/init script ${scriptPath}:`, e);
+        }
+    }
 }

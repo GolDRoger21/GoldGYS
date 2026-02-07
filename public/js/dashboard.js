@@ -26,12 +26,11 @@ const ui = {
 
 let examCountdownInterval = null;
 
-document.addEventListener("DOMContentLoaded", async () => {
+export async function init() {
     try {
         if (ui.loaderText) ui.loaderText.textContent = "Sistem başlatılıyor...";
 
-        // 1. Merkezi Layout Yükleyicisini Bekle
-        // (Header, Sidebar, Auth Kontrolü, Admin Rolü, Mobil Menü - hepsi burada halledilir)
+        // 1. Merkezi Layout Yükleyicisini Bekle (SPA'da zaten yüklü ama garanti olsun)
         await initLayout();
 
         // 2. Dashboard'a Özel İçeriği Hazırla
@@ -41,7 +40,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             if (ui.loaderText) ui.loaderText.textContent = "Verileriniz yükleniyor...";
 
             // Profil bilgisini çek (Welcome mesajı için)
-            // Not: Header zaten ui-loader tarafından güncellendi.
             const profile = await getUserProfile(user.uid);
             const displayName = profile?.ad || user.displayName || (user.email ? user.email.split('@')[0] : 'Kullanıcı');
 
@@ -61,6 +59,9 @@ document.addEventListener("DOMContentLoaded", async () => {
             // Son aktiviteyi ve akıllı ipucunu göster
             checkLastActivity(user);
             showSmartTip();
+        } else {
+            // Kullanıcı yoksa login'e at (ui-loader hallediyor ama burada da duralım)
+            return;
         }
 
         // 3. Her şey hazır, sayfa yükleyicisini kaldır
@@ -73,7 +74,27 @@ document.addEventListener("DOMContentLoaded", async () => {
             ui.loaderText.style.color = "#ef4444";
         }
     }
-});
+}
+
+// Cleanup function if needed
+export function cleanup() {
+    if (examCountdownInterval) {
+        clearInterval(examCountdownInterval);
+        examCountdownInterval = null;
+    }
+}
+
+// Backwards compatibility for full reload if needed, but module execution shouldn't rely on it event listener if called by loader
+// However, if the page is loaded directly and this script is included via <script type="module" src="..."> in HTML (legacy), 
+// we might want to keep a self-executing part. 
+// BUT `ui-loader` loads it dynamically. 
+// If dashboard.html still has <script type="module" src="/js/dashboard.js"></script>, it will run this module.
+// Since we removed the event listener, it won't run automatically via script tag unless we add a check.
+// Using `if (document.readyState ...)` check or just calling init() if not imported?
+// Actually best to remove script tag from dashboard.html and rely on ui-loader.
+// Check if dashboard.html has inline script tag. I haven't checked dashboard.html content yet.
+// I will assume ui-loader is responsible for calling init(). 
+
 
 function hideLoader() {
     if (ui.loader) {
@@ -409,11 +430,11 @@ async function loadRecentActivities(uid) {
         ui.recentActivityList.innerHTML = `
             <div class="activity-list">
                 ${activities.map(activity => {
-                    const timeAgo = activity.timestamp?.toDate
-                        ? activity.timestamp.toDate().toLocaleDateString('tr-TR')
-                        : '';
-                    const icon = activity.type === 'test' ? '📝' : '📖';
-                    return `
+            const timeAgo = activity.timestamp?.toDate
+                ? activity.timestamp.toDate().toLocaleDateString('tr-TR')
+                : '';
+            const icon = activity.type === 'test' ? '📝' : '📖';
+            return `
                         <div class="activity-item">
                             <div class="activity-icon">${icon}</div>
                             <div>
@@ -422,7 +443,7 @@ async function loadRecentActivities(uid) {
                             </div>
                         </div>
                     `;
-                }).join('')}
+        }).join('')}
             </div>
         `;
     } catch (error) {
