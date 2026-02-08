@@ -20,7 +20,8 @@ let ui = {};
 let unsubscribeAuth = null;
 const CUSTOM_TEST_LIMIT = 30;
 
-export async function init() {
+
+export async function mount() {
     console.log('Favoriler sayfası başlatılıyor...');
 
     // 1. State ve UI'ı Sıfırla
@@ -77,7 +78,7 @@ export async function init() {
     }
 }
 
-export function cleanup() {
+export function unmount() {
     state.isMounted = false;
     if (unsubscribeAuth) {
         unsubscribeAuth();
@@ -86,6 +87,7 @@ export function cleanup() {
     resetState();
     ui = {};
 }
+
 
 function resetState() {
     state = {

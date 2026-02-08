@@ -1,24 +1,18 @@
+
 import { auth } from './firebase-config.js';
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getUserProfile } from './user-profile.js';
 import { showConfirm, showToast } from './notifications.js';
 import { MaintenanceGuard } from './modules/maintenance-guard.js';
+import { Router } from './modules/router.js';
 
 // --- GLOBAL ERROR GUARDIAN ---
-// Beklenmeyen SyntaxError veya Promise redlerini yakala
 window.addEventListener('error', (event) => {
-    // Script error'ları genelde detay vermez ama yakalamak iyidir
     console.error("Global Error Caught:", event.error || event.message);
-    // Eğer kritik bir yükleme hatasıysa kullanıcıya bildirebiliriz
-    if (event.message && (event.message.includes('SyntaxError') || event.message.includes('Unexpected token'))) {
-        // UI Loader bu durumu yönetmeye çalışacak ama en azından logluyoruz
-    }
 });
 
 window.addEventListener('unhandledrejection', (event) => {
     console.warn("Unhandled Promise Rejection:", event.reason);
-    // AppCheck timeout gibi hataları sessizce yutabilir veya loglayabiliriz
-    // event.preventDefault(); // Konsola kırmızılık basmasını engeller (opsiyonel)
 });
 
 const PAGE_CONFIG = {
@@ -60,48 +54,30 @@ const ROUTE_ALIASES = {
 };
 
 const PUBLIC_ROUTES = [
-    '/',
-    '/login',
-    '/login.html',
-    '/maintenance',
-    '/maintenance.html',
-    '/404',
-    '/404.html',
-    '/yardim',
-    '/pages/yardim.html',
-    '/pages/yardim',
-    '/gizlilik',
-    '/pages/gizlilik.html',
-    '/pages/gizlilik',
-    '/kullanim-sartlari',
-    '/pages/kullanim-sartlari.html',
-    '/pages/kullanim-sartlari'
+    '/', '/login', '/login.html', '/maintenance', '/maintenance.html', '/404', '/404.html',
+    '/yardim', '/pages/yardim.html', '/gizlilik', '/pages/gizlilik.html',
+    '/kullanim-sartlari', '/pages/kullanim-sartlari.html'
 ];
 const PUBLIC_LAYOUT_ROUTES = [
-    '/yardim',
-    '/pages/yardim.html',
-    '/pages/yardim',
-    '/gizlilik',
-    '/pages/gizlilik.html',
-    '/pages/gizlilik',
-    '/kullanim-sartlari',
-    '/pages/kullanim-sartlari.html',
-    '/pages/kullanim-sartlari',
-    '/maintenance',
-    '/maintenance.html',
-    '/404',
-    '/404.html'
+    '/yardim', '/pages/yardim.html', '/gizlilik', '/pages/gizlilik.html',
+    '/kullanim-sartlari', '/pages/kullanim-sartlari.html',
+    '/maintenance', '/maintenance.html', '/404', '/404.html'
 ];
 
 let layoutInitPromise = null;
-const loadedScripts = new Set();
-let currentCleanupFunction = null; // To store the cleanup function for the currently loaded script
 const pageCache = new Map();
 const pageFetches = new Map();
-let activeNavController = null;
 const PAGE_CACHE_PREFIX = 'cached_page_';
 let currentLayoutType = null;
-let currentNavigationId = 0; // Unique ID for each navigation intent
+
+// Initialize Router
+const router = new Router({
+    routes: PAGE_CONFIG,
+    aliases: ROUTE_ALIASES,
+    baseTitle: 'Gold GYS',
+    notFoundRoute: '/404'
+});
+
 const SCRIPT_VERSION_KEY = 'app_script_version';
 const SCRIPT_VERSION = (() => {
     try {
@@ -111,7 +87,6 @@ const SCRIPT_VERSION = (() => {
         sessionStorage.setItem(SCRIPT_VERSION_KEY, created);
         return created;
     } catch (e) {
-        console.warn('Script version storage unavailable, falling back to timestamp.', e);
         return `${Date.now()}`;
     }
 })();
@@ -119,55 +94,38 @@ const SCRIPT_VERSION = (() => {
 function withScriptVersion(scriptPath) {
     try {
         const url = new URL(scriptPath, window.location.origin);
-        if (!url.searchParams.has('v')) {
-            url.searchParams.set('v', SCRIPT_VERSION);
-        }
+        if (!url.searchParams.has('v')) url.searchParams.set('v', SCRIPT_VERSION);
         return url.toString();
-    } catch (e) {
-        console.warn('Failed to append script version:', e);
-        return scriptPath;
-    }
+    } catch { return scriptPath; }
 }
 
 function normalizePath(path) {
     const cleanPath = path.split('?')[0];
-    if (cleanPath.length > 1 && cleanPath.endsWith('/')) {
-        return cleanPath.slice(0, -1);
-    }
+    if (cleanPath.length > 1 && cleanPath.endsWith('/')) return cleanPath.slice(0, -1);
     return cleanPath;
 }
 
 function getConfigForPath(path) {
     const normalizedPath = normalizePath(path);
-
-    if (PAGE_CONFIG[normalizedPath]) {
-        return { config: PAGE_CONFIG[normalizedPath], normalizedPath };
-    }
-
+    if (PAGE_CONFIG[normalizedPath]) return { config: PAGE_CONFIG[normalizedPath], normalizedPath };
     const segments = normalizedPath.split('/').filter(Boolean);
     if (segments.length > 1) {
         const basePath = `/${segments[0]}`;
-        if (PAGE_CONFIG[basePath]) {
-            return { config: PAGE_CONFIG[basePath], normalizedPath: basePath };
-        }
+        if (PAGE_CONFIG[basePath]) return { config: PAGE_CONFIG[basePath], normalizedPath: basePath };
     }
-
     return { config: null, normalizedPath };
 }
 
 function resolveContentUrl(path) {
     const { config } = getConfigForPath(path);
     if (config?.html) return config.html;
-
     const normalizedPath = normalizePath(path);
     const alias = ROUTE_ALIASES[normalizedPath];
     if (alias?.html) return alias.html;
-
     if (normalizedPath.startsWith('/admin')) return '/admin/index.html';
     if (normalizedPath === '/login') return '/login.html';
     if (normalizedPath === '/maintenance') return '/maintenance.html';
     if (normalizedPath === '/404') return '/404.html';
-
     return path;
 }
 
@@ -178,17 +136,13 @@ export async function initLayout() {
         const path = window.location.pathname;
         const normalizedPath = normalizePath(path);
         const isAdminPage = normalizedPath.includes('/admin');
-        const { config } = getConfigForPath(path);
-        const alias = ROUTE_ALIASES[normalizedPath];
-        const pageConfig = config || alias || { id: 'unknown', title: 'Gold GYS' };
         const usePublicLayout = PUBLIC_LAYOUT_ROUTES.includes(normalizedPath);
         currentLayoutType = usePublicLayout ? 'public' : (isAdminPage ? 'admin' : 'app');
 
         try {
-            // 0. Bakım Modu Kontrolü
             await MaintenanceGuard.check();
 
-            // 1. Auth Durumunu Al
+            // 1. Auth & Layout Setup
             const authState = await resolveAuthState(path);
             const shouldUsePublicLayout = usePublicLayout;
 
@@ -197,64 +151,41 @@ export async function initLayout() {
                 return true;
             }
 
-            // 2. HTML Parçalarını Yükle
             await loadRequiredHTML(isAdminPage, shouldUsePublicLayout);
             updateLandingAuthButtons(!!authState.user);
-
-            // 3. Tema ve Sidebar Durumunu Yükle
             initThemeAndSidebar();
 
-            // 4. UI Güncelleme
             if (authState.user) {
                 updateUIWithUserData(authState.user, authState.profile, authState.hasPrivilege);
             }
 
-            // 5. Event Listener'ları Bağla
             setupEventListeners();
-            hijackNavigation(); // Yeni: Navigasyonu ele geçir
 
             if (shouldUsePublicLayout) {
                 setupLandingNav();
-            } else {
-                // 6. Aktif Menüyü İşaretle
-                setActiveMenuItem(pageConfig.id);
             }
 
-            // 7. Sayfayı Göster
             document.body.style.visibility = 'visible';
-            document.title = `${pageConfig.title} | GOLD GYS`;
 
-            // YENİ: Sayfa içeriğini yükle (Eksik olan buydu!)
-            // Initialize navigation ID
-            currentNavigationId++;
-            const navId = currentNavigationId;
+            // 2. Initialize Router & Navigate to current page
+            router.onNavigate = handlePageLoad;
 
-            await loadPageContent(window.location.pathname, { navId });
+            // Set active menu item on navigation
+            router.on('end', ({ path }) => {
+                const { config } = getConfigForPath(path);
+                if (config) setActiveMenuItem(config.id);
+                // Mobil sidebar clean up
+                document.body.classList.remove('mobile-sidebar-active');
+            });
 
-            // Yeni: Sayfa scriptini yükle
-            await loadPageScript(window.location.pathname, { navId });
+            await router.init();
 
             return true;
 
         } catch (error) {
             console.error('Arayüz Yükleme Kritik Hatası:', error);
             document.body.style.visibility = 'visible';
-
-            // Fallback UI göster
-            const mainContent = document.getElementById('main-content') || document.body;
-            mainContent.innerHTML = `
-                <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; text-align:center; padding:20px;">
-                    <h2 style="color:var(--color-danger, #ef4444); margin-bottom:10px;">Bir şeyler ters gitti</h2>
-                    <p style="color:var(--text-muted, #94a3b8); margin-bottom:20px;">Sayfa yüklenirken beklenmeyen bir hata oluştu.</p>
-                    <button onclick="window.location.reload()" style="padding:10px 20px; background:var(--color-primary, #D4AF37); border:none; border-radius:6px; color:#000; font-weight:bold; cursor:pointer;">
-                        Sayfayı Yenile
-                    </button>
-                    <details style="margin-top:20px; color:var(--text-muted, #64748b); font-size:0.8rem; max-width:600px; text-align:left;">
-                        <summary>Hata Detayı</summary>
-                        <pre style="margin-top:10px; background:rgba(0,0,0,0.1); padding:10px; border-radius:4px; overflow:auto;">${error.message}\n${error.stack}</pre>
-                    </details>
-                </div>
-            `;
+            renderErrorFallback(error);
             throw error;
         }
     })();
@@ -262,212 +193,123 @@ export async function initLayout() {
     return layoutInitPromise;
 }
 
-// ... (loadRequiredHTML and loadHTML functions remain unchanged)
-
-// Robust Script Loader with Retry/Fallback
-async function loadPageScript(path, { navId }) {
-    if (navId !== currentNavigationId) return;
-
-    const { config } = getConfigForPath(path);
-    if (!config || !config.script) return;
-
-    // Önceki scriptin temizliğini yap
-    await executeCleanup();
-
-    const scriptUrl = withScriptVersion(config.script);
-
-    // Daha önce yüklendiyse (module olduğu için tekrar execute etmez, ama init'i çağırabiliriz)
-    // ES Modülleri tekrar import edilince execute etmez, cache kullanır.
-    // Bu yüzden dinamik import her zaman module object döner.
-
-    try {
-        console.log(`Script yükleniyor: ${scriptUrl}`);
-
-        // Timeoutlu import denemesi wrapper
-        const importPromise = import(scriptUrl);
-        const timeoutPromise = new Promise((_, reject) =>
-            setTimeout(() => reject(new Error("Script yüklemesi zaman aşımına uğradı (15sn).")), 15000)
-        );
-
-        const module = await Promise.race([importPromise, timeoutPromise]);
-
-        if (navId !== currentNavigationId) return;
-
-        if (module.init) {
-            // Init fonksiyonunu güvenli çağır
-            try {
-                await module.init();
-            } catch (initError) {
-                console.error(`Script init hatası (${config.script}):`, initError);
-                showToast("Sayfa başlatılırken bir hata oluştu.", "error");
-                renderScriptError(initError);
-            }
-        }
-
-        if (module.cleanup) {
-            currentCleanupFunction = module.cleanup;
-        }
-
-    } catch (e) {
-        console.error(`Script yükleme hatası (${config.script}):`, e);
-        if (navId === currentNavigationId) {
-            renderScriptError(e);
-        }
-    }
-}
-
-function renderScriptError(error) {
-    const mainContent = document.getElementById('main-content');
-    if (!mainContent) return;
-
+function renderErrorFallback(error) {
+    const mainContent = document.getElementById('main-content') || document.body;
     mainContent.innerHTML = `
-        <div class="error-boundary-container" style="text-align:center; padding:40px;">
-            <div style="font-size:3rem; margin-bottom:20px;">⚠️</div>
-            <h3>Bu modül yüklenemedi</h3>
-            <p class="text-muted">Bağlantı sorunu veya teknik bir aksaklık oluştu.</p>
-            <div style="margin-top:20px;">
-                <button onclick="window.location.reload()" class="btn btn-primary">Sayfayı Yenile</button>
-            </div>
-             <details style="margin-top:20px; color:var(--text-muted); font-size:0.75rem; text-align:left; display:inline-block; max-width:100%;">
-                <summary>Teknik Detay</summary>
-                <div style="background:rgba(255,0,0,0.05); padding:10px; border-radius:4px; margin-top:5px;">
-                    ${error.message || error}
-                </div>
+        <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; text-align:center; padding:20px;">
+            <h2 style="color:var(--color-danger, #ef4444); margin-bottom:10px;">Bir şeyler ters gitti</h2>
+            <p style="color:var(--text-muted, #94a3b8); margin-bottom:20px;">Sayfa yüklenirken beklenmeyen bir hata oluştu.</p>
+            <button onclick="window.location.reload()" style="padding:10px 20px; background:var(--color-primary, #D4AF37); border:none; border-radius:6px; color:#000; font-weight:bold; cursor:pointer;">
+                Sayfayı Yenile
+            </button>
+             <details style="margin-top:20px; color:var(--text-muted, #64748b); font-size:0.8rem; max-width:600px; text-align:left;">
+                <summary>Hata Detayı</summary>
+                <pre style="margin-top:10px; background:rgba(0,0,0,0.1); padding:10px; border-radius:4px; overflow:auto;">\${error.message}\\n\${error.stack}</pre>
             </details>
         </div>
     `;
 }
 
-async function loadRequiredHTML(isAdminPage, usePublicLayout = false) {
-    // Admin ve User için aynı header yapısını kullanıyoruz artık (tutarlılık için)
-    // Ancak içerik farklı olabilir diye dosya isimlerini koruyoruz.
+// Handler for Router Navigation
+async function handlePageLoad(routeConfig, path, signal) {
+    const mainContent = document.getElementById('main-content');
+    if (!mainContent) return;
 
-    // Distraction-Free Mode for Test Pages
-    // Test sayfalarında header ve sidebar'ı yükleme
+    // Show Loading
+    mainContent.innerHTML = '<div class="loading-spinner-container"><div class="loading-spinner"></div></div>';
+
+    try {
+        // 1. Load HTML Content
+        const contentUrl = resolveContentUrl(path);
+        const html = await fetchPageHTML(contentUrl, { signal });
+
+        if (signal.aborted) return;
+
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        syncPageStyles(doc, contentUrl);
+
+        let content = doc.querySelector('.dashboard-container') || doc.querySelector('main') || doc.querySelector('#main-content');
+        if (!content) content = doc.body;
+
+        // Clean scripts from HTML to prevent auto-execution (we handle scripts manually)
+        content.querySelectorAll('script').forEach(s => s.remove());
+
+        if (content.tagName && content.tagName.toLowerCase() !== 'body') {
+            mainContent.replaceChildren(content.cloneNode(true));
+        } else {
+            mainContent.innerHTML = content.innerHTML;
+        }
+
+        syncBodyClasses(doc);
+
+        // 2. Load Script Module
+        let cleanup = null;
+        if (routeConfig.script) {
+            const scriptUrl = withScriptVersion(routeConfig.script);
+            console.log(`Script yükleniyor: ${scriptUrl}`);
+
+            try {
+                const module = await import(scriptUrl);
+
+                if (signal.aborted) return;
+
+                // Support both old 'init' and new 'mount' interfaces
+                if (module.mount) {
+                    await module.mount(new URLSearchParams(window.location.search));
+                    cleanup = module.unmount;
+                } else if (module.init) {
+                    await module.init();
+                    cleanup = module.cleanup;
+                }
+            } catch (scriptError) {
+                console.error(`Script init hatası (${routeConfig.script}):`, scriptError);
+                renderScriptError(scriptError);
+            }
+        }
+
+        return { cleanup };
+
+    } catch (e) {
+        if (signal.aborted) return;
+        console.error(`Failed to load content for ${path}:`, e);
+        mainContent.innerHTML = '<div class="error-message">Sayfa içeriği yüklenemedi.</div>';
+        throw e;
+    }
+}
+
+async function loadRequiredHTML(isAdminPage, usePublicLayout = false) {
     if (window.location.pathname.startsWith('/test/')) return;
 
     if (usePublicLayout) {
         ensureLandingStyles(true);
-
         let publicHeader = document.querySelector('.landing-nav');
         if (!publicHeader) {
             publicHeader = document.createElement('nav');
             publicHeader.className = 'landing-nav';
             document.body.prepend(publicHeader);
         }
-
         await loadHTML('/partials/landing-header.html', publicHeader);
         return;
     }
 
     ensureLandingStyles(false);
-
     const headerUrl = isAdminPage ? '/partials/admin-header.html' : '/partials/header.html';
     const sidebarUrl = isAdminPage ? '/partials/admin-sidebar.html' : '/partials/sidebar.html';
 
-    // Header'ı nereye koyacağız?
-    // Eğer sayfada #header-placeholder, #header-area veya #app-header varsa oraya, yoksa body'nin başına (app-layout yapısı için)
-    let headerContainer = document.getElementById('header-placeholder')
-        || document.getElementById('header-area')
-        || document.getElementById('app-header');
-
-    const appLayout = document.querySelector('.app-layout');
+    let headerContainer = document.getElementById('header-placeholder') || document.getElementById('app-header');
     if (!headerContainer) {
-        // Eğer app-layout yapısı yoksa oluştur
-        if (!appLayout) {
-            const layoutDiv = document.createElement('div');
-            layoutDiv.className = 'app-layout';
-
-            // Mevcut içeriği layout içine taşı (main olarak)
-            const mainContent = document.createElement('main');
-            mainContent.className = 'app-main';
-            mainContent.id = 'main-content';
-
-            while (document.body.firstChild) {
-                mainContent.appendChild(document.body.firstChild);
-            }
-
-            layoutDiv.appendChild(mainContent);
-            document.body.appendChild(layoutDiv);
-        }
-
-        // Header container oluştur
-        headerContainer = document.createElement('header');
-        headerContainer.className = 'app-header';
-        headerContainer.id = 'app-header';
-        document.querySelector('.app-layout').prepend(headerContainer);
-    } else {
-        headerContainer.classList.add('app-header');
-        headerContainer.id = headerContainer.id || 'app-header';
-        const layoutRoot = document.querySelector('.app-layout');
-        if (!layoutRoot) {
-            const layoutDiv = document.createElement('div');
-            layoutDiv.className = 'app-layout';
-            const mainContent = document.createElement('main');
-            mainContent.className = 'app-main';
-            mainContent.id = 'main-content';
-            while (document.body.firstChild) {
-                mainContent.appendChild(document.body.firstChild);
-            }
-            layoutDiv.appendChild(mainContent);
-            document.body.appendChild(layoutDiv);
-        }
-
-        const resolvedLayout = document.querySelector('.app-layout');
-        if (headerContainer.parentElement !== resolvedLayout) {
-            resolvedLayout.prepend(headerContainer);
-        }
+        createAppLayout();
+        headerContainer = document.getElementById('app-header');
     }
 
+    let sidebarContainer = document.getElementById('sidebar-placeholder') || document.getElementById('app-sidebar');
 
-    // Sidebar container oluştur
-    let sidebarContainer = document.getElementById('sidebar-placeholder')
-        || document.getElementById('sidebar-area')
-        || document.getElementById('app-sidebar');
-    if (!sidebarContainer) {
-        sidebarContainer = document.createElement('aside');
-        sidebarContainer.className = 'app-sidebar';
-        sidebarContainer.id = 'app-sidebar';
-        // Header'dan sonra ekle (Grid yapısına uygun)
-        document.querySelector('.app-layout').insertBefore(sidebarContainer, document.querySelector('.app-main'));
-    } else {
-        sidebarContainer.classList.add('app-sidebar');
-        sidebarContainer.id = sidebarContainer.id || 'app-sidebar';
-        const layoutRoot = document.querySelector('.app-layout');
-        if (layoutRoot && sidebarContainer.parentElement !== layoutRoot) {
-            layoutRoot.insertBefore(sidebarContainer, document.querySelector('.app-main'));
-        }
-    }
-
-    // Mobil overlay ekle
     if (!document.getElementById('sidebarOverlay')) {
         const overlay = document.createElement('div');
         overlay.className = 'sidebar-overlay';
         overlay.id = 'sidebarOverlay';
         document.body.appendChild(overlay);
-    }
-
-    // Main içerik alanını garanti altına al
-    const layoutRoot = document.querySelector('.app-layout');
-    if (layoutRoot) {
-        let mainContent = layoutRoot.querySelector('#main-content')
-            || layoutRoot.querySelector('.app-main')
-            || layoutRoot.querySelector('main');
-
-        if (!mainContent) {
-            mainContent = document.createElement('main');
-            mainContent.className = 'app-main';
-            mainContent.id = 'main-content';
-            layoutRoot.appendChild(mainContent);
-        } else {
-            mainContent.classList.add('app-main');
-            if (!mainContent.id) {
-                mainContent.id = 'main-content';
-            }
-            if (mainContent.parentElement !== layoutRoot) {
-                layoutRoot.appendChild(mainContent);
-            }
-        }
     }
 
     await Promise.all([
@@ -476,28 +318,45 @@ async function loadRequiredHTML(isAdminPage, usePublicLayout = false) {
     ]);
 }
 
-async function loadHTML(url, element) {
-    try {
-        // Cache kontrolü (SessionStorage)
-        const cacheKey = `cached_html_${url}`;
-        const cached = sessionStorage.getItem(cacheKey);
+function createAppLayout() {
+    const layoutDiv = document.createElement('div');
+    layoutDiv.className = 'app-layout';
 
+    const header = document.createElement('header');
+    header.className = 'app-header';
+    header.id = 'app-header';
+
+    const sidebar = document.createElement('aside');
+    sidebar.className = 'app-sidebar';
+    sidebar.id = 'app-sidebar';
+
+    const main = document.createElement('main');
+    main.className = 'app-main';
+    main.id = 'main-content';
+
+    while (document.body.firstChild) {
+        main.appendChild(document.body.firstChild);
+    }
+
+    layoutDiv.appendChild(header);
+    layoutDiv.appendChild(sidebar);
+    layoutDiv.appendChild(main);
+    document.body.appendChild(layoutDiv);
+}
+
+async function loadHTML(url, element) {
+    if (!element) return;
+    try {
+        const cacheKey = `cached_html_\${url}`;
+        const cached = sessionStorage.getItem(cacheKey);
         if (cached) {
             element.innerHTML = cached;
             return;
         }
-
         const res = await fetch(url);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const html = await res.text();
-
-        // Cache'e kaydet
-        try {
-            sessionStorage.setItem(cacheKey, html);
-        } catch (e) {
-            console.warn('Cache quota exceeded:', e);
-        }
-
+        try { sessionStorage.setItem(cacheKey, html); } catch { }
         element.innerHTML = html;
     } catch (e) {
         console.error(`${url} yüklenemedi:`, e);
@@ -506,22 +365,17 @@ async function loadHTML(url, element) {
 
 function initThemeAndSidebar() {
     if (!localStorage.getItem('theme')) localStorage.setItem('theme', 'dark');
-    // Tema Kontrolü - theme-init.js ile birebir aynı mantık
     const storedTheme = localStorage.getItem('theme');
     const prefersLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
     const theme = storedTheme || (prefersLight ? 'light' : 'dark');
 
-    // Gereksiz DOM güncellemesini önle
     if (document.documentElement.getAttribute('data-theme') !== theme) {
         document.documentElement.setAttribute('data-theme', theme);
         document.documentElement.style.colorScheme = theme;
     }
-
     updateThemeIcon(theme);
 
-    // Sidebar Kontrolü (Desktop için collapsed durumu)
-    const isCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
-    if (isCollapsed) {
+    if (localStorage.getItem('sidebarCollapsed') === 'true') {
         document.body.classList.add('sidebar-collapsed');
     }
 }
@@ -530,24 +384,18 @@ function updateThemeIcon(theme) {
     const sunIcon = document.querySelector('.icon-sun');
     const moonIcon = document.querySelector('.icon-moon');
     if (sunIcon && moonIcon) {
-        if (theme === 'dark') {
-            sunIcon.style.display = 'block';
-            moonIcon.style.display = 'none';
-        } else {
-            sunIcon.style.display = 'none';
-            moonIcon.style.display = 'block';
-        }
+        sunIcon.style.display = theme === 'dark' ? 'block' : 'none';
+        moonIcon.style.display = theme === 'dark' ? 'none' : 'block';
     }
 }
 
 function setupEventListeners() {
-    // Event Delegation: Dinamik yüklenen elementler için body'ye listener ekliyoruz
     document.body.addEventListener('click', async (e) => {
         const target = e.target;
 
-        // 1. Sidebar Toggle (Hamburger)
         const toggleBtn = target.closest('#sidebarToggle');
         if (toggleBtn) {
+            e.preventDefault();
             e.stopPropagation();
             if (window.innerWidth <= 768) {
                 document.body.classList.toggle('mobile-sidebar-active');
@@ -558,18 +406,19 @@ function setupEventListeners() {
             return;
         }
 
-        // 2. Profil Menüsü Toggle
+        if (target.id === 'sidebarOverlay') {
+            document.body.classList.remove('mobile-sidebar-active');
+            return;
+        }
+
         const userMenuToggle = target.closest('#userMenuToggle');
         if (userMenuToggle) {
             e.stopPropagation();
             const dropdown = document.getElementById('profileDropdown');
-            if (dropdown) {
-                dropdown.classList.toggle('active');
-            }
+            if (dropdown) dropdown.classList.toggle('active');
             return;
         }
 
-        // 3. Tema Toggle
         const themeBtn = target.closest('#themeToggle');
         if (themeBtn) {
             const current = document.documentElement.getAttribute('data-theme');
@@ -581,35 +430,10 @@ function setupEventListeners() {
             return;
         }
 
-        // Bildirim Dropdown Toggle (Admin dışında basit toggle)
-        const notificationBtn = target.closest('#notificationBtn');
-        if (notificationBtn && !document.body.classList.contains('admin-body')) {
-            e.stopPropagation();
-            const notificationDropdown = document.getElementById('notificationDropdown');
-            if (notificationDropdown) {
-                notificationDropdown.classList.toggle('active');
-                document.getElementById('profileDropdown')?.classList.remove('active');
-
-                // Eğer içerik "Yükleniyor..." ise ve admin değilse boş durumu göster
-                const list = document.getElementById('notificationList');
-                if (list && list.innerText.includes("Yükleniyor...")) {
-                    list.innerHTML = '<div style="padding:20px; text-align:center; color:var(--text-muted);">Henüz yeni bildirim yok.</div>';
-                    const badge = document.getElementById('notificationBadge');
-                    if (badge) {
-                        badge.style.display = 'none';
-                    }
-                }
-            }
-            return;
-        }
-
-        // 4. Çıkış Butonu
         const logoutBtn = target.closest('#logoutButton');
         if (logoutBtn) {
             const shouldLogout = await showConfirm("Oturumunuzu kapatmak istediğinize emin misiniz?", {
-                title: "Çıkış Onayı",
-                confirmText: "Çıkış Yap",
-                cancelText: "Vazgeç"
+                title: "Çıkış Onayı", confirmText: "Çıkış Yap", cancelText: "Vazgeç"
             });
             if (shouldLogout) {
                 signOut(auth).then(() => window.location.href = '/login.html');
@@ -617,26 +441,9 @@ function setupEventListeners() {
             return;
         }
 
-        // 5. Dışarı Tıklama (Menüleri Kapat)
         const dropdown = document.getElementById('profileDropdown');
         if (dropdown && dropdown.classList.contains('active') && !target.closest('#profileDropdown')) {
             dropdown.classList.remove('active');
-        }
-
-        if (!document.body.classList.contains('admin-body')) {
-            const notificationDropdown = document.getElementById('notificationDropdown');
-            if (notificationDropdown && notificationDropdown.classList.contains('active') && !target.closest('#notificationDropdown')) {
-                notificationDropdown.classList.remove('active');
-            }
-        }
-
-        // Mobil Sidebar Overlay Tıklama
-        if (target.id === 'sidebarOverlay') {
-            document.body.classList.remove('mobile-sidebar-active');
-        }
-
-        if (window.innerWidth <= 768 && target.closest('.app-sidebar a')) {
-            document.body.classList.remove('mobile-sidebar-active');
         }
     });
 }
@@ -649,32 +456,18 @@ async function resolveAuthState(path) {
                     const profile = await getUserProfile(user.uid);
                     const tokenResult = await user.getIdTokenResult();
                     const isAdmin = tokenResult.claims.admin === true || profile?.role === 'admin';
-                    const isEditor = tokenResult.claims.editor === true || profile?.role === 'editor';
-
-                    resolve({
-                        user,
-                        profile,
-                        hasPrivilege: isAdmin || isEditor,
-                        redirecting: false
-                    });
-                } catch (e) {
-                    console.error(e);
-                    resolve({
-                        user,
-                        profile: null,
-                        hasPrivilege: false,
-                        redirecting: false
-                    });
+                    resolve({ user, profile, hasPrivilege: isAdmin, redirecting: false });
+                } catch {
+                    resolve({ user, profile: null, hasPrivilege: false, redirecting: false });
                 }
             } else {
                 const normalizedPath = normalizePath(path);
                 if (!PUBLIC_ROUTES.includes(normalizedPath)) {
                     window.location.href = '/login.html';
                     resolve({ user: null, profile: null, hasPrivilege: false, redirecting: true });
-                    return;
+                } else {
+                    resolve({ user: null, profile: null, hasPrivilege: false, redirecting: false });
                 }
-
-                resolve({ user: null, profile: null, hasPrivilege: false, redirecting: false });
             }
         });
     });
@@ -687,11 +480,8 @@ function setupLandingNav() {
 
     if (nav) {
         window.addEventListener('scroll', () => {
-            if (window.scrollY > 40) {
-                nav.classList.add('scrolled');
-            } else {
-                nav.classList.remove('scrolled');
-            }
+            if (window.scrollY > 40) nav.classList.add('scrolled');
+            else nav.classList.remove('scrolled');
         });
     }
 
@@ -716,21 +506,13 @@ function ensureLandingStyles(enable) {
     const existing = document.getElementById('landingStyles');
     if (enable) {
         if (existing) return;
-        const existingLink = document.querySelector('link[href="/css/landing.css"]');
-        if (existingLink) {
-            if (!existingLink.id) existingLink.id = 'landingStyles';
-            return;
-        }
         const link = document.createElement('link');
         link.rel = 'stylesheet';
         link.href = '/css/landing.css';
         link.id = 'landingStyles';
         document.head.appendChild(link);
-        return;
-    }
-
-    if (existing) {
-        existing.remove();
+    } else {
+        if (existing) existing.remove();
     }
 }
 
@@ -740,7 +522,6 @@ function updateUIWithUserData(user, profile, hasPrivilege) {
     const photoURL = profile?.photoURL || user.photoURL;
     const initial = name.charAt(0).toUpperCase();
 
-    // Header ve Dropdown'daki alanları güncelle
     const elements = {
         names: document.querySelectorAll('#dropdownUserName'),
         emails: document.querySelectorAll('#dropdownUserEmail'),
@@ -752,24 +533,15 @@ function updateUIWithUserData(user, profile, hasPrivilege) {
     elements.emails.forEach(el => el.textContent = email);
 
     if (photoURL) {
-        elements.images.forEach(img => {
-            img.src = photoURL;
-            img.style.display = 'block';
-        });
+        elements.images.forEach(img => { img.src = photoURL; img.style.display = 'block'; });
         elements.initials.forEach(el => el.style.display = 'none');
     } else {
         elements.images.forEach(img => img.style.display = 'none');
-        elements.initials.forEach(el => {
-            el.textContent = initial;
-            el.style.display = 'flex';
-        });
+        elements.initials.forEach(el => { el.textContent = initial; el.style.display = 'flex'; });
     }
 
-    // Admin/Editör Menülerini Göster/Gizle
     const adminLinks = document.querySelectorAll('.admin-only');
-    adminLinks.forEach(link => {
-        link.style.display = hasPrivilege ? 'flex' : 'none';
-    });
+    adminLinks.forEach(link => link.style.display = hasPrivilege ? 'flex' : 'none');
 }
 
 function updateLandingAuthButtons(isLoggedIn) {
@@ -778,7 +550,7 @@ function updateLandingAuthButtons(isLoggedIn) {
     const mobLoginBtn = document.getElementById('mobileLoginBtn');
     const mobRegBtn = document.getElementById('mobileRegisterBtn');
 
-    if (!navBtn && !navRegBtn && !mobLoginBtn && !mobRegBtn) return;
+    if (!navBtn && !mobLoginBtn) return;
 
     if (isLoggedIn) {
         if (navBtn) {
@@ -806,11 +578,10 @@ function updateLandingAuthButtons(isLoggedIn) {
         if (navBtn) {
             navBtn.textContent = 'Giriş Yap';
             navBtn.href = '/login.html?mode=login';
-            navBtn.classList.remove('btn-primary');
             navBtn.classList.add('btn-secondary');
+            navBtn.classList.remove('btn-primary');
         }
         if (navRegBtn) navRegBtn.style.display = '';
-
         if (mobLoginBtn) {
             mobLoginBtn.href = '/login.html?mode=login';
             mobLoginBtn.classList.remove('text-success');
@@ -829,257 +600,30 @@ function updateLandingAuthButtons(isLoggedIn) {
 
 function setActiveMenuItem(pageId) {
     document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
-
-    // Hem data-page hem data-tab (admin için) kontrol et
     const activeItem = document.querySelector(`.nav-item[data-page="${pageId}"], .nav-item[data-tab="${pageId}"]`);
     if (activeItem) activeItem.classList.add('active');
 }
 
-// Yeni Fonksiyonlar: SPA Navigasyon
-function hijackNavigation() {
-    document.body.addEventListener('click', (e) => {
-        const target = e.target.closest('a');
-        if (target && target.href) {
-            const url = new URL(target.href);
-            const currentUrl = new URL(window.location.href);
-            const nextLayout = getLayoutType(url.pathname);
-
-            // Sadece aynı origin içindeki linkleri ele al
-            if (url.origin === currentUrl.origin) {
-                if (currentLayoutType && nextLayout !== currentLayoutType) {
-                    return;
-                }
-
-                // Normalizasyon yap (bazen /admin bazen /admin/ olabiliyor)
-                const normPath = normalizePath(url.pathname);
-                const currentNormPath = normalizePath(currentUrl.pathname);
-
-                // 1. AYNI SAYFA İÇİ HASH DEĞİŞİMİNİ ENGELLE (Admin Paneli İçin Kritik)
-                // Eğer pathname aynıysa ve sadece hash değişiyorsa, router'ın devreye girmesini engelle.
-                if (normPath === currentNormPath && url.hash !== currentUrl.hash) {
-                    // Tarayıcının varsayılan hash davranışına izin ver
-                    return;
-                }
-
-                // Tamamen aynı URL ise bir şey yapma
-                if (normPath === currentNormPath && url.search === currentUrl.search && url.hash === currentUrl.hash) {
-                    e.preventDefault();
-                    return;
-                }
-
-                // Eğer sadece search değişiyorsa ve hash aynıysa, yine SPA navigasyonu yapmalı
-                // Ancak hash değişiyorsa yukarıdaki kural tutmalı.
-
-                // Harici linkler, dosya indirmeleri veya özel nitelikli linkleri atla
-                if (target.hasAttribute('download') || target.getAttribute('target') === '_blank' || target.classList.contains('no-spa')) {
-                    return;
-                }
-
-                // Firebase auth linkleri veya public rotalar için tam sayfa yenileme
-                if (normPath.includes('/login.html') || PUBLIC_ROUTES.includes(normPath)) {
-                    return;
-                }
-
-                e.preventDefault();
-                handleNavigation(url.pathname + url.search);
-            }
-        }
-    });
-
-    window.addEventListener('popstate', (e) => {
-        handleNavigation(window.location.pathname + window.location.search, false); // false: don't push state again
-    });
-
-    const prefetchHandler = (e) => {
-        const target = e.target.closest('a');
-        if (!target || !target.href) return;
-        const url = new URL(target.href);
-        const currentUrl = new URL(window.location.href);
-        if (url.origin !== currentUrl.origin) return;
-        if (target.hasAttribute('download') || target.getAttribute('target') === '_blank' || target.classList.contains('no-spa')) return;
-        const normalizedPath = normalizePath(url.pathname);
-        if (normalizedPath.includes('/login.html') || PUBLIC_ROUTES.includes(normalizedPath)) return;
-        if (url.pathname === currentUrl.pathname && url.search === currentUrl.search) return;
-        prefetchPage(url.pathname + url.search);
-    };
-
-    document.body.addEventListener('mouseover', prefetchHandler, { passive: true });
-    document.body.addEventListener('focusin', prefetchHandler);
-}
-
-async function handleNavigation(url, pushState = true) {
-    const mainContent = document.getElementById('main-content');
-    if (!mainContent) {
-        console.error('Main content area not found!');
-        window.location.href = url; // Fallback to full page reload
-        return;
-    }
-
-    const nextLayout = getLayoutType(url);
-    if (currentLayoutType && nextLayout !== currentLayoutType) {
-        window.location.href = url;
-        return;
-    }
-
-    // A. ATOMIC NAVIGATION ID & CLEANUP START
-    currentNavigationId++;
-    const navId = currentNavigationId;
-
-    // Hemen temizlik yap
-    await executeCleanup();
-
-    // Loading indicator
-    mainContent.innerHTML = '<div class="loading-spinner-container"><div class="loading-spinner"></div></div>';
-    mainContent.scrollTop = 0; // Scroll to top on new page load
-
-    try {
-        const { config } = getConfigForPath(url);
-        const pageConfig = config || { id: 'unknown', title: 'Gold GYS' };
-        document.title = `${pageConfig.title} | GOLD GYS`;
-
-        if (pushState) {
-            window.history.pushState({ path: url }, pageConfig.title, url);
-        }
-
-        if (activeNavController) {
-            activeNavController.abort();
-        }
-        activeNavController = new AbortController();
-
-        // Check if navigation is still valid
-        if (navId !== currentNavigationId) {
-            console.log('Navigation aborted by new request');
-            return;
-        }
-
-        await loadPageContent(url, { signal: activeNavController.signal, navId });
-
-        if (navId !== currentNavigationId) return;
-
-        await loadPageScript(url, { navId });
-        setActiveMenuItem(pageConfig.id);
-
-        // Mobil sidebar açıksa kapat
-        document.body.classList.remove('mobile-sidebar-active');
-
-    } catch (error) {
-        if (navId !== currentNavigationId) return; // Ignore errors from aborted navs
-
-        console.error('Navigation error:', error);
-        mainContent.innerHTML = '<div class="error-message">Sayfa yüklenirken bir hata oluştu. Lütfen tekrar deneyin.</div>';
-    }
-}
-
-async function executeCleanup() {
-    if (currentCleanupFunction) {
-        try {
-            console.log('Cleaning up previous page...');
-            await Promise.resolve(currentCleanupFunction());
-        } catch (cleanupError) {
-            console.warn("Error during cleanup:", cleanupError);
-        }
-        currentCleanupFunction = null;
-    }
-}
-
-async function loadPageContent(url, { signal, navId } = {}) {
-    // Navigasyon kontrolü
-    if (navId && navId !== currentNavigationId) return;
-
+function renderScriptError(error) {
     const mainContent = document.getElementById('main-content');
     if (!mainContent) return;
 
-    // 1. Config'den doğru HTML dosya yolunu bul
-    const contentUrl = resolveContentUrl(url);
-
-    try {
-        const html = await fetchPageHTML(contentUrl, { signal });
-
-        if (navId && navId !== currentNavigationId) return;
-
-        // HTML'i parse et
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(html, 'text/html');
-
-        syncPageStyles(doc, contentUrl);
-
-        // İçeriği bul: .dashboard-container > main > body
-        // Öncelik: .dashboard-container (bizim sayfaların ana wrapper'ı)
-        let content = doc.querySelector('.dashboard-container') || doc.querySelector('main') || doc.querySelector('#main-content');
-
-        // Eğer wrapper bulamazsak body'nin içini al ama scriptleri temizle
-        if (!content) {
-            content = doc.body;
-        }
-
-        // Script taglerini temizle (zaten modül olarak yüklüyoruz ve double-execution önlemek için)
-        // Ayrıca partials içinde script varsa DOMParser ile execute edilmez ama temizkalması iyidir.
-        const scripts = content.querySelectorAll('script');
-        scripts.forEach(s => s.remove());
-
-        // İçeriği güncelle
-        // NOT: innerHTML değiştirmek mevcut event listenerları siler (ki istediğimiz bu)
-        if (!content) {
-            throw new Error('Sayfa içeriği bulunamadı.');
-        }
-        if (content.tagName && content.tagName.toLowerCase() !== 'body') {
-            mainContent.replaceChildren(content.cloneNode(true));
-        } else {
-            mainContent.innerHTML = content.innerHTML;
-        }
-
-        syncBodyClasses(doc);
-
-        // Sayfa başlığını da güncelle (gerekirse)
-        const title = doc.querySelector('title');
-        if (title) {
-            document.title = title.innerText;
-        }
-
-        document.body.style.visibility = 'visible';
-
-    } catch (e) {
-        if (e?.name === 'AbortError') return;
-        if (navId && navId !== currentNavigationId) return;
-        console.error(`Failed to load content for ${url}:`, e);
-        mainContent.innerHTML = '<div class="error-message">Sayfa içeriği yüklenemedi.</div>';
-        throw e;
-    }
-}
-
-function syncPageStyles(doc, url) {
-    const baseUrl = new URL(url, window.location.origin);
-    const nextStyles = new Set();
-    const headLinks = doc.querySelectorAll('link[rel="stylesheet"]');
-
-    headLinks.forEach(link => {
-        const href = link.getAttribute('href');
-        if (!href) return;
-        const resolvedHref = new URL(href, baseUrl).toString();
-        nextStyles.add(resolvedHref);
-
-        const existing = document.head.querySelector(`link[data-page-style="true"][href="${resolvedHref}"]`);
-        if (existing) return;
-
-        const newLink = document.createElement('link');
-        newLink.rel = 'stylesheet';
-        newLink.href = resolvedHref;
-        newLink.dataset.pageStyle = 'true';
-        const media = link.getAttribute('media');
-        const crossOrigin = link.getAttribute('crossorigin');
-        const referrerPolicy = link.getAttribute('referrerpolicy');
-        if (media) newLink.media = media;
-        if (crossOrigin) newLink.crossOrigin = crossOrigin;
-        if (referrerPolicy) newLink.referrerPolicy = referrerPolicy;
-        document.head.appendChild(newLink);
-    });
-
-    document.querySelectorAll('link[data-page-style="true"]').forEach(existing => {
-        const existingHref = existing.getAttribute('href');
-        if (!nextStyles.has(existingHref)) {
-            existing.remove();
-        }
-    });
+    mainContent.innerHTML = `
+        < div class= "error-boundary-container" style = "text-align:center; padding:40px;" >
+            <div style="font-size:3rem; margin-bottom:20px;">⚠️</div>
+            <h3>Bu modül yüklenemedi</h3>
+            <p class="text-muted">Bağlantı sorunu veya teknik bir aksaklık oluştu.</p>
+            <div style="margin-top:20px;">
+                <button onclick="window.location.reload()" class="btn btn-primary">Sayfayı Yenile</button>
+            </div>
+             <details style="margin-top:20px; color:var(--text-muted); font-size:0.75rem; text-align:left; display:inline-block; max-width:100%;">
+                <summary>Teknik Detay</summary>
+                <div style="background:rgba(255,0,0,0.05); padding:10px; border-radius:4px; margin-top:5px;">
+                    ${error.message || error}
+                </div>
+            </details>
+        </div >
+        `;
 }
 
 function getCacheKey(url) {
@@ -1099,64 +643,13 @@ function getCachedPageHTML(url) {
 
 function setCachedPageHTML(url, html) {
     pageCache.set(url, html);
-    try {
-        sessionStorage.setItem(getCacheKey(url), html);
-    } catch (e) {
-        console.warn('Cache quota exceeded:', e);
-    }
-}
-
-function prefetchPage(url) {
-    const contentUrl = resolveContentUrl(url);
-    if (pageFetches.has(contentUrl) || getCachedPageHTML(contentUrl)) return;
-
-    // 1. HTML Prefetch
-    const run = () => {
-        fetchPageHTML(contentUrl).catch((e) => {
-            if (e?.name !== 'AbortError') {
-                console.warn(`Prefetch failed for ${contentUrl}`, e);
-            }
-        });
-    };
-
-    // 2. Script Module Prefetch
-    const { config } = getConfigForPath(url);
-    if (config && config.script) {
-        const link = document.createElement('link');
-        link.rel = 'modulepreload';
-        link.href = withScriptVersion(config.script);
-        document.head.appendChild(link);
-    }
-
-    if ('requestIdleCallback' in window) {
-        window.requestIdleCallback(run, { timeout: 1500 });
-    } else {
-        setTimeout(run, 200);
-    }
-}
-
-function syncBodyClasses(doc) {
-    if (!doc?.body) return;
-    const preservedClasses = new Set(['sidebar-collapsed', 'mobile-sidebar-active']);
-    const existingClasses = new Set(document.body.classList);
-    const nextClasses = new Set(doc.body.classList);
-
-    preservedClasses.forEach((cls) => {
-        if (existingClasses.has(cls)) {
-            nextClasses.add(cls);
-        }
-    });
-
-    document.body.className = Array.from(nextClasses).join(' ');
+    try { sessionStorage.setItem(getCacheKey(url), html); } catch (e) { console.warn('Cache quota exceeded:', e); }
 }
 
 async function fetchPageHTML(url, { signal } = {}) {
     const cached = getCachedPageHTML(url);
     if (cached) return cached;
-
-    if (pageFetches.has(url)) {
-        return pageFetches.get(url);
-    }
+    if (pageFetches.has(url)) return pageFetches.get(url);
 
     const fetchPromise = (async () => {
         const res = await fetch(url, { signal });
@@ -1167,21 +660,39 @@ async function fetchPageHTML(url, { signal } = {}) {
     })();
 
     pageFetches.set(url, fetchPromise);
-
-    try {
-        return await fetchPromise;
-    } finally {
-        pageFetches.delete(url);
-    }
+    try { return await fetchPromise; } finally { pageFetches.delete(url); }
 }
 
+function syncPageStyles(doc, url) {
+    const baseUrl = new URL(url, window.location.origin);
+    const nextStyles = new Set();
+    const headLinks = doc.querySelectorAll('link[rel="stylesheet"]');
 
+    headLinks.forEach(link => {
+        const href = link.getAttribute('href');
+        if (!href) return;
+        const resolvedHref = new URL(href, baseUrl).toString();
+        nextStyles.add(resolvedHref);
+        const existing = document.head.querySelector(`link[data-page-style="true"][href="${resolvedHref}"]`);
+        if (existing) return;
+        const newLink = document.createElement('link');
+        newLink.rel = 'stylesheet';
+        newLink.href = resolvedHref;
+        newLink.dataset.pageStyle = 'true';
+        document.head.appendChild(newLink);
+    });
 
-function getLayoutType(path) {
-    const cleanPath = normalizePath(path);
-    const alias = ROUTE_ALIASES[cleanPath];
-    if (alias?.layout) return alias.layout;
-    if (PUBLIC_LAYOUT_ROUTES.includes(cleanPath)) return 'public';
-    if (cleanPath.startsWith('/admin')) return 'admin';
-    return 'app';
+    document.querySelectorAll('link[data-page-style="true"]').forEach(existing => {
+        const existingHref = existing.getAttribute('href');
+        if (!nextStyles.has(existingHref)) existing.remove();
+    });
+}
+
+function syncBodyClasses(doc) {
+    if (!doc?.body) return;
+    const preservedClasses = new Set(['sidebar-collapsed', 'mobile-sidebar-active']);
+    const existingClasses = new Set(document.body.classList);
+    const nextClasses = new Set(doc.body.classList);
+    preservedClasses.forEach(cls => { if (existingClasses.has(cls)) nextClasses.add(cls); });
+    document.body.className = Array.from(nextClasses).join(' ');
 }

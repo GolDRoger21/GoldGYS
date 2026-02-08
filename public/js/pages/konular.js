@@ -12,8 +12,10 @@ let isMounted = false; // YENİ: SPA State Check
 const QUESTION_COUNT_CACHE_KEY = 'topic_question_counts_v2';
 const QUESTION_COUNT_CACHE_TTL = 24 * 60 * 60 * 1000;
 
-export async function init() {
+
+export async function mount(params) {
     console.log('Konular sayfası başlatılıyor...');
+    if (isMounted) return;
     isMounted = true;
 
     // Reset State
@@ -41,7 +43,7 @@ export async function init() {
     }
 }
 
-export function cleanup() {
+export function unmount() {
     isMounted = false; // Stop all async ops
     if (unsubscribeAuth) {
         unsubscribeAuth();
@@ -51,6 +53,7 @@ export function cleanup() {
     userStats = {};
     questionCounts = new Map();
 }
+
 
 function attachEventListeners() {
     const searchInput = document.getElementById('searchInput');

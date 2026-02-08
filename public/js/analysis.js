@@ -31,7 +31,8 @@ async function ensureChartJs() {
     await chartJsPromise;
 }
 
-export async function init() {
+
+export async function mount() {
     // Reset state
     state = { ...INITIAL_STATE, isMounted: true };
 
@@ -49,7 +50,7 @@ export async function init() {
     });
 }
 
-export function cleanup() {
+export function unmount() {
     state.isMounted = false; // YENİ: Sayfa kapandı işaretle
 
     if (unsubscribeAuth) {
@@ -65,6 +66,7 @@ export function cleanup() {
 
     state = { ...INITIAL_STATE, isMounted: false };
 }
+
 
 async function initAnalysis(userId) {
     try {

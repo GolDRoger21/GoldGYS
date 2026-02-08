@@ -28,7 +28,8 @@ function refreshUI() {
     ui.wrongTodayCount = document.getElementById("wrongTodayCount");
 }
 
-export async function init() {
+
+export async function mount(params) {
     try {
         // Reset state
         ui = {};
@@ -79,7 +80,7 @@ export async function init() {
 }
 
 // Cleanup function if needed
-export function cleanup() {
+export function unmount() {
     if (examCountdownInterval) {
         clearInterval(examCountdownInterval);
         examCountdownInterval = null;
@@ -87,6 +88,7 @@ export function cleanup() {
     // Clear UI references
     ui = {};
 }
+
 
 async function loadDashboardStats(uid) {
     if (!uid) return;
@@ -278,7 +280,7 @@ async function loadExamAnnouncement() {
                 limit(1)
             );
             const snapshot = await getDocs(examQuery);
-            
+
             if (!snapshot.empty) {
                 const docData = snapshot.docs[0].data();
                 // Store serializable data
@@ -495,7 +497,7 @@ async function loadRecentActivities(uid) {
             const timeAgo = activity.timestamp && typeof activity.timestamp.toDate === 'function'
                 ? activity.timestamp.toDate().toLocaleDateString('tr-TR')
                 : (activity.timestamp ? new Date(activity.timestamp).toLocaleDateString('tr-TR') : '');
-            
+
             const icon = activity.type === 'test' ? '📝' : '📖';
             return `
                         <div class="activity-item">
@@ -520,7 +522,7 @@ function normalizeTimestamp(ts) {
     if (ts.seconds) return ts.seconds * 1000;
     if (typeof ts === 'string') return ts;
     if (typeof ts === 'number') return ts;
-    return null; 
+    return null;
 }
 
 function parseDate(value) {
