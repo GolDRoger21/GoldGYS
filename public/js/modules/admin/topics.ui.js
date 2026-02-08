@@ -100,30 +100,30 @@ export const UI_SHELL = `
                         </div>
 
                         <!-- SAĞ: İşlemler ve Meta -->
-                        <div class="editor-actions studio-editor-actions">
+                        <div class="editor-actions studio-editor-actions d-flex align-items-center gap-3">
                             <!-- Kayıt Durumu -->
-                            <div class="save-indicator studio-save-indicator">
-                                <span id="saveIndicator" class="text-muted small fw-medium">
+                            <div class="save-indicator studio-save-indicator d-flex align-items-center">
+                                <span id="saveIndicator" class="text-muted small fw-medium d-flex align-items-center">
                                     <i class="fas fa-check-circle me-1"></i> Kaydedildi
                                 </span>
                             </div>
 
-                            <div class="vr opacity-25 d-none d-md-block"></div>
+                            <div class="vr opacity-25 d-none d-md-block" style="height: 24px;"></div>
 
                             <!-- Sıra No -->
-                            <div class="input-group input-group-sm shadow-sm order-input studio-order-input" title="Sıra Numarası">
+                            <div class="input-group input-group-sm shadow-sm order-input studio-order-input d-flex align-items-center" title="Sıra Numarası" style="width: auto;">
                                 <span class="input-group-text bg-white border-end-0 text-muted px-2">#</span>
-                                <input type="number" id="inpContentOrder" class="form-control border-start-0 text-center ps-0 fw-bold">
+                                <input type="number" id="inpContentOrder" class="form-control border-start-0 text-center ps-0 fw-bold" style="max-width: 60px;">
                             </div>
 
-                            <div class="vr opacity-25 d-none d-md-block"></div>
+                            <div class="vr opacity-25 d-none d-md-block" style="height: 24px;"></div>
 
                             <!-- Butonlar -->
-                            <div class="editor-action-buttons studio-editor-action-buttons">
-                                <button class="btn btn-outline-danger btn-sm btn-icon shadow-sm" onclick="window.Studio.deleteContent()" title="İçeriği Sil">
+                            <div class="editor-action-buttons studio-editor-action-buttons d-flex align-items-center gap-2">
+                                <button class="btn btn-outline-danger btn-sm btn-icon shadow-sm" onclick="window.Studio.deleteContent()" title="İçeriği Sil" style="width: 32px; height: 32px;">
                                     🗑️
                                 </button>
-                                <button class="btn btn-success btn-sm px-4 fw-bold shadow-sm d-flex align-items-center gap-2" onclick="window.Studio.saveContent()">
+                                <button class="btn btn-success btn-sm px-3 fw-bold shadow-sm d-flex align-items-center justify-content-center gap-2" onclick="window.Studio.saveContent()" style="height: 32px;">
                                     💾 <span class="d-none d-sm-inline">Kaydet</span>
                                 </button>
                             </div>
@@ -255,51 +255,51 @@ export const UI_SHELL = `
                 <div class="admin-modal-content content-trash-modal" style="max-width: 800px; border-radius: 16px; overflow: hidden; box-shadow: var(--shadow-lg);">
                     
                     <!-- Yeni Header Tasarımı -->
-                    <div class="modal-header content-trash-header d-flex justify-content-between align-items-center" style="background: var(--bg-surface); border-bottom: 1px solid var(--border-color); padding: 20px 24px;">
-                        <div class="d-flex align-items-center gap-2 content-trash-title">
-                             <div class="content-trash-icon">
+                    <div class="modal-header content-trash-header d-flex justify-content-between align-items-center bg-surface border-bottom px-4 py-3">
+                        <div class="d-flex align-items-center gap-3 content-trash-title">
+                             <div class="content-trash-icon bg-light rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; font-size: 1.25rem;">
                                 🗑️
                             </div>
                             <div>
-                                <h5 class="m-0 fw-bold" style="color: var(--text-main); font-size:1.1rem;">Silinen İçerikler</h5>
+                                <h5 class="m-0 fw-bold text-main" style="font-size:1.1rem;">Silinen İçerikler</h5>
                                 <div class="small text-muted" style="font-size: 0.85rem;">Geri yükleyin veya kalıcı olarak silin</div>
                             </div>
                         </div>
-                        <button onclick="document.getElementById('contentTrashModal').style.display='none'" class="btn-icon content-trash-close" style="color: var(--text-muted); font-size: 1.25rem;">&times;</button>
+                        <button onclick="document.getElementById('contentTrashModal').style.display='none'" class="btn-icon content-trash-close text-muted" style="font-size: 1.25rem;">&times;</button>
                     </div>
 
                     <!-- Yeni Toolbar Tasarımı -->
-                    <div class="modal-toolbar content-trash-toolbar p-3" style="background: var(--bg-hover); border-bottom: 1px solid var(--border-color);">
-                        <div class="row g-2 align-items-center">
+                    <div class="modal-toolbar content-trash-toolbar p-3 bg-hover border-bottom">
+                        <div class="row g-3 align-items-center">
                             <!-- Sol: Filtreler -->
                             <div class="col-12 col-md-7">
-                                <div class="d-flex gap-2 content-trash-filters">
-                                    <div class="input-group input-group-sm content-trash-search">
+                                <div class="d-flex flex-wrap gap-2 content-trash-filters align-items-center">
+                                    <div class="input-group input-group-sm content-trash-search flex-grow-1" style="min-width: 200px;">
                                         <span class="input-group-text bg-white border-end-0 text-muted"><i class="fas fa-search"></i></span>
                                         <input type="text" id="contentTrashSearch" class="form-control border-start-0 ps-0" placeholder="Başlıkta ara..." oninput="window.Studio.contentTrash.refresh()">
                                     </div>
-                                    <select id="contentTrashTypeFilter" class="form-select form-select-sm content-trash-type" onchange="window.Studio.contentTrash.refresh()">
+                                    <select id="contentTrashTypeFilter" class="form-select form-select-sm content-trash-type" style="width: auto;" onchange="window.Studio.contentTrash.refresh()">
                                         <option value="active">Aktif Sekme</option>
                                         <option value="lesson">Ders</option>
                                         <option value="test">Test</option>
                                         <option value="all">Tümü</option>
                                     </select>
-                                    <span class="badge badge-secondary align-self-center d-none d-md-inline-block" id="contentTrashModeLabelBadge">Ders</span>
+                                    <span class="badge bg-secondary text-white align-self-center d-none d-md-inline-block" id="contentTrashModeLabelBadge">Ders</span>
                                 </div>
                             </div>
 
                             <!-- Sağ: İşlemler -->
                             <div class="col-12 col-md-5">
-                                <div class="d-flex justify-content-md-end gap-2 content-trash-actions">
-                                    <button class="btn btn-sm btn-success text-white fw-bold shadow-sm" onclick="window.Studio.contentTrash.restoreSelected()" title="Seçilenleri Geri Yükle">
-                                        <i class="fas fa-undo me-1"></i> Geri Al
+                                <div class="d-flex justify-content-md-end gap-2 content-trash-actions flex-wrap">
+                                    <button class="btn btn-sm btn-success text-white fw-bold shadow-sm d-flex align-items-center gap-2" onclick="window.Studio.contentTrash.restoreSelected()" title="Seçilenleri Geri Yükle">
+                                        <i class="fas fa-undo"></i> Geri Al
                                     </button>
                                     <div class="vr mx-1 opacity-25 d-none d-md-block"></div>
-                                    <button class="btn btn-sm btn-outline-danger" onclick="window.Studio.contentTrash.purgeSelected()" title="Seçilenleri Kalıcı Sil">
-                                        <i class="fas fa-trash me-1"></i> Sil
+                                    <button class="btn btn-sm btn-outline-danger d-flex align-items-center gap-2" onclick="window.Studio.contentTrash.purgeSelected()" title="Seçilenleri Kalıcı Sil">
+                                        <i class="fas fa-trash"></i> Sil
                                     </button>
-                                    <button class="btn btn-sm btn-danger text-white shadow-sm" onclick="window.Studio.contentTrash.purgeAll()" title="Tüm Çöp Kutusunu Boşalt">
-                                        <i class="fas fa-bomb me-1"></i> Tümünü Sil
+                                    <button class="btn btn-sm btn-danger text-white shadow-sm d-flex align-items-center gap-2" onclick="window.Studio.contentTrash.purgeAll()" title="Tüm Çöp Kutusunu Boşalt">
+                                        <i class="fas fa-bomb"></i> Tümünü Sil
                                     </button>
                                 </div>
                             </div>
