@@ -1,4 +1,4 @@
-// public/js/dashboard.js
+
 
 import { auth, db } from "./firebase-config.js";
 import { getUserProfile, getLastActivity, getRecentActivities } from "./user-profile.js";
