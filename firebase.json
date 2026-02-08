@@ -64,6 +64,38 @@
         "destination": "/pages/pending-approval.html"
       },
       {
+        "source": "/yardim",
+        "destination": "/pages/yardim.html"
+      },
+      {
+        "source": "/gizlilik",
+        "destination": "/pages/gizlilik.html"
+      },
+      {
+        "source": "/kullanim-sartlari",
+        "destination": "/pages/kullanim-sartlari.html"
+      },
+      {
+        "source": "/yasal",
+        "destination": "/pages/yasal.html"
+      },
+      {
+        "source": "/report",
+        "destination": "/pages/report.html"
+      },
+      {
+        "source": "/test",
+        "destination": "/pages/test.html"
+      },
+      {
+        "source": "/maintenance",
+        "destination": "/maintenance.html"
+      },
+      {
+        "source": "/404",
+        "destination": "/404.html"
+      },
+      {
         "source": "/login",
         "destination": "/login.html"
       },
