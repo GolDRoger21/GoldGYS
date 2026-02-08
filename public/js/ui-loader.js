@@ -338,17 +338,6 @@ function renderScriptError(error) {
     `;
 }
 
-async function executeCleanup() {
-    if (typeof currentCleanupFunction === 'function') {
-        try {
-            // Cleanup senkron veya asenkron olabilir, await ile garantiye al
-            await currentCleanupFunction();
-        } catch (e) {
-            console.warn("Cleanup sırasında hata (yoksayılıyor):", e);
-        }
-        currentCleanupFunction = null;
-    }
-}
 async function loadRequiredHTML(isAdminPage, usePublicLayout = false) {
     // Admin ve User için aynı header yapısını kullanıyoruz artık (tutarlılık için)
     // Ancak içerik farklı olabilir diye dosya isimlerini koruyoruz.
@@ -456,6 +445,29 @@ async function loadRequiredHTML(isAdminPage, usePublicLayout = false) {
         overlay.className = 'sidebar-overlay';
         overlay.id = 'sidebarOverlay';
         document.body.appendChild(overlay);
+    }
+
+    // Main içerik alanını garanti altına al
+    const layoutRoot = document.querySelector('.app-layout');
+    if (layoutRoot) {
+        let mainContent = layoutRoot.querySelector('#main-content')
+            || layoutRoot.querySelector('.app-main')
+            || layoutRoot.querySelector('main');
+
+        if (!mainContent) {
+            mainContent = document.createElement('main');
+            mainContent.className = 'app-main';
+            mainContent.id = 'main-content';
+            layoutRoot.appendChild(mainContent);
+        } else {
+            mainContent.classList.add('app-main');
+            if (!mainContent.id) {
+                mainContent.id = 'main-content';
+            }
+            if (mainContent.parentElement !== layoutRoot) {
+                layoutRoot.appendChild(mainContent);
+            }
+        }
     }
 
     await Promise.all([
