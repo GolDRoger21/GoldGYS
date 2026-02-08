@@ -447,6 +447,29 @@ async function loadRequiredHTML(isAdminPage, usePublicLayout = false) {
         document.body.appendChild(overlay);
     }
 
+    // Main içerik alanını garanti altına al
+    const layoutRoot = document.querySelector('.app-layout');
+    if (layoutRoot) {
+        let mainContent = layoutRoot.querySelector('#main-content')
+            || layoutRoot.querySelector('.app-main')
+            || layoutRoot.querySelector('main');
+
+        if (!mainContent) {
+            mainContent = document.createElement('main');
+            mainContent.className = 'app-main';
+            mainContent.id = 'main-content';
+            layoutRoot.appendChild(mainContent);
+        } else {
+            mainContent.classList.add('app-main');
+            if (!mainContent.id) {
+                mainContent.id = 'main-content';
+            }
+            if (mainContent.parentElement !== layoutRoot) {
+                layoutRoot.appendChild(mainContent);
+            }
+        }
+    }
+
     await Promise.all([
         loadHTML(headerUrl, headerContainer),
         loadHTML(sidebarUrl, sidebarContainer)
