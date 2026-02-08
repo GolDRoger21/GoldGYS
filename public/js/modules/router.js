@@ -20,6 +20,7 @@ export class Router {
         this.isNavigating = false;
         this.abortController = null;
         this.currentCleanup = null;
+        this.isInitialized = false;
 
         // Bindings
         this.handleLinkClick = this.handleLinkClick.bind(this);
@@ -30,11 +31,17 @@ export class Router {
      * Initialize the router
      */
     init() {
+        if (this.isInitialized) {
+            console.warn('Router already initialized.');
+            return;
+        }
         console.log('Router initializing...');
 
         // Event Listeners
         window.addEventListener('popstate', this.handlePopState);
         document.body.addEventListener('click', this.handleLinkClick);
+
+        this.isInitialized = true;
 
         // Initial Load
         const path = window.location.pathname + window.location.search;
@@ -42,6 +49,18 @@ export class Router {
         window.history.replaceState({ path }, document.title, path);
 
         return this.navigate(path, { replace: true, isInitial: true });
+    }
+
+    /**
+     * Destroy the router and remove listeners
+     */
+    destroy() {
+        window.removeEventListener('popstate', this.handlePopState);
+        document.body.removeEventListener('click', this.handleLinkClick);
+        this.isInitialized = false;
+        if (this.abortController) {
+            this.abortController.abort();
+        }
     }
 
     /**
@@ -104,21 +123,16 @@ export class Router {
 
         // 2. Alias Match
         if (this.aliases[normalized]) {
-            // If alias points to a config object (old structure compat) or just string logic
-            // We assume aliases map to route configurations or other paths
-            // For now, let's assume aliases might be handled by config maps directly
-            // or we might need to follow the redirect.
-            // Simple approach: Check if alias exists in routes
             if (this.routes[this.aliases[normalized]]) {
                 return { ...this.routes[this.aliases[normalized]], path };
             }
+            // Direct alias config support (if aliases has full config)
+            if (typeof this.aliases[normalized] === 'object') {
+                return { ...this.aliases[normalized], path };
+            }
         }
 
-        // 3. Dynamic Routes (Simple segment matching if needed, skipping for now based on existing static config)
-        // If your app has /konu/:id, implement regex matching here.
-
-        // Fallback for paths that might be dynamic but distinct like /konu/123
-        // Check if starts with known prefixes
+        // 3. Dynamic Routes (Simple segment matching)
         const segments = normalized.split('/').filter(Boolean);
         if (segments.length > 1) {
             const basePath = `/${segments[0]}`;
@@ -136,32 +150,29 @@ export class Router {
     async navigate(path, options = {}) {
         const { push = true, replace = false, isInitial = false } = options;
 
-        // 1. Block redundant navigation (same path)
-        if (!isInitial && path === this.currentPath) {
-            console.log('[Router] Same path navigation blocked');
-            return;
-        }
-
-        // 2. Resolve Route
+        // 1. Resolve Route
         const routeConfig = this.resolve(path);
         if (!routeConfig) {
             console.warn(`[Router] Route not found: ${path}`);
-            // Let the 404 handler or server take over, or redirect to 404 page
-            // preventing infinite loops by not redirecting if we are already at 404
             if (path !== this.notFoundRoute) {
                 return this.navigate(this.notFoundRoute, { replace: true });
             }
             return;
         }
 
+        // 2. Block redundant navigation (same path)
+        // Allow if it's initial load or explicitly forced (maybe later)
+        if (!isInitial && path === this.currentPath) {
+            console.log('[Router] Same path navigation blocked');
+            return;
+        }
+
         console.log(`[Router] Navigating to ${path}`, routeConfig);
 
-        // 3. Guards (Maintenance, Auth - delegated to callbacks/hooks if possible or direct)
-        // Check Maintenance
+        // 3. Guards (Maintenance)
         try {
             await MaintenanceGuard.check();
         } catch (e) {
-            // MaintenanceGuard usually redirects, so we stop here
             return;
         }
 
@@ -182,7 +193,7 @@ export class Router {
         this.isNavigating = true;
         this.currentPath = path;
 
-        // 6. UI Loading State (Optional: trigger global loader)
+        // 6. UI Loading State
         this.emit('start', { path });
 
         try {
@@ -198,10 +209,15 @@ export class Router {
             }
 
             // 8. Load New Page Content & Script
-            // This logic is currently heavily coupled with ui-loader's loadPageContent
-            // We will invoke the "loader" callback passed in config
             if (this.onNavigate) {
+                // Pass signal to onNavigate
                 const result = await this.onNavigate(routeConfig, path, signal);
+
+                if (signal.aborted) {
+                    console.log('[Router] Navigation aborted explicitly during onNavigate');
+                    return;
+                }
+
                 if (result && result.cleanup) {
                     this.currentCleanup = result.cleanup;
                 }
@@ -214,14 +230,16 @@ export class Router {
             this.emit('end', { path });
 
         } catch (error) {
-            if (error.name === 'AbortError') {
+            if (error.name === 'AbortError' || signal.aborted) {
                 console.log('[Router] Navigation aborted.');
             } else {
                 console.error('[Router] Navigation failed:', error);
                 this.emit('error', { error, path });
             }
         } finally {
-            this.isNavigating = false;
+            if (!signal.aborted) {
+                this.isNavigating = false;
+            }
         }
     }
 

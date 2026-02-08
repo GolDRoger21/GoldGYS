@@ -29,12 +29,14 @@ function refreshUI() {
 }
 
 
-export async function mount(params) {
+export async function mount(params, signal) {
     try {
         // Reset state
         ui = {};
         refreshUI();
         if (ui.loaderText) ui.loaderText.textContent = "Sistem başlatılıyor...";
+
+        if (signal?.aborted) return;
 
         // 1. Dashboard'a Özel İçeriği Hazırla
         const user = auth.currentUser;
@@ -43,14 +45,21 @@ export async function mount(params) {
             if (ui.loaderText) ui.loaderText.textContent = "Verileriniz yükleniyor...";
 
             // Profil bilgisini çek (Welcome mesajı için)
+            // Use promise wrapper to handle abort? Firestore doesn't support signal directly,
+            // so we check signal after await.
             const profile = await getUserProfile(user.uid);
+
+            if (signal?.aborted) return;
+
             const displayName = (profile && profile.ad) || user.displayName || (user.email ? user.email.split('@')[0] : 'Kullanıcı');
 
             if (ui.welcomeMsg) {
                 ui.welcomeMsg.textContent = `Hoş geldin, ${displayName}!`;
             }
 
-            await loadDashboardStats(user.uid);
+            await loadDashboardStats(user.uid); // checks signal internally if passed? No, need to pass or check after
+
+            if (signal?.aborted) return;
 
             // Sınav ilanını, duyuruları ve aktiviteleri yükle
             await Promise.all([
@@ -58,6 +67,8 @@ export async function mount(params) {
                 loadAnnouncements(),
                 loadRecentActivities(user.uid)
             ]);
+
+            if (signal?.aborted) return;
 
             // Son aktiviteyi ve akıllı ipucunu göster
             checkLastActivity(user);
@@ -68,9 +79,12 @@ export async function mount(params) {
         }
 
         // 3. Her şey hazır, sayfa yükleyicisini kaldır
-        hideLoader();
+        if (!signal?.aborted) {
+            hideLoader();
+        }
 
     } catch (error) {
+        if (signal?.aborted) return;
         console.error("Dashboard yükleme hatası:", error);
         if (ui.loaderText) {
             ui.loaderText.innerHTML = "Bir hata oluştu.<br>Lütfen sayfayı yenileyin.";

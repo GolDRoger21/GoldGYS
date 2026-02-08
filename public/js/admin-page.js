@@ -21,21 +21,29 @@ let abortController = null; // Event listener yönetimi için
 let hashChangeListener = null; // Hash change listener referansı
 
 
-export async function mount() {
+export async function mount(params, parentSignal) {
     console.log("🚀 Admin Page Mount Started");
 
     // Temizlik ve Hazırlık
+    // If called again without unmount (shouldn't happen with new router logic), ensure cleanup
     if (abortController) abortController.abort();
     abortController = new AbortController();
     const signal = { signal: abortController.signal };
+
+    if (parentSignal?.aborted) return;
 
     try {
         // Bildirim Sistemini Başlat (Sadece Admin Panelinde)
         // Not: initNotifications içinde de listener varsa oraya da signal geçmek gerekebilir ama şimdilik kalsın.
         initNotifications();
 
+        if (parentSignal?.aborted) return;
+
         // 1. Yetki Kontrolü
         const { role, user } = await requireAdminOrEditor();
+
+        if (parentSignal?.aborted) return;
+
         currentRole = role;
         console.log(`✅ Giriş Başarılı: ${role}`);
 
@@ -71,18 +79,22 @@ export async function mount() {
         initInteractions(role, signal);
 
         // 4. Hash Change Listener (Cleanup için referanslı)
+        // Remove old if exists
+        if (hashChangeListener) window.removeEventListener('hashchange', hashChangeListener);
+
         hashChangeListener = () => {
             if (!currentRole) return;
             const targetTab = window.location.hash.substring(1) || 'dashboard';
             activateTab(targetTab, currentRole);
         };
-        window.addEventListener('hashchange', hashChangeListener); // Signal desteklemiyor olabilir, manuel sileriz.
+        window.addEventListener('hashchange', hashChangeListener);
 
         // İlk Tab'ı Yükle
         const initialTab = window.location.hash.substring(1) || 'dashboard';
         activateTab(initialTab, role);
 
     } catch (error) {
+        if (parentSignal?.aborted) return;
         console.error("Master Init Hatası:", error);
         showToast(`Panel yüklenirken bir hata oluştu: ${error.message}`, "error");
     }

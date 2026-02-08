@@ -219,6 +219,9 @@ async function handlePageLoad(routeConfig, path, signal) {
     if (!mainContent) return;
 
     // Show Loading
+    // Check if signal aborted before doing anything
+    if (signal.aborted) return;
+
     mainContent.innerHTML = '<div class="loading-spinner-container"><div class="loading-spinner"></div></div>';
 
     try {
@@ -237,6 +240,8 @@ async function handlePageLoad(routeConfig, path, signal) {
 
         // Clean scripts from HTML to prevent auto-execution (we handle scripts manually)
         content.querySelectorAll('script').forEach(s => s.remove());
+
+        if (signal.aborted) return;
 
         if (content.tagName && content.tagName.toLowerCase() !== 'body') {
             mainContent.replaceChildren(content.cloneNode(true));
@@ -257,16 +262,17 @@ async function handlePageLoad(routeConfig, path, signal) {
 
                 if (signal.aborted) return;
 
-
                 // Strict 'mount' interface
                 if (module.mount) {
-                    await module.mount(new URLSearchParams(window.location.search));
+                    // Pass signal to mount
+                    await module.mount(new URLSearchParams(window.location.search), signal);
                     cleanup = module.unmount;
                 } else {
                     throw new Error(`Module ${routeConfig.script} does not export 'mount' function.`);
                 }
 
             } catch (scriptError) {
+                if (signal.aborted) return;
                 console.error(`Script init hatası (${routeConfig.script}):`, scriptError);
                 renderScriptError(scriptError);
             }
