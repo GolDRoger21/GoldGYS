@@ -43,7 +43,7 @@ export async function init() {
 
             // Profil bilgisini çek (Welcome mesajı için)
             const profile = await getUserProfile(user.uid);
-            const displayName = profile?.ad || user.displayName || (user.email ? user.email.split('@')[0] : 'Kullanıcı');
+            const displayName = (profile && profile.ad) || user.displayName || (user.email ? user.email.split('@')[0] : 'Kullanıcı');
 
             if (ui.welcomeMsg) {
                 ui.welcomeMsg.textContent = `Hoş geldin, ${displayName}!`;
@@ -492,7 +492,7 @@ async function loadRecentActivities(uid) {
         ui.recentActivityList.innerHTML = \`
             <div class="activity-list">
                 \${activities.map(activity => {
-            const timeAgo = activity.timestamp?.toDate
+            const timeAgo = activity.timestamp && typeof activity.timestamp.toDate === 'function'
                 ? activity.timestamp.toDate().toLocaleDateString('tr-TR')
                 : (activity.timestamp ? new Date(activity.timestamp).toLocaleDateString('tr-TR') : '');
             
