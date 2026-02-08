@@ -8,8 +8,9 @@ let currentTopicId = null;
 let topicTitle = "";
 let unsubscribeAuth = null;
 
-export async function init() {
-    console.log("Konu page init started");
+
+export async function mount() {
+    console.log("Konu page mount started");
 
     // Reset State
     currentTopicId = null;
@@ -59,7 +60,10 @@ export async function init() {
     });
 }
 
-export function cleanup() {
+
+
+export function unmount() {
+
     if (unsubscribeAuth) {
         unsubscribeAuth();
         unsubscribeAuth = null;

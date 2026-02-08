@@ -8,7 +8,8 @@ const INITIAL_STATE = {
 let state = { ...INITIAL_STATE };
 let abortController = null;
 
-export async function init() {
+
+export async function mount() {
     console.log('Denemeler sayfası başlatılıyor...');
 
     // Reset state & Cleanup old controller if exists (though loader should have called cleanup)
@@ -35,13 +36,14 @@ export async function init() {
     await loadExams(signal);
 }
 
-export function cleanup() {
+export function unmount() {
     if (abortController) {
         abortController.abort();
         abortController = null;
     }
     state = { ...INITIAL_STATE };
 }
+
 
 function attachEventListeners(signal) {
     const searchInput = document.getElementById('examSearch');

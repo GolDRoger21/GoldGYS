@@ -34,7 +34,8 @@ const getDom = () => ({
 
 let cleanupFuncs = [];
 
-export function initProfilePage() {
+
+export async function mount() {
     const user = auth.currentUser;
     if (user) {
         initTabs();
@@ -58,13 +59,12 @@ export function initProfilePage() {
     }
 }
 
-export const init = initProfilePage;
-
-export function cleanup() {
+export function unmount() {
     // Nothing specific needed as we used onsubmit/onclick properties which get overwritten.
     // If we had strict addEventListener we would track them.
     // But to be safe, we can nullify handlers if we want, though not strictly required if DOM is removed.
 }
+
 
 async function loadFullProfile(user) {
     const dom = getDom();

@@ -254,14 +254,15 @@ async function handlePageLoad(routeConfig, path, signal) {
 
                 if (signal.aborted) return;
 
-                // Support both old 'init' and new 'mount' interfaces
+
+                // Strict 'mount' interface
                 if (module.mount) {
                     await module.mount(new URLSearchParams(window.location.search));
                     cleanup = module.unmount;
-                } else if (module.init) {
-                    await module.init();
-                    cleanup = module.cleanup;
+                } else {
+                    throw new Error(`Module ${routeConfig.script} does not export 'mount' function.`);
                 }
+
             } catch (scriptError) {
                 console.error(`Script init hatası (${routeConfig.script}):`, scriptError);
                 renderScriptError(scriptError);

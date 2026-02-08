@@ -4,10 +4,11 @@ import { db, auth } from '../firebase-config.js';
 import { showConfirm, showToast } from '../notifications.js';
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-export async function init() {
+
+export async function mount() {
     protectPage();
 
-    console.log("Deneme page init started");
+    console.log("Deneme page mount started");
     const urlParams = new URLSearchParams(window.location.search);
     let examId = urlParams.get('id');
 
@@ -81,7 +82,8 @@ export async function init() {
     }
 }
 
-export function cleanup() {
+export function unmount() {
+
     // No specific cleanup needed as `init` handles listener removal via `cloneNode` hack.
     // TestEngine might need cleanup if it sets global timers?
     // TestEngine usually handles its own state, but if it sets `window.interval`, we might need reference.

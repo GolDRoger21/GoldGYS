@@ -21,7 +21,8 @@ const CUSTOM_TEST_LIMIT = 30;
 let ui = {};
 let unsubscribeAuth = null;
 
-export async function init() {
+
+export async function mount() {
     console.log('Yanlışlarım sayfası başlatılıyor...');
 
     // 1. State'i Sıfırla
@@ -62,7 +63,7 @@ export async function init() {
     }
 }
 
-export function cleanup() {
+export function unmount() {
     if (unsubscribeAuth) {
         unsubscribeAuth();
         unsubscribeAuth = null;
@@ -70,6 +71,7 @@ export function cleanup() {
     state = { ...INITIAL_STATE };
     ui = {};
 }
+
 
 function attachEventListeners() {
     if (ui.categorySelect) {

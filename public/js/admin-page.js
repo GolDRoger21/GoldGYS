@@ -20,8 +20,9 @@ let currentRole = null;
 let abortController = null; // Event listener yönetimi için
 let hashChangeListener = null; // Hash change listener referansı
 
-export async function init() {
-    console.log("🚀 Admin Page Init Started");
+
+export async function mount() {
+    console.log("🚀 Admin Page Mount Started");
 
     // Temizlik ve Hazırlık
     if (abortController) abortController.abort();
@@ -87,8 +88,9 @@ export async function init() {
     }
 }
 
-export function cleanup() {
-    console.log("🧹 Admin Page Cleanup");
+export function unmount() {
+    console.log("🧹 Admin Page Unmount");
+
 
     // 1. Event Listener'ları Temizle
     if (abortController) {
