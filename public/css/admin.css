@@ -1250,6 +1250,70 @@ tr.highlight {
     color: var(--color-primary);
 }
 
+/* ==========================================================================
+   Studio Pro - Çöp Kutusu Modal Düzeni
+   ========================================================================== */
+.content-trash-modal .content-trash-icon {
+    width: 40px;
+    height: 40px;
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--color-danger);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    flex-shrink: 0;
+}
+
+.content-trash-toolbar .content-trash-filters {
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.content-trash-toolbar .content-trash-search {
+    max-width: 260px;
+    flex: 1 1 200px;
+}
+
+.content-trash-toolbar .content-trash-type {
+    max-width: 170px;
+}
+
+.content-trash-actions {
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.content-trash-actions .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+}
+
+.content-trash-close {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s ease;
+}
+
+.content-trash-close:hover {
+    background: var(--bg-hover);
+}
+
+@media (max-width: 768px) {
+    .content-trash-toolbar .content-trash-filters,
+    .content-trash-actions {
+        width: 100%;
+        justify-content: space-between;
+    }
+}
+
 /* Sidebar Footer */
 .sidebar-footer {
     padding: 15px;
@@ -1287,6 +1351,45 @@ tr.highlight {
     width: 100%;
     gap: 16px;
     flex-wrap: wrap;
+}
+
+.studio-editor-toolbar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    column-gap: 24px;
+}
+
+.studio-editor-title-group {
+    flex: initial;
+}
+
+.studio-editor-actions {
+    flex-wrap: nowrap;
+    gap: 14px;
+}
+
+.studio-save-indicator {
+    padding: 6px 10px;
+    border-radius: 10px;
+    border: 1px solid var(--border-color);
+    background: var(--bg-hover);
+    font-weight: 600;
+}
+
+.studio-order-input {
+    background: var(--bg-surface);
+    border-radius: 10px;
+}
+
+.studio-editor-action-buttons .btn {
+    white-space: nowrap;
+}
+
+.studio-editor-action-buttons .btn-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .editor-title-group {
@@ -1352,6 +1455,31 @@ tr.highlight {
 
 .editor-action-buttons .btn-icon {
     width: 36px;
+}
+
+@media (max-width: 992px) {
+    .studio-editor-toolbar {
+        grid-template-columns: 1fr;
+        row-gap: 12px;
+        align-items: stretch;
+    }
+
+    .studio-editor-actions {
+        justify-content: space-between;
+        width: 100%;
+        flex-wrap: wrap;
+    }
+}
+
+@media (max-width: 576px) {
+    .studio-editor-actions {
+        gap: 10px;
+    }
+
+    .studio-editor-action-buttons {
+        width: 100%;
+        justify-content: flex-end;
+    }
 }
 
 /* Editör İçerik Alanı (ALTTA KAYDIRILABİLİR) */
