@@ -92,7 +92,7 @@ async function loadDashboardStats(uid) {
     if (!uid) return;
 
     try {
-        const cacheKey = \`dashboard_stats_\${uid}\`;
+        const cacheKey = `dashboard_stats_${uid}`;
         let cachedStats = CacheManager.get(cacheKey);
 
         let todayStats, totalStats;
@@ -122,9 +122,9 @@ async function loadDashboardStats(uid) {
             ? Math.round((totalStats.correct / totalStats.total) * 100)
             : 0;
 
-        if (ui.successRateText) ui.successRateText.textContent = \`%\${successRate}\`;
+        if (ui.successRateText) ui.successRateText.textContent = `%${successRate}`;
         if (ui.successRateBar) {
-            ui.successRateBar.style.width = \`\${successRate}%\`;
+            ui.successRateBar.style.width = `${successRate}%`;
             ui.successRateBar.setAttribute('aria-valuenow', successRate);
 
             // Renk ayarı
@@ -163,18 +163,18 @@ async function checkLastActivity(user) {
     if (activity && card) {
         const timeAgo = new Date(activity.timestamp.seconds * 1000).toLocaleDateString('tr-TR');
 
-        card.innerHTML = \`
+        card.innerHTML = `
             <div class="card p-3 d-flex justify-content-between align-items-center" style="background: linear-gradient(to right, var(--bg-surface), var(--bg-hover)); border-left: 4px solid var(--color-primary);">
                 <div>
                     <small class="text-muted text-uppercase" style="font-size:0.75rem;">Son Çalışılan</small>
-                    <h4 class="m-0" style="color:var(--text-main);">\${activity.title}</h4>
-                    <small class="text-muted">\${activity.subTitle || 'Konu Çalışması'} • \${timeAgo}</small>
+                    <h4 class="m-0" style="color:var(--text-main);">${activity.title}</h4>
+                    <small class="text-muted">${activity.subTitle || 'Konu Çalışması'} • ${timeAgo}</small>
                 </div>
-                <a href="/konu/\${encodeURIComponent(activity.id)}" class="btn btn-sm btn-primary">
+                <a href="/konu/${encodeURIComponent(activity.id)}" class="btn btn-sm btn-primary">
                     Devam Et ▶
                 </a>
             </div>
-        \`;
+        `;
         card.style.display = 'block';
     }
 }
@@ -213,7 +213,7 @@ function showSmartTip() {
 async function fetchExamStats(uid, options = {}) {
     if (!uid) return { total: 0, correct: 0, wrong: 0 };
 
-    const baseRef = collection(db, \`users/\${uid}/exam_results\`);
+    const baseRef = collection(db, `users/${uid}/exam_results`);
     const constraints = [];
     const range = options.range || null;
     const resetAtSeconds = typeof options.resetAtSeconds === 'number' ? options.resetAtSeconds : null;
@@ -296,7 +296,7 @@ async function loadExamAnnouncement() {
         }
 
         if (data.empty) {
-            ui.examPanelBody.innerHTML = \`
+            ui.examPanelBody.innerHTML = `
                 <div class="panel-item">
                     <div class="panel-item-content">
                         <div class="panel-item-icon gold">📌</div>
@@ -307,7 +307,7 @@ async function loadExamAnnouncement() {
                     </div>
                     <span class="panel-pill">Takipte</span>
                 </div>
-            \`;
+            `;
             setCountdownState(null);
             if (ui.examStatusBadge) ui.examStatusBadge.textContent = "İlan Yok";
             return;
@@ -317,13 +317,13 @@ async function loadExamAnnouncement() {
         const applyStart = parseDate(data.applicationStart);
         const applyEnd = parseDate(data.applicationEnd);
 
-        ui.examPanelBody.innerHTML = \`
+        ui.examPanelBody.innerHTML = `
             <div class="panel-item">
                 <div class="panel-item-content">
                     <div class="panel-item-icon gold">🗓️</div>
                     <div>
-                        <strong>\${data.title || 'Sınav İlanı'}</strong>
-                        <div class="panel-meta">\${data.description || 'Sınav detayları güncellendi.'}</div>
+                        <strong>${data.title || 'Sınav İlanı'}</strong>
+                        <div class="panel-meta">${data.description || 'Sınav detayları güncellendi.'}</div>
                     </div>
                 </div>
                 <span class="panel-pill">Aktif</span>
@@ -332,29 +332,29 @@ async function loadExamAnnouncement() {
                 <div class="panel-item-content">
                     <div class="panel-item-icon purple">📅</div>
                     <div>
-                        <strong>\${examDate ? formatDate(examDate, true) : 'Tarih açıklanacak'}</strong>
+                        <strong>${examDate ? formatDate(examDate, true) : 'Tarih açıklanacak'}</strong>
                         <div class="panel-meta">Sınav Tarihi</div>
                     </div>
                 </div>
-                <span class="panel-pill">\${data.location || 'Konum belirlenecek'}</span>
+                <span class="panel-pill">${data.location || 'Konum belirlenecek'}</span>
             </div>
             <div class="panel-item">
                 <div class="panel-item-content">
                     <div class="panel-item-icon teal">📝</div>
                     <div>
-                        <strong>\${formatRange(applyStart, applyEnd)}</strong>
+                        <strong>${formatRange(applyStart, applyEnd)}</strong>
                         <div class="panel-meta">Başvuru Takvimi</div>
                     </div>
                 </div>
-                \${data.applicationLink ? \`<a class="btn btn-sm btn-outline-primary" href="\${data.applicationLink}" target="_blank" rel="noopener">Başvur</a>\` : ''}
+                ${data.applicationLink ? `<a class="btn btn-sm btn-outline-primary" href="${data.applicationLink}" target="_blank" rel="noopener">Başvur</a>` : ''}
             </div>
-        \`;
+        `;
 
         if (ui.examStatusBadge) ui.examStatusBadge.textContent = "Aktif";
         setCountdownState(examDate);
     } catch (error) {
         console.error("Sınav ilanı yüklenemedi:", error);
-        ui.examPanelBody.innerHTML = \`<p class="text-muted">Sınav bilgileri yüklenemedi.</p>\`;
+        ui.examPanelBody.innerHTML = `<p class="text-muted">Sınav bilgileri yüklenemedi.</p>`;
         setCountdownState(null);
         if (ui.examStatusBadge) ui.examStatusBadge.textContent = "Kontrol Edin";
     }
@@ -426,7 +426,7 @@ async function loadAnnouncements() {
         }
 
         if (list.length === 0) {
-            ui.announcementList.innerHTML = \`
+            ui.announcementList.innerHTML = `
                 <div class="panel-item">
                     <div class="panel-item-content">
                         <div class="panel-item-icon purple">📭</div>
@@ -436,29 +436,29 @@ async function loadAnnouncements() {
                         </div>
                     </div>
                 </div>
-            \`;
+            `;
             return;
         }
 
         ui.announcementList.innerHTML = list.map(data => {
             const createdAt = parseDate(data.createdAt);
-            return \`
+            return `
                 <div class="panel-item">
                     <div class="panel-item-content">
                         <div class="panel-item-icon gold">📣</div>
                         <div>
-                            <strong>\${data.title || 'Duyuru'}</strong>
-                            <div class="panel-meta">\${data.body || ''}</div>
-                            <div class="panel-meta">\${createdAt ? formatDate(createdAt) : ''}</div>
+                            <strong>${data.title || 'Duyuru'}</strong>
+                            <div class="panel-meta">${data.body || ''}</div>
+                            <div class="panel-meta">${createdAt ? formatDate(createdAt) : ''}</div>
                         </div>
                     </div>
-                    <span class="panel-pill">\${data.level || 'Bilgi'}</span>
+                    <span class="panel-pill">${data.level || 'Bilgi'}</span>
                 </div>
-            \`;
+            `;
         }).join('');
     } catch (error) {
         console.error("Duyurular yüklenemedi:", error);
-        ui.announcementList.innerHTML = \`<p class="text-muted">Duyurular yüklenemedi.</p>\`;
+        ui.announcementList.innerHTML = `<p class="text-muted">Duyurular yüklenemedi.</p>`;
     }
 }
 
@@ -466,7 +466,7 @@ async function loadRecentActivities(uid) {
     if (!ui.recentActivityList) return;
 
     try {
-        const cacheKey = \`recent_activities_\${uid}\`;
+        const cacheKey = `recent_activities_${uid}`;
         let activities = CacheManager.get(cacheKey);
 
         if (!activities) {
@@ -475,7 +475,7 @@ async function loadRecentActivities(uid) {
         }
 
         if (!activities.length) {
-            ui.recentActivityList.innerHTML = \`
+            ui.recentActivityList.innerHTML = `
                 <div class="panel-item">
                     <div class="panel-item-content">
                         <div class="panel-item-icon teal">✨</div>
@@ -485,33 +485,33 @@ async function loadRecentActivities(uid) {
                         </div>
                     </div>
                 </div>
-            \`;
+            `;
             return;
         }
 
-        ui.recentActivityList.innerHTML = \`
+        ui.recentActivityList.innerHTML = `
             <div class="activity-list">
-                \${activities.map(activity => {
+                ${activities.map(activity => {
             const timeAgo = activity.timestamp && typeof activity.timestamp.toDate === 'function'
                 ? activity.timestamp.toDate().toLocaleDateString('tr-TR')
                 : (activity.timestamp ? new Date(activity.timestamp).toLocaleDateString('tr-TR') : '');
             
             const icon = activity.type === 'test' ? '📝' : '📖';
-            return \`
+            return `
                         <div class="activity-item">
-                            <div class="activity-icon">\${icon}</div>
+                            <div class="activity-icon">${icon}</div>
                             <div>
-                                <div class="activity-title">\${activity.title || 'Çalışma'}</div>
-                                <div class="panel-meta">\${activity.subTitle || 'Konu Çalışması'} • \${timeAgo}</div>
+                                <div class="activity-title">${activity.title || 'Çalışma'}</div>
+                                <div class="panel-meta">${activity.subTitle || 'Konu Çalışması'} • ${timeAgo}</div>
                             </div>
                         </div>
-                    \`;
+                    `;
         }).join('')}
             </div>
-        \`;
+        `;
     } catch (error) {
         console.error("Aktiviteler yüklenemedi:", error);
-        ui.recentActivityList.innerHTML = \`<p class="text-muted">Aktivite bilgisi yüklenemedi.</p>\`;
+        ui.recentActivityList.innerHTML = `<p class="text-muted">Aktivite bilgisi yüklenemedi.</p>`;
     }
 }
 
@@ -543,7 +543,7 @@ function formatDate(date, withTime = false) {
 function formatRange(start, end) {
     if (!start && !end) return 'Takvim açıklanacak';
     if (start && end) {
-        return \`\${formatDate(start)} - \${formatDate(end)}\`;
+        return `${formatDate(start)} - ${formatDate(end)}`;
     }
-    return start ? \`\${formatDate(start)} itibariyle\` : \`\${formatDate(end)} tarihine kadar\`;
+    return start ? `${formatDate(start)} itibariyle` : `${formatDate(end)} tarihine kadar`;
 }
