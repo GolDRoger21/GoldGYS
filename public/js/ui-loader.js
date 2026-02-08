@@ -16,6 +16,8 @@ window.addEventListener('unhandledrejection', (event) => {
 });
 
 const PAGE_CONFIG = {
+    '/': { id: 'home', title: 'Ana Sayfa', html: '/index.html' },
+    '/index.html': { id: 'home', title: 'Ana Sayfa', html: '/index.html' },
     '/dashboard': { id: 'dashboard', title: 'Genel Bakış', script: '/js/dashboard.js', html: '/pages/dashboard.html' },
     '/pages/dashboard.html': { id: 'dashboard', title: 'Genel Bakış', script: '/js/dashboard.js', html: '/pages/dashboard.html' },
     '/admin/index.html': { id: 'admin', title: 'Yönetim Paneli', script: '/js/admin-page.js', html: '/admin/index.html' },
@@ -59,6 +61,7 @@ const PUBLIC_ROUTES = [
     '/kullanim-sartlari', '/pages/kullanim-sartlari.html'
 ];
 const PUBLIC_LAYOUT_ROUTES = [
+    '/', '/index.html',
     '/yardim', '/pages/yardim.html', '/gizlilik', '/pages/gizlilik.html',
     '/kullanim-sartlari', '/pages/kullanim-sartlari.html',
     '/maintenance', '/maintenance.html', '/404', '/404.html'
