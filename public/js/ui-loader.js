@@ -29,24 +29,51 @@ const PAGE_CONFIG = {
     '/admin/': { id: 'admin', title: 'Yönetim Paneli', script: '/js/admin-page.js', html: '/admin/index.html' }
 };
 
+const ROUTE_ALIASES = {
+    '/yardim': { html: '/pages/yardim.html', layout: 'public', title: 'Yardım Merkezi' },
+    '/gizlilik': { html: '/pages/gizlilik.html', layout: 'public', title: 'Gizlilik Politikası' },
+    '/kullanim-sartlari': { html: '/pages/kullanim-sartlari.html', layout: 'public', title: 'Kullanım Şartları' },
+    '/yasal': { html: '/pages/yasal.html', layout: 'app', title: 'Yasal Bilgilendirme' },
+    '/pending-approval': { html: '/pages/pending-approval.html', layout: 'app', title: 'Onay Bekleniyor' },
+    '/report': { html: '/pages/report.html', layout: 'app', title: 'Rapor' },
+    '/test': { html: '/pages/test.html', layout: 'app', title: 'Test' },
+    '/login': { html: '/login.html', layout: 'public', title: 'Giriş' },
+    '/maintenance': { html: '/maintenance.html', layout: 'public', title: 'Bakım' },
+    '/404': { html: '/404.html', layout: 'public', title: 'Sayfa Bulunamadı' }
+};
+
 const PUBLIC_ROUTES = [
     '/',
+    '/login',
     '/login.html',
+    '/maintenance',
+    '/maintenance.html',
+    '/404',
     '/404.html',
+    '/yardim',
     '/pages/yardim.html',
     '/pages/yardim',
+    '/gizlilik',
     '/pages/gizlilik.html',
     '/pages/gizlilik',
+    '/kullanim-sartlari',
     '/pages/kullanim-sartlari.html',
     '/pages/kullanim-sartlari'
 ];
 const PUBLIC_LAYOUT_ROUTES = [
+    '/yardim',
     '/pages/yardim.html',
     '/pages/yardim',
+    '/gizlilik',
     '/pages/gizlilik.html',
     '/pages/gizlilik',
+    '/kullanim-sartlari',
     '/pages/kullanim-sartlari.html',
-    '/pages/kullanim-sartlari'
+    '/pages/kullanim-sartlari',
+    '/maintenance',
+    '/maintenance.html',
+    '/404',
+    '/404.html'
 ];
 
 let layoutInitPromise = null;
@@ -87,7 +114,18 @@ function getConfigForPath(path) {
 
 function resolveContentUrl(path) {
     const { config } = getConfigForPath(path);
-    return config?.html || path;
+    if (config?.html) return config.html;
+
+    const normalizedPath = normalizePath(path);
+    const alias = ROUTE_ALIASES[normalizedPath];
+    if (alias?.html) return alias.html;
+
+    if (normalizedPath.startsWith('/admin')) return '/admin/index.html';
+    if (normalizedPath === '/login') return '/login.html';
+    if (normalizedPath === '/maintenance') return '/maintenance.html';
+    if (normalizedPath === '/404') return '/404.html';
+
+    return path;
 }
 
 export async function initLayout() {
@@ -98,7 +136,8 @@ export async function initLayout() {
         const normalizedPath = normalizePath(path);
         const isAdminPage = normalizedPath.includes('/admin');
         const { config } = getConfigForPath(path);
-        const pageConfig = config || { id: 'unknown', title: 'Gold GYS' };
+        const alias = ROUTE_ALIASES[normalizedPath];
+        const pageConfig = config || alias || { id: 'unknown', title: 'Gold GYS' };
         const usePublicLayout = PUBLIC_LAYOUT_ROUTES.includes(normalizedPath);
         currentLayoutType = usePublicLayout ? 'public' : (isAdminPage ? 'admin' : 'app');
 
@@ -1044,6 +1083,8 @@ async function loadPageScript(path, { navId } = {}) {
 
 function getLayoutType(path) {
     const cleanPath = normalizePath(path);
+    const alias = ROUTE_ALIASES[cleanPath];
+    if (alias?.layout) return alias.layout;
     if (PUBLIC_LAYOUT_ROUTES.includes(cleanPath)) return 'public';
     if (cleanPath.startsWith('/admin')) return 'admin';
     return 'app';
