@@ -25,20 +25,35 @@ export const firebaseConfig = {
 export const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 
 // App Check'i Başlat
+let appCheckInitialized = false;
 if (typeof window !== "undefined") {
-  // Sadece localhost'ta debug token kullan
-  if (location.hostname === "localhost") {
-    self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
-  }
+  try {
+    // Sadece localhost'ta debug token kullan
+    if (window.location?.hostname === "localhost") {
+      self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
+    }
 
-  initializeAppCheck(app, {
-    provider: new ReCaptchaEnterpriseProvider("6LeYSV0sAAAAAFywdWhzKf9Vw8_gtMa0JeMPjgD8"),
-    isTokenAutoRefreshEnabled: true,
-  });
+    initializeAppCheck(app, {
+      provider: new ReCaptchaEnterpriseProvider("6LeYSV0sAAAAAFywdWhzKf9Vw8_gtMa0JeMPjgD8"),
+      isTokenAutoRefreshEnabled: true,
+    });
+    appCheckInitialized = true;
+  } catch (error) {
+    console.warn("App Check başlatılamadı, uygulama App Check olmadan devam ediyor.", error);
+  }
 }
 
 // Servisleri Dışa Aktar (Diğer dosyalar bunları kullanacak)
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const functions = getFunctions(app);
-export const analytics = getAnalytics(app);
+let analyticsInstance = null;
+if (typeof window !== "undefined") {
+  try {
+    analyticsInstance = getAnalytics(app);
+  } catch (error) {
+    console.warn("Analytics başlatılamadı, uygulama Analytics olmadan devam ediyor.", error);
+  }
+}
+
+export { analyticsInstance as analytics, appCheckInitialized };
