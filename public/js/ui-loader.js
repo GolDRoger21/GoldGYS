@@ -1,8 +1,25 @@
 import { auth } from './firebase-config.js';
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getUserProfile } from './user-profile.js';
-import { showConfirm } from './notifications.js';
+import { showConfirm, showToast } from './notifications.js';
 import { MaintenanceGuard } from './modules/maintenance-guard.js';
+
+// --- GLOBAL ERROR GUARDIAN ---
+// Beklenmeyen SyntaxError veya Promise redlerini yakala
+window.addEventListener('error', (event) => {
+    // Script error'ları genelde detay vermez ama yakalamak iyidir
+    console.error("Global Error Caught:", event.error || event.message);
+    // Eğer kritik bir yükleme hatasıysa kullanıcıya bildirebiliriz
+    if (event.message && (event.message.includes('SyntaxError') || event.message.includes('Unexpected token'))) {
+        // UI Loader bu durumu yönetmeye çalışacak ama en azından logluyoruz
+    }
+});
+
+window.addEventListener('unhandledrejection', (event) => {
+    console.warn("Unhandled Promise Rejection:", event.reason);
+    // AppCheck timeout gibi hataları sessizce yutabilir veya loglayabiliriz
+    // event.preventDefault(); // Konsola kırmızılık basmasını engeller (opsiyonel)
+});
 
 const PAGE_CONFIG = {
     '/dashboard': { id: 'dashboard', title: 'Genel Bakış', script: '/js/dashboard.js', html: '/pages/dashboard.html' },
@@ -220,8 +237,24 @@ export async function initLayout() {
             return true;
 
         } catch (error) {
-            console.error('Arayüz Yükleme Hatası:', error);
-            document.body.style.visibility = 'visible'; // Hata olsa bile göster
+            console.error('Arayüz Yükleme Kritik Hatası:', error);
+            document.body.style.visibility = 'visible';
+
+            // Fallback UI göster
+            const mainContent = document.getElementById('main-content') || document.body;
+            mainContent.innerHTML = `
+                <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; text-align:center; padding:20px;">
+                    <h2 style="color:var(--color-danger, #ef4444); margin-bottom:10px;">Bir şeyler ters gitti</h2>
+                    <p style="color:var(--text-muted, #94a3b8); margin-bottom:20px;">Sayfa yüklenirken beklenmeyen bir hata oluştu.</p>
+                    <button onclick="window.location.reload()" style="padding:10px 20px; background:var(--color-primary, #D4AF37); border:none; border-radius:6px; color:#000; font-weight:bold; cursor:pointer;">
+                        Sayfayı Yenile
+                    </button>
+                    <details style="margin-top:20px; color:var(--text-muted, #64748b); font-size:0.8rem; max-width:600px; text-align:left;">
+                        <summary>Hata Detayı</summary>
+                        <pre style="margin-top:10px; background:rgba(0,0,0,0.1); padding:10px; border-radius:4px; overflow:auto;">${error.message}\n${error.stack}</pre>
+                    </details>
+                </div>
+            `;
             throw error;
         }
     })();
@@ -229,6 +262,93 @@ export async function initLayout() {
     return layoutInitPromise;
 }
 
+// ... (loadRequiredHTML and loadHTML functions remain unchanged)
+
+// Robust Script Loader with Retry/Fallback
+async function loadPageScript(path, { navId }) {
+    if (navId !== currentNavigationId) return;
+
+    const { config } = getConfigForPath(path);
+    if (!config || !config.script) return;
+
+    // Önceki scriptin temizliğini yap
+    await executeCleanup();
+
+    const scriptUrl = withScriptVersion(config.script);
+
+    // Daha önce yüklendiyse (module olduğu için tekrar execute etmez, ama init'i çağırabiliriz)
+    // ES Modülleri tekrar import edilince execute etmez, cache kullanır.
+    // Bu yüzden dinamik import her zaman module object döner.
+
+    try {
+        console.log(`Script yükleniyor: ${scriptUrl}`);
+
+        // Timeoutlu import denemesi wrapper
+        const importPromise = import(scriptUrl);
+        const timeoutPromise = new Promise((_, reject) =>
+            setTimeout(() => reject(new Error("Script yüklemesi zaman aşımına uğradı (15sn).")), 15000)
+        );
+
+        const module = await Promise.race([importPromise, timeoutPromise]);
+
+        if (navId !== currentNavigationId) return;
+
+        if (module.init) {
+            // Init fonksiyonunu güvenli çağır
+            try {
+                await module.init();
+            } catch (initError) {
+                console.error(`Script init hatası (${config.script}):`, initError);
+                showToast("Sayfa başlatılırken bir hata oluştu.", "error");
+                renderScriptError(initError);
+            }
+        }
+
+        if (module.cleanup) {
+            currentCleanupFunction = module.cleanup;
+        }
+
+    } catch (e) {
+        console.error(`Script yükleme hatası (${config.script}):`, e);
+        if (navId === currentNavigationId) {
+            renderScriptError(e);
+        }
+    }
+}
+
+function renderScriptError(error) {
+    const mainContent = document.getElementById('main-content');
+    if (!mainContent) return;
+
+    mainContent.innerHTML = `
+        <div class="error-boundary-container" style="text-align:center; padding:40px;">
+            <div style="font-size:3rem; margin-bottom:20px;">⚠️</div>
+            <h3>Bu modül yüklenemedi</h3>
+            <p class="text-muted">Bağlantı sorunu veya teknik bir aksaklık oluştu.</p>
+            <div style="margin-top:20px;">
+                <button onclick="window.location.reload()" class="btn btn-primary">Sayfayı Yenile</button>
+            </div>
+             <details style="margin-top:20px; color:var(--text-muted); font-size:0.75rem; text-align:left; display:inline-block; max-width:100%;">
+                <summary>Teknik Detay</summary>
+                <div style="background:rgba(255,0,0,0.05); padding:10px; border-radius:4px; margin-top:5px;">
+                    ${error.message || error}
+                </div>
+            </details>
+        </div>
+    `;
+}
+
+async function executeCleanup() {
+    if (typeof currentCleanupFunction === 'function') {
+        try {
+            // Cleanup senkron veya asenkron olabilir, await ile garantiye al
+            await currentCleanupFunction();
+        } catch (e) {
+            console.warn("Cleanup sırasında hata (yoksayılıyor):", e);
+        }
+        currentCleanupFunction = null;
+    }
+}
 async function loadRequiredHTML(isAdminPage, usePublicLayout = false) {
     // Admin ve User için aynı header yapısını kullanıyoruz artık (tutarlılık için)
     // Ancak içerik farklı olabilir diye dosya isimlerini koruyoruz.
@@ -1043,79 +1163,7 @@ async function fetchPageHTML(url, { signal } = {}) {
     }
 }
 
-async function loadPageScript(path, { navId } = {}) {
-    if (navId && navId !== currentNavigationId) return;
 
-    // 1. Config'den script yolunu bul
-    let scriptPath = null;
-    const { config, normalizedPath } = getConfigForPath(path);
-
-    // Admin catch-all rule
-    if (!config && normalizedPath.startsWith('/admin')) {
-        scriptPath = '/js/admin-page.js';
-    } else if (config) {
-        scriptPath = config.script;
-    }
-
-    // Script yoksa çık
-    if (!scriptPath) return;
-
-    try {
-        const scriptUrl = withScriptVersion(scriptPath);
-        console.log(`Loading script: ${scriptUrl}`);
-        const module = await import(scriptUrl);
-
-        // Check again after dynamic import
-        if (navId && navId !== currentNavigationId) {
-            console.log('Script init aborted due to navigation change');
-            return;
-        }
-
-        // C. Yeni Sayfa Başlatma (Init)
-        if (module.init) {
-            await module.init();
-        } else if (module.default && typeof module.default.init === 'function') {
-            await module.default.init();
-        }
-
-        // D. Cleanup Fonksiyonunu Kaydet
-        // Önemli: Cleanup register etmek için yeni sayfaya geçişi bekliyoruz
-        if (navId === currentNavigationId) {
-            if (module.cleanup) {
-                currentCleanupFunction = module.cleanup;
-            } else if (module.default && typeof module.default.cleanup === 'function') {
-                currentCleanupFunction = module.default.cleanup;
-            }
-        }
-
-        loadedScripts.add(scriptUrl);
-
-    } catch (error) {
-        if (navId && navId !== currentNavigationId) return;
-        console.error(`Script yükleme/başlatma hatası (${scriptPath}):`, error);
-
-        // Kullanıcıya hata göster
-        const mainContent = document.getElementById('main-content');
-        if (mainContent) {
-            const errorDiv = document.createElement('div');
-            errorDiv.className = 'alert alert-danger m-4';
-            errorDiv.role = 'alert';
-            errorDiv.innerHTML = `
-                <h4 class="alert-heading">Sayfa Yüklenemedi</h4>
-                <p>Sayfa bileşenleri yüklenirken bir sorun oluştu.</p>
-                <hr>
-                <p class="mb-0 small text-muted">${error.message}</p>
-                <div class="mt-3">
-                    <button onclick="window.location.reload()" class="btn btn-sm btn-outline-danger">Sayfayı Yenile</button>
-                    <a href="/dashboard" class="btn btn-sm btn-outline-secondary ms-2">Ana Sayfaya Dön</a>
-                </div>
-            `;
-            // İçeriği silip hatayı gösterelim ki bozuk UI kalmasın
-            mainContent.innerHTML = '';
-            mainContent.appendChild(errorDiv);
-        }
-    }
-}
 
 function getLayoutType(path) {
     const cleanPath = normalizePath(path);
