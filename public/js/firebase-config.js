@@ -24,49 +24,21 @@ export const firebaseConfig = {
 // Firebase'i Başlat (önceden başlatıldıysa mevcut uygulamayı kullan)
 export const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 
-// App Check'i Başlat (Fail-Open Stratejisi)
-let appCheckInitialized = false;
-
+// App Check'i Başlat
 if (typeof window !== "undefined") {
-  // App Check başlatma işlemini main thread'i bloklamayacak şekilde yapıyoruz
-  // Kritik hata durumunda catch ile yakalayıp uygulamanın çalışmaya devam etmesini sağlıyoruz
-  const initAppCheckSafe = async () => {
-    try {
-      // Sadece localhost'ta debug token kullan
-      if (window.location?.hostname === "localhost") {
-        self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
-      }
+  // Sadece localhost'ta debug token kullan
+  if (location.hostname === "localhost") {
+    self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
+  }
 
-      // AppCheck'i başlat
-      const appCheck = initializeAppCheck(app, {
-        provider: new ReCaptchaEnterpriseProvider("6LeYSV0sAAAAAFywdWhzKf9Vw8_gtMa0JeMPjgD8"),
-        isTokenAutoRefreshEnabled: true,
-      });
-
-      appCheckInitialized = true;
-      console.log("App Check başarıyla başlatıldı.");
-    } catch (error) {
-      // Risk B: AppCheck init "fail open" davranmalı. AppCheck fails, site works.
-      console.warn("⚠️ App Check başlatılamadı (Fail-Open Devrede):", error);
-      // Hata olsa bile appCheckInitialized false kalarak uygulama devam eder.
-    }
-  };
-
-  // Beklemeden başlat (Fire and forget)
-  initAppCheckSafe();
+  initializeAppCheck(app, {
+    provider: new ReCaptchaEnterpriseProvider("6LeYSV0sAAAAAFywdWhzKf9Vw8_gtMa0JeMPjgD8"),
+    isTokenAutoRefreshEnabled: true,
+  });
 }
 
 // Servisleri Dışa Aktar (Diğer dosyalar bunları kullanacak)
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const functions = getFunctions(app);
-let analyticsInstance = null;
-if (typeof window !== "undefined") {
-  try {
-    analyticsInstance = getAnalytics(app);
-  } catch (error) {
-    console.warn("Analytics başlatılamadı, uygulama Analytics olmadan devam ediyor.", error);
-  }
-}
-
-export { analyticsInstance as analytics, appCheckInitialized };
+export const analytics = getAnalytics(app);

@@ -2,7 +2,6 @@
 <html lang="tr">
 
 <head>
-    <script src="/js/theme-init.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kullanım Şartları | GOLD GYS</title>
@@ -13,7 +12,7 @@
             padding: 120px 2rem 5rem;
             max-width: 800px;
             margin: 0 auto;
-            color: var(--landing-text-strong);
+            color: var(--text-main);
         }
 
         .policy-content h1 {
@@ -23,38 +22,28 @@
         }
 
         .policy-content h2 {
-            color: var(--landing-text-strong);
+            color: var(--text-light);
             margin-top: 2rem;
             margin-bottom: 1rem;
         }
 
         .policy-content p {
             line-height: 1.6;
-            color: var(--landing-text-muted);
+            color: var(--text-muted);
             margin-bottom: 1rem;
-        }
-
-        @media (max-width: 600px) {
-            .policy-content {
-                padding: 110px 1.25rem 3.5rem;
-            }
-
-            .policy-content h1 {
-                font-size: 2rem;
-            }
-
-            .policy-content h2 {
-                font-size: 1.25rem;
-            }
         }
     </style>
 </head>
 
 <body>
-    <script type="module">
-        import { initLayout } from '../js/ui-loader.js';
-        document.addEventListener('DOMContentLoaded', () => initLayout());
-    </script>
+    <nav class="landing-nav">
+        <div class="header-inner">
+            <a href="/" class="brand-logo">GOLD <span>GYS</span></a>
+            <div class="nav-links">
+                <a href="/" class="nav-link">Ana Sayfa</a>
+            </div>
+        </div>
+    </nav>
 
     <main class="policy-content">
         <h1>Kullanım Şartları</h1>

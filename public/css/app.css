@@ -3,23 +3,6 @@
 @import url("/css/typography.css");
 
 /* --- ANA TEMA DEĞİŞKENLERİ --- */
-/* Fallback/Additional Variables if not in tokens.css */
-:root {
-    --bg-info-subtle: rgba(59, 130, 246, 0.1);
-    --border-info-subtle: rgba(59, 130, 246, 0.2);
-    --bg-surface: #ffffff;
-    --bg-hover: #f8fafc;
-    --text-main: #0f172a;
-    --color-primary: #d4af37;
-}
-
-[data-theme="dark"] {
-    --bg-info-subtle: rgba(59, 130, 246, 0.15);
-    --border-info-subtle: rgba(59, 130, 246, 0.3);
-    --bg-surface: #1e293b;
-    --bg-hover: #334155;
-    --text-main: #f1f5f9;
-}
 /* --- VARIABLES NOW IN TOKENS.CSS --- */
 
 /* --- HAREKETLİ ALTIN ANİMASYONU --- */
@@ -143,15 +126,13 @@
 }
 
 .btn-primary {
-    background: linear-gradient(110deg, var(--gold-light) 0%, var(--gold-main) 55%, var(--gold-dark) 100%);
-    color: var(--text-on-gold);
-    border: 1px solid rgba(212, 175, 55, 0.7);
-    box-shadow: var(--shadow-gold);
+    background-color: var(--gold-main);
+    color: var(--navy-deep);
 }
 
 .btn-primary:hover {
+    background-color: #c5a02e;
     transform: translateY(-1px);
-    box-shadow: 0 14px 30px rgba(212, 175, 55, 0.35);
 }
 
 .btn-outline {
@@ -188,12 +169,12 @@
     .nav-links {
         position: fixed;
         top: 70px;
-        left: 0;
+        right: 0;
         width: 100%;
         background-color: var(--navy-light);
         flex-direction: column;
-        align-items: flex-start;
-        padding: 2rem 2rem 2.5rem;
+        align-items: center;
+        padding: 2rem;
         gap: 1.5rem;
         border-bottom: 1px solid var(--navy-border);
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
@@ -203,11 +184,6 @@
         visibility: hidden;
         transform: translateY(-20px);
         transition: all 0.3s ease-in-out;
-    }
-
-    .nav-links a {
-        width: 100%;
-        text-align: left;
     }
 
     .nav-links.open {

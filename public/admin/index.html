@@ -2,7 +2,6 @@
 <html lang="tr">
 
 <head>
-    <script src="/js/theme-init.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Yönetim Paneli | GOLD GYS</title>
@@ -37,7 +36,7 @@
 <body class="admin-body">
 
     <div id="pageLoader"
-        style="position:fixed; inset:0; background:var(--bg-body); color:var(--color-primary); z-index:99999; display:flex; justify-content:center; align-items:center;">
+        style="position:fixed; inset:0; background:#fff; z-index:99999; display:flex; justify-content:center; align-items:center;">
         <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
             <span class="visually-hidden">Yükleniyor...</span>
         </div>
@@ -48,8 +47,7 @@
         document.addEventListener('DOMContentLoaded', async () => {
             await initLayout(); // Header ve Sidebar'ı yükler
             document.body.classList.add('loaded'); // Sayfayı göster
-            const loader = document.getElementById('pageLoader');
-            if (loader) loader.style.display = 'none'; // Loader'ı gizle
+            document.getElementById('pageLoader').style.display = 'none'; // Loader'ı gizle
         });
     </script>
 
@@ -93,8 +91,7 @@
                                         <h3>🧑‍💻 Son Üyeler</h3>
                                         <p class="text-muted">Aramıza katılan en yeni kullanıcılar.</p>
                                     </div>
-                                    <button class="btn btn-secondary btn-sm"
-                                        onclick="window.location.hash='users'">Tümü</button>
+                                    <button class="btn btn-secondary btn-sm" onclick="window.location.hash='users'">Tümü</button>
                                 </div>
                                 <div class="table-responsive">
                                     <table class="admin-table compact-table">
@@ -131,8 +128,7 @@
                                         <h3>🚩 Son Bildirimler</h3>
                                         <p class="text-muted">Son raporlanan içerikler ve durumları.</p>
                                     </div>
-                                    <button class="btn btn-secondary btn-sm"
-                                        onclick="window.location.hash='reports'">Tümünü gör</button>
+                                    <button class="btn btn-secondary btn-sm" onclick="window.location.hash='reports'">Tümünü gör</button>
                                 </div>
                                 <div class="table-responsive">
                                     <table class="admin-table compact-table">
@@ -152,10 +148,8 @@
                                 <h3>🟢 Sistem Özeti</h3>
                                 <ul class="status-list">
                                     <li><span class="status-dot status-success"></span>Sunucu ve hizmetler aktif</li>
-                                    <li><span class="status-dot status-info"></span>Yedekleme son 6 saat içinde alındı
-                                    </li>
-                                    <li><span class="status-dot status-warning"></span>Bildirim kuyruğunu kontrol edin
-                                    </li>
+                                    <li><span class="status-dot status-info"></span>Yedekleme son 6 saat içinde alındı</li>
+                                    <li><span class="status-dot status-warning"></span>Bildirim kuyruğunu kontrol edin</li>
                                 </ul>
                             </div>
                         </div>
@@ -213,13 +207,6 @@
                     <div class="card p-4">JSON/Excel yükleme alanı...</div>
                 </section>
 
-                <section id="section-maintenance" class="admin-section admin-only" style="display:none;">
-                    <div class="text-center p-5">
-                        <div class="spinner-border text-primary" role="status"></div>
-                        <p class="mt-2 text-muted">Bakım Modülü Yükleniyor...</p>
-                    </div>
-                </section>
-
                 <section id="section-reports" class="admin-section" style="display:none;">
                     <div class="section-header">
                         <h2>🚩 Hata Bildirimleri</h2>
@@ -233,11 +220,9 @@
                         <p class="text-muted">Silinen içerikleri filtreleyin, geri alın veya kalıcı olarak silin.</p>
                     </div>
                     <div class="card p-0">
-                        <div
-                            class="p-3 border-bottom d-flex flex-wrap gap-2 align-items-center justify-content-between">
+                        <div class="p-3 border-bottom d-flex flex-wrap gap-2 align-items-center justify-content-between">
                             <div class="d-flex flex-wrap gap-2 align-items-center">
-                                <input type="text" id="trashCenterSearch" class="form-control form-control-sm"
-                                    placeholder="Başlıkta veya konu adında ara...">
+                                <input type="text" id="trashCenterSearch" class="form-control form-control-sm" placeholder="Başlıkta veya konu adında ara...">
                                 <select id="trashCenterTypeFilter" class="form-select form-select-sm">
                                     <option value="all">Tümü</option>
                                     <option value="topic">Konular</option>
@@ -247,12 +232,9 @@
                                 </select>
                             </div>
                             <div class="d-flex flex-wrap gap-2">
-                                <button class="btn btn-outline-secondary btn-sm"
-                                    id="trashCenterRefreshBtn">Yenile</button>
-                                <button class="btn btn-outline-success btn-sm" id="trashCenterRestoreSelected">Seçileni
-                                    Geri Al</button>
-                                <button class="btn btn-danger btn-sm" id="trashCenterPurgeSelected">Seçileni
-                                    Sil</button>
+                                <button class="btn btn-outline-secondary btn-sm" id="trashCenterRefreshBtn">Yenile</button>
+                                <button class="btn btn-outline-success btn-sm" id="trashCenterRestoreSelected">Seçileni Geri Al</button>
+                                <button class="btn btn-danger btn-sm" id="trashCenterPurgeSelected">Seçileni Sil</button>
                             </div>
                         </div>
                         <div class="table-responsive">
@@ -276,7 +258,7 @@
         </main>
     </div>
 
-
+    <script type="module" src="../js/admin-page.js"></script>
 
 </body>
 

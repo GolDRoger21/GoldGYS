@@ -86,64 +86,42 @@ body.sidebar-collapsed .app-layout {
     background-color: var(--bg-hover);
 }
 
-.theme-toggle {
-    background: transparent;
-    border: 1px solid var(--border-color);
-    color: var(--text-muted);
-    cursor: pointer;
-    padding: 8px;
-    border-radius: 999px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    transition: all var(--transition-fast);
-}
-
-.theme-toggle:hover {
-    border-color: var(--gold-main);
-    color: var(--gold-main);
-    background: rgba(212, 175, 55, 0.12);
-}
-
-.theme-toggle svg {
-    width: 18px;
-    height: 18px;
-}
-
 .brand-logo {
-    font-family: var(--font-family-brand);
-    font-size: 1.2rem;
-    font-weight: 600;
+    font-family: var(--font-family-serif);
+    font-size: 1.4rem;
+    font-weight: 700;
     color: var(--text-logo);
     text-decoration: none;
-    display: inline-flex;
+    display: flex;
     align-items: center;
-    gap: 10px;
-    letter-spacing: 0.12em;
+    gap: 6px;
+    letter-spacing: 0.04em;
     position: relative;
-    text-transform: uppercase;
+}
+
+.brand-logo span {
+    color: var(--logo-khaki);
+    text-shadow: 0 0 18px rgba(194, 97, 68, 0.25);
 }
 
 .brand-logo::before {
-    content: none;
-}
-
-.brand-mark {
-    width: 34px;
-    height: 34px;
+    content: '';
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: conic-gradient(from 210deg, var(--logo-gold), var(--logo-khaki), var(--logo-highlight), var(--logo-gold));
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    box-shadow: 0 6px 14px rgba(212, 175, 55, 0.25);
     flex-shrink: 0;
-    filter: drop-shadow(0 6px 14px rgba(212, 175, 55, 0.25));
 }
 
-.brand-text {
-    color: var(--text-logo);
-}
-
-.brand-gold {
-    background: linear-gradient(110deg, var(--gold-light) 0%, var(--gold-main) 55%, var(--gold-dark) 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
+@supports (-webkit-background-clip: text) or (background-clip: text) {
+    .brand-logo {
+        background: linear-gradient(110deg, var(--logo-gold), var(--logo-highlight) 45%, var(--logo-khaki) 85%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+    }
 }
 
 /* --- SIDEBAR --- */
@@ -167,8 +145,7 @@ body.sidebar-collapsed .app-sidebar {
     width: var(--sidebar-width-collapsed);
 }
 
-/* Shared Sidebar Item Styles (Admin & Dashboard) */
-.app-sidebar .nav-item {
+body:not(.admin-body) .app-sidebar .nav-item {
     display: flex;
     align-items: center;
     padding: 10px 16px;
@@ -181,93 +158,81 @@ body.sidebar-collapsed .app-sidebar {
     border-radius: var(--radius-md);
     margin: 0 4px 10px;
     border: 1px solid transparent;
-    background: transparent;
-    /* Default transparent unless active/hover */
+    background: var(--bg-surface);
+    box-shadow: var(--shadow-sm);
     transition: all var(--transition-fast);
+    white-space: nowrap;
+    position: relative;
 
-    /* Flex & Overflow for smooth collapsing */
+    /* Modern Flex Layout (Matches Admin) */
     gap: 12px;
     flex-wrap: nowrap;
     min-width: 0;
     overflow: hidden;
-    white-space: nowrap;
+    text-overflow: ellipsis;
 }
 
-/* Dashboard specific override for background if needed, 
-   but Admin uses transparent by default too until hovered. 
-   Let's keep the dashboard card-like look if preferred, but simpler is better.
-   The original had background: var(--bg-surface) and shadow. 
-   Let's restore that for non-admin if desired, or unify. 
-   For now, we'll keep the unified "clean" look. */
-
-.app-sidebar .nav-item:hover {
+body:not(.admin-body) .app-sidebar .nav-item:hover {
     background-color: var(--bg-hover);
     color: var(--color-primary);
     border-color: var(--border-color);
+    box-shadow: var(--shadow-md);
 }
 
-.app-sidebar .nav-item.active {
+body:not(.admin-body) .app-sidebar .nav-item.active {
     background-color: rgba(212, 175, 55, 0.15);
     color: var(--color-primary);
     font-weight: 600;
     border-color: var(--color-primary);
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
 }
 
-.app-sidebar .nav-item .icon {
+body:not(.admin-body) .app-sidebar .nav-item .icon {
     font-size: 1.25rem;
+    /* min-width: 24px; */
+    /* margin-right: 24px;  <- REMOVED (Converted to gap) */
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    width: 24px;
-    /* Fixed width for alignment */
 }
 
-.app-sidebar .nav-item span:not(.icon) {
+body:not(.admin-body) .app-sidebar .nav-item span:not(.icon) {
     flex: 1 1 auto;
     min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    opacity: 1;
-    transition: opacity 0.2s ease, transform 0.2s ease;
 }
 
 /* Collapsed Sidebar Adjustments */
-body.sidebar-collapsed .app-sidebar .nav-item {
+body.sidebar-collapsed:not(.admin-body) .app-sidebar .nav-item {
     padding: 0;
     justify-content: center;
     border-radius: 10px;
     margin: 6px 8px;
+    box-shadow: var(--shadow-sm);
 }
 
-body.sidebar-collapsed .app-sidebar .nav-item .icon {
+body.sidebar-collapsed:not(.admin-body) .app-sidebar .nav-item .icon {
     margin-right: 0;
 }
 
-/* Hide text gracefully when collapsed */
-body.sidebar-collapsed .app-sidebar .nav-item span:not(.icon) {
-    opacity: 0;
-    width: 0;
-    margin: 0;
-    overflow: hidden;
-}
-
-body.sidebar-collapsed .app-sidebar .nav-label {
+body.sidebar-collapsed:not(.admin-body) .app-sidebar .nav-item span:not(.icon) {
     display: none;
 }
 
-.app-sidebar .nav-label {
+body.sidebar-collapsed:not(.admin-body) .app-sidebar .nav-label {
+    display: none;
+}
+
+body:not(.admin-body) .app-sidebar .nav-label {
     padding: 24px 24px 8px;
     font-size: 0.75rem;
     font-weight: 700;
     color: var(--text-muted);
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
 }
 
 /* Sidebar Backdrop (Mobile Only) */
@@ -629,8 +594,7 @@ body.sidebar-collapsed .app-sidebar .nav-label {
     display: flex;
     flex-direction: column;
     gap: 12px;
-    z-index: 100200;
-    /* Increased to be above Studio Pro modal (100005) */
+    z-index: 1100;
     pointer-events: none;
 }
 
@@ -725,8 +689,7 @@ body.sidebar-collapsed .app-sidebar .nav-label {
     opacity: 0;
     pointer-events: none;
     transition: opacity var(--transition-fast), transform var(--transition-fast);
-    z-index: 100210;
-    /* Increased to be above Studio Pro modal */
+    z-index: 1200;
 }
 
 .alert-icon {
@@ -797,8 +760,7 @@ body.sidebar-collapsed .app-sidebar .nav-label {
     padding: 24px;
     background: var(--bg-backdrop);
     backdrop-filter: blur(10px);
-    z-index: 100210;
-    /* Increased to be above Studio Pro modal */
+    z-index: 1200;
 }
 
 .confirm-dialog {
@@ -900,8 +862,7 @@ body.sidebar-collapsed .app-sidebar .nav-label {
     }
 
     .brand-logo {
-        font-size: 1rem;
-        letter-spacing: 0.08em;
+        font-size: 1.1rem;
     }
 
     .google-dropdown {

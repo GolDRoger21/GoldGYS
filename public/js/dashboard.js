@@ -1,65 +1,55 @@
+// public/js/dashboard.js
 
-
+import { initLayout } from './ui-loader.js';
 import { auth, db } from "./firebase-config.js";
 import { getUserProfile, getLastActivity, getRecentActivities } from "./user-profile.js";
 import { collection, doc, getDoc, getDocs, limit, orderBy, query, where, Timestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { CacheManager } from "./modules/cache-manager.js";
 
-// UI Elementleri (Init içinde sıfırlanacak)
-let ui = {};
+// UI Elementleri
+const ui = {
+    loader: document.getElementById("pageLoader"),
+    loaderText: document.getElementById("loaderText"),
+    welcomeMsg: document.getElementById("welcomeMsg"),
+    mainWrapper: document.getElementById("mainWrapper"),
+    countdown: document.getElementById("countdownDays"),
+    countdownLabel: document.getElementById("countdownLabel"),
+    examPanelBody: document.getElementById("examPanelBody"),
+    examStatusBadge: document.getElementById("examStatusBadge"),
+    announcementList: document.getElementById("announcementList"),
+    recentActivityList: document.getElementById("recentActivityList"),
+    successRateBar: document.getElementById("successRateBar"),
+    successRateText: document.getElementById("successRateText"),
+    solvedTodayCount: document.getElementById("solvedTodayCount"),
+    solvedTotalCount: document.getElementById("solvedTotalCount"),
+    wrongTodayCount: document.getElementById("wrongTodayCount")
+};
+
 let examCountdownInterval = null;
 
-
-function refreshUI() {
-    ui.loader = document.getElementById("pageLoader");
-    ui.loaderText = document.getElementById("loaderText");
-    ui.welcomeMsg = document.getElementById("welcomeMsg");
-    ui.mainWrapper = document.getElementById("mainWrapper");
-    ui.countdown = document.getElementById("countdownDays");
-    ui.countdownLabel = document.getElementById("countdownLabel");
-    ui.examPanelBody = document.getElementById("examPanelBody");
-    ui.examStatusBadge = document.getElementById("examStatusBadge");
-    ui.announcementList = document.getElementById("announcementList");
-    ui.recentActivityList = document.getElementById("recentActivityList");
-    ui.successRateBar = document.getElementById("successRateBar");
-    ui.successRateText = document.getElementById("successRateText");
-    ui.solvedTodayCount = document.getElementById("solvedTodayCount");
-    ui.solvedTotalCount = document.getElementById("solvedTotalCount");
-    ui.wrongTodayCount = document.getElementById("wrongTodayCount");
-}
-
-
-export async function mount(params, signal) {
+document.addEventListener("DOMContentLoaded", async () => {
     try {
-        // Reset state
-        ui = {};
-        refreshUI();
         if (ui.loaderText) ui.loaderText.textContent = "Sistem başlatılıyor...";
 
-        if (signal?.aborted) return;
+        // 1. Merkezi Layout Yükleyicisini Bekle
+        // (Header, Sidebar, Auth Kontrolü, Admin Rolü, Mobil Menü - hepsi burada halledilir)
+        await initLayout();
 
-        // 1. Dashboard'a Özel İçeriği Hazırla
+        // 2. Dashboard'a Özel İçeriği Hazırla
         const user = auth.currentUser;
 
         if (user) {
             if (ui.loaderText) ui.loaderText.textContent = "Verileriniz yükleniyor...";
 
             // Profil bilgisini çek (Welcome mesajı için)
-            // Use promise wrapper to handle abort? Firestore doesn't support signal directly,
-            // so we check signal after await.
+            // Not: Header zaten ui-loader tarafından güncellendi.
             const profile = await getUserProfile(user.uid);
-
-            if (signal?.aborted) return;
-
-            const displayName = (profile && profile.ad) || user.displayName || (user.email ? user.email.split('@')[0] : 'Kullanıcı');
+            const displayName = profile?.ad || user.displayName || (user.email ? user.email.split('@')[0] : 'Kullanıcı');
 
             if (ui.welcomeMsg) {
                 ui.welcomeMsg.textContent = `Hoş geldin, ${displayName}!`;
             }
 
-            await loadDashboardStats(user.uid); // checks signal internally if passed? No, need to pass or check after
-
-            if (signal?.aborted) return;
+            await loadDashboardStats(user.uid);
 
             // Sınav ilanını, duyuruları ve aktiviteleri yükle
             await Promise.all([
@@ -68,95 +58,24 @@ export async function mount(params, signal) {
                 loadRecentActivities(user.uid)
             ]);
 
-            if (signal?.aborted) return;
-
             // Son aktiviteyi ve akıllı ipucunu göster
             checkLastActivity(user);
             showSmartTip();
-        } else {
-            // Kullanıcı yoksa login'e at (ui-loader hallediyor ama burada da duralım)
-            return;
         }
 
         // 3. Her şey hazır, sayfa yükleyicisini kaldır
-        if (!signal?.aborted) {
-            hideLoader();
-        }
+        hideLoader();
 
     } catch (error) {
-        if (signal?.aborted) return;
         console.error("Dashboard yükleme hatası:", error);
         if (ui.loaderText) {
             ui.loaderText.innerHTML = "Bir hata oluştu.<br>Lütfen sayfayı yenileyin.";
             ui.loaderText.style.color = "#ef4444";
         }
     }
-}
-
-// Cleanup function if needed
-export function unmount() {
-    if (examCountdownInterval) {
-        clearInterval(examCountdownInterval);
-        examCountdownInterval = null;
-    }
-    // Clear UI references
-    ui = {};
-}
-
-
-async function loadDashboardStats(uid) {
-    if (!uid) return;
-
-    try {
-        const cacheKey = `dashboard_stats_${uid}`;
-        let cachedStats = CacheManager.get(cacheKey);
-
-        let todayStats, totalStats;
-
-        if (cachedStats) {
-            console.log("Dashboard stats loaded from cache");
-            ({ todayStats, totalStats } = cachedStats);
-        } else {
-            console.log("Fetching dashboard stats from Firestore...");
-            // Bugünün istatistikleri
-            const todayRange = getTodayRange();
-            todayStats = await fetchExamStats(uid, { range: todayRange });
-
-            // Genel istatistikler
-            totalStats = await fetchExamStats(uid);
-
-            CacheManager.set(cacheKey, { todayStats, totalStats }, 5 * 60 * 1000); // 5 dk cache
-        }
-
-        // UI Güncelleme
-        if (ui.solvedTodayCount) ui.solvedTodayCount.textContent = todayStats.total || 0;
-        if (ui.wrongTodayCount) ui.wrongTodayCount.textContent = todayStats.wrong || 0;
-        if (ui.solvedTotalCount) ui.solvedTotalCount.textContent = totalStats.total || 0;
-
-        // Başarı Oranı
-        const successRate = totalStats.total > 0
-            ? Math.round((totalStats.correct / totalStats.total) * 100)
-            : 0;
-
-        if (ui.successRateText) ui.successRateText.textContent = `%${successRate}`;
-        if (ui.successRateBar) {
-            ui.successRateBar.style.width = `${successRate}%`;
-            ui.successRateBar.setAttribute('aria-valuenow', successRate);
-
-            // Renk ayarı
-            ui.successRateBar.className = 'progress-bar';
-            if (successRate >= 70) ui.successRateBar.classList.add('bg-success');
-            else if (successRate >= 40) ui.successRateBar.classList.add('bg-warning');
-            else ui.successRateBar.classList.add('bg-danger');
-        }
-
-    } catch (error) {
-        console.error("İstatistik yükleme hatası:", error);
-    }
-}
+});
 
 function hideLoader() {
-    refreshUI();
     if (ui.loader) {
         ui.loader.style.opacity = "0";
         setTimeout(() => {
@@ -205,25 +124,55 @@ function showSmartTip() {
 
     const randomTip = tips[Math.floor(Math.random() * tips.length)];
 
+    // Dashboard'da uygun bir yere ekle (Örn: Quick Access altına veya üstüne)
+    // Şimdilik container'ın başına veya sonuna ekleyebiliriz ama hoşdurması için stats-grid'den hemen sonraya ekleyelim
+    // Veya welcome bölümünün altına. Kullanıcının isteği: "Dashboard'da uygun bir yere ekle"
+
+    // Mevcut yapıda welcome-section bittikten sonra, lastActivityCard var. Onun da altına koyabiliriz.
+    // Ancak daha temiz görünmesi için lastActivityCard varsa onun altına, yoksa welcome altına.
     const container = document.querySelector('.dashboard-container');
     const target = document.getElementById('lastActivityCard');
 
     const tipDiv = document.createElement('div');
     tipDiv.className = 'alert alert-info mb-4';
-    // Use CSS variables for theme compatibility
-    tipDiv.style.background = 'var(--bg-info-subtle, rgba(59, 130, 246, 0.1))';
-    tipDiv.style.border = '1px solid var(--border-info-subtle, rgba(59, 130, 246, 0.2))';
+    tipDiv.style.background = 'rgba(59, 130, 246, 0.1)';
+    tipDiv.style.border = '1px solid rgba(59, 130, 246, 0.2)';
     tipDiv.style.color = 'var(--text-main)';
     tipDiv.innerHTML = randomTip;
 
-    if (target && target.parentNode) {
+    if (target) {
         target.parentNode.insertBefore(tipDiv, target.nextSibling);
-        return;
-    }
-
-    if (container) {
+    } else {
         container.appendChild(tipDiv);
     }
+}
+
+async function loadDashboardStats(uid) {
+    const userSnap = await getDoc(doc(db, "users", uid));
+    const userData = userSnap.exists() ? userSnap.data() : {};
+    const statsResetAt = normalizeResetTimestamp(userData.statsResetAt);
+
+    const [totalStats, todayStats] = await Promise.all([
+        fetchExamStats(uid, { resetAtSeconds: statsResetAt }),
+        fetchExamStats(uid, { range: getTodayRange(), resetAtSeconds: statsResetAt })
+    ]);
+
+    const successRate = totalStats.total > 0
+        ? Math.round((totalStats.correct / totalStats.total) * 100)
+        : 0;
+
+    if (ui.solvedTodayCount) ui.solvedTodayCount.textContent = todayStats.total.toLocaleString('tr-TR');
+    if (ui.solvedTotalCount) ui.solvedTotalCount.textContent = totalStats.total.toLocaleString('tr-TR');
+    if (ui.wrongTodayCount) ui.wrongTodayCount.textContent = todayStats.wrong.toLocaleString('tr-TR');
+    if (ui.successRateText) ui.successRateText.textContent = `%${successRate}`;
+    if (ui.successRateBar) ui.successRateBar.style.width = `${successRate}%`;
+}
+
+function normalizeResetTimestamp(timestamp) {
+    if (!timestamp) return null;
+    if (typeof timestamp.seconds === 'number') return timestamp.seconds;
+    if (typeof timestamp.toDate === 'function') return Math.floor(timestamp.toDate().getTime() / 1000);
+    return null;
 }
 
 async function fetchExamStats(uid, options = {}) {
@@ -280,38 +229,15 @@ async function loadExamAnnouncement() {
     if (!ui.examPanelBody) return;
 
     try {
-        const cacheKey = 'dashboard_exam_announcement';
-        let cachedData = CacheManager.get(cacheKey);
-        let data = null;
+        const examQuery = query(
+            collection(db, "examAnnouncements"),
+            where("isActive", "==", true),
+            orderBy("examDate", "asc"),
+            limit(1)
+        );
+        const snapshot = await getDocs(examQuery);
 
-        if (cachedData) {
-            data = cachedData;
-        } else {
-            const examQuery = query(
-                collection(db, "examAnnouncements"),
-                where("isActive", "==", true),
-                orderBy("examDate", "asc"),
-                limit(1)
-            );
-            const snapshot = await getDocs(examQuery);
-
-            if (!snapshot.empty) {
-                const docData = snapshot.docs[0].data();
-                // Store serializable data
-                data = {
-                    ...docData,
-                    examDate: normalizeTimestamp(docData.examDate),
-                    applicationStart: normalizeTimestamp(docData.applicationStart),
-                    applicationEnd: normalizeTimestamp(docData.applicationEnd)
-                };
-                CacheManager.set(cacheKey, data, 60 * 60 * 1000); // 1 saat cache
-            } else {
-                CacheManager.set(cacheKey, { empty: true }, 60 * 60 * 1000); // Boş sonucu da cachele
-                data = { empty: true };
-            }
-        }
-
-        if (data.empty) {
+        if (snapshot.empty) {
             ui.examPanelBody.innerHTML = `
                 <div class="panel-item">
                     <div class="panel-item-content">
@@ -329,6 +255,8 @@ async function loadExamAnnouncement() {
             return;
         }
 
+        const doc = snapshot.docs[0];
+        const data = doc.data();
         const examDate = parseDate(data.examDate);
         const applyStart = parseDate(data.applicationStart);
         const applyEnd = parseDate(data.applicationEnd);
@@ -411,37 +339,15 @@ async function loadAnnouncements() {
     if (!ui.announcementList) return;
 
     try {
-        const cacheKey = 'dashboard_announcements';
-        let cachedList = CacheManager.get(cacheKey);
-        let list = null;
+        const announcementQuery = query(
+            collection(db, "announcements"),
+            where("isActive", "==", true),
+            orderBy("createdAt", "desc"),
+            limit(5)
+        );
+        const snapshot = await getDocs(announcementQuery);
 
-        if (cachedList) {
-            list = cachedList;
-        } else {
-            const announcementQuery = query(
-                collection(db, "announcements"),
-                where("isActive", "==", true),
-                orderBy("createdAt", "desc"),
-                limit(5)
-            );
-            const snapshot = await getDocs(announcementQuery);
-
-            if (snapshot.empty) {
-                CacheManager.set(cacheKey, [], 30 * 60 * 1000);
-                list = [];
-            } else {
-                list = snapshot.docs.map(doc => {
-                    const data = doc.data();
-                    return {
-                        ...data,
-                        createdAt: normalizeTimestamp(data.createdAt)
-                    };
-                });
-                CacheManager.set(cacheKey, list, 30 * 60 * 1000); // 30 dk cache
-            }
-        }
-
-        if (list.length === 0) {
+        if (snapshot.empty) {
             ui.announcementList.innerHTML = `
                 <div class="panel-item">
                     <div class="panel-item-content">
@@ -456,7 +362,8 @@ async function loadAnnouncements() {
             return;
         }
 
-        ui.announcementList.innerHTML = list.map(data => {
+        ui.announcementList.innerHTML = snapshot.docs.map(doc => {
+            const data = doc.data();
             const createdAt = parseDate(data.createdAt);
             return `
                 <div class="panel-item">
@@ -482,13 +389,7 @@ async function loadRecentActivities(uid) {
     if (!ui.recentActivityList) return;
 
     try {
-        const cacheKey = `recent_activities_${uid}`;
-        let activities = CacheManager.get(cacheKey);
-
-        if (!activities) {
-            activities = await getRecentActivities(uid, 4);
-            CacheManager.set(cacheKey, activities, 2 * 60 * 1000); // 2 dk cache
-        }
+        const activities = await getRecentActivities(uid, 4);
 
         if (!activities.length) {
             ui.recentActivityList.innerHTML = `
@@ -508,12 +409,11 @@ async function loadRecentActivities(uid) {
         ui.recentActivityList.innerHTML = `
             <div class="activity-list">
                 ${activities.map(activity => {
-            const timeAgo = activity.timestamp && typeof activity.timestamp.toDate === 'function'
-                ? activity.timestamp.toDate().toLocaleDateString('tr-TR')
-                : (activity.timestamp ? new Date(activity.timestamp).toLocaleDateString('tr-TR') : '');
-
-            const icon = activity.type === 'test' ? '📝' : '📖';
-            return `
+                    const timeAgo = activity.timestamp?.toDate
+                        ? activity.timestamp.toDate().toLocaleDateString('tr-TR')
+                        : '';
+                    const icon = activity.type === 'test' ? '📝' : '📖';
+                    return `
                         <div class="activity-item">
                             <div class="activity-icon">${icon}</div>
                             <div>
@@ -522,7 +422,7 @@ async function loadRecentActivities(uid) {
                             </div>
                         </div>
                     `;
-        }).join('')}
+                }).join('')}
             </div>
         `;
     } catch (error) {
@@ -531,18 +431,9 @@ async function loadRecentActivities(uid) {
     }
 }
 
-function normalizeTimestamp(ts) {
-    if (!ts) return null;
-    if (ts.seconds) return ts.seconds * 1000;
-    if (typeof ts === 'string') return ts;
-    if (typeof ts === 'number') return ts;
-    return null;
-}
-
 function parseDate(value) {
     if (!value) return null;
     if (value.toDate) return value.toDate();
-    if (typeof value === 'number') return new Date(value);
     if (value.seconds) return new Date(value.seconds * 1000);
     const date = new Date(value);
     return Number.isNaN(date.getTime()) ? null : date;

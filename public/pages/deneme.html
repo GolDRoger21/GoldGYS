@@ -2,7 +2,6 @@
 <html lang="tr">
 
 <head>
-    <script src="/js/theme-init.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Deneme Sınavı | GOLD GYS</title>
@@ -225,7 +224,78 @@
         </div>
     </div>
 
+    <script type="module">
+        import { protectPage } from '/js/role-guard.js';
+        import { TestEngine } from '/js/test-engine.js';
+        import { db, auth } from '/js/firebase-config.js';
+        import { showConfirm, showToast } from '/js/notifications.js';
+        import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+        protectPage();
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            let examId = urlParams.get('id');
+
+            if (!examId) {
+                const pathMatch = window.location.pathname.match(/^\/deneme\/([^/]+)$/);
+                if (pathMatch) {
+                    examId = decodeURIComponent(pathMatch[1]);
+                }
+            }
+
+            if (examId && !window.location.pathname.startsWith('/deneme/')) {
+                window.history.replaceState({}, '', `/deneme/${encodeURIComponent(examId)}`);
+            }
+
+            if (!examId) {
+                showToast("Deneme bilgisi bulunamadı. Lütfen listeye geri dönün.", "error");
+                window.location.href = '/denemeler';
+                return;
+            }
+
+            try {
+                // 1. Sınav Verisini Çek
+                const examRef = doc(db, "exams", examId);
+                const examSnap = await getDoc(examRef);
+
+                if (!examSnap.exists()) throw new Error("Sınav bulunamadı!");
+
+                const examData = examSnap.data();
+
+                // UI Güncelle
+                document.getElementById('examTitle').innerText = examData.title;
+                document.getElementById('examMeta').innerText = `Süre: ${examData.duration} dk | Soru: ${examData.totalQuestions}`;
+
+                // 2. Test Motorunu Başlat (Sınav Modunda)
+                // Not: Sorular 'questionsSnapshot' içinde saklı
+                const engine = new TestEngine('quizContainer', examData.questionsSnapshot, {
+                    examId: examId,
+                    mode: 'exam', // Zorunlu Sınav Modu
+                    duration: examData.duration
+                });
+
+                document.getElementById('loader').style.display = 'none';
+
+                // Bitir Butonu
+                document.getElementById('btnFinishExam').addEventListener('click', async () => {
+                    const shouldFinish = await showConfirm("Sınavı bitirmek ve sonuçları görmek istediğinize emin misiniz?", {
+                        title: "Sınavı Bitir",
+                        confirmText: "Sınavı Bitir",
+                        cancelText: "Devam Et"
+                    });
+                    if (shouldFinish) {
+                        engine.finishTest();
+                    }
+                });
+
+            } catch (error) {
+                console.error(error);
+                showToast(`Bir hata oluştu: ${error.message}`, "error");
+                window.location.href = '/denemeler';
+            }
+        });
+    </script>
 </body>
 
 </html>

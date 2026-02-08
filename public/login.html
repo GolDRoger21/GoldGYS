@@ -2,19 +2,6 @@
 <html lang="tr">
 
 <head>
-    <script>
-        (function () {
-            try {
-                const storedTheme = localStorage.getItem('theme');
-                const prefersLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
-                // Force dark as default if no storage, or respect storage. 
-                // Any logic that defaulted to light is now removed/updated.
-                const theme = storedTheme || 'dark';
-                document.documentElement.setAttribute('data-theme', theme);
-                document.documentElement.style.colorScheme = theme;
-            } catch (e) { }
-        })();
-    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Giriş Yap | GOLD GYS</title>
@@ -25,7 +12,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:wght@700&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="/styles/tokens.css">
+    <link rel="stylesheet" href="styles/tokens.css">
 
     <link rel="icon"
         href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230F172A'/><text x='50' y='70' font-family='serif' font-size='60' fill='%23D4AF37' text-anchor='middle' font-weight='bold'>G</text></svg>">
@@ -40,8 +27,8 @@
 
         body {
             background-color: var(--bg-body);
-            color: var(--text-main);
-            /* Use theme-aware main text color */
+            color: var(--text-light);
+            /* Enforce light text generally */
             font-family: var(--font-family-sans);
             min-height: 100vh;
             display: flex;
@@ -194,9 +181,9 @@
 
         /* Logo & Başlıklar */
         .brand-logo {
-            font-family: var(--font-family-brand);
+            font-family: var(--font-family-serif);
             font-size: 2.75rem;
-            color: var(--text-logo);
+            color: var(--text-light);
             /* Ensure visible in light/dark */
             margin-bottom: 0.5rem;
             display: inline-flex;
@@ -211,21 +198,14 @@
             text-shadow: 0 0 20px rgba(194, 97, 68, 0.2);
         }
 
-        .brand-mark {
-            width: 56px;
-            height: 56px;
-            display: block;
+        .brand-logo::before {
+            content: '';
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: conic-gradient(from 210deg, var(--logo-gold), var(--logo-khaki), var(--logo-highlight), var(--logo-gold));
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.3);
             flex-shrink: 0;
-        }
-
-        .brand-text {
-            display: inline-flex;
-            align-items: baseline;
-            gap: 0.35rem;
-        }
-
-        .brand-text .brand-gold {
-            color: var(--text-logo);
         }
 
         .card-subtitle {
@@ -275,7 +255,7 @@
         .info-banner {
             background: rgba(212, 175, 55, 0.1);
             border: 1px solid rgba(212, 175, 55, 0.2);
-            color: var(--text-main);
+            color: var(--gold-light);
             padding: 1rem;
             border-radius: var(--radius-md);
             font-size: 0.9rem;
@@ -305,7 +285,7 @@
             padding: 1rem;
             font-size: 0.9rem;
             line-height: 1.7;
-            color: var(--text-main);
+            color: var(--text-light);
             background: rgba(0, 0, 0, 0.2);
             border: 1px solid var(--border-subtle);
             border-radius: var(--radius-md);
@@ -423,32 +403,6 @@
             text-decoration: none;
         }
 
-        [data-theme="light"] .auth-agreement-panel {
-            background: rgba(15, 23, 42, 0.04);
-        }
-
-        [data-theme="light"] .agreement-text {
-            background: var(--bg-hover);
-            border-color: var(--border-color);
-        }
-
-        [data-theme="light"] .btn-back:hover {
-            background: #FFFFFF;
-        }
-
-        [data-theme="light"] .info-banner {
-            background: rgba(212, 175, 55, 0.15);
-            border-color: rgba(212, 175, 55, 0.3);
-        }
-
-        [data-theme="light"] .status-error {
-            color: #b91c1c;
-        }
-
-        [data-theme="light"] .status-pending {
-            color: #166534;
-        }
-
         /* Responsive */
         @media (max-width: 900px) {
             .auth-card {
@@ -541,11 +495,6 @@
                 margin-bottom: 0.25rem;
             }
 
-            .brand-mark {
-                width: 40px;
-                height: 40px;
-            }
-
             .card-subtitle {
                 font-size: 0.9rem;
                 margin-bottom: 1.25rem;
@@ -584,8 +533,7 @@
             <!-- Single Simplified Main Column -->
             <div class="auth-main">
                 <div class="brand-logo">
-                    <img src="/img/logo-goldgys.svg" alt="Gold GYS logo" class="brand-mark">
-                    <span class="brand-text"><span class="brand-gold">GOLD</span> GYS</span>
+                    GOLD <span>GYS</span>
                 </div>
 
                 <p class="card-subtitle">
@@ -651,7 +599,7 @@
         </div>
     </div>
 
-    <script type="module" src="/js/auth.js"></script>
+    <script type="module" src="./js/auth.js"></script>
 </body>
 
 </html>

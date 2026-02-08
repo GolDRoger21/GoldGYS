@@ -2,7 +2,6 @@
 <html lang="tr">
 
 <head>
-    <script src="/js/theme-init.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Deneme Sınavları | GOLD GYS</title>
@@ -349,11 +348,158 @@
 </head>
 
 <body>
-    <!-- UI Loader: Layout, Header, Sidebar ve Auth Yönetimi -->
     <script type="module">
         import { initLayout } from '../js/ui-loader.js';
-        document.addEventListener('DOMContentLoaded', () => {
-            initLayout();
+        import { db } from "../js/firebase-config.js";
+        import { collection, getDocs, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const state = {
+            exams: []
+        };
+
+        const formatDate = (timestamp) => {
+            if (!timestamp) return "-";
+            const date = timestamp.seconds ? new Date(timestamp.seconds * 1000) : new Date(timestamp);
+            return date.toLocaleDateString('tr-TR', {
+                day: '2-digit',
+                month: 'long',
+                year: 'numeric'
+            });
+        };
+
+        const formatNumber = (value) => new Intl.NumberFormat('tr-TR').format(value);
+
+        const renderStats = (exams) => {
+            const totalExams = exams.length;
+            const totalQuestions = exams.reduce((sum, exam) => sum + (exam.totalQuestions || 0), 0);
+            const avgDuration = totalExams ? Math.round(exams.reduce((sum, exam) => sum + (exam.duration || 0), 0) / totalExams) : 0;
+            const latestExam = exams[0];
+
+            document.getElementById('statExamCount').textContent = totalExams;
+            document.getElementById('statQuestionCount').textContent = formatNumber(totalQuestions || 0);
+            document.getElementById('statAvgDuration').textContent = avgDuration ? `${avgDuration} dk` : "-";
+            document.getElementById('statLastUpdate').textContent = latestExam ? formatDate(latestExam.createdAt) : "-";
+        };
+
+        const updateRoleFilter = (exams) => {
+            const roleFilter = document.getElementById('roleFilter');
+            const roles = [...new Set(exams.map((exam) => exam.role).filter(Boolean))];
+            roleFilter.innerHTML = '<option value="all">Tümü</option>' + roles.map((role) => `<option value="${role}">${role}</option>`).join('');
+        };
+
+        const renderExams = (exams) => {
+            const grid = document.getElementById('examsGrid');
+            const countNote = document.getElementById('examCountNote');
+
+            grid.innerHTML = '';
+
+            if (!exams.length) {
+                countNote.textContent = "0 deneme gösteriliyor";
+                grid.innerHTML = `
+                    <div class="empty-state">
+                        Henüz eşleşen bir deneme bulunamadı. Filtreleri temizleyip tekrar deneyin.
+                    </div>
+                `;
+                return;
+            }
+
+            countNote.textContent = `${exams.length} deneme gösteriliyor`;
+
+            exams.forEach((exam, index) => {
+                const card = document.createElement('div');
+                card.className = `exam-card ${index === 0 ? 'exam-highlight' : ''}`;
+                card.innerHTML = `
+                    <div class="exam-card-header">
+                        <span class="badge bg-light text-dark">${exam.role || 'Genel'}</span>
+                        <span class="small text-muted">${formatDate(exam.createdAt)}</span>
+                    </div>
+                    <div>
+                        <h3>${exam.title}</h3>
+                        <p class="text-muted small">${exam.description || 'Mevzuat dağılımına uygun, otomatik seçilmiş sorularla hazırlandı.'}</p>
+                    </div>
+                    <div class="exam-meta">
+                        <span>🧩 ${exam.totalQuestions || 0} Soru</span>
+                        <span>⏱️ ${exam.duration || 0} dk</span>
+                        <span>🎯 Puan: %0-100</span>
+                    </div>
+                    <div class="exam-card-actions">
+                        <a href="/deneme/${encodeURIComponent(exam.id)}" class="btn btn-outline-primary w-100">Sınava Başla</a>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        };
+
+        const applyFilters = () => {
+            const searchValue = document.getElementById('examSearch').value.toLowerCase().trim();
+            const roleValue = document.getElementById('roleFilter').value;
+
+            const filtered = state.exams.filter((exam) => {
+                const matchesSearch = !searchValue || exam.title?.toLowerCase().includes(searchValue);
+                const matchesRole = roleValue === 'all' || exam.role === roleValue;
+                return matchesSearch && matchesRole;
+            });
+
+            renderExams(filtered);
+        };
+
+        const showEmptyExamsState = () => {
+            const grid = document.getElementById('examsGrid');
+            const countNote = document.getElementById('examCountNote');
+
+            countNote.textContent = "0 deneme gösteriliyor";
+            grid.innerHTML = `
+                <div class="empty-state">
+                    Şu anda yayınlanmış deneme sınavı bulunmuyor. Admin panelinde deneme yayınlandığında burada listelenecek.
+                </div>
+            `;
+        };
+
+        const loadExams = async () => {
+            const grid = document.getElementById('examsGrid');
+            grid.innerHTML = `
+                <div class="skeleton"></div>
+                <div class="skeleton"></div>
+                <div class="skeleton"></div>
+            `;
+
+            try {
+                const q = query(
+                    collection(db, "exams"),
+                    where("isActive", "==", true),
+                    orderBy("createdAt", "desc")
+                );
+
+                const snapshot = await getDocs(q);
+
+                if (snapshot.empty) {
+                    state.exams = [];
+                    renderStats(state.exams);
+                    updateRoleFilter(state.exams);
+                    showEmptyExamsState();
+                    return;
+                }
+
+                state.exams = snapshot.docs.map((docSnap) => ({
+                    id: docSnap.id,
+                    ...docSnap.data()
+                }));
+
+                renderStats(state.exams);
+                updateRoleFilter(state.exams);
+                renderExams(state.exams);
+            } catch (error) {
+                console.error("Hata:", error);
+                grid.innerHTML = `<div class="empty-state">Bağlantı hatası: ${error.message}</div>`;
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            await initLayout();
+            await loadExams();
+
+            document.getElementById('examSearch').addEventListener('input', applyFilters);
+            document.getElementById('roleFilter').addEventListener('change', applyFilters);
         });
     </script>
 
@@ -366,7 +512,7 @@
                     kalan 5 soruyu da rastgele ekleyerek 80 soruluk gerçek sınav formatını oluşturur.</p>
                 <div class="hero-actions">
                     <a href="#examListSection" class="btn btn-dark">Denemeleri Gör</a>
-                    <a href="/test" class="btn btn-light">Konu Bazlı Teste Geç</a>
+                    <a href="/pages/testler.html" class="btn btn-light">Konu Bazlı Teste Geç</a>
                 </div>
             </div>
             <div class="hero-panel">

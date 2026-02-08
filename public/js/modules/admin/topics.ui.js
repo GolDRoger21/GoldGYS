@@ -3,16 +3,16 @@
 export const UI_SHELL = `
     <div class="section-header">
         <h2>📑 Konu Yönetimi</h2>
-        <div class="qc-actions">
-            <button class="btn-icon bg-soft-primary" onclick="window.Studio.open()" title="Yeni Konu">➕</button>
-            <button class="btn-icon bg-soft-secondary" onclick="window.Studio.trash.open()" title="Çöp Kutusu">🗑️</button>
+        <div class="d-flex gap-2">
+            <button class="btn btn-primary btn-sm" onclick="window.Studio.open()">➕ Yeni Konu</button>
+            <button class="btn btn-outline-secondary btn-sm" onclick="window.Studio.trash.open()">🗑️ Çöp Kutusu</button>
         </div>
     </div>
 
     <div class="card p-0">
-        <div class="p-3 border-bottom d-flex flex-wrap gap-3 align-items-center justify-content-between">
-            <div class="d-flex flex-wrap gap-2 align-items-center flex-grow-1">
-                <input type="text" id="searchTopic" class="form-control form-control-sm" style="max-width: 250px;" placeholder="Konu ara..." oninput="window.filterTopics()">
+        <div class="p-3 border-bottom d-flex flex-wrap gap-2 align-items-center justify-content-between">
+            <div class="d-flex flex-wrap gap-2 align-items-center">
+                <input type="text" id="searchTopic" class="form-control form-control-sm" placeholder="Konu ara..." oninput="window.filterTopics()">
                 <select id="filterCategory" class="form-select form-select-sm" onchange="window.filterTopics()">
                     <option value="all">Tüm Kategoriler</option>
                     <option value="ortak">Ortak Konular</option>
@@ -99,16 +99,12 @@ export const UI_SHELL = `
                             </div>
                             <div class="editor-actions">
                                 <span id="saveIndicator" class="save-indicator">Otomatik kayıt açık</span>
-                                <div class="input-group input-group-sm">
+                                <div class="input-group input-group-sm" style="width: 100px;">
                                     <span class="input-group-text">Sıra</span>
-                                    <input type="number" id="inpContentOrder" class="form-control">
+                                    <input type="number" id="inpContentOrder" class="form-control text-center">
                                 </div>
-                                <button class="btn btn-danger btn-sm" onclick="window.Studio.deleteContent()">
-                                    <i>🗑️</i> Sil
-                                </button>
-                                <button class="btn btn-success btn-sm px-4 fw-bold" onclick="window.Studio.saveContent()">
-                                    <i>💾</i> Kaydet
-                                </button>
+                                <button class="btn btn-outline-danger btn-sm" onclick="window.Studio.deleteContent()">Sil</button>
+                                <button class="btn btn-success btn-sm px-4 fw-bold" onclick="window.Studio.saveContent()">Kaydet</button>
                             </div>
                         </div>
 
@@ -233,17 +229,17 @@ export const UI_SHELL = `
                 </div>
             </aside>
 
-            <div id="contentTrashModal" class="modal-overlay trash-modal-overlay" style="display:none;">
+            <div id="contentTrashModal" class="modal-overlay" style="display:none; z-index:100010;">
                 <div class="admin-modal-content">
                     <div class="modal-header">
                         <h5 class="m-0">🗑️ Silinen İçerikler</h5>
                         <button onclick="document.getElementById('contentTrashModal').style.display='none'" class="close-btn">&times;</button>
                     </div>
                     <div class="modal-body-scroll p-0">
-                        <div class="p-3 border-bottom d-flex flex-wrap gap-2 align-items-center justify-content-between studio-toolbar-responsive">
-                            <div class="d-flex flex-wrap gap-2 align-items-center flex-grow-1">
+                         <div class="p-3 border-bottom bg-white d-flex flex-wrap gap-2 align-items-center justify-content-between">
+                            <div class="d-flex flex-wrap gap-2 align-items-center">
                                 <div class="small text-muted">
-                                    Aktif: <strong id="contentTrashModeLabel">Ders</strong>
+                                    Aktif sekmeye göre listelenir: <strong id="contentTrashModeLabel">Ders</strong>
                                 </div>
                                 <input type="text" id="contentTrashSearch" class="form-control form-control-sm" placeholder="Başlıkta ara..." oninput="window.Studio.contentTrash.refresh()">
                                 <select id="contentTrashTypeFilter" class="form-select form-select-sm" onchange="window.Studio.contentTrash.refresh()">
@@ -254,8 +250,8 @@ export const UI_SHELL = `
                                 </select>
                             </div>
                             <div class="d-flex flex-wrap gap-2">
-                                <button class="btn btn-outline-success btn-sm" onclick="window.Studio.contentTrash.restoreSelected()">Geri Al</button>
-                                <button class="btn btn-danger btn-sm" onclick="window.Studio.contentTrash.purgeSelected()">Sil</button>
+                                <button class="btn btn-outline-success btn-sm" onclick="window.Studio.contentTrash.restoreSelected()">Seçileni Geri Al</button>
+                                <button class="btn btn-danger btn-sm" onclick="window.Studio.contentTrash.purgeSelected()">Seçileni Sil</button>
                                 <button class="btn btn-danger btn-sm" onclick="window.Studio.contentTrash.purgeAll()">Tümünü Sil</button>
                             </div>
                         </div>
@@ -275,18 +271,18 @@ export const UI_SHELL = `
                 </div>
             </div>
 
-            <div id="trashModal" class="modal-overlay trash-modal-overlay" style="display:none;">
+            <div id="trashModal" class="modal-overlay" style="display:none;">
                 <div class="admin-modal-content" style="max-width:600px;">
                     <div class="modal-header">
                         <h5 class="m-0">🗑️ Konu Çöp Kutusu</h5>
                         <button onclick="document.getElementById('trashModal').style.display='none'" class="close-btn">&times;</button>
                     </div>
                     <div class="modal-body-scroll p-0">
-                        <div class="p-3 border-bottom d-flex flex-wrap gap-2 align-items-center justify-content-between studio-toolbar-responsive">
+                        <div class="p-3 border-bottom bg-white d-flex flex-wrap gap-2 align-items-center justify-content-between">
                             <input type="text" id="topicTrashSearch" class="form-control form-control-sm" placeholder="Konu başlığı ara..." oninput="window.Studio.trash.refresh()">
                             <div class="d-flex flex-wrap gap-2">
-                                <button class="btn btn-outline-success btn-sm" onclick="window.Studio.trash.restoreSelected()">Geri Al</button>
-                                <button class="btn btn-danger btn-sm" onclick="window.Studio.trash.purgeSelected()">Sil</button>
+                                <button class="btn btn-outline-success btn-sm" onclick="window.Studio.trash.restoreSelected()">Seçileni Geri Al</button>
+                                <button class="btn btn-danger btn-sm" onclick="window.Studio.trash.purgeSelected()">Seçileni Sil</button>
                             </div>
                         </div>
                         <table class="admin-table">

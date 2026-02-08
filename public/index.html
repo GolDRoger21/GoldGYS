@@ -2,12 +2,11 @@
 <html lang="tr">
 
 <head>
-    <script src="/js/theme-init.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GOLD GYS | Adalet Bakanlığı Görevde Yükselme Portalı</title>
     <meta name="description"
-        content="Adalet Bakanlığı görevde yükselme sınavına özel, yapay zeka destekli analizler ve mevzuata uyumlu deneme deneyimiyle hazırlanın.">
+        content="Yazı İşleri Müdürü ve diğer ünvanlar için özel hazırlanmış, yapay zeka destekli sınav hazırlık ve deneme portalı.">
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
@@ -28,13 +27,15 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Manrope:wght@300;400;500;600;700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:wght@700;800&display=swap"
         rel="stylesheet">
 
-    <link rel="stylesheet" href="/css/app.css">
-    <link rel="stylesheet" href="/css/landing.css">
+    <link rel="stylesheet" href="css/app.css">
+    <link rel="stylesheet" href="css/landing.css">
 
-    <link rel="icon" href="/img/logo-goldgys.svg">
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230F172A'/><text x='50' y='70' font-family='serif' font-size='60' fill='%23D4AF37' text-anchor='middle' font-weight='bold'>G</text></svg>">
+
     <link rel="manifest" href="/manifest.json">
 </head>
 
@@ -42,76 +43,54 @@
 
     <nav class="landing-nav">
         <div class="header-inner">
-            <div class="header-left">
-                <a href="/" class="brand-logo" aria-label="Gold GYS Ana Sayfa">
-                    <img src="/img/logo-goldgys.svg" alt="Gold GYS logo" class="brand-mark">
-                    <span class="brand-text"><span class="brand-gold">GOLD</span> GYS</span>
-                </a>
-                <div class="nav-links" id="primaryNav">
-                    <a class="nav-link" href="/#services">Hizmetlerimiz</a>
-                    <a class="nav-link" href="/#about">Hakkımızda</a>
-                    <a class="nav-link" href="/yardim">İletişim</a>
-                </div>
-                <button class="mobile-nav-toggle" id="mobileNavToggle" aria-label="Menüyü Aç/Kapat"
-                    aria-controls="primaryNav" aria-expanded="false">
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
+            <a href="/" class="brand-logo">GOLD <span>GYS</span></a>
+
+            <div class="header-actions-group">
+                <button id="themeToggle" class="btn-theme-toggle" aria-label="Tema Değiştir">
+                    <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                    <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
                 </button>
-            </div>
 
-            <div class="header-right">
-                <div class="header-actions-group">
-                    <button id="themeToggle" class="btn-theme-toggle" aria-label="Tema Değiştir">
-                        <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" width="20" height="20"
-                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                            stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="12" cy="12" r="5"></circle>
-                            <line x1="12" y1="1" x2="12" y2="3"></line>
-                            <line x1="12" y1="21" x2="12" y2="23"></line>
-                            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                            <line x1="1" y1="12" x2="3" y2="12"></line>
-                            <line x1="21" y1="12" x2="23" y2="12"></line>
-                            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                <div class="auth-buttons-desktop">
+                    <a href="login.html?mode=login" class="btn btn-secondary btn-sm" id="navLoginBtn">Giriş Yap</a>
+                    <a href="login.html?mode=register" class="btn btn-primary btn-sm" id="navRegisterBtn">Kayıt Ol</a>
+                </div>
+
+                <div class="auth-buttons-mobile">
+                    <a href="login.html?mode=login" class="btn-icon-mobile" id="mobileLoginBtn" aria-label="Giriş Yap">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+                            <polyline points="10 17 15 12 10 7" />
+                            <line x1="15" y1="12" x2="3" y2="12" />
                         </svg>
-                        <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" width="20" height="20"
-                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                            stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </a>
+                    <a href="login.html?mode=register" class="btn-icon-mobile" id="mobileRegisterBtn"
+                        aria-label="Kayıt Ol">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="8.5" cy="7" r="4"></circle>
+                            <line x1="20" y1="8" x2="20" y2="14"></line>
+                            <line x1="23" y1="11" x2="17" y2="11"></line>
                         </svg>
-                    </button>
-
-                    <div class="auth-buttons-desktop">
-                        <a href="login.html?mode=login" class="btn btn-secondary btn-sm" id="navLoginBtn">Giriş Yap</a>
-                        <a href="login.html?mode=register" class="btn btn-primary btn-sm" id="navRegisterBtn">Kayıt
-                            Ol</a>
-                    </div>
-
-                    <div class="auth-buttons-mobile">
-                        <a href="login.html?mode=login" class="btn-icon-mobile" id="mobileLoginBtn"
-                            aria-label="Giriş Yap">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
-                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                stroke-linejoin="round">
-                                <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
-                                <polyline points="10 17 15 12 10 7" />
-                                <line x1="15" y1="12" x2="3" y2="12" />
-                            </svg>
-                        </a>
-                        <a href="login.html?mode=register" class="btn-icon-mobile" id="mobileRegisterBtn"
-                            aria-label="Kayıt Ol">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
-                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                stroke-linejoin="round">
-                                <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                                <circle cx="8.5" cy="7" r="4"></circle>
-                                <line x1="20" y1="8" x2="20" y2="14"></line>
-                                <line x1="23" y1="11" x2="17" y2="11"></line>
-                            </svg>
-                        </a>
-                    </div>
+                    </a>
                 </div>
 
             </div>
@@ -121,251 +100,181 @@
     <main>
         <section class="hero-section">
             <div class="hero-grid">
-                <div class="hero-content reveal">
+                <div class="hero-content">
                     <span class="hero-badge">2026 Sınav Dönemi Hazır</span>
                     <h1 class="hero-title">
-                        Görevde Yükselme İçin
-                        <span class="gold-highlight">Altın Standart</span> Hazırlık
+                        Kariyerinizde <span>Altın Çağı</span> Başlatın
                     </h1>
                     <p class="hero-desc">
-                        Gold GYS, Adalet Bakanlığı görevde yükselme sınavlarına özel kurgulanmış yapay zeka destekli
-                        analizler, mevzuata uyumlu denemeler ve kişiselleştirilmiş çalışma akışı sunar.
+                        Adalet Bakanlığı Görevde Yükselme Sınavı için özel olarak tasarlanmış yapay zeka destekli
+                        hazırlık platformu. Eksiklerinizi nokta atışı belirleyin, mevzuata tam uyumlu sorularla
+                        rakiplerinizin önüne geçin.
                     </p>
                     <div class="hero-buttons">
-                        <a href="login.html?mode=register" class="btn btn-primary btn-lg">Hemen Başla</a>
-                        <a href="login.html?mode=login" class="btn btn-secondary btn-lg">Giriş Yap</a>
-                    </div>
-                    <div class="hero-meta">
-                        <div class="meta-item">
-                            <span class="meta-title">Akıllı Analiz</span>
-                            <span class="meta-desc">Konu bazlı gelişim haritası</span>
-                        </div>
-                        <div class="meta-item">
-                            <span class="meta-title">Güncel Mevzuat</span>
-                            <span class="meta-desc">Sınav formatına uyumlu içerik</span>
-                        </div>
-                        <div class="meta-item">
-                            <span class="meta-title">Mobil Uyum</span>
-                            <span class="meta-desc">Her yerde kesintisiz çalışma</span>
-                        </div>
+                        <!-- Duplicate buttons removed as requested -->
                     </div>
                 </div>
-
-                <div class="hero-visual reveal" style="--reveal-delay: 0.15s;">
-                    <div class="hero-orb orb-1"></div>
-                    <div class="hero-orb orb-2"></div>
-                    <div class="hero-orb orb-3"></div>
-
-                    <div class="hero-device">
-                        <div class="device-header">
-                            <span class="device-pill">Gold GYS</span>
-                            <span class="device-title">Kişisel Analiz Paneli</span>
+                <div class="hero-visual">
+                    <div class="hero-card">
+                        <p class="hero-card-title">Kişisel Gelişim Raporu</p>
+                        <h3>Nokta Atışı Tespitler</h3>
+                        <p>Yapay zeka, deneme sonuçlarınızı saniyeler içinde analiz eder. Hangi konuda eksiğiniz varsa o
+                            konuya odaklanmanızı sağlayarak zaman kazandırır.</p>
+                        <div class="hero-card-footer">
+                            <span>Akıllı Analiz Sistemi</span>
+                            <span class="hero-chip">Size Özel</span>
                         </div>
-                        <div class="device-body">
-                            <div class="device-card">
-                                <span>Performans Haritası</span>
-                                <strong>Odak Konularınızı</strong>
-                                <p>Eksik alanlarınız için kişiselleştirilmiş çalışma planı.</p>
-                            </div>
-                            <div class="device-card device-card-alt">
-                                <span>Deneme Simülasyonu</span>
-                                <strong>Gerçeğe Yakın</strong>
-                                <p>Süre, format ve mevzuat uyumu tek ekranda.</p>
-                            </div>
-                        </div>
-                        <div class="device-footer">
-                            <div class="status-chip">Anlık Güncelleme</div>
-                            <div class="status-chip light">Altın Tema</div>
-                        </div>
+                    </div>
+                    <div class="hero-card hero-card-alt">
+                        <p class="hero-card-title">Sınav Simülasyonu</p>
+                        <ul>
+                            <li>✓ Gerçek sınav süresi ve arayüzü</li>
+                            <li>✓ Güncel mevzuat değişiklikleri</li>
+                            <li>✓ Türkiye geneli sıralama</li>
+                        </ul>
+                    </div>
+                    <div class="hero-quote">
+                        <p>“Hiçbir başarı tesadüf değildir, doğru stratejinin sonucudur.”</p>
+                        <span>Gold GYS çalışma prensibi</span>
                     </div>
                 </div>
             </div>
         </section>
 
-        <section id="services" class="services-section">
-            <div class="section-head reveal">
-                <span class="section-kicker">Hizmetlerimiz</span>
-                <h2>Başarıyı Hızlandıran Profesyonel Modüller</h2>
-                <p>Strateji, ölçüm ve sürdürülebilir hazırlık için Gold GYS tüm süreçleri tek platformda birleştirir.
-                </p>
-            </div>
-
-            <div class="services-grid">
-                <article class="service-card reveal" style="--reveal-delay: 0.05s;">
-                    <h3>Yapay Zeka Destekli Koç</h3>
-                    <p>Konu bazlı başarı oranlarınızı analiz eder, hedef puana göre yol haritası çıkarır.</p>
-                    <span class="service-tag">Kişiselleştirilmiş</span>
-                </article>
-                <article class="service-card reveal" style="--reveal-delay: 0.1s;">
-                    <h3>Mevzuata Uyumlu Denemeler</h3>
-                    <p>Güncel yönetmelikler, sınav formatı ve sürelerle birebir uyumlu deneme setleri.</p>
-                    <span class="service-tag">Güncel</span>
-                </article>
-                <article class="service-card reveal" style="--reveal-delay: 0.15s;">
-                    <h3>Hedef Takip Sistemi</h3>
-                    <p>Gelişim grafikleri, zaman yönetimi ve performans göstergeleri tek panelde.</p>
-                    <span class="service-tag">Ölçülebilir</span>
-                </article>
-                <article class="service-card reveal" style="--reveal-delay: 0.2s;">
-                    <h3>Odaklı Çalışma Alanı</h3>
-                    <p>Dağınıklığı ortadan kaldıran sade, hızlı ve dikkat dağıtmayan arayüz.</p>
-                    <span class="service-tag">Hızlı</span>
-                </article>
-            </div>
-        </section>
-
-        <section class="gold-showcase">
-            <div class="showcase-grid">
-                <div class="showcase-content reveal">
-                    <span class="section-kicker">Altın Tema Deneyimi</span>
-                    <h2>Premium Görünüm, Net Odak</h2>
-                    <p>Gold GYS, modern tipografi ve sofistike altın tonlarıyla hem karanlık hem aydınlık temada
-                        kusursuz bir vitrin sunar. Profesyonel kimliği öne çıkaran detaylar, kullanıcıyı hedefe
-                        kilitler.</p>
-                    <div class="showcase-actions">
-                        <a href="#contact" class="btn btn-secondary btn-sm">Detayları Gör</a>
-                        <a href="login.html?mode=register" class="btn btn-primary btn-sm">Başla</a>
-                    </div>
+        <section id="features" class="features-section">
+            <div class="features-container">
+                <div class="section-header">
+                    <h2>Başarıya Giden Yolda Güçlü Araçlar</h2>
+                    <p>Sınav hazırlığını stresten arındıran, veriye dayalı ve akıllı teknolojilerle donatılmış bir
+                        çalışma ortamı.</p>
                 </div>
-                <div class="showcase-panels reveal" style="--reveal-delay: 0.12s;">
-                    <div class="panel-card">
-                        <h4>Gelişim Odaklı</h4>
-                        <p>Her ekran, kullanıcının bir sonraki adımına rehberlik eder.</p>
+
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <span class="feature-icon">✨</span>
+                        <h3>Yapay Zeka Destekli Koç</h3>
+                        <p>Deneme sonuçlarınızı analiz eder, hangi konularda eksiğiniz olduğunu belirler ve size özel
+                            çalışma programı oluşturur.</p>
                     </div>
-                    <div class="panel-card panel-card-highlight">
-                        <h4>Altın Vurgu</h4>
-                        <p>Marka değerini yükselten şık ve kontrollü vurgu renkleri.</p>
+
+                    <div class="feature-card">
+                        <span class="feature-icon">📝</span>
+                        <h3>Mevzuata Uygun Sorular</h3>
+                        <p>Değişen yönetmelik ve kanunlara anında güncellenen, sınav formatına birebir uygun soru
+                            havuzu.</p>
                     </div>
-                    <div class="panel-card">
-                        <h4>Mobil Uyum</h4>
-                        <p>Her cihazda sağlam hizalama, stabil tipografi ve net okuma.</p>
+
+                    <div class="feature-card">
+                        <span class="feature-icon">⚡</span>
+                        <h3>Hızlı ve Odaklı Arayüz</h3>
+                        <p>Göz yormayan karanlık mod, dikkatinizi dağıtmayan sade tasarım ve hızlı çalışan modern
+                            altyapı.</p>
+                    </div>
+
+                    <div class="feature-card">
+                        <span class="feature-icon">📊</span>
+                        <h3>Detaylı Performans Analizi</h3>
+                        <p>Konu bazlı başarı grafikleri, zaman yönetimi analizi ve gelişim raporlarıyla ilerlemenizi
+                            takip edin.</p>
                     </div>
                 </div>
             </div>
         </section>
 
-        <section id="about" class="about-section">
-            <div class="about-grid">
-                <div class="about-card reveal">
-                    <span class="section-kicker">Hakkımızda</span>
-                    <h2>Görevde Yükselmeye Özel Stratejik Platform</h2>
-                    <p>Gold GYS, Adalet Bakanlığı personelinin görevde yükselme sınavlarına hazırlık sürecini
-                        ölçülebilir
-                        veriler ve akıllı araçlarla destekler. Her modül, stratejik planlama, süre yönetimi ve sınav
-                        psikolojisini tek çatı altında buluşturur.</p>
-                    <div class="about-list">
-                        <div>
-                            <strong>Odak</strong>
-                            <span>Doğru konuya doğru zaman</span>
-                        </div>
-                        <div>
-                            <strong>Netlik</strong>
-                            <span>Güncel mevzuatla birebir uyum</span>
-                        </div>
-                        <div>
-                            <strong>Güven</strong>
-                            <span>Şeffaf ölçüm ve ilerleme raporu</span>
-                        </div>
-                    </div>
+        <section id="journey" class="journey-section">
+            <div class="journey-container">
+                <div class="section-header">
+                    <h2>4 Adımda Zirve Yolculuğu</h2>
+                    <p>Karmaşık hazırlık sürecini basit, ölçülebilir ve yönetilebilir adımlara böldük.</p>
                 </div>
-
-                <div class="journey-card reveal" style="--reveal-delay: 0.1s;">
-                    <h3>4 Adımda Hazırlık Rotası</h3>
-                    <div class="journey-steps">
-                        <div>
-                            <span>1</span>
-                            <p>Seviye belirleme ve ilk analiz</p>
-                        </div>
-                        <div>
-                            <span>2</span>
-                            <p>Kişiselleştirilmiş çalışma planı</p>
-                        </div>
-                        <div>
-                            <span>3</span>
-                            <p>Eksik tamamlama ve tekrar</p>
-                        </div>
-                        <div>
-                            <span>4</span>
-                            <p>Gerçek sınav simülasyonu</p>
-                        </div>
+                <div class="journey-steps">
+                    <div class="journey-card">
+                        <span class="journey-step">1</span>
+                        <h3>Seviye Belirleme</h3>
+                        <p>Sisteme üye olun ve ilk deneme sınavınızı çözerek mevcut bilgi seviyenizi netleştirin.</p>
+                    </div>
+                    <div class="journey-card">
+                        <span class="journey-step">2</span>
+                        <h3>Kişisel Rota</h3>
+                        <p>Algoritmamız size özel bir çalışma planı çıkarsın. Hangi gün neye çalışacağınız belli olsun.
+                        </p>
+                    </div>
+                    <div class="journey-card">
+                        <span class="journey-step">3</span>
+                        <h3>Eksik Tamamlama</h3>
+                        <p>Konu anlatımları ve spot bilgilerle eksik olduğunuz noktaları hızlıca giderin.</p>
+                    </div>
+                    <div class="journey-card">
+                        <span class="journey-step">4</span>
+                        <h3>Sınav Provası</h3>
+                        <p>Gerçek sınav stresini yönetmeyi öğrenmek için tam zamanlı simülasyonlara katılın.</p>
                     </div>
                 </div>
             </div>
         </section>
 
-        <section id="contact" class="contact-section">
-            <div class="contact-card reveal">
+        <section class="cta-section">
+            <div class="cta-card">
                 <div>
-                    <span class="section-kicker">İletişim</span>
-                    <h2>Sorularınız İçin Yardım Merkezi</h2>
-                    <p>Platformla ilgili tüm sorularınız için destek merkezini ziyaret edin ya da hesabınızı oluşturup
-                        anında çalışmaya başlayın.</p>
-                    <div class="contact-actions">
-                        <a href="login.html?mode=register" class="btn btn-primary">Hesap Oluştur</a>
-                        <a href="/yardim" class="btn btn-secondary">Yardım Merkezi</a>
-                    </div>
+                    <h2>Hemen Çalışmaya Başlayın</h2>
+                    <p>Kaybedecek zaman yok. Gold GYS ile rakiplerinizin bir adım önüne geçin.</p>
                 </div>
-                <div class="contact-highlights">
-                    <div>
-                        <strong>Hızlı Yanıt</strong>
-                        <span>Panel içi yönlendirme ve destek</span>
-                    </div>
-                    <div>
-                        <strong>Güncel İçerik</strong>
-                        <span>Mevzuat değişikliklerine hızlı adaptasyon</span>
-                    </div>
-                    <div>
-                        <strong>Kesintisiz Erişim</strong>
-                        <span>Mobil ve masaüstünde aynı kalite</span>
-                    </div>
-                </div>
+            </div>
+            <div class="cta-buttons">
+                <!-- Duplicate buttons removed as requested -->
+            </div>
             </div>
         </section>
     </main>
 
     <footer class="landing-footer">
-        <div class="footer-grid">
-            <div class="footer-brand">
-                <a href="/" class="brand-logo">
-                    <img src="img/logo-goldgys.svg" alt="Gold GYS logo" class="brand-mark">
-                    <span class="brand-text"><span class="brand-gold">GOLD</span> GYS</span>
-                </a>
-                <p>Adalet Bakanlığı personeli için geliştirilmiş yeni nesil görevde yükselme sınavı hazırlık
-                    platformu.</p>
+        <div class="header-inner" style="flex-wrap: wrap; height: auto; gap: 2rem;">
+            <div class="footer-brand" style="max-width: 300px;">
+                <a href="/" class="brand-logo" style="margin-bottom: 1rem;">GOLD <span>GYS</span></a>
+                <p style="color: var(--text-muted); font-size: 0.9rem;">
+                    Adalet Bakanlığı personeli için geliştirilmiş, yeni nesil görevde yükselme sınavı hazırlık
+                    platformu.
+                </p>
             </div>
 
-            <div class="footer-links">
+            <div class="footer-links" style="display: flex; gap: 3rem;">
                 <div>
-                    <h4>Platform</h4>
-                    <a href="login.html?mode=login">Giriş Yap</a>
-                    <a href="login.html?mode=register">Kayıt Ol</a>
-                    <a href="/denemeler">Denemeler</a>
+                    <h4 style="color: var(--text-light); margin-bottom: 1rem;">Platform</h4>
+                    <ul style="list-style: none; padding: 0;">
+                        <li style="margin-bottom: 0.5rem;"><a href="login.html?mode=login"
+                                style="color: var(--text-muted); text-decoration: none;">Giriş Yap</a></li>
+                        <li style="margin-bottom: 0.5rem;"><a href="login.html?mode=register"
+                                style="color: var(--text-muted); text-decoration: none;">Kayıt Ol</a></li>
+                        <li style="margin-bottom: 0.5rem;"><a href="/denemeler"
+                                style="color: var(--text-muted); text-decoration: none;">Denemeler</a></li>
+                    </ul>
                 </div>
                 <div>
-                    <h4>Kurumsal</h4>
-                    <a href="#services">Hizmetlerimiz</a>
-                    <a href="#about">Hakkımızda</a>
-                    <a href="/yardim">İletişim</a>
-                </div>
-                <div>
-                    <h4>Yasal</h4>
-                    <a href="/gizlilik">Gizlilik Politikası</a>
-                    <a href="/kullanim-sartlari">Kullanım Şartları</a>
+                    <h4 style="color: var(--text-light); margin-bottom: 1rem;">Yasal</h4>
+                    <ul style="list-style: none; padding: 0;">
+                        <li style="margin-bottom: 0.5rem;"><a href="/pages/gizlilik.html"
+                                style="color: var(--text-muted); text-decoration: none;">Gizlilik Politikası</a></li>
+                        <li style="margin-bottom: 0.5rem;"><a href="/pages/kullanim-sartlari.html"
+                                style="color: var(--text-muted); text-decoration: none;">Kullanım Şartları</a></li>
+                    </ul>
                 </div>
             </div>
         </div>
-        <div class="footer-bottom">
+        <div
+            style="text-align: center; border-top: 1px solid rgba(255,255,255,0.05); margin-top: 3rem; padding-top: 2rem; color: var(--text-muted); font-size: 0.85rem;">
             &copy; 2026 GOLD GYS. Tüm Hakları Saklıdır.
         </div>
     </footer>
 
     <script type="module">
-        import { auth } from "/js/firebase-config.js";
+        import { auth } from "./js/firebase-config.js";
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
+        // Theme Toggle Logic
         const themeToggle = document.getElementById('themeToggle');
         const htmlElement = document.documentElement;
 
+        // Check saved theme
         const savedTheme = localStorage.getItem('theme') || 'dark';
         htmlElement.setAttribute('data-theme', savedTheme);
         updateThemeIcon(savedTheme);
@@ -396,53 +305,26 @@
         }
 
         const nav = document.querySelector('.landing-nav');
-        const mobileToggle = document.getElementById('mobileNavToggle');
-        const primaryNav = document.getElementById('primaryNav');
 
+        // Scroll Effect
         window.addEventListener('scroll', () => {
-            if (window.scrollY > 40) {
+            if (window.scrollY > 50) {
                 nav.classList.add('scrolled');
             } else {
                 nav.classList.remove('scrolled');
             }
         });
 
-        if (mobileToggle && primaryNav) {
-            mobileToggle.addEventListener('click', () => {
-                const isOpen = primaryNav.classList.toggle('open');
-                mobileToggle.classList.toggle('open', isOpen);
-                mobileToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-            });
-
-            primaryNav.querySelectorAll('a').forEach((link) => {
-                link.addEventListener('click', () => {
-                    primaryNav.classList.remove('open');
-                    mobileToggle.classList.remove('open');
-                    mobileToggle.setAttribute('aria-expanded', 'false');
-                });
-            });
-        }
-
-        const revealItems = document.querySelectorAll('.reveal');
-        const observer = new IntersectionObserver(
-            (entries) => {
-                entries.forEach((entry) => {
-                    if (entry.isIntersecting) {
-                        entry.target.classList.add('in');
-                    }
-                });
-            },
-            { threshold: 0.15 }
-        );
-        revealItems.forEach((item) => observer.observe(item));
-
+        // Auth Check
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 const navBtn = document.getElementById("navLoginBtn");
                 const navRegBtn = document.getElementById("navRegisterBtn");
+                // Mobile buttons
                 const mobLoginBtn = document.getElementById("mobileLoginBtn");
                 const mobRegBtn = document.getElementById("mobileRegisterBtn");
 
+                // Giriş yapılmışsa butonları güncelle
                 if (navBtn) {
                     navBtn.textContent = "Panele Git";
                     navBtn.href = "/dashboard";
@@ -451,9 +333,10 @@
                 }
                 if (navRegBtn) navRegBtn.style.display = "none";
 
+                // Mobil Buton Güncellemesi
                 if (mobLoginBtn) {
                     mobLoginBtn.href = "/dashboard";
-                    mobLoginBtn.classList.add("text-success");
+                    mobLoginBtn.classList.add("text-success"); // Vurgula
                     mobLoginBtn.innerHTML = `
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <rect x="3" y="3" width="7" height="7"></rect>
@@ -465,6 +348,7 @@
                 }
                 if (mobRegBtn) mobRegBtn.style.display = "none";
             } else {
+                // Çıkış yapılmışsa (veya hiç girilmemişse) varsayılana döndür
                 const mobLoginBtn = document.getElementById("mobileLoginBtn");
                 const mobRegBtn = document.getElementById("mobileRegisterBtn");
 
@@ -472,7 +356,7 @@
                     mobLoginBtn.href = "login.html?mode=login";
                     mobLoginBtn.classList.remove("text-success");
                     mobLoginBtn.innerHTML = `
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
                             <polyline points="10 17 15 12 10 7" />
@@ -480,7 +364,7 @@
                         </svg>
                     `;
                 }
-                if (mobRegBtn) mobRegBtn.style.display = "flex";
+                if (mobRegBtn) mobRegBtn.style.display = "flex"; // Tekrar göster
             }
         });
     </script>
