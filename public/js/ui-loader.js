@@ -298,6 +298,11 @@ async function loadRequiredHTML(isAdminPage, usePublicLayout = false) {
     }
 
     ensureLandingStyles(false);
+
+    // Remove existing landing navigation if present (e.g. if SPA loaded from index.html)
+    const existingLandingNav = document.querySelector('.landing-nav');
+    if (existingLandingNav) existingLandingNav.remove();
+
     const headerUrl = isAdminPage ? '/partials/admin-header.html' : '/partials/header.html';
     const sidebarUrl = isAdminPage ? '/partials/admin-sidebar.html' : '/partials/sidebar.html';
 
