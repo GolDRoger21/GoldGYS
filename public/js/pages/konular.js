@@ -4,45 +4,45 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/fi
 import { CacheManager } from "../modules/cache-manager.js";
 
 let allTopics = [];
-let userStats = {}; // { topicId: { solved: 10, correct: 8 } }
-let questionCounts = new Map(); // { topicId: count }
+let userStats = {};
+let questionCounts = new Map();
 let unsubscribeAuth = null;
+let isMounted = false; // YENİ: SPA State Check
+
 const QUESTION_COUNT_CACHE_KEY = 'topic_question_counts_v2';
-const QUESTION_COUNT_CACHE_TTL = 24 * 60 * 60 * 1000; // 24 saat
+const QUESTION_COUNT_CACHE_TTL = 24 * 60 * 60 * 1000;
 
 export async function init() {
     console.log('Konular sayfası başlatılıyor...');
+    isMounted = true;
 
     // Reset State
     allTopics = [];
     userStats = {};
     questionCounts = new Map();
 
-    // Event listener'ları temizle veya yeniden bağla
     attachEventListeners();
 
-    // Init Auth listener safely
     if (unsubscribeAuth) unsubscribeAuth();
 
     unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
+        if (!isMounted) return;
         if (user) {
             await loadUserStats(user.uid);
-            await loadTopics();
+            if (isMounted) await loadTopics();
         } else {
-            await loadTopics(); // Guest mode to see topics? Or redirect? Original code waited for auth.
-            // Original logic: if (user) loadStats else wait.
+            if (isMounted) await loadTopics();
         }
     });
 
-    // If already logged in, maybe fire immediately or wait for listener
     const user = auth.currentUser;
     if (user) {
-        // Listener will fire, but we can pre-fetch if needed.
-        // Let's stick to listener to avoid race conditions.
+        // Listener handles it
     }
 }
 
 export function cleanup() {
+    isMounted = false; // Stop all async ops
     if (unsubscribeAuth) {
         unsubscribeAuth();
         unsubscribeAuth = null;
@@ -50,15 +50,13 @@ export function cleanup() {
     allTopics = [];
     userStats = {};
     questionCounts = new Map();
-    // Also remove window.filterTopics if we want to be strict, but it might be used by HTML onclicks.
-    // Ideally we should remove it, but if HTML relies on it, keeping it is safer until HTML is refactored.
-    // window.filterTopics = null; 
 }
 
 function attachEventListeners() {
     const searchInput = document.getElementById('searchInput');
     if (searchInput) {
         searchInput.addEventListener('input', (e) => {
+            if (!isMounted) return;
             const activeTab = document.querySelector('.tab-btn.active');
             const category = activeTab?.dataset?.category || 'all';
             const search = e.target.value.toLowerCase();
@@ -66,8 +64,9 @@ function attachEventListeners() {
         });
     }
 
-    // Global filter function'ı window'a ata (HTML'den çağrılıyor olabilir)
+    // Global filter function
     window.filterTopics = (category, ev) => {
+        if (!isMounted) return;
         document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
         if (ev?.target) ev.target.classList.add('active');
 
@@ -83,30 +82,29 @@ function getCurrentFilter() {
     return { category, search };
 }
 
-// Kullanıcı İstatistiklerini Çek (Mock veya Gerçek)
 async function loadUserStats(uid) {
+    if (!isMounted) return;
     try {
-        // Gerçek uygulamada 'user_stats' koleksiyonundan çekilir
-        // Şimdilik demo veri veya boş obje
-        // const snap = await getDocs(collection(db, `users/${uid}/topic_stats`));
-        // snap.forEach(...)
-
-        // Demo Veri (Görseli test etmek için)
+        // Mock or Real fetch
         userStats = {
             'topic_anayasa': { solved: 45, correct: 38, total: 120 },
             'topic_cmk': { solved: 12, correct: 5, total: 80 }
         };
-    } catch (e) { console.error(e); }
+    } catch (e) {
+        console.error(e);
+    }
 }
 
 async function loadTopics() {
+    if (!isMounted) return;
     try {
         let cachedTopics = CacheManager.get('all_topics_with_counts');
 
         if (cachedTopics) {
-            console.log("Topics loaded from cache");
-            allTopics = cachedTopics.topics;
-            questionCounts = new Map(cachedTopics.counts); // Map serialization needs handling
+            if (isMounted) {
+                allTopics = cachedTopics.topics;
+                questionCounts = new Map(cachedTopics.counts);
+            }
         } else {
             console.log("Fetching topics from Firestore...");
             const q = query(collection(db, "topics"), orderBy("order", "asc"));
@@ -116,6 +114,8 @@ async function loadTopics() {
                 new Promise((_, reject) => setTimeout(() => reject(new Error("Konular yüklenirken zaman aşımı oluştu.")), 8000))
             ]);
 
+            if (!isMounted) return;
+
             allTopics = [];
             snapshot.forEach(doc => {
                 const data = doc.data();
@@ -124,13 +124,13 @@ async function loadTopics() {
                 }
             });
 
-            // 1) Question counts: use cache or topic fields first for speed and quota savings
+            // 1) Question counts from Cache
             const cachedCounts = CacheManager.get(QUESTION_COUNT_CACHE_KEY);
             if (cachedCounts && Array.isArray(cachedCounts)) {
                 questionCounts = new Map(cachedCounts);
             }
 
-            // 2) If topics already have count fields, prefer them and avoid extra reads
+            // 2) Question counts from Topic fields
             allTopics.forEach((topic) => {
                 const countValue = Number.isFinite(topic.questionCount)
                     ? topic.questionCount
@@ -140,27 +140,29 @@ async function loadTopics() {
                 }
             });
 
-            // Map cannot be JSON stringified directly
             CacheManager.set('all_topics_with_counts', {
                 topics: allTopics,
                 counts: Array.from(questionCounts.entries())
-            }, 60 * 60 * 1000); // 1 hour cache
+            }, 60 * 60 * 1000);
         }
 
+        if (!isMounted) return;
         renderTopics(allTopics, getCurrentFilter());
 
-        // Count queries are expensive: run in background and cache for longer
+        // Background fetch for missing counts
         const topicsMissingCounts = allTopics.filter(t => !questionCounts.has(t.id));
         if (topicsMissingCounts.length > 0) {
             loadQuestionCounts(topicsMissingCounts)
                 .then(() => {
+                    if (!isMounted) return;
                     CacheManager.set(QUESTION_COUNT_CACHE_KEY, Array.from(questionCounts.entries()), QUESTION_COUNT_CACHE_TTL);
                     renderTopics(allTopics, getCurrentFilter());
                 })
-                .catch(() => { /* ignore background count errors */ });
+                .catch(() => { });
         }
 
     } catch (error) {
+        if (!isMounted) return;
         console.error("Hata:", error);
         const container = document.getElementById('topicsContainer');
         if (container) {
@@ -170,8 +172,10 @@ async function loadTopics() {
 }
 
 async function loadQuestionCounts(topics) {
+    if (!isMounted) return;
     const counts = new Map();
     await Promise.all(topics.map(async (topic) => {
+        if (!isMounted) return;
         try {
             const q = query(
                 collection(db, "questions"),
@@ -179,19 +183,20 @@ async function loadQuestionCounts(topics) {
                 where("isActive", "==", true)
             );
             const snap = await getCountFromServer(q);
-            counts.set(topic.id, snap.data().count || 0);
+            if (isMounted) counts.set(topic.id, snap.data().count || 0);
         } catch (e) {
             console.warn(`Soru sayısı alınamadı: ${topic.title}`, e);
-            counts.set(topic.id, 0);
+            if (isMounted) counts.set(topic.id, 0);
         }
     }));
-    counts.forEach((val, key) => questionCounts.set(key, val));
+    if (isMounted) counts.forEach((val, key) => questionCounts.set(key, val));
 }
 
 function renderTopics(topics, options = {}) {
+    if (!isMounted) return;
     const { category = 'all', search = '' } = options;
     const container = document.getElementById('topicsContainer');
-    if (!container) return;
+    if (!container) return; // Guard
 
     const searchTerm = search.trim().toLowerCase();
     const childrenByParent = new Map();
@@ -267,7 +272,6 @@ function renderTopics(topics, options = {}) {
             : allChildren;
         const childrenToShow = searchTerm && !parentMatches ? matchingChildren : allChildren;
 
-        // İstatistikler
         const stats = userStats[t.id] || { solved: 0, correct: 0, total: t.totalQuestionTarget || 100 };
         const successRate = stats.solved > 0 ? Math.round((stats.correct / stats.solved) * 100) : 0;
         const progress = Math.min(100, Math.round((stats.solved / stats.total) * 100));

@@ -717,16 +717,26 @@ function hijackNavigation() {
                 if (currentLayoutType && nextLayout !== currentLayoutType) {
                     return;
                 }
-                // Aynı sayfadaki hash geçişlerini tarayıcıya bırak
-                if (url.pathname === currentUrl.pathname && url.search === currentUrl.search && url.hash) {
+
+                // Normalizasyon yap (bazen /admin bazen /admin/ olabiliyor)
+                const normPath = normalizePath(url.pathname);
+                const currentNormPath = normalizePath(currentUrl.pathname);
+
+                // 1. AYNI SAYFA İÇİ HASH DEĞİŞİMİNİ ENGELLE (Admin Paneli İçin Kritik)
+                // Eğer pathname aynıysa ve sadece hash değişiyorsa, router'ın devreye girmesini engelle.
+                if (normPath === currentNormPath && url.hash !== currentUrl.hash) {
+                    // Tarayıcının varsayılan hash davranışına izin ver
                     return;
                 }
 
                 // Tamamen aynı URL ise bir şey yapma
-                if (url.pathname === currentUrl.pathname && url.search === currentUrl.search) {
+                if (normPath === currentNormPath && url.search === currentUrl.search && url.hash === currentUrl.hash) {
                     e.preventDefault();
                     return;
                 }
+
+                // Eğer sadece search değişiyorsa ve hash aynıysa, yine SPA navigasyonu yapmalı
+                // Ancak hash değişiyorsa yukarıdaki kural tutmalı.
 
                 // Harici linkler, dosya indirmeleri veya özel nitelikli linkleri atla
                 if (target.hasAttribute('download') || target.getAttribute('target') === '_blank' || target.classList.contains('no-spa')) {
@@ -734,8 +744,7 @@ function hijackNavigation() {
                 }
 
                 // Firebase auth linkleri veya public rotalar için tam sayfa yenileme
-                const normalizedPath = normalizePath(url.pathname);
-                if (normalizedPath.includes('/login.html') || PUBLIC_ROUTES.includes(normalizedPath)) {
+                if (normPath.includes('/login.html') || PUBLIC_ROUTES.includes(normPath)) {
                     return;
                 }
 
