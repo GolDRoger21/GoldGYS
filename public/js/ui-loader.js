@@ -85,6 +85,32 @@ let activeNavController = null;
 const PAGE_CACHE_PREFIX = 'cached_page_';
 let currentLayoutType = null;
 let currentNavigationId = 0; // Unique ID for each navigation intent
+const SCRIPT_VERSION_KEY = 'app_script_version';
+const SCRIPT_VERSION = (() => {
+    try {
+        const existing = sessionStorage.getItem(SCRIPT_VERSION_KEY);
+        if (existing) return existing;
+        const created = `${Date.now()}`;
+        sessionStorage.setItem(SCRIPT_VERSION_KEY, created);
+        return created;
+    } catch (e) {
+        console.warn('Script version storage unavailable, falling back to timestamp.', e);
+        return `${Date.now()}`;
+    }
+})();
+
+function withScriptVersion(scriptPath) {
+    try {
+        const url = new URL(scriptPath, window.location.origin);
+        if (!url.searchParams.has('v')) {
+            url.searchParams.set('v', SCRIPT_VERSION);
+        }
+        return url.toString();
+    } catch (e) {
+        console.warn('Failed to append script version:', e);
+        return scriptPath;
+    }
+}
 
 function normalizePath(path) {
     const cleanPath = path.split('?')[0];
@@ -957,7 +983,7 @@ function prefetchPage(url) {
     if (config && config.script) {
         const link = document.createElement('link');
         link.rel = 'modulepreload';
-        link.href = config.script;
+        link.href = withScriptVersion(config.script);
         document.head.appendChild(link);
     }
 
@@ -1026,8 +1052,9 @@ async function loadPageScript(path, { navId } = {}) {
     if (!scriptPath) return;
 
     try {
-        console.log(`Loading script: ${scriptPath}`);
-        const module = await import(scriptPath);
+        const scriptUrl = withScriptVersion(scriptPath);
+        console.log(`Loading script: ${scriptUrl}`);
+        const module = await import(scriptUrl);
 
         // Check again after dynamic import
         if (navId && navId !== currentNavigationId) {
@@ -1052,7 +1079,7 @@ async function loadPageScript(path, { navId } = {}) {
             }
         }
 
-        loadedScripts.add(scriptPath);
+        loadedScripts.add(scriptUrl);
 
     } catch (error) {
         if (navId && navId !== currentNavigationId) return;
