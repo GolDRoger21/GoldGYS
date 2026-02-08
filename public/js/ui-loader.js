@@ -338,17 +338,6 @@ function renderScriptError(error) {
     `;
 }
 
-async function executeCleanup() {
-    if (typeof currentCleanupFunction === 'function') {
-        try {
-            // Cleanup senkron veya asenkron olabilir, await ile garantiye al
-            await currentCleanupFunction();
-        } catch (e) {
-            console.warn("Cleanup sırasında hata (yoksayılıyor):", e);
-        }
-        currentCleanupFunction = null;
-    }
-}
 async function loadRequiredHTML(isAdminPage, usePublicLayout = false) {
     // Admin ve User için aynı header yapısını kullanıyoruz artık (tutarlılık için)
     // Ancak içerik farklı olabilir diye dosya isimlerini koruyoruz.
