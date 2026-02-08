@@ -5,7 +5,6 @@ export const UI_SHELL = `
         <h2>📑 Konu Yönetimi</h2>
         <div class="d-flex gap-2">
             <button class="btn btn-primary btn-sm" onclick="window.Studio.open()">➕ Yeni Konu</button>
-            <button class="btn btn-outline-secondary btn-sm" onclick="window.Studio.trash.open()">🗑️ Çöp Kutusu</button>
         </div>
     </div>
 
