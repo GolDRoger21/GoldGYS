@@ -230,43 +230,87 @@ export const UI_SHELL = `
             </aside>
 
             <div id="contentTrashModal" class="modal-overlay" style="display:none; z-index:100010;">
-                <div class="admin-modal-content">
-                    <div class="modal-header">
-                        <h5 class="m-0">🗑️ Silinen İçerikler</h5>
-                        <button onclick="document.getElementById('contentTrashModal').style.display='none'" class="close-btn">&times;</button>
-                    </div>
-                    <div class="modal-body-scroll p-0">
-                         <div class="p-3 border-bottom bg-white d-flex flex-wrap gap-2 align-items-center justify-content-between">
-                            <div class="d-flex flex-wrap gap-2 align-items-center">
-                                <div class="small text-muted">
-                                    Aktif sekmeye göre listelenir: <strong id="contentTrashModeLabel">Ders</strong>
-                                </div>
-                                <input type="text" id="contentTrashSearch" class="form-control form-control-sm" placeholder="Başlıkta ara..." oninput="window.Studio.contentTrash.refresh()">
-                                <select id="contentTrashTypeFilter" class="form-select form-select-sm" onchange="window.Studio.contentTrash.refresh()">
-                                    <option value="active">Aktif Sekme</option>
-                                    <option value="lesson">Ders</option>
-                                    <option value="test">Test</option>
-                                    <option value="all">Tümü</option>
-                                </select>
+                <div class="admin-modal-content" style="max-width: 800px; border-radius: 16px; overflow: hidden; box-shadow: var(--shadow-lg);">
+                    
+                    <!-- Yeni Header Tasarımı -->
+                    <div class="modal-header d-flex justify-content-between align-items-center" style="background: var(--bg-surface); border-bottom: 1px solid var(--border-color); padding: 20px 24px;">
+                        <div class="d-flex align-items-center gap-2">
+                             <div style="width:40px; height:40px; background:rgba(239, 68, 68, 0.1); color:var(--color-danger); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1.25rem;">
+                                🗑️
                             </div>
-                            <div class="d-flex flex-wrap gap-2">
-                                <button class="btn btn-outline-success btn-sm" onclick="window.Studio.contentTrash.restoreSelected()">Seçileni Geri Al</button>
-                                <button class="btn btn-danger btn-sm" onclick="window.Studio.contentTrash.purgeSelected()">Seçileni Sil</button>
-                                <button class="btn btn-danger btn-sm" onclick="window.Studio.contentTrash.purgeAll()">Tümünü Sil</button>
+                            <div>
+                                <h5 class="m-0 fw-bold" style="color: var(--text-main); font-size:1.1rem;">Silinen İçerikler</h5>
+                                <div class="small text-muted" style="font-size: 0.85rem;">Geri yükleyin veya kalıcı olarak silin</div>
                             </div>
                         </div>
-                        <table class="admin-table">
+                        <button onclick="document.getElementById('contentTrashModal').style.display='none'" class="btn-icon" style="color: var(--text-muted); font-size: 1.25rem;">&times;</button>
+                    </div>
+
+                    <!-- Yeni Toolbar Tasarımı -->
+                    <div class="modal-toolbar p-3" style="background: var(--bg-hover); border-bottom: 1px solid var(--border-color);">
+                        <div class="row g-2 align-items-center">
+                            <!-- Sol: Filtreler -->
+                            <div class="col-12 col-md-7">
+                                <div class="d-flex gap-2">
+                                    <div class="input-group input-group-sm" style="max-width: 250px;">
+                                        <span class="input-group-text bg-white border-end-0 text-muted"><i class="fas fa-search"></i></span>
+                                        <input type="text" id="contentTrashSearch" class="form-control border-start-0 ps-0" placeholder="Başlıkta ara..." oninput="window.Studio.contentTrash.refresh()">
+                                    </div>
+                                    <select id="contentTrashTypeFilter" class="form-select form-select-sm" style="max-width: 150px;" onchange="window.Studio.contentTrash.refresh()">
+                                        <option value="active">Aktif Sekme</option>
+                                        <option value="lesson">Ders</option>
+                                        <option value="test">Test</option>
+                                        <option value="all">Tümü</option>
+                                    </select>
+                                    <span class="badge badge-secondary align-self-center d-none d-md-inline-block" id="contentTrashModeLabelBadge">Ders</span>
+                                </div>
+                            </div>
+
+                            <!-- Sağ: İşlemler -->
+                            <div class="col-12 col-md-5">
+                                <div class="d-flex justify-content-md-end gap-2">
+                                    <button class="btn btn-sm btn-success text-white fw-bold shadow-sm" onclick="window.Studio.contentTrash.restoreSelected()" title="Seçilenleri Geri Yükle">
+                                        <i class="fas fa-undo me-1"></i> Geri Al
+                                    </button>
+                                    <div class="vr mx-1 opacity-25"></div>
+                                    <button class="btn btn-sm btn-outline-danger" onclick="window.Studio.contentTrash.purgeSelected()" title="Seçilenleri Kalıcı Sil">
+                                        <i class="fas fa-trash me-1"></i> Sil
+                                    </button>
+                                    <button class="btn btn-sm btn-danger text-white shadow-sm" onclick="window.Studio.contentTrash.purgeAll()" title="Tüm Çöp Kutusunu Boşalt">
+                                        <i class="fas fa-bomb me-1"></i> Tümünü Sil
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal-body-scroll p-0" style="background: var(--bg-surface); min-height: 400px; max-height: 60vh;">
+                        <table class="admin-table table-hover">
                             <thead>
-                                <tr>
-                                    <th style="width:36px;"><input type="checkbox" id="contentTrashSelectAll" onchange="window.Studio.contentTrash.toggleAll(this.checked)"></th>
-                                    <th>Başlık</th>
-                                    <th class="text-center">Sıra</th>
-                                    <th class="text-center">Tür</th>
-                                    <th class="text-end">İşlem</th>
+                                <tr style="background: var(--bg-hover);">
+                                    <th style="width:40px; text-align:center; vertical-align:middle;">
+                                        <div class="form-check d-flex justify-content-center m-0">
+                                            <input class="form-check-input" type="checkbox" id="contentTrashSelectAll" onchange="window.Studio.contentTrash.toggleAll(this.checked)">
+                                        </div>
+                                    </th>
+                                    <th style="color: var(--text-muted); font-weight: 600; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.5px;">Başlık</th>
+                                    <th class="text-center" style="color: var(--text-muted); font-weight: 600; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.5px;">Sıra</th>
+                                    <th class="text-center" style="color: var(--text-muted); font-weight: 600; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.5px;">Tür</th>
+                                    <th class="text-end" style="color: var(--text-muted); font-weight: 600; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.5px;">İşlem</th>
                                 </tr>
                             </thead>
                             <tbody id="contentTrashTableBody"></tbody>
                         </table>
+                        
+                        <!-- Empty State Placeholder (JavaScript ile gösterilecek/gizlenecek) -->
+                        <div id="contentTrashEmptyState" class="d-none flex-column align-items-center justify-content-center py-5 text-muted">
+                            <div style="font-size: 3rem; opacity: 0.3;">🗑️</div>
+                            <p class="mt-2 text-center">Çöp kutusu boş</p>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer p-2 text-center border-top bg-light small text-muted">
+                        <i class="fas fa-info-circle me-1"></i> Silinen içerikler 30 gün sonra otomatik olarak kalıcı silinir.
                     </div>
                 </div>
             </div>

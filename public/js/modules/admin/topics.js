@@ -1192,12 +1192,22 @@ async function openContentTrash() {
     closeModalById('trashModal');
     const modal = document.getElementById('contentTrashModal');
     const tbody = document.getElementById('contentTrashTableBody');
-    const modeLabel = document.getElementById('contentTrashModeLabel');
+    const modeLabel = document.getElementById('contentTrashModeLabelBadge');
     if (!modal) return;
     modal.style.display = 'flex';
     if (modeLabel) modeLabel.innerText = state.sidebarTab === 'test' ? 'Test' : 'Ders';
 
-    if (tbody) tbody.innerHTML = '<tr><td colspan="4" class="p-3">Yükleniyor...</td></tr>';
+    const emptyState = document.getElementById('contentTrashEmptyState');
+    const tableContainer = tbody.closest('table');
+
+    if (tbody) {
+        if (tableContainer) tableContainer.style.display = '';
+        if (emptyState) {
+            emptyState.classList.add('d-none');
+            emptyState.classList.remove('d-flex');
+        }
+        tbody.innerHTML = '<tr><td colspan="5" class="p-3 text-center">Yükleniyor...</td></tr>';
+    }
 
     try {
         const q = query(
@@ -1275,9 +1285,23 @@ function renderContentTrashTable() {
         return typeMatches && (item.title || '').toLowerCase().includes(search);
     });
 
+    const emptyState = document.getElementById('contentTrashEmptyState');
+    const tableContainer = tbody.closest('table'); // Tabloyu bul
+
     if (filtered.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-muted">Bu kriterlerde silinmiş içerik yok.</td></tr>`;
+        tbody.innerHTML = '';
+        if (tableContainer) tableContainer.style.display = 'none';
+        if (emptyState) {
+            emptyState.classList.remove('d-none');
+            emptyState.classList.add('d-flex');
+        }
         return;
+    }
+
+    if (tableContainer) tableContainer.style.display = '';
+    if (emptyState) {
+        emptyState.classList.add('d-none');
+        emptyState.classList.remove('d-flex');
     }
 
     tbody.innerHTML = filtered.map(r => `
