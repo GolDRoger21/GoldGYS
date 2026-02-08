@@ -92,39 +92,38 @@ export const UI_SHELL = `
 
                     <div id="contentEditor" style="display:none; flex-direction:column; height:100%; width:100%;">
 
-                    <div class="editor-toolbar d-flex flex-column flex-md-row align-items-stretch align-items-md-center gap-3 p-3 bg-light border-bottom">
+                    <div class="editor-toolbar">
                         <!-- SOL: Başlık Alanı -->
-                        <div class="d-flex align-items-center flex-grow-1 gap-2">
-                             <span class="badge bg-primary px-3 py-2" id="editorBadge" style="font-size: 0.85rem;">DERS</span>
-                             <input type="text" id="inpContentTitle" class="form-control form-control-lg fw-bold border-0 bg-transparent shadow-none" placeholder="İçerik Başlığı Giriniz..." style="font-size: 1.1rem; padding-left: 0;">
+                        <div class="editor-title-group">
+                             <span class="badge bg-primary px-3 py-2" id="editorBadge">DERS</span>
+                             <input type="text" id="inpContentTitle" class="editor-title-input" placeholder="İçerik Başlığı Giriniz...">
                         </div>
 
                         <!-- SAĞ: İşlemler ve Meta -->
-                        <div class="d-flex align-items-center gap-3 justify-content-between justify-content-md-end">
-                            
+                        <div class="editor-actions">
                             <!-- Kayıt Durumu -->
-                            <div class="d-none d-md-block">
+                            <div class="save-indicator">
                                 <span id="saveIndicator" class="text-muted small fw-medium">
                                     <i class="fas fa-check-circle me-1"></i> Kaydedildi
                                 </span>
                             </div>
 
-                            <div class="vr mx-2 opacity-25 d-none d-md-block"></div>
+                            <div class="vr opacity-25 d-none d-md-block"></div>
 
                             <!-- Sıra No -->
-                            <div class="input-group input-group-sm shadow-sm" style="width: 100px;" title="Sıra Numarası">
+                            <div class="input-group input-group-sm shadow-sm order-input" title="Sıra Numarası">
                                 <span class="input-group-text bg-white border-end-0 text-muted px-2">#</span>
                                 <input type="number" id="inpContentOrder" class="form-control border-start-0 text-center ps-0 fw-bold">
                             </div>
 
-                            <div class="vr mx-2 opacity-25"></div>
+                            <div class="vr opacity-25 d-none d-md-block"></div>
 
                             <!-- Butonlar -->
-                            <div class="d-flex gap-2">
-                                <button class="btn btn-outline-danger btn-sm btn-icon shadow-sm" onclick="window.Studio.deleteContent()" title="İçeriği Sil" style="width: 36px; height: 36px;">
+                            <div class="editor-action-buttons">
+                                <button class="btn btn-outline-danger btn-sm btn-icon shadow-sm" onclick="window.Studio.deleteContent()" title="İçeriği Sil">
                                     🗑️
                                 </button>
-                                <button class="btn btn-success btn-sm px-4 fw-bold shadow-sm d-flex align-items-center gap-2" onclick="window.Studio.saveContent()" style="height: 36px;">
+                                <button class="btn btn-success btn-sm px-4 fw-bold shadow-sm d-flex align-items-center gap-2" onclick="window.Studio.saveContent()">
                                     💾 <span class="d-none d-sm-inline">Kaydet</span>
                                 </button>
                             </div>

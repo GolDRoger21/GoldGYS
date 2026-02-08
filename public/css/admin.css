@@ -1275,7 +1275,6 @@ tr.highlight {
 
 /* Editör Toolbar (EN ÜSTTE SABİT) */
 .editor-toolbar {
-    height: 70px;
     min-height: 70px;
     border-bottom: 1px solid var(--border-color);
     display: flex;
@@ -1286,6 +1285,8 @@ tr.highlight {
     flex-shrink: 0;
     z-index: 10;
     width: 100%;
+    gap: 16px;
+    flex-wrap: wrap;
 }
 
 .editor-title-group {
@@ -1328,6 +1329,29 @@ tr.highlight {
 
 .editor-actions .input-group-text {
     white-space: nowrap;
+}
+
+.editor-actions .save-indicator {
+    display: flex;
+    align-items: center;
+}
+
+.editor-actions .order-input {
+    width: 110px;
+}
+
+.editor-action-buttons {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.editor-action-buttons .btn {
+    height: 36px;
+}
+
+.editor-action-buttons .btn-icon {
+    width: 36px;
 }
 
 /* Editör İçerik Alanı (ALTTA KAYDIRILABİLİR) */
@@ -1923,6 +1947,23 @@ tr.highlight {
 }
 
 @media (max-width: 768px) {
+    .editor-toolbar {
+        padding: 12px 16px;
+    }
+
+    .editor-title-group {
+        flex-basis: 100%;
+    }
+
+    .editor-actions {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .editor-actions .save-indicator {
+        width: 100%;
+    }
+
     .drawer {
         width: 100%;
     }
