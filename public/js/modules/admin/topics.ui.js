@@ -92,17 +92,17 @@ export const UI_SHELL = `
 
                     <div id="contentEditor" style="display:none; flex-direction:column; height:100%; width:100%;">
 
-                    <div class="editor-toolbar">
+                    <div class="editor-toolbar studio-editor-toolbar">
                         <!-- SOL: Başlık Alanı -->
-                        <div class="editor-title-group">
+                        <div class="editor-title-group studio-editor-title-group">
                              <span class="badge bg-primary px-3 py-2" id="editorBadge">DERS</span>
                              <input type="text" id="inpContentTitle" class="editor-title-input" placeholder="İçerik Başlığı Giriniz...">
                         </div>
 
                         <!-- SAĞ: İşlemler ve Meta -->
-                        <div class="editor-actions">
+                        <div class="editor-actions studio-editor-actions">
                             <!-- Kayıt Durumu -->
-                            <div class="save-indicator">
+                            <div class="save-indicator studio-save-indicator">
                                 <span id="saveIndicator" class="text-muted small fw-medium">
                                     <i class="fas fa-check-circle me-1"></i> Kaydedildi
                                 </span>
@@ -111,7 +111,7 @@ export const UI_SHELL = `
                             <div class="vr opacity-25 d-none d-md-block"></div>
 
                             <!-- Sıra No -->
-                            <div class="input-group input-group-sm shadow-sm order-input" title="Sıra Numarası">
+                            <div class="input-group input-group-sm shadow-sm order-input studio-order-input" title="Sıra Numarası">
                                 <span class="input-group-text bg-white border-end-0 text-muted px-2">#</span>
                                 <input type="number" id="inpContentOrder" class="form-control border-start-0 text-center ps-0 fw-bold">
                             </div>
@@ -119,7 +119,7 @@ export const UI_SHELL = `
                             <div class="vr opacity-25 d-none d-md-block"></div>
 
                             <!-- Butonlar -->
-                            <div class="editor-action-buttons">
+                            <div class="editor-action-buttons studio-editor-action-buttons">
                                 <button class="btn btn-outline-danger btn-sm btn-icon shadow-sm" onclick="window.Studio.deleteContent()" title="İçeriği Sil">
                                     🗑️
                                 </button>
@@ -252,12 +252,12 @@ export const UI_SHELL = `
             </aside>
 
             <div id="contentTrashModal" class="modal-overlay" style="display:none; z-index:100010;">
-                <div class="admin-modal-content" style="max-width: 800px; border-radius: 16px; overflow: hidden; box-shadow: var(--shadow-lg);">
+                <div class="admin-modal-content content-trash-modal" style="max-width: 800px; border-radius: 16px; overflow: hidden; box-shadow: var(--shadow-lg);">
                     
                     <!-- Yeni Header Tasarımı -->
-                    <div class="modal-header d-flex justify-content-between align-items-center" style="background: var(--bg-surface); border-bottom: 1px solid var(--border-color); padding: 20px 24px;">
-                        <div class="d-flex align-items-center gap-2">
-                             <div style="width:40px; height:40px; background:rgba(239, 68, 68, 0.1); color:var(--color-danger); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1.25rem;">
+                    <div class="modal-header content-trash-header d-flex justify-content-between align-items-center" style="background: var(--bg-surface); border-bottom: 1px solid var(--border-color); padding: 20px 24px;">
+                        <div class="d-flex align-items-center gap-2 content-trash-title">
+                             <div class="content-trash-icon">
                                 🗑️
                             </div>
                             <div>
@@ -265,20 +265,20 @@ export const UI_SHELL = `
                                 <div class="small text-muted" style="font-size: 0.85rem;">Geri yükleyin veya kalıcı olarak silin</div>
                             </div>
                         </div>
-                        <button onclick="document.getElementById('contentTrashModal').style.display='none'" class="btn-icon" style="color: var(--text-muted); font-size: 1.25rem;">&times;</button>
+                        <button onclick="document.getElementById('contentTrashModal').style.display='none'" class="btn-icon content-trash-close" style="color: var(--text-muted); font-size: 1.25rem;">&times;</button>
                     </div>
 
                     <!-- Yeni Toolbar Tasarımı -->
-                    <div class="modal-toolbar p-3" style="background: var(--bg-hover); border-bottom: 1px solid var(--border-color);">
+                    <div class="modal-toolbar content-trash-toolbar p-3" style="background: var(--bg-hover); border-bottom: 1px solid var(--border-color);">
                         <div class="row g-2 align-items-center">
                             <!-- Sol: Filtreler -->
                             <div class="col-12 col-md-7">
-                                <div class="d-flex gap-2">
-                                    <div class="input-group input-group-sm" style="max-width: 250px;">
+                                <div class="d-flex gap-2 content-trash-filters">
+                                    <div class="input-group input-group-sm content-trash-search">
                                         <span class="input-group-text bg-white border-end-0 text-muted"><i class="fas fa-search"></i></span>
                                         <input type="text" id="contentTrashSearch" class="form-control border-start-0 ps-0" placeholder="Başlıkta ara..." oninput="window.Studio.contentTrash.refresh()">
                                     </div>
-                                    <select id="contentTrashTypeFilter" class="form-select form-select-sm" style="max-width: 150px;" onchange="window.Studio.contentTrash.refresh()">
+                                    <select id="contentTrashTypeFilter" class="form-select form-select-sm content-trash-type" onchange="window.Studio.contentTrash.refresh()">
                                         <option value="active">Aktif Sekme</option>
                                         <option value="lesson">Ders</option>
                                         <option value="test">Test</option>
@@ -290,11 +290,11 @@ export const UI_SHELL = `
 
                             <!-- Sağ: İşlemler -->
                             <div class="col-12 col-md-5">
-                                <div class="d-flex justify-content-md-end gap-2">
+                                <div class="d-flex justify-content-md-end gap-2 content-trash-actions">
                                     <button class="btn btn-sm btn-success text-white fw-bold shadow-sm" onclick="window.Studio.contentTrash.restoreSelected()" title="Seçilenleri Geri Yükle">
                                         <i class="fas fa-undo me-1"></i> Geri Al
                                     </button>
-                                    <div class="vr mx-1 opacity-25"></div>
+                                    <div class="vr mx-1 opacity-25 d-none d-md-block"></div>
                                     <button class="btn btn-sm btn-outline-danger" onclick="window.Studio.contentTrash.purgeSelected()" title="Seçilenleri Kalıcı Sil">
                                         <i class="fas fa-trash me-1"></i> Sil
                                     </button>
