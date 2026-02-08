@@ -31,8 +31,8 @@
         href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Manrope:wght@300;400;500;600;700&display=swap"
         rel="stylesheet">
 
-    <link rel="stylesheet" href="css/app.css">
-    <link rel="stylesheet" href="css/landing.css">
+    <link rel="stylesheet" href="/css/app.css">
+    <link rel="stylesheet" href="/css/landing.css">
 
     <link rel="icon" href="/img/logo-goldgys.svg">
     <link rel="manifest" href="/manifest.json">
@@ -44,7 +44,7 @@
         <div class="header-inner">
             <div class="header-left">
                 <a href="/" class="brand-logo" aria-label="Gold GYS Ana Sayfa">
-                    <img src="img/logo-goldgys.svg" alt="Gold GYS logo" class="brand-mark">
+                    <img src="/img/logo-goldgys.svg" alt="Gold GYS logo" class="brand-mark">
                     <span class="brand-text"><span class="brand-gold">GOLD</span> GYS</span>
                 </a>
                 <div class="nav-links" id="primaryNav">
@@ -360,7 +360,7 @@
     </footer>
 
     <script type="module">
-        import { auth } from "./js/firebase-config.js";
+        import { auth } from "/js/firebase-config.js";
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         const themeToggle = document.getElementById('themeToggle');
