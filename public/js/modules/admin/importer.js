@@ -142,30 +142,46 @@ async function runKeywordMigration() {
 
         // DB'deki her konuyu gez
         allTopics.forEach(topic => {
-            // Haritada bu başlık var mı?
-            const mappedKeywords = TOPIC_KEYWORDS[topic.title];
+            let mappedKeywords = null;
+            const dbTitle = topic.title.toLowerCase().trim();
+
+            // 1. Tam Eşleşme Kontrolü
+            if (TOPIC_KEYWORDS[topic.title]) {
+                mappedKeywords = TOPIC_KEYWORDS[topic.title];
+            } else {
+                // 2. Fuzzy / Akıllı Eşleşme
+                // Haritadaki her anahtarı gez
+                const matchedKey = Object.keys(TOPIC_KEYWORDS).find(mapTitle => {
+                    const mapTitleLower = mapTitle.toLowerCase();
+                    // Örn: DB="Anayasa", Map="Türkiye Cumhuriyeti Anayasası" -> Eşleşir
+                    // Örn: DB="İdare Hukuku", Map="İdare Hukuku" -> Eşleşir
+                    return mapTitleLower.includes(dbTitle) || dbTitle.includes(mapTitleLower);
+                });
+
+                if (matchedKey) {
+                    mappedKeywords = TOPIC_KEYWORDS[matchedKey];
+                    // log(`Eşleşme Bulundu: "${topic.title}" -> "${matchedKey}"`);
+                }
+            }
 
             if (mappedKeywords) {
                 const ref = doc(db, "topics", topic.id);
-                // Mevcut kelimeleri korumak isterseniz birleştirin, burada OVERWRITE yapıyoruz (temiz başlangıç için)
-                // İstenirse: const merged = [...new Set([...(topic.keywords||[]), ...mappedKeywords])];
                 const finalKeywords = mappedKeywords.map(k => k.toLowerCase());
 
                 batch.update(ref, { keywords: finalKeywords });
                 updateCount++;
             } else {
                 missingCount++;
-                // console.warn("Haritada bulunamayan konu:", topic.title);
             }
         });
 
         if (updateCount > 0) {
             await batch.commit();
-            log(`✅ ${updateCount} konu güncellendi. (${missingCount} konu haritada yok)`, "success");
+            log(`✅ ${updateCount} konu güncellendi. (${missingCount} konu eşleşmedi)`, "success");
             await fetchTopics(); // Belleği tazele
             showToast(`${updateCount} konu başarıyla güncellendi.`, "success");
         } else {
-            log("Güncellenecek eşleşme bulunamadı.", "info");
+            log("Güncellenecek eşleşme bulunamadı. Konu başlıklarını kontrol edin.", "info");
         }
 
     } catch (e) {
