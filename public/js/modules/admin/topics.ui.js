@@ -235,6 +235,11 @@ export const UI_SHELL = `
                                 </select>
                             </div>
                         </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-muted">ANAHTAR KELİMELER</label>
+                            <textarea id="inpTopicKeywords" class="form-control" rows="2" placeholder="örn: anayasa, 2709, temel haklar (virgülle ayırın)"></textarea>
+                            <div class="form-text small">Otomatik eşleştirme için kullanılır.</div>
+                        </div>
                         <div class="mb-4">
                             <label class="form-label fw-bold small text-muted">YAYIN DURUMU</label>
                             <select id="inpTopicStatus" class="form-select">

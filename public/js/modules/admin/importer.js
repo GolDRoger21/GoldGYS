@@ -2,16 +2,18 @@ import { db } from "../../firebase-config.js";
 import { showConfirm, showToast } from "../../notifications.js";
 import { collection, writeBatch, doc, serverTimestamp, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import * as XLSX from "https://cdn.sheetjs.com/xlsx-latest/package/xlsx.mjs";
+import { TOPIC_KEYWORDS } from './keyword-map.js';
 
 export function initImporterPage() {
     const container = document.getElementById('section-importer');
     container.innerHTML = `
         <div class="section-header">
             <div>
-                <h2>📥 Toplu Soru Yükleme</h2>
-                <p class="text-muted">Excel veya JSON dosyasından binlerce soruyu tek seferde yükleyin.</p>
+                <h2>📥 Akıllı Soru Yükleme</h2>
+                <p class="text-muted">Mevzuat ve anahtar kelime destekli otomatik eşleştirme sistemi.</p>
             </div>
             <div class="d-flex gap-2">
+                <button onclick="window.Importer.migrate()" class="btn btn-warning btn-sm">⚠️ Veritabanı Kelimelerini Güncelle</button>
                 <button onclick="showGuide()" class="btn btn-guide">ℹ️ Format Rehberi</button>
             </div>
         </div>
@@ -20,180 +22,189 @@ export function initImporterPage() {
             <div class="col-md-5">
                 <div class="card p-5 text-center border-dashed" style="border: 2px dashed var(--border-color); cursor:pointer;" onclick="document.getElementById('fileInput').click()">
                     <div style="font-size: 3rem; margin-bottom: 10px;">📂</div>
-                    <h5>Dosya Seç veya Sürükle</h5>
-                    <p class="text-muted small">.json (Önerilen) veya .xlsx formatında</p>
+                    <h5>Dosya Seç (JSON/Excel)</h5>
+                    <p class="text-muted small">Sürükleyip bırakabilir veya tıklayabilirsiniz.</p>
                     <input type="file" id="fileInput" accept=".json, .xlsx, .xls" style="display: none;">
                 </div>
                 
                 <div class="card mt-3 bg-dark text-white">
-                    <div class="card-header py-2 border-secondary"><small>LOG</small></div>
+                    <div class="card-header py-2 border-secondary d-flex justify-content-between align-items-center">
+                        <small>İŞLEM GÜNLÜĞÜ</small>
+                        <small id="logStatus" class="text-secondary">Hazır</small>
+                    </div>
                     <div id="importLog" class="card-body p-2" style="height: 150px; overflow-y: auto; font-family: monospace; font-size: 0.8rem;">
-                        <span class="text-muted">> Hazır...</span>
+                        <span class="text-muted">> Sistem hazır...</span>
                     </div>
                 </div>
             </div>
 
             <div class="col-md-7">
                 <div class="card h-100" id="previewCard" style="display:none;">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <h5 class="m-0">Önizleme</h5>
-                        <button id="btnStartImport" class="btn btn-success btn-sm" disabled>Yüklemeyi Başlat</button>
+                    <div class="card-header d-flex flex-wrap gap-2 justify-content-between align-items-center">
+                        <h5 class="m-0">Önizleme ve Onay</h5>
+                        <div class="d-flex gap-2">
+                             <button class="btn btn-outline-success btn-sm" onclick="window.Importer.approveHigh()">✅ Yüksek Güvenlileri Onayla</button>
+                             <button class="btn btn-outline-primary btn-sm" onclick="window.Importer.approveAll()">✅ Tümünü Onayla</button>
+                        </div>
                     </div>
-                    <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
-                        <table class="admin-table table-sm">
-                            <thead><tr><th>#</th><th>Kategori</th><th>Soru</th><th>Düzeltmeler</th><th>Durum</th></tr></thead>
+                    <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
+                        <table class="admin-table table-sm" style="font-size: 0.9rem;">
+                            <thead style="position:sticky; top:0; z-index:10;">
+                                <tr>
+                                    <th style="width:40px;">#</th>
+                                    <th>Soru Özeti</th>
+                                    <th style="width:250px;">Önerilen Konu</th>
+                                    <th style="width:100px;">Güven</th>
+                                    <th style="width:100px;">Durum</th>
+                                </tr>
+                            </thead>
                             <tbody id="previewTableBody"></tbody>
                         </table>
+                    </div>
+                    <div class="card-footer text-end">
+                        <button id="btnStartImport" class="btn btn-success" disabled onclick="window.Importer.save()">Veritabanına Kaydet</button>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- REHBER MODALI -->
+        <!-- REHBER MODALI (Aynı İçerik) -->
         <div id="guideModal" class="modal-overlay" style="display:none;">
-            <div class="modal-content admin-modal-content">
+             <div class="modal-content admin-modal-content">
                 <div class="modal-header">
-                    <h3>📋 Veri Hazırlama Rehberi</h3>
+                    <h3>📋 Format Rehberi</h3>
                     <button onclick="document.getElementById('guideModal').style.display='none'" class="close-btn">&times;</button>
                 </div>
                 <div class="modal-body-scroll">
-                    <h5>JSON Formatı (Önerilen)</h5>
-                    <p>JSON yüklemesi en sağlıklı yöntemdir. Aşağıdaki format birebir korunmalıdır. Sistem kategori adını otomatik eşleştirir (örn. "Anayasa" → "Türkiye Cumhuriyeti Anayasası").</p>
-                    <pre style="background:var(--bg-hover); color:var(--text-main); padding:10px; border-radius:5px; border:1px solid var(--border-color);">
-[
-  {
-    "category": "Anayasa",
-    "difficulty": 3,
-    "type": "standard",
-    "text": "Soru metni...",
-    "questionRoot": null,
-    "onculler": [],
-    "options": [
-       {"id": "A", "text": "Cevap A"},
-       {"id": "B", "text": "Cevap B"},
-       {"id": "C", "text": "Cevap C"},
-       {"id": "D", "text": "Cevap D"},
-       {"id": "E", "text": "Cevap E"}
-    ],
-    "correctOption": "A",
-    "legislationRef": { "code": "5271", "article": "12" },
-    "solution": {
-      "analiz": "Detaylı açıklama",
-      "dayanakText": "Mevzuat dayanağı",
-      "hap": "Hap bilgi",
-      "tuzak": "Sınav tuzağı"
-    }
-  }
-]
-                    </pre>
-                    <h5>Otomatik Eşleştirme & Düzeltmeler</h5>
-                    <ul class="text-muted small">
-                        <li>Kategori isimleri normalize edilir ve en yakın sistem kategorisi bulunur (kısaltma, büyük/küçük harf ve noktalama hataları düzeltilir).</li>
-                        <li>Doğru cevap "A)", "a", "1" gibi formatlarda yazılsa bile A-E şıklarına eşleştirilir.</li>
-                        <li>Zorluk değeri 1-5 aralığında değilse otomatik olarak 3 yapılır.</li>
-                        <li>Eksik şık veya eksik soru metni varsa ilgili satır önizlemede işaretlenir ve yüklemeye alınmaz.</li>
-                    </ul>
-                    <h5>Excel Kolonları (Opsiyonel)</h5>
-                    <p class="text-muted small mb-2">Excel yüklemesinde aşağıdaki kolon adları desteklenir (Türkçe/İngilizce):</p>
-                    <ul class="text-muted small">
-                        <li>Kategori / category</li>
-                        <li>Soru Metni / text</li>
-                        <li>Tip / type</li>
-                        <li>Zorluk / difficulty</li>
-                        <li>Şıklar: A, B, C, D, E</li>
-                        <li>Doğru Cevap / correctOption</li>
-                        <li>Kanun No / code, Madde No / article</li>
-                        <li>Çözüm Analiz / analiz, Mevzuat Dayanak / dayanak, Hap Bilgi / hap, Sınav Tuzağı / tuzak</li>
-                        <li>Öncüller / Onculler (A|B|C şeklinde ayrılabilir)</li>
-                    </ul>
-                    <h5>Yapay Zeka Promptu (JSON üretimi için)</h5>
-                    <p>Aşağıdaki promptu kopyalayıp yapay zekaya verin. Çıktıyı sadece JSON olarak üretmesini isteyin. Kategori için kendi kısa adlarınızı yazabilirsiniz; sistem en yakın kategoriyle eşleştirir.</p>
-                    <pre style="background:var(--bg-hover); color:var(--text-main); padding:10px; border-radius:5px; border:1px solid var(--border-color); white-space: pre-wrap;">
-Sen bir hukuk sınavı soru üretim asistanısın. Aşağıdaki kurallara uyarak SADECE JSON dizi çıktısı üret:
-- Çıktı bir JSON array olmalı.
-- Her nesnede şu alanlar zorunlu: category, difficulty (1-5), type, text, options (A-E), correctOption, legislationRef, solution.
-- options alanı A, B, C, D, E id’lerine sahip 5 seçenek içermeli.
-- correctOption yalnızca "A", "B", "C", "D" veya "E" olabilir.
-- legislationRef alanında code ve article string olmalı (bilinmiyorsa boş string).
-- solution alanında analiz, dayanakText, hap, tuzak alanları string olmalı (bilinmiyorsa boş string).
-- questionRoot null olabilir, onculler ise string dizisi olabilir.
-- Asla açıklama, markdown veya ek metin yazma; yalnızca JSON döndür.
-- category alanında uzun resmi isim yerine kısa isim kullanılabilir (örn. "Anayasa"). Sistem otomatik eşleştirir.
-
-Örnek çıktı formatı:
-[
-  {
-    "category": "Anayasa",
-    "difficulty": 3,
-    "type": "standard",
-    "text": "Soru metni...",
-    "questionRoot": null,
-    "onculler": [],
-    "options": [
-      {"id": "A", "text": "Seçenek A"},
-      {"id": "B", "text": "Seçenek B"},
-      {"id": "C", "text": "Seçenek C"},
-      {"id": "D", "text": "Seçenek D"},
-      {"id": "E", "text": "Seçenek E"}
-    ],
-    "correctOption": "A",
-    "legislationRef": { "code": "5271", "article": "12" },
-    "solution": {
-      "analiz": "Detaylı açıklama",
-      "dayanakText": "",
-      "hap": "",
-      "tuzak": ""
-    }
-  }
-]
-                    </pre>
+                    <p>JSON formatı önerilir. Excel yüklemelerinde 'Soru Metni', 'A', 'B', 'C', 'D', 'E', 'Doğru Cevap' sütunları zorunludur.</p>
+                    <p>Mevzuat kodu (örn: 5271) veya anahtar kelime (örn: tutuklama) içeren sorular otomatik eşleştirilir.</p>
                 </div>
             </div>
         </div>
     `;
 
     document.getElementById('fileInput').addEventListener('change', handleFileSelect);
-    document.getElementById('btnStartImport').addEventListener('click', startBatchImport);
 
-    ensureCategoryIndex();
+    // Window export
+    window.Importer = {
+        save: startBatchImport,
+        migrate: runKeywordMigration,
+        updateTopic: updateRowTopic,
+        approveRow: toggleRowApproval,
+        approveHigh: approveHighConfidence,
+        approveAll: approveAll
+    };
+
+    fetchTopics();
 }
 
 let parsedQuestions = [];
-let categoryIndex = null;
-let categoryList = [];
-let categoryIndexPromise = null;
+let allTopics = [];
+
+// ============================================================
+// --- VERİ HAZIRLIĞI VE GÖÇ (MIGRATION) ---
+// ============================================================
+
+async function fetchTopics() {
+    try {
+        const snapshot = await getDocs(query(collection(db, "topics"), orderBy("title", "asc")));
+        allTopics = [];
+        snapshot.forEach(doc => {
+            const d = doc.data();
+            allTopics.push({
+                id: doc.id,
+                title: d.title,
+                parentId: d.parentId,
+                keywords: d.keywords || []
+            });
+        });
+        log(`${allTopics.length} konu ve anahtar kelimeleri belleğe alındı.`, "success");
+    } catch (e) {
+        console.error(e);
+        log("Konu listesi alınamadı!", "error");
+    }
+}
+
+async function runKeywordMigration() {
+    const confirm = await showConfirm("Tüm konuların anahtar kelimeleri 'keyword-map.js' dosyasındaki verilerle güncellenecektir. Onaylıyor musunuz?", {
+        title: "Veritabanı Güncelleme",
+        confirmText: "Kelimeleri Güncelle (Overwrite)",
+        cancelText: "İptal"
+    });
+    if (!confirm) return;
+
+    log("Veritabanı güncellemesi başlatılıyor...", "warning");
+
+    try {
+        const batch = writeBatch(db);
+        let updateCount = 0;
+        let missingCount = 0;
+
+        // DB'deki her konuyu gez
+        allTopics.forEach(topic => {
+            // Haritada bu başlık var mı?
+            const mappedKeywords = TOPIC_KEYWORDS[topic.title];
+
+            if (mappedKeywords) {
+                const ref = doc(db, "topics", topic.id);
+                // Mevcut kelimeleri korumak isterseniz birleştirin, burada OVERWRITE yapıyoruz (temiz başlangıç için)
+                // İstenirse: const merged = [...new Set([...(topic.keywords||[]), ...mappedKeywords])];
+                const finalKeywords = mappedKeywords.map(k => k.toLowerCase());
+
+                batch.update(ref, { keywords: finalKeywords });
+                updateCount++;
+            } else {
+                missingCount++;
+                // console.warn("Haritada bulunamayan konu:", topic.title);
+            }
+        });
+
+        if (updateCount > 0) {
+            await batch.commit();
+            log(`✅ ${updateCount} konu güncellendi. (${missingCount} konu haritada yok)`, "success");
+            await fetchTopics(); // Belleği tazele
+            showToast(`${updateCount} konu başarıyla güncellendi.`, "success");
+        } else {
+            log("Güncellenecek eşleşme bulunamadı.", "info");
+        }
+
+    } catch (e) {
+        console.error(e);
+        log("Güncelleme hatası: " + e.message, "error");
+    }
+}
+
+// ============================================================
+// --- DOSYA İŞLEME VE ANALİZ ---
+// ============================================================
 
 async function handleFileSelect(event) {
     const file = event.target.files[0];
     if (!file) return;
 
     log(`Dosya okunuyor: ${file.name}`);
-    parsedQuestions = []; // Önceki veriyi temizle
+    parsedQuestions = [];
 
     try {
+        let rawData = [];
         if (file.name.endsWith('.json')) {
-            // JSON Dosyası İşleme
             const text = await file.text();
-            const jsonData = JSON.parse(text);
-
-            if (Array.isArray(jsonData)) {
-                parsedQuestions = jsonData.map((q, index) => normalizeQuestionData(q, index));
-                log(`JSON'dan ${parsedQuestions.length} soru okundu.`, "success");
-            } else {
-                throw new Error("JSON dosyası bir dizi (array) içermelidir.");
-            }
+            rawData = JSON.parse(text);
         } else {
-            // Excel Dosyası İşleme
             const data = await file.arrayBuffer();
             const workbook = XLSX.read(data);
             const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-            const rawData = XLSX.utils.sheet_to_json(firstSheet);
-            parsedQuestions = convertExcelData(rawData);
-            log(`Excel'den ${parsedQuestions.length} satır okundu.`, "success");
+            rawData = XLSX.utils.sheet_to_json(firstSheet);
+            rawData = convertExcelData(rawData); // Excel formatını JSON standardına çevir
         }
 
-        await ensureCategoryIndex();
-        validateAndPreview();
+        if (!Array.isArray(rawData)) throw new Error("Veri listesi bulunamadı.");
+
+        // Analiz Başlat
+        parsedQuestions = rawData.map((q, index) => analyzeQuestion(q, index));
+        log(`${parsedQuestions.length} soru analiz edildi. Önizleme oluşturuluyor...`, "success");
+
+        renderPreviewTable();
 
     } catch (error) {
         console.error(error);
@@ -201,412 +212,324 @@ async function handleFileSelect(event) {
     }
 }
 
-// Excel Verisini Dönüştürme (Sadece Excel için kullanılır)
-function convertExcelData(rawData) {
-    return rawData.map((row, index) => {
-        // Öncülleri ayır
-        let onculler = [];
-        if (row['Onculler']) {
-            onculler = row['Onculler'].split('|').map(s => s.trim());
-        }
+function analyzeQuestion(q, index) {
+    const text = (q.text || '').toLowerCase();
+    const cleanCategory = (q.category || '').trim();
 
-        const rawQuestion = {
-            category: row['Kategori'] || row['category'] || 'Genel',
-            difficulty: parseInt(row['Zorluk'] || row['difficulty']) || 3,
-            type: row['Tip'] || row['type'] || 'standard',
-            text: row['Soru Metni'] || row['text'],
-            questionRoot: row['Soru Koku'] || row['questionRoot'] || null,
-            onculler: onculler,
+    // 1. CONFIDENCE HESAPLA
+    const { bestTopicId, score, reasons, matchType } = calculateConfidence(text, cleanCategory);
 
-            options: [
-                { id: 'A', text: row['A'] || '' },
-                { id: 'B', text: row['B'] || '' },
-                { id: 'C', text: row['C'] || '' },
-                { id: 'D', text: row['D'] || '' },
-                { id: 'E', text: row['E'] || '' }
-            ],
-            correctOption: (row['Doğru Cevap'] || row['correctOption'] || '').toUpperCase(),
+    // 2. STATÜ BELİRLE
+    let status = 'pending'; // pending, approved, ignored
+    let confidenceLabel = 'low'; // low, medium, high
 
-            solution: {
-                analiz: row['Çözüm Analiz'] || row['analiz'] || '',
-                dayanakText: row['Mevzuat Dayanak'] || row['dayanak'] || '',
-                hap: row['Hap Bilgi'] || row['hap'] || '',
-                tuzak: row['Sınav Tuzağı'] || row['tuzak'] || ''
-            },
+    if (score >= 80) confidenceLabel = 'high';
+    else if (score >= 40) confidenceLabel = 'medium';
 
-            legislationRef: {
-                code: String(row['Kanun No'] || row['code'] || ''),
-                article: String(row['Madde No'] || row['article'] || '')
-            }
-        };
-
-        return normalizeQuestionData(rawQuestion, index);
-    });
-}
-
-function normalizeQuestionData(rawQuestion, index = 0) {
-    const normalizedOptions = normalizeOptions(rawQuestion.options || []);
-    const normalizedCorrectOption = normalizeCorrectOption(rawQuestion.correctOption, normalizedOptions);
+    // Eşleşen konuyu bul (yoksa null)
+    let suggestedTopic = allTopics.find(t => t.id === bestTopicId) || { id: '', title: q.category || 'Genel' };
 
     return {
-        category: rawQuestion.category || 'Genel',
-        difficulty: Number.isFinite(rawQuestion.difficulty) ? rawQuestion.difficulty : 3,
-        type: rawQuestion.type || 'standard',
-        text: rawQuestion.text || '',
-        questionRoot: rawQuestion.questionRoot ?? null,
-        onculler: Array.isArray(rawQuestion.onculler) ? rawQuestion.onculler.map(val => String(val).trim()).filter(Boolean) : [],
-        options: normalizedOptions,
-        correctOption: normalizedCorrectOption,
-        solution: {
-            analiz: rawQuestion.solution?.analiz || '',
-            dayanakText: rawQuestion.solution?.dayanakText || '',
-            hap: rawQuestion.solution?.hap || '',
-            tuzak: rawQuestion.solution?.tuzak || ''
-        },
-        legislationRef: {
-            code: rawQuestion.legislationRef?.code ? String(rawQuestion.legislationRef.code) : '',
-            article: rawQuestion.legislationRef?.article ? String(rawQuestion.legislationRef.article) : ''
-        },
-        isActive: true,
-        isFlaggedForReview: false,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
-        _rowIndex: index + 1
+        ...q,
+        _id: index,
+        _score: score,
+        _reasons: reasons,
+        _matchType: matchType,
+        _confidence: confidenceLabel,
+        _status: status, // Kullanıcı onayı için
+        _suggestedTopicId: suggestedTopic.id,
+        _suggestedTopicTitle: suggestedTopic.title
     };
 }
 
-function normalizeOptions(options) {
-    if (!Array.isArray(options)) return [];
-    const normalized = options
-        .filter(option => option)
-        .map((option, index) => {
-            if (typeof option === 'string') {
-                return { id: '', text: option, _index: index };
+function calculateConfidence(text, inputCategoryName) {
+    let bestTopicId = null;
+    let maxScore = 0;
+    let reasons = [];
+    let matchType = 'none'; // keyword, legislation, similarity
+
+    // A) MEVZUAT NO KONTROLÜ (En Güçlü)
+    // Metin içinde 4 haneli sayıları (2709, 5271 vb.) ara
+    const legislationMatches = text.match(/\b\d{3,4}\b/g) || [];
+
+    if (legislationMatches.length > 0) {
+        for (const topic of allTopics) {
+            const keywords = topic.keywords || [];
+            // Konunun keywordlerinde bu sayılardan biri var mı?
+            const match = legislationMatches.find(num => keywords.includes(num));
+            if (match) {
+                return {
+                    bestTopicId: topic.id,
+                    score: 100,
+                    reasons: [`Kanun No Eşleşmesi: ${match}`],
+                    matchType: 'legislation'
+                };
             }
-            return {
-                id: String(option.id || '').toUpperCase(),
-                text: option.text || '',
-                _index: index
-            };
-        })
-        .map(option => ({ ...option, text: String(option.text || '').trim() }))
-        .filter(option => option.text);
-
-    return normalized.map(option => ({
-        id: option.id || ['A', 'B', 'C', 'D', 'E'][option._index] || '',
-        text: option.text
-    }));
-}
-
-function normalizeCorrectOption(correctOption, options) {
-    if (!correctOption) return '';
-    const normalized = String(correctOption).trim().toUpperCase();
-    const cleaned = normalized.replace(/[^A-E0-9]/g, '');
-    if (['A', 'B', 'C', 'D', 'E'].includes(cleaned) && options.some(option => option.id === cleaned)) {
-        return cleaned;
-    }
-    if (['1', '2', '3', '4', '5'].includes(cleaned)) {
-        const mapped = ['A', 'B', 'C', 'D', 'E'][Number(cleaned) - 1];
-        return options.some(option => option.id === mapped) ? mapped : '';
-    }
-    const optionMatch = findCorrectOptionFromText(normalized, options);
-    return optionMatch || '';
-}
-
-function findCorrectOptionFromText(rawValue, options) {
-    if (!rawValue) return '';
-    const normalized = normalizeText(rawValue);
-    const matched = options.find(option => normalizeText(option.text) === normalized);
-    return matched?.id || '';
-}
-
-function normalizeText(value) {
-    return String(value || '')
-        .toLowerCase()
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')
-        .replace(/[^a-z0-9\s]/g, ' ')
-        .replace(/\s+/g, ' ')
-        .trim();
-}
-
-async function ensureCategoryIndex() {
-    if (categoryIndex) return categoryIndex;
-    if (categoryIndexPromise) return categoryIndexPromise;
-
-    categoryIndexPromise = (async () => {
-        try {
-            const snapshot = await getDocs(query(collection(db, "topics"), orderBy("title", "asc")));
-            categoryList = [];
-            snapshot.forEach(doc => {
-                const topic = doc.data();
-                if (topic?.title) {
-                    categoryList.push(String(topic.title));
-                }
-            });
-            categoryIndex = buildCategoryIndex(categoryList);
-            log(`Kategori listesi yüklendi (${categoryList.length} kayıt).`, "success");
-        } catch (error) {
-            console.error("Kategoriler yüklenemedi:", error);
-            log("Kategori listesi alınamadı. Eşleştirme sınırlı çalışacak.", "error");
-            categoryIndex = new Map();
-            categoryList = [];
         }
-        return categoryIndex;
-    })();
+    }
 
-    return categoryIndexPromise;
-}
+    // B) KELİME TARAMASI
+    allTopics.forEach(topic => {
+        let currentScore = 0;
+        let matchedKw = [];
+        const keywords = topic.keywords || [];
 
-function buildCategoryIndex(categories) {
-    const map = new Map();
-    categories.forEach(category => {
-        const normalized = normalizeCategoryName(category);
-        if (normalized) map.set(normalized, category);
-        getCategoryAliases(category).forEach(alias => {
-            const aliasKey = normalizeCategoryName(alias);
-            if (aliasKey && !map.has(aliasKey)) {
-                map.set(aliasKey, category);
+        keywords.forEach(kw => {
+            // Sadece sayı olanları zaten yukarıda baktık, metinlere bak
+            if (isNaN(kw) && text.includes(kw)) {
+                currentScore += 20; // Her kelime 20 puan
+                matchedKw.push(kw);
             }
         });
+
+        // Eğer kullanıcı zaten doğru bir kategori adı yazmışsa
+        if (inputCategoryName && topic.title.toLowerCase().includes(inputCategoryName.toLowerCase())) {
+            currentScore += 50;
+            matchedKw.push("(Kategori Adı)");
+        }
+
+        if (currentScore > maxScore) {
+            maxScore = currentScore;
+            bestTopicId = topic.id;
+            reasons = matchedKw;
+            matchType = 'keyword';
+        }
     });
-    return map;
-}
 
-function normalizeCategoryName(value) {
-    return normalizeText(value);
-}
-
-function getCategoryAliases(category) {
-    const aliases = new Set();
-    const normalized = normalizeCategoryName(category);
-    if (normalized) aliases.add(normalized);
-
-    const tokens = normalized.split(' ').filter(Boolean);
-    const filteredTokens = tokens.filter(token => !['turkiye', 'cumhuriyeti', 'cumhuriyet', 'tc', 't', 'c', 'hakkinda'].includes(token));
-    if (filteredTokens.length) {
-        aliases.add(filteredTokens.join(' '));
-    }
-
-    const withoutSuffix = filteredTokens.filter(token => !['kanunu', 'kanun', 'mevzuati', 'mevzuat'].includes(token));
-    if (withoutSuffix.length) {
-        aliases.add(withoutSuffix.join(' '));
-    }
-
-    if (tokens.length) {
-        aliases.add(tokens.map(token => token[0]).join(''));
-    }
-
-    return Array.from(aliases).filter(Boolean);
-}
-
-function matchCategory(inputCategory) {
-    const normalized = normalizeCategoryName(inputCategory);
-    if (!normalized) return '';
-    if (!categoryList.length) {
-        return inputCategory;
-    }
-    if (categoryIndex?.has(normalized)) {
-        return categoryIndex.get(normalized);
-    }
-
-    let bestMatch = '';
-    let bestScore = 0;
-    const inputTokens = new Set(normalized.split(' '));
-    categoryList.forEach(candidate => {
-        const candidateNormalized = normalizeCategoryName(candidate);
-        if (!candidateNormalized) return;
-        if (candidateNormalized.includes(normalized) || normalized.includes(candidateNormalized)) {
-            const score = Math.min(candidateNormalized.length, normalized.length) / Math.max(candidateNormalized.length, normalized.length);
-            if (score > bestScore) {
-                bestScore = score;
-                bestMatch = candidate;
+    // C) FALLBACK (Skor çok düşükse bile en iyiyi döndür, ama güven 'low' olacak)
+    if (maxScore === 0) {
+        // Metin benzerliği için basit bir kontrol (Levenshtein ağır kaçar, include ile yetinelim)
+        allTopics.forEach(topic => {
+            const titleParts = topic.title.toLowerCase().split(' ').filter(w => w.length > 4);
+            let hit = 0;
+            titleParts.forEach(p => { if (text.includes(p)) hit++; });
+            if (hit > 0 && hit * 10 > maxScore) {
+                maxScore = hit * 10;
+                bestTopicId = topic.id;
+                reasons = ["Başlık Benzerliği"];
+                matchType = 'similarity';
             }
-        }
-        const candidateTokens = new Set(candidateNormalized.split(' '));
-        const overlap = [...inputTokens].filter(token => candidateTokens.has(token)).length;
-        const score = overlap / Math.max(candidateTokens.size, inputTokens.size);
-        if (score > bestScore) {
-            bestScore = score;
-            bestMatch = candidate;
-        }
-    });
+        });
+    }
 
-    return bestScore >= 0.45 ? bestMatch : '';
+    // Tavan puan 100
+    return { bestTopicId, score: Math.min(maxScore, 100), reasons, matchType };
 }
 
-function validateAndPreview() {
+// ============================================================
+// --- ARAYÜZ VE TABLO (SMART UI) ---
+// ============================================================
+
+const topicOptionsHTML = () => {
+    // Hiyerarşik Dropdown
+    let html = `<option value="">-- Seçiniz --</option>`;
+    // Parentları bul
+    const parents = allTopics.filter(t => !t.parentId);
+    parents.forEach(p => {
+        html += `<option value="${p.id}" style="font-weight:bold;">${p.title}</option>`;
+        const children = allTopics.filter(t => t.parentId === p.id);
+        children.forEach(c => {
+            html += `<option value="${c.id}">&nbsp;&nbsp;↳ ${c.title}</option>`;
+        });
+    });
+    // Yetim konular
+    const orphans = allTopics.filter(t => t.parentId && !allTopics.find(x => x.id === t.parentId));
+    if (orphans.length) {
+        html += `<optgroup label="Diğer">`;
+        orphans.forEach(o => html += `<option value="${o.id}">${o.title}</option>`);
+        html += `</optgroup>`;
+    }
+    return html;
+};
+
+function renderPreviewTable() {
     const table = document.getElementById('previewTableBody');
-    table.innerHTML = '';
-    let validCount = 0;
-    let invalidCount = 0;
-    const summary = {
-        categoryFixes: 0,
-        answerFixes: 0,
-        difficultyFixes: 0,
-        warningCount: 0
-    };
+    document.getElementById('previewCard').style.display = 'block';
 
-    parsedQuestions.forEach((q, index) => {
-        const fixes = [];
-        const warnings = [];
-        const errors = [];
+    // Dropdown HTML'ini bir kere oluştur (Performans)
+    const options = topicOptionsHTML();
 
-        const cleanedCategory = String(q.category || '').trim();
-        const categoryMatch = matchCategory(cleanedCategory);
-        if (categoryMatch && categoryMatch !== cleanedCategory) {
-            q.category = categoryMatch;
-            fixes.push(`Kategori → ${categoryMatch}`);
-            summary.categoryFixes += 1;
-        } else if (!categoryMatch && cleanedCategory) {
-            warnings.push('Kategori eşleşmedi');
-            summary.warningCount += 1;
-        } else if (!cleanedCategory) {
-            q.category = 'Genel';
-            fixes.push('Kategori → Genel');
-            summary.categoryFixes += 1;
-        }
+    let rows = parsedQuestions.map(q => {
+        // Güven Rozeti
+        let badgeClass = 'bg-secondary';
+        let badgeText = `${q._score} - Düşük`;
+        if (q._confidence === 'high') { badgeClass = 'bg-success'; badgeText = `${q._score} - Yüksek`; }
+        else if (q._confidence === 'medium') { badgeClass = 'bg-warning text-dark'; badgeText = `${q._score} - Orta`; }
 
-        const difficulty = Number(q.difficulty);
-        if (!Number.isFinite(difficulty) || difficulty < 1 || difficulty > 5) {
-            q.difficulty = 3;
-            fixes.push('Zorluk → 3');
-            summary.difficultyFixes += 1;
-        }
+        // Tooltip
+        const tooltip = `Sebep: ${q._reasons.join(', ')}`;
 
-        if (!q.type || !String(q.type).trim()) {
-            q.type = 'standard';
-            fixes.push('Tip → standard');
-        }
+        // Satır Rengi (Onay durumuna göre)
+        const rowBg = q._status === 'approved' ? 'background:rgba(16, 185, 129, 0.1);' : '';
+        const checkIcon = q._status === 'approved' ? '✅' : '⬜';
 
-        const optionIds = new Set(q.options.map(option => option.id));
-        const hasRequiredOptions = ['A', 'B', 'C', 'D', 'E'].every(id => optionIds.has(id));
-        if (!hasRequiredOptions) {
-            errors.push('Şıklar A-E eksik');
-        }
-
-        if (!q.text || !String(q.text).trim()) {
-            errors.push('Soru metni eksik');
-        } else {
-            q.text = String(q.text).trim();
-        }
-
-        if (q.legislationRef) {
-            if (q.legislationRef.code) q.legislationRef.code = String(q.legislationRef.code).trim();
-            if (q.legislationRef.article) q.legislationRef.article = String(q.legislationRef.article).trim();
-        }
-
-        const hasCorrectOption = q.correctOption && optionIds.has(q.correctOption);
-        if (!hasCorrectOption) {
-            const repaired = normalizeCorrectOption(q.correctOption, q.options);
-            if (repaired && optionIds.has(repaired)) {
-                q.correctOption = repaired;
-                fixes.push(`Doğru cevap → ${repaired}`);
-                summary.answerFixes += 1;
-            } else {
-                errors.push('Doğru cevap hatalı/eksik');
-            }
-        }
-
-        q._meta = { fixes, warnings, errors };
-        const isValid = errors.length === 0;
-        q._isValid = isValid;
-        if (isValid) {
-            validCount++;
-        } else {
-            invalidCount++;
-        }
-
-        const shortText = q.text ? (q.text.length > 50 ? q.text.substring(0, 50) + '...' : q.text) : '---';
-        const titleText = q.text || errors[0] || 'Geçersiz veri';
-        const statusText = errors.length ? `❌ ${errors.join(', ')}` : '✅ Hazır';
-        const fixText = [...fixes, ...warnings.map(w => `⚠️ ${w}`)].join('<br>') || '—';
-
-        table.innerHTML += `
-            <tr style="${!isValid ? 'background:rgba(255,0,0,0.08)' : ''}">
-                <td>${index + 1}</td>
-                <td>${q.category || '-'}</td>
-                <td title="${titleText}">${shortText}</td>
-                <td>${fixText}</td>
-                <td>${statusText}</td>
+        return `
+            <tr id="row-${q._id}" style="${rowBg}">
+                <td>${q._id + 1}</td>
+                <td>
+                    <div class="text-truncate" style="max-width: 300px;" title="${q.text}">${q.text}</div>
+                    <small class="text-muted">Gelen Kategori: ${q.category || '-'}</small>
+                </td>
+                <td>
+                    <select class="form-select form-select-sm" onchange="window.Importer.updateTopic(${q._id}, this.value)">
+                        ${options.replace(`value="${q._suggestedTopicId}"`, `value="${q._suggestedTopicId}" selected`)}
+                    </select>
+                </td>
+                <td>
+                    <span class="badge ${badgeClass}" title="${tooltip}" style="cursor:help;">${badgeText}</span>
+                </td>
+                <td class="text-center">
+                    <button class="btn btn-sm btn-light border" onclick="window.Importer.approveRow(${q._id})">
+                        ${checkIcon}
+                    </button>
+                </td>
             </tr>
         `;
-    });
+    }).join('');
 
-    document.getElementById('previewCard').style.display = 'block';
-    const btn = document.getElementById('btnStartImport');
+    table.innerHTML = rows;
+    updateSaveButtonState();
+}
 
-    if (validCount > 0) {
-        btn.disabled = false;
-        btn.innerText = `🚀 ${validCount} Soruyu Yükle`;
-        log(`${validCount} geçerli soru bulundu. Yüklemeye hazır.`, "success");
-        if (invalidCount > 0) {
-            log(`${invalidCount} soru hatalı olduğu için atlanacak.`, "error");
-        }
-        if (summary.categoryFixes || summary.answerFixes || summary.difficultyFixes) {
-            log(`Otomatik düzeltmeler: ${summary.categoryFixes} kategori, ${summary.answerFixes} cevap, ${summary.difficultyFixes} zorluk.`, "success");
-        }
+// ============================================================
+// --- AKSİYONLAR ---
+// ============================================================
+
+function toggleRowApproval(index) {
+    const q = parsedQuestions[index];
+    q._status = q._status === 'approved' ? 'pending' : 'approved';
+
+    // UI Güncelle (Tüm tabloyu render etme, sadece satırı boya)
+    const row = document.getElementById(`row-${index}`);
+    const btn = row.querySelector('button');
+    if (q._status === 'approved') {
+        row.style.background = 'rgba(16, 185, 129, 0.1)';
+        btn.innerText = '✅';
     } else {
-        btn.disabled = true;
-        btn.innerText = "Yüklenecek Soru Yok";
-        log("Geçerli soru bulunamadı. Lütfen dosya formatını kontrol edin.", "error");
+        row.style.background = '';
+        btn.innerText = '⬜';
     }
+    updateSaveButtonState();
+}
+
+function updateRowTopic(index, newTopicId) {
+    const q = parsedQuestions[index];
+    q._suggestedTopicId = newTopicId;
+    const topic = allTopics.find(t => t.id === newTopicId);
+    q._suggestedTopicTitle = topic ? topic.title : '';
+
+    // Kullanıcı elle değiştirdiyse otomatik onayla
+    if (q._status !== 'approved') {
+        toggleRowApproval(index);
+    }
+}
+
+function approveHighConfidence() {
+    let count = 0;
+    parsedQuestions.forEach((q, idx) => {
+        if (q._confidence === 'high' && q._status !== 'approved') {
+            q._status = 'approved';
+            count++;
+            // UI Update
+            const row = document.getElementById(`row-${idx}`);
+            if (row) {
+                row.style.background = 'rgba(16, 185, 129, 0.1)';
+                row.querySelector('button').innerText = '✅';
+            }
+        }
+    });
+    showToast(`${count} yüksek güvenli soru onaylandı.`, "success");
+    updateSaveButtonState();
+}
+
+function approveAll() {
+    parsedQuestions.forEach((q, idx) => {
+        q._status = 'approved';
+        const row = document.getElementById(`row-${idx}`);
+        if (row) {
+            row.style.background = 'rgba(16, 185, 129, 0.1)';
+            row.querySelector('button').innerText = '✅';
+        }
+    });
+    showToast("Tüm sorular onaylandı.", "success");
+    updateSaveButtonState();
+}
+
+function updateSaveButtonState() {
+    const approvedCount = parsedQuestions.filter(q => q._status === 'approved').length;
+    const btn = document.getElementById('btnStartImport');
+    btn.disabled = approvedCount === 0;
+    btn.innerText = approvedCount > 0 ? `Seçili ${approvedCount} Soruyu Kaydet` : 'Onaylanan Yok';
 }
 
 async function startBatchImport() {
-    const validQuestions = parsedQuestions.filter(q => q._isValid);
-    const invalidCount = parsedQuestions.length - validQuestions.length;
-    const shouldImport = await showConfirm(`${validQuestions.length} soruyu veritabanına yüklemek istiyor musunuz?${invalidCount ? ` (${invalidCount} soru hatalı olduğu için atlanacak.)` : ''}`, {
-        title: "Toplu Yükleme",
-        confirmText: "Yüklemeyi Başlat",
-        cancelText: "Vazgeç"
-    });
-    if (!shouldImport) return;
-    if (validQuestions.length === 0) return;
+    const approved = parsedQuestions.filter(q => q._status === 'approved');
+    if (approved.length === 0) return;
+
+    if (!await showConfirm(`${approved.length} soru veritabanına kaydedilecek. Onaylıyor musunuz?`)) return;
 
     const btn = document.getElementById('btnStartImport');
     btn.disabled = true;
-    btn.innerText = "Yükleniyor...";
+    btn.innerText = "Kaydediliyor...";
 
     try {
-        // Firestore Batch limiti 500'dür. Büyük dosyaları parçalayalım.
         const batchSize = 450;
-        const chunks = [];
-
-        for (let i = 0; i < validQuestions.length; i += batchSize) {
-            chunks.push(validQuestions.slice(i, i + batchSize));
-        }
-
-        log(`Toplam ${chunks.length} paket halinde yüklenecek...`);
-
-        for (let i = 0; i < chunks.length; i++) {
+        for (let i = 0; i < approved.length; i += batchSize) {
+            const chunk = approved.slice(i, i + batchSize);
             const batch = writeBatch(db);
-            const chunk = chunks[i];
 
             chunk.forEach(q => {
                 const docRef = doc(collection(db, "questions"));
-                const { _meta, _isValid, ...payload } = q;
-                batch.set(docRef, payload);
+                batch.set(docRef, {
+                    text: q.text,
+                    options: q.options || [], // Excel conv fonk. burayı doldurmalı
+                    correctOption: q.correctOption,
+                    topicId: q._suggestedTopicId,
+                    topicName: q._suggestedTopicTitle,
+                    difficulty: q.difficulty || 3,
+                    createdAt: serverTimestamp(),
+                    isActive: true,
+                    // Diğer alanlar...
+                    solution: q.solution || {},
+                    type: q.type || 'standard'
+                });
             });
 
             await batch.commit();
-            log(`Paket ${i + 1}/${chunks.length} yüklendi (${chunk.length} soru).`, "success");
+            log(`Paket yüklendi: ${chunk.length} soru.`, "success");
         }
 
-        log("✅ TÜM İŞLEMLER BAŞARIYLA TAMAMLANDI!", "success");
-        showToast("Yükleme başarıyla tamamlandı.", "success");
-
-        // Temizlik
-        document.getElementById('previewCard').style.display = 'none';
-        document.getElementById('fileInput').value = '';
-        parsedQuestions = [];
+        showToast("İşlem başarıyla tamamlandı!", "success");
+        setTimeout(() => {
+            document.getElementById('previewCard').style.display = 'none';
+            document.getElementById('fileInput').value = '';
+        }, 2000);
 
     } catch (e) {
         console.error(e);
-        log("Yükleme sırasında hata: " + e.message, "error");
+        log("Kayıt hatası: " + e.message, "error");
         btn.disabled = false;
-        btn.innerText = "Tekrar Dene";
     }
+}
+
+// Helper: Excel Dönüştürücü (Basitleştirilmiş)
+function convertExcelData(rawData) {
+    return rawData.map(row => ({
+        text: row['Soru Metni'] || row['text'] || '',
+        category: row['Kategori'] || row['category'] || '',
+        difficulty: row['Zorluk'] || 3,
+        correctOption: row['Doğru Cevap'] || row['correctOption'],
+        options: [
+            { id: 'A', text: row['A'] || '' },
+            { id: 'B', text: row['B'] || '' },
+            { id: 'C', text: row['C'] || '' },
+            { id: 'D', text: row['D'] || '' },
+            { id: 'E', text: row['E'] || '' }
+        ],
+        solution: {
+            analiz: row['Çözüm'] || ''
+        }
+    }));
 }
 
 function log(msg, type = "info") {
@@ -614,8 +537,9 @@ function log(msg, type = "info") {
     const color = type === 'error' ? '#ef4444' : (type === 'success' ? '#10b981' : '#9ca3af');
     area.innerHTML += `<div style="color:${color}">> ${msg}</div>`;
     area.scrollTop = area.scrollHeight;
+
+    document.getElementById('logStatus').innerText = type === 'success' ? 'İşlem Tamam' : 'İşleniyor...';
 }
 
-window.showGuide = () => {
-    document.getElementById('guideModal').style.display = 'flex';
-};
+window.showGuide = () => document.getElementById('guideModal').style.display = 'flex';
+

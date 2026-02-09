@@ -7,6 +7,7 @@ import {
 import { showConfirm, showToast } from "../../notifications.js";
 import { openQuestionEditor } from './content.js';
 import { UI_SHELL, renderNavItem } from './topics.ui.js';
+import { TOPIC_KEYWORDS } from './keyword-map.js';
 
 // ============================================================
 // --- GLOBAL STATE ---
@@ -290,6 +291,10 @@ async function openEditor(id = null) {
             document.getElementById('inpTopicOrder').value = t.order;
             document.getElementById('inpTopicCategory').value = t.category;
             document.getElementById('inpTopicStatus').value = t.isActive;
+            // Keywords
+            const kwInput = document.getElementById('inpTopicKeywords');
+            if (kwInput) kwInput.value = (t.keywords || []).join(', ');
+
             updateParentOptions(id);
             document.getElementById('inpTopicParent').value = t.parentId || '';
 
@@ -312,6 +317,10 @@ async function openEditor(id = null) {
         document.getElementById('inpTopicOrder').value = getNextOrderForParent(null);
         updateParentOptions(null);
         document.getElementById('inpTopicParent').value = '';
+        // Reset/Auto-Populate Keywords (Event listener will handle auto-pop on title change)
+        const kwInput = document.getElementById('inpTopicKeywords');
+        if (kwInput) kwInput.value = "";
+
         document.getElementById('contentListNav').innerHTML = '';
 
         updateActiveTopicTitle("Yeni Konu Oluşturuluyor...");
@@ -504,6 +513,10 @@ async function saveTopicMeta() {
         category: document.getElementById('inpTopicCategory').value,
         isActive: document.getElementById('inpTopicStatus').value === 'true',
         parentId,
+        keywords: (document.getElementById('inpTopicKeywords')?.value || '')
+            .split(',')
+            .map(k => k.trim().toLowerCase())
+            .filter(Boolean),
         updatedAt: serverTimestamp()
     };
     if (!id) {
