@@ -171,15 +171,35 @@ async function runKeywordMigration() {
                 batch.update(ref, { keywords: finalKeywords });
                 updateCount++;
             } else {
+                // EŞLEŞME YOKSA: Konu başlığından otomatik kelime üret
                 missingCount++;
+
+                const ref = doc(db, "topics", topic.id);
+                // Başlıktaki kelimeleri ayır (Örn: "İdari Yargılama Usulü" -> "idari", "yargılama", "usulü")
+                const autoKeywords = [
+                    topic.title.toLowerCase(),
+                    ...topic.title.toLowerCase().split(/\s+/).filter(w => w.length > 2 && !['ve', 'ile', 'veya'].includes(w))
+                ];
+
+                // Benzersiz yap
+                const uniqueKeywords = [...new Set(autoKeywords)];
+
+                batch.update(ref, { keywords: uniqueKeywords });
+                // Bunu da güncellendi sayabiliriz ama logda belirtelim
+                // updateCount++; 
+                console.log(`Otomatik kelime üretildi: ${topic.title} -> ${uniqueKeywords}`);
             }
         });
 
-        if (updateCount > 0) {
+        if (updateCount > 0 || missingCount > 0) {
             await batch.commit();
-            log(`✅ ${updateCount} konu güncellendi. (${missingCount} konu eşleşmedi)`, "success");
+            const totalProcessed = updateCount + missingCount;
+            log(`✅ İŞLEM TAMAMLANDI: Toplam ${totalProcessed} konu işlendi.`, "success");
+            log(`📌 ${updateCount} konu haritadan eşleşti.`, "success");
+            log(`📌 ${missingCount} konu için başlıktan otomatik kelime üretildi.`, "warning");
+
             await fetchTopics(); // Belleği tazele
-            showToast(`${updateCount} konu başarıyla güncellendi.`, "success");
+            showToast(`Tüm konular (${totalProcessed} adet) için anahtar kelimeler tanımlandı.`, "success");
         } else {
             log("Güncellenecek eşleşme bulunamadı. Konu başlıklarını kontrol edin.", "info");
         }
