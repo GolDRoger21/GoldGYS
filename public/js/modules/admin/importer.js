@@ -334,7 +334,7 @@ function calculateConfidence(text, inputCategoryName) {
 
     // C) FALLBACK (Skor çok düşükse bile en iyiyi döndür, ama güven 'low' olacak)
     if (maxScore === 0) {
-        // Metin benzerliği için basit bir kontrol (Levenshtein ağır kaçar, include ile yetinelim)
+        // Metin benzerliği için basit bir kontrol
         allTopics.forEach(topic => {
             const titleParts = topic.title.toLowerCase().split(' ').filter(w => w.length > 4);
             let hit = 0;
@@ -346,6 +346,60 @@ function calculateConfidence(text, inputCategoryName) {
                 matchType = 'similarity';
             }
         });
+    }
+
+    // D) PARENT (ÜST KONU) KISITLAMASI
+    // Eğer bulunan konu bir üst konuysa ve altında alt konular varsa, soru üst konuya eklenemez.
+    // Alt konular arasında yeniden puanlama yaparak en uygununu seçmeliyiz.
+    if (bestTopicId) {
+        const children = allTopics.filter(t => t.parentId === bestTopicId);
+
+        if (children.length > 0) {
+            let bestChild = null;
+            let bestChildScore = -1;
+            const parentTitle = allTopics.find(t => t.id === bestTopicId)?.title || '';
+
+            reasons.push(`Üst Konu (${parentTitle}) yerine alt konu arandı`);
+
+            children.forEach(child => {
+                let currentChildScore = 0;
+
+                // 1. Keyword check
+                if (child.keywords) {
+                    child.keywords.forEach(kw => {
+                        if (isNaN(kw) && text.includes(kw)) currentChildScore += 20;
+                    });
+                }
+
+                // 2. Title similarity
+                const titleParts = child.title.toLowerCase().split(' ').filter(w => w.length > 3);
+                titleParts.forEach(p => { if (text.includes(p)) currentChildScore += 10; });
+
+                if (currentChildScore > bestChildScore) {
+                    bestChildScore = currentChildScore;
+                    bestChild = child;
+                }
+            });
+
+            if (bestChild) { // En az bir child bulundu veya hepsi 0 olsa bile ilkini (bestChildScore -1 oldugu icin hepsi 0 ise ilkini alir mi? Hayir, score 0 ise alır.)
+                // bestChildScore initialization -1, so if score is 0 it is > -1. logic holds.
+                bestTopicId = bestChild.id;
+                // Skoru child'ın skoruna göre güncelle veya parent skorunu koru (ama güveni düşür)
+                if (bestChildScore > 0) {
+                    // Child da kelime bulduysa puanı artır
+                    maxScore += bestChildScore;
+                } else {
+                    // Child için özel bir kelime bulamadı ama mecbur seçtik
+                    reasons.push("Net alt konu bulunamadı, varsayılan seçildi");
+                    // Güveni düşür ki kullanıcı kontrol etsin
+                    if (maxScore > 45) maxScore = 45;
+                }
+            } else {
+                // Çok nadir durum (children array dolu ama loop çalışmadı?!), garanti olsun
+                bestTopicId = children[0].id;
+                if (maxScore > 45) maxScore = 45;
+            }
+        }
     }
 
     // Tavan puan 100
