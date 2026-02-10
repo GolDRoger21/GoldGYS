@@ -19,20 +19,20 @@ export function initImporterPage() {
         </div>
 
         <div class="row">
-            <div class="col-md-5">
-                <div class="card p-5 text-center border-dashed" style="border: 2px dashed var(--border-color); cursor:pointer;" onclick="document.getElementById('fileInput').click()">
-                    <div style="font-size: 3rem; margin-bottom: 10px;">📂</div>
+            <div class="col-md-5 d-flex flex-column gap-3">
+                <div class="card p-5 text-center border-dashed importer-dropzone" onclick="document.getElementById('fileInput').click()">
+                    <div class="importer-dropzone-icon">📂</div>
                     <h5>Dosya Seç (JSON/Excel)</h5>
                     <p class="text-muted small">Sürükleyip bırakabilir veya tıklayabilirsiniz.</p>
                     <input type="file" id="fileInput" accept=".json, .xlsx, .xls" style="display: none;">
                 </div>
                 
-                <div class="card mt-3 bg-dark text-white">
-                    <div class="card-header py-2 border-secondary d-flex justify-content-between align-items-center">
+                <div class="card importer-log-card">
+                    <div class="card-header py-2 d-flex justify-content-between align-items-center">
                         <small>İŞLEM GÜNLÜĞÜ</small>
                         <small id="logStatus" class="text-secondary">Hazır</small>
                     </div>
-                    <div id="importLog" class="card-body p-2" style="height: 150px; overflow-y: auto; font-family: monospace; font-size: 0.8rem;">
+                    <div id="importLog" class="card-body p-2 importer-log-body">
                         <span class="text-muted">> Sistem hazır...</span>
                     </div>
                 </div>
@@ -114,7 +114,7 @@ export function initImporterPage() {
         </div>
 
         <div id="questionPreviewModal" class="modal-overlay" style="display:none;">
-            <div class="modal-content admin-modal-content" style="max-width: 780px;">
+                <div class="modal-content admin-modal-content importer-preview-modal">
                 <div class="modal-header">
                     <h3>🧾 Soru Detayı</h3>
                     <button onclick="window.Importer.closePreview()" class="close-btn">&times;</button>
@@ -520,7 +520,7 @@ function renderPreviewTable() {
                     <input type="checkbox" class="form-check-input" ${isChecked} onclick="window.Importer.toggleRowSelect(${q._id}, this.checked)">
                 </td>
                 <td>${q._id + 1}</td>
-                <td class="question-cell" style="min-width: 300px;">
+                <td class="question-cell">
                     <textarea class="form-control form-control-sm question-textarea" rows="3" onchange="window.Importer.updateQuestionText(${q._id}, this.value)">${q.text}</textarea>
                     <div class="question-meta mt-1 d-flex justify-content-between text-muted small">
                         <span>Kategori: ${q.category || '-'}</span>
