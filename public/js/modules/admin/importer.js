@@ -49,10 +49,18 @@ export function initImporterPage() {
                     </div>
                     <div class="p-3 border-bottom d-flex flex-wrap justify-content-between preview-toolbar">
                         <div class="toolbar-group">
-                            <button class="btn btn-outline-success btn-sm" onclick="window.Importer.approveHigh()">✅ Yüksek Güvenlileri Onayla</button>
-                            <button class="btn btn-outline-primary btn-sm" onclick="window.Importer.approveAll()">✅ Tümünü Onayla</button>
-                            <button class="btn btn-outline-secondary btn-sm" onclick="window.Importer.approveSelected()">🧩 Seçilenleri Onayla</button>
-                            <button class="btn btn-outline-danger btn-sm" onclick="window.Importer.clearSelection()">🧹 Seçimi Temizle</button>
+                            <button class="btn btn-outline-success btn-sm" onclick="window.Importer.approveHigh()">
+                                <span class="btn-icon">⚡</span> Yüksek Güvenlileri Onayla
+                            </button>
+                            <button class="btn btn-outline-primary btn-sm" onclick="window.Importer.approveAll()">
+                                <span class="btn-icon">📌</span> Tümünü Onayla
+                            </button>
+                            <button class="btn btn-outline-secondary btn-sm" onclick="window.Importer.approveSelected()">
+                                <span class="btn-icon">🧩</span> Seçilenleri Onayla
+                            </button>
+                            <button class="btn btn-outline-danger btn-sm" onclick="window.Importer.clearSelection()">
+                                <span class="btn-icon">🧹</span> Seçimi Temizle
+                            </button>
                         </div>
                         <div class="toolbar-group">
                             <select class="form-select form-select-sm filter-select" id="previewFilter" onchange="window.Importer.applyFilter()">
@@ -106,7 +114,7 @@ export function initImporterPage() {
         </div>
 
         <div id="questionPreviewModal" class="modal-overlay" style="display:none;">
-            <div class="modal-content admin-modal-content" style="max-width: 720px;">
+            <div class="modal-content admin-modal-content" style="max-width: 780px;">
                 <div class="modal-header">
                     <h3>🧾 Soru Detayı</h3>
                     <button onclick="window.Importer.closePreview()" class="close-btn">&times;</button>
@@ -132,6 +140,7 @@ export function initImporterPage() {
         toggleRowSelect: toggleRowSelect,
         applyFilter: applyFilter,
         openPreview: openQuestionPreview,
+        savePreviewEdits: savePreviewEdits,
         closePreview: closeQuestionPreview
     };
 
@@ -491,12 +500,6 @@ function renderPreviewTable() {
 
     const filteredQuestions = getFilteredQuestions();
     let rows = filteredQuestions.map(q => {
-        // Güven Rozeti
-        let badgeClass = 'bg-secondary';
-        let badgeText = `${q._score} - Düşük`;
-        if (q._confidence === 'high') { badgeClass = 'bg-success'; badgeText = `${q._score} - Yüksek`; }
-        else if (q._confidence === 'medium') { badgeClass = 'bg-warning text-dark'; badgeText = `${q._score} - Orta`; }
-
         // Tooltip
         const tooltip = `Sebep: ${q._reasons.join(', ')}`;
 
@@ -506,6 +509,9 @@ function renderPreviewTable() {
         const statusClass = q._status === 'approved' ? 'approved' : (q._confidence === 'low' ? 'review' : 'pending');
         const statusLabel = q._status === 'approved' ? 'Onaylandı' : (q._confidence === 'low' ? 'Kontrol' : 'Bekliyor');
         const isChecked = selectedRows.has(q._id) ? 'checked' : '';
+        const confidenceWidth = Math.min(Math.max(q._score, 0), 100);
+        const confidenceClass = q._confidence === 'high' ? 'confidence-high' : (q._confidence === 'medium' ? 'confidence-medium' : 'confidence-low');
+        const confidenceText = q._confidence === 'high' ? 'Yüksek' : (q._confidence === 'medium' ? 'Orta' : 'Düşük');
 
         return `
             <tr id="row-${q._id}" style="${rowBg}">
@@ -523,7 +529,12 @@ function renderPreviewTable() {
                     </select>
                 </td>
                 <td>
-                    <span class="badge ${badgeClass}" title="${tooltip}" style="cursor:help;">${badgeText}</span>
+                    <div class="confidence-meter" title="${tooltip}">
+                        <div class="confidence-bar">
+                            <span class="${confidenceClass}" style="width:${confidenceWidth}%;"></span>
+                        </div>
+                        <div class="confidence-label"><strong>${q._score}</strong> ${confidenceText}</div>
+                    </div>
                 </td>
                 <td class="text-center">
                     <span class="status-pill ${statusClass}">${statusLabel}</span>
@@ -725,28 +736,67 @@ function openQuestionPreview(index) {
     const body = document.getElementById('questionPreviewBody');
     if (!modal || !body) return;
 
-    const options = (q.options || []).map(opt => `<li>${opt.id || ''} ${opt.text || ''}</li>`).join('');
+    const options = (q.options || []).map(opt => `
+        <div class="modal-field">
+            <label>${opt.id || ''} Seçeneği</label>
+            <input class="form-control form-control-sm" data-option-id="${opt.id || ''}" value="${opt.text || ''}">
+        </div>
+    `).join('');
     const reasons = q._reasons.length ? q._reasons.join(', ') : 'Belirgin eşleşme bulunamadı';
+    const confidenceText = q._confidence === 'high' ? 'Yüksek' : (q._confidence === 'medium' ? 'Orta' : 'Düşük');
+    const optionsFallback = `
+        <div class="modal-field">
+            <label>Seçenek A</label>
+            <input class="form-control form-control-sm" data-option-id="A" value="">
+        </div>
+    `;
 
     body.innerHTML = `
         <div class="preview-section">
             <h6>Soru Metni</h6>
-            <p>${q.text || '-'}</p>
+            <div class="modal-field">
+                <label>Soru</label>
+                <textarea class="form-control" rows="4" id="previewQuestionText">${q.text || ''}</textarea>
+            </div>
         </div>
         <div class="preview-section">
             <h6>Cevap Seçenekleri</h6>
-            <ol>${options || '<li>Seçenek bulunamadı.</li>'}</ol>
+            <div class="preview-modal-body">
+                ${options || optionsFallback}
+            </div>
+        </div>
+        <div class="preview-section">
+            <h6>Kategori ve Zorluk</h6>
+            <div class="modal-field">
+                <label>Gelen Kategori</label>
+                <input class="form-control form-control-sm" id="previewQuestionCategory" value="${q.category || ''}">
+            </div>
+            <div class="modal-field">
+                <label>Zorluk</label>
+                <select class="form-select form-select-sm" id="previewQuestionDifficulty">
+                    <option value="1" ${q.difficulty === 1 ? 'selected' : ''}>1</option>
+                    <option value="2" ${q.difficulty === 2 ? 'selected' : ''}>2</option>
+                    <option value="3" ${q.difficulty === 3 || !q.difficulty ? 'selected' : ''}>3</option>
+                    <option value="4" ${q.difficulty === 4 ? 'selected' : ''}>4</option>
+                    <option value="5" ${q.difficulty === 5 ? 'selected' : ''}>5</option>
+                </select>
+            </div>
         </div>
         <div class="preview-section">
             <h6>Önerilen Konu ve Güven</h6>
             <p><strong>${q._suggestedTopicTitle || '-'}</strong></p>
-            <p>Skor: ${q._score} (${q._confidence})</p>
+            <p>Skor: ${q._score} (${confidenceText})</p>
             <p>Gerekçe: ${reasons}</p>
         </div>
         <div class="preview-section">
             <h6>Aksiyon</h6>
-            <div class="control-buttons">
-                <button class="btn btn-light border" onclick="window.Importer.approveRow(${q._id})">✅ Onay Durumunu Değiştir</button>
+            <div class="modal-actions">
+                <div class="control-buttons">
+                    <button class="btn btn-light border" onclick="window.Importer.approveRow(${q._id})">✅ Onay Durumunu Değiştir</button>
+                </div>
+                <div class="control-buttons">
+                    <button class="btn btn-outline-primary" onclick="window.Importer.savePreviewEdits(${q._id})">💾 Değişiklikleri Kaydet</button>
+                </div>
             </div>
         </div>
     `;
@@ -757,6 +807,31 @@ function openQuestionPreview(index) {
 function closeQuestionPreview() {
     const modal = document.getElementById('questionPreviewModal');
     if (modal) modal.style.display = 'none';
+}
+
+function savePreviewEdits(index) {
+    const q = parsedQuestions[index];
+    if (!q) return;
+
+    const textInput = document.getElementById('previewQuestionText');
+    const categoryInput = document.getElementById('previewQuestionCategory');
+    const difficultyInput = document.getElementById('previewQuestionDifficulty');
+    if (textInput) q.text = textInput.value.trim();
+    if (categoryInput) q.category = categoryInput.value.trim();
+    if (difficultyInput) q.difficulty = Number(difficultyInput.value) || q.difficulty || 3;
+
+    const optionInputs = document.querySelectorAll('#questionPreviewBody input[data-option-id]');
+    if (optionInputs.length > 0) {
+        const updatedOptions = [];
+        optionInputs.forEach(input => {
+            const id = input.getAttribute('data-option-id') || '';
+            updatedOptions.push({ id, text: input.value.trim() });
+        });
+        q.options = updatedOptions;
+    }
+
+    renderPreviewTable();
+    showToast("Soru güncellendi.", "success");
 }
 
 function updateSaveButtonState() {
