@@ -50,13 +50,13 @@ export function initImporterPage() {
                     <div class="p-3 border-bottom d-flex flex-wrap justify-content-between preview-toolbar">
                         <div class="toolbar-group">
                             <button class="btn btn-outline-success btn-sm" onclick="window.Importer.approveHigh()">
-                                <span class="btn-icon">⚡</span> Yüksek Güvenlileri Onayla
+                                <span class="btn-icon">🛡️</span> Güvenlileri Onayla
                             </button>
                             <button class="btn btn-outline-primary btn-sm" onclick="window.Importer.approveAll()">
-                                <span class="btn-icon">📌</span> Tümünü Onayla
+                                <span class="btn-icon">📑</span> Tümünü Onayla
                             </button>
                             <button class="btn btn-outline-secondary btn-sm" onclick="window.Importer.approveSelected()">
-                                <span class="btn-icon">🧩</span> Seçilenleri Onayla
+                                <span class="btn-icon">✨</span> Seçilenleri Onayla
                             </button>
                             <button class="btn btn-outline-danger btn-sm" onclick="window.Importer.clearSelection()">
                                 <span class="btn-icon">🧹</span> Seçimi Temizle
@@ -141,7 +141,8 @@ export function initImporterPage() {
         applyFilter: applyFilter,
         openPreview: openQuestionPreview,
         savePreviewEdits: savePreviewEdits,
-        closePreview: closeQuestionPreview
+        closePreview: closeQuestionPreview,
+        updateQuestionText: updateQuestionText
     };
 
     fetchTopics();
@@ -519,21 +520,26 @@ function renderPreviewTable() {
                     <input type="checkbox" class="form-check-input" ${isChecked} onclick="window.Importer.toggleRowSelect(${q._id}, this.checked)">
                 </td>
                 <td>${q._id + 1}</td>
-                <td class="question-cell">
-                    <div class="text-truncate" style="max-width: 320px;" title="${q.text}">${q.text}</div>
-                    <div class="question-meta">Gelen Kategori: ${q.category || '-'}</div>
+                <td class="question-cell" style="min-width: 300px;">
+                    <textarea class="form-control form-control-sm" rows="3" style="resize: vertical; font-size: 0.85rem;" onchange="window.Importer.updateQuestionText(${q._id}, this.value)">${q.text}</textarea>
+                    <div class="question-meta mt-1 d-flex justify-content-between text-muted small">
+                        <span>Kategori: ${q.category || '-'}</span>
+                        <span class="badge bg-light text-dark border">#${q._id + 1}</span>
+                    </div>
                 </td>
                 <td>
                     <select class="form-select form-select-sm" onchange="window.Importer.updateTopic(${q._id}, this.value)">
                         ${options.replace(`value="${q._suggestedTopicId}"`, `value="${q._suggestedTopicId}" selected`)}
                     </select>
                 </td>
-                <td>
-                    <div class="confidence-meter" title="${tooltip}">
-                        <div class="confidence-bar">
-                            <span class="${confidenceClass}" style="width:${confidenceWidth}%;"></span>
+                <td class="text-center">
+                    <div style="display: inline-flex; flex-direction: column; gap: 4px; align-items: center;" title="${tooltip}">
+                        <span class="badge ${confidenceClass === 'confidence-high' ? 'bg-success' : (confidenceClass === 'confidence-medium' ? 'bg-warning text-dark' : 'bg-secondary')} p-2" style="font-size: 0.8rem; width: 100%;">
+                            %${q._score} - ${confidenceText}
+                        </span>
+                        <div class="progress" style="height: 4px; width: 100%;">
+                            <div class="progress-bar ${confidenceClass === 'confidence-high' ? 'bg-success' : (confidenceClass === 'confidence-medium' ? 'bg-warning' : 'bg-secondary')}" role="progressbar" style="width: ${confidenceWidth}%"></div>
                         </div>
-                        <div class="confidence-label"><strong>${q._score}</strong> ${confidenceText}</div>
                     </div>
                 </td>
                 <td class="text-center">
@@ -577,6 +583,13 @@ function updateRowTopic(index, newTopicId) {
         q._status = 'approved';
     }
     updateRowUI(index);
+}
+
+function updateQuestionText(index, newText) {
+    const q = parsedQuestions[index];
+    if (q) {
+        q.text = newText;
+    }
 }
 
 function approveHighConfidence() {
