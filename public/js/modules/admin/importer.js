@@ -42,12 +42,12 @@ export function initImporterPage() {
                 <div class="card h-100 preview-card" id="previewCard" style="display:none;">
                     <div class="card-header d-flex flex-wrap gap-2 justify-content-between align-items-center">
                         <div>
-                            <h5 class="m-0">Önizleme ve Onay</h5>
+                            <h5 class="m-0 preview-title">Önizleme ve Onay</h5>
                             <small class="text-muted">Önerilen konu, güven skoru ve kontrol aksiyonlarını buradan yönetin.</small>
                         </div>
                         <div class="preview-stats" id="previewStats"></div>
                     </div>
-                    <div class="p-3 border-bottom d-flex flex-wrap justify-content-between preview-toolbar">
+                    <div class="d-flex flex-wrap justify-content-between preview-toolbar">
                         <div class="toolbar-group">
                             <button class="btn btn-outline-success btn-sm" onclick="window.Importer.approveHigh()">
                                 <span class="btn-icon">🛡️</span> Güvenlileri Onayla
@@ -73,8 +73,8 @@ export function initImporterPage() {
                             <input type="text" class="form-control form-control-sm search-input" id="previewSearch" placeholder="Soru içinde ara..." oninput="window.Importer.applyFilter()">
                         </div>
                     </div>
-                    <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
-                        <table class="admin-table table-sm align-middle" style="font-size: 0.9rem;">
+                    <div class="table-responsive preview-table-wrap">
+                        <table class="admin-table table-sm align-middle preview-table">
                             <thead style="position:sticky; top:0; z-index:10;">
                                 <tr>
                                     <th style="width:34px;">
@@ -91,7 +91,7 @@ export function initImporterPage() {
                             <tbody id="previewTableBody"></tbody>
                         </table>
                     </div>
-                    <div class="card-footer d-flex justify-content-between align-items-center">
+                    <div class="card-footer d-flex justify-content-between align-items-center preview-footer">
                         <small class="text-muted" id="previewFooterInfo">0 soru seçildi.</small>
                         <button id="btnStartImport" class="btn btn-success" disabled onclick="window.Importer.save()">Veritabanına Kaydet</button>
                     </div>
@@ -505,7 +505,7 @@ function renderPreviewTable() {
         const tooltip = `Sebep: ${q._reasons.join(', ')}`;
 
         // Satır Rengi (Onay durumuna göre)
-        const rowBg = q._status === 'approved' ? 'background:rgba(16, 185, 129, 0.08);' : '';
+        const rowClass = q._status === 'approved' ? 'preview-row-approved' : '';
         const checkIcon = q._status === 'approved' ? '✅ Onaylı' : '⬜ Onayla';
         const statusClass = q._status === 'approved' ? 'approved' : (q._confidence === 'low' ? 'review' : 'pending');
         const statusLabel = q._status === 'approved' ? 'Onaylandı' : (q._confidence === 'low' ? 'Kontrol' : 'Bekliyor');
@@ -515,30 +515,30 @@ function renderPreviewTable() {
         const confidenceText = q._confidence === 'high' ? 'Yüksek' : (q._confidence === 'medium' ? 'Orta' : 'Düşük');
 
         return `
-            <tr id="row-${q._id}" style="${rowBg}">
+            <tr id="row-${q._id}" class="${rowClass}">
                 <td class="text-center">
                     <input type="checkbox" class="form-check-input" ${isChecked} onclick="window.Importer.toggleRowSelect(${q._id}, this.checked)">
                 </td>
                 <td>${q._id + 1}</td>
                 <td class="question-cell" style="min-width: 300px;">
-                    <textarea class="form-control form-control-sm" rows="3" style="resize: vertical; font-size: 0.85rem;" onchange="window.Importer.updateQuestionText(${q._id}, this.value)">${q.text}</textarea>
+                    <textarea class="form-control form-control-sm question-textarea" rows="3" onchange="window.Importer.updateQuestionText(${q._id}, this.value)">${q.text}</textarea>
                     <div class="question-meta mt-1 d-flex justify-content-between text-muted small">
                         <span>Kategori: ${q.category || '-'}</span>
                         <span class="badge bg-light text-dark border">#${q._id + 1}</span>
                     </div>
                 </td>
                 <td>
-                    <select class="form-select form-select-sm" onchange="window.Importer.updateTopic(${q._id}, this.value)">
+                    <select class="form-select form-select-sm topic-select" onchange="window.Importer.updateTopic(${q._id}, this.value)">
                         ${options.replace(`value="${q._suggestedTopicId}"`, `value="${q._suggestedTopicId}" selected`)}
                     </select>
                 </td>
                 <td class="text-center">
-                    <div style="display: inline-flex; flex-direction: column; gap: 4px; align-items: center;" title="${tooltip}">
-                        <span class="badge ${confidenceClass === 'confidence-high' ? 'bg-success' : (confidenceClass === 'confidence-medium' ? 'bg-warning text-dark' : 'bg-secondary')} p-2" style="font-size: 0.8rem; width: 100%;">
+                    <div class="confidence-stack" title="${tooltip}">
+                        <span class="confidence-badge ${confidenceClass === 'confidence-high' ? 'bg-success text-white' : (confidenceClass === 'confidence-medium' ? 'bg-warning text-dark' : 'bg-secondary text-white')}">
                             %${q._score} - ${confidenceText}
                         </span>
-                        <div class="progress" style="height: 4px; width: 100%;">
-                            <div class="progress-bar ${confidenceClass === 'confidence-high' ? 'bg-success' : (confidenceClass === 'confidence-medium' ? 'bg-warning' : 'bg-secondary')}" role="progressbar" style="width: ${confidenceWidth}%"></div>
+                        <div class="confidence-progress">
+                            <span class="${confidenceClass === 'confidence-high' ? 'bg-success' : (confidenceClass === 'confidence-medium' ? 'bg-warning' : 'bg-secondary')}" role="progressbar" style="width: ${confidenceWidth}%"></span>
                         </div>
                     </div>
                 </td>
@@ -547,8 +547,8 @@ function renderPreviewTable() {
                 </td>
                 <td class="text-center">
                     <div class="control-buttons">
-                        <button class="btn btn-light border" onclick="window.Importer.approveRow(${q._id})">${checkIcon}</button>
-                        <button class="btn btn-outline-primary" onclick="window.Importer.openPreview(${q._id})">🔍 Gör</button>
+                        <button class="btn action-btn-success" onclick="window.Importer.approveRow(${q._id})">${checkIcon}</button>
+                        <button class="btn action-btn-primary" onclick="window.Importer.openPreview(${q._id})">🔍 İncele</button>
                     </div>
                 </td>
             </tr>
@@ -659,7 +659,7 @@ function updateRowUI(index) {
     const q = parsedQuestions[index];
     if (!row || !q) return;
 
-    row.style.background = q._status === 'approved' ? 'rgba(16, 185, 129, 0.08)' : '';
+    row.classList.toggle('preview-row-approved', q._status === 'approved');
 
     const controlButton = row.querySelector('.control-buttons .btn');
     if (controlButton) {
