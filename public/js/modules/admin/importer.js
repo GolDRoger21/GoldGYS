@@ -39,29 +39,60 @@ export function initImporterPage() {
             </div>
 
             <div class="col-md-7">
-                <div class="card h-100" id="previewCard" style="display:none;">
+                <div class="card h-100 preview-card" id="previewCard" style="display:none;">
                     <div class="card-header d-flex flex-wrap gap-2 justify-content-between align-items-center">
-                        <h5 class="m-0">Önizleme ve Onay</h5>
-                        <div class="d-flex gap-2">
-                             <button class="btn btn-outline-success btn-sm" onclick="window.Importer.approveHigh()">✅ Yüksek Güvenlileri Onayla</button>
-                             <button class="btn btn-outline-primary btn-sm" onclick="window.Importer.approveAll()">✅ Tümünü Onayla</button>
+                        <div>
+                            <h5 class="m-0">Önizleme ve Onay</h5>
+                            <small class="text-muted">Önerilen konu, güven skoru ve kontrol aksiyonlarını buradan yönetin.</small>
+                        </div>
+                        <div class="preview-stats" id="previewStats"></div>
+                    </div>
+                    <div class="p-3 border-bottom d-flex flex-wrap justify-content-between preview-toolbar">
+                        <div class="toolbar-group">
+                            <button class="btn btn-outline-success btn-sm" onclick="window.Importer.approveHigh()">
+                                <span class="btn-icon">⚡</span> Yüksek Güvenlileri Onayla
+                            </button>
+                            <button class="btn btn-outline-primary btn-sm" onclick="window.Importer.approveAll()">
+                                <span class="btn-icon">📌</span> Tümünü Onayla
+                            </button>
+                            <button class="btn btn-outline-secondary btn-sm" onclick="window.Importer.approveSelected()">
+                                <span class="btn-icon">🧩</span> Seçilenleri Onayla
+                            </button>
+                            <button class="btn btn-outline-danger btn-sm" onclick="window.Importer.clearSelection()">
+                                <span class="btn-icon">🧹</span> Seçimi Temizle
+                            </button>
+                        </div>
+                        <div class="toolbar-group">
+                            <select class="form-select form-select-sm filter-select" id="previewFilter" onchange="window.Importer.applyFilter()">
+                                <option value="all">Tüm Sorular</option>
+                                <option value="pending">Onay Bekleyenler</option>
+                                <option value="approved">Onaylılar</option>
+                                <option value="high">Yüksek Güven</option>
+                                <option value="needs-review">Kontrol Gerekiyor</option>
+                            </select>
+                            <input type="text" class="form-control form-control-sm search-input" id="previewSearch" placeholder="Soru içinde ara..." oninput="window.Importer.applyFilter()">
                         </div>
                     </div>
                     <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
-                        <table class="admin-table table-sm" style="font-size: 0.9rem;">
+                        <table class="admin-table table-sm align-middle" style="font-size: 0.9rem;">
                             <thead style="position:sticky; top:0; z-index:10;">
                                 <tr>
+                                    <th style="width:34px;">
+                                        <input type="checkbox" id="selectAllRows" onclick="window.Importer.toggleSelectAll(this.checked)">
+                                    </th>
                                     <th style="width:40px;">#</th>
                                     <th>Soru Özeti</th>
-                                    <th style="width:250px;">Önerilen Konu</th>
-                                    <th style="width:100px;">Güven</th>
-                                    <th style="width:100px;">Durum</th>
+                                    <th style="width:260px;">Önerilen Konu</th>
+                                    <th style="width:120px;">Güven</th>
+                                    <th style="width:120px;">Durum</th>
+                                    <th style="width:140px;">Kontrol</th>
                                 </tr>
                             </thead>
                             <tbody id="previewTableBody"></tbody>
                         </table>
                     </div>
-                    <div class="card-footer text-end">
+                    <div class="card-footer d-flex justify-content-between align-items-center">
+                        <small class="text-muted" id="previewFooterInfo">0 soru seçildi.</small>
                         <button id="btnStartImport" class="btn btn-success" disabled onclick="window.Importer.save()">Veritabanına Kaydet</button>
                     </div>
                 </div>
@@ -81,6 +112,16 @@ export function initImporterPage() {
                 </div>
             </div>
         </div>
+
+        <div id="questionPreviewModal" class="modal-overlay" style="display:none;">
+            <div class="modal-content admin-modal-content" style="max-width: 780px;">
+                <div class="modal-header">
+                    <h3>🧾 Soru Detayı</h3>
+                    <button onclick="window.Importer.closePreview()" class="close-btn">&times;</button>
+                </div>
+                <div class="modal-body-scroll preview-modal-body" id="questionPreviewBody"></div>
+            </div>
+        </div>
     `;
 
     document.getElementById('fileInput').addEventListener('change', handleFileSelect);
@@ -92,7 +133,15 @@ export function initImporterPage() {
         updateTopic: updateRowTopic,
         approveRow: toggleRowApproval,
         approveHigh: approveHighConfidence,
-        approveAll: approveAll
+        approveAll: approveAll,
+        approveSelected: approveSelectedRows,
+        clearSelection: clearSelection,
+        toggleSelectAll: toggleSelectAll,
+        toggleRowSelect: toggleRowSelect,
+        applyFilter: applyFilter,
+        openPreview: openQuestionPreview,
+        savePreviewEdits: savePreviewEdits,
+        closePreview: closeQuestionPreview
     };
 
     fetchTopics();
@@ -100,6 +149,9 @@ export function initImporterPage() {
 
 let parsedQuestions = [];
 let allTopics = [];
+let selectedRows = new Set();
+let currentFilter = 'all';
+let currentSearch = '';
 
 // ============================================================
 // --- VERİ HAZIRLIĞI VE GÖÇ (MIGRATION) ---
@@ -240,6 +292,13 @@ async function handleFileSelect(event) {
         parsedQuestions = rawData.map((q, index) => analyzeQuestion(q, index));
         log(`${parsedQuestions.length} soru analiz edildi. Önizleme oluşturuluyor...`, "success");
 
+        selectedRows.clear();
+        currentFilter = 'all';
+        currentSearch = '';
+        const filterSelect = document.getElementById('previewFilter');
+        const searchInput = document.getElementById('previewSearch');
+        if (filterSelect) filterSelect.value = 'all';
+        if (searchInput) searchInput.value = '';
         renderPreviewTable();
 
     } catch (error) {
@@ -439,26 +498,30 @@ function renderPreviewTable() {
     // Dropdown HTML'ini bir kere oluştur (Performans)
     const options = topicOptionsHTML();
 
-    let rows = parsedQuestions.map(q => {
-        // Güven Rozeti
-        let badgeClass = 'bg-secondary';
-        let badgeText = `${q._score} - Düşük`;
-        if (q._confidence === 'high') { badgeClass = 'bg-success'; badgeText = `${q._score} - Yüksek`; }
-        else if (q._confidence === 'medium') { badgeClass = 'bg-warning text-dark'; badgeText = `${q._score} - Orta`; }
-
+    const filteredQuestions = getFilteredQuestions();
+    let rows = filteredQuestions.map(q => {
         // Tooltip
         const tooltip = `Sebep: ${q._reasons.join(', ')}`;
 
         // Satır Rengi (Onay durumuna göre)
-        const rowBg = q._status === 'approved' ? 'background:rgba(16, 185, 129, 0.1);' : '';
-        const checkIcon = q._status === 'approved' ? '✅' : '⬜';
+        const rowBg = q._status === 'approved' ? 'background:rgba(16, 185, 129, 0.08);' : '';
+        const checkIcon = q._status === 'approved' ? '✅ Onaylı' : '⬜ Onayla';
+        const statusClass = q._status === 'approved' ? 'approved' : (q._confidence === 'low' ? 'review' : 'pending');
+        const statusLabel = q._status === 'approved' ? 'Onaylandı' : (q._confidence === 'low' ? 'Kontrol' : 'Bekliyor');
+        const isChecked = selectedRows.has(q._id) ? 'checked' : '';
+        const confidenceWidth = Math.min(Math.max(q._score, 0), 100);
+        const confidenceClass = q._confidence === 'high' ? 'confidence-high' : (q._confidence === 'medium' ? 'confidence-medium' : 'confidence-low');
+        const confidenceText = q._confidence === 'high' ? 'Yüksek' : (q._confidence === 'medium' ? 'Orta' : 'Düşük');
 
         return `
             <tr id="row-${q._id}" style="${rowBg}">
+                <td class="text-center">
+                    <input type="checkbox" class="form-check-input" ${isChecked} onclick="window.Importer.toggleRowSelect(${q._id}, this.checked)">
+                </td>
                 <td>${q._id + 1}</td>
-                <td>
-                    <div class="text-truncate" style="max-width: 300px;" title="${q.text}">${q.text}</div>
-                    <small class="text-muted">Gelen Kategori: ${q.category || '-'}</small>
+                <td class="question-cell">
+                    <div class="text-truncate" style="max-width: 320px;" title="${q.text}">${q.text}</div>
+                    <div class="question-meta">Gelen Kategori: ${q.category || '-'}</div>
                 </td>
                 <td>
                     <select class="form-select form-select-sm" onchange="window.Importer.updateTopic(${q._id}, this.value)">
@@ -466,18 +529,30 @@ function renderPreviewTable() {
                     </select>
                 </td>
                 <td>
-                    <span class="badge ${badgeClass}" title="${tooltip}" style="cursor:help;">${badgeText}</span>
+                    <div class="confidence-meter" title="${tooltip}">
+                        <div class="confidence-bar">
+                            <span class="${confidenceClass}" style="width:${confidenceWidth}%;"></span>
+                        </div>
+                        <div class="confidence-label"><strong>${q._score}</strong> ${confidenceText}</div>
+                    </div>
                 </td>
                 <td class="text-center">
-                    <button class="btn btn-sm btn-light border" onclick="window.Importer.approveRow(${q._id})">
-                        ${checkIcon}
-                    </button>
+                    <span class="status-pill ${statusClass}">${statusLabel}</span>
+                </td>
+                <td class="text-center">
+                    <div class="control-buttons">
+                        <button class="btn btn-light border" onclick="window.Importer.approveRow(${q._id})">${checkIcon}</button>
+                        <button class="btn btn-outline-primary" onclick="window.Importer.openPreview(${q._id})">🔍 Gör</button>
+                    </div>
                 </td>
             </tr>
         `;
     }).join('');
 
     table.innerHTML = rows;
+    updatePreviewStats();
+    updateSelectionFooter();
+    updateSelectAllState();
     updateSaveButtonState();
 }
 
@@ -488,18 +563,7 @@ function renderPreviewTable() {
 function toggleRowApproval(index) {
     const q = parsedQuestions[index];
     q._status = q._status === 'approved' ? 'pending' : 'approved';
-
-    // UI Güncelle (Tüm tabloyu render etme, sadece satırı boya)
-    const row = document.getElementById(`row-${index}`);
-    const btn = row.querySelector('button');
-    if (q._status === 'approved') {
-        row.style.background = 'rgba(16, 185, 129, 0.1)';
-        btn.innerText = '✅';
-    } else {
-        row.style.background = '';
-        btn.innerText = '⬜';
-    }
-    updateSaveButtonState();
+    updateRowUI(index);
 }
 
 function updateRowTopic(index, newTopicId) {
@@ -510,8 +574,9 @@ function updateRowTopic(index, newTopicId) {
 
     // Kullanıcı elle değiştirdiyse otomatik onayla
     if (q._status !== 'approved') {
-        toggleRowApproval(index);
+        q._status = 'approved';
     }
+    updateRowUI(index);
 }
 
 function approveHighConfidence() {
@@ -520,29 +585,253 @@ function approveHighConfidence() {
         if (q._confidence === 'high' && q._status !== 'approved') {
             q._status = 'approved';
             count++;
-            // UI Update
-            const row = document.getElementById(`row-${idx}`);
-            if (row) {
-                row.style.background = 'rgba(16, 185, 129, 0.1)';
-                row.querySelector('button').innerText = '✅';
-            }
         }
     });
+    renderPreviewTable();
     showToast(`${count} yüksek güvenli soru onaylandı.`, "success");
-    updateSaveButtonState();
 }
 
 function approveAll() {
     parsedQuestions.forEach((q, idx) => {
         q._status = 'approved';
-        const row = document.getElementById(`row-${idx}`);
-        if (row) {
-            row.style.background = 'rgba(16, 185, 129, 0.1)';
-            row.querySelector('button').innerText = '✅';
+    });
+    renderPreviewTable();
+    showToast("Tüm sorular onaylandı.", "success");
+}
+
+function approveSelectedRows() {
+    if (selectedRows.size === 0) {
+        showToast("Onaylanacak seçili soru bulunamadı.", "warning");
+        return;
+    }
+    selectedRows.forEach(id => {
+        const q = parsedQuestions[id];
+        if (q) q._status = 'approved';
+    });
+    renderPreviewTable();
+    showToast(`${selectedRows.size} soru seçili olarak onaylandı.`, "success");
+}
+
+function clearSelection() {
+    selectedRows.clear();
+    renderPreviewTable();
+    showToast("Seçim temizlendi.", "info");
+}
+
+function toggleSelectAll(isChecked) {
+    const filteredQuestions = getFilteredQuestions();
+    filteredQuestions.forEach(q => {
+        if (isChecked) {
+            selectedRows.add(q._id);
+        } else {
+            selectedRows.delete(q._id);
         }
     });
-    showToast("Tüm sorular onaylandı.", "success");
+    updateSelectionFooter();
+    renderPreviewTable();
+}
+
+function toggleRowSelect(index, isChecked) {
+    if (isChecked) {
+        selectedRows.add(index);
+    } else {
+        selectedRows.delete(index);
+    }
+    updateSelectionFooter();
+    updateSelectAllState();
+}
+
+function updateRowUI(index) {
+    const row = document.getElementById(`row-${index}`);
+    const q = parsedQuestions[index];
+    if (!row || !q) return;
+
+    row.style.background = q._status === 'approved' ? 'rgba(16, 185, 129, 0.08)' : '';
+
+    const controlButton = row.querySelector('.control-buttons .btn');
+    if (controlButton) {
+        controlButton.innerText = q._status === 'approved' ? '✅ Onaylı' : '⬜ Onayla';
+    }
+
+    const statusPill = row.querySelector('.status-pill');
+    if (statusPill) {
+        const statusClass = q._status === 'approved' ? 'approved' : (q._confidence === 'low' ? 'review' : 'pending');
+        const statusLabel = q._status === 'approved' ? 'Onaylandı' : (q._confidence === 'low' ? 'Kontrol' : 'Bekliyor');
+        statusPill.className = `status-pill ${statusClass}`;
+        statusPill.textContent = statusLabel;
+    }
+    updatePreviewStats();
     updateSaveButtonState();
+}
+
+function applyFilter() {
+    const filterSelect = document.getElementById('previewFilter');
+    const searchInput = document.getElementById('previewSearch');
+    currentFilter = filterSelect ? filterSelect.value : 'all';
+    currentSearch = searchInput ? searchInput.value.trim().toLowerCase() : '';
+    renderPreviewTable();
+}
+
+function getFilteredQuestions() {
+    return parsedQuestions.filter(q => {
+        const matchesSearch = !currentSearch || [
+            q.text,
+            q.category,
+            q._suggestedTopicTitle
+        ].some(value => (value || '').toLowerCase().includes(currentSearch));
+
+        if (!matchesSearch) return false;
+
+        switch (currentFilter) {
+            case 'pending':
+                return q._status !== 'approved';
+            case 'approved':
+                return q._status === 'approved';
+            case 'high':
+                return q._confidence === 'high';
+            case 'needs-review':
+                return q._confidence === 'low' && q._status !== 'approved';
+            default:
+                return true;
+        }
+    });
+}
+
+function updatePreviewStats() {
+    const stats = document.getElementById('previewStats');
+    if (!stats) return;
+    const total = parsedQuestions.length;
+    const approved = parsedQuestions.filter(q => q._status === 'approved').length;
+    const pending = total - approved;
+    const high = parsedQuestions.filter(q => q._confidence === 'high').length;
+    const review = parsedQuestions.filter(q => q._confidence === 'low' && q._status !== 'approved').length;
+
+    stats.innerHTML = `
+        <span class="preview-stat"><strong>${total}</strong> Toplam</span>
+        <span class="preview-stat"><strong>${approved}</strong> Onaylı</span>
+        <span class="preview-stat"><strong>${pending}</strong> Bekleyen</span>
+        <span class="preview-stat"><strong>${high}</strong> Yüksek Güven</span>
+        <span class="preview-stat"><strong>${review}</strong> Kontrol</span>
+    `;
+}
+
+function updateSelectionFooter() {
+    const footer = document.getElementById('previewFooterInfo');
+    if (!footer) return;
+    footer.innerText = `${selectedRows.size} soru seçildi.`;
+}
+
+function updateSelectAllState() {
+    const selectAll = document.getElementById('selectAllRows');
+    if (!selectAll) return;
+    const filtered = getFilteredQuestions();
+    const allSelected = filtered.length > 0 && filtered.every(q => selectedRows.has(q._id));
+    selectAll.checked = allSelected;
+}
+
+function openQuestionPreview(index) {
+    const q = parsedQuestions[index];
+    if (!q) return;
+    const modal = document.getElementById('questionPreviewModal');
+    const body = document.getElementById('questionPreviewBody');
+    if (!modal || !body) return;
+
+    const options = (q.options || []).map(opt => `
+        <div class="modal-field">
+            <label>${opt.id || ''} Seçeneği</label>
+            <input class="form-control form-control-sm" data-option-id="${opt.id || ''}" value="${opt.text || ''}">
+        </div>
+    `).join('');
+    const reasons = q._reasons.length ? q._reasons.join(', ') : 'Belirgin eşleşme bulunamadı';
+    const confidenceText = q._confidence === 'high' ? 'Yüksek' : (q._confidence === 'medium' ? 'Orta' : 'Düşük');
+    const optionsFallback = `
+        <div class="modal-field">
+            <label>Seçenek A</label>
+            <input class="form-control form-control-sm" data-option-id="A" value="">
+        </div>
+    `;
+
+    body.innerHTML = `
+        <div class="preview-section">
+            <h6>Soru Metni</h6>
+            <div class="modal-field">
+                <label>Soru</label>
+                <textarea class="form-control" rows="4" id="previewQuestionText">${q.text || ''}</textarea>
+            </div>
+        </div>
+        <div class="preview-section">
+            <h6>Cevap Seçenekleri</h6>
+            <div class="preview-modal-body">
+                ${options || optionsFallback}
+            </div>
+        </div>
+        <div class="preview-section">
+            <h6>Kategori ve Zorluk</h6>
+            <div class="modal-field">
+                <label>Gelen Kategori</label>
+                <input class="form-control form-control-sm" id="previewQuestionCategory" value="${q.category || ''}">
+            </div>
+            <div class="modal-field">
+                <label>Zorluk</label>
+                <select class="form-select form-select-sm" id="previewQuestionDifficulty">
+                    <option value="1" ${q.difficulty === 1 ? 'selected' : ''}>1</option>
+                    <option value="2" ${q.difficulty === 2 ? 'selected' : ''}>2</option>
+                    <option value="3" ${q.difficulty === 3 || !q.difficulty ? 'selected' : ''}>3</option>
+                    <option value="4" ${q.difficulty === 4 ? 'selected' : ''}>4</option>
+                    <option value="5" ${q.difficulty === 5 ? 'selected' : ''}>5</option>
+                </select>
+            </div>
+        </div>
+        <div class="preview-section">
+            <h6>Önerilen Konu ve Güven</h6>
+            <p><strong>${q._suggestedTopicTitle || '-'}</strong></p>
+            <p>Skor: ${q._score} (${confidenceText})</p>
+            <p>Gerekçe: ${reasons}</p>
+        </div>
+        <div class="preview-section">
+            <h6>Aksiyon</h6>
+            <div class="modal-actions">
+                <div class="control-buttons">
+                    <button class="btn btn-light border" onclick="window.Importer.approveRow(${q._id})">✅ Onay Durumunu Değiştir</button>
+                </div>
+                <div class="control-buttons">
+                    <button class="btn btn-outline-primary" onclick="window.Importer.savePreviewEdits(${q._id})">💾 Değişiklikleri Kaydet</button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    modal.style.display = 'flex';
+}
+
+function closeQuestionPreview() {
+    const modal = document.getElementById('questionPreviewModal');
+    if (modal) modal.style.display = 'none';
+}
+
+function savePreviewEdits(index) {
+    const q = parsedQuestions[index];
+    if (!q) return;
+
+    const textInput = document.getElementById('previewQuestionText');
+    const categoryInput = document.getElementById('previewQuestionCategory');
+    const difficultyInput = document.getElementById('previewQuestionDifficulty');
+    if (textInput) q.text = textInput.value.trim();
+    if (categoryInput) q.category = categoryInput.value.trim();
+    if (difficultyInput) q.difficulty = Number(difficultyInput.value) || q.difficulty || 3;
+
+    const optionInputs = document.querySelectorAll('#questionPreviewBody input[data-option-id]');
+    if (optionInputs.length > 0) {
+        const updatedOptions = [];
+        optionInputs.forEach(input => {
+            const id = input.getAttribute('data-option-id') || '';
+            updatedOptions.push({ id, text: input.value.trim() });
+        });
+        q.options = updatedOptions;
+    }
+
+    renderPreviewTable();
+    showToast("Soru güncellendi.", "success");
 }
 
 function updateSaveButtonState() {
@@ -632,4 +921,3 @@ function log(msg, type = "info") {
 }
 
 window.showGuide = () => document.getElementById('guideModal').style.display = 'flex';
-
