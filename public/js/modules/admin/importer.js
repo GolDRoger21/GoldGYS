@@ -524,7 +524,6 @@ function renderPreviewTable() {
                     <textarea class="form-control form-control-sm question-textarea" rows="3" onchange="window.Importer.updateQuestionText(${q._id}, this.value)">${q.text}</textarea>
                     <div class="question-meta mt-1 d-flex justify-content-between text-muted small">
                         <span>Kategori: ${q.category || '-'}</span>
-                        <span class="badge bg-light text-dark border">#${q._id + 1}</span>
                     </div>
                 </td>
                 <td>
