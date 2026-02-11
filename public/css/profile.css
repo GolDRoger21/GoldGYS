@@ -394,6 +394,34 @@
 
 @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
+[data-theme="light"] .profile-card,
+[data-theme="light"] .settings-card,
+[data-theme="light"] .stat-card-advanced {
+    box-shadow: 0 8px 22px rgba(15, 23, 42, 0.08);
+}
+
+[data-theme="light"] .p-name,
+[data-theme="light"] .stat-item .val,
+[data-theme="light"] .stat-info .stat-value,
+[data-theme="light"] .security-content h4,
+[data-theme="light"] .form-group input,
+[data-theme="light"] .form-group select,
+[data-theme="light"] .tab-link:hover {
+    color: var(--text-main);
+}
+
+[data-theme="light"] .p-stats-row {
+    background: rgba(15, 23, 42, 0.04);
+}
+
+[data-theme="light"] .progress-track {
+    background: rgba(15, 23, 42, 0.12);
+}
+
+[data-theme="light"] .input-disabled {
+    background: rgba(148, 163, 184, 0.2) !important;
+}
+
 /* Responsive */
 @media (max-width: 900px) {
     .profile-container-fix {
