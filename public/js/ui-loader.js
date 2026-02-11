@@ -175,7 +175,7 @@ async function loadHTML(url, element) {
 
 function initThemeAndSidebar() {
     // Tema Kontrolü
-    const savedTheme = localStorage.getItem('theme') || 'dark'; // Varsayılan Dark
+    const savedTheme = localStorage.getItem('theme') || 'light'; // Varsayılan Light
     document.documentElement.setAttribute('data-theme', savedTheme);
     updateThemeIcon(savedTheme);
 

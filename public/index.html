@@ -37,6 +37,7 @@
         href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230F172A'/><text x='50' y='70' font-family='serif' font-size='60' fill='%23D4AF37' text-anchor='middle' font-weight='bold'>G</text></svg>">
 
     <link rel="manifest" href="/manifest.json">
+    <script src="/js/theme-init.js"></script>
 </head>
 
 <body>
@@ -275,7 +276,7 @@
         const htmlElement = document.documentElement;
 
         // Check saved theme
-        const savedTheme = localStorage.getItem('theme') || 'dark';
+        const savedTheme = localStorage.getItem('theme') || 'light';
         htmlElement.setAttribute('data-theme', savedTheme);
         updateThemeIcon(savedTheme);
 

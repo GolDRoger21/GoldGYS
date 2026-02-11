@@ -522,6 +522,7 @@
     </style>
     <link rel="icon" type="image/png" href="../icons/favicon.png">
     <link rel="manifest" href="/manifest.json">
+    <script src="/js/theme-init.js"></script>
 </head>
 
 <body class="test-body">
@@ -1190,13 +1191,13 @@
 
         function initThemeToggle() {
             const themeToggle = document.getElementById('themeToggle');
-            const savedTheme = localStorage.getItem('theme') || 'dark';
+            const savedTheme = localStorage.getItem('theme') || 'light';
             document.documentElement.setAttribute('data-theme', savedTheme);
             updateThemeIcon(savedTheme);
 
             if (themeToggle) {
                 themeToggle.addEventListener('click', () => {
-                    const current = document.documentElement.getAttribute('data-theme') || 'dark';
+                    const current = document.documentElement.getAttribute('data-theme') || 'light';
                     const next = current === 'dark' ? 'light' : 'dark';
                     document.documentElement.setAttribute('data-theme', next);
                     localStorage.setItem('theme', next);
