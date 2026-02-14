@@ -3,7 +3,7 @@
 import { db } from "../../firebase-config.js";
 import { showConfirm, showToast } from "../../notifications.js";
 import {
-    collection, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, serverTimestamp, query, orderBy, limit, where, writeBatch
+    collection, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, serverTimestamp, query, orderBy, limit, writeBatch
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 let isEditorInitialized = false;
@@ -11,6 +11,13 @@ let currentOnculler = [];
 const selectedQuestionIds = new Set();
 let lastVisibleQuestionIds = [];
 let filteredQuestions = [];
+let duplicateInsightsById = new Map();
+
+const DUPLICATE_SETTINGS = {
+    exactMinLength: 25,
+    nearSimilarityThreshold: 0.86,
+    longTextTokenBonusThreshold: 18
+};
 
 // ============================================================
 // --- INIT ---
@@ -306,6 +313,16 @@ function renderContentInterface() {
                 <div class="col-lg-6 col-md-12 d-flex align-items-end">
                     <div class="text-muted small question-filter-hint">Mevzuat değişikliğinde ilgili kanun/maddeyi filtreleyip topluca işlem yapabilirsiniz.</div>
                 </div>
+                <div class="col-lg-3 col-md-6">
+                    <label class="form-label small fw-bold text-muted">MÜKERRER FİLTRE</label>
+                    <select id="filterDuplicateMode" class="form-select">
+                        <option value="all">Tümü</option>
+                        <option value="exact">Kesin Mükerrer</option>
+                        <option value="near">Olası Mükerrer</option>
+                        <option value="any">Tüm Mükerrer Adayları</option>
+                        <option value="clean">Mükerrer Olmayan</option>
+                    </select>
+                </div>
             </div>
         </div>
 
@@ -415,9 +432,10 @@ async function loadQuestions() {
     const legCode = document.getElementById('filterLegCode')?.value.toLowerCase();
     const legArticle = document.getElementById('filterLegArticle')?.value.toLowerCase();
     const legMode = document.getElementById('filterLegMode')?.value || 'all';
+    const duplicateMode = document.getElementById('filterDuplicateMode')?.value || 'all';
 
     // Temel Sorgu
-    let q = query(collection(db, "questions"), orderBy("createdAt", "desc"), limit(100));
+    let q = query(collection(db, "questions"), orderBy("createdAt", "desc"), limit(500));
 
     try {
         const snap = await getDocs(q);
@@ -426,6 +444,7 @@ async function loadQuestions() {
         lastVisibleQuestionIds = [];
         filteredQuestions = [];
 
+        const candidates = [];
         snap.forEach(doc => {
             const d = doc.data();
             const legRef = d.legislationRef || {};
@@ -444,32 +463,53 @@ async function loadQuestions() {
             if (legCode && !legCodeValue.toLowerCase().includes(legCode)) return;
             if (legArticle && !legArticleValue.toLowerCase().includes(legArticle)) return;
 
+            candidates.push({ id: doc.id, ...d });
+        });
+
+        duplicateInsightsById = buildDuplicateInsights(candidates);
+
+        candidates.forEach((d) => {
+            const legRef = d.legislationRef || {};
+            const legCodeValue = (legRef.code || '').toString();
+            const legArticleValue = (legRef.article || '').toString();
+            const info = duplicateInsightsById.get(d.id) || buildEmptyDuplicateInsight();
+
+            if (duplicateMode === 'exact' && !info.isExactDuplicate) return;
+            if (duplicateMode === 'near' && !info.isNearDuplicate) return;
+            if (duplicateMode === 'any' && !info.hasDuplicateRisk) return;
+            if (duplicateMode === 'clean' && info.hasDuplicateRisk) return;
+
             // Arama check
             if (search) {
                 const textMatch = (d.text || '').toLowerCase().includes(search);
-                const idMatch = doc.id.toLowerCase().includes(search);
+                const idMatch = d.id.toLowerCase().includes(search);
                 const catMatch = (d.category || '').toLowerCase().includes(search);
                 const legMatch = legCodeValue.toLowerCase().includes(search) || legArticleValue.toLowerCase().includes(search);
                 if (!textMatch && !idMatch && !legMatch && !catMatch) return;
             }
 
             count++;
-            lastVisibleQuestionIds.push(doc.id);
-            filteredQuestions.push({ id: doc.id, ...d });
+            lastVisibleQuestionIds.push(d.id);
+            filteredQuestions.push({ ...d, duplicateInsight: info });
             const tr = document.createElement('tr');
-            const isSelected = selectedQuestionIds.has(doc.id);
+            const isSelected = selectedQuestionIds.has(d.id);
             const statusBadge = d.isActive === false
                 ? '<span class="badge badge-status-inactive">Pasif</span>'
                 : '<span class="badge badge-status-active">Aktif</span>';
             const flaggedBadge = d.isFlaggedForReview
                 ? '<span class="badge badge-status-flagged">İncelenecek</span>'
                 : '';
+            const duplicateBadge = info.isExactDuplicate
+                ? `<span class="badge bg-danger-subtle text-danger border">Mükerrer (${info.exactCount})</span>`
+                : info.isNearDuplicate
+                    ? `<span class="badge bg-warning-subtle text-warning border">Olası Mükerrer (${info.nearCount})</span>`
+                    : '';
             const legLabel = hasLegislation
                 ? `${legCodeValue || '-'} / Md.${legArticleValue || '-'}`
                 : 'Mevzuat Yok';
             tr.innerHTML = `
-                <td><input type="checkbox" class="question-select" data-id="${doc.id}" ${isSelected ? 'checked' : ''}></td>
-                <td><small class="text-muted">${doc.id.substring(0, 5)}</small></td>
+                <td><input type="checkbox" class="question-select" data-id="${d.id}" ${isSelected ? 'checked' : ''}></td>
+                <td><small class="text-muted">${d.id.substring(0, 5)}</small></td>
                 <td>
                     <div class="fw-bold">${d.category || '-'}</div>
                     <small class="text-muted">${legLabel}</small>
@@ -480,13 +520,14 @@ async function loadQuestions() {
                     <div class="d-flex flex-column gap-1">
                         ${statusBadge}
                         ${flaggedBadge}
+                        ${duplicateBadge}
                     </div>
                 </td>
                 <td>
                     <div class="question-actions">
-                        <button class="btn btn-sm btn-primary" title="Soruyu düzenle" onclick="window.QuestionBank.openEditor('${doc.id}')">✏️</button>
-                        <button class="btn btn-sm btn-outline-secondary" title="${d.isActive === false ? 'Aktifleştir' : 'Pasife al'}" onclick="window.toggleQuestionActive('${doc.id}', ${d.isActive === false})">${d.isActive === false ? '▶️' : '⏸️'}</button>
-                        <button class="btn btn-sm btn-danger" title="Çöp kutusuna taşı" onclick="window.softDeleteQuestion('${doc.id}')">🗑️</button>
+                        <button class="btn btn-sm btn-primary" title="Soruyu düzenle" onclick="window.QuestionBank.openEditor('${d.id}')">✏️</button>
+                        <button class="btn btn-sm btn-outline-secondary" title="${d.isActive === false ? 'Aktifleştir' : 'Pasife al'}" onclick="window.toggleQuestionActive('${d.id}', ${d.isActive === false})">${d.isActive === false ? '▶️' : '⏸️'}</button>
+                        <button class="btn btn-sm btn-danger" title="Çöp kutusuna taşı" onclick="window.softDeleteQuestion('${d.id}')">🗑️</button>
                     </div>
                 </td>
             `;
@@ -534,6 +575,8 @@ function exportFilteredQuestions(format) {
             solutionTuzak: question.solution?.tuzak || '',
             status: question.isActive === false ? 'inactive' : 'active',
             flagged: question.isFlaggedForReview ? 'flagged' : '',
+            exactDuplicateCount: question.duplicateInsight?.exactCount || 0,
+            nearDuplicateCount: question.duplicateInsight?.nearCount || 0,
             createdAt: formatTimestamp(question.createdAt),
             updatedAt: formatTimestamp(question.updatedAt)
         };
@@ -622,6 +665,19 @@ async function handleSaveQuestion(e) {
     }
 
     try {
+        const duplicates = await findPotentialDuplicatesForQuestion(data, id);
+        if (duplicates.hasDuplicateRisk) {
+            const shouldContinue = await showConfirm(
+                `Bu soru mükerrer olabilir. ${duplicates.summary}\nYine de kaydetmek istiyor musunuz?`,
+                {
+                    title: "Mükerrer Kontrol Uyarısı",
+                    confirmText: "Yine de Kaydet",
+                    cancelText: "Düzenlemeye Dön"
+                }
+            );
+            if (!shouldContinue) return;
+        }
+
         if (id) await updateDoc(doc(db, "questions", id), data);
         else {
             data.createdAt = serverTimestamp();
@@ -643,6 +699,138 @@ async function handleSaveQuestion(e) {
     } catch (e) {
         showToast(`Kaydetme sırasında hata oluştu: ${e.message}`, "error");
     }
+}
+
+function normalizeQuestionText(value = '') {
+    const turkishMap = { 'ı': 'i', 'İ': 'i', 'ğ': 'g', 'Ğ': 'g', 'ü': 'u', 'Ü': 'u', 'ş': 's', 'Ş': 's', 'ö': 'o', 'Ö': 'o', 'ç': 'c', 'Ç': 'c' };
+    const ascii = String(value)
+        .replace(/[ıİğĞüÜşŞöÖçÇ]/g, ch => turkishMap[ch] || ch)
+        .normalize('NFKD')
+        .replace(/[\u0300-\u036f]/g, '');
+
+    return ascii
+        .toLowerCase()
+        .replace(/[^a-z0-9\s]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+}
+
+function buildQuestionSignature(question) {
+    const normalizedText = normalizeQuestionText(question.text || '');
+    const optionText = (question.options || [])
+        .map(opt => normalizeQuestionText(opt?.text || ''))
+        .filter(Boolean)
+        .sort()
+        .join(' | ');
+    const lawCode = normalizeQuestionText(question.legislationRef?.code || '');
+    const lawArticle = normalizeQuestionText(question.legislationRef?.article || '');
+
+    return {
+        normalizedText,
+        tokenSet: new Set(normalizedText.split(' ').filter(token => token.length > 2)),
+        exactKey: [normalizedText, optionText, question.correctOption || '', lawCode, lawArticle].join('::')
+    };
+}
+
+function computeTokenSimilarity(setA, setB) {
+    if (!setA.size || !setB.size) return 0;
+    let intersection = 0;
+    setA.forEach(token => {
+        if (setB.has(token)) intersection++;
+    });
+    const union = setA.size + setB.size - intersection;
+    return union > 0 ? intersection / union : 0;
+}
+
+function buildEmptyDuplicateInsight() {
+    return {
+        isExactDuplicate: false,
+        isNearDuplicate: false,
+        hasDuplicateRisk: false,
+        exactCount: 0,
+        nearCount: 0,
+        nearMatches: []
+    };
+}
+
+function buildDuplicateInsights(questions = []) {
+    const results = new Map();
+    const signatures = questions.map(q => ({ id: q.id, ...buildQuestionSignature(q) }));
+
+    questions.forEach(q => results.set(q.id, buildEmptyDuplicateInsight()));
+
+    const exactMap = new Map();
+    signatures.forEach(sig => {
+        if (!sig.normalizedText || sig.normalizedText.length < DUPLICATE_SETTINGS.exactMinLength) return;
+        if (!exactMap.has(sig.exactKey)) exactMap.set(sig.exactKey, []);
+        exactMap.get(sig.exactKey).push(sig.id);
+    });
+
+    exactMap.forEach(ids => {
+        if (ids.length < 2) return;
+        ids.forEach(id => {
+            const entry = results.get(id);
+            entry.isExactDuplicate = true;
+            entry.hasDuplicateRisk = true;
+            entry.exactCount = ids.length - 1;
+        });
+    });
+
+    for (let i = 0; i < signatures.length; i++) {
+        for (let j = i + 1; j < signatures.length; j++) {
+            const left = signatures[i];
+            const right = signatures[j];
+            if (!left.normalizedText || !right.normalizedText) continue;
+
+            const similarity = computeTokenSimilarity(left.tokenSet, right.tokenSet);
+            const dynamicThreshold = Math.max(
+                DUPLICATE_SETTINGS.nearSimilarityThreshold - (Math.min(left.tokenSet.size, right.tokenSet.size) >= DUPLICATE_SETTINGS.longTextTokenBonusThreshold ? 0.03 : 0),
+                0.8
+            );
+            if (similarity < dynamicThreshold) continue;
+
+            const leftEntry = results.get(left.id);
+            const rightEntry = results.get(right.id);
+            leftEntry.isNearDuplicate = true;
+            rightEntry.isNearDuplicate = true;
+            leftEntry.hasDuplicateRisk = true;
+            rightEntry.hasDuplicateRisk = true;
+            leftEntry.nearMatches.push({ id: right.id, score: similarity });
+            rightEntry.nearMatches.push({ id: left.id, score: similarity });
+        }
+    }
+
+    results.forEach((entry) => {
+        entry.nearMatches.sort((a, b) => b.score - a.score);
+        entry.nearCount = entry.nearMatches.length;
+    });
+
+    return results;
+}
+
+async function findPotentialDuplicatesForQuestion(questionData, editId = null) {
+    const q = query(collection(db, 'questions'), orderBy('createdAt', 'desc'), limit(400));
+    const snap = await getDocs(q);
+    const existing = [];
+    snap.forEach((item) => {
+        if (item.id === editId) return;
+        if (item.data()?.isDeleted === true) return;
+        existing.push({ id: item.id, ...item.data() });
+    });
+
+    const tempId = '__draft__';
+    const insights = buildDuplicateInsights([...existing, { id: tempId, ...questionData }]);
+    const draft = insights.get(tempId) || buildEmptyDuplicateInsight();
+
+    const topNear = (draft.nearMatches || []).slice(0, 3).map(match => `${match.id.slice(0, 6)} (%${Math.round(match.score * 100)})`);
+    const summaryParts = [];
+    if (draft.isExactDuplicate) summaryParts.push(`Kesin mükerrer adedi: ${draft.exactCount}`);
+    if (draft.isNearDuplicate) summaryParts.push(`Olası mükerrer adedi: ${draft.nearCount}${topNear.length ? ` [${topNear.join(', ')}]` : ''}`);
+
+    return {
+        hasDuplicateRisk: draft.hasDuplicateRisk,
+        summary: summaryParts.join(' | ')
+    };
 }
 
 // --- YARDIMCI FONKSİYONLAR ---
