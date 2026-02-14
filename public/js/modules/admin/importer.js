@@ -1,12 +1,11 @@
 import { db } from "../../firebase-config.js";
 import { showConfirm, showToast } from "../../notifications.js";
-import { db } from "../../firebase-config.js";
-import { showConfirm, showToast } from "../../notifications.js";
-import { collection, writeBatch, doc, serverTimestamp, getDocs, query, orderBy, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { collection, writeBatch, doc, serverTimestamp, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import * as XLSX from "https://cdn.sheetjs.com/xlsx-latest/package/xlsx.mjs";
 import { TOPIC_KEYWORDS } from './keyword-map.js';
 
-let dbSignatureMap = new Map(); // normalizedText -> id
+let dbSignatureMap = new Map(); // exactSignature -> id
+let dbNormalizedSamples = []; // near-duplicate kontrolü için
 
 export function initImporterPage() {
     const container = document.getElementById('section-importer');
@@ -184,17 +183,64 @@ function normalizeQuestionText(value = '') {
         .trim();
 }
 
+function toTokenSet(normalizedText = '') {
+    return new Set(normalizedText.split(' ').filter(token => token.length > 2));
+}
+
+function calculateJaccardSimilarity(setA, setB) {
+    if (!setA.size || !setB.size) return 0;
+    let intersection = 0;
+    setA.forEach(token => {
+        if (setB.has(token)) intersection++;
+    });
+    const union = setA.size + setB.size - intersection;
+    return union === 0 ? 0 : intersection / union;
+}
+
+function buildQuestionSignature(question = {}) {
+    const normalizedText = normalizeQuestionText(question.text || '');
+    const normalizedOptions = (Array.isArray(question.options) ? question.options : [])
+        .map(opt => `${(opt?.id || '').toUpperCase()}:${normalizeQuestionText(opt?.text || '')}`)
+        .filter(Boolean)
+        .join('|');
+    const normalizedCorrect = String(question.correctOption || '').trim().toUpperCase();
+    return `${normalizedText}::${normalizedOptions}::${normalizedCorrect}`;
+}
+
+function findNearDuplicate(normalizedText) {
+    const currentTokens = toTokenSet(normalizedText);
+    if (currentTokens.size < 3) return null;
+
+    for (const sample of dbNormalizedSamples) {
+        const similarity = calculateJaccardSimilarity(currentTokens, sample.tokens);
+        if (similarity >= 0.92) {
+            return { id: sample.id, similarity: Math.round(similarity * 100) };
+        }
+    }
+
+    return null;
+}
+
 async function fetchExistingSignatures() {
     try {
-        const q = query(collection(db, "questions"), where("isDeleted", "==", false));
-        const snapshot = await getDocs(q);
+        const snapshot = await getDocs(collection(db, "questions"));
         dbSignatureMap.clear();
-        snapshot.forEach(doc => {
-            const data = doc.data();
+        dbNormalizedSamples = [];
+
+        snapshot.forEach(questionDoc => {
+            const data = questionDoc.data();
+            if (data?.isDeleted === true || data?.isActive === false) return;
+
             const text = data.text || '';
             if (text.length > 20) {
                 const normalized = normalizeQuestionText(text);
-                dbSignatureMap.set(normalized, doc.id);
+                const signature = buildQuestionSignature(data);
+                dbSignatureMap.set(signature, questionDoc.id);
+                dbNormalizedSamples.push({
+                    id: questionDoc.id,
+                    normalized,
+                    tokens: toTokenSet(normalized)
+                });
             }
         });
         log(`${dbSignatureMap.size} aktif soru imzası veritabanından alındı.`, "success");
@@ -372,9 +418,9 @@ function evaluateQuestionIssues(question) {
 function recomputeQualityStats() {
     const occurrences = new Map();
     parsedQuestions.forEach(q => {
-        const key = normalizeQuestionText(q.text);
-        if (!key) return;
-        occurrences.set(key, (occurrences.get(key) || 0) + 1);
+        const normalizedText = normalizeQuestionText(q.text);
+        if (!normalizedText) return;
+        occurrences.set(normalizedText, (occurrences.get(normalizedText) || 0) + 1);
     });
 
     let critical = 0;
@@ -389,24 +435,33 @@ function recomputeQualityStats() {
         // En temizi sıfırdan evaluateQuestionIssues çağırmak ve DB kontrolünü tekrar yapmak (çünkü text değişebilir).
 
         q._issues = evaluateQuestionIssues(q);
-        const key = normalizeQuestionText(q.text);
+        const normalizedText = normalizeQuestionText(q.text);
+        const signatureKey = buildQuestionSignature(q);
 
         // 1. Dosya İçi Mükerrer
-        q._isDuplicate = !!key && (occurrences.get(key) || 0) > 1;
+        q._isDuplicate = !!normalizedText && (occurrences.get(normalizedText) || 0) > 1;
         if (q._isDuplicate) {
             q._issues.push('Dosya içinde tekrar ediyor');
             duplicates++;
         }
 
         // 2. DB Mükerrer (Text değişmiş olabilir, tekrar bak)
-        if (key && dbSignatureMap.has(key)) {
+        if (signatureKey && dbSignatureMap.has(signatureKey)) {
             q._isDbDuplicate = true;
-            q._dbMatchId = dbSignatureMap.get(key);
+            q._dbMatchId = dbSignatureMap.get(signatureKey);
             q._issues.push('Veritabanında Mevcut');
             dbDuplicates++;
         } else {
-            q._isDbDuplicate = false;
-            q._dbMatchId = null;
+            const nearDuplicate = findNearDuplicate(normalizedText);
+            if (nearDuplicate) {
+                q._isDbDuplicate = true;
+                q._dbMatchId = nearDuplicate.id;
+                q._issues.push(`Veritabanında Benzer Soru (%${nearDuplicate.similarity})`);
+                dbDuplicates++;
+            } else {
+                q._isDbDuplicate = false;
+                q._dbMatchId = null;
+            }
         }
 
         q._criticalIssue = q._issues.some(issue =>
@@ -509,11 +564,20 @@ function analyzeQuestion(q, index) {
     let isDbDuplicate = false;
     let dbMatchId = null;
     if (text.length > 20) {
+        const signature = buildQuestionSignature(q);
         const normalized = normalizeQuestionText(text);
-        if (dbSignatureMap.has(normalized)) {
+        if (dbSignatureMap.has(signature)) {
             isDbDuplicate = true;
-            dbMatchId = dbSignatureMap.get(normalized);
+            dbMatchId = dbSignatureMap.get(signature);
             status = 'needs-review'; // Otomatik onaylanamaz
+        } else {
+            const nearDuplicate = findNearDuplicate(normalized);
+            if (nearDuplicate) {
+                isDbDuplicate = true;
+                dbMatchId = nearDuplicate.id;
+                reasons.push(`DB Benzerlik %${nearDuplicate.similarity}`);
+                status = 'needs-review';
+            }
         }
     }
 
@@ -1080,7 +1144,7 @@ function savePreviewEdits(index) {
 
 function updateSaveButtonState() {
     const approvedCount = parsedQuestions.filter(q => q._status === 'approved').length;
-    const importableCount = parsedQuestions.filter(q => q._status === 'approved' && !q._criticalIssue && !q._isDuplicate).length;
+    const importableCount = parsedQuestions.filter(q => q._status === 'approved' && !q._criticalIssue && !q._isDuplicate && !q._isDbDuplicate).length;
     const btn = document.getElementById('btnStartImport');
     if (!btn) return;
     btn.disabled = importableCount === 0;
@@ -1093,7 +1157,7 @@ async function startBatchImport() {
     const approved = parsedQuestions.filter(q => q._status === 'approved');
     if (approved.length === 0) return;
 
-    const importable = approved.filter(q => !q._criticalIssue && !q._isDuplicate);
+    const importable = approved.filter(q => !q._criticalIssue && !q._isDuplicate && !q._isDbDuplicate);
     const blocked = approved.length - importable.length;
     if (importable.length === 0) {
         showToast('Onaylı soruların tamamında kritik hata veya mükerrer içerik var.', 'warning');

@@ -472,6 +472,7 @@ async function loadQuestions() {
             const legRef = d.legislationRef || {};
             const legCodeValue = (legRef.code || '').toString();
             const legArticleValue = (legRef.article || '').toString();
+            const hasLegislation = Boolean(legCodeValue || legArticleValue);
             const info = duplicateInsightsById.get(d.id) || buildEmptyDuplicateInsight();
 
             if (duplicateMode === 'exact' && !info.isExactDuplicate) return;
