@@ -15,6 +15,35 @@ let dashboardCharts = {
     questions: null
 };
 
+const DASHBOARD_CACHE_KEY = "admin_dashboard_cache_v1";
+const DASHBOARD_CACHE_TTL_MS = 60 * 1000;
+let dashboardBootstrapped = false;
+
+function readDashboardCache() {
+    try {
+        const raw = sessionStorage.getItem(DASHBOARD_CACHE_KEY);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        if (!parsed?.savedAt || (Date.now() - parsed.savedAt) > DASHBOARD_CACHE_TTL_MS) return null;
+        return parsed;
+    } catch (_) {
+        return null;
+    }
+}
+
+function writeDashboardCache(patch) {
+    try {
+        const current = readDashboardCache() || {};
+        sessionStorage.setItem(DASHBOARD_CACHE_KEY, JSON.stringify({
+            ...current,
+            ...patch,
+            savedAt: Date.now()
+        }));
+    } catch (_) {
+        // sessionStorage engellendiyse sessizce devam et
+    }
+}
+
 /**
  * Dashboard sayfası yüklendiğinde çalışacak ana fonksiyon.
  * Her bir parça birbirinden bağımsız çalışır (Biri hata verirse diğerleri çalışmaya devam eder).
@@ -25,14 +54,54 @@ export async function initDashboard() {
     // 1. Tarihi Göster (Senkron işlem, bekleme yapmaz)
     updateDateDisplay();
 
-    // 2. İstatistik Kartlarını Yükle
-    await loadStatsSafe();
+    // 2. Varsa cache'i hemen göster (anlık geçiş hissi)
+    hydrateDashboardFromCache();
 
-    // 3. Grafikleri Başlat (Gerçek Veri ile)
-    await initChartsSafe();
-
-    // 4. Tabloları Doldur (Son Üyeler ve Raporlar)
+    // 3. Ağ isteklerini arkaplanda başlat (UI bloke olmasın)
+    loadStatsSafe();
+    initChartsSafe();
     loadTablesSafe();
+
+    dashboardBootstrapped = true;
+}
+
+function hydrateDashboardFromCache() {
+    if (!dashboardBootstrapped) return;
+    const cached = readDashboardCache();
+    if (!cached) return;
+
+    if (cached.stats) {
+        renderStats(cached.stats);
+    }
+
+    if (Array.isArray(cached.recentUsers)) {
+        renderRecentUsers(cached.recentUsers);
+    }
+
+    if (Array.isArray(cached.recentReports)) {
+        renderRecentReports(cached.recentReports);
+    }
+
+    if (cached.userTrend) {
+        renderUsersChart(cached.userTrend);
+    }
+}
+
+function renderStats(stats) {
+    const container = document.getElementById('statsGrid');
+    if (!container) return;
+
+    container.innerHTML = stats.map(stat => `
+        <div class="stat-card" style="border-left: 4px solid ${stat.color}">
+            <div class="stat-info">
+                <h3>${stat.label}</h3>
+                <div class="value">${stat.value}</div>
+            </div>
+            <div class="stat-icon" style="color: ${stat.color}">
+                ${stat.icon}
+            </div>
+        </div>
+    `).join('');
 }
 
 /**
@@ -70,18 +139,8 @@ async function loadStatsSafe() {
             { label: "Sistem", value: "Aktif", icon: "🟢", color: "#D4AF37" }
         ];
 
-        // HTML oluştur
-        container.innerHTML = stats.map(stat => `
-            <div class="stat-card" style="border-left: 4px solid ${stat.color}">
-                <div class="stat-info">
-                    <h3>${stat.label}</h3>
-                    <div class="value">${stat.value}</div>
-                </div>
-                <div class="stat-icon" style="color: ${stat.color}">
-                    ${stat.icon}
-                </div>
-            </div>
-        `).join('');
+        renderStats(stats);
+        writeDashboardCache({ stats });
 
     } catch (error) {
         console.error("İstatistik yükleme hatası:", error);
@@ -135,58 +194,13 @@ async function initChartsSafe() {
                 });
                 dataValues = sortedDates.map(d => aggregated.get(d) || 0);
             }
+
+            writeDashboardCache({ userTrend: { labels, dataValues } });
         } catch (e) {
             console.warn("Grafik verisi çekilemedi (Henüz veri oluşmamış olabilir):", e);
         }
 
-        // Grafiği Çiz
-        if (dashboardCharts.users) dashboardCharts.users.destroy();
-        
-        dashboardCharts.users = new Chart(ctxUsers, {
-            type: 'line',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'Yeni Üyeler',
-                    data: dataValues,
-                    borderColor: '#D4AF37', // Altın Rengi
-                    backgroundColor: 'rgba(212, 175, 55, 0.1)',
-                    tension: 0.4,
-                    fill: true,
-                    pointBackgroundColor: '#fff',
-                    pointBorderColor: '#D4AF37',
-                    pointRadius: 4
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { 
-                    legend: { display: false },
-                    tooltip: {
-                        backgroundColor: '#1e293b',
-                        titleColor: '#fff',
-                        bodyColor: '#cbd5e1',
-                        padding: 10,
-                        displayColors: false,
-                        callbacks: {
-                            title: (items) => items[0].label
-                        }
-                    }
-                },
-                scales: {
-                    y: { 
-                        beginAtZero: true, 
-                        grid: { color: 'rgba(255,255,255,0.05)' },
-                        ticks: { stepSize: 1, color: '#64748b' } // Ondalık sayı gösterme
-                    },
-                    x: { 
-                        grid: { display: false },
-                        ticks: { color: '#64748b' }
-                    }
-                }
-            }
-        });
+        renderUsersChart({ labels, dataValues });
     }
 
     // 2. PASTA GRAFİK (Şimdilik statik kalabilir veya aynı mantıkla bağlanabilir)
@@ -213,6 +227,59 @@ async function initChartsSafe() {
     }
 }
 
+function renderUsersChart({ labels = ['Veri Yok'], dataValues = [0] }) {
+    const ctxUsers = document.getElementById('usersChart');
+    if (!ctxUsers || typeof Chart === 'undefined') return;
+
+    if (dashboardCharts.users) dashboardCharts.users.destroy();
+
+    dashboardCharts.users = new Chart(ctxUsers, {
+        type: 'line',
+        data: {
+            labels,
+            datasets: [{
+                label: 'Yeni Üyeler',
+                data: dataValues,
+                borderColor: '#D4AF37',
+                backgroundColor: 'rgba(212, 175, 55, 0.1)',
+                tension: 0.4,
+                fill: true,
+                pointBackgroundColor: '#fff',
+                pointBorderColor: '#D4AF37',
+                pointRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: '#1e293b',
+                    titleColor: '#fff',
+                    bodyColor: '#cbd5e1',
+                    padding: 10,
+                    displayColors: false,
+                    callbacks: {
+                        title: (items) => items[0].label
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: { color: 'rgba(255,255,255,0.05)' },
+                    ticks: { stepSize: 1, color: '#64748b' }
+                },
+                x: {
+                    grid: { display: false },
+                    ticks: { color: '#64748b' }
+                }
+            }
+        }
+    });
+}
+
 /**
  * Alt Tabloları Doldurur (Limit 5)
  */
@@ -227,7 +294,7 @@ async function loadTablesSafe() {
             if (snapshot.empty) {
                 userTbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:#666;">Henüz üye yok.</td></tr>';
             } else {
-                userTbody.innerHTML = snapshot.docs.map(doc => {
+                const users = snapshot.docs.map(doc => {
                     const data = doc.data();
                     // Tarih güvenliği
                     let dateStr = "-";
@@ -235,16 +302,15 @@ async function loadTablesSafe() {
                         dateStr = data.createdAt.toDate().toLocaleDateString('tr-TR');
                     }
 
-                    return `
-                        <tr>
-                            <td>
-                                <div style="font-weight: 500; color: var(--text-primary);">${data.displayName || 'İsimsiz'}</div>
-                            </td>
-                            <td style="color: var(--text-muted); font-size: 0.9em;">${data.email}</td>
-                            <td><span style="font-size: 0.85em; opacity: 0.7;">${dateStr}</span></td>
-                        </tr>
-                    `;
-                }).join('');
+                    return {
+                        displayName: data.displayName || 'İsimsiz',
+                        email: data.email || '-',
+                        dateStr
+                    };
+                });
+
+                renderRecentUsers(users);
+                writeDashboardCache({ recentUsers: users });
             }
         } catch (error) {
             console.warn("Üye tablosu hatası (Index gerekebilir):", error);
@@ -262,21 +328,58 @@ async function loadTablesSafe() {
             if (snapshot.empty) {
                 reportTbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:#666;">Bildirim yok.</td></tr>';
             } else {
-                reportTbody.innerHTML = snapshot.docs.map(doc => {
+                const reports = snapshot.docs.map(doc => {
                     const data = doc.data();
                     const statusColor = data.status === 'resolved' ? '#10b981' : '#ef4444';
-                    return `
-                        <tr>
-                            <td>${data.type || 'Genel'}</td>
-                            <td style="max-width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${data.description || '-'}</td>
-                            <td><span style="width: 10px; height: 10px; background: ${statusColor}; display: inline-block; border-radius: 50%;"></span></td>
-                        </tr>
-                    `;
-                }).join('');
+                    return {
+                        type: data.type || 'Genel',
+                        description: data.description || '-',
+                        statusColor
+                    };
+                });
+
+                renderRecentReports(reports);
+                writeDashboardCache({ recentReports: reports });
             }
         } catch (error) {
             // Rapor koleksiyonu yoksa sessiz kal
             reportTbody.innerHTML = '<tr><td colspan="3" style="text-align:center;">Veri yok.</td></tr>';
         }
     }
+}
+
+function renderRecentUsers(users) {
+    const userTbody = document.getElementById('recentUsersTable');
+    if (!userTbody) return;
+    if (!users.length) {
+        userTbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:#666;">Henüz üye yok.</td></tr>';
+        return;
+    }
+
+    userTbody.innerHTML = users.map((user) => `
+        <tr>
+            <td>
+                <div style="font-weight: 500; color: var(--text-primary);">${user.displayName}</div>
+            </td>
+            <td style="color: var(--text-muted); font-size: 0.9em;">${user.email}</td>
+            <td><span style="font-size: 0.85em; opacity: 0.7;">${user.dateStr}</span></td>
+        </tr>
+    `).join('');
+}
+
+function renderRecentReports(reports) {
+    const reportTbody = document.getElementById('recentReportsTable');
+    if (!reportTbody) return;
+    if (!reports.length) {
+        reportTbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:#666;">Bildirim yok.</td></tr>';
+        return;
+    }
+
+    reportTbody.innerHTML = reports.map((report) => `
+        <tr>
+            <td>${report.type}</td>
+            <td style="max-width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${report.description}</td>
+            <td><span style="width: 10px; height: 10px; background: ${report.statusColor}; display: inline-block; border-radius: 50%;"></span></td>
+        </tr>
+    `).join('');
 }
