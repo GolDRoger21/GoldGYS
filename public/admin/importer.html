@@ -15,7 +15,17 @@
         body { opacity: 0; transition: opacity .25s ease; }
         body.loaded { opacity: 1; }
         .importer-page { padding: 1.5rem; }
-        .importer-page .section-header { margin-bottom: 1rem; }
+        .importer-page .section-header { margin-bottom: 1.5rem; }
+        .importer-layout { --bs-gutter-x: 1.5rem; --bs-gutter-y: 1.5rem; }
+        .importer-side-stack { gap: 1rem; }
+
+        @media (min-width: 1200px) {
+            .importer-page { padding: 2rem; }
+            .importer-side-stack {
+                position: sticky;
+                top: 1rem;
+            }
+        }
 
         .btn-guide { background: var(--bg-panel); color: var(--text-muted); border: 1px solid var(--border-color); }
         .btn-guide:hover { background: var(--bg-hover); color: var(--text-main); }
@@ -27,6 +37,9 @@
         .importer-dropzone { border: 1.5px dashed var(--border-color); border-radius: 14px; background: linear-gradient(135deg, rgba(var(--primary-rgb), .08), rgba(var(--primary-rgb), .02)); transition: .2s ease; cursor: pointer; }
         .importer-dropzone:hover,
         .importer-dropzone.dragover { border-color: var(--primary-color); transform: translateY(-1px); }
+        .importer-ops-card h6,
+        .importer-log-card .card-header small:first-child { letter-spacing: .02em; font-weight: 600; }
+        .importer-log-body { min-height: 180px; }
 
         .preview-toolbar,
         .preview-footer { background: var(--bg-soft, rgba(var(--primary-rgb), .05)); border-color: var(--border-color); }
