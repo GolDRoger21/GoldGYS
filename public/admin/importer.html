@@ -3,117 +3,97 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Akıllı Soru Yükleme - Admin Paneli</title>
+    <title>Toplu Soru İçe Aktarım | GOLD GYS</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../styles/tokens.css">
+    <link rel="stylesheet" href="../css/app.css">
+    <link rel="stylesheet" href="../css/layout.css">
     <link rel="stylesheet" href="../css/admin.css">
+
     <style>
-        /* Admin.css değişkenlerini kullanan modern stil */
-        body { margin: 0; padding: 0; background: var(--bg-main); color: var(--text-main); font-family: 'Inter', sans-serif; }
-        .section-header p { margin-bottom: 0px; }
+        body { opacity: 0; transition: opacity .25s ease; }
+        body.loaded { opacity: 1; }
+        .importer-page { padding: 1.5rem; }
+        .importer-page .section-header { margin-bottom: 1rem; }
+
         .btn-guide { background: var(--bg-panel); color: var(--text-muted); border: 1px solid var(--border-color); }
         .btn-guide:hover { background: var(--bg-hover); color: var(--text-main); }
-        .border-dashed { transition: all 0.2s; }
-        .border-dashed:hover { border-color: var(--primary-color) !important; background: rgba(var(--primary-rgb), 0.05); }
 
-        /* Preview Table Styles */
-        .table-responsive::-webkit-scrollbar { width: 8px; height: 8px; }
-        .table-responsive::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 4px; }
-        .preview-card { border: 1px solid var(--border-color); box-shadow: 0 16px 38px rgba(15, 23, 42, 0.1); border-radius: 16px; overflow: hidden; background: linear-gradient(180deg, rgba(var(--primary-rgb), 0.04), transparent 20%), var(--bg-panel); }
-        .preview-card .card-header { padding: 1rem 1.25rem; border-bottom: 1px solid var(--border-color); background: rgba(15, 23, 42, 0.3); }
-        .preview-title { font-size: 1.05rem; font-weight: 700; letter-spacing: 0.01em; }
-        .preview-toolbar { gap: 0.75rem; background: rgba(15, 23, 42, 0.22); padding: 0.85rem 1.25rem; border-bottom: 1px solid var(--border-color); }
-        .preview-toolbar .toolbar-group { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
-        .preview-toolbar .btn { min-height: 36px; display: inline-flex; align-items: center; gap: 6px; border-radius: 10px; font-weight: 500; }
-        .preview-toolbar .btn.btn-outline-success,
-        .preview-toolbar .btn.btn-outline-primary,
-        .preview-toolbar .btn.btn-outline-secondary,
-        .preview-toolbar .btn.btn-outline-danger { border-width: 1px; }
-        .preview-toolbar .btn:hover { transform: translateY(-1px); }
-        .preview-toolbar .btn-icon { font-size: 0.95rem; }
-        .preview-stats { display: flex; gap: 0.75rem; flex-wrap: wrap; }
-        .preview-stat { background: rgba(15, 23, 42, 0.45); border: 1px solid var(--border-color); border-radius: 10px; padding: 7px 11px; font-size: 0.8rem; color: var(--text-muted); }
-        .preview-stat strong { color: var(--text-main); margin-right: 4px; }
+        .preview-card,
+        .importer-ops-card,
+        .importer-log-card { border: 1px solid var(--border-color); border-radius: 16px; background: var(--bg-panel); }
+
+        .importer-dropzone { border: 1.5px dashed var(--border-color); border-radius: 14px; background: linear-gradient(135deg, rgba(var(--primary-rgb), .08), rgba(var(--primary-rgb), .02)); transition: .2s ease; cursor: pointer; }
+        .importer-dropzone:hover,
+        .importer-dropzone.dragover { border-color: var(--primary-color); transform: translateY(-1px); }
+
+        .preview-toolbar,
+        .preview-footer { background: var(--bg-soft, rgba(var(--primary-rgb), .05)); border-color: var(--border-color); }
+
+        .preview-stat { background: var(--bg-main); border: 1px solid var(--border-color); border-radius: 999px; padding: .35rem .7rem; font-size: .78rem; }
+        .preview-stat strong { color: var(--text-main); }
         .preview-table-wrap { max-height: 520px; overflow: auto; }
-        .preview-table { font-size: 0.875rem; margin: 0; }
-        .preview-table thead th { background: rgba(15, 23, 42, 0.9); border-bottom: 1px solid var(--border-color); text-transform: uppercase; letter-spacing: 0.04em; font-size: 0.72rem; color: var(--text-muted); padding: 0.78rem 0.65rem; white-space: nowrap; }
-        .preview-table tbody td { padding: 0.72rem 0.65rem; border-bottom: 1px solid rgba(148, 163, 184, 0.2); vertical-align: top; }
-        .preview-table tbody tr:hover { background: rgba(var(--primary-rgb), 0.05); }
-        .preview-row-approved { background: rgba(16, 185, 129, 0.08); }
-        .question-cell { min-width: 260px; }
-        .question-textarea { resize: vertical; font-size: 0.84rem; border-radius: 10px; border: 1px solid rgba(148, 163, 184, 0.3); min-height: 82px; }
-        .question-meta { color: var(--text-muted); font-size: 0.75rem; margin-top: 4px; }
-        .topic-select { min-width: 220px; border-radius: 10px; }
-        .confidence-stack { display: inline-flex; flex-direction: column; gap: 5px; align-items: stretch; min-width: 96px; }
-        .confidence-badge { font-size: 0.76rem; border-radius: 999px; padding: 0.35rem 0.58rem; font-weight: 600; text-align: center; }
-        .confidence-progress { height: 5px; width: 100%; background: rgba(148, 163, 184, 0.3); border-radius: 999px; overflow: hidden; }
-        .confidence-progress span { display: block; height: 100%; }
-        .status-pill { border-radius: 999px; padding: 4px 10px; font-size: 0.75rem; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; }
-        .status-pill.pending { background: rgba(245, 158, 11, 0.12); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.4); }
-        .status-pill.approved { background: rgba(16, 185, 129, 0.12); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.4); }
-        .status-pill.review { background: rgba(59, 130, 246, 0.12); color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.4); }
-        .control-buttons { display: inline-flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
-        .control-buttons .btn { padding: 5px 10px; font-size: 0.75rem; border-radius: 10px; }
-        .action-btn-primary { background: rgba(59, 130, 246, 0.15); color: #93c5fd; border: 1px solid rgba(59, 130, 246, 0.4); }
-        .action-btn-primary:hover { background: rgba(59, 130, 246, 0.25); color: #dbeafe; }
-        .action-btn-success { background: rgba(16, 185, 129, 0.15); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, 0.4); }
-        .action-btn-success:hover { background: rgba(16, 185, 129, 0.25); color: #ecfdf5; }
-        .filter-select { min-width: 160px; }
-        .search-input { min-width: 220px; }
-        .preview-footer { padding: 0.85rem 1.25rem; background: rgba(15, 23, 42, 0.3); border-top: 1px solid var(--border-color); }
-        .preview-footer .btn { border-radius: 10px; font-weight: 600; min-height: 38px; }
-        .preview-modal-body { display: grid; gap: 12px; }
-        .preview-section { background: var(--bg-panel); border: 1px solid var(--border-color); border-radius: 10px; padding: 12px; }
-        .preview-section h6 { margin: 0 0 6px; font-size: 0.85rem; color: var(--text-muted); }
-        .confidence-meter { display: flex; flex-direction: column; gap: 4px; }
-        .confidence-bar { height: 8px; border-radius: 999px; background: rgba(148, 163, 184, 0.3); overflow: hidden; }
-        .confidence-bar span { display: block; height: 100%; border-radius: 999px; }
-        .confidence-label { font-size: 0.75rem; color: var(--text-muted); display: flex; align-items: center; gap: 6px; }
-        .confidence-label strong { color: var(--text-main); }
-        .confidence-high { background: linear-gradient(90deg, #10b981, #22c55e); }
-        .confidence-medium { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
-        .confidence-low { background: linear-gradient(90deg, #94a3b8, #cbd5f5); }
-        .modal-field { display: grid; gap: 6px; }
-        .modal-field label { font-size: 0.8rem; color: var(--text-muted); }
-        .modal-field .form-control, .modal-field .form-select { background: var(--bg-main); border: 1px solid var(--border-color); color: var(--text-main); }
-        .modal-actions { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
-        
-        /* Badges */
-        .badge.bg-secondary { background: #475569; color: #fff; }
-        .badge.bg-success { background: #10b981; color: #fff; }
-        .badge.bg-warning { background: #f59e0b; color: #000; }
-        .badge.bg-danger { background: #ef4444; color: #fff; }
+        .preview-table thead th { position: sticky; top: 0; z-index: 10; background: var(--bg-main); font-size: .72rem; text-transform: uppercase; letter-spacing: .03em; }
+        .preview-table tbody tr:hover { background: rgba(var(--primary-rgb), .06); }
+        .preview-row-approved { background: rgba(16, 185, 129, .12); }
+
+        .question-textarea,
+        .topic-select,
+        .filter-select,
+        .search-input { border-radius: 10px; }
+
+        .quality-card { border: 1px solid var(--border-color); border-radius: 12px; padding: .75rem; background: var(--bg-main); }
+        .quality-chip { display: inline-flex; align-items: center; gap: .35rem; font-size: .72rem; border-radius: 999px; padding: .2rem .55rem; margin: .2rem .2rem 0 0; border: 1px solid var(--border-color); background: var(--bg-main); color: var(--text-muted); }
+        .quality-chip.critical { border-color: rgba(239, 68, 68, .4); color: #ef4444; }
+        .quality-chip.warning { border-color: rgba(245, 158, 11, .4); color: #f59e0b; }
+
+        .status-pill { border-radius: 999px; padding: 4px 10px; font-size: .75rem; font-weight: 600; }
+        .status-pill.pending { background: rgba(245,158,11,.12); color: #f59e0b; }
+        .status-pill.approved { background: rgba(16,185,129,.12); color: #10b981; }
+        .status-pill.review { background: rgba(59,130,246,.12); color: #3b82f6; }
+
+        .control-buttons { display: inline-flex; flex-wrap: wrap; gap: 6px; }
+        .control-buttons .btn { border-radius: 10px; font-size: .75rem; }
     </style>
     <script src="/js/theme-init.js"></script>
 </head>
-<body>
+<body class="admin-body">
+    <div id="pageLoader" style="position:fixed; inset:0; background:var(--bg-main,#fff); z-index:99999; display:flex; justify-content:center; align-items:center;">
+        <div class="spinner-border text-primary" role="status"></div>
+    </div>
 
-    <!-- Sidebar (Admin panel yapısına uygun olarak JS tarafından yüklenebilir veya statik kalabilir, şimdilik içerik odaklı) -->
-    <div class="admin-wrapper">
-        <!-- Main Content -->
-        <main class="main-content" style="padding: 2rem;">
-            <div id="section-importer">
-                <!-- JS tarafından doldurulacak -->
+    <script type="module">
+        import { initLayout } from '../js/ui-loader.js';
+        document.addEventListener('DOMContentLoaded', async () => {
+            await initLayout();
+            document.body.classList.add('loaded');
+            document.getElementById('pageLoader').style.display = 'none';
+        });
+    </script>
+
+    <div class="admin-layout">
+        <main class="content importer-page">
+            <section id="section-importer" class="admin-section">
                 <div class="text-center p-5">
                     <div class="spinner-border text-primary" role="status"></div>
                     <p class="mt-3 text-muted">Yükleyici modülü başlatılıyor...</p>
                 </div>
-            </div>
+            </section>
         </main>
     </div>
 
-    <!-- Firebase Scripts -->
     <script type="module">
         import { initImporterPage } from '../js/modules/admin/importer.js';
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { auth } from '../js/firebase-config.js';
 
-        // Yetki Kontrolü ve Başlatma
         document.addEventListener('DOMContentLoaded', () => {
             onAuthStateChanged(auth, user => {
                 if (user) {
-                    // Admin yetkisi kontrolü eklenebilir (claims)
                     initImporterPage();
                 } else {
-                    document.body.innerHTML = '<div class="text-center p-5"><h3>Erişim Reddedildi</h3><p>Lütfen admin girişi yapınız.</p><a href="/admin/login.html">Giriş Yap</a></div>';
+                    document.getElementById('section-importer').innerHTML = '<div class="card p-5 text-center"><h3>Erişim Reddedildi</h3><p>Lütfen admin girişi yapınız.</p><a href="/admin/login.html">Giriş Yap</a></div>';
                 }
             });
         });

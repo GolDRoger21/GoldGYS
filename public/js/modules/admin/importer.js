@@ -10,7 +10,7 @@ export function initImporterPage() {
         <div class="section-header">
             <div>
                 <h2>📥 Akıllı Soru Yükleme</h2>
-                <p class="text-muted">Mevzuat ve anahtar kelime destekli otomatik eşleştirme sistemi.</p>
+                <p class="text-muted">Mevzuat ve anahtar kelime destekli otomatik eşleştirme, kalite kontrol ve güvenli toplu aktarım sistemi.</p>
             </div>
             <div class="d-flex gap-2">
                 <button onclick="window.Importer.migrate()" class="btn btn-warning btn-sm">⚠️ Veritabanı Kelimelerini Güncelle</button>
@@ -20,11 +20,18 @@ export function initImporterPage() {
 
         <div class="row">
             <div class="col-md-5 d-flex flex-column gap-3">
-                <div class="card p-5 text-center border-dashed importer-dropzone" onclick="document.getElementById('fileInput').click()">
+                <div id="importerDropzone" class="card p-5 text-center border-dashed importer-dropzone" onclick="document.getElementById('fileInput').click()">
                     <div class="importer-dropzone-icon">📂</div>
                     <h5>Dosya Seç (JSON/Excel)</h5>
-                    <p class="text-muted small">Sürükleyip bırakabilir veya tıklayabilirsiniz.</p>
+                    <p class="text-muted small">Sürükleyip bırakabilir veya tıklayabilirsiniz. Sistem otomatik kalite kontrolü uygular.</p>
                     <input type="file" id="fileInput" accept=".json, .xlsx, .xls" style="display: none;">
+                </div>
+
+                <div class="card importer-ops-card p-3">
+                    <h6 class="mb-2">Kalite Özeti</h6>
+                    <div id="qualityStats" class="d-grid gap-2">
+                        <div class="quality-card text-muted small">Dosya yüklendiğinde kalite raporu burada görünecek.</div>
+                    </div>
                 </div>
                 
                 <div class="card importer-log-card">
@@ -69,6 +76,7 @@ export function initImporterPage() {
                                 <option value="approved">Onaylılar</option>
                                 <option value="high">Yüksek Güven</option>
                                 <option value="needs-review">Kontrol Gerekiyor</option>
+                                <option value="issues">Kalite Sorunları</option>
                             </select>
                             <input type="text" class="form-control form-control-sm search-input" id="previewSearch" placeholder="Soru içinde ara..." oninput="window.Importer.applyFilter()">
                         </div>
@@ -125,6 +133,7 @@ export function initImporterPage() {
     `;
 
     document.getElementById('fileInput').addEventListener('change', handleFileSelect);
+    setupDropzoneEvents();
 
     // Window export
     window.Importer = {
@@ -153,6 +162,7 @@ let allTopics = [];
 let selectedRows = new Set();
 let currentFilter = 'all';
 let currentSearch = '';
+let qualityStats = { total: 0, critical: 0, warning: 0, duplicates: 0, importable: 0 };
 
 // ============================================================
 // --- VERİ HAZIRLIĞI VE GÖÇ (MIGRATION) ---
@@ -267,6 +277,119 @@ async function runKeywordMigration() {
 // --- DOSYA İŞLEME VE ANALİZ ---
 // ============================================================
 
+
+function setupDropzoneEvents() {
+    const dropzone = document.getElementById('importerDropzone');
+    const fileInput = document.getElementById('fileInput');
+    if (!dropzone || !fileInput) return;
+
+    ['dragenter', 'dragover'].forEach(evt => {
+        dropzone.addEventListener(evt, e => {
+            e.preventDefault();
+            e.stopPropagation();
+            dropzone.classList.add('dragover');
+        });
+    });
+
+    ['dragleave', 'drop'].forEach(evt => {
+        dropzone.addEventListener(evt, e => {
+            e.preventDefault();
+            e.stopPropagation();
+            dropzone.classList.remove('dragover');
+        });
+    });
+
+    dropzone.addEventListener('drop', e => {
+        const files = e.dataTransfer?.files;
+        if (!files || !files.length) return;
+        fileInput.files = files;
+        handleFileSelect({ target: fileInput });
+    });
+}
+
+function normalizeText(value = '') {
+    return value.toLowerCase().replace(/\s+/g, ' ').trim();
+}
+
+function evaluateQuestionIssues(question) {
+    const issues = [];
+    if (!question.text || question.text.trim().length < 15) issues.push('Soru metni çok kısa veya boş');
+
+    const options = Array.isArray(question.options) ? question.options : [];
+    const filledOptions = options.filter(o => (o?.text || '').trim().length > 0);
+    if (filledOptions.length < 4) issues.push('En az 4 dolu seçenek olmalı');
+
+    const correct = (question.correctOption || '').toString().trim().toUpperCase();
+    if (!correct) {
+        issues.push('Doğru cevap bilgisi eksik');
+    } else if (!filledOptions.some(o => (o.id || '').toUpperCase() === correct)) {
+        issues.push('Doğru cevap, dolu seçeneklerle uyuşmuyor');
+    }
+
+    if (!question._suggestedTopicId) issues.push('Önerilen konu bulunamadı');
+    return issues;
+}
+
+function recomputeQualityStats() {
+    const occurrences = new Map();
+    parsedQuestions.forEach(q => {
+        const key = normalizeText(q.text);
+        if (!key) return;
+        occurrences.set(key, (occurrences.get(key) || 0) + 1);
+    });
+
+    let critical = 0;
+    let warning = 0;
+    let duplicates = 0;
+    let importable = 0;
+
+    parsedQuestions.forEach(q => {
+        q._issues = evaluateQuestionIssues(q);
+        const key = normalizeText(q.text);
+        q._isDuplicate = !!key && (occurrences.get(key) || 0) > 1;
+        if (q._isDuplicate) {
+            q._issues.push('Aynı metin birden fazla soruda tekrar ediyor');
+            duplicates++;
+        }
+
+        q._criticalIssue = q._issues.some(issue =>
+            issue.includes('boş') || issue.includes('Doğru cevap') || issue.includes('4 dolu seçenek')
+        );
+
+        if (q._criticalIssue) critical++;
+        if (!q._criticalIssue && q._issues.length > 0) warning++;
+        if (!q._criticalIssue) importable++;
+    });
+
+    qualityStats = {
+        total: parsedQuestions.length,
+        critical,
+        warning,
+        duplicates,
+        importable
+    };
+
+    renderQualityStats();
+}
+
+function renderQualityStats() {
+    const box = document.getElementById('qualityStats');
+    if (!box) return;
+
+    if (!qualityStats.total) {
+        box.innerHTML = '<div class="quality-card text-muted small">Dosya yüklendiğinde kalite raporu burada görünecek.</div>';
+        return;
+    }
+
+    box.innerHTML = `
+        <div class="quality-card"><strong>${qualityStats.total}</strong> toplam soru</div>
+        <div class="quality-card"><strong>${qualityStats.importable}</strong> aktarılabilir soru</div>
+        <div class="quality-card text-danger"><strong>${qualityStats.critical}</strong> kritik hata</div>
+        <div class="quality-card text-warning"><strong>${qualityStats.warning}</strong> uyarı</div>
+        <div class="quality-card"><strong>${qualityStats.duplicates}</strong> mükerrer aday</div>
+    `;
+}
+
 async function handleFileSelect(event) {
     const file = event.target.files[0];
     if (!file) return;
@@ -291,6 +414,7 @@ async function handleFileSelect(event) {
 
         // Analiz Başlat
         parsedQuestions = rawData.map((q, index) => analyzeQuestion(q, index));
+        recomputeQualityStats();
         log(`${parsedQuestions.length} soru analiz edildi. Önizleme oluşturuluyor...`, "success");
 
         selectedRows.clear();
@@ -334,7 +458,10 @@ function analyzeQuestion(q, index) {
         _confidence: confidenceLabel,
         _status: status, // Kullanıcı onayı için
         _suggestedTopicId: suggestedTopic.id,
-        _suggestedTopicTitle: suggestedTopic.title
+        _suggestedTopicTitle: suggestedTopic.title,
+        _issues: [],
+        _criticalIssue: false,
+        _isDuplicate: false
     };
 }
 
@@ -507,8 +634,11 @@ function renderPreviewTable() {
         // Satır Rengi (Onay durumuna göre)
         const rowClass = q._status === 'approved' ? 'preview-row-approved' : '';
         const checkIcon = q._status === 'approved' ? '✅ Onaylı' : '⬜ Onayla';
-        const statusClass = q._status === 'approved' ? 'approved' : (q._confidence === 'low' ? 'review' : 'pending');
-        const statusLabel = q._status === 'approved' ? 'Onaylandı' : (q._confidence === 'low' ? 'Kontrol' : 'Bekliyor');
+        const hasIssues = q._issues && q._issues.length > 0;
+        const statusClass = q._status === 'approved'
+            ? 'approved'
+            : (q._criticalIssue ? 'review' : (q._confidence === 'low' || hasIssues ? 'review' : 'pending'));
+        const statusLabel = q._status === 'approved' ? 'Onaylandı' : (q._criticalIssue ? 'Kritik' : (hasIssues ? 'Uyarı' : (q._confidence === 'low' ? 'Kontrol' : 'Bekliyor')));
         const isChecked = selectedRows.has(q._id) ? 'checked' : '';
         const confidenceWidth = Math.min(Math.max(q._score, 0), 100);
         const confidenceClass = q._confidence === 'high' ? 'confidence-high' : (q._confidence === 'medium' ? 'confidence-medium' : 'confidence-low');
@@ -524,6 +654,10 @@ function renderPreviewTable() {
                     <textarea class="form-control form-control-sm question-textarea" rows="3" onchange="window.Importer.updateQuestionText(${q._id}, this.value)">${q.text}</textarea>
                     <div class="question-meta mt-1 d-flex justify-content-between text-muted small">
                         <span>Kategori: ${q.category || '-'}</span>
+                    </div>
+                    <div class="question-meta">
+                        ${(q._issues || []).slice(0, 2).map(issue => `<span class="quality-chip ${q._criticalIssue ? 'critical' : 'warning'}">⚑ ${issue}</span>`).join('')}
+                        ${q._issues && q._issues.length > 2 ? `<span class="quality-chip">+${q._issues.length - 2} ek</span>` : ''}
                     </div>
                 </td>
                 <td>
@@ -581,6 +715,7 @@ function updateRowTopic(index, newTopicId) {
     if (q._status !== 'approved') {
         q._status = 'approved';
     }
+    recomputeQualityStats();
     updateRowUI(index);
 }
 
@@ -588,6 +723,8 @@ function updateQuestionText(index, newText) {
     const q = parsedQuestions[index];
     if (q) {
         q.text = newText;
+        recomputeQualityStats();
+        updateRowUI(index);
     }
 }
 
@@ -667,8 +804,11 @@ function updateRowUI(index) {
 
     const statusPill = row.querySelector('.status-pill');
     if (statusPill) {
-        const statusClass = q._status === 'approved' ? 'approved' : (q._confidence === 'low' ? 'review' : 'pending');
-        const statusLabel = q._status === 'approved' ? 'Onaylandı' : (q._confidence === 'low' ? 'Kontrol' : 'Bekliyor');
+        const hasIssues = q._issues && q._issues.length > 0;
+        const statusClass = q._status === 'approved'
+            ? 'approved'
+            : (q._criticalIssue ? 'review' : (q._confidence === 'low' || hasIssues ? 'review' : 'pending'));
+        const statusLabel = q._status === 'approved' ? 'Onaylandı' : (q._criticalIssue ? 'Kritik' : (hasIssues ? 'Uyarı' : (q._confidence === 'low' ? 'Kontrol' : 'Bekliyor')));
         statusPill.className = `status-pill ${statusClass}`;
         statusPill.textContent = statusLabel;
     }
@@ -702,7 +842,9 @@ function getFilteredQuestions() {
             case 'high':
                 return q._confidence === 'high';
             case 'needs-review':
-                return q._confidence === 'low' && q._status !== 'approved';
+                return (q._confidence === 'low' || q._criticalIssue) && q._status !== 'approved';
+            case 'issues':
+                return (q._issues || []).length > 0;
             default:
                 return true;
         }
@@ -716,7 +858,8 @@ function updatePreviewStats() {
     const approved = parsedQuestions.filter(q => q._status === 'approved').length;
     const pending = total - approved;
     const high = parsedQuestions.filter(q => q._confidence === 'high').length;
-    const review = parsedQuestions.filter(q => q._confidence === 'low' && q._status !== 'approved').length;
+    const review = parsedQuestions.filter(q => (q._confidence === 'low' || q._criticalIssue) && q._status !== 'approved').length;
+    const critical = parsedQuestions.filter(q => q._criticalIssue).length;
 
     stats.innerHTML = `
         <span class="preview-stat"><strong>${total}</strong> Toplam</span>
@@ -724,6 +867,7 @@ function updatePreviewStats() {
         <span class="preview-stat"><strong>${pending}</strong> Bekleyen</span>
         <span class="preview-stat"><strong>${high}</strong> Yüksek Güven</span>
         <span class="preview-stat"><strong>${review}</strong> Kontrol</span>
+        <span class="preview-stat"><strong>${critical}</strong> Kritik</span>
     `;
 }
 
@@ -842,22 +986,34 @@ function savePreviewEdits(index) {
         q.options = updatedOptions;
     }
 
+    recomputeQualityStats();
     renderPreviewTable();
     showToast("Soru güncellendi.", "success");
 }
 
 function updateSaveButtonState() {
     const approvedCount = parsedQuestions.filter(q => q._status === 'approved').length;
+    const importableCount = parsedQuestions.filter(q => q._status === 'approved' && !q._criticalIssue && !q._isDuplicate).length;
     const btn = document.getElementById('btnStartImport');
-    btn.disabled = approvedCount === 0;
-    btn.innerText = approvedCount > 0 ? `Seçili ${approvedCount} Soruyu Kaydet` : 'Onaylanan Yok';
+    if (!btn) return;
+    btn.disabled = importableCount === 0;
+    btn.innerText = importableCount > 0
+        ? `Seçili ${importableCount} Soruyu Kaydet`
+        : (approvedCount > 0 ? 'Kalite kontrolü nedeniyle beklemede' : 'Onaylanan Yok');
 }
 
 async function startBatchImport() {
     const approved = parsedQuestions.filter(q => q._status === 'approved');
     if (approved.length === 0) return;
 
-    if (!await showConfirm(`${approved.length} soru veritabanına kaydedilecek. Onaylıyor musunuz?`)) return;
+    const importable = approved.filter(q => !q._criticalIssue && !q._isDuplicate);
+    const blocked = approved.length - importable.length;
+    if (importable.length === 0) {
+        showToast('Onaylı soruların tamamında kritik hata veya mükerrer içerik var.', 'warning');
+        return;
+    }
+
+    if (!await showConfirm(`${importable.length} soru veritabanına kaydedilecek.${blocked > 0 ? ` ${blocked} soru kalite filtresi nedeniyle atlanacak.` : ''} Onaylıyor musunuz?`)) return;
 
     const btn = document.getElementById('btnStartImport');
     btn.disabled = true;
@@ -865,8 +1021,8 @@ async function startBatchImport() {
 
     try {
         const batchSize = 450;
-        for (let i = 0; i < approved.length; i += batchSize) {
-            const chunk = approved.slice(i, i + batchSize);
+        for (let i = 0; i < importable.length; i += batchSize) {
+            const chunk = importable.slice(i, i + batchSize);
             const batch = writeBatch(db);
 
             chunk.forEach(q => {
