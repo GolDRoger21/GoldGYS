@@ -1,8 +1,12 @@
 import { db } from "../../firebase-config.js";
 import { showConfirm, showToast } from "../../notifications.js";
-import { collection, writeBatch, doc, serverTimestamp, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { db } from "../../firebase-config.js";
+import { showConfirm, showToast } from "../../notifications.js";
+import { collection, writeBatch, doc, serverTimestamp, getDocs, query, orderBy, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import * as XLSX from "https://cdn.sheetjs.com/xlsx-latest/package/xlsx.mjs";
 import { TOPIC_KEYWORDS } from './keyword-map.js';
+
+let dbSignatureMap = new Map(); // normalizedText -> id
 
 export function initImporterPage() {
     const container = document.getElementById('section-importer');
@@ -77,6 +81,7 @@ export function initImporterPage() {
                                 <option value="high">Yüksek Güven</option>
                                 <option value="needs-review">Kontrol Gerekiyor</option>
                                 <option value="issues">Kalite Sorunları</option>
+                                <option value="db-duplicates">Veritabanı Mükerrerleri</option>
                             </select>
                             <input type="text" class="form-control form-control-sm search-input" id="previewSearch" placeholder="Soru içinde ara..." oninput="window.Importer.applyFilter()">
                         </div>
@@ -155,6 +160,7 @@ export function initImporterPage() {
     };
 
     fetchTopics();
+    fetchExistingSignatures();
 }
 
 let parsedQuestions = [];
@@ -162,7 +168,40 @@ let allTopics = [];
 let selectedRows = new Set();
 let currentFilter = 'all';
 let currentSearch = '';
-let qualityStats = { total: 0, critical: 0, warning: 0, duplicates: 0, importable: 0 };
+let qualityStats = { total: 0, critical: 0, warning: 0, duplicates: 0, dbDuplicates: 0, importable: 0 };
+
+function normalizeQuestionText(value = '') {
+    const turkishMap = { 'ı': 'i', 'İ': 'i', 'ğ': 'g', 'Ğ': 'g', 'ü': 'u', 'Ü': 'u', 'ş': 's', 'Ş': 's', 'ö': 'o', 'Ö': 'o', 'ç': 'c', 'Ç': 'c' };
+    const ascii = String(value)
+        .replace(/[ıİğĞüÜşŞöÖçÇ]/g, ch => turkishMap[ch] || ch)
+        .normalize('NFKD')
+        .replace(/[\u0300-\u036f]/g, '');
+
+    return ascii
+        .toLowerCase()
+        .replace(/[^a-z0-9\s]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+}
+
+async function fetchExistingSignatures() {
+    try {
+        const q = query(collection(db, "questions"), where("isDeleted", "==", false));
+        const snapshot = await getDocs(q);
+        dbSignatureMap.clear();
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            const text = data.text || '';
+            if (text.length > 20) {
+                const normalized = normalizeQuestionText(text);
+                dbSignatureMap.set(normalized, doc.id);
+            }
+        });
+        log(`${dbSignatureMap.size} aktif soru imzası veritabanından alındı.`, "success");
+    } catch (error) {
+        console.error("Veritabanı imzaları alınamadı:", error);
+    }
+}
 
 // ============================================================
 // --- VERİ HAZIRLIĞI VE GÖÇ (MIGRATION) ---
@@ -333,7 +372,7 @@ function evaluateQuestionIssues(question) {
 function recomputeQualityStats() {
     const occurrences = new Map();
     parsedQuestions.forEach(q => {
-        const key = normalizeText(q.text);
+        const key = normalizeQuestionText(q.text);
         if (!key) return;
         occurrences.set(key, (occurrences.get(key) || 0) + 1);
     });
@@ -341,15 +380,33 @@ function recomputeQualityStats() {
     let critical = 0;
     let warning = 0;
     let duplicates = 0;
+    let dbDuplicates = 0;
     let importable = 0;
 
     parsedQuestions.forEach(q => {
+        // Issue listesini temizle ve yeniden oluştur (DB Duplicate hariç, onu analyzeQuestion'da ekledik ama burada tekrar kontrol etmek lazım çünkü text değişmiş olabilir)
+        // Ancak burada basit olsun diye analyzeQuestion'daki issue'ları koruyup üstüne ekleyelim ya da sıfırdan yapalım. 
+        // En temizi sıfırdan evaluateQuestionIssues çağırmak ve DB kontrolünü tekrar yapmak (çünkü text değişebilir).
+
         q._issues = evaluateQuestionIssues(q);
-        const key = normalizeText(q.text);
+        const key = normalizeQuestionText(q.text);
+
+        // 1. Dosya İçi Mükerrer
         q._isDuplicate = !!key && (occurrences.get(key) || 0) > 1;
         if (q._isDuplicate) {
-            q._issues.push('Aynı metin birden fazla soruda tekrar ediyor');
+            q._issues.push('Dosya içinde tekrar ediyor');
             duplicates++;
+        }
+
+        // 2. DB Mükerrer (Text değişmiş olabilir, tekrar bak)
+        if (key && dbSignatureMap.has(key)) {
+            q._isDbDuplicate = true;
+            q._dbMatchId = dbSignatureMap.get(key);
+            q._issues.push('Veritabanında Mevcut');
+            dbDuplicates++;
+        } else {
+            q._isDbDuplicate = false;
+            q._dbMatchId = null;
         }
 
         q._criticalIssue = q._issues.some(issue =>
@@ -358,7 +415,7 @@ function recomputeQualityStats() {
 
         if (q._criticalIssue) critical++;
         if (!q._criticalIssue && q._issues.length > 0) warning++;
-        if (!q._criticalIssue) importable++;
+        if (!q._criticalIssue && !q._isDbDuplicate && !q._isDuplicate) importable++;
     });
 
     qualityStats = {
@@ -366,6 +423,7 @@ function recomputeQualityStats() {
         critical,
         warning,
         duplicates,
+        dbDuplicates,
         importable
     };
 
@@ -386,7 +444,8 @@ function renderQualityStats() {
         <div class="quality-card"><strong>${qualityStats.importable}</strong> aktarılabilir soru</div>
         <div class="quality-card text-danger"><strong>${qualityStats.critical}</strong> kritik hata</div>
         <div class="quality-card text-warning"><strong>${qualityStats.warning}</strong> uyarı</div>
-        <div class="quality-card"><strong>${qualityStats.duplicates}</strong> mükerrer aday</div>
+        <div class="quality-card text-info"><strong>${qualityStats.duplicates}</strong> dosya içi tekrar</div>
+        <div class="quality-card text-primary"><strong>${qualityStats.dbDuplicates}</strong> veritabanında mevcut</div>
     `;
 }
 
@@ -446,10 +505,22 @@ function analyzeQuestion(q, index) {
     if (score >= 80) confidenceLabel = 'high';
     else if (score >= 40) confidenceLabel = 'medium';
 
+    // DB Mükerrer Kontrolü
+    let isDbDuplicate = false;
+    let dbMatchId = null;
+    if (text.length > 20) {
+        const normalized = normalizeQuestionText(text);
+        if (dbSignatureMap.has(normalized)) {
+            isDbDuplicate = true;
+            dbMatchId = dbSignatureMap.get(normalized);
+            status = 'needs-review'; // Otomatik onaylanamaz
+        }
+    }
+
     // Eşleşen konuyu bul (yoksa null)
     let suggestedTopic = allTopics.find(t => t.id === bestTopicId) || { id: '', title: q.category || 'Genel' };
 
-    return {
+    const result = {
         ...q,
         _id: index,
         _score: score,
@@ -461,8 +532,16 @@ function analyzeQuestion(q, index) {
         _suggestedTopicTitle: suggestedTopic.title,
         _issues: [],
         _criticalIssue: false,
-        _isDuplicate: false
+        _isDuplicate: false,
+        _isDbDuplicate: isDbDuplicate,
+        _dbMatchId: dbMatchId
     };
+
+    if (isDbDuplicate) {
+        result._issues.push('Veritabanında Mevcut');
+    }
+
+    return result;
 }
 
 function calculateConfidence(text, inputCategoryName) {
@@ -632,7 +711,9 @@ function renderPreviewTable() {
         const tooltip = `Sebep: ${q._reasons.join(', ')}`;
 
         // Satır Rengi (Onay durumuna göre)
-        const rowClass = q._status === 'approved' ? 'preview-row-approved' : '';
+        let rowClass = q._status === 'approved' ? 'preview-row-approved' : '';
+        if (q._isDbDuplicate) rowClass = 'preview-row-db-duplicate';
+
         const checkIcon = q._status === 'approved' ? '✅ Onaylı' : '⬜ Onayla';
         const hasIssues = q._issues && q._issues.length > 0;
         const statusClass = q._status === 'approved'
@@ -741,11 +822,15 @@ function approveHighConfidence() {
 }
 
 function approveAll() {
+    let count = 0;
     parsedQuestions.forEach((q, idx) => {
-        q._status = 'approved';
+        if (!q._isDbDuplicate) {
+            q._status = 'approved';
+            count++;
+        }
     });
     renderPreviewTable();
-    showToast("Tüm sorular onaylandı.", "success");
+    showToast(`${count} soru onaylandı (Mükerrerler atlandı).`, "success");
 }
 
 function approveSelectedRows() {
@@ -845,6 +930,8 @@ function getFilteredQuestions() {
                 return (q._confidence === 'low' || q._criticalIssue) && q._status !== 'approved';
             case 'issues':
                 return (q._issues || []).length > 0;
+            case 'db-duplicates':
+                return q._isDbDuplicate;
             default:
                 return true;
         }
