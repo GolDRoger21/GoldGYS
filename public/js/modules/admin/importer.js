@@ -274,9 +274,9 @@ async function fetchTopics() {
 }
 
 async function runKeywordMigration() {
-    const confirm = await showConfirm("Tüm konuların anahtar kelimeleri 'keyword-map.js' dosyasındaki verilerle güncellenecektir. Onaylıyor musunuz?", {
+    const confirm = await showConfirm("Sadece anahtar kelimesi boş olan konular için 'keyword-map.js' verileri kullanılacaktır. Onaylıyor musunuz?", {
         title: "Veritabanı Güncelleme",
-        confirmText: "Kelimeleri Güncelle (Overwrite)",
+        confirmText: "Boş Olanları Güncelle",
         cancelText: "İptal"
     });
     if (!confirm) return;
@@ -287,9 +287,19 @@ async function runKeywordMigration() {
         const batch = writeBatch(db);
         let updateCount = 0;
         let missingCount = 0;
+        let skippedCount = 0;
 
         // DB'deki her konuyu gez
         allTopics.forEach(topic => {
+            const existingKeywords = Array.isArray(topic.keywords)
+                ? topic.keywords.filter(kw => String(kw || '').trim().length > 0)
+                : [];
+
+            if (existingKeywords.length > 0) {
+                skippedCount++;
+                return;
+            }
+
             let mappedKeywords = null;
             const dbTitle = topic.title.toLowerCase().trim();
 
@@ -301,14 +311,11 @@ async function runKeywordMigration() {
                 // Haritadaki her anahtarı gez
                 const matchedKey = Object.keys(TOPIC_KEYWORDS).find(mapTitle => {
                     const mapTitleLower = mapTitle.toLowerCase();
-                    // Örn: DB="Anayasa", Map="Türkiye Cumhuriyeti Anayasası" -> Eşleşir
-                    // Örn: DB="İdare Hukuku", Map="İdare Hukuku" -> Eşleşir
                     return mapTitleLower.includes(dbTitle) || dbTitle.includes(mapTitleLower);
                 });
 
                 if (matchedKey) {
                     mappedKeywords = TOPIC_KEYWORDS[matchedKey];
-                    // log(`Eşleşme Bulundu: "${topic.title}" -> "${matchedKey}"`);
                 }
             }
 
@@ -323,18 +330,14 @@ async function runKeywordMigration() {
                 missingCount++;
 
                 const ref = doc(db, "topics", topic.id);
-                // Başlıktaki kelimeleri ayır (Örn: "İdari Yargılama Usulü" -> "idari", "yargılama", "usulü")
                 const autoKeywords = [
                     topic.title.toLowerCase(),
                     ...topic.title.toLowerCase().split(/\s+/).filter(w => w.length > 2 && !['ve', 'ile', 'veya'].includes(w))
                 ];
 
-                // Benzersiz yap
                 const uniqueKeywords = [...new Set(autoKeywords)];
 
                 batch.update(ref, { keywords: uniqueKeywords });
-                // Bunu da güncellendi sayabiliriz ama logda belirtelim
-                // updateCount++; 
                 console.log(`Otomatik kelime üretildi: ${topic.title} -> ${uniqueKeywords}`);
             }
         });
@@ -342,14 +345,15 @@ async function runKeywordMigration() {
         if (updateCount > 0 || missingCount > 0) {
             await batch.commit();
             const totalProcessed = updateCount + missingCount;
-            log(`✅ İŞLEM TAMAMLANDI: Toplam ${totalProcessed} konu işlendi.`, "success");
+            log(`✅ İŞLEM TAMAMLANDI: Anahtar kelimesi boş ${totalProcessed} konu işlendi.`, "success");
             log(`📌 ${updateCount} konu haritadan eşleşti.`, "success");
             log(`📌 ${missingCount} konu için başlıktan otomatik kelime üretildi.`, "warning");
+            log(`⏭️ ${skippedCount} konu zaten anahtar kelime içerdiği için atlandı.`, "info");
 
             await fetchTopics(); // Belleği tazele
-            showToast(`Tüm konular (${totalProcessed} adet) için anahtar kelimeler tanımlandı.`, "success");
+            showToast(`Boş anahtar kelimeli ${totalProcessed} konu güncellendi, ${skippedCount} konu korunarak atlandı.`, "success");
         } else {
-            log("Güncellenecek eşleşme bulunamadı. Konu başlıklarını kontrol edin.", "info");
+            log(`Güncellenecek boş anahtar kelimeli konu bulunamadı. (${skippedCount} konu zaten dolu)`, "info");
         }
 
     } catch (e) {
@@ -394,6 +398,53 @@ function setupDropzoneEvents() {
 
 function normalizeText(value = '') {
     return value.toLowerCase().replace(/\s+/g, ' ').trim();
+}
+
+function normalizeForMatch(value = '') {
+    const turkishMap = { 'ı': 'i', 'İ': 'i', 'ğ': 'g', 'Ğ': 'g', 'ü': 'u', 'Ü': 'u', 'ş': 's', 'Ş': 's', 'ö': 'o', 'Ö': 'o', 'ç': 'c', 'Ç': 'c' };
+    return String(value)
+        .replace(/[ıİğĞüÜşŞöÖçÇ]/g, ch => turkishMap[ch] || ch)
+        .toLowerCase()
+        .replace(/[^a-z0-9\s]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+}
+
+function escapeRegex(value = '') {
+    return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function buildTokenSet(text = '') {
+    return new Set(text.split(' ').filter(token => token.length > 1));
+}
+
+function scoreTopicByKeywords(topic, normalizedText, textTokens) {
+    const keywords = Array.isArray(topic.keywords) ? topic.keywords : [];
+    const matchedKeywords = [];
+    let score = 0;
+
+    keywords.forEach(rawKeyword => {
+        const keyword = normalizeForMatch(rawKeyword);
+        if (!keyword || /^\d+$/.test(keyword)) return;
+
+        let matched = false;
+        if (keyword.includes(' ')) {
+            const phraseRegex = new RegExp(`(?:^|\\s)${escapeRegex(keyword)}(?:\\s|$)`);
+            matched = phraseRegex.test(normalizedText);
+        } else {
+            matched = textTokens.has(keyword);
+            if (!matched && keyword.length >= 5) {
+                matched = Array.from(textTokens).some(token => token.startsWith(keyword));
+            }
+        }
+
+        if (matched) {
+            matchedKeywords.push(keyword);
+            score += keyword.length >= 8 ? 18 : 14;
+        }
+    });
+
+    return { score, matchedKeywords };
 }
 
 function evaluateQuestionIssues(question) {
@@ -609,19 +660,21 @@ function analyzeQuestion(q, index) {
 }
 
 function calculateConfidence(text, inputCategoryName) {
+    const normalizedText = normalizeForMatch(text);
+    const normalizedCategory = normalizeForMatch(inputCategoryName || '');
+    const textTokens = buildTokenSet(normalizedText);
+
     let bestTopicId = null;
     let maxScore = 0;
     let reasons = [];
     let matchType = 'none'; // keyword, legislation, similarity
 
     // A) MEVZUAT NO KONTROLÜ (En Güçlü)
-    // Metin içinde 4 haneli sayıları (2709, 5271 vb.) ara
-    const legislationMatches = text.match(/\b\d{3,4}\b/g) || [];
+    const legislationMatches = normalizedText.match(/\b\d{3,4}\b/g) || [];
 
     if (legislationMatches.length > 0) {
         for (const topic of allTopics) {
-            const keywords = topic.keywords || [];
-            // Konunun keywordlerinde bu sayılardan biri var mı?
+            const keywords = (topic.keywords || []).map(kw => normalizeForMatch(kw));
             const match = legislationMatches.find(num => keywords.includes(num));
             if (match) {
                 return {
@@ -634,24 +687,37 @@ function calculateConfidence(text, inputCategoryName) {
         }
     }
 
-    // B) KELİME TARAMASI
+    // B) KELİME + KATEGORİ + BAŞLIK TOKEN TARAMASI
     allTopics.forEach(topic => {
         let currentScore = 0;
-        let matchedKw = [];
-        const keywords = topic.keywords || [];
+        const matchedKw = [];
 
-        keywords.forEach(kw => {
-            // Sadece sayı olanları zaten yukarıda baktık, metinlere bak
-            if (isNaN(kw) && text.includes(kw)) {
-                currentScore += 20; // Her kelime 20 puan
-                matchedKw.push(kw);
+        const { score: keywordScore, matchedKeywords } = scoreTopicByKeywords(topic, normalizedText, textTokens);
+        currentScore += keywordScore;
+        matchedKw.push(...matchedKeywords);
+
+        const normalizedTitle = normalizeForMatch(topic.title || '');
+
+        if (normalizedCategory) {
+            if (normalizedTitle === normalizedCategory) {
+                currentScore += 70;
+                matchedKw.push('(Kategori Tam Eşleşme)');
+            } else if (normalizedTitle.includes(normalizedCategory) || normalizedCategory.includes(normalizedTitle)) {
+                currentScore += 45;
+                matchedKw.push('(Kategori Yakın Eşleşme)');
             }
-        });
+        }
 
-        // Eğer kullanıcı zaten doğru bir kategori adı yazmışsa
-        if (inputCategoryName && topic.title.toLowerCase().includes(inputCategoryName.toLowerCase())) {
-            currentScore += 50;
-            matchedKw.push("(Kategori Adı)");
+        const titleParts = normalizedTitle.split(' ').filter(w => w.length > 3);
+        const titleHits = titleParts.filter(token => textTokens.has(token)).length;
+        if (titleHits > 0) {
+            currentScore += titleHits * 8;
+            matchedKw.push(`(Başlık Token ${titleHits})`);
+        }
+
+        if (matchedKeywords.length >= 2) {
+            currentScore += 12;
+            matchedKw.push('(Çoklu Anahtar Kelime)');
         }
 
         if (currentScore > maxScore) {
@@ -662,25 +728,22 @@ function calculateConfidence(text, inputCategoryName) {
         }
     });
 
-    // C) FALLBACK (Skor çok düşükse bile en iyiyi döndür, ama güven 'low' olacak)
+    // C) FALLBACK
     if (maxScore === 0) {
-        // Metin benzerliği için basit bir kontrol
         allTopics.forEach(topic => {
-            const titleParts = topic.title.toLowerCase().split(' ').filter(w => w.length > 4);
+            const titleParts = normalizeForMatch(topic.title).split(' ').filter(w => w.length > 4);
             let hit = 0;
-            titleParts.forEach(p => { if (text.includes(p)) hit++; });
+            titleParts.forEach(p => { if (textTokens.has(p)) hit++; });
             if (hit > 0 && hit * 10 > maxScore) {
                 maxScore = hit * 10;
                 bestTopicId = topic.id;
-                reasons = ["Başlık Benzerliği"];
+                reasons = ['Başlık Benzerliği'];
                 matchType = 'similarity';
             }
         });
     }
 
     // D) PARENT (ÜST KONU) KISITLAMASI
-    // Eğer bulunan konu bir üst konuysa ve altında alt konular varsa, soru üst konuya eklenemez.
-    // Alt konular arasında yeniden puanlama yaparak en uygununu seçmeliyiz.
     if (bestTopicId) {
         const children = allTopics.filter(t => t.parentId === bestTopicId);
 
@@ -694,16 +757,11 @@ function calculateConfidence(text, inputCategoryName) {
             children.forEach(child => {
                 let currentChildScore = 0;
 
-                // 1. Keyword check
-                if (child.keywords) {
-                    child.keywords.forEach(kw => {
-                        if (isNaN(kw) && text.includes(kw)) currentChildScore += 20;
-                    });
-                }
+                const childKeywordResult = scoreTopicByKeywords(child, normalizedText, textTokens);
+                currentChildScore += childKeywordResult.score;
 
-                // 2. Title similarity
-                const titleParts = child.title.toLowerCase().split(' ').filter(w => w.length > 3);
-                titleParts.forEach(p => { if (text.includes(p)) currentChildScore += 10; });
+                const titleParts = normalizeForMatch(child.title).split(' ').filter(w => w.length > 3);
+                titleParts.forEach(p => { if (textTokens.has(p)) currentChildScore += 10; });
 
                 if (currentChildScore > bestChildScore) {
                     bestChildScore = currentChildScore;
@@ -711,28 +769,21 @@ function calculateConfidence(text, inputCategoryName) {
                 }
             });
 
-            if (bestChild) { // En az bir child bulundu veya hepsi 0 olsa bile ilkini (bestChildScore -1 oldugu icin hepsi 0 ise ilkini alir mi? Hayir, score 0 ise alır.)
-                // bestChildScore initialization -1, so if score is 0 it is > -1. logic holds.
+            if (bestChild) {
                 bestTopicId = bestChild.id;
-                // Skoru child'ın skoruna göre güncelle veya parent skorunu koru (ama güveni düşür)
                 if (bestChildScore > 0) {
-                    // Child da kelime bulduysa puanı artır
                     maxScore += bestChildScore;
                 } else {
-                    // Child için özel bir kelime bulamadı ama mecbur seçtik
-                    reasons.push("Net alt konu bulunamadı, varsayılan seçildi");
-                    // Güveni düşür ki kullanıcı kontrol etsin
+                    reasons.push('Net alt konu bulunamadı, varsayılan seçildi');
                     if (maxScore > 45) maxScore = 45;
                 }
             } else {
-                // Çok nadir durum (children array dolu ama loop çalışmadı?!), garanti olsun
                 bestTopicId = children[0].id;
                 if (maxScore > 45) maxScore = 45;
             }
         }
     }
 
-    // Tavan puan 100
     return { bestTopicId, score: Math.min(maxScore, 100), reasons, matchType };
 }
 
