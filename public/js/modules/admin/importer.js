@@ -18,8 +18,8 @@ export function initImporterPage() {
             </div>
         </div>
 
-        <div class="row">
-            <div class="col-md-5 d-flex flex-column gap-3">
+        <div class="row importer-layout g-4 align-items-start">
+            <div class="col-12 col-xl-4 d-flex flex-column importer-side-stack">
                 <div id="importerDropzone" class="card p-5 text-center border-dashed importer-dropzone" onclick="document.getElementById('fileInput').click()">
                     <div class="importer-dropzone-icon">📂</div>
                     <h5>Dosya Seç (JSON/Excel)</h5>
@@ -45,7 +45,7 @@ export function initImporterPage() {
                 </div>
             </div>
 
-            <div class="col-md-7">
+            <div class="col-12 col-xl-8">
                 <div class="card h-100 preview-card" id="previewCard" style="display:none;">
                     <div class="card-header d-flex flex-wrap gap-2 justify-content-between align-items-center">
                         <div>
