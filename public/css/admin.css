@@ -2697,3 +2697,284 @@ tr.highlight {
         grid-template-columns: 1fr;
     }
 }
+
+/* ==========================================================================
+   IMPORTER UI ENHANCEMENTS (Added via Agent)
+   ========================================================================== */
+
+.importer-page {
+    padding: 1.5rem;
+}
+
+.importer-layout {
+    --bs-gutter-x: 1.5rem;
+    --bs-gutter-y: 1.5rem;
+}
+
+/* Side Stack Spacing Fix */
+.importer-side-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    /* Default gap */
+}
+
+.importer-side-stack .card {
+    margin-bottom: 0;
+    /* Remove default card margin to rely on gap */
+}
+
+@media (min-width: 1200px) {
+    .importer-page {
+        padding: 2rem;
+    }
+
+    .importer-side-stack {
+        position: sticky;
+        top: 2rem;
+        gap: 24px;
+        /* Increased gap for larger screens */
+    }
+}
+
+/* Dropzone Styling */
+.importer-dropzone {
+    border: 2px dashed var(--border-color);
+    border-radius: 16px;
+    background: linear-gradient(135deg, rgba(212, 175, 55, 0.05), rgba(212, 175, 55, 0.01));
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    padding: 2.5rem !important;
+}
+
+.importer-dropzone:hover,
+.importer-dropzone.dragover {
+    border-color: var(--color-primary);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px -10px rgba(212, 175, 55, 0.15);
+    background: linear-gradient(135deg, rgba(212, 175, 55, 0.08), rgba(212, 175, 55, 0.02));
+}
+
+.importer-dropzone-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    transition: transform 0.3s ease;
+}
+
+.importer-dropzone:hover .importer-dropzone-icon {
+    transform: scale(1.1) rotate(5deg);
+}
+
+/* Cards Styling */
+.importer-ops-card,
+.importer-log-card,
+.preview-card {
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    background: var(--bg-surface);
+    box-shadow: var(--shadow-sm);
+    transition: box-shadow 0.2s ease;
+    overflow: hidden;
+    /* Ensure rounded corners clip content */
+}
+
+.importer-ops-card:hover,
+.importer-log-card:hover {
+    box-shadow: var(--shadow-md);
+}
+
+.importer-ops-card h6,
+.importer-log-card .card-header small:first-child {
+    letter-spacing: .02em;
+    font-weight: 600;
+    color: var(--text-main);
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+.importer-log-card .card-header {
+    background: var(--bg-hover);
+    border-bottom: 1px solid var(--border-color);
+    padding: 12px 16px;
+}
+
+.importer-log-body {
+    min-height: 200px;
+    max-height: 300px;
+    font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 0.8rem;
+    padding: 12px 16px;
+    background: var(--bg-surface);
+    color: var(--text-muted);
+    overflow-y: auto;
+}
+
+/* Quality Stats */
+.quality-card {
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 12px 16px;
+    background: var(--bg-surface);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 0.9rem;
+    transition: background 0.2s;
+}
+
+.quality-card:hover {
+    background: var(--bg-hover);
+}
+
+.quality-card strong {
+    color: var(--text-main);
+    font-weight: 600;
+}
+
+/* Preview Table & Toolbar */
+.preview-toolbar {
+    background: var(--bg-hover);
+    border-bottom: 1px solid var(--border-color);
+    padding: 12px 16px;
+    gap: 12px;
+}
+
+.preview-footer {
+    background: var(--bg-surface);
+    padding: 16px;
+    border-top: 1px solid var(--border-color);
+}
+
+.preview-table-wrap {
+    max-height: 600px;
+    overflow: auto;
+    border-top: 1px solid var(--border-color);
+    border-radius: 0 0 16px 16px;
+    /* Match card radius if needed, but table is inside card */
+}
+
+.preview-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--bg-surface);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 12px 16px;
+    box-shadow: 0 1px 0 var(--border-color);
+    color: var(--text-muted);
+    font-weight: 700;
+}
+
+.preview-table tbody tr {
+    transition: background-color 0.1s;
+}
+
+.preview-table tbody tr:hover td {
+    background-color: var(--bg-hover);
+}
+
+.preview-row-approved {
+    background-color: rgba(16, 185, 129, 0.08) !important;
+}
+
+.preview-row-approved:hover td {
+    background-color: rgba(16, 185, 129, 0.12) !important;
+}
+
+/* Form Elements inside Table */
+.question-textarea,
+.topic-select,
+.filter-select,
+.search-input {
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    background-color: var(--bg-surface);
+    color: var(--text-main);
+    padding: 8px 12px;
+    font-size: 0.9rem;
+}
+
+.question-textarea:focus,
+.topic-select:focus,
+.filter-select:focus,
+.search-input:focus {
+    border-color: var(--color-primary);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.15);
+}
+
+/* Chips & Badges */
+.quality-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.75rem;
+    border-radius: 20px;
+    padding: 4px 10px;
+    margin: 4px 4px 0 0;
+    border: 1px solid var(--border-color);
+    background: var(--bg-surface);
+    color: var(--text-muted);
+}
+
+.quality-chip.critical {
+    border-color: rgba(239, 68, 68, 0.3);
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.05);
+}
+
+.quality-chip.warning {
+    border-color: rgba(245, 158, 11, 0.3);
+    color: #f59e0b;
+    background: rgba(245, 158, 11, 0.05);
+}
+
+.status-pill {
+    border-radius: 20px;
+    padding: 6px 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: inline-block;
+    text-align: center;
+    min-width: 90px;
+}
+
+.status-pill.pending {
+    background: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
+    border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+.status-pill.approved {
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+    border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.status-pill.review {
+    background: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+    border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+/* Buttons & Controls */
+.control-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+}
+
+.control-buttons .btn {
+    padding: 6px 12px;
+    font-size: 0.75rem;
+    border-radius: 8px;
+}
+
+.btn-sm {
+    padding: 6px 12px;
+    font-size: 0.85rem;
+}

@@ -11,64 +11,6 @@
     <link rel="stylesheet" href="../css/layout.css">
     <link rel="stylesheet" href="../css/admin.css">
 
-    <style>
-        body { opacity: 0; transition: opacity .25s ease; }
-        body.loaded { opacity: 1; }
-        .importer-page { padding: 1.5rem; }
-        .importer-page .section-header { margin-bottom: 1.5rem; }
-        .importer-layout { --bs-gutter-x: 1.5rem; --bs-gutter-y: 1.5rem; }
-        .importer-side-stack { gap: 1rem; }
-
-        @media (min-width: 1200px) {
-            .importer-page { padding: 2rem; }
-            .importer-side-stack {
-                position: sticky;
-                top: 1rem;
-            }
-        }
-
-        .btn-guide { background: var(--bg-panel); color: var(--text-muted); border: 1px solid var(--border-color); }
-        .btn-guide:hover { background: var(--bg-hover); color: var(--text-main); }
-
-        .preview-card,
-        .importer-ops-card,
-        .importer-log-card { border: 1px solid var(--border-color); border-radius: 16px; background: var(--bg-panel); }
-
-        .importer-dropzone { border: 1.5px dashed var(--border-color); border-radius: 14px; background: linear-gradient(135deg, rgba(var(--primary-rgb), .08), rgba(var(--primary-rgb), .02)); transition: .2s ease; cursor: pointer; }
-        .importer-dropzone:hover,
-        .importer-dropzone.dragover { border-color: var(--primary-color); transform: translateY(-1px); }
-        .importer-ops-card h6,
-        .importer-log-card .card-header small:first-child { letter-spacing: .02em; font-weight: 600; }
-        .importer-log-body { min-height: 180px; }
-
-        .preview-toolbar,
-        .preview-footer { background: var(--bg-soft, rgba(var(--primary-rgb), .05)); border-color: var(--border-color); }
-
-        .preview-stat { background: var(--bg-main); border: 1px solid var(--border-color); border-radius: 999px; padding: .35rem .7rem; font-size: .78rem; }
-        .preview-stat strong { color: var(--text-main); }
-        .preview-table-wrap { max-height: 520px; overflow: auto; }
-        .preview-table thead th { position: sticky; top: 0; z-index: 10; background: var(--bg-main); font-size: .72rem; text-transform: uppercase; letter-spacing: .03em; }
-        .preview-table tbody tr:hover { background: rgba(var(--primary-rgb), .06); }
-        .preview-row-approved { background: rgba(16, 185, 129, .12); }
-
-        .question-textarea,
-        .topic-select,
-        .filter-select,
-        .search-input { border-radius: 10px; }
-
-        .quality-card { border: 1px solid var(--border-color); border-radius: 12px; padding: .75rem; background: var(--bg-main); }
-        .quality-chip { display: inline-flex; align-items: center; gap: .35rem; font-size: .72rem; border-radius: 999px; padding: .2rem .55rem; margin: .2rem .2rem 0 0; border: 1px solid var(--border-color); background: var(--bg-main); color: var(--text-muted); }
-        .quality-chip.critical { border-color: rgba(239, 68, 68, .4); color: #ef4444; }
-        .quality-chip.warning { border-color: rgba(245, 158, 11, .4); color: #f59e0b; }
-
-        .status-pill { border-radius: 999px; padding: 4px 10px; font-size: .75rem; font-weight: 600; }
-        .status-pill.pending { background: rgba(245,158,11,.12); color: #f59e0b; }
-        .status-pill.approved { background: rgba(16,185,129,.12); color: #10b981; }
-        .status-pill.review { background: rgba(59,130,246,.12); color: #3b82f6; }
-
-        .control-buttons { display: inline-flex; flex-wrap: wrap; gap: 6px; }
-        .control-buttons .btn { border-radius: 10px; font-size: .75rem; }
-    </style>
     <script src="/js/theme-init.js"></script>
 </head>
 <body class="admin-body">
