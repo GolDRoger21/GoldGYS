@@ -2,6 +2,7 @@ import { auth } from './firebase-config.js';
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getUserProfile } from './user-profile.js';
 import { showConfirm } from './notifications.js';
+import { applySiteConfigToDocument } from './site-config.js';
 
 const PAGE_CONFIG = {
     '/dashboard': { id: 'dashboard', title: 'Genel Bakış' },
@@ -48,9 +49,14 @@ export async function initLayout() {
             // 5. Aktif Menüyü İşaretle
             setActiveMenuItem(config.id);
 
-            // 6. Sayfayı Göster
-            document.body.style.visibility = 'visible';
+            // 6. Varsayılan başlığı ayarla
             document.title = `${config.title} | GOLD GYS`;
+
+            // 7. Site ayarlarını uygula (örn. SEO override)
+            await applySiteConfigToDocument();
+
+            // 8. Sayfayı Göster
+            document.body.style.visibility = 'visible';
 
             return true;
 
