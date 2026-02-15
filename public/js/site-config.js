@@ -165,39 +165,33 @@ function applySupportLinks(config) {
     const whatsappUrl = config?.contact?.whatsappUrl?.trim();
     const telegramUrl = config?.contact?.telegramUrl?.trim();
 
-    if (supportEmail) {
-        document.querySelectorAll("[data-site-setting='support-email']").forEach((el) => {
-            if (el.tagName === "A") {
-                el.setAttribute("href", `mailto:${supportEmail}`);
+    // Helper to update and show/hide elements
+    const updateLink = (selector, value, type) => {
+        document.querySelectorAll(selector).forEach((el) => {
+            if (value) {
+                el.style.display = ""; // Reset display (show)
+                if (el.tagName === "A") {
+                    if (type === "email") el.setAttribute("href", `mailto:${value}`);
+                    else if (type === "phone") el.setAttribute("href", `tel:${value.replace(/\s+/g, '')}`);
+                    else el.setAttribute("href", value);
+                }
+                // Don't overwrite text if it has nested children (like icons) unless it's a specific data-target
+                // But for "quick buttons" we often want to keep the icon and just change href.
+                // If the element is meant to display text (like a phone number span), it should be targeted differently or check content.
+                // For now, let's ONLY update text if the element has 'data-update-text' attribute or is NOT a quick button with icon.
+                if (el.hasAttribute('data-update-text')) {
+                    el.textContent = value;
+                }
+            } else {
+                el.style.display = "none"; // Hide if no value
             }
-            el.textContent = supportEmail;
         });
-    }
+    };
 
-    if (supportPhone) {
-        document.querySelectorAll("[data-site-setting='support-phone']").forEach((el) => {
-            if (el.tagName === "A") {
-                el.setAttribute("href", `tel:${supportPhone.replace(/\s+/g, '')}`);
-            }
-            el.textContent = supportPhone;
-        });
-    }
-
-    if (whatsappUrl) {
-        document.querySelectorAll("[data-site-setting='whatsapp-url']").forEach((el) => {
-            if (el.tagName === "A") {
-                el.setAttribute("href", whatsappUrl);
-            }
-        });
-    }
-
-    if (telegramUrl) {
-        document.querySelectorAll("[data-site-setting='telegram-url']").forEach((el) => {
-            if (el.tagName === "A") {
-                el.setAttribute("href", telegramUrl);
-            }
-        });
-    }
+    updateLink("[data-site-setting='support-email']", supportEmail, "email");
+    updateLink("[data-site-setting='support-phone']", supportPhone, "phone");
+    updateLink("[data-site-setting='whatsapp-url']", whatsappUrl, "url");
+    updateLink("[data-site-setting='telegram-url']", telegramUrl, "url");
 }
 
 function upsertMetaByName(name, content) {
