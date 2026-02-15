@@ -160,10 +160,13 @@ function applyFooter(config) {
 }
 
 function applySupportLinks(config) {
-    const supportEmail = config?.contact?.supportEmail?.trim();
-    const supportPhone = config?.contact?.supportPhone?.trim();
-    const whatsappUrl = config?.contact?.whatsappUrl?.trim();
-    const telegramUrl = config?.contact?.telegramUrl?.trim();
+    // Falls back to defaults if config is missing (Transient fix until they save settings)
+    const supportEmail = config?.contact?.supportEmail?.trim() || "";
+    const supportPhone = config?.contact?.supportPhone?.trim() || "";
+
+    // Default Gold GYS links if not configured
+    const whatsappUrl = config?.contact?.whatsappUrl?.trim() || "https://wa.me/905432194953";
+    const telegramUrl = config?.contact?.telegramUrl?.trim() || "https://t.me/goldgys";
 
     // Helper to update and show/hide elements
     const updateLink = (selector, value, type) => {
