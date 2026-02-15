@@ -64,25 +64,39 @@ export function applyTicketCategoriesToSelect(selectEl, categories) {
 
 function applyBranding(config) {
     const siteName = config?.branding?.siteName;
-    if (!siteName) return;
+    const logoUrl = config?.branding?.logoUrl;
 
     // Update Title if default
-    if (document.title.includes("GOLD GYS")) {
+    if (siteName && document.title.includes("GOLD GYS")) {
         document.title = document.title.replace("GOLD GYS", siteName);
     }
 
     const brandElements = document.querySelectorAll("[data-site-setting='site-name'], .brand-logo");
     brandElements.forEach((el) => {
-        // Preserve span structure if possible, otherwise simple text replacement
-        if (siteName === "Gold GYS" && el.innerHTML.includes("<span>")) return; // Keep default styling
-        el.textContent = siteName;
+        // If we have a logo URL and the element is purely for branding, consider replacing with Image or updating text
+        // For now, let's keep text but update it. If user wants image replacement, we'd need more specific logic.
+        // However, if the element is an IMG tag, update src.
+        if (el.tagName === 'IMG' && logoUrl) {
+            el.src = logoUrl;
+            if (siteName) el.alt = siteName;
+        } else if (siteName) {
+            // Preserve span structure if possible, otherwise simple text replacement
+            if (siteName === "Gold GYS" && el.innerHTML.includes("<span>")) return;
+            el.textContent = siteName;
+        }
     });
+
+    // Logo Image specific targets
+    if (logoUrl) {
+        document.querySelectorAll("[data-site-setting='site-logo']").forEach(img => {
+            if (img.tagName === 'IMG') img.src = logoUrl;
+        });
+    }
 
     // Slogan rendering
     const slogan = config?.branding?.slogan;
     if (slogan) {
         document.querySelectorAll("[data-site-setting='slogan'], .hero-desc").forEach(el => {
-            // Only replace if it's explicitly marked or we decide to overwrite hero-desc
             if (el.hasAttribute('data-site-setting')) el.textContent = slogan;
         });
     }
@@ -91,6 +105,7 @@ function applyBranding(config) {
 function applySeo(config) {
     const defaultTitle = config?.seo?.defaultTitle?.trim();
     const defaultDescription = config?.seo?.defaultDescription?.trim();
+    const defaultKeywords = config?.seo?.defaultKeywords;
     const ogImageUrl = config?.seo?.ogImageUrl?.trim();
     const faviconUrl = config?.branding?.faviconUrl?.trim();
 
@@ -102,6 +117,11 @@ function applySeo(config) {
         upsertMetaByName("description", defaultDescription);
         upsertMetaByProperty("og:description", defaultDescription);
         upsertMetaByProperty("twitter:description", defaultDescription);
+    }
+
+    if (defaultKeywords) {
+        const keywordsContent = Array.isArray(defaultKeywords) ? defaultKeywords.join(", ") : defaultKeywords;
+        upsertMetaByName("keywords", keywordsContent);
     }
 
     if (defaultTitle) {
@@ -141,6 +161,7 @@ function applyFooter(config) {
 
 function applySupportLinks(config) {
     const supportEmail = config?.contact?.supportEmail?.trim();
+    const supportPhone = config?.contact?.supportPhone?.trim();
     const whatsappUrl = config?.contact?.whatsappUrl?.trim();
     const telegramUrl = config?.contact?.telegramUrl?.trim();
 
@@ -150,6 +171,15 @@ function applySupportLinks(config) {
                 el.setAttribute("href", `mailto:${supportEmail}`);
             }
             el.textContent = supportEmail;
+        });
+    }
+
+    if (supportPhone) {
+        document.querySelectorAll("[data-site-setting='support-phone']").forEach((el) => {
+            if (el.tagName === "A") {
+                el.setAttribute("href", `tel:${supportPhone.replace(/\s+/g, '')}`);
+            }
+            el.textContent = supportPhone;
         });
     }
 

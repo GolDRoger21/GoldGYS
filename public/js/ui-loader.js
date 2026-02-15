@@ -66,12 +66,17 @@ export async function initLayout() {
                     } catch (e) { console.error(e); }
                 }
 
-                if (!isAdmin && !window.location.pathname.includes('/admin')) {
+                const isExemptPage = window.location.pathname.includes('/admin') ||
+                    window.location.pathname.includes('/login.html') ||
+                    window.location.pathname === '/login';
+
+                if (!isAdmin && !isExemptPage) {
                     document.body.innerHTML = `
                         <div style="height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; background:#f8fafc; color:#334155; font-family:sans-serif; text-align:center; padding:20px;">
                             <img src="/icons/favicon.png" width="64" style="margin-bottom:20px; opacity:0.8;">
                             <h1 style="font-size:2rem; margin-bottom:10px;">Bakım Modu</h1>
                             <p style="max-width:500px; line-height:1.6;">Şu anda sistem üzerinde bakım çalışması yapılmaktadır. Lütfen daha sonra tekrar deneyiniz.</p>
+                            <p style="font-size:0.9rem; color:#94a3b8; margin-top:20px;">Yönetici iseniz <a href="/login.html" style="color:#64748b;">giriş yapın</a>.</p>
                             <button onclick="window.location.reload()" style="margin-top:20px; padding:10px 20px; border:1px solid #cbd5e1; background:white; border-radius:6px; cursor:pointer;">Tekrar Dene</button>
                         </div>
                      `;
