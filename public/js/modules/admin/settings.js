@@ -788,11 +788,27 @@ function formatTimestamp(value) {
 // --- Legal Page Editor ---
 let quillEditor = null;
 let currentLegalSlug = null;
+let legalModalFallbackCleanup = null;
+let legalModalTriggerElement = null;
 
 function bindLegalEditor() {
+    const modalEl = document.getElementById("legalEditorModal");
+    if (modalEl) {
+        modalEl.querySelectorAll('[data-bs-dismiss="modal"]').forEach((btn) => {
+            btn.addEventListener("click", () => closeLegalModal(modalEl));
+        });
+
+        modalEl.addEventListener("click", (event) => {
+            if (event.target === modalEl) {
+                closeLegalModal(modalEl);
+            }
+        });
+    }
+
     // Edit Buttons
     document.querySelectorAll(".btn-edit-content").forEach(btn => {
         btn.addEventListener("click", async () => {
+            legalModalTriggerElement = btn;
             const slug = btn.dataset.slug;
             const title = btn.dataset.title;
             await openLegalEditor(slug, title);
@@ -831,8 +847,7 @@ async function openLegalEditor(slug, title) {
 
     // Show Modal
     const modalEl = document.getElementById("legalEditorModal");
-    const modal = new bootstrap.Modal(modalEl);
-    modal.show();
+    showLegalModal(modalEl);
 
     // Init Quill if needed
     if (!quillEditor) {
@@ -900,10 +915,9 @@ async function saveLegalContent() {
 
         showToast("İçerik başarıyla güncellendi.", "success");
 
-        // Hide Modal (using bootstrap instance if stored, or just query DOM)
+        // Hide Modal
         const modalEl = document.getElementById("legalEditorModal");
-        const modal = bootstrap.Modal.getInstance(modalEl);
-        if (modal) modal.hide();
+        closeLegalModal(modalEl);
 
     } catch (error) {
         console.error("Error saving legal content:", error);
@@ -911,5 +925,72 @@ async function saveLegalContent() {
     } finally {
         btn.textContent = originalText;
         btn.disabled = false;
+    }
+}
+
+function showLegalModal(modalEl) {
+    if (!modalEl) return;
+
+    const bootstrapModalApi = window.bootstrap?.Modal;
+    if (bootstrapModalApi) {
+        const modal = bootstrapModalApi.getOrCreateInstance(modalEl);
+        modal.show();
+        return;
+    }
+
+    modalEl.style.display = "block";
+    modalEl.classList.add("show");
+    modalEl.removeAttribute("aria-hidden");
+    modalEl.setAttribute("aria-modal", "true");
+    modalEl.setAttribute("role", "dialog");
+    document.body.classList.add("modal-open");
+
+    const onKeydown = (event) => {
+        if (event.key === "Escape") {
+            closeLegalModal(modalEl);
+        }
+    };
+
+    document.addEventListener("keydown", onKeydown);
+    legalModalFallbackCleanup = () => {
+        document.removeEventListener("keydown", onKeydown);
+    };
+}
+
+function closeLegalModal(modalEl) {
+    if (!modalEl) return;
+
+    const bootstrapModalApi = window.bootstrap?.Modal;
+    if (bootstrapModalApi) {
+        const activeElement = document.activeElement;
+        if (activeElement && modalEl.contains(activeElement)) {
+            activeElement.blur();
+        }
+        const modal = bootstrapModalApi.getInstance(modalEl);
+        if (modal) modal.hide();
+        if (legalModalTriggerElement && typeof legalModalTriggerElement.focus === "function") {
+            legalModalTriggerElement.focus();
+        }
+        return;
+    }
+
+    const activeElement = document.activeElement;
+    if (activeElement && modalEl.contains(activeElement)) {
+        activeElement.blur();
+    }
+
+    modalEl.classList.remove("show");
+    modalEl.style.display = "none";
+    modalEl.setAttribute("aria-hidden", "true");
+    modalEl.removeAttribute("aria-modal");
+    document.body.classList.remove("modal-open");
+
+    if (typeof legalModalFallbackCleanup === "function") {
+        legalModalFallbackCleanup();
+    }
+    legalModalFallbackCleanup = null;
+
+    if (legalModalTriggerElement && typeof legalModalTriggerElement.focus === "function") {
+        legalModalTriggerElement.focus();
     }
 }
