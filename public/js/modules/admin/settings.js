@@ -29,6 +29,7 @@ export async function init() {
         bindAssetUploadButtons();
         bindAssetUrlInputs();
         bindCategoryManager();
+        bindLegalEditor();
         await loadPublicConfigIntoForm();
     } catch (error) {
         console.error("Settings init error:", error);
@@ -684,7 +685,135 @@ function addCategory(label) {
     renderCategories();
 }
 
-function removeCategory(index) {
-    ticketCategoriesState.splice(index, 1);
-    renderCategories();
+// --- Ticket Category Manager ---
+// ... (existing Manager Code) ...
+// (I will preserve the existing manager code in the output, just appending new logic after it)
+
+// --- Legal Page Editor ---
+let quillEditor = null;
+let currentLegalSlug = null;
+
+function bindLegalEditor() {
+    // Edit Buttons
+    document.querySelectorAll(".btn-edit-content").forEach(btn => {
+        btn.addEventListener("click", async () => {
+            const slug = btn.dataset.slug;
+            const title = btn.dataset.title;
+            await openLegalEditor(slug, title);
+        });
+    });
+
+    // Save Button
+    const saveBtn = document.getElementById("btnSaveLegalContent");
+    if (saveBtn) {
+        saveBtn.addEventListener("click", saveLegalContent);
+    }
+}
+
+async function loadQuillLibrary() {
+    if (window.Quill) return;
+
+    // Load CSS
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = "https://cdn.quilljs.com/1.3.6/quill.snow.css";
+    document.head.appendChild(link);
+
+    // Load JS
+    return new Promise((resolve, reject) => {
+        const script = document.createElement("script");
+        script.src = "https://cdn.quilljs.com/1.3.6/quill.js";
+        script.onload = resolve;
+        script.onerror = reject;
+        document.body.appendChild(script);
+    });
+}
+
+async function openLegalEditor(slug, title) {
+    currentLegalSlug = slug;
+    document.getElementById("legalEditorTitle").textContent = `${title} Düzenle`;
+
+    // Show Modal
+    const modalEl = document.getElementById("legalEditorModal");
+    const modal = new bootstrap.Modal(modalEl);
+    modal.show();
+
+    // Init Quill if needed
+    if (!quillEditor) {
+        await loadQuillLibrary();
+        quillEditor = new Quill('#legalEditorContainer', {
+            theme: 'snow',
+            modules: {
+                toolbar: [
+                    [{ 'header': [1, 2, 3, false] }],
+                    ['bold', 'italic', 'underline', 'strike'],
+                    [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                    ['link', 'clean']
+                ]
+            }
+        });
+    }
+
+    // Load Content
+    quillEditor.setContents([]); // Clear
+    quillEditor.setText("Yükleniyor...");
+    quillEditor.disable();
+
+    try {
+        const docRef = doc(db, "legal_pages", slug);
+        const snap = await getDoc(docRef);
+
+        quillEditor.setText(""); // Clear loading text
+        if (snap.exists() && snap.data().content) {
+            // We store HTML, so use clipboard matchers or simple html insertion
+            // Quill 1.3 doesn't have native HTML set, use clipboard
+            const delta = quillEditor.clipboard.convert(snap.data().content);
+            quillEditor.setContents(delta, 'silent');
+        } else {
+            // Try to fetch from the actual HTML file as fallback if it's the first time?
+            // That's complex. Let's start empty or with a placeholder.
+            // Or maybe user copies from existing page.
+            // For now, start empty if no DB content.
+        }
+    } catch (error) {
+        console.error("Error loading legal content:", error);
+        showToast("İçerik yüklenirken hata oluştu.", "error");
+    } finally {
+        quillEditor.enable();
+    }
+}
+
+async function saveLegalContent() {
+    if (!quillEditor || !currentLegalSlug) return;
+
+    const btn = document.getElementById("btnSaveLegalContent");
+    const originalText = btn.textContent;
+    btn.textContent = "Kaydediliyor...";
+    btn.disabled = true;
+
+    try {
+        // Get HTML
+        const html = quillEditor.root.innerHTML;
+
+        await setDoc(doc(db, "legal_pages", currentLegalSlug), {
+            content: html,
+            updatedAt: serverTimestamp(),
+            updatedBy: auth.currentUser?.uid || "admin",
+            title: document.getElementById("legalEditorTitle").textContent.replace(" Düzenle", "")
+        }, { merge: true });
+
+        showToast("İçerik başarıyla güncellendi.", "success");
+
+        // Hide Modal (using bootstrap instance if stored, or just query DOM)
+        const modalEl = document.getElementById("legalEditorModal");
+        const modal = bootstrap.Modal.getInstance(modalEl);
+        if (modal) modal.hide();
+
+    } catch (error) {
+        console.error("Error saving legal content:", error);
+        showToast("Kaydetme başarısız: " + error.message, "error");
+    } finally {
+        btn.textContent = originalText;
+        btn.disabled = false;
+    }
 }

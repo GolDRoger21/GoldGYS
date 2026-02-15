@@ -122,7 +122,8 @@
                                         class="settings-btn settings-btn-primary">Yükle</button>
                                 </div>
                                 <div class="form-text mt-2 small">32x32 .ico veya .png</div>
-                                <label for="settingsFaviconUrl" class="form-label fw-semibold mt-3 mb-1">Favicon URL</label>
+                                <label for="settingsFaviconUrl" class="form-label fw-semibold mt-3 mb-1">Favicon
+                                    URL</label>
                                 <input id="settingsFaviconUrl" type="url" class="form-control form-control-sm"
                                     placeholder="https://.../favicon.ico">
                             </div>
@@ -147,7 +148,8 @@
                                         class="settings-btn settings-btn-primary">Yükle</button>
                                 </div>
                                 <div class="form-text mt-2 small">1200x630px önerilir.</div>
-                                <label for="settingsOgImageUrl" class="form-label fw-semibold mt-3 mb-1">OG Görsel URL</label>
+                                <label for="settingsOgImageUrl" class="form-label fw-semibold mt-3 mb-1">OG Görsel
+                                    URL</label>
                                 <input id="settingsOgImageUrl" type="url" class="form-control form-control-sm"
                                     placeholder="https://.../og-image.jpg">
                             </div>
@@ -190,7 +192,8 @@
                                 <label class="form-label mb-0 fw-semibold">Destek Talep Konuları</label>
                                 <span class="badge bg-light text-dark border" id="categoryCountBadge">0 konu</span>
                             </div>
-                            <p class="text-muted small mb-2">Kullanıcının yardım talebi açarken göreceği profesyonel konu listesi.</p>
+                            <p class="text-muted small mb-2">Kullanıcının yardım talebi açarken göreceği profesyonel
+                                konu listesi.</p>
                             <div class="input-group mb-2">
                                 <input type="text" id="newCategoryLabel" class="form-control"
                                     placeholder="Örn: Teknik Destek / Ödeme İşlemleri / Üyelik">
@@ -202,7 +205,8 @@
                                 style="max-height: 220px; overflow-y: auto;">
                                 <!-- Categories will be rendered here -->
                             </ul>
-                            <div class="form-text">Listeye eklenen konular yardım sayfasında tek seçim alanında gösterilir.</div>
+                            <div class="form-text">Listeye eklenen konular yardım sayfasında tek seçim alanında
+                                gösterilir.</div>
                         </div>
                     </div>
                 </div>
@@ -214,34 +218,74 @@
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-transparent border-0 pt-3">
                     <h5 class="mb-0 text-primary">Yasal Sayfa Yönetimi</h5>
-                    <small class="text-muted">Ana sayfa ve kayıt ekranında kullanılan yasal bağlantıları buradan güncelleyin.</small>
+                    <small class="text-muted">Ana sayfa ve kayıt ekranında kullanılan yasal bağlantıları buradan
+                        güncelleyin.</small>
                 </div>
                 <div class="card-body">
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label class="form-label" for="settingsAcikRizaUrl">Açık Rıza URL</label>
-                            <input id="settingsAcikRizaUrl" type="url" class="form-control" placeholder="/pages/legal/acik-riza.html">
+                            <div class="input-group">
+                                <input id="settingsAcikRizaUrl" type="url" class="form-control"
+                                    placeholder="/pages/legal/acik-riza.html">
+                                <button type="button" class="btn btn-outline-secondary btn-edit-content"
+                                    data-slug="explicit-consent" data-title="Açık Rıza Metni">
+                                    <i class="fas fa-edit"></i> İçerik
+                                </button>
+                            </div>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label" for="settingsAydinlatmaMetniUrl">Aydınlatma Metni URL</label>
-                            <input id="settingsAydinlatmaMetniUrl" type="url" class="form-control" placeholder="/pages/legal/aydinlatma-metni.html">
+                            <div class="input-group">
+                                <input id="settingsAydinlatmaMetniUrl" type="url" class="form-control"
+                                    placeholder="/pages/legal/aydinlatma-metni.html">
+                                <button type="button" class="btn btn-outline-secondary btn-edit-content"
+                                    data-slug="kvkk-text" data-title="Aydınlatma Metni">
+                                    <i class="fas fa-edit"></i> İçerik
+                                </button>
+                            </div>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label" for="settingsGizlilikSozlesmesiUrl">Gizlilik Sözleşmesi URL</label>
-                            <input id="settingsGizlilikSozlesmesiUrl" type="url" class="form-control" placeholder="/pages/legal/gizlilik-sozlesmesi.html">
+                            <label class="form-label" for="settingsGizlilikSozlesmesiUrl">Gizlilik Sözleşmesi
+                                URL</label>
+                            <div class="input-group">
+                                <input id="settingsGizlilikSozlesmesiUrl" type="url" class="form-control"
+                                    placeholder="/pages/legal/gizlilik-sozlesmesi.html">
+                                <button type="button" class="btn btn-outline-secondary btn-edit-content"
+                                    data-slug="privacy-policy" data-title="Gizlilik Sözleşmesi">
+                                    <i class="fas fa-edit"></i> İçerik
+                                </button>
+                            </div>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label" for="settingsKullanimSartlariUrl">Kullanım Şartları URL</label>
-                            <input id="settingsKullanimSartlariUrl" type="url" class="form-control" placeholder="/pages/kullanim-sartlari.html">
+                            <div class="input-group">
+                                <input id="settingsKullanimSartlariUrl" type="url" class="form-control"
+                                    placeholder="/pages/kullanim-sartlari.html">
+                                <button type="button" class="btn btn-outline-secondary btn-edit-content"
+                                    data-slug="terms-of-use" data-title="Kullanım Şartları">
+                                    <i class="fas fa-edit"></i> İçerik
+                                </button>
+                            </div>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label" for="settingsUyelikSozlesmesiUrl">Üyelik Sözleşmesi URL</label>
-                            <input id="settingsUyelikSozlesmesiUrl" type="url" class="form-control" placeholder="/pages/legal/uyelik-sozlesmesi.html">
+                            <div class="input-group">
+                                <input id="settingsUyelikSozlesmesiUrl" type="url" class="form-control"
+                                    placeholder="/pages/legal/uyelik-sozlesmesi.html">
+                                <button type="button" class="btn btn-outline-secondary btn-edit-content"
+                                    data-slug="membership-agreement" data-title="Üyelik Sözleşmesi">
+                                    <i class="fas fa-edit"></i> İçerik
+                                </button>
+                            </div>
                         </div>
                         <div class="col-md-6 d-flex align-items-end">
                             <div class="form-check form-switch mb-2">
-                                <input class="form-check-input" type="checkbox" id="settingsShowMembershipAgreementSeparately">
-                                <label class="form-check-label fw-semibold" for="settingsShowMembershipAgreementSeparately">Üyelik sözleşmesini ana sayfada ayrı bağlantı olarak göster</label>
+                                <input class="form-check-input" type="checkbox"
+                                    id="settingsShowMembershipAgreementSeparately">
+                                <label class="form-check-label fw-semibold"
+                                    for="settingsShowMembershipAgreementSeparately">Üyelik sözleşmesini ana sayfada ayrı
+                                    bağlantı olarak göster</label>
                             </div>
                         </div>
                     </div>
@@ -360,4 +404,23 @@
         </div>
 
     </form>
+
+    <!-- Legal Content Editor Modal -->
+    <div class="modal fade" id="legalEditorModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="legalEditorTitle">İçerik Düzenle</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="legalEditorContainer" style="height: 400px;"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                    <button type="button" class="btn btn-primary" id="btnSaveLegalContent">Kaydet</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
