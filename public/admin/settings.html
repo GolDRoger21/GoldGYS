@@ -1,0 +1,116 @@
+<div class="section-header d-flex justify-content-between align-items-start flex-wrap gap-2">
+    <div>
+        <h2>⚙️ Site Ayarları</h2>
+        <p class="text-muted">Platformun temel yapılandırma alanları.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <button type="button" id="settingsReloadBtn" class="btn btn-outline-secondary btn-sm">Geri Yükle</button>
+        <button type="button" id="settingsSaveBtn" class="btn btn-primary btn-sm">Kaydet</button>
+    </div>
+</div>
+
+<div class="card p-4">
+    <div class="d-flex flex-wrap gap-2 mb-3" id="settingsTabButtons">
+        <button type="button" class="btn btn-primary btn-sm" data-settings-tab="general">Genel</button>
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-settings-tab="seo">SEO</button>
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-settings-tab="features">Özellikler</button>
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-settings-tab="examRules">Sınav Kuralları</button>
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-settings-tab="system">Sistem</button>
+    </div>
+
+    <form id="settingsGeneralForm" class="d-flex flex-column gap-3">
+        <div class="card p-3">
+            <h3 class="mb-2">Marka</h3>
+            <div class="d-flex flex-column gap-2">
+                <div>
+                    <label class="form-label" for="settingsSiteName">Site Adı</label>
+                    <input id="settingsSiteName" name="siteName" type="text" class="form-control" placeholder="Gold GYS" required>
+                </div>
+                <div>
+                    <label class="form-label" for="settingsSlogan">Slogan</label>
+                    <input id="settingsSlogan" name="slogan" type="text" class="form-control" placeholder="Sınava giden en net yol">
+                </div>
+                <div>
+                    <label class="form-label" for="settingsFooterText">Footer Metni</label>
+                    <textarea id="settingsFooterText" name="footerText" rows="3" class="form-control" placeholder="© Gold GYS - Tüm hakları saklıdır"></textarea>
+                </div>
+
+                <div class="card p-3 mt-2">
+                    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-2">
+                        <h4 class="mb-0">Görsel Varlıklar</h4>
+                        <small class="text-muted">Öneri: Logo transparent PNG/SVG • Favicon 32x32 • OG 1200x630</small>
+                    </div>
+
+                    <div class="d-flex flex-column gap-3">
+                        <div class="d-flex flex-column gap-2">
+                            <label class="form-label" for="settingsLogoFile">Logo</label>
+                            <div class="d-flex flex-wrap gap-2 align-items-center">
+                                <input id="settingsLogoFile" type="file" accept="image/*" class="form-control">
+                                <button type="button" id="settingsLogoUploadBtn" class="btn btn-outline-secondary btn-sm">Yükle</button>
+                            </div>
+                            <img id="settingsLogoPreview" alt="Logo önizleme" style="display:none; max-height:64px; width:auto; object-fit:contain; border-radius:6px;">
+                            <small id="settingsLogoPlaceholder" class="text-muted">Henüz logo yüklenmedi.</small>
+                        </div>
+
+                        <div class="d-flex flex-column gap-2">
+                            <label class="form-label" for="settingsFaviconFile">Favicon</label>
+                            <div class="d-flex flex-wrap gap-2 align-items-center">
+                                <input id="settingsFaviconFile" type="file" accept="image/*,.ico" class="form-control">
+                                <button type="button" id="settingsFaviconUploadBtn" class="btn btn-outline-secondary btn-sm">Yükle</button>
+                            </div>
+                            <img id="settingsFaviconPreview" alt="Favicon önizleme" style="display:none; height:32px; width:32px; object-fit:cover; border-radius:4px;">
+                            <small id="settingsFaviconPlaceholder" class="text-muted">Henüz favicon yüklenmedi.</small>
+                        </div>
+
+                        <div class="d-flex flex-column gap-2">
+                            <label class="form-label" for="settingsOgImageFile">OG Image</label>
+                            <div class="d-flex flex-wrap gap-2 align-items-center">
+                                <input id="settingsOgImageFile" type="file" accept="image/*" class="form-control">
+                                <button type="button" id="settingsOgImageUploadBtn" class="btn btn-outline-secondary btn-sm">Yükle</button>
+                            </div>
+                            <img id="settingsOgImagePreview" alt="OG görsel önizleme" style="display:none; max-height:120px; width:auto; object-fit:cover; border-radius:6px;">
+                            <small id="settingsOgImagePlaceholder" class="text-muted">Henüz OG görseli yüklenmedi.</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card p-3">
+            <h3 class="mb-2">İletişim</h3>
+            <div class="d-flex flex-column gap-2">
+                <div>
+                    <label class="form-label" for="settingsSupportEmail">Destek E-posta</label>
+                    <input id="settingsSupportEmail" name="supportEmail" type="email" class="form-control" placeholder="destek@goldgys.com">
+                </div>
+                <div>
+                    <label class="form-label" for="settingsSupportPhone">Destek Telefon</label>
+                    <input id="settingsSupportPhone" name="supportPhone" type="text" class="form-control" placeholder="+90 ...">
+                </div>
+            </div>
+        </div>
+
+        <div class="card p-3">
+            <h3 class="mb-2">SEO (Global)</h3>
+            <div class="d-flex flex-column gap-2">
+                <div>
+                    <label class="form-label" for="settingsDefaultTitle">Varsayılan Başlık</label>
+                    <input id="settingsDefaultTitle" name="defaultTitle" type="text" class="form-control" placeholder="Gold GYS | Hazırlık Platformu">
+                </div>
+                <div>
+                    <label class="form-label" for="settingsDefaultDescription">Varsayılan Açıklama</label>
+                    <textarea id="settingsDefaultDescription" name="defaultDescription" rows="3" class="form-control" placeholder="Gold GYS ile sınava sistemli ve güçlü şekilde hazırlan."></textarea>
+                </div>
+                <div>
+                    <label class="form-label" for="settingsDefaultKeywords">Anahtar Kelimeler</label>
+                    <input id="settingsDefaultKeywords" name="defaultKeywords" type="text" class="form-control" placeholder="gys, hazırlık, deneme">
+                    <small class="text-muted">virgülle ayırın</small>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <div id="settingsTabContent" class="text-muted" style="display:none;">
+        Bu modül Adım 1 iskeletidir. Sonraki adımlarda doldurulacak.
+    </div>
+</div>
