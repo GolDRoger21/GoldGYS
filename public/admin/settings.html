@@ -105,6 +105,7 @@
                                     <button type="button" id="settingsLogoUploadBtn"
                                         class="settings-btn settings-btn-primary">Yükle</button>
                                 </div>
+                                <div id="settingsLogoFileName" class="text-muted small mt-2">Dosya seçilmedi</div>
                                 <div class="form-text mt-2 small">Şeffaf PNG/SVG önerilir.</div>
                                 <label for="settingsLogoUrl" class="form-label fw-semibold mt-3 mb-1">Logo URL</label>
                                 <input id="settingsLogoUrl" type="url" class="form-control form-control-sm"
@@ -130,6 +131,7 @@
                                     <button type="button" id="settingsFaviconUploadBtn"
                                         class="settings-btn settings-btn-primary">Yükle</button>
                                 </div>
+                                <div id="settingsFaviconFileName" class="text-muted small mt-2">Dosya seçilmedi</div>
                                 <div class="form-text mt-2 small">32x32 .ico veya .png</div>
                                 <label for="settingsFaviconUrl" class="form-label fw-semibold mt-3 mb-1">Favicon
                                     URL</label>
@@ -156,6 +158,7 @@
                                     <button type="button" id="settingsOgImageUploadBtn"
                                         class="settings-btn settings-btn-primary">Yükle</button>
                                 </div>
+                                <div id="settingsOgImageFileName" class="text-muted small mt-2">Dosya seçilmedi</div>
                                 <div class="form-text mt-2 small">1200x630px önerilir.</div>
                                 <label for="settingsOgImageUrl" class="form-label fw-semibold mt-3 mb-1">OG Görsel
                                     URL</label>
@@ -403,7 +406,10 @@
                 </div>
                 <div class="card-body">
                     <div class="alert alert-info">
-                        <i class="fas fa-info-circle me-2"></i> Sistem versiyonu: <strong>v2.1.0</strong>
+                        <i class="fas fa-info-circle me-2"></i> Sistem versiyonu: <strong id="settingsSystemVersion">-</strong>
+                    </div>
+                    <div class="alert alert-light border" id="settingsLastUpdateInfo">
+                        <i class="fas fa-clock me-2"></i> Son güncelleme bilgisi yükleniyor...
                     </div>
                     <button type="button" id="settingsClearCacheBtn" class="btn btn-warning">
                         <i class="fas fa-sync me-1"></i> Önbelleği Temizle ve Yenile
