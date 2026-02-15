@@ -1,6 +1,7 @@
 import { db, auth } from "../../firebase-config.js";
 import { requireAdminOrEditor } from "../../role-guard.js";
 import { getConfigPublic } from "./utils.js";
+import { mergeWithDefaultPublicConfig } from "../../config-defaults.js";
 import { showToast, showConfirm } from "../../notifications.js";
 import { doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
@@ -294,7 +295,7 @@ async function tryDeleteOldAsset(oldUrl) {
 async function loadPublicConfigIntoForm() {
     try {
         const snapshot = await getDoc(doc(db, "config", "public"));
-        const config = snapshot.exists() ? snapshot.data() : {};
+        const config = mergeWithDefaultPublicConfig(snapshot.exists() ? snapshot.data() : {});
 
         // Branding
         setFieldValue("settingsSiteName", config?.branding?.siteName || "");

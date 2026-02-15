@@ -1,5 +1,6 @@
 import { db } from "./firebase-config.js";
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { DEFAULT_PUBLIC_CONFIG, mergeWithDefaultPublicConfig } from "./config-defaults.js";
 
 let configCache = null;
 
@@ -10,11 +11,11 @@ export async function loadSiteConfig(options = {}) {
 
     try {
         const snap = await getDoc(doc(db, "config", "public"));
-        configCache = snap.exists() ? snap.data() : {};
+        configCache = mergeWithDefaultPublicConfig(snap.exists() ? snap.data() : {});
         return configCache;
     } catch (error) {
         console.warn("Site config okunamadı:", error);
-        return {};
+        return mergeWithDefaultPublicConfig();
     }
 }
 
@@ -30,13 +31,7 @@ export async function applySiteConfigToDocument() {
 export function applyTicketCategoriesToSelect(selectEl, categories) {
     if (!selectEl) return;
 
-    const fallback = [
-        { value: "Genel", label: "Genel Bilgi Talebi" },
-        { value: "Teknik", label: "Teknik Sorun / Hata" },
-        { value: "İçerik", label: "Soru / İçerik Hatası" },
-        { value: "Ödeme", label: "Üyelik ve Erişim" },
-        { value: "Öneri", label: "Öneri ve Geri Bildirim" }
-    ];
+    const fallback = DEFAULT_PUBLIC_CONFIG.contact.ticketCategories;
 
     const normalized = Array.isArray(categories)
         ? categories
