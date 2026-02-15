@@ -127,6 +127,9 @@ function bindAssetUploadButtons() {
     bindAssetUpload({
         fileInputId: "settingsLogoFile",
         uploadButtonId: "settingsLogoUploadBtn",
+        fileNameId: "settingsLogoFileName",
+        previewImageId: "settingsLogoPreview",
+        placeholderId: "settingsLogoPlaceholder",
         storagePathBase: "site-assets/branding/logo",
         maxSizeBytes: 1 * 1024 * 1024,
         updateData: (url) => ({ "branding.logoUrl": url }),
@@ -139,6 +142,9 @@ function bindAssetUploadButtons() {
     bindAssetUpload({
         fileInputId: "settingsFaviconFile",
         uploadButtonId: "settingsFaviconUploadBtn",
+        fileNameId: "settingsFaviconFileName",
+        previewImageId: "settingsFaviconPreview",
+        placeholderId: "settingsFaviconPlaceholder",
         storagePathBase: "site-assets/branding/favicon",
         maxSizeBytes: 1 * 1024 * 1024,
         updateData: (url) => ({ "branding.faviconUrl": url }),
@@ -151,6 +157,9 @@ function bindAssetUploadButtons() {
     bindAssetUpload({
         fileInputId: "settingsOgImageFile",
         uploadButtonId: "settingsOgImageUploadBtn",
+        fileNameId: "settingsOgImageFileName",
+        previewImageId: "settingsOgImagePreview",
+        placeholderId: "settingsOgImagePlaceholder",
         storagePathBase: "site-assets/seo/og-image",
         maxSizeBytes: 2 * 1024 * 1024,
         updateData: (url) => ({ "seo.ogImageUrl": url }),
@@ -161,21 +170,47 @@ function bindAssetUploadButtons() {
     });
 }
 
-function bindAssetUpload({ fileInputId, uploadButtonId, storagePathBase, maxSizeBytes, updateData, assetKey, successMessage, assetLabel, allowIco }) {
+function bindAssetUpload({ fileInputId, uploadButtonId, fileNameId, previewImageId, placeholderId, storagePathBase, maxSizeBytes, updateData, assetKey, successMessage, assetLabel, allowIco }) {
     const fileInput = document.getElementById(fileInputId);
     const uploadButton = document.getElementById(uploadButtonId);
+    const fileNameText = document.getElementById(fileNameId);
     if (!fileInput || !uploadButton) return;
 
-    uploadButton.addEventListener("click", async () => {
-        const file = fileInput.files?.[0];
+    const setDefaultFileNameText = () => {
+        if (fileNameText) fileNameText.textContent = "Dosya seçilmedi";
+    };
+
+    setDefaultFileNameText();
+
+    fileInput.addEventListener("change", () => {
+        const file = fileInput.files?.[0] || null;
+
+        uploadButton.disabled = !file;
         if (!file) {
-            showToast(`${assetLabel} için önce bir dosya seçin.`, "error");
+            setDefaultFileNameText();
             return;
+        }
+
+        if (fileNameText) {
+            fileNameText.textContent = file.name;
         }
 
         const validationError = validateImageFile(file, maxSizeBytes, allowIco);
         if (validationError) {
             showToast(validationError, "error");
+            fileInput.value = "";
+            uploadButton.disabled = true;
+            setDefaultFileNameText();
+            return;
+        }
+
+        showTemporaryPreview(file, previewImageId, placeholderId);
+    });
+
+    uploadButton.addEventListener("click", async () => {
+        const file = fileInput.files?.[0];
+        if (!file) {
+            showToast(`${assetLabel} için önce bir dosya seçin.`, "error");
             return;
         }
 
@@ -202,12 +237,13 @@ function bindAssetUpload({ fileInputId, uploadButtonId, storagePathBase, maxSize
 
             await loadPublicConfigIntoForm();
             fileInput.value = "";
+            setDefaultFileNameText();
             showToast(successMessage, "success");
         } catch (error) {
             console.error(`${assetLabel} yüklenemedi:`, error);
             showToast(`${assetLabel} yüklenemedi: ${error.message}`, "error");
         } finally {
-            uploadButton.disabled = false;
+            uploadButton.disabled = !fileInput.files?.length;
             uploadButton.textContent = originalText;
         }
     });
@@ -404,6 +440,12 @@ function updatePreview(imageId, placeholderId, url) {
     const placeholder = document.getElementById(placeholderId);
     if (!img || !placeholder) return;
 
+    img.onerror = () => {
+        img.removeAttribute("src");
+        img.style.display = "none";
+        placeholder.style.display = "block";
+    };
+
     if (url) {
         img.src = url;
         img.style.display = "block";
@@ -413,6 +455,20 @@ function updatePreview(imageId, placeholderId, url) {
         img.style.display = "none";
         placeholder.style.display = "block";
     }
+}
+
+function showTemporaryPreview(file, imageId, placeholderId) {
+    const img = document.getElementById(imageId);
+    const placeholder = document.getElementById(placeholderId);
+    if (!img || !placeholder) return;
+
+    const fileReader = new FileReader();
+    fileReader.onload = () => {
+        img.src = String(fileReader.result || "");
+        img.style.display = "block";
+        placeholder.style.display = "none";
+    };
+    fileReader.readAsDataURL(file);
 }
 
 function setFieldValue(id, value) {

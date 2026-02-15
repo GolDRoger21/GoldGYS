@@ -77,12 +77,11 @@
                     <div class="row g-4">
                         <!-- Logo -->
                         <div class="col-md-4">
-                            <div class="p-3 border rounded text-center h-100 bg-light d-flex flex-column">
+                            <div class="settings-asset-card p-3 border rounded text-center h-100 bg-light d-flex flex-column">
                                 <label class="form-label fw-bold d-block mb-3">Logo</label>
-                                <div class="mb-3 d-flex justify-content-center align-items-center bg-white border rounded"
-                                    style="height: 120px; overflow: hidden;">
+                                <div class="settings-asset-preview mb-3 d-flex justify-content-center align-items-center bg-white border rounded">
                                     <img id="settingsLogoPreview" alt="Logo"
-                                        style="display:none; max-height:100%; max-width:100%; object-fit:contain; padding: 10px;">
+                                        class="settings-asset-image settings-asset-image--contain" style="display:none;">
                                     <span id="settingsLogoPlaceholder" class="text-muted small">Yüklü değil</span>
                                 </div>
                                 <div class="mt-auto">
@@ -91,9 +90,9 @@
                                             <i class="fas fa-upload me-1"></i> Seç
                                         </label>
                                         <input id="settingsLogoFile" type="file" accept="image/*" class="d-none">
-                                        <button type="button" id="settingsLogoUploadBtn"
-                                            class="btn btn-sm btn-primary">Yükle</button>
+                                        <button type="button" id="settingsLogoUploadBtn" class="btn btn-sm btn-primary" disabled>Yükle</button>
                                     </div>
+                                    <div id="settingsLogoFileName" class="settings-asset-file-name small text-muted mt-2">Dosya seçilmedi</div>
                                     <div class="form-text mt-2 small">Şeffaf PNG/SVG önerilir.</div>
                                 </div>
                             </div>
@@ -101,12 +100,11 @@
 
                         <!-- Favicon -->
                         <div class="col-md-4">
-                            <div class="p-3 border rounded text-center h-100 bg-light d-flex flex-column">
+                            <div class="settings-asset-card p-3 border rounded text-center h-100 bg-light d-flex flex-column">
                                 <label class="form-label fw-bold d-block mb-3">Favicon</label>
-                                <div class="mb-3 d-flex justify-content-center align-items-center bg-white border rounded"
-                                    style="height: 120px; overflow: hidden;">
+                                <div class="settings-asset-preview mb-3 d-flex justify-content-center align-items-center bg-white border rounded">
                                     <img id="settingsFaviconPreview" alt="Favicon"
-                                        style="display:none; width:48px; height:48px; object-fit:contain;">
+                                        class="settings-asset-image settings-asset-image--favicon" style="display:none;">
                                     <span id="settingsFaviconPlaceholder" class="text-muted small">Yüklü değil</span>
                                 </div>
                                 <div class="mt-auto">
@@ -116,9 +114,9 @@
                                         </label>
                                         <input id="settingsFaviconFile" type="file" accept="image/*,.ico"
                                             class="d-none">
-                                        <button type="button" id="settingsFaviconUploadBtn"
-                                            class="btn btn-sm btn-primary">Yükle</button>
+                                        <button type="button" id="settingsFaviconUploadBtn" class="btn btn-sm btn-primary" disabled>Yükle</button>
                                     </div>
+                                    <div id="settingsFaviconFileName" class="settings-asset-file-name small text-muted mt-2">Dosya seçilmedi</div>
                                     <div class="form-text mt-2 small">32x32 .ico veya .png</div>
                                 </div>
                             </div>
@@ -126,12 +124,11 @@
 
                         <!-- OG Image -->
                         <div class="col-md-4">
-                            <div class="p-3 border rounded text-center h-100 bg-light d-flex flex-column">
+                            <div class="settings-asset-card p-3 border rounded text-center h-100 bg-light d-flex flex-column">
                                 <label class="form-label fw-bold d-block mb-3">Sosyal Medya (OG)</label>
-                                <div class="mb-3 d-flex justify-content-center align-items-center bg-white border rounded"
-                                    style="height: 120px; overflow: hidden;">
+                                <div class="settings-asset-preview mb-3 d-flex justify-content-center align-items-center bg-white border rounded">
                                     <img id="settingsOgImagePreview" alt="OG Image"
-                                        style="display:none; max-height:100%; max-width:100%; object-fit:cover;">
+                                        class="settings-asset-image settings-asset-image--cover" style="display:none;">
                                     <span id="settingsOgImagePlaceholder" class="text-muted small">Yüklü değil</span>
                                 </div>
                                 <div class="mt-auto">
@@ -140,9 +137,9 @@
                                             <i class="fas fa-upload me-1"></i> Seç
                                         </label>
                                         <input id="settingsOgImageFile" type="file" accept="image/*" class="d-none">
-                                        <button type="button" id="settingsOgImageUploadBtn"
-                                            class="btn btn-sm btn-primary">Yükle</button>
+                                        <button type="button" id="settingsOgImageUploadBtn" class="btn btn-sm btn-primary" disabled>Yükle</button>
                                     </div>
+                                    <div id="settingsOgImageFileName" class="settings-asset-file-name small text-muted mt-2">Dosya seçilmedi</div>
                                     <div class="form-text mt-2 small">1200x630px önerilir.</div>
                                 </div>
                             </div>

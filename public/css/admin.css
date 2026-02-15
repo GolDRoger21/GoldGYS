@@ -2978,3 +2978,45 @@ tr.highlight {
     padding: 6px 12px;
     font-size: 0.85rem;
 }
+/* Settings > Branding assets */
+.settings-asset-card {
+    border-color: var(--border-color) !important;
+    transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.settings-asset-card:hover {
+    border-color: rgba(212, 175, 55, 0.55) !important;
+    box-shadow: var(--shadow-sm);
+}
+
+.settings-asset-preview {
+    min-height: 120px;
+    overflow: hidden;
+}
+
+.settings-asset-image {
+    max-width: 100%;
+    max-height: 100%;
+}
+
+.settings-asset-image--contain {
+    object-fit: contain;
+    padding: 10px;
+}
+
+.settings-asset-image--cover {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.settings-asset-image--favicon {
+    width: 48px;
+    height: 48px;
+    object-fit: contain;
+}
+
+.settings-asset-file-name {
+    min-height: 1.25rem;
+    word-break: break-word;
+}
