@@ -237,6 +237,22 @@ async function loadPublicConfigIntoForm() {
         setFieldValue("settingsFooterText", config?.branding?.footerText || "");
         setFieldValue("settingsSupportEmail", config?.contact?.supportEmail || "");
         setFieldValue("settingsSupportPhone", config?.contact?.supportPhone || "");
+        setFieldValue("settingsWhatsappUrl", config?.contact?.whatsappUrl || "");
+        setFieldValue("settingsTelegramUrl", config?.contact?.telegramUrl || "");
+
+        const ticketCategories = Array.isArray(config?.contact?.ticketCategories)
+            ? config.contact.ticketCategories
+                .map((item) => {
+                    const value = (item?.value || "").trim();
+                    const label = (item?.label || "").trim();
+                    if (!value && !label) return "";
+                    if (!label || label === value) return value;
+                    return `${value}|${label}`;
+                })
+                .filter(Boolean)
+                .join("\n")
+            : "";
+        setFieldValue("settingsTicketCategories", ticketCategories);
         setFieldValue("settingsDefaultTitle", config?.seo?.defaultTitle || "");
         setFieldValue("settingsDefaultDescription", config?.seo?.defaultDescription || "");
 
@@ -265,6 +281,8 @@ async function savePublicConfigFromForm() {
     try {
         const siteName = getFieldValue("settingsSiteName").trim();
         const supportEmail = getFieldValue("settingsSupportEmail").trim();
+        const whatsappUrl = getFieldValue("settingsWhatsappUrl").trim();
+        const telegramUrl = getFieldValue("settingsTelegramUrl").trim();
 
         if (!siteName) {
             showToast("Site adı zorunludur.", "error");
@@ -273,6 +291,16 @@ async function savePublicConfigFromForm() {
 
         if (supportEmail && !isValidEmail(supportEmail)) {
             showToast("Destek e-posta adresi geçersiz görünüyor.", "error");
+            return;
+        }
+
+        if (whatsappUrl && !isValidUrl(whatsappUrl)) {
+            showToast("WhatsApp linki geçersiz görünüyor.", "error");
+            return;
+        }
+
+        if (telegramUrl && !isValidUrl(telegramUrl)) {
+            showToast("Telegram linki geçersiz görünüyor.", "error");
             return;
         }
 
@@ -289,7 +317,10 @@ async function savePublicConfigFromForm() {
             },
             contact: {
                 supportEmail,
-                supportPhone: getFieldValue("settingsSupportPhone").trim()
+                supportPhone: getFieldValue("settingsSupportPhone").trim(),
+                whatsappUrl,
+                telegramUrl,
+                ticketCategories: parseTicketCategories(getFieldValue("settingsTicketCategories"))
             },
             seo: {
                 defaultTitle: getFieldValue("settingsDefaultTitle").trim(),
@@ -343,6 +374,30 @@ function getFieldValue(id) {
 
 function isValidEmail(value) {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
+
+function isValidUrl(value) {
+    try {
+        const parsed = new URL(value);
+        return ["http:", "https:"].includes(parsed.protocol);
+    } catch {
+        return false;
+    }
+}
+
+function parseTicketCategories(value) {
+    return (value || "")
+        .split("\n")
+        .map((line) => line.trim())
+        .filter(Boolean)
+        .map((line) => {
+            const [rawValue, ...rest] = line.split("|");
+            const categoryValue = (rawValue || "").trim();
+            const categoryLabel = (rest.join("|") || rawValue || "").trim();
+            if (!categoryValue || !categoryLabel) return null;
+            return { value: categoryValue, label: categoryLabel };
+        })
+        .filter(Boolean);
 }
 
 function parseKeywords(value) {
