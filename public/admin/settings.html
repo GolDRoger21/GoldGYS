@@ -1,45 +1,54 @@
-<div class="section-header d-flex justify-content-between align-items-start flex-wrap gap-2">
+<div class="section-header settings-hero d-flex justify-content-between align-items-start flex-wrap gap-3">
     <div>
         <h2>⚙️ Site Ayarları</h2>
-        <p class="text-muted">Platformun temel yapılandırma alanları.</p>
+        <p class="text-muted mb-0">Platformun temel yapılandırma alanları.</p>
     </div>
-    <div class="d-flex gap-2">
-        <button type="button" id="settingsReloadBtn" class="btn btn-outline-secondary btn-sm">Geri Yükle</button>
-        <button type="button" id="settingsSaveBtn" class="btn btn-primary btn-sm">Kaydet</button>
+    <div class="d-flex gap-2 settings-hero-actions">
+        <button type="button" id="settingsReloadBtn" class="btn btn-outline-secondary">
+            <i class="fas fa-rotate-left me-1"></i> Geri Yükle
+        </button>
+        <button type="button" id="settingsSaveBtn" class="btn btn-primary">
+            <i class="fas fa-floppy-disk me-1"></i> Kaydet
+        </button>
     </div>
 </div>
 
-<div class="card p-4">
-    <div class="d-flex flex-wrap gap-2 mb-4 border-bottom pb-3" id="settingsTabButtons">
-        <button type="button" class="btn btn-primary" data-settings-tab="general">
+<div class="settings-shell card p-4">
+    <div class="settings-tab-nav" id="settingsTabButtons" role="tablist" aria-label="Ayar sekmeleri">
+        <button type="button" class="btn btn-primary is-active" data-settings-tab="general" role="tab" aria-selected="true">
             <i class="fas fa-sliders-h me-1"></i> Genel
         </button>
-        <button type="button" class="btn btn-outline-secondary" data-settings-tab="branding">
+        <button type="button" class="btn btn-outline-secondary" data-settings-tab="branding" role="tab" aria-selected="false">
             <i class="fas fa-paint-brush me-1"></i> Marka & Görsel
         </button>
-        <button type="button" class="btn btn-outline-secondary" data-settings-tab="contact">
+        <button type="button" class="btn btn-outline-secondary" data-settings-tab="contact" role="tab" aria-selected="false">
             <i class="fas fa-address-book me-1"></i> İletişim
         </button>
-        <button type="button" class="btn btn-outline-secondary" data-settings-tab="legal">
+        <button type="button" class="btn btn-outline-secondary" data-settings-tab="legal" role="tab" aria-selected="false">
             <i class="fas fa-scale-balanced me-1"></i> Yasal Sayfalar
         </button>
-        <button type="button" class="btn btn-outline-secondary" data-settings-tab="seo">
+        <button type="button" class="btn btn-outline-secondary" data-settings-tab="seo" role="tab" aria-selected="false">
             <i class="fas fa-search me-1"></i> SEO
         </button>
-        <button type="button" class="btn btn-outline-secondary" data-settings-tab="features">
+        <button type="button" class="btn btn-outline-secondary" data-settings-tab="features" role="tab" aria-selected="false">
             <i class="fas fa-toggle-on me-1"></i> Özellikler
         </button>
-        <button type="button" class="btn btn-outline-secondary" data-settings-tab="examRules">
+        <button type="button" class="btn btn-outline-secondary" data-settings-tab="examRules" role="tab" aria-selected="false">
             <i class="fas fa-gavel me-1"></i> Sınav Kuralları
         </button>
-        <button type="button" class="btn btn-outline-secondary" data-settings-tab="system">
+        <button type="button" class="btn btn-outline-secondary" data-settings-tab="system" role="tab" aria-selected="false">
             <i class="fas fa-server me-1"></i> Sistem
         </button>
     </div>
 
+    <div class="settings-helper-note mb-4">
+        <i class="fas fa-circle-info me-2"></i> Değişiklikler tüm kullanıcı deneyimini etkiler; her güncellemeden sonra
+        "Kaydet" ile kalıcı hale getirin.
+    </div>
+
     <form id="settingsForm" class="tab-content-container">
         <!-- GENERAL TAB -->
-        <div id="tab-general" class="settings-tab-pane" style="display:block;">
+        <div id="tab-general" class="settings-tab-pane is-active">
             <div class="row g-4">
                 <div class="col-md-6">
                     <div class="card h-100 border-0 shadow-sm">
@@ -70,7 +79,7 @@
         </div>
 
         <!-- BRANDING TAB -->
-        <div id="tab-branding" class="settings-tab-pane" style="display:none;">
+        <div id="tab-branding" class="settings-tab-pane">
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-transparent border-0 pt-3">
                     <h5 class="mb-0 text-primary">Görsel Varlıklar</h5>
@@ -160,7 +169,7 @@
         </div>
 
         <!-- CONTACT TAB -->
-        <div id="tab-contact" class="settings-tab-pane" style="display:none;">
+        <div id="tab-contact" class="settings-tab-pane">
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-transparent border-0 pt-3">
                     <h5 class="mb-0 text-primary">İletişim Bilgileri</h5>
@@ -214,7 +223,7 @@
         </div>
 
         <!-- LEGAL TAB -->
-        <div id="tab-legal" class="settings-tab-pane" style="display:none;">
+        <div id="tab-legal" class="settings-tab-pane">
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-transparent border-0 pt-3">
                     <h5 class="mb-0 text-primary">Yasal Sayfa Yönetimi</h5>
@@ -294,7 +303,7 @@
         </div>
 
         <!-- SEO TAB -->
-        <div id="tab-seo" class="settings-tab-pane" style="display:none;">
+        <div id="tab-seo" class="settings-tab-pane">
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-transparent border-0 pt-3">
                     <h5 class="mb-0 text-primary">SEO Yapılandırması</h5>
@@ -324,7 +333,7 @@
         </div>
 
         <!-- FEATURES TAB -->
-        <div id="tab-features" class="settings-tab-pane" style="display:none;">
+        <div id="tab-features" class="settings-tab-pane">
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-transparent border-0 pt-3">
                     <h5 class="mb-0 text-primary">Özellik Yönetimi (Feature Flags)</h5>
@@ -349,7 +358,7 @@
         </div>
 
         <!-- EXAM RULES TAB -->
-        <div id="tab-examRules" class="settings-tab-pane" style="display:none;">
+        <div id="tab-examRules" class="settings-tab-pane">
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-transparent border-0 pt-3">
                     <h5 class="mb-0 text-primary">Sınav Varsayılanları</h5>
@@ -387,7 +396,7 @@
         </div>
 
         <!-- SYSTEM TAB -->
-        <div id="tab-system" class="settings-tab-pane" style="display:none;">
+        <div id="tab-system" class="settings-tab-pane">
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-transparent border-0 pt-3">
                     <h5 class="mb-0 text-primary">Sistem Durumu</h5>

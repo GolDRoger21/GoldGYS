@@ -53,23 +53,23 @@ function bindTabSwitching() {
         button.addEventListener("click", () => {
             const tabKey = button.dataset.settingsTab;
 
-            // Update button styles
             tabButtons.forEach((btn) => {
-                btn.classList.remove("btn-primary");
+                btn.classList.remove("btn-primary", "is-active");
                 btn.classList.add("btn-outline-secondary");
+                btn.setAttribute("aria-selected", "false");
             });
+
             button.classList.remove("btn-outline-secondary");
-            button.classList.add("btn-primary");
+            button.classList.add("btn-primary", "is-active");
+            button.setAttribute("aria-selected", "true");
 
-            // Hide all tabs
-            document.querySelectorAll(".settings-tab-pane").forEach(pane => {
-                pane.style.display = "none";
+            document.querySelectorAll(".settings-tab-pane").forEach((pane) => {
+                pane.classList.remove("is-active");
             });
 
-            // Show selected tab
             const targetTab = document.getElementById(`tab-${tabKey}`);
             if (targetTab) {
-                targetTab.style.display = "block";
+                targetTab.classList.add("is-active");
             }
         });
     });
@@ -368,8 +368,8 @@ async function loadPublicConfigIntoForm() {
         }
 
         // Features
-        setFieldValue("featureMaintenanceMode", config?.features?.maintenanceMode || false);
-        setFieldValue("featureAllowRegistration", config?.features?.allowRegistration !== false); // Default true if undefined
+        setFieldValue("settingsMaintenanceMode", config?.features?.maintenanceMode || false);
+        setFieldValue("settingsAllowRegistration", config?.features?.allowRegistration !== false); // Default true if undefined
 
         // Exam Rules
         setFieldValue("examRuleDefaultDuration", config?.examRules?.defaultDuration || 120);

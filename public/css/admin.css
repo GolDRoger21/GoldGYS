@@ -800,14 +800,67 @@ body.sidebar-collapsed.admin-body .app-sidebar .nav-label {
     color: var(--text-muted);
 }
 
-/* --- SITE SETTINGS (ADDED FIX) --- */
-.settings-hidden { 
-    display: none !important; 
+/* --- SITE SETTINGS --- */
+.settings-hero {
+    background: linear-gradient(135deg, rgba(212, 175, 55, 0.12), rgba(15, 23, 42, 0.45));
+    border: 1px solid rgba(212, 175, 55, 0.25);
+    border-radius: 14px;
+    padding: 18px 20px;
+}
+
+.settings-hero-actions .btn {
+    min-width: 132px;
+}
+
+.settings-shell {
+    border-radius: 14px;
+    border: 1px solid var(--border-color);
+}
+
+.settings-tab-nav {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 14px;
+    margin-bottom: 16px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.settings-tab-nav .btn {
+    white-space: nowrap;
+    border-radius: 999px;
+    padding: 8px 14px;
+}
+
+.settings-tab-nav .btn.is-active {
+    box-shadow: var(--shadow-sm);
+}
+
+.settings-helper-note {
+    background: rgba(59, 130, 246, 0.1);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    color: #93c5fd;
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-size: 0.9rem;
+}
+
+.settings-tab-pane {
+    display: none;
+}
+
+.settings-tab-pane.is-active {
+    display: block;
+}
+
+.settings-hidden {
+    display: none !important;
 }
 
 .settings-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
     gap: 24px;
     margin-top: 16px;
 }
@@ -816,7 +869,7 @@ body.sidebar-collapsed.admin-body .app-sidebar .nav-label {
     background: var(--bg-surface, #fff);
     border: 1px solid var(--border-color, #e2e8f0);
     border-radius: var(--radius-lg, 12px);
-    padding: 24px;
+    padding: 20px;
     text-align: center;
     display: flex;
     flex-direction: column;
@@ -826,7 +879,7 @@ body.sidebar-collapsed.admin-body .app-sidebar .nav-label {
 
 .settings-asset-card:hover {
     transform: translateY(-2px);
-    box-shadow: var(--shadow-md, 0 4px 6px -1px rgba(0,0,0,0.1));
+    box-shadow: var(--shadow-md, 0 4px 6px -1px rgba(0, 0, 0, 0.1));
 }
 
 .settings-asset-preview {
@@ -895,10 +948,6 @@ body.sidebar-collapsed.admin-body .app-sidebar .nav-label {
 .settings-btn:disabled {
     opacity: 0.6;
     cursor: not-allowed;
-}    display: flex;
-    align-items: center;
-    gap: 6px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .preview-stat strong {
