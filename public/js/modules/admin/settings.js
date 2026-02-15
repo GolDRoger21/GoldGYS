@@ -375,6 +375,11 @@ async function loadPublicConfigIntoForm() {
         setFieldValue("examRuleDefaultDuration", config?.examRules?.defaultDuration || 120);
         setFieldValue("examRuleTargetCount", config?.examRules?.targetQuestionCount || 80);
         setFieldValue("examRuleWrongImpact", config?.examRules?.wrongImpact || "0");
+        setFieldValue("examRuleShowResult", config?.examRules?.showResultImmediately !== false);
+
+        // System
+        setSystemVersion(config?.system?.version || "-");
+        setLastUpdateInfo(config?.meta || null);
 
         // Images/Previews
         updatePreview("settingsLogoPreview", "settingsLogoPlaceholder", config?.branding?.logoUrl || "");
@@ -397,6 +402,17 @@ async function savePublicConfigFromForm() {
         const supportEmail = getFieldValue("settingsSupportEmail").trim();
         const whatsappUrl = getFieldValue("settingsWhatsappUrl").trim();
         const telegramUrl = getFieldValue("settingsTelegramUrl").trim();
+        const logoUrl = getFieldValue("settingsLogoUrl").trim();
+        const faviconUrl = getFieldValue("settingsFaviconUrl").trim();
+        const ogImageUrl = getFieldValue("settingsOgImageUrl").trim();
+
+        const legalUrls = [
+            getFieldValue("settingsAcikRizaUrl").trim(),
+            getFieldValue("settingsAydinlatmaMetniUrl").trim(),
+            getFieldValue("settingsGizlilikSozlesmesiUrl").trim(),
+            getFieldValue("settingsUyelikSozlesmesiUrl").trim(),
+            getFieldValue("settingsKullanimSartlariUrl").trim()
+        ];
 
         if (!siteName) {
             showToast("Site adı zorunludur.", "error");
@@ -418,6 +434,30 @@ async function savePublicConfigFromForm() {
             return;
         }
 
+        if (logoUrl && !isValidSiteUrl(logoUrl)) {
+            showToast("Logo URL alanı geçersiz. Mutlak (https://) veya göreli (/path) bir adres girin.", "error");
+            return;
+        }
+
+        if (faviconUrl && !isValidSiteUrl(faviconUrl)) {
+            showToast("Favicon URL alanı geçersiz. Mutlak (https://) veya göreli (/path) bir adres girin.", "error");
+            return;
+        }
+
+        if (ogImageUrl && !isValidSiteUrl(ogImageUrl)) {
+            showToast("OG görsel URL alanı geçersiz. Mutlak (https://) veya göreli (/path) bir adres girin.", "error");
+            return;
+        }
+
+        if (legalUrls.some((url) => url && !isValidSiteUrl(url))) {
+            showToast("Yasal sayfa URL alanlarında geçersiz bir değer var. Mutlak veya göreli URL kullanın.", "error");
+            return;
+        }
+
+        const duration = parsePositiveInt(getFieldValue("examRuleDefaultDuration"), 120, { min: 1, max: 360 });
+        const targetCount = parsePositiveInt(getFieldValue("examRuleTargetCount"), 80, { min: 1, max: 500 });
+        const wrongImpact = parseFloatOrDefault(getFieldValue("examRuleWrongImpact"), 0.25);
+
         if (saveBtn) {
             saveBtn.disabled = true;
             saveBtn.textContent = "Kaydediliyor...";
@@ -428,8 +468,8 @@ async function savePublicConfigFromForm() {
             "branding.siteName": getFieldValue("settingsSiteName").trim(),
             "branding.slogan": getFieldValue("settingsSlogan").trim(),
             "branding.footerText": getFieldValue("settingsFooterText").trim(),
-            "branding.logoUrl": getFieldValue("settingsLogoUrl").trim(),
-            "branding.faviconUrl": getFieldValue("settingsFaviconUrl").trim(),
+            "branding.logoUrl": logoUrl,
+            "branding.faviconUrl": faviconUrl,
 
             "contact.supportEmail": getFieldValue("settingsSupportEmail").trim(),
             "contact.supportPhone": getFieldValue("settingsSupportPhone").trim(),
@@ -440,7 +480,7 @@ async function savePublicConfigFromForm() {
             "seo.defaultTitle": getFieldValue("settingsDefaultTitle").trim(),
             "seo.defaultDescription": getFieldValue("settingsDefaultDescription").trim(),
             "seo.defaultKeywords": parseKeywords(getFieldValue("settingsDefaultKeywords")),
-            "seo.ogImageUrl": getFieldValue("settingsOgImageUrl").trim(),
+            "seo.ogImageUrl": ogImageUrl,
 
             "legal.acikRizaUrl": getFieldValue("settingsAcikRizaUrl").trim(),
             "legal.aydinlatmaMetniUrl": getFieldValue("settingsAydinlatmaMetniUrl").trim(),
@@ -452,9 +492,9 @@ async function savePublicConfigFromForm() {
             "features.maintenanceMode": getFieldValue("settingsMaintenanceMode"),
             "features.allowRegistration": getFieldValue("settingsAllowRegistration"),
 
-            "examRules.defaultDuration": parseInt(getFieldValue("examRuleDefaultDuration")) || 0,
-            "examRules.targetQuestionCount": parseInt(getFieldValue("examRuleTargetCount")) || 80,
-            "examRules.wrongImpact": parseFloat(getFieldValue("examRuleWrongImpact")) || 0,
+            "examRules.defaultDuration": duration,
+            "examRules.targetQuestionCount": targetCount,
+            "examRules.wrongImpact": wrongImpact,
             "examRules.showResultImmediately": getFieldValue("examRuleShowResult"),
 
             "meta.updatedAt": serverTimestamp(),
@@ -551,6 +591,24 @@ function isValidUrl(value) {
     } catch {
         return false;
     }
+}
+
+function isValidSiteUrl(value) {
+    if (!value) return true;
+
+    if (value.startsWith("/")) return true;
+    return isValidUrl(value);
+}
+
+function parsePositiveInt(value, fallback, { min = 1, max = Number.MAX_SAFE_INTEGER } = {}) {
+    const parsed = Number.parseInt(String(value), 10);
+    if (!Number.isFinite(parsed)) return fallback;
+    return Math.min(max, Math.max(min, parsed));
+}
+
+function parseFloatOrDefault(value, fallback) {
+    const parsed = Number.parseFloat(String(value));
+    return Number.isFinite(parsed) ? parsed : fallback;
 }
 
 function parseTicketCategories(value) {
@@ -683,6 +741,44 @@ function addCategory(label) {
 
     ticketCategoriesState.push({ value: label, label: label });
     renderCategories();
+}
+
+function removeCategory(index) {
+    if (index < 0 || index >= ticketCategoriesState.length) return;
+    ticketCategoriesState.splice(index, 1);
+    renderCategories();
+}
+
+function setSystemVersion(version) {
+    const versionElement = document.getElementById("settingsSystemVersion");
+    if (!versionElement) return;
+    versionElement.textContent = version;
+}
+
+function setLastUpdateInfo(meta) {
+    const container = document.getElementById("settingsLastUpdateInfo");
+    if (!container) return;
+
+    const updatedBy = meta?.updatedBy || "bilinmiyor";
+    const updatedAtRaw = meta?.updatedAt;
+    const updatedAt = formatTimestamp(updatedAtRaw);
+
+    if (!updatedAt) {
+        container.innerHTML = '<i class="fas fa-clock me-2"></i> Henüz ayar güncellemesi kaydedilmemiş.';
+        return;
+    }
+
+    container.innerHTML = `<i class="fas fa-clock me-2"></i> Son güncelleme: <strong>${updatedAt}</strong> · Güncelleyen: <code>${updatedBy}</code>`;
+}
+
+function formatTimestamp(value) {
+    if (!value) return "";
+    const date = typeof value?.toDate === "function" ? value.toDate() : new Date(value);
+    if (Number.isNaN(date.getTime())) return "";
+    return new Intl.DateTimeFormat("tr-TR", {
+        dateStyle: "medium",
+        timeStyle: "short"
+    }).format(date);
 }
 
 // --- Ticket Category Manager ---
