@@ -174,11 +174,20 @@
                                 placeholder="https://t.me/...">
                         </div>
                         <div class="col-12">
-                            <label class="form-label" for="settingsTicketCategories">Destek Talep Konuları</label>
-                            <textarea id="settingsTicketCategories" name="contact.ticketCategories" rows="4"
-                                class="form-control font-monospace"
-                                placeholder="Genel|Genel Bilgi&#10;Teknik|Teknik Sorun"></textarea>
-                            <div class="form-text">Format: <code>değer|Görünen Etiket</code> (Her satıra bir tane)</div>
+                            <label class="form-label">Destek Talep Konuları</label>
+                            <div class="input-group mb-2">
+                                <input type="text" id="newCategoryLabel" class="form-control"
+                                    placeholder="Örn: Teknik Destek">
+                                <button type="button" class="btn btn-primary" id="btnAddCategory">
+                                    <i class="fas fa-plus"></i> Ekle
+                                </button>
+                            </div>
+                            <ul id="categoryList" class="list-group list-group-flush border rounded mb-2"
+                                style="max-height: 200px; overflow-y: auto;">
+                                <!-- Categories will be rendered here -->
+                            </ul>
+                            <div class="form-text">Listeye eklenen konular yardım sayfasında görünecektir.</div>
+                            <!-- Hidden input to store state if needed, but we use JS state -->
                         </div>
                     </div>
                 </div>

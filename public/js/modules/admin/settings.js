@@ -27,6 +27,7 @@ export async function init() {
         bindReloadButton();
         bindClearCacheButton();
         bindAssetUploadButtons();
+        bindCategoryManager();
         await loadPublicConfigIntoForm();
     } catch (error) {
         console.error("Settings init error:", error);
@@ -309,19 +310,22 @@ async function loadPublicConfigIntoForm() {
         setFieldValue("settingsTelegramUrl", config?.contact?.telegramUrl || "");
 
         // Ticket Categories
-        const ticketCategories = Array.isArray(config?.contact?.ticketCategories)
-            ? config.contact.ticketCategories
-                .map((item) => {
-                    const value = (item?.value || "").trim();
-                    const label = (item?.label || "").trim();
-                    if (!value && !label) return "";
-                    if (!label || label === value) return value;
-                    return `${value}|${label}`;
-                })
-                .filter(Boolean)
-                .join("\n")
-            : "";
-        setFieldValue("settingsTicketCategories", ticketCategories);
+        const rawCategories = config?.contact?.ticketCategories;
+        ticketCategoriesState = []; // Reset state
+
+        if (Array.isArray(rawCategories)) {
+            ticketCategoriesState = rawCategories.map(item => {
+                if (typeof item === 'string') return { value: item, label: item };
+                return { value: item.value || item.label, label: item.label || item.value };
+            }).filter(c => c.label);
+        } else if (typeof rawCategories === 'string') {
+            // Fallback for legacy string format if any
+            // But we likely don't need this if we always save as array now.
+            // Just in case:
+            ticketCategoriesState = parseTicketCategories(rawCategories);
+        }
+
+        renderCategories();
 
         // SEO
         setFieldValue("settingsDefaultTitle", config?.seo?.defaultTitle || "");
@@ -399,7 +403,7 @@ async function savePublicConfigFromForm() {
             "contact.supportPhone": getFieldValue("settingsSupportPhone").trim(),
             "contact.whatsappUrl": getFieldValue("settingsWhatsappUrl").trim(),
             "contact.telegramUrl": getFieldValue("settingsTelegramUrl").trim(),
-            "contact.ticketCategories": parseTicketCategories(getFieldValue("settingsTicketCategories")),
+            "contact.ticketCategories": ticketCategoriesState,
 
             "seo.defaultTitle": getFieldValue("settingsDefaultTitle").trim(),
             "seo.defaultDescription": getFieldValue("settingsDefaultDescription").trim(),
@@ -560,4 +564,83 @@ function getFileExtension(file) {
     if (mime.includes("icon")) return "ico";
 
     return "png";
+}
+
+// --- Ticket Category Manager ---
+let ticketCategoriesState = [];
+
+function bindCategoryManager() {
+    const addBtn = document.getElementById("btnAddCategory");
+    const input = document.getElementById("newCategoryLabel");
+
+    if (addBtn && input) {
+        addBtn.addEventListener("click", () => {
+            const label = input.value.trim();
+            if (label) {
+                addCategory(label);
+                input.value = "";
+                input.focus();
+            }
+        });
+
+        input.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") {
+                e.preventDefault();
+                addBtn.click();
+            }
+        });
+    }
+
+    // Initial Render call is handled in loadPublicConfigIntoForm
+}
+
+function renderCategories() {
+    const list = document.getElementById("categoryList");
+    if (!list) return;
+
+    list.innerHTML = "";
+
+    if (ticketCategoriesState.length === 0) {
+        list.innerHTML = '<li class="list-group-item text-muted text-center small">Henüz konu eklenmedi.</li>';
+        return;
+    }
+
+    ticketCategoriesState.forEach((cat, index) => {
+        const li = document.createElement("li");
+        li.className = "list-group-item d-flex justify-content-between align-items-center";
+
+        const span = document.createElement("span");
+        span.textContent = cat.label;
+
+        const btnDelete = document.createElement("button");
+        btnDelete.className = "btn btn-sm btn-outline-danger border-0";
+        btnDelete.innerHTML = '<i class="fas fa-trash"></i>';
+        btnDelete.onclick = () => removeCategory(index);
+
+        li.appendChild(span);
+        li.appendChild(btnDelete);
+        list.appendChild(li);
+    });
+}
+
+function addCategory(label) {
+    // Generate value/slug from label
+    // e.g., "Teknik Destek" -> "Teknik Destek" (Simpler for users) OR "teknik-destek"
+    // The previous system used "Value|Label". 
+    // If we want to be professional, we can just use the label as both if simple, 
+    // or try to slugify. Let's keep it simple: Value = Label (trimmed)
+    // Avoid duplicates
+    // Check if label exists
+    if (ticketCategoriesState.some(c => c.label.toLowerCase() === label.toLowerCase())) {
+        showToast("Bu konu zaten listede var.", "warning");
+        return;
+    }
+
+    ticketCategoriesState.push({ value: label, label: label });
+    renderCategories();
+}
+
+function removeCategory(index) {
+    ticketCategoriesState.splice(index, 1);
+    renderCategories();
 }
