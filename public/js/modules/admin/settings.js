@@ -410,6 +410,7 @@ async function savePublicConfigFromForm() {
             "examRules.defaultDuration": parseInt(getFieldValue("examRuleDefaultDuration")) || 0,
             "examRules.targetQuestionCount": parseInt(getFieldValue("examRuleTargetCount")) || 80,
             "examRules.wrongImpact": parseFloat(getFieldValue("examRuleWrongImpact")) || 0,
+            "examRules.showResultImmediately": getFieldValue("examRuleShowResult"),
 
             "meta.updatedAt": serverTimestamp(),
             "meta.updatedBy": auth.currentUser?.uid || null
