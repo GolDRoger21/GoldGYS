@@ -99,7 +99,7 @@ function bindAssetUploadButtons() {
         storagePathBase: "site-assets/branding/logo",
         maxSizeBytes: 1 * 1024 * 1024,
         updateData: (url) => ({ branding: { logoUrl: url } }),
-        getExistingUrl: (config) => config?.branding?.logoUrl || "",
+        assetKey: "branding.logoUrl",
         successMessage: "Logo başarıyla yüklendi.",
         assetLabel: "Logo",
         allowIco: false
@@ -111,7 +111,7 @@ function bindAssetUploadButtons() {
         storagePathBase: "site-assets/branding/favicon",
         maxSizeBytes: 1 * 1024 * 1024,
         updateData: (url) => ({ branding: { faviconUrl: url } }),
-        getExistingUrl: (config) => config?.branding?.faviconUrl || "",
+        assetKey: "branding.faviconUrl",
         successMessage: "Favicon başarıyla yüklendi.",
         assetLabel: "Favicon",
         allowIco: true
@@ -123,14 +123,14 @@ function bindAssetUploadButtons() {
         storagePathBase: "site-assets/seo/og-image",
         maxSizeBytes: 2 * 1024 * 1024,
         updateData: (url) => ({ seo: { ogImageUrl: url } }),
-        getExistingUrl: (config) => config?.seo?.ogImageUrl || "",
+        assetKey: "seo.ogImageUrl",
         successMessage: "OG görseli başarıyla yüklendi.",
         assetLabel: "OG görseli",
         allowIco: false
     });
 }
 
-function bindAssetUpload({ fileInputId, uploadButtonId, storagePathBase, maxSizeBytes, updateData, getExistingUrl, successMessage, assetLabel, allowIco }) {
+function bindAssetUpload({ fileInputId, uploadButtonId, storagePathBase, maxSizeBytes, updateData, assetKey, successMessage, assetLabel, allowIco }) {
     const fileInput = document.getElementById(fileInputId);
     const uploadButton = document.getElementById(uploadButtonId);
     if (!fileInput || !uploadButton) return;
@@ -153,11 +153,8 @@ function bindAssetUpload({ fileInputId, uploadButtonId, storagePathBase, maxSize
         uploadButton.textContent = "Yükleniyor...";
 
         try {
-            const configSnapshot = await getDoc(doc(db, "config", "public"));
-            const config = configSnapshot.exists() ? configSnapshot.data() : {};
-            const oldUrl = getExistingUrl ? getExistingUrl(config) : "";
-
-            if (oldUrl) {
+            const oldUrl = await getCurrentAssetUrl(assetKey);
+            if (isFirebaseStorageDownloadUrl(oldUrl)) {
                 try {
                     await deleteObject(refFromURL(oldUrl));
                 } catch (deleteError) {
@@ -189,6 +186,30 @@ function bindAssetUpload({ fileInputId, uploadButtonId, storagePathBase, maxSize
             uploadButton.textContent = originalText;
         }
     });
+}
+
+
+async function getCurrentAssetUrl(assetKey) {
+    if (!assetKey) return "";
+
+    try {
+        const snapshot = await getDoc(doc(db, "config", "public"));
+        if (!snapshot.exists()) return "";
+
+        const config = snapshot.data();
+        return assetKey
+            .split(".")
+            .reduce((current, key) => (current && typeof current === "object" ? current[key] : undefined), config) || "";
+    } catch (error) {
+        console.warn("Mevcut varlık URL'i okunamadı:", error);
+        return "";
+    }
+}
+
+function isFirebaseStorageDownloadUrl(url) {
+    if (!url || typeof url !== "string") return false;
+
+    return url.includes("firebasestorage.googleapis.com") || url.includes("storage.googleapis.com");
 }
 
 async function loadPublicConfigIntoForm() {
