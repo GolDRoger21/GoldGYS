@@ -68,32 +68,60 @@ function applyBranding(config) {
     }
 
     const brandElements = document.querySelectorAll("[data-site-setting='site-name'], .brand-logo");
+
     brandElements.forEach((el) => {
-        // If we have a logo URL and the element is purely for branding, consider replacing with Image or updating text
-        // For now, let's keep text but update it. If user wants image replacement, we'd need more specific logic.
-        // However, if the element is an IMG tag, update src.
-        if (el.tagName === 'IMG' && logoUrl) {
-            el.src = logoUrl;
-            if (siteName) el.alt = siteName;
-        } else if (siteName) {
-            // Preserve span structure if possible, otherwise simple text replacement
-            if (siteName === "Gold GYS" && el.innerHTML.includes("<span>")) return;
-            el.textContent = siteName;
+        // CASE 1: It's already an IMG tag (e.g. in some templates)
+        if (el.tagName === 'IMG') {
+            if (logoUrl) {
+                el.src = logoUrl;
+                el.style.display = '';
+                if (siteName) el.alt = siteName;
+            } else {
+                // If no logo URL, hide the IMG element (or show placeholder if desired, but hiding is safer for "Text Mode")
+                el.style.display = 'none';
+            }
+            return;
+        }
+
+        // CASE 2: It's a container (A, SPAN, H1, DIV)
+        // We want to show Image if logoUrl exists, otherwise Text.
+
+        if (logoUrl) {
+            // Check if we already injected an image
+            let img = el.querySelector('img.dynamic-logo');
+            if (!img) {
+                // Clear text and add image
+                el.textContent = '';
+                img = document.createElement('img');
+                img.className = 'dynamic-logo';
+                img.style.maxHeight = '40px'; // Reasonable default, CSS can override
+                img.style.verticalAlign = 'middle';
+                el.appendChild(img);
+            }
+            img.src = logoUrl;
+            img.alt = siteName || "Logo";
+        } else {
+            // Restore Text Mode
+            // Check if we have an image to remove
+            const img = el.querySelector('img.dynamic-logo');
+            if (img) img.remove();
+
+            // Set text content if it's not "Gold GYS" with usage of spans (preserving existing complex HTML if generic)
+            // But user specifically wants to toggle.
+            // If the element is empty or has our dynamic logo, set the text.
+            if (siteName) {
+                el.textContent = siteName;
+            }
         }
     });
-
-    // Logo Image specific targets
-    if (logoUrl) {
-        document.querySelectorAll("[data-site-setting='site-logo']").forEach(img => {
-            if (img.tagName === 'IMG') img.src = logoUrl;
-        });
-    }
 
     // Slogan rendering
     const slogan = config?.branding?.slogan;
     if (slogan) {
         document.querySelectorAll("[data-site-setting='slogan'], .hero-desc").forEach(el => {
-            if (el.hasAttribute('data-site-setting')) el.textContent = slogan;
+            // Only update if it's meant to be dynamic, avoiding accidental overwrite of structural elements
+            // Simple check: if it has the data attribute or is a known class
+            el.textContent = slogan;
         });
     }
 }
