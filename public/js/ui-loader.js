@@ -53,9 +53,33 @@ export async function initLayout() {
             document.title = `${config.title} | GOLD GYS`;
 
             // 7. Site ayarlarını uygula (örn. SEO override)
-            await applySiteConfigToDocument();
+            const siteConfig = await applySiteConfigToDocument();
 
-            // 8. Sayfayı Göster
+            // 8. Maintenance Mode Check
+            if (siteConfig?.features?.maintenanceMode) {
+                const user = auth.currentUser;
+                let isAdmin = false;
+                if (user) {
+                    try {
+                        const token = await user.getIdTokenResult();
+                        isAdmin = token.claims.admin || token.claims.editor;
+                    } catch (e) { console.error(e); }
+                }
+
+                if (!isAdmin && !window.location.pathname.includes('/admin')) {
+                    document.body.innerHTML = `
+                        <div style="height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; background:#f8fafc; color:#334155; font-family:sans-serif; text-align:center; padding:20px;">
+                            <img src="/icons/favicon.png" width="64" style="margin-bottom:20px; opacity:0.8;">
+                            <h1 style="font-size:2rem; margin-bottom:10px;">Bakım Modu</h1>
+                            <p style="max-width:500px; line-height:1.6;">Şu anda sistem üzerinde bakım çalışması yapılmaktadır. Lütfen daha sonra tekrar deneyiniz.</p>
+                            <button onclick="window.location.reload()" style="margin-top:20px; padding:10px 20px; border:1px solid #cbd5e1; background:white; border-radius:6px; cursor:pointer;">Tekrar Dene</button>
+                        </div>
+                     `;
+                    return true; // Stop execution
+                }
+            }
+
+            // 9. Sayfayı Göster
             document.body.style.visibility = 'visible';
 
             return true;

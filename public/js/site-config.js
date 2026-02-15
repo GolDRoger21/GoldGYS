@@ -66,10 +66,26 @@ function applyBranding(config) {
     const siteName = config?.branding?.siteName;
     if (!siteName) return;
 
-    const brandElements = document.querySelectorAll("[data-site-setting='site-name']");
+    // Update Title if default
+    if (document.title.includes("GOLD GYS")) {
+        document.title = document.title.replace("GOLD GYS", siteName);
+    }
+
+    const brandElements = document.querySelectorAll("[data-site-setting='site-name'], .brand-logo");
     brandElements.forEach((el) => {
+        // Preserve span structure if possible, otherwise simple text replacement
+        if (siteName === "Gold GYS" && el.innerHTML.includes("<span>")) return; // Keep default styling
         el.textContent = siteName;
     });
+
+    // Slogan rendering
+    const slogan = config?.branding?.slogan;
+    if (slogan) {
+        document.querySelectorAll("[data-site-setting='slogan'], .hero-desc").forEach(el => {
+            // Only replace if it's explicitly marked or we decide to overwrite hero-desc
+            if (el.hasAttribute('data-site-setting')) el.textContent = slogan;
+        });
+    }
 }
 
 function applySeo(config) {
@@ -113,9 +129,13 @@ function applyFooter(config) {
     const footerText = config?.branding?.footerText?.trim();
     if (!footerText) return;
 
-    const footerTargets = document.querySelectorAll("[data-site-setting='footer-text'], .footer-copy, .copyright");
+    // Selectors: data attribute, specific classes, or footer text containers
+    const footerTargets = document.querySelectorAll("[data-site-setting='footer-text'], .footer-copy, .copyright, .landing-footer .copyright-text");
     footerTargets.forEach((el) => {
-        el.textContent = footerText;
+        // If it's a direct text node container
+        if (el.children.length === 0 || el.querySelector('br')) {
+            el.textContent = footerText.replace("{year}", new Date().getFullYear());
+        }
     });
 }
 

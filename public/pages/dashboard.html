@@ -25,6 +25,10 @@
     <link rel="icon" type="image/png" href="../icons/favicon.png">
     <link rel="manifest" href="/manifest.json">
     <script src="/js/theme-init.js"></script>
+    <script type="module">
+        import { applySiteConfigToDocument } from "/js/site-config.js";
+        document.addEventListener("DOMContentLoaded", () => applySiteConfigToDocument());
+    </script>
 </head>
 
 <body>

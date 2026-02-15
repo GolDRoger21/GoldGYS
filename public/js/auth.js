@@ -22,23 +22,53 @@ let isLoading = false;
 
 // Mode Detection (Login vs Register)
 const urlParams = new URLSearchParams(window.location.search);
-const mode = urlParams.get('mode') || 'login'; // default to login
-const isRegisterMode = mode === 'register';
+let mode = urlParams.get('mode') || 'login'; // default to login
+let isRegisterMode = mode === 'register';
 
-// Update UI based on mode
-if (isRegisterMode) {
-    document.title = "Kayıt Ol | GOLD GYS";
-    if (googleLoginButton) {
-        googleLoginButton.innerHTML = googleLoginButton.innerHTML.replace("Giriş Yap", "Kayıt Ol");
+import { loadSiteConfig } from "./site-config.js"; // Import helper
+
+async function initAuthPage() {
+    const config = await loadSiteConfig();
+    const allowRegistration = config?.features?.allowRegistration !== false; // default true
+
+    if (isRegisterMode && !allowRegistration) {
+        // Registration disabled
+        mode = 'login';
+        isRegisterMode = false;
+
+        // Show alert or toast?
+        const statusBox = document.getElementById("statusBox");
+        if (statusBox) {
+            statusBox.innerHTML = "Yeni üye kayıtları geçici olarak durdurulmuştur.";
+            statusBox.className = "status-box status-error";
+            statusBox.style.display = "block";
+        }
+
+        // Update URL cleanly
+        window.history.replaceState(null, '', 'login.html?mode=login');
     }
-    // Force show agreement in register mode
-    if (agreementPanel) agreementPanel.style.display = "block";
-} else {
-    // Login Mode
-    if (authCard) authCard.classList.add("is-login");
-    // Ensure hidden in login check
-    if (agreementPanel) agreementPanel.style.display = "none";
+
+    // Update UI based on mode
+    if (isRegisterMode) {
+        document.title = "Kayıt Ol | GOLD GYS";
+        if (googleLoginButton) {
+            googleLoginButton.innerHTML = googleLoginButton.innerHTML.replace("Giriş Yap", "Kayıt Ol");
+        }
+        // Force show agreement in register mode
+        if (agreementPanel) agreementPanel.style.display = "block";
+    } else {
+        // Login Mode
+        if (authCard) authCard.classList.add("is-login");
+        // Ensure hidden in login check
+        if (agreementPanel) agreementPanel.style.display = "none";
+
+        // Hide Register Link in footer if present (not present in current login.html but good practice)
+    }
+
+    updateLoginButtonState();
 }
+
+initAuthPage();
 
 const hasAcceptedAgreement = () => !isRegisterMode || (agreementCheckbox && agreementCheckbox.checked);
 
