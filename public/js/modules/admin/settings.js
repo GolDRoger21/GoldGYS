@@ -129,7 +129,7 @@ function bindAssetUploadButtons() {
         uploadButtonId: "settingsLogoUploadBtn",
         storagePathBase: "site-assets/branding/logo",
         maxSizeBytes: 1 * 1024 * 1024,
-        updateData: (url) => ({ branding: { logoUrl: url } }),
+        updateData: (url) => ({ "branding.logoUrl": url }),
         assetKey: "branding.logoUrl",
         successMessage: "Logo başarıyla yüklendi.",
         assetLabel: "Logo",
@@ -141,7 +141,7 @@ function bindAssetUploadButtons() {
         uploadButtonId: "settingsFaviconUploadBtn",
         storagePathBase: "site-assets/branding/favicon",
         maxSizeBytes: 1 * 1024 * 1024,
-        updateData: (url) => ({ branding: { faviconUrl: url } }),
+        updateData: (url) => ({ "branding.faviconUrl": url }),
         assetKey: "branding.faviconUrl",
         successMessage: "Favicon başarıyla yüklendi.",
         assetLabel: "Favicon",
@@ -153,7 +153,7 @@ function bindAssetUploadButtons() {
         uploadButtonId: "settingsOgImageUploadBtn",
         storagePathBase: "site-assets/seo/og-image",
         maxSizeBytes: 2 * 1024 * 1024,
-        updateData: (url) => ({ seo: { ogImageUrl: url } }),
+        updateData: (url) => ({ "seo.ogImageUrl": url }),
         assetKey: "seo.ogImageUrl",
         successMessage: "OG görseli başarıyla yüklendi.",
         assetLabel: "OG görseli",
@@ -352,48 +352,38 @@ async function savePublicConfigFromForm() {
             saveBtn.textContent = "Kaydediliyor...";
         }
 
+        // Construct payload with dot notation to prevent overwriting nested fields (like images in branding)
         const payload = {
-            branding: {
-                siteName,
-                slogan: getFieldValue("settingsSlogan").trim(),
-                footerText: getFieldValue("settingsFooterText").trim(),
-                // Keep existing URLs if we didn't change them via the upload buttons
-                // Ideally this should fetch current state or be handled by merge:true, 
-                // but we need to ensure we don't overwrite them with nulls if not in payload.
-                // Since we use merge: true in setDoc, skipping them here is fine IF we don't want to change them.
-                // However, detailed merge:true behavior implies fields not present are left alone.
-                // So omitting them is safer than sending empty strings unless we know the current value.
-            },
-            contact: {
-                supportEmail,
-                supportPhone: getFieldValue("settingsSupportPhone").trim(),
-                whatsappUrl,
-                telegramUrl,
-                ticketCategories: parseTicketCategories(getFieldValue("settingsTicketCategories"))
-            },
-            seo: {
-                defaultTitle: getFieldValue("settingsDefaultTitle").trim(),
-                defaultDescription: getFieldValue("settingsDefaultDescription").trim(),
-                defaultKeywords: parseKeywords(getFieldValue("settingsDefaultKeywords"))
-            },
-            features: {
-                maintenanceMode: getFieldValue("featureMaintenanceMode"),
-                allowRegistration: getFieldValue("featureAllowRegistration")
-            },
-            examRules: {
-                defaultDuration: parseInt(getFieldValue("examRuleDefaultDuration")) || 0,
-                targetQuestionCount: parseInt(getFieldValue("examRuleTargetCount")) || 80,
-                wrongImpact: parseFloat(getFieldValue("examRuleWrongImpact")) || 0
-            },
-            meta: {
-                updatedAt: serverTimestamp(),
-                updatedBy: auth.currentUser?.uid || null
-            }
+            "branding.siteName": getFieldValue("settingsSiteName").trim(),
+            "branding.slogan": getFieldValue("settingsSlogan").trim(),
+            "branding.footerText": getFieldValue("settingsFooterText").trim(),
+
+            "contact.supportEmail": getFieldValue("settingsSupportEmail").trim(),
+            "contact.supportPhone": getFieldValue("settingsSupportPhone").trim(),
+            "contact.whatsappUrl": getFieldValue("settingsWhatsappUrl").trim(),
+            "contact.telegramUrl": getFieldValue("settingsTelegramUrl").trim(),
+            "contact.ticketCategories": parseTicketCategories(getFieldValue("settingsTicketCategories")),
+
+            "seo.defaultTitle": getFieldValue("settingsDefaultTitle").trim(),
+            "seo.defaultDescription": getFieldValue("settingsDefaultDescription").trim(),
+            "seo.defaultKeywords": parseKeywords(getFieldValue("settingsDefaultKeywords")),
+
+            "features.maintenanceMode": getFieldValue("featureMaintenanceMode"),
+            "features.allowRegistration": getFieldValue("featureAllowRegistration"),
+
+            "examRules.defaultDuration": parseInt(getFieldValue("examRuleDefaultDuration")) || 0,
+            "examRules.targetQuestionCount": parseInt(getFieldValue("examRuleTargetCount")) || 80,
+            "examRules.wrongImpact": parseFloat(getFieldValue("examRuleWrongImpact")) || 0,
+
+            "meta.updatedAt": serverTimestamp(),
+            "meta.updatedBy": auth.currentUser?.uid || null
         };
 
-        // We use setDoc with merge: true to avoid losing fields we didn't include (like logoUrl if it wasn't re-uploaded)
-        // But we must be careful with nested objects. Firestore merge merges at field level.
-        // To be safe, let's just use merge:true as intended.
+        // Filter out empty keys if needed, or send as is (empty string updates are usually fine)
+        // With merge: true and dot notation, specific fields are updated. 
+        // Note: Field deletion via FieldValue.delete() is not implemented here, 
+        // we assume empty string is a valid value for "clearing".
+
         await setDoc(doc(db, "config", "public"), payload, { merge: true });
 
         showToast("Ayarlar başarıyla kaydedildi.", "success");
