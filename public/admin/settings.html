@@ -34,6 +34,45 @@
                     <label class="form-label" for="settingsFooterText">Footer Metni</label>
                     <textarea id="settingsFooterText" name="footerText" rows="3" class="form-control" placeholder="© Gold GYS - Tüm hakları saklıdır"></textarea>
                 </div>
+
+                <div class="card p-3 mt-2">
+                    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-2">
+                        <h4 class="mb-0">Görsel Varlıklar</h4>
+                        <small class="text-muted">Öneri: Logo transparent PNG/SVG • Favicon 32x32 • OG 1200x630</small>
+                    </div>
+
+                    <div class="d-flex flex-column gap-3">
+                        <div class="d-flex flex-column gap-2">
+                            <label class="form-label" for="settingsLogoFile">Logo</label>
+                            <div class="d-flex flex-wrap gap-2 align-items-center">
+                                <input id="settingsLogoFile" type="file" accept="image/*" class="form-control">
+                                <button type="button" id="settingsLogoUploadBtn" class="btn btn-outline-secondary btn-sm">Yükle</button>
+                            </div>
+                            <img id="settingsLogoPreview" alt="Logo önizleme" style="display:none; max-height:64px; width:auto; object-fit:contain; border-radius:6px;">
+                            <small id="settingsLogoPlaceholder" class="text-muted">Henüz logo yüklenmedi.</small>
+                        </div>
+
+                        <div class="d-flex flex-column gap-2">
+                            <label class="form-label" for="settingsFaviconFile">Favicon</label>
+                            <div class="d-flex flex-wrap gap-2 align-items-center">
+                                <input id="settingsFaviconFile" type="file" accept="image/*,.ico" class="form-control">
+                                <button type="button" id="settingsFaviconUploadBtn" class="btn btn-outline-secondary btn-sm">Yükle</button>
+                            </div>
+                            <img id="settingsFaviconPreview" alt="Favicon önizleme" style="display:none; height:32px; width:32px; object-fit:cover; border-radius:4px;">
+                            <small id="settingsFaviconPlaceholder" class="text-muted">Henüz favicon yüklenmedi.</small>
+                        </div>
+
+                        <div class="d-flex flex-column gap-2">
+                            <label class="form-label" for="settingsOgImageFile">OG Image</label>
+                            <div class="d-flex flex-wrap gap-2 align-items-center">
+                                <input id="settingsOgImageFile" type="file" accept="image/*" class="form-control">
+                                <button type="button" id="settingsOgImageUploadBtn" class="btn btn-outline-secondary btn-sm">Yükle</button>
+                            </div>
+                            <img id="settingsOgImagePreview" alt="OG görsel önizleme" style="display:none; max-height:120px; width:auto; object-fit:cover; border-radius:6px;">
+                            <small id="settingsOgImagePlaceholder" class="text-muted">Henüz OG görseli yüklenmedi.</small>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 

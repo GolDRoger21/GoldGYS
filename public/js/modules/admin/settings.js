@@ -2,6 +2,9 @@ import { db, auth } from "../../firebase-config.js";
 import { requireAdminOrEditor } from "../../role-guard.js";
 import { showToast } from "../../notifications.js";
 import { doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+
+const storage = getStorage();
 
 const TAB_CONTENT = {
     seo: "SEO sekmesine özel gelişmiş ayarlar sonraki adımda eklenecek.",
@@ -26,6 +29,7 @@ export async function init() {
     bindTabSwitching();
     bindSaveButton();
     bindReloadButton();
+    bindAssetUploadButtons();
     await loadPublicConfigIntoForm();
 }
 
@@ -88,6 +92,90 @@ function bindReloadButton() {
     });
 }
 
+function bindAssetUploadButtons() {
+    bindAssetUpload({
+        fileInputId: "settingsLogoFile",
+        uploadButtonId: "settingsLogoUploadBtn",
+        storagePathBase: "site-assets/branding/logo",
+        maxSizeBytes: 1 * 1024 * 1024,
+        updateData: (url) => ({ branding: { logoUrl: url } }),
+        successMessage: "Logo başarıyla yüklendi.",
+        assetLabel: "Logo",
+        allowIco: false
+    });
+
+    bindAssetUpload({
+        fileInputId: "settingsFaviconFile",
+        uploadButtonId: "settingsFaviconUploadBtn",
+        storagePathBase: "site-assets/branding/favicon",
+        maxSizeBytes: 1 * 1024 * 1024,
+        updateData: (url) => ({ branding: { faviconUrl: url } }),
+        successMessage: "Favicon başarıyla yüklendi.",
+        assetLabel: "Favicon",
+        allowIco: true
+    });
+
+    bindAssetUpload({
+        fileInputId: "settingsOgImageFile",
+        uploadButtonId: "settingsOgImageUploadBtn",
+        storagePathBase: "site-assets/seo/og-image",
+        maxSizeBytes: 2 * 1024 * 1024,
+        updateData: (url) => ({ seo: { ogImageUrl: url } }),
+        successMessage: "OG görseli başarıyla yüklendi.",
+        assetLabel: "OG görseli",
+        allowIco: false
+    });
+}
+
+function bindAssetUpload({ fileInputId, uploadButtonId, storagePathBase, maxSizeBytes, updateData, successMessage, assetLabel, allowIco }) {
+    const fileInput = document.getElementById(fileInputId);
+    const uploadButton = document.getElementById(uploadButtonId);
+    if (!fileInput || !uploadButton) return;
+
+    uploadButton.addEventListener("click", async () => {
+        const file = fileInput.files?.[0];
+        if (!file) {
+            showToast(`${assetLabel} için önce bir dosya seçin.`, "error");
+            return;
+        }
+
+        const validationError = validateImageFile(file, maxSizeBytes, allowIco);
+        if (validationError) {
+            showToast(validationError, "error");
+            return;
+        }
+
+        const originalText = uploadButton.textContent;
+        uploadButton.disabled = true;
+        uploadButton.textContent = "Yükleniyor...";
+
+        try {
+            const extension = getFileExtension(file);
+            const storageRef = ref(storage, `${storagePathBase}.${extension}`);
+            await uploadBytes(storageRef, file, { contentType: file.type || undefined });
+            const downloadUrl = await getDownloadURL(storageRef);
+
+            await setDoc(doc(db, "config", "public"), {
+                ...updateData(downloadUrl),
+                meta: {
+                    updatedAt: serverTimestamp(),
+                    updatedBy: auth.currentUser?.uid || null
+                }
+            }, { merge: true });
+
+            await loadPublicConfigIntoForm();
+            fileInput.value = "";
+            showToast(successMessage, "success");
+        } catch (error) {
+            console.error(`${assetLabel} yüklenemedi:`, error);
+            showToast(`${assetLabel} yüklenemedi: ${error.message}`, "error");
+        } finally {
+            uploadButton.disabled = false;
+            uploadButton.textContent = originalText;
+        }
+    });
+}
+
 async function loadPublicConfigIntoForm() {
     try {
         const snapshot = await getDoc(doc(db, "config", "public"));
@@ -107,6 +195,10 @@ async function loadPublicConfigIntoForm() {
         } else {
             setFieldValue("settingsDefaultKeywords", keywords || "");
         }
+
+        updatePreview("settingsLogoPreview", "settingsLogoPlaceholder", config?.branding?.logoUrl || "");
+        updatePreview("settingsFaviconPreview", "settingsFaviconPlaceholder", config?.branding?.faviconUrl || "");
+        updatePreview("settingsOgImagePreview", "settingsOgImagePlaceholder", config?.seo?.ogImageUrl || "");
 
         return true;
     } catch (error) {
@@ -172,6 +264,22 @@ async function savePublicConfigFromForm() {
     }
 }
 
+function updatePreview(imageId, placeholderId, url) {
+    const img = document.getElementById(imageId);
+    const placeholder = document.getElementById(placeholderId);
+    if (!img || !placeholder) return;
+
+    if (url) {
+        img.src = url;
+        img.style.display = "block";
+        placeholder.style.display = "none";
+    } else {
+        img.removeAttribute("src");
+        img.style.display = "none";
+        placeholder.style.display = "block";
+    }
+}
+
 function setFieldValue(id, value) {
     const field = document.getElementById(id);
     if (field) field.value = value;
@@ -191,4 +299,35 @@ function parseKeywords(value) {
         .split(",")
         .map((s) => s.trim())
         .filter(Boolean);
+}
+
+function validateImageFile(file, maxSizeBytes, allowIco = false) {
+    const isImageMime = (file.type || "").startsWith("image/");
+    const isIcoByExtension = allowIco && /\.ico$/i.test(file.name || "");
+
+    if (!isImageMime && !isIcoByExtension) {
+        return "Lütfen geçerli bir görsel dosyası seçin.";
+    }
+
+    if (file.size > maxSizeBytes) {
+        const limitMb = maxSizeBytes / (1024 * 1024);
+        return `Dosya boyutu ${limitMb}MB sınırını aşıyor.`;
+    }
+
+    return null;
+}
+
+function getFileExtension(file) {
+    const fromName = (file.name || "").split(".").pop()?.toLowerCase();
+    if (fromName) return fromName;
+
+    const mime = (file.type || "").toLowerCase();
+    if (mime.includes("png")) return "png";
+    if (mime.includes("jpeg") || mime.includes("jpg")) return "jpg";
+    if (mime.includes("gif")) return "gif";
+    if (mime.includes("svg")) return "svg";
+    if (mime.includes("webp")) return "webp";
+    if (mime.includes("icon")) return "ico";
+
+    return "png";
 }
