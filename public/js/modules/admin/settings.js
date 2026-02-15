@@ -151,7 +151,7 @@ async function savePublicConfigFromForm() {
             seo: {
                 defaultTitle: getFieldValue("settingsDefaultTitle").trim(),
                 defaultDescription: getFieldValue("settingsDefaultDescription").trim(),
-                defaultKeywords: getFieldValue("settingsDefaultKeywords").trim()
+                defaultKeywords: parseKeywords(getFieldValue("settingsDefaultKeywords"))
             },
             meta: {
                 updatedAt: serverTimestamp(),
@@ -184,4 +184,11 @@ function getFieldValue(id) {
 
 function isValidEmail(value) {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
+
+function parseKeywords(value) {
+    return (value || "")
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean);
 }
