@@ -12,6 +12,8 @@ import * as AnnouncementsModule from "./modules/admin/announcements.js";
 import * as ImporterModule from "./modules/admin/importer.js";
 import * as TopicsModule from "./modules/admin/topics.js";
 import * as TrashModule from "./modules/admin/trash.js";
+
+let settingsModulePromise = null;
 import { initNotifications } from "./modules/admin/notifications.js";
 import { showConfirm, showToast } from "./notifications.js";
 
@@ -106,7 +108,23 @@ function handleTabChange(target, role) {
             case 'importer': ImporterModule.initImporterPage(); break;
             case 'topics': TopicsModule.initTopicsPage(); break;
             case 'trash': TrashModule.initTrashPage(); break;
+            case 'settings': initSettingsModule(); break;
         }
+    }
+}
+
+async function initSettingsModule() {
+    try {
+        if (!settingsModulePromise) {
+            settingsModulePromise = import("./modules/admin/settings.js");
+        }
+        const settingsModule = await settingsModulePromise;
+        if (typeof settingsModule.init === 'function') {
+            await settingsModule.init();
+        }
+    } catch (error) {
+        console.error("Settings modülü yüklenemedi:", error);
+        showToast(`Site Ayarları modülü yüklenemedi: ${error.message}`, "error");
     }
 }
 
