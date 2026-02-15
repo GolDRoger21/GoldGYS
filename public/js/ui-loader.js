@@ -49,12 +49,14 @@ export async function initLayout() {
             // 5. Aktif Menüyü İşaretle
             setActiveMenuItem(config.id);
 
-            // 6. Site ayarlarını uygula
+            // 6. Varsayılan başlığı ayarla
+            document.title = `${config.title} | GOLD GYS`;
+
+            // 7. Site ayarlarını uygula (örn. SEO override)
             await applySiteConfigToDocument();
 
-            // 7. Sayfayı Göster
+            // 8. Sayfayı Göster
             document.body.style.visibility = 'visible';
-            document.title = `${config.title} | GOLD GYS`;
 
             return true;
 
