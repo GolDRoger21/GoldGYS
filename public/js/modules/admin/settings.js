@@ -153,9 +153,8 @@ function bindAssetUpload({ fileInputId, uploadButtonId, storagePathBase, maxSize
         uploadButton.textContent = "Yükleniyor...";
 
         try {
-            const config = await getConfigPublic();
-            const oldUrl = getByPath(config, assetKey);
-            await tryDeleteOldAssetByUrl(oldUrl);
+            const oldUrl = await getCurrentAssetUrl(assetKey);
+            await tryDeleteOldAsset(oldUrl);
 
             const extension = getFileExtension(file);
             const assetRef = ref(storage, `${storagePathBase}.${extension}`);
@@ -196,23 +195,28 @@ function getByPath(obj, path) {
         .reduce((current, key) => (current && typeof current === "object" ? current[key] : undefined), obj);
 }
 
+async function getCurrentAssetUrl(assetKey) {
+    const config = await getConfigPublic();
+    return getByPath(config, assetKey) || "";
+}
+
 function extractStoragePathFromDownloadUrl(url) {
-    if (!url || typeof url !== "string") return "";
+    if (!url || typeof url !== "string") return null;
 
     try {
         const parsed = new URL(url);
         const marker = "/o/";
         const startIdx = parsed.pathname.indexOf(marker);
-        if (startIdx === -1) return "";
+        if (startIdx === -1) return null;
 
         const encodedPath = parsed.pathname.slice(startIdx + marker.length);
-        return encodedPath ? decodeURIComponent(encodedPath) : "";
+        return encodedPath ? decodeURIComponent(encodedPath) : null;
     } catch {
-        return "";
+        return null;
     }
 }
 
-async function tryDeleteOldAssetByUrl(oldUrl) {
+async function tryDeleteOldAsset(oldUrl) {
     const objectPath = extractStoragePathFromDownloadUrl(oldUrl);
     if (!objectPath) return;
 
