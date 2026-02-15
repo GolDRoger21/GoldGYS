@@ -248,23 +248,30 @@
                 </div>
                 <div class="card-body">
                     <div class="row g-3">
-                        <div class="col-md-4">
+                        <div class="col-md-6">
                             <label class="form-label" for="examRuleDefaultDuration">Varsayılan Süre (Dakika)</label>
                             <input type="number" class="form-control" id="examRuleDefaultDuration"
                                 name="examRules.defaultDuration" value="120">
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-6">
                             <label class="form-label" for="examRuleTargetCount">Hedef Soru Sayısı</label>
                             <input type="number" class="form-control" id="examRuleTargetCount"
                                 name="examRules.targetQuestionCount" value="80">
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-6">
                             <label class="form-label" for="examRuleWrongImpact">Yanlış Doğruyu Götürme</label>
                             <select class="form-select" id="examRuleWrongImpact" name="examRules.wrongImpact">
                                 <option value="0">Yok</option>
                                 <option value="0.25">4 Yanlış 1 Doğruyu</option>
                                 <option value="0.33">3 Yanlış 1 Doğruyu</option>
                             </select>
+                        </div>
+                        <div class="col-md-6 d-flex align-items-end">
+                            <div class="form-check form-switch mb-2">
+                                <input class="form-check-input" type="checkbox" id="examRuleShowResult"
+                                    name="examRules.showResultImmediately">
+                                <label class="form-check-label" for="examRuleShowResult">Sonucu Hemen Göster</label>
+                            </div>
                         </div>
                     </div>
                 </div>
