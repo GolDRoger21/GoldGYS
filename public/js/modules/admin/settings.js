@@ -6,31 +6,29 @@ import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "http
 
 const storage = getStorage();
 
-const TAB_CONTENT = {
-    seo: "SEO sekmesine özel gelişmiş ayarlar sonraki adımda eklenecek.",
-    features: "Özellik bayrakları ayarları yakında.",
-    examRules: "Sınav kuralları ayarları yakında.",
-    system: "Sistem ayarları yakında."
-};
-
 export async function init() {
     await requireAdminOrEditor();
 
     const section = document.getElementById("section-settings");
     if (!section) return;
 
-    const response = await fetch("/admin/settings.html", { cache: "no-store" });
-    if (!response.ok) {
-        throw new Error(`Ayarlar görünümü yüklenemedi (HTTP ${response.status})`);
-    }
+    try {
+        const response = await fetch("/admin/settings.html", { cache: "no-store" });
+        if (!response.ok) {
+            throw new Error(`Ayarlar görünümü yüklenemedi (HTTP ${response.status})`);
+        }
+        section.innerHTML = await response.text();
 
-    section.innerHTML = await response.text();
-    setSidebarActive();
-    bindTabSwitching();
-    bindSaveButton();
-    bindReloadButton();
-    bindAssetUploadButtons();
-    await loadPublicConfigIntoForm();
+        setSidebarActive();
+        bindTabSwitching();
+        bindSaveButton();
+        bindReloadButton();
+        bindAssetUploadButtons();
+        await loadPublicConfigIntoForm();
+    } catch (error) {
+        console.error("Settings init error:", error);
+        section.innerHTML = `<div class="alert alert-danger m-4">Ayarlar yüklenirken bir hata oluştu: ${error.message}</div>`;
+    }
 }
 
 function setSidebarActive() {
@@ -42,17 +40,14 @@ function setSidebarActive() {
 
 function bindTabSwitching() {
     const tabButtons = document.querySelectorAll("[data-settings-tab]");
-    const content = document.getElementById("settingsTabContent");
-    const generalForm = document.getElementById("settingsGeneralForm");
-    const saveBtn = document.getElementById("settingsSaveBtn");
-    const reloadBtn = document.getElementById("settingsReloadBtn");
 
-    if (!tabButtons.length || !content || !generalForm) return;
+    if (!tabButtons.length) return;
 
     tabButtons.forEach((button) => {
         button.addEventListener("click", () => {
             const tabKey = button.dataset.settingsTab;
 
+            // Update button styles
             tabButtons.forEach((btn) => {
                 btn.classList.remove("btn-primary");
                 btn.classList.add("btn-outline-secondary");
@@ -60,15 +55,16 @@ function bindTabSwitching() {
             button.classList.remove("btn-outline-secondary");
             button.classList.add("btn-primary");
 
-            const isGeneralTab = tabKey === "general";
-            generalForm.style.display = isGeneralTab ? "flex" : "none";
-            content.style.display = isGeneralTab ? "none" : "block";
-            content.textContent = isGeneralTab
-                ? ""
-                : (TAB_CONTENT[tabKey] || "Bu alan yakında aktif olacak.");
+            // Hide all tabs
+            document.querySelectorAll(".settings-tab-pane").forEach(pane => {
+                pane.style.display = "none";
+            });
 
-            if (saveBtn) saveBtn.disabled = !isGeneralTab;
-            if (reloadBtn) reloadBtn.disabled = !isGeneralTab;
+            // Show selected tab
+            const targetTab = document.getElementById(`tab-${tabKey}`);
+            if (targetTab) {
+                targetTab.style.display = "block";
+            }
         });
     });
 }
@@ -87,8 +83,10 @@ function bindReloadButton() {
     if (!reloadBtn) return;
 
     reloadBtn.addEventListener("click", async () => {
-        const loaded = await loadPublicConfigIntoForm();
-        if (loaded) showToast("Genel ayarlar Firestore'dan yeniden yüklendi.", "success");
+        if (confirm("Kaydedilmemiş değişiklikler kaybolacak. Yenilemek istediğinize emin misiniz?")) {
+            const loaded = await loadPublicConfigIntoForm();
+            if (loaded) showToast("Ayarlar Firestore'dan yeniden yüklendi.", "success");
+        }
     });
 }
 
@@ -232,14 +230,18 @@ async function loadPublicConfigIntoForm() {
         const snapshot = await getDoc(doc(db, "config", "public"));
         const config = snapshot.exists() ? snapshot.data() : {};
 
+        // Branding
         setFieldValue("settingsSiteName", config?.branding?.siteName || "");
         setFieldValue("settingsSlogan", config?.branding?.slogan || "");
         setFieldValue("settingsFooterText", config?.branding?.footerText || "");
+
+        // Contact
         setFieldValue("settingsSupportEmail", config?.contact?.supportEmail || "");
         setFieldValue("settingsSupportPhone", config?.contact?.supportPhone || "");
         setFieldValue("settingsWhatsappUrl", config?.contact?.whatsappUrl || "");
         setFieldValue("settingsTelegramUrl", config?.contact?.telegramUrl || "");
 
+        // Ticket Categories
         const ticketCategories = Array.isArray(config?.contact?.ticketCategories)
             ? config.contact.ticketCategories
                 .map((item) => {
@@ -253,9 +255,10 @@ async function loadPublicConfigIntoForm() {
                 .join("\n")
             : "";
         setFieldValue("settingsTicketCategories", ticketCategories);
+
+        // SEO
         setFieldValue("settingsDefaultTitle", config?.seo?.defaultTitle || "");
         setFieldValue("settingsDefaultDescription", config?.seo?.defaultDescription || "");
-
         const keywords = config?.seo?.defaultKeywords;
         if (Array.isArray(keywords)) {
             setFieldValue("settingsDefaultKeywords", keywords.join(", "));
@@ -263,6 +266,15 @@ async function loadPublicConfigIntoForm() {
             setFieldValue("settingsDefaultKeywords", keywords || "");
         }
 
+        // Features
+        setFieldValue("featureMaintenanceMode", config?.features?.maintenanceMode || false);
+        setFieldValue("featureAllowRegistration", config?.features?.allowRegistration !== false); // Default true if undefined
+
+        // Exam Rules
+        setFieldValue("examRuleDefaultDuration", config?.examRules?.defaultDuration || 120);
+        setFieldValue("examRuleWrongImpact", config?.examRules?.wrongImpact || "0");
+
+        // Images/Previews
         updatePreview("settingsLogoPreview", "settingsLogoPlaceholder", config?.branding?.logoUrl || "");
         updatePreview("settingsFaviconPreview", "settingsFaviconPlaceholder", config?.branding?.faviconUrl || "");
         updatePreview("settingsOgImagePreview", "settingsOgImagePlaceholder", config?.seo?.ogImageUrl || "");
@@ -313,7 +325,13 @@ async function savePublicConfigFromForm() {
             branding: {
                 siteName,
                 slogan: getFieldValue("settingsSlogan").trim(),
-                footerText: getFieldValue("settingsFooterText").trim()
+                footerText: getFieldValue("settingsFooterText").trim(),
+                // Keep existing URLs if we didn't change them via the upload buttons
+                // Ideally this should fetch current state or be handled by merge:true, 
+                // but we need to ensure we don't overwrite them with nulls if not in payload.
+                // Since we use merge: true in setDoc, skipping them here is fine IF we don't want to change them.
+                // However, detailed merge:true behavior implies fields not present are left alone.
+                // So omitting them is safer than sending empty strings unless we know the current value.
             },
             contact: {
                 supportEmail,
@@ -327,16 +345,29 @@ async function savePublicConfigFromForm() {
                 defaultDescription: getFieldValue("settingsDefaultDescription").trim(),
                 defaultKeywords: parseKeywords(getFieldValue("settingsDefaultKeywords"))
             },
+            features: {
+                maintenanceMode: getFieldValue("featureMaintenanceMode"),
+                allowRegistration: getFieldValue("featureAllowRegistration")
+            },
+            examRules: {
+                defaultDuration: parseInt(getFieldValue("examRuleDefaultDuration")) || 0,
+                wrongImpact: parseFloat(getFieldValue("examRuleWrongImpact")) || 0
+            },
             meta: {
                 updatedAt: serverTimestamp(),
                 updatedBy: auth.currentUser?.uid || null
             }
         };
 
+        // We use setDoc with merge: true to avoid losing fields we didn't include (like logoUrl if it wasn't re-uploaded)
+        // But we must be careful with nested objects. Firestore merge merges at field level.
+        // To be safe, let's just use merge:true as intended.
         await setDoc(doc(db, "config", "public"), payload, { merge: true });
-        showToast("Genel ayarlar başarıyla kaydedildi.", "success");
+
+        showToast("Ayarlar başarıyla kaydedildi.", "success");
+        await loadPublicConfigIntoForm(); // Reload to ensure UI is in sync
     } catch (error) {
-        console.error("Genel ayarlar kaydedilemedi:", error);
+        console.error("Ayarlar kaydedilemedi:", error);
         showToast(`Ayarlar kaydedilemedi: ${error.message}`, "error");
     } finally {
         if (saveBtn) {
@@ -364,19 +395,32 @@ function updatePreview(imageId, placeholderId, url) {
 
 function setFieldValue(id, value) {
     const field = document.getElementById(id);
-    if (field) field.value = value;
+    if (!field) return;
+
+    if (field.type === 'checkbox') {
+        field.checked = !!value;
+    } else {
+        field.value = value;
+    }
 }
 
 function getFieldValue(id) {
     const field = document.getElementById(id);
-    return field ? field.value : "";
+    if (!field) return "";
+
+    if (field.type === 'checkbox') {
+        return field.checked;
+    }
+    return field.value;
 }
 
 function isValidEmail(value) {
+    if (!value) return true; // Optional fields return true if empty
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 }
 
 function isValidUrl(value) {
+    if (!value) return true; // Optional fields return true if empty
     try {
         const parsed = new URL(value);
         return ["http:", "https:"].includes(parsed.protocol);
