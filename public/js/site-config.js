@@ -24,6 +24,7 @@ export async function applySiteConfigToDocument() {
     applyBranding(config);
     applySeo(config);
     applyFooter(config);
+    applyLegalLinks(config);
     applySupportLinks(config);
     return config;
 }
@@ -144,14 +145,36 @@ function applyFooter(config) {
     const footerText = config?.branding?.footerText?.trim();
     if (!footerText) return;
 
-    // Selectors: data attribute, specific classes, or footer text containers
     const footerTargets = document.querySelectorAll("[data-site-setting='footer-text'], .footer-copy, .copyright, .landing-footer .copyright-text");
     footerTargets.forEach((el) => {
-        // If it's a direct text node container
         if (el.children.length === 0 || el.querySelector('br')) {
             el.textContent = footerText.replace("{year}", new Date().getFullYear());
         }
     });
+}
+
+function applyLegalLinks(config) {
+    const legal = config?.legal || {};
+    const showMembershipAgreementSeparately = legal.showMembershipAgreementSeparately !== false;
+
+    const links = [
+        { label: "Açık Rıza Metni", href: legal.acikRizaUrl },
+        { label: "Aydınlatma Metni", href: legal.aydinlatmaMetniUrl },
+        { label: "Gizlilik Sözleşmesi", href: legal.gizlilikSozlesmesiUrl },
+        { label: "Kullanım Şartları", href: legal.kullanimSartlariUrl }
+    ];
+
+    if (showMembershipAgreementSeparately) {
+        links.push({ label: "Üyelik Sözleşmesi", href: legal.uyelikSozlesmesiUrl });
+    }
+
+    const list = document.querySelector("[data-site-setting='legal-links']");
+    if (!list) return;
+
+    list.innerHTML = links
+        .filter((item) => !!item.href)
+        .map(({ label, href }) => `<li><a href="${escapeHtml(href)}">${escapeHtml(label)}</a></li>`)
+        .join("");
 }
 
 function applySupportLinks(config) {

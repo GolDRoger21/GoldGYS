@@ -27,6 +27,7 @@ export async function init() {
         bindReloadButton();
         bindClearCacheButton();
         bindAssetUploadButtons();
+        bindAssetUrlInputs();
         bindCategoryManager();
         await loadPublicConfigIntoForm();
     } catch (error) {
@@ -261,6 +262,23 @@ function getByPath(obj, path) {
         .reduce((current, key) => (current && typeof current === "object" ? current[key] : undefined), obj);
 }
 
+function bindAssetUrlInputs() {
+    const bindings = [
+        { inputId: "settingsLogoUrl", imageId: "settingsLogoPreview", placeholderId: "settingsLogoPlaceholder" },
+        { inputId: "settingsFaviconUrl", imageId: "settingsFaviconPreview", placeholderId: "settingsFaviconPlaceholder" },
+        { inputId: "settingsOgImageUrl", imageId: "settingsOgImagePreview", placeholderId: "settingsOgImagePlaceholder" }
+    ];
+
+    bindings.forEach(({ inputId, imageId, placeholderId }) => {
+        const input = document.getElementById(inputId);
+        if (!input) return;
+
+        input.addEventListener("input", () => {
+            updatePreview(imageId, placeholderId, input.value.trim());
+        });
+    });
+}
+
 async function getCurrentAssetUrl(assetKey) {
     const config = await getConfigPublic();
     return getByPath(config, assetKey) || "";
@@ -302,6 +320,9 @@ async function loadPublicConfigIntoForm() {
         setFieldValue("settingsSiteName", config?.branding?.siteName || "");
         setFieldValue("settingsSlogan", config?.branding?.slogan || "");
         setFieldValue("settingsFooterText", config?.branding?.footerText || "");
+        setFieldValue("settingsLogoUrl", config?.branding?.logoUrl || "");
+        setFieldValue("settingsFaviconUrl", config?.branding?.faviconUrl || "");
+        setFieldValue("settingsOgImageUrl", config?.seo?.ogImageUrl || "");
 
         // Contact
         setFieldValue("settingsSupportEmail", config?.contact?.supportEmail || "");
@@ -326,6 +347,14 @@ async function loadPublicConfigIntoForm() {
         }
 
         renderCategories();
+
+        // Legal
+        setFieldValue("settingsAcikRizaUrl", config?.legal?.acikRizaUrl || "");
+        setFieldValue("settingsAydinlatmaMetniUrl", config?.legal?.aydinlatmaMetniUrl || "");
+        setFieldValue("settingsGizlilikSozlesmesiUrl", config?.legal?.gizlilikSozlesmesiUrl || "");
+        setFieldValue("settingsUyelikSozlesmesiUrl", config?.legal?.uyelikSozlesmesiUrl || "");
+        setFieldValue("settingsKullanimSartlariUrl", config?.legal?.kullanimSartlariUrl || "");
+        setFieldValue("settingsShowMembershipAgreementSeparately", config?.legal?.showMembershipAgreementSeparately !== false);
 
         // SEO
         setFieldValue("settingsDefaultTitle", config?.seo?.defaultTitle || "");
@@ -398,6 +427,8 @@ async function savePublicConfigFromForm() {
             "branding.siteName": getFieldValue("settingsSiteName").trim(),
             "branding.slogan": getFieldValue("settingsSlogan").trim(),
             "branding.footerText": getFieldValue("settingsFooterText").trim(),
+            "branding.logoUrl": getFieldValue("settingsLogoUrl").trim(),
+            "branding.faviconUrl": getFieldValue("settingsFaviconUrl").trim(),
 
             "contact.supportEmail": getFieldValue("settingsSupportEmail").trim(),
             "contact.supportPhone": getFieldValue("settingsSupportPhone").trim(),
@@ -408,6 +439,14 @@ async function savePublicConfigFromForm() {
             "seo.defaultTitle": getFieldValue("settingsDefaultTitle").trim(),
             "seo.defaultDescription": getFieldValue("settingsDefaultDescription").trim(),
             "seo.defaultKeywords": parseKeywords(getFieldValue("settingsDefaultKeywords")),
+            "seo.ogImageUrl": getFieldValue("settingsOgImageUrl").trim(),
+
+            "legal.acikRizaUrl": getFieldValue("settingsAcikRizaUrl").trim(),
+            "legal.aydinlatmaMetniUrl": getFieldValue("settingsAydinlatmaMetniUrl").trim(),
+            "legal.gizlilikSozlesmesiUrl": getFieldValue("settingsGizlilikSozlesmesiUrl").trim(),
+            "legal.uyelikSozlesmesiUrl": getFieldValue("settingsUyelikSozlesmesiUrl").trim(),
+            "legal.kullanimSartlariUrl": getFieldValue("settingsKullanimSartlariUrl").trim(),
+            "legal.showMembershipAgreementSeparately": getFieldValue("settingsShowMembershipAgreementSeparately"),
 
             "features.maintenanceMode": getFieldValue("settingsMaintenanceMode"),
             "features.allowRegistration": getFieldValue("settingsAllowRegistration"),
@@ -598,6 +637,11 @@ function renderCategories() {
     const list = document.getElementById("categoryList");
     if (!list) return;
 
+    const countBadge = document.getElementById("categoryCountBadge");
+    if (countBadge) {
+        countBadge.textContent = `${ticketCategoriesState.length} konu`;
+    }
+
     list.innerHTML = "";
 
     if (ticketCategoriesState.length === 0) {
@@ -607,13 +651,13 @@ function renderCategories() {
 
     ticketCategoriesState.forEach((cat, index) => {
         const li = document.createElement("li");
-        li.className = "list-group-item d-flex justify-content-between align-items-center";
+        li.className = "list-group-item d-flex justify-content-between align-items-center py-2";
 
         const span = document.createElement("span");
         span.textContent = cat.label;
 
         const btnDelete = document.createElement("button");
-        btnDelete.className = "btn btn-sm btn-outline-danger border-0";
+        btnDelete.className = "btn btn-sm btn-outline-danger";
         btnDelete.innerHTML = '<i class="fas fa-trash"></i>';
         btnDelete.onclick = () => removeCategory(index);
 

@@ -20,6 +20,9 @@
         <button type="button" class="btn btn-outline-secondary" data-settings-tab="contact">
             <i class="fas fa-address-book me-1"></i> İletişim
         </button>
+        <button type="button" class="btn btn-outline-secondary" data-settings-tab="legal">
+            <i class="fas fa-scale-balanced me-1"></i> Yasal Sayfalar
+        </button>
         <button type="button" class="btn btn-outline-secondary" data-settings-tab="seo">
             <i class="fas fa-search me-1"></i> SEO
         </button>
@@ -94,6 +97,9 @@
                                         class="settings-btn settings-btn-primary">Yükle</button>
                                 </div>
                                 <div class="form-text mt-2 small">Şeffaf PNG/SVG önerilir.</div>
+                                <label for="settingsLogoUrl" class="form-label fw-semibold mt-3 mb-1">Logo URL</label>
+                                <input id="settingsLogoUrl" type="url" class="form-control form-control-sm"
+                                    placeholder="https://.../logo.png">
                             </div>
                         </div>
 
@@ -116,6 +122,9 @@
                                         class="settings-btn settings-btn-primary">Yükle</button>
                                 </div>
                                 <div class="form-text mt-2 small">32x32 .ico veya .png</div>
+                                <label for="settingsFaviconUrl" class="form-label fw-semibold mt-3 mb-1">Favicon URL</label>
+                                <input id="settingsFaviconUrl" type="url" class="form-control form-control-sm"
+                                    placeholder="https://.../favicon.ico">
                             </div>
                         </div>
 
@@ -138,6 +147,9 @@
                                         class="settings-btn settings-btn-primary">Yükle</button>
                                 </div>
                                 <div class="form-text mt-2 small">1200x630px önerilir.</div>
+                                <label for="settingsOgImageUrl" class="form-label fw-semibold mt-3 mb-1">OG Görsel URL</label>
+                                <input id="settingsOgImageUrl" type="url" class="form-control form-control-sm"
+                                    placeholder="https://.../og-image.jpg">
                             </div>
                         </div>
                     </div>
@@ -174,20 +186,63 @@
                                 placeholder="https://t.me/...">
                         </div>
                         <div class="col-12">
-                            <label class="form-label">Destek Talep Konuları</label>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <label class="form-label mb-0 fw-semibold">Destek Talep Konuları</label>
+                                <span class="badge bg-light text-dark border" id="categoryCountBadge">0 konu</span>
+                            </div>
+                            <p class="text-muted small mb-2">Kullanıcının yardım talebi açarken göreceği profesyonel konu listesi.</p>
                             <div class="input-group mb-2">
                                 <input type="text" id="newCategoryLabel" class="form-control"
-                                    placeholder="Örn: Teknik Destek">
+                                    placeholder="Örn: Teknik Destek / Ödeme İşlemleri / Üyelik">
                                 <button type="button" class="btn btn-primary" id="btnAddCategory">
-                                    <i class="fas fa-plus"></i> Ekle
+                                    <i class="fas fa-plus"></i> Konu Ekle
                                 </button>
                             </div>
                             <ul id="categoryList" class="list-group list-group-flush border rounded mb-2"
-                                style="max-height: 200px; overflow-y: auto;">
+                                style="max-height: 220px; overflow-y: auto;">
                                 <!-- Categories will be rendered here -->
                             </ul>
-                            <div class="form-text">Listeye eklenen konular yardım sayfasında görünecektir.</div>
-                            <!-- Hidden input to store state if needed, but we use JS state -->
+                            <div class="form-text">Listeye eklenen konular yardım sayfasında tek seçim alanında gösterilir.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- LEGAL TAB -->
+        <div id="tab-legal" class="settings-tab-pane" style="display:none;">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent border-0 pt-3">
+                    <h5 class="mb-0 text-primary">Yasal Sayfa Yönetimi</h5>
+                    <small class="text-muted">Ana sayfa ve kayıt ekranında kullanılan yasal bağlantıları buradan güncelleyin.</small>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label" for="settingsAcikRizaUrl">Açık Rıza URL</label>
+                            <input id="settingsAcikRizaUrl" type="url" class="form-control" placeholder="/pages/legal/acik-riza.html">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" for="settingsAydinlatmaMetniUrl">Aydınlatma Metni URL</label>
+                            <input id="settingsAydinlatmaMetniUrl" type="url" class="form-control" placeholder="/pages/legal/aydinlatma-metni.html">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" for="settingsGizlilikSozlesmesiUrl">Gizlilik Sözleşmesi URL</label>
+                            <input id="settingsGizlilikSozlesmesiUrl" type="url" class="form-control" placeholder="/pages/legal/gizlilik-sozlesmesi.html">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" for="settingsKullanimSartlariUrl">Kullanım Şartları URL</label>
+                            <input id="settingsKullanimSartlariUrl" type="url" class="form-control" placeholder="/pages/kullanim-sartlari.html">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" for="settingsUyelikSozlesmesiUrl">Üyelik Sözleşmesi URL</label>
+                            <input id="settingsUyelikSozlesmesiUrl" type="url" class="form-control" placeholder="/pages/legal/uyelik-sozlesmesi.html">
+                        </div>
+                        <div class="col-md-6 d-flex align-items-end">
+                            <div class="form-check form-switch mb-2">
+                                <input class="form-check-input" type="checkbox" id="settingsShowMembershipAgreementSeparately">
+                                <label class="form-check-label fw-semibold" for="settingsShowMembershipAgreementSeparately">Üyelik sözleşmesini ana sayfada ayrı bağlantı olarak göster</label>
+                            </div>
                         </div>
                     </div>
                 </div>

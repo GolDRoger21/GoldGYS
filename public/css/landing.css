@@ -679,6 +679,87 @@ main {
     border-top: 1px solid var(--landing-section-border);
 }
 
+.landing-footer-inner {
+    flex-wrap: wrap;
+    height: auto;
+    gap: 2rem;
+    align-items: flex-start;
+}
+
+.footer-brand {
+    max-width: 420px;
+}
+
+.footer-brand-mark {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.9rem;
+    text-decoration: none;
+}
+
+.footer-brand-mark img {
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    object-fit: cover;
+    border: 1px solid var(--landing-card-border);
+    background: #fff;
+    padding: 4px;
+}
+
+.footer-brand-mark strong {
+    display: block;
+    color: var(--text-light);
+    font-size: 1rem;
+    margin-bottom: 0.4rem;
+}
+
+.footer-brand-mark p {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+.footer-links {
+    display: flex;
+    gap: 3rem;
+}
+
+.footer-links h4 {
+    color: var(--text-light);
+    margin-bottom: 1rem;
+    font-size: 0.95rem;
+}
+
+.footer-links ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.footer-links li {
+    margin-bottom: 0.55rem;
+}
+
+.footer-links a {
+    color: var(--text-muted);
+    text-decoration: none;
+}
+
+.footer-links a:hover {
+    color: var(--gold-main);
+}
+
+.landing-footer-bottom {
+    text-align: center;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    margin-top: 3rem;
+    padding-top: 2rem;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}
+
 /* Animasyon */
 @keyframes fadeInUp {
     from {
@@ -909,15 +990,14 @@ main {
         text-align: left;
     }
 
-    .header-inner[style*="flex-wrap"] {
+    .landing-footer-inner {
         flex-direction: column;
         align-items: flex-start;
-        gap: 3rem !important;
+        gap: 2rem;
     }
 
     .footer-brand {
-        max-width: 100% !important;
-        margin-bottom: 0 !important;
+        max-width: 100%;
     }
 }
 
