@@ -1,4 +1,6 @@
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { db } from "../../firebase-config.js";
 
 export function formatDate(value) {
   if (!value) return "-";
@@ -73,4 +75,14 @@ export function setupLazyLoader(triggerEl, callback) {
   });
   observer.observe(triggerEl);
   return observer;
+}
+
+export async function getConfigPublic() {
+  try {
+    const snapshot = await getDoc(doc(db, "config", "public"));
+    return snapshot.data() || {};
+  } catch (error) {
+    console.error("Config fetch error:", error);
+    return {};
+  }
 }

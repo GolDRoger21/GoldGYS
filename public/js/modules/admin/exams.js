@@ -1,5 +1,6 @@
 import { db } from "../../firebase-config.js";
 import { showConfirm, showToast } from "../../notifications.js";
+import { getConfigPublic } from "./utils.js";
 import { collection, getDocs, doc, addDoc, deleteDoc, serverTimestamp, query, orderBy, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 let generatedQuestionsCache = [];
@@ -129,6 +130,14 @@ function renderInterface() {
     document.getElementById('btnCancelWizard').addEventListener('click', () => document.getElementById('examWizard').style.display = 'none');
     document.getElementById('btnStartGen').addEventListener('click', generateQuestions);
     document.getElementById('btnSaveExam').addEventListener('click', saveExam);
+
+    // Load default duration
+    getConfigPublic().then(config => {
+        const durationInput = document.getElementById('inpDuration');
+        if (durationInput && config.examRules?.defaultDuration) {
+            durationInput.value = config.examRules.defaultDuration;
+        }
+    });
 }
 
 // --- AKILLI ALGORİTMA ---
@@ -167,10 +176,13 @@ async function generateQuestions() {
             generatedQuestionsCache = generatedQuestionsCache.concat(selected);
         }
 
-        // 3. Eksikleri Tamamla (Hedef 80)
-        if (generatedQuestionsCache.length < 80) {
-            const needed = 80 - generatedQuestionsCache.length;
-            logArea.innerHTML += `----------------<br>ℹ️ Hedef 80 için ${needed} rastgele soru ekleniyor...<br>`;
+        // 3. Eksikleri Tamamla
+        const config = await getConfigPublic();
+        const targetDesc = config.examRules?.targetQuestionCount || 80;
+
+        if (generatedQuestionsCache.length < targetDesc) {
+            const needed = targetDesc - generatedQuestionsCache.length;
+            logArea.innerHTML += `----------------<br>ℹ️ Hedef ${targetDesc} için ${needed} rastgele soru ekleniyor...<br>`;
 
             // Seçilmemiş sorulardan bir havuz oluştur
             const selectedIds = new Set(generatedQuestionsCache.map(q => q.id));

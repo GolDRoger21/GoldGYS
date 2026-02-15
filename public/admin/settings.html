@@ -46,16 +46,19 @@
                         <div class="card-body">
                             <div class="mb-3">
                                 <label class="form-label fw-bold" for="settingsSiteName">Site Adı</label>
-                                <input id="settingsSiteName" name="branding.siteName" type="text" class="form-control" placeholder="Gold GYS" required>
+                                <input id="settingsSiteName" name="branding.siteName" type="text" class="form-control"
+                                    placeholder="Gold GYS" required>
                                 <div class="form-text">Tarayıcı başlıklarında ve site genelinde görünür.</div>
                             </div>
                             <div class="mb-3">
                                 <label class="form-label fw-bold" for="settingsSlogan">Slogan</label>
-                                <input id="settingsSlogan" name="branding.slogan" type="text" class="form-control" placeholder="Sınava giden en net yol">
+                                <input id="settingsSlogan" name="branding.slogan" type="text" class="form-control"
+                                    placeholder="Sınava giden en net yol">
                             </div>
                             <div class="mb-3">
                                 <label class="form-label fw-bold" for="settingsFooterText">Footer Metni</label>
-                                <textarea id="settingsFooterText" name="branding.footerText" rows="2" class="form-control" placeholder="© Gold GYS - Tüm hakları saklıdır"></textarea>
+                                <textarea id="settingsFooterText" name="branding.footerText" rows="2"
+                                    class="form-control" placeholder="© Gold GYS - Tüm hakları saklıdır"></textarea>
                             </div>
                         </div>
                     </div>
@@ -75,8 +78,10 @@
                         <div class="col-md-4">
                             <div class="p-3 border rounded text-center h-100 bg-light">
                                 <label class="form-label fw-bold d-block mb-3">Logo</label>
-                                <div class="mb-3 d-flex justify-content-center align-items-center" style="height: 80px;">
-                                    <img id="settingsLogoPreview" alt="Logo" style="display:none; max-height:64px; max-width:100%; object-fit:contain;">
+                                <div class="mb-3 d-flex justify-content-center align-items-center"
+                                    style="height: 80px;">
+                                    <img id="settingsLogoPreview" alt="Logo"
+                                        style="display:none; max-height:64px; max-width:100%; object-fit:contain;">
                                     <span id="settingsLogoPlaceholder" class="text-muted small">Yüklü değil</span>
                                 </div>
                                 <div class="d-flex gap-2 justify-content-center">
@@ -84,7 +89,8 @@
                                         <i class="fas fa-upload me-1"></i> Seç
                                     </label>
                                     <input id="settingsLogoFile" type="file" accept="image/*" class="d-none">
-                                    <button type="button" id="settingsLogoUploadBtn" class="btn btn-sm btn-primary">Yükle</button>
+                                    <button type="button" id="settingsLogoUploadBtn"
+                                        class="btn btn-sm btn-primary">Yükle</button>
                                 </div>
                                 <div class="form-text mt-2 small">Şeffaf PNG/SVG önerilir.</div>
                             </div>
@@ -93,8 +99,10 @@
                         <div class="col-md-4">
                             <div class="p-3 border rounded text-center h-100 bg-light">
                                 <label class="form-label fw-bold d-block mb-3">Favicon</label>
-                                <div class="mb-3 d-flex justify-content-center align-items-center" style="height: 80px;">
-                                    <img id="settingsFaviconPreview" alt="Favicon" style="display:none; width:32px; height:32px;">
+                                <div class="mb-3 d-flex justify-content-center align-items-center"
+                                    style="height: 80px;">
+                                    <img id="settingsFaviconPreview" alt="Favicon"
+                                        style="display:none; width:32px; height:32px;">
                                     <span id="settingsFaviconPlaceholder" class="text-muted small">Yüklü değil</span>
                                 </div>
                                 <div class="d-flex gap-2 justify-content-center">
@@ -102,7 +110,8 @@
                                         <i class="fas fa-upload me-1"></i> Seç
                                     </label>
                                     <input id="settingsFaviconFile" type="file" accept="image/*,.ico" class="d-none">
-                                    <button type="button" id="settingsFaviconUploadBtn" class="btn btn-sm btn-primary">Yükle</button>
+                                    <button type="button" id="settingsFaviconUploadBtn"
+                                        class="btn btn-sm btn-primary">Yükle</button>
                                 </div>
                                 <div class="form-text mt-2 small">32x32 .ico veya .png</div>
                             </div>
@@ -111,8 +120,10 @@
                         <div class="col-md-4">
                             <div class="p-3 border rounded text-center h-100 bg-light">
                                 <label class="form-label fw-bold d-block mb-3">Sosyal Medya Görseli (OG)</label>
-                                <div class="mb-3 d-flex justify-content-center align-items-center" style="height: 80px;">
-                                    <img id="settingsOgImagePreview" alt="OG Image" style="display:none; max-height:80px; max-width:100%; object-fit:cover; border-radius:4px;">
+                                <div class="mb-3 d-flex justify-content-center align-items-center"
+                                    style="height: 80px;">
+                                    <img id="settingsOgImagePreview" alt="OG Image"
+                                        style="display:none; max-height:80px; max-width:100%; object-fit:cover; border-radius:4px;">
                                     <span id="settingsOgImagePlaceholder" class="text-muted small">Yüklü değil</span>
                                 </div>
                                 <div class="d-flex gap-2 justify-content-center">
@@ -120,7 +131,8 @@
                                         <i class="fas fa-upload me-1"></i> Seç
                                     </label>
                                     <input id="settingsOgImageFile" type="file" accept="image/*" class="d-none">
-                                    <button type="button" id="settingsOgImageUploadBtn" class="btn btn-sm btn-primary">Yükle</button>
+                                    <button type="button" id="settingsOgImageUploadBtn"
+                                        class="btn btn-sm btn-primary">Yükle</button>
                                 </div>
                                 <div class="form-text mt-2 small">1200x630px önerilir.</div>
                             </div>
@@ -140,23 +152,29 @@
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label class="form-label" for="settingsSupportEmail">Destek E-posta</label>
-                            <input id="settingsSupportEmail" name="contact.supportEmail" type="email" class="form-control" placeholder="destek@goldgys.com">
+                            <input id="settingsSupportEmail" name="contact.supportEmail" type="email"
+                                class="form-control" placeholder="destek@goldgys.com">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label" for="settingsSupportPhone">Destek Telefon</label>
-                            <input id="settingsSupportPhone" name="contact.supportPhone" type="text" class="form-control" placeholder="+90 555 ...">
+                            <input id="settingsSupportPhone" name="contact.supportPhone" type="text"
+                                class="form-control" placeholder="+90 555 ...">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label" for="settingsWhatsappUrl">WhatsApp Linki</label>
-                            <input id="settingsWhatsappUrl" name="contact.whatsappUrl" type="url" class="form-control" placeholder="https://wa.me/...">
+                            <input id="settingsWhatsappUrl" name="contact.whatsappUrl" type="url" class="form-control"
+                                placeholder="https://wa.me/...">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label" for="settingsTelegramUrl">Telegram Linki</label>
-                            <input id="settingsTelegramUrl" name="contact.telegramUrl" type="url" class="form-control" placeholder="https://t.me/...">
+                            <input id="settingsTelegramUrl" name="contact.telegramUrl" type="url" class="form-control"
+                                placeholder="https://t.me/...">
                         </div>
                         <div class="col-12">
                             <label class="form-label" for="settingsTicketCategories">Destek Talep Konuları</label>
-                            <textarea id="settingsTicketCategories" name="contact.ticketCategories" rows="4" class="form-control font-monospace" placeholder="Genel|Genel Bilgi&#10;Teknik|Teknik Sorun"></textarea>
+                            <textarea id="settingsTicketCategories" name="contact.ticketCategories" rows="4"
+                                class="form-control font-monospace"
+                                placeholder="Genel|Genel Bilgi&#10;Teknik|Teknik Sorun"></textarea>
                             <div class="form-text">Format: <code>değer|Görünen Etiket</code> (Her satıra bir tane)</div>
                         </div>
                     </div>
@@ -174,15 +192,20 @@
                 <div class="card-body">
                     <div class="mb-3">
                         <label class="form-label fw-bold" for="settingsDefaultTitle">Varsayılan Başlık (Title)</label>
-                        <input id="settingsDefaultTitle" name="seo.defaultTitle" type="text" class="form-control" placeholder="Gold GYS | Hazırlık">
+                        <input id="settingsDefaultTitle" name="seo.defaultTitle" type="text" class="form-control"
+                            placeholder="Gold GYS | Hazırlık">
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-bold" for="settingsDefaultDescription">Varsayılan Açıklama (Description)</label>
-                        <textarea id="settingsDefaultDescription" name="seo.defaultDescription" rows="3" class="form-control" placeholder="Sayfa açıklaması..."></textarea>
+                        <label class="form-label fw-bold" for="settingsDefaultDescription">Varsayılan Açıklama
+                            (Description)</label>
+                        <textarea id="settingsDefaultDescription" name="seo.defaultDescription" rows="3"
+                            class="form-control" placeholder="Sayfa açıklaması..."></textarea>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-bold" for="settingsDefaultKeywords">Anahtar Kelimeler (Keywords)</label>
-                        <input id="settingsDefaultKeywords" name="seo.defaultKeywords" type="text" class="form-control" placeholder="gys, sınav, hazırlık">
+                        <label class="form-label fw-bold" for="settingsDefaultKeywords">Anahtar Kelimeler
+                            (Keywords)</label>
+                        <input id="settingsDefaultKeywords" name="seo.defaultKeywords" type="text" class="form-control"
+                            placeholder="gys, sınav, hazırlık">
                         <div class="form-text">Virgül ile ayırarak yazınız.</div>
                     </div>
                 </div>
@@ -191,18 +214,21 @@
 
         <!-- FEATURES TAB -->
         <div id="tab-features" class="settings-tab-pane" style="display:none;">
-             <div class="card border-0 shadow-sm">
+            <div class="card border-0 shadow-sm">
                 <div class="card-header bg-transparent border-0 pt-3">
                     <h5 class="mb-0 text-primary">Özellik Yönetimi (Feature Flags)</h5>
                 </div>
                 <div class="card-body">
                     <div class="form-check form-switch mb-3">
-                        <input class="form-check-input" type="checkbox" id="featureMaintenanceMode" name="features.maintenanceMode">
+                        <input class="form-check-input" type="checkbox" id="featureMaintenanceMode"
+                            name="features.maintenanceMode">
                         <label class="form-check-label fw-bold" for="featureMaintenanceMode">Bakım Modu</label>
-                        <div class="form-text text-danger">Aktif edildiğinde, adminler dışındaki tüm erişimler engellenir.</div>
+                        <div class="form-text text-danger">Aktif edildiğinde, adminler dışındaki tüm erişimler
+                            engellenir.</div>
                     </div>
                     <div class="form-check form-switch mb-3">
-                        <input class="form-check-input" type="checkbox" id="featureAllowRegistration" name="features.allowRegistration">
+                        <input class="form-check-input" type="checkbox" id="featureAllowRegistration"
+                            name="features.allowRegistration">
                         <label class="form-check-label fw-bold" for="featureAllowRegistration">Yeni Üye Kaydı</label>
                         <div class="form-text">Kapatıldığında yeni üyelik alımı durdurulur.</div>
                     </div>
@@ -213,17 +239,23 @@
 
         <!-- EXAM RULES TAB -->
         <div id="tab-examRules" class="settings-tab-pane" style="display:none;">
-             <div class="card border-0 shadow-sm">
+            <div class="card border-0 shadow-sm">
                 <div class="card-header bg-transparent border-0 pt-3">
                     <h5 class="mb-0 text-primary">Sınav Varsayılanları</h5>
                 </div>
                 <div class="card-body">
                     <div class="row g-3">
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <label class="form-label" for="examRuleDefaultDuration">Varsayılan Süre (Dakika)</label>
-                            <input type="number" class="form-control" id="examRuleDefaultDuration" name="examRules.defaultDuration" value="120">
+                            <input type="number" class="form-control" id="examRuleDefaultDuration"
+                                name="examRules.defaultDuration" value="120">
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-4">
+                            <label class="form-label" for="examRuleTargetCount">Hedef Soru Sayısı</label>
+                            <input type="number" class="form-control" id="examRuleTargetCount"
+                                name="examRules.targetQuestionCount" value="80">
+                        </div>
+                        <div class="col-md-4">
                             <label class="form-label" for="examRuleWrongImpact">Yanlış Doğruyu Götürme</label>
                             <select class="form-select" id="examRuleWrongImpact" name="examRules.wrongImpact">
                                 <option value="0">Yok</option>
@@ -236,9 +268,9 @@
             </div>
         </div>
 
-         <!-- SYSTEM TAB -->
+        <!-- SYSTEM TAB -->
         <div id="tab-system" class="settings-tab-pane" style="display:none;">
-             <div class="card border-0 shadow-sm">
+            <div class="card border-0 shadow-sm">
                 <div class="card-header bg-transparent border-0 pt-3">
                     <h5 class="mb-0 text-primary">Sistem Durumu</h5>
                 </div>
@@ -246,7 +278,7 @@
                     <div class="alert alert-info">
                         <i class="fas fa-info-circle me-2"></i> Sistem versiyonu: <strong>v2.1.0</strong>
                     </div>
-                    <button type="button" class="btn btn-warning" onclick="window.location.reload()">
+                    <button type="button" id="settingsClearCacheBtn" class="btn btn-warning">
                         <i class="fas fa-sync me-1"></i> Önbelleği Temizle ve Yenile
                     </button>
                 </div>

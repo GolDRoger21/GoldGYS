@@ -1,6 +1,7 @@
 import { db, auth } from "../../firebase-config.js";
 import { requireAdminOrEditor } from "../../role-guard.js";
-import { showToast } from "../../notifications.js";
+import { getConfigPublic } from "./utils.js";
+import { showToast, showConfirm } from "../../notifications.js";
 import { doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
@@ -23,6 +24,7 @@ export async function init() {
         bindTabSwitching();
         bindSaveButton();
         bindReloadButton();
+        bindClearCacheButton();
         bindAssetUploadButtons();
         await loadPublicConfigIntoForm();
     } catch (error) {
@@ -83,9 +85,40 @@ function bindReloadButton() {
     if (!reloadBtn) return;
 
     reloadBtn.addEventListener("click", async () => {
-        if (confirm("Kaydedilmemiş değişiklikler kaybolacak. Yenilemek istediğinize emin misiniz?")) {
+        const confirmed = await showConfirm(
+            "Kaydedilmemiş değişiklikler kaybolacak. Ayarları Firestore'dan yeniden yüklemek istediğinize emin misiniz?",
+            { title: "Değişiklikleri Geri Al", confirmText: "Evet, Yükle", tone: "warning" }
+        );
+
+        if (confirmed) {
             const loaded = await loadPublicConfigIntoForm();
-            if (loaded) showToast("Ayarlar Firestore'dan yeniden yüklendi.", "success");
+            if (loaded) showToast("Genel ayarlar Firestore'dan yeniden yüklendi.", "success");
+        }
+    });
+}
+
+function bindClearCacheButton() {
+    const btn = document.getElementById("settingsClearCacheBtn");
+    if (!btn) return;
+
+    btn.addEventListener("click", async () => {
+        const confirmed = await showConfirm(
+            "Tüm yerel veriler (localStorage, sessionStorage) temizlenecek ve sayfa yenilenecek. Devam edilsin mi?",
+            { title: "Önbelleği Temizle", confirmText: "Evet, Temizle", tone: "warning" }
+        );
+
+        if (confirmed) {
+            localStorage.clear();
+            sessionStorage.clear();
+            if ('caches' in window) {
+                try {
+                    const keys = await caches.keys();
+                    await Promise.all(keys.map(key => caches.delete(key)));
+                } catch (e) {
+                    console.error("Cache storage temizlenirken hata:", e);
+                }
+            }
+            window.location.reload(true);
         }
     });
 }
@@ -180,10 +213,7 @@ function bindAssetUpload({ fileInputId, uploadButtonId, storagePathBase, maxSize
     });
 }
 
-async function getConfigPublic() {
-    const snapshot = await getDoc(doc(db, "config", "public"));
-    return snapshot.data() || {};
-}
+
 
 function getByPath(obj, path) {
     if (!obj || !path) return undefined;
@@ -272,6 +302,7 @@ async function loadPublicConfigIntoForm() {
 
         // Exam Rules
         setFieldValue("examRuleDefaultDuration", config?.examRules?.defaultDuration || 120);
+        setFieldValue("examRuleTargetCount", config?.examRules?.targetQuestionCount || 80);
         setFieldValue("examRuleWrongImpact", config?.examRules?.wrongImpact || "0");
 
         // Images/Previews
@@ -351,6 +382,7 @@ async function savePublicConfigFromForm() {
             },
             examRules: {
                 defaultDuration: parseInt(getFieldValue("examRuleDefaultDuration")) || 0,
+                targetQuestionCount: parseInt(getFieldValue("examRuleTargetCount")) || 80,
                 wrongImpact: parseFloat(getFieldValue("examRuleWrongImpact")) || 0
             },
             meta: {
