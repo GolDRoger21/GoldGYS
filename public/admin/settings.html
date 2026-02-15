@@ -1,9 +1,12 @@
-<div class="section-header">
+<div class="section-header d-flex justify-content-between align-items-start flex-wrap gap-2">
     <div>
         <h2>⚙️ Site Ayarları</h2>
         <p class="text-muted">Platformun temel yapılandırma alanları.</p>
     </div>
-    <button type="button" class="btn btn-primary btn-sm" disabled>Kaydet</button>
+    <div class="d-flex gap-2">
+        <button type="button" id="settingsReloadBtn" class="btn btn-outline-secondary btn-sm">Geri Yükle</button>
+        <button type="button" id="settingsSaveBtn" class="btn btn-primary btn-sm">Kaydet</button>
+    </div>
 </div>
 
 <div class="card p-4">
@@ -15,7 +18,60 @@
         <button type="button" class="btn btn-outline-secondary btn-sm" data-settings-tab="system">Sistem</button>
     </div>
 
-    <div id="settingsTabContent" class="text-muted">
+    <form id="settingsGeneralForm" class="d-flex flex-column gap-3">
+        <div class="card p-3">
+            <h3 class="mb-2">Marka</h3>
+            <div class="d-flex flex-column gap-2">
+                <div>
+                    <label class="form-label" for="settingsSiteName">Site Adı</label>
+                    <input id="settingsSiteName" name="siteName" type="text" class="form-control" placeholder="Gold GYS" required>
+                </div>
+                <div>
+                    <label class="form-label" for="settingsSlogan">Slogan</label>
+                    <input id="settingsSlogan" name="slogan" type="text" class="form-control" placeholder="Sınava giden en net yol">
+                </div>
+                <div>
+                    <label class="form-label" for="settingsFooterText">Footer Metni</label>
+                    <textarea id="settingsFooterText" name="footerText" rows="3" class="form-control" placeholder="© Gold GYS - Tüm hakları saklıdır"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <div class="card p-3">
+            <h3 class="mb-2">İletişim</h3>
+            <div class="d-flex flex-column gap-2">
+                <div>
+                    <label class="form-label" for="settingsSupportEmail">Destek E-posta</label>
+                    <input id="settingsSupportEmail" name="supportEmail" type="email" class="form-control" placeholder="destek@goldgys.com">
+                </div>
+                <div>
+                    <label class="form-label" for="settingsSupportPhone">Destek Telefon</label>
+                    <input id="settingsSupportPhone" name="supportPhone" type="text" class="form-control" placeholder="+90 ...">
+                </div>
+            </div>
+        </div>
+
+        <div class="card p-3">
+            <h3 class="mb-2">SEO (Global)</h3>
+            <div class="d-flex flex-column gap-2">
+                <div>
+                    <label class="form-label" for="settingsDefaultTitle">Varsayılan Başlık</label>
+                    <input id="settingsDefaultTitle" name="defaultTitle" type="text" class="form-control" placeholder="Gold GYS | Hazırlık Platformu">
+                </div>
+                <div>
+                    <label class="form-label" for="settingsDefaultDescription">Varsayılan Açıklama</label>
+                    <textarea id="settingsDefaultDescription" name="defaultDescription" rows="3" class="form-control" placeholder="Gold GYS ile sınava sistemli ve güçlü şekilde hazırlan."></textarea>
+                </div>
+                <div>
+                    <label class="form-label" for="settingsDefaultKeywords">Anahtar Kelimeler</label>
+                    <input id="settingsDefaultKeywords" name="defaultKeywords" type="text" class="form-control" placeholder="gys, hazırlık, deneme">
+                    <small class="text-muted">virgülle ayırın</small>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <div id="settingsTabContent" class="text-muted" style="display:none;">
         Bu modül Adım 1 iskeletidir. Sonraki adımlarda doldurulacak.
     </div>
 </div>
