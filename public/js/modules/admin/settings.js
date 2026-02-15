@@ -2,7 +2,7 @@ import { db, auth } from "../../firebase-config.js";
 import { requireAdminOrEditor } from "../../role-guard.js";
 import { showToast } from "../../notifications.js";
 import { doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { getStorage, ref as storageRef, refFromURL, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
 const storage = getStorage();
 
@@ -153,17 +153,12 @@ function bindAssetUpload({ fileInputId, uploadButtonId, storagePathBase, maxSize
         uploadButton.textContent = "Yükleniyor...";
 
         try {
-            const oldUrl = await getCurrentAssetUrl(assetKey);
-            if (isFirebaseStorageDownloadUrl(oldUrl)) {
-                try {
-                    await deleteObject(refFromURL(oldUrl));
-                } catch (deleteError) {
-                    console.warn(`${assetLabel} eski dosyası silinemedi (devam ediliyor):`, deleteError);
-                }
-            }
+            const config = await getConfigPublic();
+            const oldUrl = getByPath(config, assetKey);
+            await tryDeleteOldAssetByUrl(oldUrl);
 
             const extension = getFileExtension(file);
-            const assetRef = storageRef(storage, `${storagePathBase}.${extension}`);
+            const assetRef = ref(storage, `${storagePathBase}.${extension}`);
             await uploadBytes(assetRef, file, { contentType: file.type || undefined });
             const downloadUrl = await getDownloadURL(assetRef);
 
@@ -188,28 +183,44 @@ function bindAssetUpload({ fileInputId, uploadButtonId, storagePathBase, maxSize
     });
 }
 
+async function getConfigPublic() {
+    const snapshot = await getDoc(doc(db, "config", "public"));
+    return snapshot.data() || {};
+}
 
-async function getCurrentAssetUrl(assetKey) {
-    if (!assetKey) return "";
+function getByPath(obj, path) {
+    if (!obj || !path) return undefined;
+
+    return path
+        .split(".")
+        .reduce((current, key) => (current && typeof current === "object" ? current[key] : undefined), obj);
+}
+
+function extractStoragePathFromDownloadUrl(url) {
+    if (!url || typeof url !== "string") return "";
 
     try {
-        const snapshot = await getDoc(doc(db, "config", "public"));
-        if (!snapshot.exists()) return "";
+        const parsed = new URL(url);
+        const marker = "/o/";
+        const startIdx = parsed.pathname.indexOf(marker);
+        if (startIdx === -1) return "";
 
-        const config = snapshot.data();
-        return assetKey
-            .split(".")
-            .reduce((current, key) => (current && typeof current === "object" ? current[key] : undefined), config) || "";
-    } catch (error) {
-        console.warn("Mevcut varlık URL'i okunamadı:", error);
+        const encodedPath = parsed.pathname.slice(startIdx + marker.length);
+        return encodedPath ? decodeURIComponent(encodedPath) : "";
+    } catch {
         return "";
     }
 }
 
-function isFirebaseStorageDownloadUrl(url) {
-    if (!url || typeof url !== "string") return false;
+async function tryDeleteOldAssetByUrl(oldUrl) {
+    const objectPath = extractStoragePathFromDownloadUrl(oldUrl);
+    if (!objectPath) return;
 
-    return url.includes("firebasestorage.googleapis.com") || url.includes("storage.googleapis.com");
+    try {
+        await deleteObject(ref(storage, objectPath));
+    } catch {
+        // Ignore deletion errors to avoid blocking fresh upload.
+    }
 }
 
 async function loadPublicConfigIntoForm() {
