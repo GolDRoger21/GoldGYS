@@ -404,8 +404,8 @@ async function savePublicConfigFromForm() {
             "seo.defaultDescription": getFieldValue("settingsDefaultDescription").trim(),
             "seo.defaultKeywords": parseKeywords(getFieldValue("settingsDefaultKeywords")),
 
-            "features.maintenanceMode": getFieldValue("featureMaintenanceMode"),
-            "features.allowRegistration": getFieldValue("featureAllowRegistration"),
+            "features.maintenanceMode": getFieldValue("settingsMaintenanceMode"),
+            "features.allowRegistration": getFieldValue("settingsAllowRegistration"),
 
             "examRules.defaultDuration": parseInt(getFieldValue("examRuleDefaultDuration")) || 0,
             "examRules.targetQuestionCount": parseInt(getFieldValue("examRuleTargetCount")) || 80,
