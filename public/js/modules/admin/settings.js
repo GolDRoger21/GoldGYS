@@ -2,7 +2,7 @@ import { db, auth } from "../../firebase-config.js";
 import { requireAdminOrEditor } from "../../role-guard.js";
 import { showToast } from "../../notifications.js";
 import { doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+import { getStorage, ref as storageRef, refFromURL, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
 const storage = getStorage();
 
@@ -99,6 +99,7 @@ function bindAssetUploadButtons() {
         storagePathBase: "site-assets/branding/logo",
         maxSizeBytes: 1 * 1024 * 1024,
         updateData: (url) => ({ branding: { logoUrl: url } }),
+        getExistingUrl: (config) => config?.branding?.logoUrl || "",
         successMessage: "Logo başarıyla yüklendi.",
         assetLabel: "Logo",
         allowIco: false
@@ -110,6 +111,7 @@ function bindAssetUploadButtons() {
         storagePathBase: "site-assets/branding/favicon",
         maxSizeBytes: 1 * 1024 * 1024,
         updateData: (url) => ({ branding: { faviconUrl: url } }),
+        getExistingUrl: (config) => config?.branding?.faviconUrl || "",
         successMessage: "Favicon başarıyla yüklendi.",
         assetLabel: "Favicon",
         allowIco: true
@@ -121,13 +123,14 @@ function bindAssetUploadButtons() {
         storagePathBase: "site-assets/seo/og-image",
         maxSizeBytes: 2 * 1024 * 1024,
         updateData: (url) => ({ seo: { ogImageUrl: url } }),
+        getExistingUrl: (config) => config?.seo?.ogImageUrl || "",
         successMessage: "OG görseli başarıyla yüklendi.",
         assetLabel: "OG görseli",
         allowIco: false
     });
 }
 
-function bindAssetUpload({ fileInputId, uploadButtonId, storagePathBase, maxSizeBytes, updateData, successMessage, assetLabel, allowIco }) {
+function bindAssetUpload({ fileInputId, uploadButtonId, storagePathBase, maxSizeBytes, updateData, getExistingUrl, successMessage, assetLabel, allowIco }) {
     const fileInput = document.getElementById(fileInputId);
     const uploadButton = document.getElementById(uploadButtonId);
     if (!fileInput || !uploadButton) return;
@@ -150,10 +153,22 @@ function bindAssetUpload({ fileInputId, uploadButtonId, storagePathBase, maxSize
         uploadButton.textContent = "Yükleniyor...";
 
         try {
+            const configSnapshot = await getDoc(doc(db, "config", "public"));
+            const config = configSnapshot.exists() ? configSnapshot.data() : {};
+            const oldUrl = getExistingUrl ? getExistingUrl(config) : "";
+
+            if (oldUrl) {
+                try {
+                    await deleteObject(refFromURL(oldUrl));
+                } catch (deleteError) {
+                    console.warn(`${assetLabel} eski dosyası silinemedi (devam ediliyor):`, deleteError);
+                }
+            }
+
             const extension = getFileExtension(file);
-            const storageRef = ref(storage, `${storagePathBase}.${extension}`);
-            await uploadBytes(storageRef, file, { contentType: file.type || undefined });
-            const downloadUrl = await getDownloadURL(storageRef);
+            const assetRef = storageRef(storage, `${storagePathBase}.${extension}`);
+            await uploadBytes(assetRef, file, { contentType: file.type || undefined });
+            const downloadUrl = await getDownloadURL(assetRef);
 
             await setDoc(doc(db, "config", "public"), {
                 ...updateData(downloadUrl),
