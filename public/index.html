@@ -33,8 +33,7 @@
     <link rel="stylesheet" href="css/app.css">
     <link rel="stylesheet" href="css/landing.css">
 
-    <link rel="icon"
-        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230F172A'/><text x='50' y='70' font-family='serif' font-size='60' fill='%23D4AF37' text-anchor='middle' font-weight='bold'>G</text></svg>">
+    <link rel="icon" href="/icons/favicon.png">
 
     <link rel="manifest" href="/manifest.json">
     <script src="/js/theme-init.js"></script>
@@ -233,40 +232,34 @@
     </main>
 
     <footer class="landing-footer">
-        <div class="header-inner" style="flex-wrap: wrap; height: auto; gap: 2rem;">
-            <div class="footer-brand" style="max-width: 300px;">
-                <a href="/" class="brand-logo" style="margin-bottom: 1rem;">GOLD <span>GYS</span></a>
-                <p style="color: var(--text-muted); font-size: 0.9rem;">
-                    Adalet Bakanlığı personeli için geliştirilmiş, yeni nesil görevde yükselme sınavı hazırlık
-                    platformu.
-                </p>
+        <div class="header-inner landing-footer-inner">
+            <div class="footer-brand">
+                <a href="/" class="footer-brand-mark">
+                    <img src="/icons/favicon.png" alt="GOLD GYS" data-site-setting="site-logo">
+                    <div>
+                        <strong data-site-setting="site-name">GOLD GYS</strong>
+                        <p data-site-setting="slogan">Adalet Bakanlığı personeli için geliştirilmiş, yeni nesil görevde yükselme sınavı hazırlık platformu.</p>
+                    </div>
+                </a>
             </div>
 
-            <div class="footer-links" style="display: flex; gap: 3rem;">
+            <div class="footer-links">
                 <div>
-                    <h4 style="color: var(--text-light); margin-bottom: 1rem;">Platform</h4>
-                    <ul style="list-style: none; padding: 0;">
-                        <li style="margin-bottom: 0.5rem;"><a href="login.html?mode=login"
-                                style="color: var(--text-muted); text-decoration: none;">Giriş Yap</a></li>
-                        <li style="margin-bottom: 0.5rem;"><a href="login.html?mode=register"
-                                style="color: var(--text-muted); text-decoration: none;">Kayıt Ol</a></li>
-                        <li style="margin-bottom: 0.5rem;"><a href="/denemeler"
-                                style="color: var(--text-muted); text-decoration: none;">Denemeler</a></li>
+                    <h4>Platform</h4>
+                    <ul>
+                        <li><a href="/login.html?mode=login">Giriş Yap</a></li>
+                        <li><a href="/login.html?mode=register">Kayıt Ol</a></li>
+                        <li><a href="/pages/yardim.html">Yardım Merkezi</a></li>
+                        <li><a href="/pages/yasal.html">Yasal Bilgilendirme</a></li>
                     </ul>
                 </div>
                 <div>
-                    <h4 style="color: var(--text-light); margin-bottom: 1rem;">Yasal</h4>
-                    <ul style="list-style: none; padding: 0;">
-                        <li style="margin-bottom: 0.5rem;"><a href="/pages/gizlilik.html"
-                                style="color: var(--text-muted); text-decoration: none;">Gizlilik Politikası</a></li>
-                        <li style="margin-bottom: 0.5rem;"><a href="/pages/kullanim-sartlari.html"
-                                style="color: var(--text-muted); text-decoration: none;">Kullanım Şartları</a></li>
-                    </ul>
+                    <h4>Yasal</h4>
+                    <ul data-site-setting="legal-links"></ul>
                 </div>
             </div>
         </div>
-        <div
-            style="text-align: center; border-top: 1px solid rgba(255,255,255,0.05); margin-top: 3rem; padding-top: 2rem; color: var(--text-muted); font-size: 0.85rem;">
+        <div class="landing-footer-bottom copyright-text" data-site-setting="footer-text">
             &copy; 2026 GOLD GYS. Tüm Hakları Saklıdır.
         </div>
     </footer>

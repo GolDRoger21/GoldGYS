@@ -3,8 +3,8 @@ export const DEFAULT_PUBLIC_CONFIG = {
     siteName: "GOLD GYS",
     slogan: "Adalet Bakanlığı Görevde Yükselme sınavına giden en net yol",
     footerText: "© {year} GOLD GYS. Tüm hakları saklıdır.",
-    logoUrl: "",
-    faviconUrl: ""
+    logoUrl: "/icons/favicon.png",
+    faviconUrl: "/icons/favicon.png"
   },
   contact: {
     supportEmail: "destek@goldgys.com",
@@ -46,6 +46,14 @@ export const DEFAULT_PUBLIC_CONFIG = {
     locale: "tr-TR",
     timezone: "Europe/Istanbul",
     version: "v2.1.0"
+  },
+  legal: {
+    acikRizaUrl: "/pages/legal/acik-riza.html",
+    aydinlatmaMetniUrl: "/pages/legal/aydinlatma-metni.html",
+    gizlilikSozlesmesiUrl: "/pages/legal/gizlilik-sozlesmesi.html",
+    uyelikSozlesmesiUrl: "/pages/legal/uyelik-sozlesmesi.html",
+    kullanimSartlariUrl: "/pages/kullanim-sartlari.html",
+    showMembershipAgreementSeparately: true
   }
 };
 
@@ -76,6 +84,10 @@ export function mergeWithDefaultPublicConfig(config = {}) {
     system: {
       ...DEFAULT_PUBLIC_CONFIG.system,
       ...(config.system || {})
+    },
+    legal: {
+      ...DEFAULT_PUBLIC_CONFIG.legal,
+      ...(config.legal || {})
     }
   };
 }
