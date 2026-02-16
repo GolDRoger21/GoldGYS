@@ -6,7 +6,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Yardım Merkezi | GOLD GYS</title>
   <link rel="stylesheet" href="../styles/tokens.css">
-  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/app.css">
+  <link rel="stylesheet" href="../css/landing.css">
   <link rel="stylesheet" href="../css/dashboard.css">
   <link rel="icon" type="image/png" href="../icons/favicon.png">
   <link rel="manifest" href="/manifest.json">
@@ -234,15 +235,73 @@
         grid-template-columns: 1fr;
       }
     }
+
+    .public-help-nav .header-inner {
+      height: var(--landing-header-height);
+    }
+
+    .help-hero {
+      margin-top: var(--landing-header-height);
+    }
+
+    .help-footer {
+      margin-top: 20px;
+      padding: 24px 20px 30px;
+      border-top: 1px solid var(--border-color);
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 900px) {
+      .public-help-nav .header-inner {
+        flex-wrap: wrap;
+        height: auto;
+        padding-top: 10px;
+        padding-bottom: 10px;
+      }
+
+      .public-help-nav .nav-links {
+        position: static;
+        transform: none;
+        height: auto;
+        width: auto;
+        background: transparent;
+        border-top: 0;
+        flex-direction: row;
+        gap: 1rem;
+        padding-top: 0;
+      }
+
+      .public-help-nav .header-actions-group {
+        width: 100%;
+        justify-content: flex-end;
+      }
+
+      .help-hero {
+        margin-top: 96px;
+      }
+    }
+
   </style>
   <script src="/js/theme-init.js"></script>
 </head>
 
 <body>
-  <script type="module">
-    import { initLayout } from '../js/ui-loader.js';
-    document.addEventListener('DOMContentLoaded', () => initLayout());
-  </script>
+  <nav class="landing-nav public-help-nav">
+    <div class="header-inner">
+      <a href="/" class="brand-logo">GOLD <span>GYS</span></a>
+      <div class="nav-links" id="helpNavLinks">
+        <a href="/#features" class="nav-link">Özellikler</a>
+        <a href="/#journey" class="nav-link">Nasıl Çalışır?</a>
+        <a href="/pages/yardim.html" class="nav-link">Yardım</a>
+      </div>
+      <div class="header-actions-group">
+        <a href="/login.html?mode=login" class="btn btn-secondary btn-sm">Giriş Yap</a>
+        <a href="/login.html?mode=register" class="btn btn-primary btn-sm">Kayıt Ol</a>
+      </div>
+    </div>
+  </nav>
 
   <div class="help-hero">
     <h1>Size Nasıl Yardımcı Olabiliriz?</h1>
@@ -336,11 +395,11 @@
         <div class="form-grid-row">
           <div class="input-group">
             <label>Adınız Soyadınız</label>
-            <input type="text" class="custom-input" id="inpName" readonly>
+            <input type="text" class="custom-input" id="inpName" placeholder="Ad Soyad" required>
           </div>
           <div class="input-group">
             <label>E-Posta Adresiniz</label>
-            <input type="email" class="custom-input" id="inpEmail" readonly>
+            <input type="email" class="custom-input" id="inpEmail" placeholder="ornek@mail.com" required>
           </div>
         </div>
 
@@ -380,10 +439,14 @@
     </div>
   </div>
 
+  <footer class="help-footer">
+    &copy; 2026 GOLD GYS · Yardım Merkezi
+  </footer>
+
   <script type="module">
     import { auth, functions } from '../js/firebase-config.js';
     import { showToast } from '../js/notifications.js';
-    import { loadSiteConfig, applyTicketCategoriesToSelect, applySiteConfigToDocument } from '../js/site-config.js';
+    import { applyTicketCategoriesToSelect, applySiteConfigToDocument } from '../js/site-config.js';
     import { httpsCallable } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-functions.js";
     import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
@@ -395,11 +458,11 @@
       applyTicketCategoriesToSelect(subjectSelect, config?.contact?.ticketCategories);
     });
 
-    // Kullanıcı Bilgilerini Doldur
+    // Kullanıcı Bilgilerini Doldur (giriş yapılmışsa otomatik)
     onAuthStateChanged(auth, (user) => {
       if (user) {
         document.getElementById('inpName').value = user.displayName || 'Kullanıcı';
-        document.getElementById('inpEmail').value = user.email;
+        document.getElementById('inpEmail').value = user.email || '';
       }
     });
 
@@ -415,11 +478,6 @@
     document.getElementById('contactForm').addEventListener('submit', async (e) => {
       e.preventDefault();
 
-      if (!auth.currentUser) {
-        showToast("Mesaj gönderebilmek için lütfen giriş yapın.", "error");
-        return;
-      }
-
       const btn = e.target.querySelector('button');
       const originalText = btn.innerText;
       btn.disabled = true;
@@ -427,8 +485,13 @@
 
       try {
         const priority = document.querySelector('input[name="priority"]:checked').value;
-        const senderName = document.getElementById('inpName').value;
-        const senderEmail = document.getElementById('inpEmail').value;
+        const senderName = document.getElementById('inpName').value.trim();
+        const senderEmail = document.getElementById('inpEmail').value.trim();
+
+        if (senderName.length < 3 || !senderEmail.includes('@')) {
+          showToast('Lütfen ad-soyad ve geçerli e-posta bilgilerinizi girin.', 'error');
+          return;
+        }
 
         const submitReport = httpsCallable(functions, "submitReport");
         await submitReport({
