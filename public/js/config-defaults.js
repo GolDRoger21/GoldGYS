@@ -11,6 +11,14 @@ export const DEFAULT_PUBLIC_CONFIG = {
     supportPhone: "+90 543 219 49 53",
     whatsappUrl: "https://wa.me/905432194953",
     telegramUrl: "https://t.me/goldgys",
+    instagramUrl: "",
+    twitterUrl: "",
+    linkedinUrl: "",
+    youtubeUrl: "",
+    mobileApps: {
+      ios: "",
+      android: ""
+    },
     ticketCategories: [
       { value: "Genel", label: "Genel Bilgi Talebi" },
       { value: "Teknik", label: "Teknik Sorun / Hata" },
@@ -18,6 +26,12 @@ export const DEFAULT_PUBLIC_CONFIG = {
       { value: "Üyelik", label: "Üyelik ve Erişim" },
       { value: "Öneri", label: "Öneri ve Geri Bildirim" }
     ]
+  },
+  announcement: {
+    active: false,
+    text: "",
+    link: "",
+    type: "info" // info, warning, danger, success
   },
   seo: {
     defaultTitle: "GOLD GYS | Adalet Bakanlığı GYS Hazırlık Platformu",
@@ -88,6 +102,10 @@ export function mergeWithDefaultPublicConfig(config = {}) {
     legal: {
       ...DEFAULT_PUBLIC_CONFIG.legal,
       ...(config.legal || {})
+    },
+    announcement: {
+      ...DEFAULT_PUBLIC_CONFIG.announcement,
+      ...(config.announcement || {})
     }
   };
 }

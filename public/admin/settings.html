@@ -1,42 +1,51 @@
-<div class="section-header settings-hero d-flex justify-content-between align-items-start flex-wrap gap-3">
+<div class="section-header settings-hero d-flex justify-content-between align-items-center flex-wrap gap-3 sticky-top bg-white py-3 border-bottom z-3"
+    style="top: 0;">
     <div>
-        <h2>⚙️ Site Ayarları</h2>
-        <p class="text-muted mb-0">Platformun temel yapılandırma alanları.</p>
+        <h2 class="mb-1">⚙️ Site Ayarları</h2>
+        <p class="text-muted mb-0 small">Platformun genel yapılandırmasını yönetin.</p>
     </div>
     <div class="d-flex gap-2 settings-hero-actions">
-        <button type="button" id="settingsReloadBtn" class="btn btn-outline-secondary">
+        <button type="button" id="settingsReloadBtn" class="btn btn-light border">
             <i class="fas fa-rotate-left me-1"></i> Geri Yükle
         </button>
-        <button type="button" id="settingsSaveBtn" class="btn btn-primary">
-            <i class="fas fa-floppy-disk me-1"></i> Kaydet
+        <button type="button" id="settingsSaveBtn" class="btn btn-primary px-4 shadow-sm">
+            <i class="fas fa-floppy-disk me-2"></i> Değişiklikleri Kaydet
         </button>
     </div>
 </div>
 
 <div class="settings-shell card p-4">
     <div class="settings-tab-nav" id="settingsTabButtons" role="tablist" aria-label="Ayar sekmeleri">
-        <button type="button" class="btn btn-primary is-active" data-settings-tab="general" role="tab" aria-selected="true">
+        <button type="button" class="btn btn-primary is-active" data-settings-tab="general" role="tab"
+            aria-selected="true">
             <i class="fas fa-sliders-h me-1"></i> Genel
         </button>
-        <button type="button" class="btn btn-outline-secondary" data-settings-tab="branding" role="tab" aria-selected="false">
+        <button type="button" class="btn btn-outline-secondary" data-settings-tab="branding" role="tab"
+            aria-selected="false">
             <i class="fas fa-paint-brush me-1"></i> Marka & Görsel
         </button>
-        <button type="button" class="btn btn-outline-secondary" data-settings-tab="contact" role="tab" aria-selected="false">
+        <button type="button" class="btn btn-outline-secondary" data-settings-tab="contact" role="tab"
+            aria-selected="false">
             <i class="fas fa-address-book me-1"></i> İletişim
         </button>
-        <button type="button" class="btn btn-outline-secondary" data-settings-tab="legal" role="tab" aria-selected="false">
+        <button type="button" class="btn btn-outline-secondary" data-settings-tab="legal" role="tab"
+            aria-selected="false">
             <i class="fas fa-scale-balanced me-1"></i> Yasal Sayfalar
         </button>
-        <button type="button" class="btn btn-outline-secondary" data-settings-tab="seo" role="tab" aria-selected="false">
+        <button type="button" class="btn btn-outline-secondary" data-settings-tab="seo" role="tab"
+            aria-selected="false">
             <i class="fas fa-search me-1"></i> SEO
         </button>
-        <button type="button" class="btn btn-outline-secondary" data-settings-tab="features" role="tab" aria-selected="false">
+        <button type="button" class="btn btn-outline-secondary" data-settings-tab="features" role="tab"
+            aria-selected="false">
             <i class="fas fa-toggle-on me-1"></i> Özellikler
         </button>
-        <button type="button" class="btn btn-outline-secondary" data-settings-tab="examRules" role="tab" aria-selected="false">
+        <button type="button" class="btn btn-outline-secondary" data-settings-tab="examRules" role="tab"
+            aria-selected="false">
             <i class="fas fa-gavel me-1"></i> Sınav Kuralları
         </button>
-        <button type="button" class="btn btn-outline-secondary" data-settings-tab="system" role="tab" aria-selected="false">
+        <button type="button" class="btn btn-outline-secondary" data-settings-tab="system" role="tab"
+            aria-selected="false">
             <i class="fas fa-server me-1"></i> Sistem
         </button>
     </div>
@@ -50,27 +59,87 @@
         <!-- GENERAL TAB -->
         <div id="tab-general" class="settings-tab-pane is-active">
             <div class="row g-4">
-                <div class="col-md-6">
+                <div class="col-lg-6">
                     <div class="card h-100 border-0 shadow-sm">
-                        <div class="card-header bg-transparent border-0 pt-3">
-                            <h5 class="mb-0 text-primary">Temel Bilgiler</h5>
+                        <div class="card-header bg-transparent border-0 pt-3 pb-0">
+                            <h5 class="mb-0 text-primary fw-bold"><i class="fas fa-store me-2"></i>Temel Bilgiler</h5>
                         </div>
                         <div class="card-body">
                             <div class="mb-3">
-                                <label class="form-label fw-bold" for="settingsSiteName">Site Adı</label>
+                                <label class="form-label fw-semibold" for="settingsSiteName">Site Adı</label>
                                 <input id="settingsSiteName" name="branding.siteName" type="text" class="form-control"
                                     placeholder="Gold GYS" required>
                                 <div class="form-text">Tarayıcı başlıklarında ve site genelinde görünür.</div>
                             </div>
                             <div class="mb-3">
-                                <label class="form-label fw-bold" for="settingsSlogan">Slogan</label>
+                                <label class="form-label fw-semibold" for="settingsSlogan">Slogan</label>
                                 <input id="settingsSlogan" name="branding.slogan" type="text" class="form-control"
                                     placeholder="Sınava giden en net yol">
                             </div>
                             <div class="mb-3">
-                                <label class="form-label fw-bold" for="settingsFooterText">Footer Metni</label>
+                                <label class="form-label fw-semibold" for="settingsFooterText">Footer Metni</label>
                                 <textarea id="settingsFooterText" name="branding.footerText" rows="2"
                                     class="form-control" placeholder="© Gold GYS - Tüm hakları saklıdır"></textarea>
+                                <div class="form-text small"><code>{year}</code> değişkenini kullanabilirsiniz.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-6">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div
+                            class="card-header bg-transparent border-0 pt-3 pb-0 d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0 text-primary fw-bold"><i class="fas fa-bullhorn me-2"></i>Duyuru Barı</h5>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="settingsAnnouncementActive">
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="alert alert-light border mb-3 small text-muted">
+                                <i class="fas fa-info-circle me-1"></i> Sitenin en üstünde şerit halinde görünen duyuru
+                                alanı.
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold" for="settingsAnnouncementText">Duyuru
+                                    Metni</label>
+                                <input id="settingsAnnouncementText" type="text" class="form-control"
+                                    placeholder="⚠️ Bu hafta sonu sistem bakımı yapılacaktır.">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold" for="settingsAnnouncementLink">Bağlantı
+                                    (Opsiyonel)</label>
+                                <input id="settingsAnnouncementLink" type="text" class="form-control"
+                                    placeholder="/duyurular/bakim-calismasi">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Görünüm Tipi</label>
+                                <div class="d-flex gap-2">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="announcementType"
+                                            id="annTypeInfo" value="info" checked>
+                                        <label class="form-check-label badge bg-info text-dark"
+                                            for="annTypeInfo">Bilgi</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="announcementType"
+                                            id="annTypeWarning" value="warning">
+                                        <label class="form-check-label badge bg-warning text-dark"
+                                            for="annTypeWarning">Uyarı</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="announcementType"
+                                            id="annTypeDanger" value="danger">
+                                        <label class="form-check-label badge bg-danger"
+                                            for="annTypeDanger">Kritik</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="announcementType"
+                                            id="annTypeSuccess" value="success">
+                                        <label class="form-check-label badge bg-success"
+                                            for="annTypeSuccess">Başarı</label>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -173,44 +242,152 @@
 
         <!-- CONTACT TAB -->
         <div id="tab-contact" class="settings-tab-pane">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-transparent border-0 pt-3">
-                    <h5 class="mb-0 text-primary">İletişim Bilgileri</h5>
+            <div class="row g-4">
+                <!-- Contact Info -->
+                <div class="col-lg-6">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div class="card-header bg-transparent border-0 pt-3">
+                            <h5 class="mb-0 text-primary fw-bold"><i class="fas fa-headset me-2"></i>İletişim Kanalları
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold" for="settingsSupportEmail">Destek E-posta</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light"><i
+                                            class="fas fa-envelope text-muted"></i></span>
+                                    <input id="settingsSupportEmail" name="contact.supportEmail" type="email"
+                                        class="form-control" placeholder="destek@goldgys.com">
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold" for="settingsSupportPhone">Destek Telefon</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light"><i
+                                            class="fas fa-phone text-muted"></i></span>
+                                    <input id="settingsSupportPhone" name="contact.supportPhone" type="text"
+                                        class="form-control" placeholder="+90 555 ...">
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold" for="settingsWhatsappUrl">WhatsApp Linki</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light"><i
+                                            class="fab fa-whatsapp text-success"></i></span>
+                                    <input id="settingsWhatsappUrl" name="contact.whatsappUrl" type="url"
+                                        class="form-control" placeholder="https://wa.me/...">
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold" for="settingsTelegramUrl">Telegram Linki</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light"><i
+                                            class="fab fa-telegram text-primary"></i></span>
+                                    <input id="settingsTelegramUrl" name="contact.telegramUrl" type="url"
+                                        class="form-control" placeholder="https://t.me/...">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label class="form-label" for="settingsSupportEmail">Destek E-posta</label>
-                            <input id="settingsSupportEmail" name="contact.supportEmail" type="email"
-                                class="form-control" placeholder="destek@goldgys.com">
+
+                <!-- Social Media -->
+                <div class="col-lg-6">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div class="card-header bg-transparent border-0 pt-3">
+                            <h5 class="mb-0 text-primary fw-bold"><i class="fas fa-share-alt me-2"></i>Sosyal Medya</h5>
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label" for="settingsSupportPhone">Destek Telefon</label>
-                            <input id="settingsSupportPhone" name="contact.supportPhone" type="text"
-                                class="form-control" placeholder="+90 555 ...">
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold" for="settingsInstagramUrl">Instagram</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light"><i
+                                            class="fab fa-instagram text-danger"></i></span>
+                                    <input id="settingsInstagramUrl" type="url" class="form-control"
+                                        placeholder="https://instagram.com/...">
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold" for="settingsTwitterUrl">X (Twitter)</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light"><i
+                                            class="fab fa-twitter text-dark"></i></span>
+                                    <input id="settingsTwitterUrl" type="url" class="form-control"
+                                        placeholder="https://x.com/...">
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold" for="settingsLinkedinUrl">LinkedIn</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light"><i
+                                            class="fab fa-linkedin text-primary"></i></span>
+                                    <input id="settingsLinkedinUrl" type="url" class="form-control"
+                                        placeholder="https://linkedin.com/in/...">
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold" for="settingsYoutubeUrl">YouTube</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light"><i
+                                            class="fab fa-youtube text-danger"></i></span>
+                                    <input id="settingsYoutubeUrl" type="url" class="form-control"
+                                        placeholder="https://youtube.com/c/...">
+                                </div>
+                            </div>
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label" for="settingsWhatsappUrl">WhatsApp Linki</label>
-                            <input id="settingsWhatsappUrl" name="contact.whatsappUrl" type="url" class="form-control"
-                                placeholder="https://wa.me/...">
+                    </div>
+                </div>
+
+                <!-- Mobile Apps -->
+                <div class="col-12">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-transparent border-0 pt-3">
+                            <h5 class="mb-0 text-primary fw-bold"><i class="fas fa-mobile-alt me-2"></i>Mobil Uygulama
+                                Bağlantıları</h5>
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label" for="settingsTelegramUrl">Telegram Linki</label>
-                            <input id="settingsTelegramUrl" name="contact.telegramUrl" type="url" class="form-control"
-                                placeholder="https://t.me/...">
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold" for="settingsAppStoreUrl">App Store
+                                        (iOS)</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light"><i class="fab fa-apple"></i></span>
+                                        <input id="settingsAppStoreUrl" type="url" class="form-control"
+                                            placeholder="https://apps.apple.com/...">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold" for="settingsPlayStoreUrl">Google Play
+                                        (Android)</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light"><i
+                                                class="fab fa-android text-success"></i></span>
+                                        <input id="settingsPlayStoreUrl" type="url" class="form-control"
+                                            placeholder="https://play.google.com/...">
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="col-12">
+                    </div>
+                </div>
+
+                <!-- Ticket Categories -->
+                <div class="col-12">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-transparent border-0 pt-3">
+                            <h5 class="mb-0 text-primary fw-bold"><i class="fas fa-tags me-2"></i>Destek Konuları</h5>
+                        </div>
+                        <div class="card-body">
                             <div class="d-flex justify-content-between align-items-center mb-2">
-                                <label class="form-label mb-0 fw-semibold">Destek Talep Konuları</label>
+                                <label class="form-label mb-0 fw-semibold text-muted">Kullanıcıların seçebileceği destek
+                                    başlıkları</label>
                                 <span class="badge bg-light text-dark border" id="categoryCountBadge">0 konu</span>
                             </div>
-                            <p class="text-muted small mb-2">Kullanıcının yardım talebi açarken göreceği profesyonel
-                                konu listesi.</p>
                             <div class="input-group mb-2">
                                 <input type="text" id="newCategoryLabel" class="form-control"
                                     placeholder="Örn: Teknik Destek / Ödeme İşlemleri / Üyelik">
                                 <button type="button" class="btn btn-primary" id="btnAddCategory">
-                                    <i class="fas fa-plus"></i> Konu Ekle
+                                    <i class="fas fa-plus"></i> Ekle
                                 </button>
                             </div>
                             <ul id="categoryList" class="list-group list-group-flush border rounded mb-2"
@@ -241,7 +418,8 @@
                                 <input id="settingsAcikRizaUrl" type="url" class="form-control"
                                     placeholder="/pages/legal/acik-riza.html">
                                 <button type="button" class="btn btn-outline-secondary btn-edit-content"
-                                    data-slug="explicit-consent" data-title="Açık Rıza Metni" data-input-id="settingsAcikRizaUrl">
+                                    data-slug="explicit-consent" data-title="Açık Rıza Metni"
+                                    data-input-id="settingsAcikRizaUrl">
                                     <i class="fas fa-edit"></i> Düzenle
                                 </button>
                             </div>
@@ -252,7 +430,8 @@
                                 <input id="settingsAydinlatmaMetniUrl" type="url" class="form-control"
                                     placeholder="/pages/legal/aydinlatma-metni.html">
                                 <button type="button" class="btn btn-outline-secondary btn-edit-content"
-                                    data-slug="kvkk-text" data-title="Aydınlatma Metni" data-input-id="settingsAydinlatmaMetniUrl">
+                                    data-slug="kvkk-text" data-title="Aydınlatma Metni"
+                                    data-input-id="settingsAydinlatmaMetniUrl">
                                     <i class="fas fa-edit"></i> Düzenle
                                 </button>
                             </div>
@@ -264,7 +443,8 @@
                                 <input id="settingsGizlilikSozlesmesiUrl" type="url" class="form-control"
                                     placeholder="/pages/legal/gizlilik-sozlesmesi.html">
                                 <button type="button" class="btn btn-outline-secondary btn-edit-content"
-                                    data-slug="privacy-policy" data-title="Gizlilik Sözleşmesi" data-input-id="settingsGizlilikSozlesmesiUrl">
+                                    data-slug="privacy-policy" data-title="Gizlilik Sözleşmesi"
+                                    data-input-id="settingsGizlilikSozlesmesiUrl">
                                     <i class="fas fa-edit"></i> Düzenle
                                 </button>
                             </div>
@@ -275,7 +455,8 @@
                                 <input id="settingsKullanimSartlariUrl" type="url" class="form-control"
                                     placeholder="/pages/kullanim-sartlari.html">
                                 <button type="button" class="btn btn-outline-secondary btn-edit-content"
-                                    data-slug="terms-of-use" data-title="Kullanım Şartları" data-input-id="settingsKullanimSartlariUrl">
+                                    data-slug="terms-of-use" data-title="Kullanım Şartları"
+                                    data-input-id="settingsKullanimSartlariUrl">
                                     <i class="fas fa-edit"></i> Düzenle
                                 </button>
                             </div>
@@ -286,7 +467,8 @@
                                 <input id="settingsUyelikSozlesmesiUrl" type="url" class="form-control"
                                     placeholder="/pages/legal/uyelik-sozlesmesi.html">
                                 <button type="button" class="btn btn-outline-secondary btn-edit-content"
-                                    data-slug="membership-agreement" data-title="Üyelik Sözleşmesi" data-input-id="settingsUyelikSozlesmesiUrl">
+                                    data-slug="membership-agreement" data-title="Üyelik Sözleşmesi"
+                                    data-input-id="settingsUyelikSozlesmesiUrl">
                                     <i class="fas fa-edit"></i> Düzenle
                                 </button>
                             </div>
@@ -406,7 +588,8 @@
                 </div>
                 <div class="card-body">
                     <div class="alert alert-info">
-                        <i class="fas fa-info-circle me-2"></i> Sistem versiyonu: <strong id="settingsSystemVersion">-</strong>
+                        <i class="fas fa-info-circle me-2"></i> Sistem versiyonu: <strong
+                            id="settingsSystemVersion">-</strong>
                     </div>
                     <div class="alert alert-light border" id="settingsLastUpdateInfo">
                         <i class="fas fa-clock me-2"></i> Son güncelleme bilgisi yükleniyor...
@@ -423,7 +606,8 @@
 </div>
 
 <!-- Legal Content Editor Modal -->
-<div class="modal fade settings-hidden" id="legalEditorModal" tabindex="-1" aria-hidden="true" style="z-index: 1060; display: none;">
+<div class="modal fade settings-hidden" id="legalEditorModal" tabindex="-1" aria-hidden="true"
+    style="z-index: 1060; display: none;">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
@@ -432,7 +616,8 @@
             </div>
             <div class="modal-body">
                 <div class="d-flex gap-2 mb-3" role="tablist" aria-label="Editör görünümü">
-                    <button type="button" class="btn btn-sm btn-primary is-active" id="legalEditorVisualTab">Görsel</button>
+                    <button type="button" class="btn btn-sm btn-primary is-active"
+                        id="legalEditorVisualTab">Görsel</button>
                     <button type="button" class="btn btn-sm btn-outline-secondary" id="legalEditorHtmlTab">HTML</button>
                 </div>
                 <div id="legalEditorContainer" style="height: 320px;"></div>

@@ -19,13 +19,17 @@ export async function loadSiteConfig(options = {}) {
     }
 }
 
-export async function applySiteConfigToDocument() {
-    const config = await loadSiteConfig();
+
+export async function applySiteConfigToDocument(configOrPromise) {
+    const config = await (configOrPromise instanceof Promise ? configOrPromise : loadSiteConfig());
+
     applyBranding(config);
     applySeo(config);
     applyFooter(config);
     applyLegalLinks(config);
     applySupportLinks(config);
+    applySocialMedia(config);
+    applyAnnouncement(config);
     return config;
 }
 
@@ -241,6 +245,93 @@ function applySupportLinks(config) {
     updateLink("[data-site-setting='support-phone']", supportPhone, "phone");
     updateLink("[data-site-setting='whatsapp-url']", whatsappUrl, "url");
     updateLink("[data-site-setting='telegram-url']", telegramUrl, "url");
+}
+
+function applySocialMedia(config) {
+    const social = config?.contact || {};
+    const links = [
+        { key: "instagram", url: social.instagramUrl, icon: "fab fa-instagram", color: "#E1306C" },
+        { key: "twitter", url: social.twitterUrl, icon: "fab fa-twitter", color: "#1DA1F2" }, // or X style
+        { key: "linkedin", url: social.linkedinUrl, icon: "fab fa-linkedin", color: "#0077b5" },
+        { key: "youtube", url: social.youtubeUrl, icon: "fab fa-youtube", color: "#FF0000" }
+    ];
+
+    // Method 1: Update existing specific elements
+    links.forEach(item => {
+        const selector = `[data-site-setting='${item.key}-url']`;
+        document.querySelectorAll(selector).forEach(el => {
+            if (item.url) {
+                el.style.display = "";
+                el.setAttribute("href", item.url);
+            } else {
+                el.style.display = "none";
+            }
+        });
+    });
+
+    // Method 2: Render into a generic container
+    const containers = document.querySelectorAll("[data-site-setting='social-links']");
+    containers.forEach(container => {
+        const activeLinks = links.filter(l => l.url);
+        if (activeLinks.length === 0) {
+            container.innerHTML = "";
+            return;
+        }
+
+        // Check if we should render as buttons or just icons based on class
+        const isList = container.tagName === "UL" || container.classList.contains("list-inline");
+
+        container.innerHTML = activeLinks.map(link => {
+            const content = `<i class="${link.icon}"></i>`;
+            if (isList) {
+                return `<li class="list-inline-item"><a href="${escapeHtml(link.url)}" target="_blank" class="btn btn-sm btn-light text-secondary" style="color: ${link.color} !important;">${content}</a></li>`;
+            }
+            return `<a href="${escapeHtml(link.url)}" target="_blank" class="text-decoration-none me-3" style="color: ${link.color};">${content}</a>`;
+        }).join("");
+    });
+}
+
+function applyAnnouncement(config) {
+    const announcement = config?.announcement;
+    const existingBar = document.getElementById("site-announcement-bar");
+
+    if (!announcement?.active || !announcement?.text) {
+        if (existingBar) existingBar.remove();
+        document.body.classList.remove("has-announcement");
+        return;
+    }
+
+    const typeMap = {
+        info: { bg: "bg-primary", text: "text-white", icon: "fas fa-info-circle" },
+        warning: { bg: "bg-warning", text: "text-dark", icon: "fas fa-exclamation-triangle" },
+        danger: { bg: "bg-danger", text: "text-white", icon: "fas fa-exclamation-circle" },
+        success: { bg: "bg-success", text: "text-white", icon: "fas fa-check-circle" }
+    };
+
+    const style = typeMap[announcement.type] || typeMap.info;
+    const content = `
+        <div class="container d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center gap-2">
+                <i class="${style.icon}"></i>
+                <span class="fw-medium">${escapeHtml(announcement.text)}</span>
+            </div>
+            ${announcement.link ? `<a href="${escapeHtml(announcement.link)}" class="btn btn-sm btn-light border-0 fw-bold shadow-sm" style="opacity: 0.9; transform: scale(0.9);">Detaylar <i class="fas fa-arrow-right ms-1"></i></a>` : ''}
+        </div>
+    `;
+
+    if (existingBar) {
+        existingBar.className = `w-100 py-2 ${style.bg} ${style.text}`;
+        existingBar.innerHTML = content;
+    } else {
+        const bar = document.createElement("div");
+        bar.id = "site-announcement-bar";
+        bar.className = `w-100 py-2 ${style.bg} ${style.text}`;
+        bar.style.position = "relative";
+        bar.style.zIndex = "2000";
+        bar.innerHTML = content;
+        document.body.prepend(bar);
+        document.body.classList.add("has-announcement");
+    }
 }
 
 function upsertMetaByName(name, content) {

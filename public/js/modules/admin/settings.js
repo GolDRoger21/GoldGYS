@@ -31,9 +31,54 @@ export async function init() {
         bindCategoryManager();
         bindLegalEditor();
         await loadPublicConfigIntoForm();
+        bindDirtyStateTracker();
+
+        // Warning before leaving with unsaved changes
+        window.addEventListener("beforeunload", (e) => {
+            if (hasUnsavedChanges) {
+                e.preventDefault();
+                e.returnValue = "";
+            }
+        });
+
     } catch (error) {
         console.error("Settings init error:", error);
         section.innerHTML = `<div class="alert alert-danger m-4">Ayarlar yüklenirken bir hata oluştu: ${error.message}</div>`;
+    }
+}
+
+let hasUnsavedChanges = false;
+const dirtyStateIgnoredIds = ["settingsSaveBtn", "settingsReloadBtn", "settingsClearCacheBtn"];
+
+function bindDirtyStateTracker() {
+    const form = document.getElementById("settingsForm");
+    if (!form) return;
+
+    form.addEventListener("input", (e) => {
+        if (dirtyStateIgnoredIds.includes(e.target.id)) return;
+        setDirtyState(true);
+    });
+
+    form.addEventListener("change", (e) => {
+        if (dirtyStateIgnoredIds.includes(e.target.id)) return;
+        setDirtyState(true);
+    });
+}
+
+function setDirtyState(isDirty) {
+    hasUnsavedChanges = isDirty;
+    const saveBtn = document.getElementById("settingsSaveBtn");
+
+    if (saveBtn) {
+        if (isDirty) {
+            saveBtn.classList.remove("btn-primary");
+            saveBtn.classList.add("btn-warning");
+            saveBtn.innerHTML = '<i class="fas fa-save me-2"></i> Kaydet *';
+        } else {
+            saveBtn.classList.remove("btn-warning");
+            saveBtn.classList.add("btn-primary");
+            saveBtn.innerHTML = '<i class="fas fa-floppy-disk me-2"></i> Değişiklikleri Kaydet';
+        }
     }
 }
 
@@ -331,6 +376,22 @@ async function loadPublicConfigIntoForm() {
         setFieldValue("settingsWhatsappUrl", config?.contact?.whatsappUrl || "");
         setFieldValue("settingsTelegramUrl", config?.contact?.telegramUrl || "");
 
+        // Social Media
+        setFieldValue("settingsInstagramUrl", config?.contact?.instagramUrl || "");
+        setFieldValue("settingsTwitterUrl", config?.contact?.twitterUrl || "");
+        setFieldValue("settingsLinkedinUrl", config?.contact?.linkedinUrl || "");
+        setFieldValue("settingsYoutubeUrl", config?.contact?.youtubeUrl || "");
+
+        // Mobile Apps
+        setFieldValue("settingsAppStoreUrl", config?.contact?.mobileApps?.ios || "");
+        setFieldValue("settingsPlayStoreUrl", config?.contact?.mobileApps?.android || "");
+
+        // Announcement Bar
+        setFieldValue("settingsAnnouncementActive", config?.announcement?.active || false);
+        setFieldValue("settingsAnnouncementText", config?.announcement?.text || "");
+        setFieldValue("settingsAnnouncementLink", config?.announcement?.link || "");
+        setRadioValue("announcementType", config?.announcement?.type || "info");
+
         // Ticket Categories
         const rawCategories = config?.contact?.ticketCategories;
         ticketCategoriesState = []; // Reset state
@@ -386,6 +447,7 @@ async function loadPublicConfigIntoForm() {
         updatePreview("settingsFaviconPreview", "settingsFaviconPlaceholder", config?.branding?.faviconUrl || "");
         updatePreview("settingsOgImagePreview", "settingsOgImagePlaceholder", config?.seo?.ogImageUrl || "");
 
+        setDirtyState(false); // Valid data loaded, reset dirty state
         return true;
     } catch (error) {
         console.error("Genel ayarlar okunamadı:", error);
@@ -402,9 +464,19 @@ async function savePublicConfigFromForm() {
         const supportEmail = getFieldValue("settingsSupportEmail").trim();
         const whatsappUrl = getFieldValue("settingsWhatsappUrl").trim();
         const telegramUrl = getFieldValue("settingsTelegramUrl").trim();
+        const instagramUrl = getFieldValue("settingsInstagramUrl").trim();
+        const twitterUrl = getFieldValue("settingsTwitterUrl").trim();
+        const linkedinUrl = getFieldValue("settingsLinkedinUrl").trim();
+        const youtubeUrl = getFieldValue("settingsYoutubeUrl").trim();
+
+        const appStoreUrl = getFieldValue("settingsAppStoreUrl").trim();
+        const playStoreUrl = getFieldValue("settingsPlayStoreUrl").trim();
+
         const logoUrl = getFieldValue("settingsLogoUrl").trim();
         const faviconUrl = getFieldValue("settingsFaviconUrl").trim();
         const ogImageUrl = getFieldValue("settingsOgImageUrl").trim();
+
+        const announcementLink = getFieldValue("settingsAnnouncementLink").trim();
 
         const legalUrls = [
             getFieldValue("settingsAcikRizaUrl").trim(),
@@ -454,6 +526,13 @@ async function savePublicConfigFromForm() {
             return;
         }
 
+        // Validate Social URLs (Optional but good practice)
+        const socialUrls = [instagramUrl, twitterUrl, linkedinUrl, youtubeUrl, appStoreUrl, playStoreUrl, announcementLink];
+        if (socialUrls.some(url => url && !isValidSiteUrl(url))) {
+            showToast("Sosyal medya veya mobil uygulama linklerinden biri geçersiz formatta.", "error");
+            return;
+        }
+
         const duration = parsePositiveInt(getFieldValue("examRuleDefaultDuration"), 120, { min: 1, max: 360 });
         const targetCount = parsePositiveInt(getFieldValue("examRuleTargetCount"), 80, { min: 1, max: 500 });
         const wrongImpact = parseFloatOrDefault(getFieldValue("examRuleWrongImpact"), 0.25);
@@ -471,11 +550,24 @@ async function savePublicConfigFromForm() {
             "branding.logoUrl": logoUrl,
             "branding.faviconUrl": faviconUrl,
 
-            "contact.supportEmail": getFieldValue("settingsSupportEmail").trim(),
+            "contact.supportEmail": supportEmail,
             "contact.supportPhone": getFieldValue("settingsSupportPhone").trim(),
-            "contact.whatsappUrl": getFieldValue("settingsWhatsappUrl").trim(),
-            "contact.telegramUrl": getFieldValue("settingsTelegramUrl").trim(),
+            "contact.whatsappUrl": whatsappUrl,
+            "contact.telegramUrl": telegramUrl,
+            "contact.instagramUrl": instagramUrl,
+            "contact.twitterUrl": twitterUrl,
+            "contact.linkedinUrl": linkedinUrl,
+            "contact.youtubeUrl": youtubeUrl,
+            "contact.mobileApps": {
+                ios: appStoreUrl,
+                android: playStoreUrl
+            },
             "contact.ticketCategories": ticketCategoriesState,
+
+            "announcement.active": getFieldValue("settingsAnnouncementActive"),
+            "announcement.text": getFieldValue("settingsAnnouncementText").trim(),
+            "announcement.link": announcementLink,
+            "announcement.type": getRadioValue("announcementType") || "info",
 
             "seo.defaultTitle": getFieldValue("settingsDefaultTitle").trim(),
             "seo.defaultDescription": getFieldValue("settingsDefaultDescription").trim(),
@@ -576,6 +668,16 @@ function getFieldValue(id) {
         return field.checked;
     }
     return field.value;
+}
+
+function getRadioValue(name) {
+    const checked = document.querySelector(`input[name="${name}"]:checked`);
+    return checked ? checked.value : null;
+}
+
+function setRadioValue(name, value) {
+    const radio = document.querySelector(`input[name="${name}"][value="${value}"]`);
+    if (radio) radio.checked = true;
 }
 
 function isValidEmail(value) {
