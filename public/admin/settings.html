@@ -241,8 +241,8 @@
                                 <input id="settingsAcikRizaUrl" type="url" class="form-control"
                                     placeholder="/pages/legal/acik-riza.html">
                                 <button type="button" class="btn btn-outline-secondary btn-edit-content"
-                                    data-slug="explicit-consent" data-title="Açık Rıza Metni">
-                                    <i class="fas fa-edit"></i> İçerik
+                                    data-slug="explicit-consent" data-title="Açık Rıza Metni" data-input-id="settingsAcikRizaUrl">
+                                    <i class="fas fa-edit"></i> Düzenle
                                 </button>
                             </div>
                         </div>
@@ -252,8 +252,8 @@
                                 <input id="settingsAydinlatmaMetniUrl" type="url" class="form-control"
                                     placeholder="/pages/legal/aydinlatma-metni.html">
                                 <button type="button" class="btn btn-outline-secondary btn-edit-content"
-                                    data-slug="kvkk-text" data-title="Aydınlatma Metni">
-                                    <i class="fas fa-edit"></i> İçerik
+                                    data-slug="kvkk-text" data-title="Aydınlatma Metni" data-input-id="settingsAydinlatmaMetniUrl">
+                                    <i class="fas fa-edit"></i> Düzenle
                                 </button>
                             </div>
                         </div>
@@ -264,8 +264,8 @@
                                 <input id="settingsGizlilikSozlesmesiUrl" type="url" class="form-control"
                                     placeholder="/pages/legal/gizlilik-sozlesmesi.html">
                                 <button type="button" class="btn btn-outline-secondary btn-edit-content"
-                                    data-slug="privacy-policy" data-title="Gizlilik Sözleşmesi">
-                                    <i class="fas fa-edit"></i> İçerik
+                                    data-slug="privacy-policy" data-title="Gizlilik Sözleşmesi" data-input-id="settingsGizlilikSozlesmesiUrl">
+                                    <i class="fas fa-edit"></i> Düzenle
                                 </button>
                             </div>
                         </div>
@@ -275,8 +275,8 @@
                                 <input id="settingsKullanimSartlariUrl" type="url" class="form-control"
                                     placeholder="/pages/kullanim-sartlari.html">
                                 <button type="button" class="btn btn-outline-secondary btn-edit-content"
-                                    data-slug="terms-of-use" data-title="Kullanım Şartları">
-                                    <i class="fas fa-edit"></i> İçerik
+                                    data-slug="terms-of-use" data-title="Kullanım Şartları" data-input-id="settingsKullanimSartlariUrl">
+                                    <i class="fas fa-edit"></i> Düzenle
                                 </button>
                             </div>
                         </div>
@@ -286,8 +286,8 @@
                                 <input id="settingsUyelikSozlesmesiUrl" type="url" class="form-control"
                                     placeholder="/pages/legal/uyelik-sozlesmesi.html">
                                 <button type="button" class="btn btn-outline-secondary btn-edit-content"
-                                    data-slug="membership-agreement" data-title="Üyelik Sözleşmesi">
-                                    <i class="fas fa-edit"></i> İçerik
+                                    data-slug="membership-agreement" data-title="Üyelik Sözleşmesi" data-input-id="settingsUyelikSozlesmesiUrl">
+                                    <i class="fas fa-edit"></i> Düzenle
                                 </button>
                             </div>
                         </div>
@@ -423,15 +423,21 @@
 </div>
 
 <!-- Legal Content Editor Modal -->
-<div class="modal fade" id="legalEditorModal" tabindex="-1" aria-hidden="true" style="z-index: 1060;">
+<div class="modal fade settings-hidden" id="legalEditorModal" tabindex="-1" aria-hidden="true" style="z-index: 1060; display: none;">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="legalEditorTitle">İçerik Düzenle</h5>
+                <h5 class="modal-title" id="legalEditorTitle">Yasal İçerik Düzenle</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <div id="legalEditorContainer" style="height: 400px;"></div>
+                <div class="d-flex gap-2 mb-3" role="tablist" aria-label="Editör görünümü">
+                    <button type="button" class="btn btn-sm btn-primary is-active" id="legalEditorVisualTab">Görsel</button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" id="legalEditorHtmlTab">HTML</button>
+                </div>
+                <div id="legalEditorContainer" style="height: 320px;"></div>
+                <textarea id="legalEditorHtmlInput" class="form-control settings-hidden font-monospace small" rows="14"
+                    placeholder="Yasal içerik HTML kodu"></textarea>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
