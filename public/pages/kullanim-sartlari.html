@@ -37,14 +37,7 @@
 </head>
 
 <body>
-    <nav class="landing-nav">
-        <div class="header-inner">
-            <a href="/" class="brand-logo">GOLD <span>GYS</span></a>
-            <div class="nav-links">
-                <a href="/" class="nav-link">Ana Sayfa</a>
-            </div>
-        </div>
-    </nav>
+    <div id="legalHeaderPlaceholder"></div>
 
     <main class="policy-content">
         <h1>Kullanım Şartları</h1>
@@ -69,10 +62,15 @@
         <p>Gold GYS, hizmet şartlarını önceden haber vermeksizin değiştirme hakkını saklı tutar.</p>
     </main>
 
-    <script type="module" src="../js/firebase-config.js"></script>
+    <div id="legalFooterPlaceholder"></div>
+
+
     <script type="module">
+        import { initLegalPageShell } from '../js/legal-page-shell.js';
         import { loadLegalContent } from '../js/legal-loader.js';
-        loadLegalContent('terms-of-use');
+
+        await initLegalPageShell();
+        await loadLegalContent('terms-of-use');
     </script>
 </body>
 

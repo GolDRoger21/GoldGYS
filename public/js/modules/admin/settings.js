@@ -790,9 +790,21 @@ let quillEditor = null;
 let currentLegalSlug = null;
 let legalModalFallbackCleanup = null;
 let legalModalTriggerElement = null;
+let currentEditorMode = "html";
+let htmlEditorInput = null;
+
+const legalPageFallbackBySlug = {
+    "explicit-consent": "/pages/legal/acik-riza.html",
+    "kvkk-text": "/pages/legal/aydinlatma-metni.html",
+    "privacy-policy": "/pages/legal/gizlilik-sozlesmesi.html",
+    "terms-of-use": "/pages/kullanim-sartlari.html",
+    "membership-agreement": "/pages/legal/uyelik-sozlesmesi.html"
+};
 
 function bindLegalEditor() {
     const modalEl = document.getElementById("legalEditorModal");
+    htmlEditorInput = document.getElementById("legalEditorHtmlInput");
+
     if (modalEl) {
         modalEl.querySelectorAll('[data-bs-dismiss="modal"]').forEach((btn) => {
             btn.addEventListener("click", () => closeLegalModal(modalEl));
@@ -805,33 +817,54 @@ function bindLegalEditor() {
         });
     }
 
-    // Edit Buttons
-    document.querySelectorAll(".btn-edit-content").forEach(btn => {
+    bindLegalEditorModeTabs();
+
+    document.querySelectorAll(".btn-edit-content").forEach((btn) => {
         btn.addEventListener("click", async () => {
             legalModalTriggerElement = btn;
             const slug = btn.dataset.slug;
             const title = btn.dataset.title;
-            await openLegalEditor(slug, title);
+            const sourceInputId = btn.dataset.inputId;
+            const sourceUrl = getFieldValue(sourceInputId)?.trim() || legalPageFallbackBySlug[slug] || "";
+            await openLegalEditor({ slug, title, sourceUrl });
         });
     });
 
-    // Save Button
     const saveBtn = document.getElementById("btnSaveLegalContent");
     if (saveBtn) {
         saveBtn.addEventListener("click", saveLegalContent);
     }
 }
 
+function bindLegalEditorModeTabs() {
+    const visualTab = document.getElementById("legalEditorVisualTab");
+    const htmlTab = document.getElementById("legalEditorHtmlTab");
+
+    if (visualTab) {
+        visualTab.addEventListener("click", async () => {
+            await ensureQuillEditor();
+            setLegalEditorMode("visual");
+        });
+    }
+
+    if (htmlTab) {
+        htmlTab.addEventListener("click", () => {
+            setLegalEditorMode("html");
+        });
+    }
+}
+
 async function loadQuillLibrary() {
     if (window.Quill) return;
 
-    // Load CSS
-    const link = document.createElement("link");
-    link.rel = "stylesheet";
-    link.href = "https://cdn.quilljs.com/1.3.6/quill.snow.css";
-    document.head.appendChild(link);
+    if (!document.querySelector('link[data-legal-quill="true"]')) {
+        const link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href = "https://cdn.quilljs.com/1.3.6/quill.snow.css";
+        link.dataset.legalQuill = "true";
+        document.head.appendChild(link);
+    }
 
-    // Load JS
     return new Promise((resolve, reject) => {
         const script = document.createElement("script");
         script.src = "https://cdn.quilljs.com/1.3.6/quill.js";
@@ -841,61 +874,147 @@ async function loadQuillLibrary() {
     });
 }
 
-async function openLegalEditor(slug, title) {
-    currentLegalSlug = slug;
-    document.getElementById("legalEditorTitle").textContent = `${title} Düzenle`;
+async function ensureQuillEditor() {
+    if (quillEditor) return quillEditor;
 
-    // Show Modal
-    const modalEl = document.getElementById("legalEditorModal");
-    showLegalModal(modalEl);
-
-    // Init Quill if needed
-    if (!quillEditor) {
+    try {
         await loadQuillLibrary();
-        quillEditor = new Quill('#legalEditorContainer', {
-            theme: 'snow',
+        quillEditor = new Quill("#legalEditorContainer", {
+            theme: "snow",
             modules: {
                 toolbar: [
-                    [{ 'header': [1, 2, 3, false] }],
-                    ['bold', 'italic', 'underline', 'strike'],
-                    [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-                    ['link', 'clean']
+                    [{ header: [1, 2, 3, false] }],
+                    ["bold", "italic", "underline", "strike"],
+                    [{ list: "ordered" }, { list: "bullet" }],
+                    ["link", "clean"]
                 ]
             }
         });
+        return quillEditor;
+    } catch (error) {
+        console.error("Quill yüklenemedi:", error);
+        showToast("Görsel editör yüklenemedi, HTML modunda devam edebilirsiniz.", "warning");
+        return null;
+    }
+}
+
+function setLegalEditorMode(mode) {
+    const visualTab = document.getElementById("legalEditorVisualTab");
+    const htmlTab = document.getElementById("legalEditorHtmlTab");
+    const quillContainer = document.getElementById("legalEditorContainer");
+
+    const canUseVisualMode = Boolean(quillEditor);
+    const safeMode = mode === "visual" && canUseVisualMode ? "visual" : "html";
+
+    currentEditorMode = safeMode;
+
+    if (safeMode === "visual" && quillEditor && htmlEditorInput) {
+        const delta = quillEditor.clipboard.convert(htmlEditorInput.value || "");
+        quillEditor.setContents(delta, "silent");
     }
 
-    // Load Content
-    quillEditor.setContents([]); // Clear
-    quillEditor.setText("Yükleniyor...");
-    quillEditor.disable();
+    if (safeMode === "html" && quillEditor && htmlEditorInput) {
+        htmlEditorInput.value = quillEditor.root.innerHTML || "";
+    }
+
+    if (quillContainer) {
+        quillContainer.classList.toggle("settings-hidden", safeMode !== "visual");
+    }
+    if (htmlEditorInput) {
+        htmlEditorInput.classList.toggle("settings-hidden", safeMode !== "html");
+    }
+
+    if (visualTab) {
+        visualTab.classList.toggle("btn-primary", safeMode === "visual");
+        visualTab.classList.toggle("is-active", safeMode === "visual");
+        visualTab.classList.toggle("btn-outline-secondary", safeMode !== "visual");
+    }
+    if (htmlTab) {
+        htmlTab.classList.toggle("btn-primary", safeMode === "html");
+        htmlTab.classList.toggle("is-active", safeMode === "html");
+        htmlTab.classList.toggle("btn-outline-secondary", safeMode !== "html");
+    }
+}
+
+async function openLegalEditor({ slug, title, sourceUrl }) {
+    currentLegalSlug = slug;
+    document.getElementById("legalEditorTitle").textContent = `${title} Düzenle`;
+
+    const modalEl = document.getElementById("legalEditorModal");
+    showLegalModal(modalEl);
+
+    if (htmlEditorInput) {
+        htmlEditorInput.value = "Yükleniyor...";
+        htmlEditorInput.disabled = true;
+    }
+
+    const editor = await ensureQuillEditor();
+    if (editor) editor.disable();
 
     try {
-        const docRef = doc(db, "legal_pages", slug);
-        const snap = await getDoc(docRef);
-
-        quillEditor.setText(""); // Clear loading text
-        if (snap.exists() && snap.data().content) {
-            // We store HTML, so use clipboard matchers or simple html insertion
-            // Quill 1.3 doesn't have native HTML set, use clipboard
-            const delta = quillEditor.clipboard.convert(snap.data().content);
-            quillEditor.setContents(delta, 'silent');
-        } else {
-            // Try to fetch from the actual HTML file as fallback if it's the first time?
-            // That's complex. Let's start empty or with a placeholder.
-            // Or maybe user copies from existing page.
-            // For now, start empty if no DB content.
+        const htmlContent = await resolveLegalContent(slug, sourceUrl);
+        if (htmlEditorInput) {
+            htmlEditorInput.value = htmlContent;
+            htmlEditorInput.disabled = false;
         }
+
+        if (editor) {
+            const delta = editor.clipboard.convert(htmlContent || "");
+            editor.setContents(delta, "silent");
+            editor.enable();
+        }
+
+        setLegalEditorMode("html");
     } catch (error) {
+        if (htmlEditorInput) {
+            htmlEditorInput.value = "";
+            htmlEditorInput.disabled = false;
+        }
+        if (editor) editor.enable();
         console.error("Error loading legal content:", error);
         showToast("İçerik yüklenirken hata oluştu.", "error");
-    } finally {
-        quillEditor.enable();
+    }
+}
+
+async function resolveLegalContent(slug, sourceUrl) {
+    const snap = await getDoc(doc(db, "legal_pages", slug));
+    if (snap.exists() && snap.data()?.content) {
+        return snap.data().content;
+    }
+
+    const fallbackHtml = await fetchLegalPageContent(sourceUrl || legalPageFallbackBySlug[slug]);
+    return fallbackHtml || "";
+}
+
+async function fetchLegalPageContent(sourceUrl) {
+    if (!sourceUrl) return "";
+
+    try {
+        const response = await fetch(sourceUrl, { cache: "no-store" });
+        if (!response.ok) return "";
+        const pageHtml = await response.text();
+
+        const parser = new DOMParser();
+        const docHtml = parser.parseFromString(pageHtml, "text/html");
+        const policyContent = docHtml.querySelector(".policy-content");
+        if (policyContent) {
+            return policyContent.innerHTML.trim();
+        }
+
+        const mainContent = docHtml.querySelector("main");
+        if (mainContent) {
+            return mainContent.innerHTML.trim();
+        }
+
+        return docHtml.body?.innerHTML?.trim() || "";
+    } catch (error) {
+        console.warn("Yasal sayfa fallback içeriği alınamadı:", error);
+        return "";
     }
 }
 
 async function saveLegalContent() {
-    if (!quillEditor || !currentLegalSlug) return;
+    if (!currentLegalSlug || !htmlEditorInput) return;
 
     const btn = document.getElementById("btnSaveLegalContent");
     const originalText = btn.textContent;
@@ -903,8 +1022,9 @@ async function saveLegalContent() {
     btn.disabled = true;
 
     try {
-        // Get HTML
-        const html = quillEditor.root.innerHTML;
+        const html = currentEditorMode === "visual" && quillEditor
+            ? quillEditor.root.innerHTML
+            : htmlEditorInput.value;
 
         await setDoc(doc(db, "legal_pages", currentLegalSlug), {
             content: html,
@@ -915,10 +1035,8 @@ async function saveLegalContent() {
 
         showToast("İçerik başarıyla güncellendi.", "success");
 
-        // Hide Modal
         const modalEl = document.getElementById("legalEditorModal");
         closeLegalModal(modalEl);
-
     } catch (error) {
         console.error("Error saving legal content:", error);
         showToast("Kaydetme başarısız: " + error.message, "error");
@@ -930,6 +1048,8 @@ async function saveLegalContent() {
 
 function showLegalModal(modalEl) {
     if (!modalEl) return;
+
+    modalEl.classList.remove("settings-hidden");
 
     const bootstrapModalApi = window.bootstrap?.Modal;
     if (bootstrapModalApi) {
@@ -968,6 +1088,7 @@ function closeLegalModal(modalEl) {
         }
         const modal = bootstrapModalApi.getInstance(modalEl);
         if (modal) modal.hide();
+        modalEl.classList.add("settings-hidden");
         if (legalModalTriggerElement && typeof legalModalTriggerElement.focus === "function") {
             legalModalTriggerElement.focus();
         }
@@ -980,6 +1101,7 @@ function closeLegalModal(modalEl) {
     }
 
     modalEl.classList.remove("show");
+    modalEl.classList.add("settings-hidden");
     modalEl.style.display = "none";
     modalEl.setAttribute("aria-hidden", "true");
     modalEl.removeAttribute("aria-modal");
