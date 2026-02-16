@@ -78,6 +78,10 @@ function ensureLength(value, min, max) {
   return value.length >= min && value.length <= max;
 }
 
+function isValidEmail(value) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
+
 async function deleteDocsInBatches(docSnaps) {
   if (!docSnaps.length) return;
   const db = admin.firestore();
@@ -418,20 +422,31 @@ exports.updateUserProfile = onCall({ enforceAppCheck: true }, async (request) =>
 
 exports.submitReport = onCall({ enforceAppCheck: true }, async (request) => {
   const context = { auth: request.auth };
-  if (!context.auth) {
-    throw new HttpsError("unauthenticated", "Oturum gerekli.");
-  }
-
   const data = request.data;
-  const uid = context.auth.uid;
-  const userEmail = context.auth.token?.email || null;
-  const userName = context.auth.token?.name || null;
+  const uid = context.auth?.uid || null;
+  const userEmail = context.auth?.token?.email || normalizeString(data?.senderEmail);
+  const userName = context.auth?.token?.name || normalizeString(data?.senderName);
+  const isGuestSubmission = !context.auth;
 
   const type = normalizeString(data?.type);
   const priority = normalizeString(data?.priority);
   const description = normalizeString(data?.description);
   const questionId = normalizeString(data?.questionId);
   const source = normalizeString(data?.source);
+
+  if (isGuestSubmission) {
+    if (source !== "help_page") {
+      throw new HttpsError("unauthenticated", "Oturum gerekli.");
+    }
+
+    if (!ensureLength(userName, 3, 120)) {
+      throw new HttpsError("invalid-argument", "Ad soyad 3-120 karakter olmalı.");
+    }
+
+    if (!isValidEmail(userEmail)) {
+      throw new HttpsError("invalid-argument", "Geçerli bir e-posta adresi girin.");
+    }
+  }
 
   if (!ensureLength(type, 3, 50)) {
     throw new HttpsError("invalid-argument", "Geçerli bir bildirim türü girin.");
@@ -454,16 +469,19 @@ exports.submitReport = onCall({ enforceAppCheck: true }, async (request) => {
   }
 
   const db = admin.firestore();
-  const userSnap = await db.collection("users").doc(uid).get();
-  const status = userSnap.data()?.status || "pending";
+  if (!isGuestSubmission) {
+    const userSnap = await db.collection("users").doc(uid).get();
+    const status = userSnap.data()?.status || "pending";
 
-  if (["suspended", "deleted", "rejected"].includes(status)) {
-    throw new HttpsError("permission-denied", "Hesabınız bildirim göndermeye uygun değil.");
+    if (["suspended", "deleted", "rejected"].includes(status)) {
+      throw new HttpsError("permission-denied", "Hesabınız bildirim göndermeye uygun değil.");
+    }
   }
 
   const now = admin.firestore.Timestamp.now();
   const dayKey = now.toDate().toISOString().slice(0, 10);
-  const rateRef = db.collection("rateLimits").doc(uid);
+  const rateLimitKey = isGuestSubmission ? `guest:${userEmail.toLowerCase()}` : uid;
+  const rateRef = db.collection("rateLimits").doc(rateLimitKey);
   const reportRef = db.collection("reports").doc();
 
   await db.runTransaction(async (tx) => {
@@ -494,7 +512,7 @@ exports.submitReport = onCall({ enforceAppCheck: true }, async (request) => {
     tx.set(
       rateRef,
       {
-        uid,
+        uid: rateLimitKey,
         dayKey,
         dailyCount: currentCount + 1,
         lastSubmittedAt: now,
@@ -506,6 +524,7 @@ exports.submitReport = onCall({ enforceAppCheck: true }, async (request) => {
       userId: uid,
       userEmail,
       userName,
+      isGuestSubmission,
       type,
       description,
       status: "pending",
