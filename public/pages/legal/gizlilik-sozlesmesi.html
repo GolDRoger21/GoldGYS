@@ -77,38 +77,7 @@
 </head>
 
 <body>
-
-    <nav class="landing-nav">
-        <div class="header-inner">
-            <a href="/" class="brand-logo">GOLD <span>GYS</span></a>
-            <div class="header-actions-group">
-                <button id="themeToggle" class="btn-theme-toggle" aria-label="Tema Değiştir">
-                    <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="5"></circle>
-                        <line x1="12" y1="1" x2="12" y2="3"></line>
-                        <line x1="12" y1="21" x2="12" y2="23"></line>
-                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                        <line x1="1" y1="12" x2="3" y2="12"></line>
-                        <line x1="21" y1="12" x2="23" y2="12"></line>
-                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                    </svg>
-                    <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                    </svg>
-                </button>
-                <div class="auth-buttons-desktop">
-                    <a href="/login.html?mode=login" class="btn btn-secondary btn-sm">Giriş Yap</a>
-                    <a href="/login.html?mode=register" class="btn btn-primary btn-sm">Kayıt Ol</a>
-                </div>
-            </div>
-        </div>
-    </nav>
+    <div id="legalHeaderPlaceholder"></div>
 
     <div class="limit-width">
         <div class="legal-content">
@@ -158,53 +127,18 @@
         </div>
     </div>
 
-    <footer class="landing-footer">
-        <div class="header-inner" style="flex-wrap: wrap; height: auto; gap: 2rem; padding: 2rem 0;">
-            <div class="footer-brand">
-                <a href="/" class="brand-logo" style="margin-bottom: 1rem;">GOLD <span>GYS</span></a>
-                <p style="color: var(--text-muted); font-size: 0.9rem;">Adalet Bakanlığı personeli için geliştirilmiş,
-                    yeni nesil görevde yükselme sınavı hazırlık platformu.</p>
-            </div>
-            <div
-                style="text-align: center; width: 100%; border-top: 1px solid rgba(255,255,255,0.05); margin-top: 1rem; padding-top: 1rem; color: var(--text-muted); font-size: 0.85rem;">
-                &copy; 2026 GOLD GYS. Tüm Hakları Saklıdır.
-            </div>
-        </div>
-    </footer>
+    
+    <div id="legalFooterPlaceholder"></div>
 
-    <script>
-        const themeToggle = document.getElementById('themeToggle');
-        const htmlElement = document.documentElement;
-        const savedTheme = localStorage.getItem('theme') || 'light';
-        htmlElement.setAttribute('data-theme', savedTheme);
-        updateThemeIcon(savedTheme);
 
-        if (themeToggle) {
-            themeToggle.addEventListener('click', () => {
-                const currentTheme = htmlElement.getAttribute('data-theme');
-                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-                htmlElement.setAttribute('data-theme', newTheme);
-                localStorage.setItem('theme', newTheme);
-                updateThemeIcon(newTheme);
-            });
-        }
-        function updateThemeIcon(theme) {
-            const sunIcon = document.querySelector('.icon-sun');
-            const moonIcon = document.querySelector('.icon-moon');
-            if (sunIcon && moonIcon) {
-                if (theme === 'dark') {
-                    sunIcon.style.display = 'block';
-                    moonIcon.style.display = 'none';
-                } else {
-                    sunIcon.style.display = 'none';
-                    moonIcon.style.display = 'block';
-                }
-            }
-        }
-    </script>
+
+    
     <script type="module">
+        import { initLegalPageShell } from '../../js/legal-page-shell.js';
         import { loadLegalContent } from '../../js/legal-loader.js';
-        loadLegalContent('privacy-policy');
+
+        await initLegalPageShell();
+        await loadLegalContent('privacy-policy');
     </script>
 </body>
 
