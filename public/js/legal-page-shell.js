@@ -47,14 +47,9 @@ function renderFooter(container) {
 
     container.innerHTML = `
         <footer class="landing-footer">
-            <div class="header-inner" style="flex-wrap: wrap; height: auto; gap: 2rem; padding: 2rem 0;">
-                <div class="footer-brand">
-                    <a href="/" class="brand-logo" data-site-setting="site-name" style="margin-bottom: 1rem;">GOLD <span>GYS</span></a>
-                    <p data-site-setting="slogan" style="color: var(--text-muted); font-size: 0.9rem;">Adalet Bakanlığı personeli için geliştirilmiş,
-                        yeni nesil görevde yükselme sınavı hazırlık platformu.</p>
-                </div>
+            <div class="header-inner" style="justify-content: center; height: auto; padding: 1.25rem 0;">
                 <div class="copyright-text"
-                    style="text-align: center; width: 100%; border-top: 1px solid rgba(255,255,255,0.05); margin-top: 1rem; padding-top: 1rem; color: var(--text-muted); font-size: 0.85rem;"
+                    style="text-align: center; width: 100%; color: var(--text-muted); font-size: 0.85rem;"
                     data-site-setting="footer-text">
                     &copy; ${new Date().getFullYear()} GOLD GYS. Tüm Hakları Saklıdır.
                 </div>
