@@ -181,7 +181,7 @@ function bindAssetUploadButtons() {
         placeholderId: "settingsLogoPlaceholder",
         storagePathBase: "site-assets/branding/logo",
         maxSizeBytes: 1 * 1024 * 1024,
-        updateData: (url) => ({ "branding.logoUrl": url }),
+        updateData: (url) => ({ branding: { logoUrl: url } }),
         assetKey: "branding.logoUrl",
         successMessage: "Logo başarıyla yüklendi.",
         assetLabel: "Logo",
@@ -196,7 +196,7 @@ function bindAssetUploadButtons() {
         placeholderId: "settingsFaviconPlaceholder",
         storagePathBase: "site-assets/branding/favicon",
         maxSizeBytes: 1 * 1024 * 1024,
-        updateData: (url) => ({ "branding.faviconUrl": url }),
+        updateData: (url) => ({ branding: { faviconUrl: url } }),
         assetKey: "branding.faviconUrl",
         successMessage: "Favicon başarıyla yüklendi.",
         assetLabel: "Favicon",
@@ -211,7 +211,7 @@ function bindAssetUploadButtons() {
         placeholderId: "settingsOgImagePlaceholder",
         storagePathBase: "site-assets/seo/og-image",
         maxSizeBytes: 2 * 1024 * 1024,
-        updateData: (url) => ({ "seo.ogImageUrl": url }),
+        updateData: (url) => ({ seo: { ogImageUrl: url } }),
         assetKey: "seo.ogImageUrl",
         successMessage: "OG görseli başarıyla yüklendi.",
         assetLabel: "OG görseli",
@@ -542,61 +542,72 @@ async function savePublicConfigFromForm() {
             saveBtn.textContent = "Kaydediliyor...";
         }
 
-        // Construct payload with dot notation to prevent overwriting nested fields (like images in branding)
+        // Construct payload as nested objects so Firestore updates the expected map fields.
         const payload = {
-            "branding.siteName": getFieldValue("settingsSiteName").trim(),
-            "branding.slogan": getFieldValue("settingsSlogan").trim(),
-            "branding.footerText": getFieldValue("settingsFooterText").trim(),
-            "branding.logoUrl": logoUrl,
-            "branding.faviconUrl": faviconUrl,
-
-            "contact.supportEmail": supportEmail,
-            "contact.supportPhone": getFieldValue("settingsSupportPhone").trim(),
-            "contact.whatsappUrl": whatsappUrl,
-            "contact.telegramUrl": telegramUrl,
-            "contact.instagramUrl": instagramUrl,
-            "contact.twitterUrl": twitterUrl,
-            "contact.linkedinUrl": linkedinUrl,
-            "contact.youtubeUrl": youtubeUrl,
-            "contact.mobileApps": {
-                ios: appStoreUrl,
-                android: playStoreUrl
+            branding: {
+                siteName: getFieldValue("settingsSiteName").trim(),
+                slogan: getFieldValue("settingsSlogan").trim(),
+                footerText: getFieldValue("settingsFooterText").trim(),
+                logoUrl,
+                faviconUrl
             },
-            "contact.ticketCategories": ticketCategoriesState,
 
-            "announcement.active": getFieldValue("settingsAnnouncementActive"),
-            "announcement.text": getFieldValue("settingsAnnouncementText").trim(),
-            "announcement.link": announcementLink,
-            "announcement.type": getRadioValue("announcementType") || "info",
+            contact: {
+                supportEmail,
+                supportPhone: getFieldValue("settingsSupportPhone").trim(),
+                whatsappUrl,
+                telegramUrl,
+                instagramUrl,
+                twitterUrl,
+                linkedinUrl,
+                youtubeUrl,
+                mobileApps: {
+                    ios: appStoreUrl,
+                    android: playStoreUrl
+                },
+                ticketCategories: ticketCategoriesState
+            },
 
-            "seo.defaultTitle": getFieldValue("settingsDefaultTitle").trim(),
-            "seo.defaultDescription": getFieldValue("settingsDefaultDescription").trim(),
-            "seo.defaultKeywords": parseKeywords(getFieldValue("settingsDefaultKeywords")),
-            "seo.ogImageUrl": ogImageUrl,
+            announcement: {
+                active: getFieldValue("settingsAnnouncementActive"),
+                text: getFieldValue("settingsAnnouncementText").trim(),
+                link: announcementLink,
+                type: getRadioValue("announcementType") || "info"
+            },
 
-            "legal.acikRizaUrl": getFieldValue("settingsAcikRizaUrl").trim(),
-            "legal.aydinlatmaMetniUrl": getFieldValue("settingsAydinlatmaMetniUrl").trim(),
-            "legal.gizlilikSozlesmesiUrl": getFieldValue("settingsGizlilikSozlesmesiUrl").trim(),
-            "legal.uyelikSozlesmesiUrl": getFieldValue("settingsUyelikSozlesmesiUrl").trim(),
-            "legal.kullanimSartlariUrl": getFieldValue("settingsKullanimSartlariUrl").trim(),
-            "legal.showMembershipAgreementSeparately": getFieldValue("settingsShowMembershipAgreementSeparately"),
+            seo: {
+                defaultTitle: getFieldValue("settingsDefaultTitle").trim(),
+                defaultDescription: getFieldValue("settingsDefaultDescription").trim(),
+                defaultKeywords: parseKeywords(getFieldValue("settingsDefaultKeywords")),
+                ogImageUrl
+            },
 
-            "features.maintenanceMode": getFieldValue("settingsMaintenanceMode"),
-            "features.allowRegistration": getFieldValue("settingsAllowRegistration"),
+            legal: {
+                acikRizaUrl: getFieldValue("settingsAcikRizaUrl").trim(),
+                aydinlatmaMetniUrl: getFieldValue("settingsAydinlatmaMetniUrl").trim(),
+                gizlilikSozlesmesiUrl: getFieldValue("settingsGizlilikSozlesmesiUrl").trim(),
+                uyelikSozlesmesiUrl: getFieldValue("settingsUyelikSozlesmesiUrl").trim(),
+                kullanimSartlariUrl: getFieldValue("settingsKullanimSartlariUrl").trim(),
+                showMembershipAgreementSeparately: getFieldValue("settingsShowMembershipAgreementSeparately")
+            },
 
-            "examRules.defaultDuration": duration,
-            "examRules.targetQuestionCount": targetCount,
-            "examRules.wrongImpact": wrongImpact,
-            "examRules.showResultImmediately": getFieldValue("examRuleShowResult"),
+            features: {
+                maintenanceMode: getFieldValue("settingsMaintenanceMode"),
+                allowRegistration: getFieldValue("settingsAllowRegistration")
+            },
 
-            "meta.updatedAt": serverTimestamp(),
-            "meta.updatedBy": auth.currentUser?.uid || null
+            examRules: {
+                defaultDuration: duration,
+                targetQuestionCount: targetCount,
+                wrongImpact,
+                showResultImmediately: getFieldValue("examRuleShowResult")
+            },
+
+            meta: {
+                updatedAt: serverTimestamp(),
+                updatedBy: auth.currentUser?.uid || null
+            }
         };
-
-        // Filter out empty keys if needed, or send as is (empty string updates are usually fine)
-        // With merge: true and dot notation, specific fields are updated. 
-        // Note: Field deletion via FieldValue.delete() is not implemented here, 
-        // we assume empty string is a valid value for "clearing".
 
         await setDoc(doc(db, "config", "public"), payload, { merge: true });
 
