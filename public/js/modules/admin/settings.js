@@ -542,31 +542,27 @@ async function savePublicConfigFromForm() {
             saveBtn.textContent = "Kaydediliyor...";
         }
 
-        // Construct payload with nested objects to ensure correct Firestore structure
+        // Construct payload with dot notation to prevent overwriting nested fields (like images in branding)
         const payload = {
-            branding: {
-                siteName: getFieldValue("settingsSiteName").trim(),
-                slogan: getFieldValue("settingsSlogan").trim(),
-                footerText: getFieldValue("settingsFooterText").trim(),
-                logoUrl: logoUrl,
-                faviconUrl: faviconUrl
-            },
+            "branding.siteName": getFieldValue("settingsSiteName").trim(),
+            "branding.slogan": getFieldValue("settingsSlogan").trim(),
+            "branding.footerText": getFieldValue("settingsFooterText").trim(),
+            "branding.logoUrl": logoUrl,
+            "branding.faviconUrl": faviconUrl,
 
-            contact: {
-                supportEmail: supportEmail,
-                supportPhone: getFieldValue("settingsSupportPhone").trim(),
-                whatsappUrl: whatsappUrl,
-                telegramUrl: telegramUrl,
-                instagramUrl: instagramUrl,
-                twitterUrl: twitterUrl,
-                linkedinUrl: linkedinUrl,
-                youtubeUrl: youtubeUrl,
-                mobileApps: {
-                    ios: appStoreUrl,
-                    android: playStoreUrl
-                },
-                ticketCategories: ticketCategoriesState
+            "contact.supportEmail": supportEmail,
+            "contact.supportPhone": getFieldValue("settingsSupportPhone").trim(),
+            "contact.whatsappUrl": whatsappUrl,
+            "contact.telegramUrl": telegramUrl,
+            "contact.instagramUrl": instagramUrl,
+            "contact.twitterUrl": twitterUrl,
+            "contact.linkedinUrl": linkedinUrl,
+            "contact.youtubeUrl": youtubeUrl,
+            "contact.mobileApps": {
+                ios: appStoreUrl,
+                android: playStoreUrl
             },
+            "contact.ticketCategories": ticketCategoriesState,
 
             announcement: {
                 active: getFieldValue("settingsAnnouncementActive"),
@@ -575,12 +571,10 @@ async function savePublicConfigFromForm() {
                 type: getRadioValue("announcementType") || "info"
             },
 
-            seo: {
-                defaultTitle: getFieldValue("settingsDefaultTitle").trim(),
-                defaultDescription: getFieldValue("settingsDefaultDescription").trim(),
-                defaultKeywords: parseKeywords(getFieldValue("settingsDefaultKeywords")),
-                ogImageUrl: ogImageUrl
-            },
+            "seo.defaultTitle": getFieldValue("settingsDefaultTitle").trim(),
+            "seo.defaultDescription": getFieldValue("settingsDefaultDescription").trim(),
+            "seo.defaultKeywords": parseKeywords(getFieldValue("settingsDefaultKeywords")),
+            "seo.ogImageUrl": ogImageUrl,
 
             legal: {
                 acikRizaUrl: getFieldValue("settingsAcikRizaUrl").trim(),
@@ -596,21 +590,19 @@ async function savePublicConfigFromForm() {
                 allowRegistration: getFieldValue("settingsAllowRegistration")
             },
 
-            examRules: {
-                defaultDuration: duration,
-                targetQuestionCount: targetCount,
-                wrongImpact: wrongImpact,
-                showResultImmediately: getFieldValue("examRuleShowResult")
-            },
+            "examRules.defaultDuration": duration,
+            "examRules.targetQuestionCount": targetCount,
+            "examRules.wrongImpact": wrongImpact,
+            "examRules.showResultImmediately": getFieldValue("examRuleShowResult"),
 
-            meta: {
-                updatedAt: serverTimestamp(),
-                updatedBy: auth.currentUser?.uid || null
-            }
+            "meta.updatedAt": serverTimestamp(),
+            "meta.updatedBy": auth.currentUser?.uid || null
         };
 
         // Filter out empty keys if needed, or send as is (empty string updates are usually fine)
-        // With merge: true and nested objects, we are safe. 
+        // With merge: true and dot notation, specific fields are updated. 
+        // Note: Field deletion via FieldValue.delete() is not implemented here, 
+        // we assume empty string is a valid value for "clearing".
 
         await setDoc(doc(db, "config", "public"), payload, { merge: true });
 
