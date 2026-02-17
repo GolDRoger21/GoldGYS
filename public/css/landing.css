@@ -4,93 +4,90 @@
 /* (Root değişkenleri app.css'den miras alınır) */
 :root {
     --landing-header-height: 80px;
-    --landing-nav-bg: rgba(10, 15, 30, 0.7);
+    --landing-nav-bg: rgba(15, 23, 42, 0.7);
     --landing-nav-border: rgba(255, 255, 255, 0.05);
-    --landing-nav-scrolled-bg: rgba(5, 8, 16, 0.95);
+    --landing-nav-scrolled-bg: rgba(2, 6, 23, 0.95);
     --landing-nav-scrolled-border: rgba(212, 175, 55, 0.3);
 
     /* Premium Hero Gradients */
-    --gold-gradient-text: linear-gradient(135deg, #FFD700 0%, #FDB931 50%, #C09000 100%);
-    --navy-gradient-bg: radial-gradient(circle at 50% 0%, #1a233a 0%, #050810 100%);
+    --gold-gradient-text: linear-gradient(135deg, #FDE68A 0%, #D4AF37 50%, #B45309 100%);
+    --navy-gradient-bg: radial-gradient(circle at 50% 0%, #1e293b 0%, #020617 100%);
 
     /* Glassmorphism */
     --glass-bg: rgba(255, 255, 255, 0.03);
-    --glass-border: rgba(255, 255, 255, 0.08);
+    --glass-border: rgba(255, 255, 255, 0.05);
     --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
     --glass-blur: blur(12px);
 
-    --landing-hero-bg: transparent;
-    --landing-hero-pattern-opacity: 0.5;
-    --landing-hero-title: #ffffff;
-    --landing-hero-desc: #94a3b8;
+    /* Hero Text Colors (Global Token Integration) */
+    --landing-hero-title: var(--text-white);
+    --landing-hero-desc: var(--text-muted);
 
-    --landing-section-bg: #050810;
+    --landing-section-bg: #020617;
     --landing-section-border: rgba(255, 255, 255, 0.03);
 
-    --landing-card-bg: rgba(30, 41, 59, 0.3);
-    --landing-card-bg-hover: rgba(30, 41, 59, 0.5);
-    --landing-title-color: #f1f5f9;
+    --landing-card-bg: rgba(30, 41, 59, 0.4);
+    --landing-card-bg-hover: rgba(30, 41, 59, 0.6);
+    --landing-title-color: var(--text-white);
 
-    --landing-journey-bg: #080c1a;
+    --landing-journey-bg: #0B1120;
     --landing-journey-card-bg: rgba(30, 41, 59, 0.25);
     --landing-journey-border: rgba(212, 175, 55, 0.15);
     --landing-journey-step-bg: rgba(212, 175, 55, 0.1);
 
-    --landing-cta-bg: #050810;
-    --landing-cta-card-bg: linear-gradient(135deg, rgba(212, 175, 55, 0.15), rgba(10, 15, 30, 0.9));
+    --landing-cta-bg: #020617;
+    --landing-cta-card-bg: linear-gradient(135deg, rgba(212, 175, 55, 0.1), rgba(15, 23, 42, 0.9));
     --landing-cta-border: rgba(212, 175, 55, 0.3);
 
-    --landing-footer-bg: #020408;
+    --landing-footer-bg: #020617;
 
-    --landing-mobile-nav-bg: rgba(5, 8, 16, 0.98);
+    --landing-mobile-nav-bg: rgba(2, 6, 23, 0.98);
     --landing-mobile-nav-border: rgba(255, 255, 255, 0.05);
-    --landing-icon-bar: #f1f5f9;
-    --landing-secondary-text: #cbd5e1;
+    --landing-icon-bar: var(--text-white);
+    --landing-secondary-text: #94a3b8;
     --landing-secondary-border: rgba(255, 255, 255, 0.15);
     --landing-secondary-bg: rgba(255, 255, 255, 0.05);
 }
 
 [data-theme="light"] {
-    --landing-nav-bg: rgba(255, 255, 255, 0.85);
-    --landing-nav-border: rgba(226, 232, 240, 0.6);
+    --landing-nav-bg: rgba(255, 255, 255, 0.9);
+    --landing-nav-border: rgba(226, 232, 240, 0.8);
     --landing-nav-scrolled-bg: rgba(255, 255, 255, 0.98);
-    --landing-nav-scrolled-border: rgba(212, 175, 55, 0.2);
+    --landing-nav-scrolled-border: rgba(212, 175, 55, 0.4);
 
-    --gold-gradient-text: linear-gradient(135deg, #b48608 0%, #D4AF37 50%, #b48608 100%);
-    --navy-gradient-bg: radial-gradient(circle at 50% 0%, #ffffff 0%, #f8fafc 100%);
+    --gold-gradient-text: linear-gradient(135deg, #B45309 0%, #D4AF37 50%, #854D0E 100%);
+    --navy-gradient-bg: radial-gradient(circle at 50% 0%, #ffffff 0%, #f1f5f9 100%);
 
-    --glass-bg: rgba(255, 255, 255, 0.6);
-    --glass-border: rgba(255, 255, 255, 0.4);
-    --glass-shadow: 0 8px 32px 0 rgba(148, 163, 184, 0.15);
+    --glass-bg: rgba(255, 255, 255, 0.7);
+    --glass-border: rgba(226, 232, 240, 0.6);
+    --glass-shadow: 0 8px 32px 0 rgba(148, 163, 184, 0.1);
 
-    --landing-hero-bg: transparent;
-    --landing-hero-pattern-opacity: 0.15;
-    --landing-hero-title: #1e293b;
-    --landing-hero-desc: #475569;
+    --landing-hero-title: var(--text-main);
+    --landing-hero-desc: var(--text-muted);
 
-    --landing-section-bg: #ffffff;
+    --landing-section-bg: #FFFFFF;
     --landing-section-border: #e2e8f0;
 
-    --landing-card-bg: #ffffff;
-    --landing-card-bg-hover: #f8fafc;
-    --landing-title-color: #0f172a;
+    --landing-card-bg: #FFFFFF;
+    --landing-card-bg-hover: #F8FAFC;
+    --landing-title-color: var(--text-main);
 
-    --landing-journey-bg: #f8fafc;
-    --landing-journey-card-bg: #ffffff;
+    --landing-journey-bg: #F8FAFC;
+    --landing-journey-card-bg: #FFFFFF;
     --landing-journey-border: rgba(212, 175, 55, 0.2);
     --landing-journey-step-bg: rgba(212, 175, 55, 0.15);
 
-    --landing-cta-bg: #ffffff;
-    --landing-cta-card-bg: linear-gradient(120deg, rgba(212, 175, 55, 0.1), #ffffff);
+    --landing-cta-bg: #FFFFFF;
+    --landing-cta-card-bg: linear-gradient(120deg, rgba(212, 175, 55, 0.08), #ffffff);
     --landing-cta-border: rgba(212, 175, 55, 0.25);
 
-    --landing-footer-bg: #f8fafc;
+    --landing-footer-bg: #F8FAFC;
 
     --landing-mobile-nav-bg: rgba(255, 255, 255, 0.98);
     --landing-mobile-nav-border: rgba(15, 23, 42, 0.05);
-    --landing-icon-bar: #334155;
-    --landing-secondary-text: #334155;
-    --landing-secondary-border: #cbd5e1;
+    --landing-icon-bar: var(--text-main);
+    --landing-secondary-text: var(--text-muted);
+    --landing-secondary-border: #e2e8f0;
     --landing-secondary-bg: #f1f5f9;
 }
 
@@ -145,8 +142,7 @@ main {
 
 .btn-primary {
     background-color: var(--gold-main);
-    color: #0f172a;
-    /* Dark text for better contrast on gold */
+    color: var(--text-on-gold);
     border: 1px solid var(--gold-main);
     box-shadow: 0 4px 15px rgba(212, 175, 55, 0.4);
     font-weight: 600;
@@ -154,10 +150,10 @@ main {
 }
 
 .btn-primary:hover {
-    background-color: #e5c145;
+    background-color: var(--color-primary-hover);
     transform: translateY(-2px);
     box-shadow: 0 8px 25px rgba(212, 175, 55, 0.5);
-    color: #0f172a;
+    color: var(--text-on-gold);
 }
 
 .btn-sm {
@@ -454,13 +450,16 @@ main {
 
 .hero-title {
     font-family: 'Playfair Display', serif;
-    font-size: clamp(2.5rem, 5vw, 4.5rem); /* Mobilde biraz daha küçültüldü */
+    font-size: clamp(2.5rem, 5vw, 4.5rem);
+    /* Mobilde biraz daha küçültüldü */
     font-weight: 800;
-    line-height: 1.25; /* 1.1'den 1.25'e çıkarıldı: Alt kısımların kesilmesini önler */
+    line-height: 1.25;
+    /* 1.1'den 1.25'e çıkarıldı: Alt kısımların kesilmesini önler */
     color: var(--landing-hero-title);
     margin-bottom: 1.5rem;
     letter-spacing: -0.02em;
-    padding-bottom: 0.1em; /* Taşma ihtimaline karşı güvenlik payı */
+    padding-bottom: 0.1em;
+    /* Taşma ihtimaline karşı güvenlik payı */
 }
 
 .text-gradient-gold {
@@ -469,8 +468,10 @@ main {
     background-clip: text;
     color: transparent;
     display: inline-block;
-    padding-bottom: 0.15em; /* Gradyan metnin altının kesilmesini önler */
-    margin-bottom: -0.15em; /* Padding'in düzeni bozmasını engeller */
+    padding-bottom: 0.15em;
+    /* Gradyan metnin altının kesilmesini önler */
+    margin-bottom: -0.15em;
+    /* Padding'in düzeni bozmasını engeller */
 }
 
 .hero-desc.glass-text {

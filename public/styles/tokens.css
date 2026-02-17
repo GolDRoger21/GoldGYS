@@ -7,7 +7,7 @@
   --header-height: 64px;
   --sidebar-width: 260px;
   --sidebar-width-collapsed: 72px;
-  
+
   --radius-sm: 6px;
   --radius-md: 8px;
   --radius-lg: 12px;
@@ -93,16 +93,18 @@
   --bg-dropdown: #1E293B;
   --bg-backdrop: rgba(15, 23, 42, 0.8);
 
-  /* Text */
-  --text-main: #F7E8A9;
-  /* Soft Gold */
-  --text-muted: #D4AF37;
-  /* Muted Gold */
+  /* Text - High Contrast for Readability */
+  --text-main: #F8FAFC;
+  /* Slate 50 - Crisp White */
+  --text-muted: #94A3B8;
+  /* Slate 400 */
   --text-on-gold: #0F172A;
-  /* Dark text on gold bg */
+  /* Dark text on gold */
+
   --text-logo: #F7E8A9;
   --text-light: #F7E8A9;
-  --text-white: #F8FAFC;
+  --text-white: #FFFFFF;
+
   --logo-gold: #F6D78B;
   --logo-khaki: #C26144;
   --logo-highlight: #FBE7B1;
@@ -150,12 +152,12 @@
   --shadow-strong: var(--shadow-lg);
 }
 
-/* --- LIGHT THEME (Readable & Professional) --- */
+/* --- LIGHT THEME (Premium & High Contrast) --- */
 [data-theme="light"] {
-  /* Brand Colors */
-  --color-primary: #D4AF37;
-  --color-primary-hover: #B5952F;
-  --color-primary-dim: #A8853A;
+  /* Brand Colors - Richer Gold */
+  --color-primary: #BF953F;
+  --color-primary-hover: #D4AF37;
+  --color-primary-dim: #856d20;
 
   /* Gold Aliases */
   --gold-primary: var(--color-primary);
@@ -174,40 +176,42 @@
   --color-warning: #d97706;
   --color-info: #0284c7;
 
-  /* Backgrounds */
-  --bg-body: #F1F5F9;
-  /* Light Grayish Blue */
+  /* Backgrounds - Cleaner Off-White */
+  --bg-body: #F8FAFC;
+  /* Slate 50 */
   --bg-header: #FFFFFF;
-  --bg-sidebar: #FFFFFF;
+  --bg-sidebar: #F1F5F9;
   --bg-surface: #FFFFFF;
-  --bg-hover: #F8FAFC;
+  --bg-hover: #F1F5F9;
   --bg-input: #FFFFFF;
   --bg-dropdown: #FFFFFF;
-  --bg-backdrop: rgba(241, 245, 249, 0.8);
+  --bg-backdrop: rgba(241, 245, 249, 0.85);
 
-  /* Text */
-  --text-main: #856d20;
-  /* Deep Gold */
-  --text-muted: #B5952F;
-  /* Muted Gold */
-  --text-on-gold: var(--navy-deep);
-  --text-logo: #856d20;
+  /* Text - Darker for Contrast */
+  --text-main: #0F172A;
+  /* Slate 900 - Dark Navy/Black */
+  --text-muted: #475569;
+  /* Slate 600 */
+  --text-on-gold: #FFFFFF;
+  /* White on Darker Gold */
+
+  --text-logo: #BF953F;
   --text-light: #F8FAFC;
-  /* Keep this light for reverse contrast elements if needed, or check usage */
-  --text-white: #F8FAFC;
+  --text-white: #FFFFFF;
+
   --logo-gold: #C89B28;
   --logo-khaki: #B4573C;
   --logo-highlight: #E8D29A;
 
   /* Borders */
   --border-color: #E2E8F0;
-  --border-subtle: rgba(0, 0, 0, 0.05);
+  --border-subtle: rgba(15, 23, 42, 0.05);
 
-  /* Shadows */
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-  --shadow-gold: 0 4px 12px rgba(181, 149, 47, 0.15);
+  /* Shadows - Softer & Cleaner */
+  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.08);
+  --shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.08);
+  --shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.08);
+  --shadow-gold: 0 4px 12px rgba(191, 149, 63, 0.2);
 
   /* Surface aliases used in admin/profile/ui bundles */
   --bg-main: var(--bg-body);
@@ -219,25 +223,25 @@
   --color-surface: var(--bg-surface);
   --color-layer: var(--color-primary);
   --color-layer-strong: var(--color-primary-dim);
-  --color-layer-soft: rgba(212, 175, 55, 0.14);
+  --color-layer-soft: rgba(191, 149, 63, 0.1);
   --color-text: var(--text-main);
   --color-text-muted: var(--text-muted);
   --color-text-contrast: #fff;
   --color-border: var(--border-color);
-  --color-border-strong: rgba(133, 109, 32, 0.35);
-  --color-overlay: rgba(15, 23, 42, 0.5);
-  --color-neutral-50: #f8fafc;
-  --color-neutral-100: #f1f5f9;
+  --color-border-strong: rgba(191, 149, 63, 0.3);
+  --color-overlay: rgba(15, 23, 42, 0.4);
+  --color-neutral-50: #ffffff;
+  --color-neutral-100: #f8fafc;
 
-  --color-primary-soft: rgba(212, 175, 55, 0.2);
-  --color-danger-soft: rgba(220, 38, 38, 0.12);
-  --color-danger-border: rgba(220, 38, 38, 0.28);
-  --color-success-soft: rgba(5, 150, 105, 0.12);
-  --color-success-border: rgba(5, 150, 105, 0.28);
-  --color-warning-soft: rgba(217, 119, 6, 0.12);
-  --color-warning-border: rgba(217, 119, 6, 0.28);
+  --color-primary-soft: rgba(191, 149, 63, 0.12);
+  --color-danger-soft: rgba(220, 38, 38, 0.1);
+  --color-danger-border: rgba(220, 38, 38, 0.2);
+  --color-success-soft: rgba(5, 150, 105, 0.1);
+  --color-success-border: rgba(5, 150, 105, 0.2);
+  --color-warning-soft: rgba(217, 119, 6, 0.1);
+  --color-warning-border: rgba(217, 119, 6, 0.2);
 
-  --gradient-primary: linear-gradient(135deg, #d4af37 0%, #b5952f 100%);
+  --gradient-primary: linear-gradient(135deg, #BF953F 0%, #D4AF37 100%);
   --shadow-soft: var(--shadow-md);
   --shadow-strong: var(--shadow-lg);
 }
@@ -245,10 +249,11 @@
 /* --- Mobile Specific Overrides --- */
 @media (max-width: 768px) {
   :root {
-      --header-height: 56px;
-      --sidebar-width: 280px; /* Slightly wider for touch targets */
-      --space-lg: 20px;
-      --space-xl: 24px;
-      --space-2xl: 32px;
+    --header-height: 56px;
+    --sidebar-width: 280px;
+    /* Slightly wider for touch targets */
+    --space-lg: 20px;
+    --space-xl: 24px;
+    --space-2xl: 32px;
   }
 }

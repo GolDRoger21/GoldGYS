@@ -21,31 +21,24 @@
 
     <style>
         :root {
-            --legal-bg: #f8fafc;
-            --legal-card-bg: #ffffff;
-            --legal-text: #334155;
-            --legal-heading: #0f172a;
-            --legal-border: #e2e8f0;
+            /* Inherit from global tokens - no overrides needed */
         }
 
-        [data-theme="dark"] {
-            --legal-bg: #0f172a;
-            --legal-card-bg: #1e293b;
-            --legal-text: #cbd5e1;
-            --legal-heading: #f1f5f9;
-            --legal-border: #334155;
-        }
-
+        /* 
+         * Legal Page Specific Overrides
+         * We rely on global variables (--bg-body, --text-main, etc.) from tokens.css 
+         * to ensuring consistency with the site theme.
+         */
         body {
-            background-color: var(--legal-bg);
-            color: var(--legal-text);
-            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            font-family: var(--font-family-sans);
             line-height: 1.7;
         }
 
         .legal-header {
-            background: var(--legal-card-bg);
-            border-bottom: 1px solid var(--legal-border);
+            background: var(--bg-surface);
+            border-bottom: 1px solid var(--border-color);
             padding: 1.5rem 0;
             margin-bottom: 3rem;
             text-align: center;
@@ -54,21 +47,21 @@
         .legal-container {
             max-width: 800px;
             margin: 0 auto;
-            padding: 0 1.5rem 4rem;
+            padding: 4rem 1.5rem;
         }
 
         .legal-card {
-            background: var(--legal-card-bg);
+            background: var(--bg-surface);
             padding: 3rem;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            border: 1px solid var(--legal-border);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border-subtle);
         }
 
         h1 {
-            font-family: 'Playfair Display', serif;
-            color: var(--legal-heading);
-            font-size: 2.25rem;
+            font-family: var(--font-family-serif);
+            color: var(--text-main);
+            font-size: 2.5rem;
             margin-bottom: 2rem;
             text-align: center;
             border-bottom: 2px solid var(--gold-main);
@@ -78,37 +71,22 @@
         }
 
         h2 {
-            color: var(--legal-heading);
+            color: var(--text-main);
             font-size: 1.5rem;
             margin: 2rem 0 1rem;
             font-weight: 700;
         }
 
         h3 {
-            color: var(--legal-heading);
+            color: var(--text-main);
             font-size: 1.125rem;
             margin: 1.5rem 0 0.75rem;
             font-weight: 600;
         }
 
-        p {
-            margin-bottom: 1rem;
-            text-align: justify;
-        }
-
-        ul,
-        ol {
-            margin-bottom: 1rem;
-            padding-left: 1.5rem;
-        }
-
-        li {
-            margin-bottom: 0.5rem;
-        }
-
         strong {
-            color: var(--legal-heading);
-            font-weight: 600;
+            color: var(--text-main);
+            font-weight: 700;
         }
 
         .last-updated {
@@ -150,7 +128,9 @@
 
             <h1>Gizlilik Sözleşmesi</h1>
 
-            <p>Gold GYS olarak kullanıcı gizliliğini ve veri güvenliğini önceliklendiriyoruz. Bu metin, platform kullanımında uygulanan gizlilik ilkelerini özetler. Kişisel verilerin işlenmesine ilişkin detaylar için ayrıca <a href="/pages/legal/aydinlatma-metni.html">Aydınlatma Metni</a>'ni inceleyiniz.</p>
+            <p>Gold GYS olarak kullanıcı gizliliğini ve veri güvenliğini önceliklendiriyoruz. Bu metin, platform
+                kullanımında uygulanan gizlilik ilkelerini özetler. Kişisel verilerin işlenmesine ilişkin detaylar için
+                ayrıca <a href="/pages/legal/aydinlatma-metni.html">Aydınlatma Metni</a>'ni inceleyiniz.</p>
 
             <h2>1. Güvenlik Tedbirleri</h2>
             <ul>
@@ -166,23 +146,31 @@
             </ul>
 
             <h2>3. Çerezler ve Benzeri Teknolojiler</h2>
-            <p>Platformda hizmetin çalışması, güvenlik ve performans ölçümü için zorunlu ve/veya tercih yönetimine tabi çerez teknolojileri kullanılabilir. Zorunlu olmayan çerezler için tercihlerinizi tarayıcı ayarlarınızdan veya varsa çerez panelinden yönetebilirsiniz.</p>
+            <p>Platformda hizmetin çalışması, güvenlik ve performans ölçümü için zorunlu ve/veya tercih yönetimine tabi
+                çerez teknolojileri kullanılabilir. Zorunlu olmayan çerezler için tercihlerinizi tarayıcı ayarlarınızdan
+                veya varsa çerez panelinden yönetebilirsiniz.</p>
 
             <h2>4. Üçüncü Taraf Hizmetler</h2>
-            <p>Barındırma, analiz, e-posta gönderimi gibi süreçlerde üçüncü taraf hizmet sağlayıcılardan destek alınabilir. Bu sağlayıcılar, yalnızca hizmetin ifası için gerekli veriye erişir ve gizlilik yükümlülükleriyle bağlıdır.</p>
+            <p>Barındırma, analiz, e-posta gönderimi gibi süreçlerde üçüncü taraf hizmet sağlayıcılardan destek
+                alınabilir. Bu sağlayıcılar, yalnızca hizmetin ifası için gerekli veriye erişir ve gizlilik
+                yükümlülükleriyle bağlıdır.</p>
 
             <h2>5. Saklama Süresi</h2>
-            <p>Veriler, mevzuatın gerektirdiği veya işleme amacı için gerekli olan süre boyunca saklanır; sonrasında silme, yok etme veya anonimleştirme yöntemleri uygulanır.</p>
+            <p>Veriler, mevzuatın gerektirdiği veya işleme amacı için gerekli olan süre boyunca saklanır; sonrasında
+                silme, yok etme veya anonimleştirme yöntemleri uygulanır.</p>
 
             <h2>6. İhlal Bildirimi</h2>
-            <p>Olası bir kişisel veri güvenliği ihlali tespit edilmesi halinde, ilgili mevzuatın öngördüğü şekilde yetkili mercilere ve gerekli durumlarda ilgili kişilere bildirim yapılır.</p>
+            <p>Olası bir kişisel veri güvenliği ihlali tespit edilmesi halinde, ilgili mevzuatın öngördüğü şekilde
+                yetkili mercilere ve gerekli durumlarda ilgili kişilere bildirim yapılır.</p>
 
             <h2>7. Güncelleme</h2>
-            <p>Bu metin mevzuat ve operasyonel gerekliliklere göre güncellenebilir. Güncel sürüm yayınlandığı tarihten itibaren yürürlüğe girer.</p>
+            <p>Bu metin mevzuat ve operasyonel gerekliliklere göre güncellenebilir. Güncel sürüm yayınlandığı tarihten
+                itibaren yürürlüğe girer.</p>
 
             <h2>8. İletişim</h2>
-            <p>Gizlilikle ilgili talepleriniz için <strong>destek@goldgys.com</strong> adresinden bizimle iletişime geçebilirsiniz.</p>
-        
+            <p>Gizlilikle ilgili talepleriniz için <strong>destek@goldgys.com</strong> adresinden bizimle iletişime
+                geçebilirsiniz.</p>
+
         </div>
     </div>
 

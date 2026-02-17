@@ -21,31 +21,24 @@
 
     <style>
         :root {
-            --legal-bg: #f8fafc;
-            --legal-card-bg: #ffffff;
-            --legal-text: #334155;
-            --legal-heading: #0f172a;
-            --legal-border: #e2e8f0;
+            /* Inherit from global tokens - no overrides needed */
         }
 
-        [data-theme="dark"] {
-            --legal-bg: #0f172a;
-            --legal-card-bg: #1e293b;
-            --legal-text: #cbd5e1;
-            --legal-heading: #f1f5f9;
-            --legal-border: #334155;
-        }
-
+        /* 
+         * Legal Page Specific Overrides
+         * We rely on global variables (--bg-body, --text-main, etc.) from tokens.css 
+         * to ensuring consistency with the site theme.
+         */
         body {
-            background-color: var(--legal-bg);
-            color: var(--legal-text);
-            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            font-family: var(--font-family-sans);
             line-height: 1.7;
         }
 
         .legal-header {
-            background: var(--legal-card-bg);
-            border-bottom: 1px solid var(--legal-border);
+            background: var(--bg-surface);
+            border-bottom: 1px solid var(--border-color);
             padding: 1.5rem 0;
             margin-bottom: 3rem;
             text-align: center;
@@ -54,21 +47,21 @@
         .legal-container {
             max-width: 800px;
             margin: 0 auto;
-            padding: 0 1.5rem 4rem;
+            padding: 4rem 1.5rem;
         }
 
         .legal-card {
-            background: var(--legal-card-bg);
+            background: var(--bg-surface);
             padding: 3rem;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            border: 1px solid var(--legal-border);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border-subtle);
         }
 
         h1 {
-            font-family: 'Playfair Display', serif;
-            color: var(--legal-heading);
-            font-size: 2.25rem;
+            font-family: var(--font-family-serif);
+            color: var(--text-main);
+            font-size: 2.5rem;
             margin-bottom: 2rem;
             text-align: center;
             border-bottom: 2px solid var(--gold-main);
@@ -78,37 +71,22 @@
         }
 
         h2 {
-            color: var(--legal-heading);
+            color: var(--text-main);
             font-size: 1.5rem;
             margin: 2rem 0 1rem;
             font-weight: 700;
         }
 
         h3 {
-            color: var(--legal-heading);
+            color: var(--text-main);
             font-size: 1.125rem;
             margin: 1.5rem 0 0.75rem;
             font-weight: 600;
         }
 
-        p {
-            margin-bottom: 1rem;
-            text-align: justify;
-        }
-
-        ul,
-        ol {
-            margin-bottom: 1rem;
-            padding-left: 1.5rem;
-        }
-
-        li {
-            margin-bottom: 0.5rem;
-        }
-
         strong {
-            color: var(--legal-heading);
-            font-weight: 600;
+            color: var(--text-main);
+            font-weight: 700;
         }
 
         .last-updated {
@@ -150,10 +128,12 @@
 
             <h1>Kullanım Şartları</h1>
 
-            <p>Bu platformu kullanarak aşağıdaki kullanım şartlarını kabul etmiş olursunuz. Şartları kabul etmiyorsanız platformu kullanmamanız gerekir.</p>
+            <p>Bu platformu kullanarak aşağıdaki kullanım şartlarını kabul etmiş olursunuz. Şartları kabul etmiyorsanız
+                platformu kullanmamanız gerekir.</p>
 
             <h2>1. Hizmetin Kapsamı</h2>
-            <p>Gold GYS; deneme sınavları, eğitim içerikleri, performans analizi ve üyelik tabanlı dijital hizmetler sunar. Sunulan hizmetler zaman içinde güncellenebilir, değiştirilebilir veya sonlandırılabilir.</p>
+            <p>Gold GYS; deneme sınavları, eğitim içerikleri, performans analizi ve üyelik tabanlı dijital hizmetler
+                sunar. Sunulan hizmetler zaman içinde güncellenebilir, değiştirilebilir veya sonlandırılabilir.</p>
 
             <h2>2. Kullanıcı Yükümlülükleri</h2>
             <ul>
@@ -163,7 +143,9 @@
             </ul>
 
             <h2>3. Fikri Mülkiyet</h2>
-            <p>Platformdaki tüm içerik, soru setleri, tasarımlar, logolar, yazılım bileşenleri ve markalar ilgili mevzuat kapsamında korunur. Yazılı izin olmaksızın kopyalanamaz, çoğaltılamaz, yayımlanamaz, satılamaz veya ticari amaçla kullanılamaz.</p>
+            <p>Platformdaki tüm içerik, soru setleri, tasarımlar, logolar, yazılım bileşenleri ve markalar ilgili
+                mevzuat kapsamında korunur. Yazılı izin olmaksızın kopyalanamaz, çoğaltılamaz, yayımlanamaz, satılamaz
+                veya ticari amaçla kullanılamaz.</p>
 
             <h2>4. Yasaklı Davranışlar</h2>
             <ul>
@@ -173,17 +155,21 @@
             </ul>
 
             <h2>5. Sorumluluk ve Kesintiler</h2>
-            <p>Platform, teknik bakım, mücbir sebep veya üçüncü taraf kaynaklı sorunlar nedeniyle geçici olarak erişilemeyebilir. Gold GYS, kasıt veya ağır ihmal dışındaki dolaylı zararlardan sorumlu tutulamaz.</p>
+            <p>Platform, teknik bakım, mücbir sebep veya üçüncü taraf kaynaklı sorunlar nedeniyle geçici olarak
+                erişilemeyebilir. Gold GYS, kasıt veya ağır ihmal dışındaki dolaylı zararlardan sorumlu tutulamaz.</p>
 
             <h2>6. Sözleşme Değişiklikleri</h2>
-            <p>Kullanım şartları, mevzuat veya hizmet gerekliliklerine göre güncellenebilir. Güncellenen metnin yayımlanmasıyla birlikte yeni koşullar yürürlüğe girer.</p>
+            <p>Kullanım şartları, mevzuat veya hizmet gerekliliklerine göre güncellenebilir. Güncellenen metnin
+                yayımlanmasıyla birlikte yeni koşullar yürürlüğe girer.</p>
 
             <h2>7. Uygulanacak Hukuk ve Yetki</h2>
-            <p>Bu şartlar Türkiye Cumhuriyeti hukukuna tabidir. Uyuşmazlıklarda tüketici işlemlerine ilişkin emredici hükümler saklı kalmak kaydıyla, yetkili mahkeme ve icra daireleri uygulanır.</p>
+            <p>Bu şartlar Türkiye Cumhuriyeti hukukuna tabidir. Uyuşmazlıklarda tüketici işlemlerine ilişkin emredici
+                hükümler saklı kalmak kaydıyla, yetkili mahkeme ve icra daireleri uygulanır.</p>
 
             <h2>8. İletişim</h2>
-            <p>Kullanım şartları ile ilgili sorularınız için <strong>destek@goldgys.com</strong> adresine yazabilirsiniz.</p>
-        
+            <p>Kullanım şartları ile ilgili sorularınız için <strong>destek@goldgys.com</strong> adresine
+                yazabilirsiniz.</p>
+
         </div>
     </div>
 
