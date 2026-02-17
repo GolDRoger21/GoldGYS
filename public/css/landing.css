@@ -454,12 +454,13 @@ main {
 
 .hero-title {
     font-family: 'Playfair Display', serif;
-    font-size: clamp(3rem, 5vw, 4.5rem);
+    font-size: clamp(2.5rem, 5vw, 4.5rem); /* Mobilde biraz daha küçültüldü */
     font-weight: 800;
-    line-height: 1.1;
+    line-height: 1.25; /* 1.1'den 1.25'e çıkarıldı: Alt kısımların kesilmesini önler */
     color: var(--landing-hero-title);
     margin-bottom: 1.5rem;
     letter-spacing: -0.02em;
+    padding-bottom: 0.1em; /* Taşma ihtimaline karşı güvenlik payı */
 }
 
 .text-gradient-gold {
@@ -468,6 +469,8 @@ main {
     background-clip: text;
     color: transparent;
     display: inline-block;
+    padding-bottom: 0.15em; /* Gradyan metnin altının kesilmesini önler */
+    margin-bottom: -0.15em; /* Padding'in düzeni bozmasını engeller */
 }
 
 .hero-desc.glass-text {
