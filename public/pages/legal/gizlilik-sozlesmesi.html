@@ -6,140 +6,205 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gizlilik Sözleşmesi | GOLD GYS</title>
 
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:wght@700;800&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap"
         rel="stylesheet">
 
-    <link rel="stylesheet" href="/styles/tokens.css">
+    <!-- Styles -->
     <link rel="stylesheet" href="/css/app.css">
     <link rel="stylesheet" href="/css/landing.css">
 
     <style>
+        :root {
+            --legal-bg: #f8fafc;
+            --legal-card-bg: #ffffff;
+            --legal-text: #334155;
+            --legal-heading: #0f172a;
+            --legal-border: #e2e8f0;
+        }
+
+        [data-theme="dark"] {
+            --legal-bg: #0f172a;
+            --legal-card-bg: #1e293b;
+            --legal-text: #cbd5e1;
+            --legal-heading: #f1f5f9;
+            --legal-border: #334155;
+        }
+
         body {
-            background-color: var(--bg-body);
-            color: var(--text-light);
-            font-family: var(--font-family-sans);
-            line-height: 1.6;
+            background-color: var(--legal-bg);
+            color: var(--legal-text);
+            font-family: 'Inter', sans-serif;
+            line-height: 1.7;
         }
 
-        .landing-nav {
-            position: sticky;
-            top: 0;
-            background: rgba(15, 23, 42, 0.95);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .limit-width {
-            max-width: 900px;
-            margin: 4rem auto;
-            padding: 0 1.5rem;
-        }
-
-        .legal-content {
-            background: var(--bg-surface);
-            padding: 2.5rem;
-            border-radius: var(--radius-lg);
-            border: 1px solid var(--border-subtle);
-            box-shadow: var(--shadow-lg);
-        }
-
-        .legal-content h1 {
-            color: var(--color-primary);
-            font-family: var(--font-family-serif);
-            font-size: 2rem;
-            margin-bottom: 1.5rem;
+        .legal-header {
+            background: var(--legal-card-bg);
+            border-bottom: 1px solid var(--legal-border);
+            padding: 1.5rem 0;
+            margin-bottom: 3rem;
             text-align: center;
-            border-bottom: 1px solid var(--border-subtle);
-            padding-bottom: 1rem;
         }
 
-        .legal-content h2 {
-            color: var(--color-primary);
-            font-size: 1.25rem;
-            margin-top: 2rem;
-            margin-bottom: 1rem;
+        .legal-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 1.5rem 4rem;
+        }
+
+        .legal-card {
+            background: var(--legal-card-bg);
+            padding: 3rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            border: 1px solid var(--legal-border);
+        }
+
+        h1 {
+            font-family: 'Playfair Display', serif;
+            color: var(--legal-heading);
+            font-size: 2.25rem;
+            margin-bottom: 2rem;
+            text-align: center;
+            border-bottom: 2px solid var(--gold-main);
+            padding-bottom: 1rem;
+            display: inline-block;
+            width: 100%;
+        }
+
+        h2 {
+            color: var(--legal-heading);
+            font-size: 1.5rem;
+            margin: 2rem 0 1rem;
+            font-weight: 700;
+        }
+
+        h3 {
+            color: var(--legal-heading);
+            font-size: 1.125rem;
+            margin: 1.5rem 0 0.75rem;
             font-weight: 600;
         }
 
-        .legal-content p {
+        p {
             margin-bottom: 1rem;
-            color: var(--text-muted);
+            text-align: justify;
         }
 
-        footer.landing-footer {
-            margin-top: auto;
+        ul,
+        ol {
+            margin-bottom: 1rem;
+            padding-left: 1.5rem;
+        }
+
+        li {
+            margin-bottom: 0.5rem;
+        }
+
+        strong {
+            color: var(--legal-heading);
+            font-weight: 600;
+        }
+
+        .last-updated {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            margin-bottom: 2rem;
+            font-style: italic;
+        }
+
+        @media (max-width: 768px) {
+            .legal-card {
+                padding: 1.5rem;
+            }
+
+            h1 {
+                font-size: 1.75rem;
+            }
         }
     </style>
     <script src="/js/theme-init.js"></script>
 </head>
 
 <body>
-    <div id="legalHeaderPlaceholder"></div>
 
-    <div class="limit-width">
-        <div class="legal-content">
+    <nav class="landing-nav" style="position: sticky; top: 0;">
+        <div class="header-inner">
+            <a href="/" class="brand-logo">GOLD <span>GYS</span></a>
+            <div class="header-actions-group">
+                <a href="/" class="btn btn-sm btn-outline-secondary">Ana Sayfaya Dön</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="legal-container">
+        <div class="last-updated">Son Güncelleme: 17 Şubat 2026</div>
+
+        <div class="legal-card policy-content">
             <h1>Gizlilik Sözleşmesi</h1>
 
-            <h2>GİZLİLİK VE GÜVENLİK POLİTİKASI</h2>
+            <p>Gold GYS ("Platform" veya "Biz") olarak, kullanıcılarımızın ("Kullanıcı" veya "Siz") gizliliğinizi
+                korumayı ve bilgilerinizin güvenliğini sağlamayı en öncelikli ilke olarak benimsiyoruz. İşbu Gizlilik
+                Sözleşmesi; platformumuzu ziyaret ettiğinizde veya hizmetlerimizden faydalandığınızda kişisel
+                bilgilerinizin nasıl toplandığını, kullanıldığını ve korunduğunu açıklamaktadır.</p>
 
-            <p>GOLD GYS (<a href="https://goldgys.web.app/"
-                    style="color:var(--color-primary)">https://goldgys.web.app/</a>) sitesinde verilen tüm servisler ve
-                hizmetler GOLD GYS Platform Yönetimi tarafından işletilir.</p>
+            <h2>1. Bilgi Güvenliği</h2>
+            <p>Platformumuzda toplanan veriler, yetkisiz erişime, kaybolmaya veya değiştirilmeye karşı modern güvenlik
+                teknolojileri ile korunmaktadır. Sunucularımızda güvenlik duvarları (firewall), SSL (Secure Socket
+                Layer) şifreleme sertifikaları ve düzenli güvenlik taramaları kullanılmaktadır. </p>
+            <p>Kullanıcı şifreleri veritabanımızda "hash"lenerek (şifrelenerek) saklanmaktadır; bu sayede yönetici
+                personelimiz dahi şifrenizi açık halde göremez.</p>
 
-            <p>Platformumuz, çeşitli amaçlarla kişisel veriler toplayabilir. Bu verilerin toplanma, işlenme ve korunma
-                süreçleri, yasal düzenlemelere uygun olarak yürütülmektedir.</p>
+            <h2>2. Çerezler (Cookies)</h2>
+            <p>Hizmetlerimizi daha iyi sunabilmek ve kullanıcı deneyimini iyileştirmek amacıyla çerezler kullanmaktayız.
+                Çerezler, tarayıcınız aracılığıyla cihazınıza kaydedilen küçük metin dosyalarıdır.</p>
+            <ul>
+                <li><strong>Zorunlu Çerezler:</strong> Sitenin temel fonksiyonlarının (oturum açma, gezinme) çalışması
+                    için gereklidir.</li>
+                <li><strong>Analiz Çerezleri:</strong> Sitemizi nasıl kullandığınızı analiz ederek (örn. hangi
+                    sayfalarda ne kadar kaldınız) hizmetlerimizi geliştirmemize yardımcı olur.</li>
+                <li><strong>Tercih Çerezleri:</strong> Sizi hatırlar ve tercihlerinize (örn. tema seçimi) uygun bir
+                    deneyim sunar.</li>
+            </ul>
+            <p>Tarayıcı ayarlarınızdan çerezleri dilediğiniz zaman silebilir veya engelleyebilirsiniz; ancak bu durumda
+                sitenin bazı özellikleri (giriş yapma vb.) düzgün çalışmayabilir.</p>
 
-            <p>Üyelik veya diğer iletişim kanalları üzerindeki çeşitli formların doldurulması suretiyle üyelerin
-                kendileriyle ilgili birtakım kişisel bilgiler (Ad, soyad, e-posta vb.) Platformumuz tarafından işin
-                doğası gereği toplanmaktadır.</p>
+            <h2>3. Üçüncü Taraf Bağlantılar</h2>
+            <p>Platformumuz zaman zaman üçüncü taraf web sitelerine bağlantılar içerebilir. Bu sitelerin gizlilik
+                uygulamalarından veya içeriklerinden Gold GYS sorumlu değildir. Bağlantı verilen siteleri kullanmadan
+                önce ilgili sitelerin gizlilik politikalarını incelemenizi öneririz.</p>
 
-            <p>Platformumuz üzerinden gerçekleştirilen işlemlerden elde edilen bilgiler, "Üyelik Sözleşmesi" ile
-                belirlenen amaçlar dışında üçüncü kişilerle paylaşılmayacaktır.</p>
+            <h2>4. Çocukların Gizliliği</h2>
+            <p>Platformumuz, Adalet Bakanlığı Görevde Yükselme Sınavı'na yönelik bir içerik sunduğundan, 18 yaşın
+                altındaki bireylere yönelik değildir. 18 yaşın altındaki bireylerden bilerek kişisel veri toplamayız.
+            </p>
 
-            <p>Sistemle ilgili sorunların tanımlanması ve verilen hizmet ile ilgili çıkabilecek sorunların hızla
-                çözülmesi için, firmamız, kullanıcıların IP adresini kaydedebilir ve bunu kullanabilir.</p>
+            <h2>5. Veri Paylaşımı</h2>
+            <p>Kullanıcı bilgileri, Kullanıcı Sözleşmesi'nde belirtilen durumlar ve yasal zorunluluklar haricinde,
+                kullanıcının açık rızası olmaksızın üçüncü şahıslarla ticari amaçla paylaşılmaz veya satılmaz.</p>
 
-            <h2>VERİ GÜVENLİĞİ</h2>
-            <p>Platformumuz, kullanıcı verilerinin güvenliğini sağlamak için endüstri standardı güvenlik önlemleri
-                almaktadır. Üye bilgileri yetkisiz erişime karşı korunmakta olup, 128 bit SSL şifreleme teknolojileri
-                kullanılmaktadır.</p>
+            <h2>6. Değişiklikler</h2>
+            <p>Gold GYS, işbu Gizlilik Sözleşmesi'ni dilediği zaman güncelleme hakkını saklı tutar. Yapılan
+                değişiklikler bu sayfada yayınlandığı tarihte yürürlüğe girer.</p>
 
-            <h2>ÜÇÜNCÜ TARAF WEB SİTELERİ</h2>
-            <p>Platformumuz, site dâhilinde başka sitelere link verebilir. Bu linkler vasıtasıyla erişilen sitelerin
-                gizlilik uygulamaları ve içeriklerine yönelik herhangi bir sorumluluk taşımamaktayız.</p>
-
-            <h2>İSTİSNAİ HALLER</h2>
-            <p>Yasal zorunluluklar, yetkili adli ve idari makamların talepleri veya kullanıcıların haklarının
-                korunmasının gerekli olduğu durumlarda, kişisel bilgiler Gizlilik Politikası hükümleri dışında üçüncü
-                kişilere açıklanabilir.</p>
-
-            <h2>TARAYICI ÇEREZLERİ</h2>
-            <p>Sitemizi ziyaret eden kullanıcıların site kullanımı hakkındaki bilgileri, teknik bir iletişim dosyası
-                (Çerez-Cookie) kullanarak elde edebiliriz. Çerezler, sitenin kullanımını kolaylaştırmak, kullanıcı
-                deneyimini iyileştirmek ve istatistiksel veriler elde etmek amacıyla kullanılır. Kullanıcılar, tarayıcı
-                ayarlarından çerezleri diledikleri zaman engelleyebilirler.</p>
-
-            <p>Gizlilik politikamız ile ilgili her türlü soru ve önerileriniz için iletişim kanallarımızdan bize
-                ulaşabilirsiniz.</p>
+            <h2>7. İletişim</h2>
+            <p>Gizlilik Sözleşmesi ile ilgili her türlü sorunuz için bizimle <strong>destek@goldgys.com</strong> adresi
+                üzerinden iletişime geçebilirsiniz.</p>
         </div>
     </div>
 
-    
-    <div id="legalFooterPlaceholder"></div>
+    <footer class="landing-footer">
+        <div class="header-inner landing-footer-inner">
+            <div class="landing-footer-bottom copyright-text" style="width: 100%; text-align: center;">
+                &copy; 2026 GOLD GYS. Tüm Hakları Saklıdır.
+            </div>
+        </div>
+    </footer>
 
-
-
-    
-    <script type="module">
-        import { initLegalPageShell } from '../../js/legal-page-shell.js';
-        import { loadLegalContent } from '../../js/legal-loader.js';
-
-        await initLegalPageShell();
-        await loadLegalContent('privacy-policy');
-    </script>
 </body>
 
 </html>
