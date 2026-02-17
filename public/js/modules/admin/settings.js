@@ -1038,7 +1038,7 @@ function setLegalEditorMode(mode) {
     }
 
     if (safeMode === "html" && quillEditor && htmlEditorInput) {
-        htmlEditorInput.value = quillEditor.root.innerHTML || "";
+        htmlEditorInput.value = formatHTML(quillEditor.root.innerHTML || "");
     }
 
     if (quillContainer) {
@@ -1078,7 +1078,7 @@ async function openLegalEditor({ slug, title, sourceUrl }) {
     try {
         const htmlContent = await resolveLegalContent(slug, sourceUrl);
         if (htmlEditorInput) {
-            htmlEditorInput.value = htmlContent;
+            htmlEditorInput.value = formatHTML(htmlContent);
             htmlEditorInput.disabled = false;
         }
 
@@ -1098,6 +1098,29 @@ async function openLegalEditor({ slug, title, sourceUrl }) {
         console.error("Error loading legal content:", error);
         showToast("İçerik yüklenirken hata oluştu.", "error");
     }
+}
+
+function formatHTML(html) {
+    if (!html) return "";
+
+    // Simple HTML formatter
+    let formatted = '';
+    let pad = 0;
+
+    // Remove existing indentation and newlines to start fresh, but preserve meaningful content
+    // This is a basic approach; complex scripts or pre tags might need more care, 
+    // but for legal texts (mostly p, h, ul, li) this works well.
+    const cleanHtml = html.replace(/>\s+</g, '><').trim();
+
+    cleanHtml.split(/>\s*</).forEach(function (node) {
+        if (node.match(/^\/\w/)) pad = -1;
+
+        formatted += new Array(Math.max(0, pad * 4)).join(' ') + '<' + node + '>\r\n';
+
+        pad += (node.match(/^[^/][^<]*[^/]$/) && !node.match(/^(img|br|hr|input|meta|link)/)) ? 1 : 0;
+    });
+
+    return formatted.trim();
 }
 
 async function resolveLegalContent(slug, sourceUrl) {
