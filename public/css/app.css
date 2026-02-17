@@ -70,17 +70,17 @@
     justify-content: space-between;
     align-items: center;
     padding: 0 6%;
-    background: rgba(15, 23, 42, 0.9);
-    /* navy-deep şeffaf */
+    background: var(--nav-glass-bg);
+    /* premium glass nav */
     backdrop-filter: blur(10px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid var(--nav-glass-border);
     transition: all 0.3s ease;
 }
 
 .landing-nav.scrolled {
-    background: rgba(15, 23, 42, 0.98);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-    border-bottom: 1px solid var(--gold-main);
+    background: var(--nav-glass-bg);
+    box-shadow: var(--shadow-md);
+    border-bottom: 1px solid var(--gold-border);
 }
 
 .nav-right {
@@ -126,19 +126,20 @@
 }
 
 .btn-primary {
-    background-color: var(--gold-main);
-    color: var(--navy-deep);
+    background: var(--gradient-primary);
+    color: var(--text-on-gold);
+    box-shadow: var(--shadow-gold);
 }
 
 .btn-primary:hover {
-    background-color: #c5a02e;
+    filter: brightness(1.03);
     transform: translateY(-1px);
 }
 
 .btn-outline {
     background: transparent;
-    border: 1px solid var(--text-muted);
-    color: var(--text-light);
+    border: 1px solid var(--border-color);
+    color: var(--text-main);
 }
 
 .btn-outline:hover {
@@ -171,12 +172,12 @@
         top: 70px;
         right: 0;
         width: 100%;
-        background-color: var(--navy-light);
+        background-color: var(--nav-glass-bg);
         flex-direction: column;
         align-items: center;
         padding: 2rem;
         gap: 1.5rem;
-        border-bottom: 1px solid var(--navy-border);
+        border-bottom: 1px solid var(--nav-glass-border);
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 
         /* Animasyon özellikleri */

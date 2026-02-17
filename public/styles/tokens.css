@@ -14,7 +14,7 @@
   --radius-xl: 18px;
   --radius-full: 9999px;
 
-  /* Fixed Spacing */
+  --space-2xs: 2px;
   --space-xs: 4px;
   --space-sm: 8px;
   --space-md: 16px;
@@ -22,16 +22,12 @@
   --space-xl: 32px;
   --space-2xl: 48px;
 
-  /* Responsive Typography Base */
   --font-size-base: 1rem;
   --font-size-md: 1rem;
   --font-size-sm: 0.875rem;
   --font-size-xs: 0.75rem;
   --font-size-lg: 1.125rem;
   --font-size-xl: 1.25rem;
-
-  /* Additional spacing aliases used by UI components */
-  --space-2xs: 2px;
 
   /* --- Z-Index Layers --- */
   --z-content: 1;
@@ -47,84 +43,74 @@
   --transition-fast: 0.2s ease;
   --transition-medium: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
-  /* Shared semantic aliases for legacy/new component compatibility */
+  --focus-ring: 0 0 0 3px color-mix(in srgb, var(--color-primary) 28%, transparent);
+
   --success: var(--color-success);
   --warning: var(--color-warning);
   --danger: var(--color-danger);
 }
 
-/* --- DARK THEME (Default - Gold GYS Premium) --- */
 :root,
 [data-theme="dark"] {
-  /* Brand Colors */
-  --color-primary: #D4AF37;
-  /* Gold Main */
-  --color-primary-hover: #F3E5AB;
-  /* Gold Light */
+  --color-primary: #d4af37;
+  --color-primary-hover: #f3e5ab;
   --color-primary-dim: #856d20;
-  /* Gold Dark */
 
-  /* Gold Aliases */
   --gold-primary: var(--color-primary);
   --gold-main: var(--color-primary);
-  --gold-light: #F7E8A9;
-  --gold-dark: #A8853A;
+  --gold-light: #f7e8a9;
+  --gold-dark: #a8853a;
 
-  /* Navy Palette */
-  --navy-deep: #0F172A;
-  --navy-light: #1E293B;
+  --navy-deep: #0f172a;
+  --navy-light: #1e293b;
   --navy-border: #334155;
 
-  /* Status Colors */
   --color-danger: #ef4444;
   --color-success: #10b981;
   --color-warning: #f59e0b;
   --color-info: #3b82f6;
 
-  /* Backgrounds */
-  --bg-body: #0F172A;
-  /* Deep Navy */
-  --bg-header: #0F172A;
-  --bg-sidebar: #0B1120;
-  --bg-surface: #1E293B;
-  /* Cards/Panels */
-  --bg-hover: rgba(255, 255, 255, 0.08);
-  --bg-input: #0F172A;
-  --bg-dropdown: #1E293B;
-  --bg-backdrop: rgba(15, 23, 42, 0.8);
+  --bg-body: #080f1f;
+  --bg-header: #0b1428;
+  --bg-sidebar: #070d1a;
+  --bg-surface: #162238;
+  --bg-hover: rgba(148, 163, 184, 0.14);
+  --bg-input: #0f172a;
+  --bg-dropdown: #162238;
+  --bg-backdrop: rgba(8, 15, 31, 0.78);
 
-  /* Text - High Contrast for Readability */
-  --text-main: #F8FAFC;
-  /* Slate 50 - Crisp White */
-  --text-muted: #94A3B8;
-  /* Slate 400 */
-  --text-on-gold: #0F172A;
-  /* Dark text on gold */
+  --bg-body-gradient: radial-gradient(circle at 18% -10%, rgba(212, 175, 55, 0.16), transparent 42%), radial-gradient(circle at 85% 0%, rgba(59, 130, 246, 0.1), transparent 35%), var(--bg-body);
+  --bg-surface-elevated: linear-gradient(170deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.015));
 
-  --text-logo: #F7E8A9;
-  --text-light: #F7E8A9;
-  --text-white: #FFFFFF;
+  --text-main: #f8fbff;
+  --text-muted: #a7b7cf;
+  --text-on-gold: #0f172a;
 
-  --logo-gold: #F6D78B;
-  --logo-khaki: #C26144;
-  --logo-highlight: #FBE7B1;
+  --text-logo: #f7e8a9;
+  --text-light: #f7e8a9;
+  --text-white: #ffffff;
 
-  /* Borders & Radius */
-  --border-color: #334155;
-  --border-subtle: rgba(255, 255, 255, 0.05);
+  --logo-gold: #f6d78b;
+  --logo-khaki: #c26144;
+  --logo-highlight: #fbe7b1;
 
-  /* Shadows */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
-  --shadow-gold: 0 0 15px rgba(212, 175, 55, 0.15);
+  --border-color: #2e3f59;
+  --border-subtle: rgba(173, 193, 225, 0.16);
 
-  /* Surface aliases used in admin/profile/ui bundles */
+  --shadow-sm: 0 4px 14px rgba(1, 5, 15, 0.32);
+  --shadow-md: 0 14px 26px -14px rgba(1, 5, 15, 0.7);
+  --shadow-lg: 0 20px 46px -22px rgba(1, 5, 15, 0.85);
+  --shadow-gold: 0 0 26px rgba(212, 175, 55, 0.22);
+
+  --gold-surface: rgba(212, 175, 55, 0.16);
+  --gold-border: rgba(212, 175, 55, 0.4);
+  --nav-glass-bg: rgba(8, 15, 31, 0.84);
+  --nav-glass-border: rgba(167, 183, 207, 0.2);
+
   --bg-main: var(--bg-body);
   --bg-panel: var(--bg-surface);
   --bg-dark: #020617;
 
-  /* UI library semantic color layer */
   --color-bg: var(--bg-body);
   --color-surface: var(--bg-surface);
   --color-layer: var(--color-primary);
@@ -152,88 +138,81 @@
   --shadow-strong: var(--shadow-lg);
 }
 
-/* --- LIGHT THEME (Premium & High Contrast) --- */
 [data-theme="light"] {
-  /* Brand Colors - Richer Gold */
-  --color-primary: #BF953F;
-  --color-primary-hover: #D4AF37;
-  --color-primary-dim: #856d20;
+  --color-primary: #b8891d;
+  --color-primary-hover: #d3a639;
+  --color-primary-dim: #805c10;
 
-  /* Gold Aliases */
   --gold-primary: var(--color-primary);
   --gold-main: var(--color-primary);
-  --gold-light: #F7E8A9;
-  --gold-dark: #A8853A;
+  --gold-light: #f7e8a9;
+  --gold-dark: #a8853a;
 
-  /* Navy variables in light mode (used for specific accents) */
-  --navy-deep: #0F172A;
-  --navy-light: #1E293B;
+  --navy-deep: #0f172a;
+  --navy-light: #1e293b;
   --navy-border: #334155;
 
-  /* Status Colors */
   --color-danger: #dc2626;
   --color-success: #059669;
   --color-warning: #d97706;
   --color-info: #0284c7;
 
-  /* Backgrounds - Cleaner Off-White */
-  --bg-body: #F8FAFC;
-  /* Slate 50 */
-  --bg-header: #FFFFFF;
-  --bg-sidebar: #F1F5F9;
-  --bg-surface: #FFFFFF;
-  --bg-hover: #F1F5F9;
-  --bg-input: #FFFFFF;
-  --bg-dropdown: #FFFFFF;
-  --bg-backdrop: rgba(241, 245, 249, 0.85);
+  --bg-body: #f2f5fb;
+  --bg-header: #ffffff;
+  --bg-sidebar: #ecf1f8;
+  --bg-surface: #ffffff;
+  --bg-hover: #e8eef7;
+  --bg-input: #ffffff;
+  --bg-dropdown: #ffffff;
+  --bg-backdrop: rgba(11, 20, 36, 0.42);
 
-  /* Text - Darker for Contrast */
-  --text-main: #0F172A;
-  /* Slate 900 - Dark Navy/Black */
-  --text-muted: #475569;
-  /* Slate 600 */
-  --text-on-gold: #FFFFFF;
-  /* White on Darker Gold */
+  --bg-body-gradient: radial-gradient(circle at 12% -12%, rgba(184, 137, 29, 0.13), transparent 36%), radial-gradient(circle at 92% 0%, rgba(59, 130, 246, 0.07), transparent 30%), var(--bg-body);
+  --bg-surface-elevated: linear-gradient(160deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.8));
 
-  --text-logo: #BF953F;
-  --text-light: #F8FAFC;
-  --text-white: #FFFFFF;
+  --text-main: #0b1424;
+  --text-muted: #334155;
+  --text-on-gold: #ffffff;
 
-  --logo-gold: #C89B28;
-  --logo-khaki: #B4573C;
-  --logo-highlight: #E8D29A;
+  --text-logo: #9a7418;
+  --text-light: #f8fafc;
+  --text-white: #ffffff;
 
-  /* Borders */
-  --border-color: #E2E8F0;
-  --border-subtle: rgba(15, 23, 42, 0.05);
+  --logo-gold: #c89b28;
+  --logo-khaki: #b4573c;
+  --logo-highlight: #e8d29a;
 
-  /* Shadows - Softer & Cleaner */
-  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.08);
-  --shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.08);
-  --shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.08);
-  --shadow-gold: 0 4px 12px rgba(191, 149, 63, 0.2);
+  --border-color: #d5deeb;
+  --border-subtle: rgba(11, 20, 36, 0.08);
 
-  /* Surface aliases used in admin/profile/ui bundles */
+  --shadow-sm: 0 4px 14px rgba(11, 20, 36, 0.08);
+  --shadow-md: 0 14px 26px -16px rgba(11, 20, 36, 0.22);
+  --shadow-lg: 0 24px 40px -24px rgba(11, 20, 36, 0.3);
+  --shadow-gold: 0 8px 24px rgba(184, 137, 29, 0.24);
+
+  --gold-surface: rgba(184, 137, 29, 0.12);
+  --gold-border: rgba(184, 137, 29, 0.28);
+  --nav-glass-bg: rgba(255, 255, 255, 0.86);
+  --nav-glass-border: rgba(11, 20, 36, 0.1);
+
   --bg-main: var(--bg-body);
   --bg-panel: var(--bg-surface);
   --bg-dark: #cbd5e1;
 
-  /* UI library semantic color layer */
   --color-bg: var(--bg-body);
   --color-surface: var(--bg-surface);
   --color-layer: var(--color-primary);
-  --color-layer-strong: var(--color-primary-dim);
-  --color-layer-soft: rgba(191, 149, 63, 0.1);
+  --color-layer-strong: #936916;
+  --color-layer-soft: rgba(184, 137, 29, 0.1);
   --color-text: var(--text-main);
   --color-text-muted: var(--text-muted);
   --color-text-contrast: #fff;
   --color-border: var(--border-color);
-  --color-border-strong: rgba(191, 149, 63, 0.3);
-  --color-overlay: rgba(15, 23, 42, 0.4);
+  --color-border-strong: rgba(184, 137, 29, 0.3);
+  --color-overlay: rgba(11, 20, 36, 0.42);
   --color-neutral-50: #ffffff;
   --color-neutral-100: #f8fafc;
 
-  --color-primary-soft: rgba(191, 149, 63, 0.12);
+  --color-primary-soft: rgba(184, 137, 29, 0.12);
   --color-danger-soft: rgba(220, 38, 38, 0.1);
   --color-danger-border: rgba(220, 38, 38, 0.2);
   --color-success-soft: rgba(5, 150, 105, 0.1);
@@ -241,17 +220,15 @@
   --color-warning-soft: rgba(217, 119, 6, 0.1);
   --color-warning-border: rgba(217, 119, 6, 0.2);
 
-  --gradient-primary: linear-gradient(135deg, #BF953F 0%, #D4AF37 100%);
+  --gradient-primary: linear-gradient(135deg, #b8891d 0%, #d3a639 100%);
   --shadow-soft: var(--shadow-md);
   --shadow-strong: var(--shadow-lg);
 }
 
-/* --- Mobile Specific Overrides --- */
 @media (max-width: 768px) {
   :root {
     --header-height: 56px;
     --sidebar-width: 280px;
-    /* Slightly wider for touch targets */
     --space-lg: 20px;
     --space-xl: 24px;
     --space-2xl: 32px;
