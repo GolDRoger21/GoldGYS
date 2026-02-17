@@ -98,6 +98,12 @@ function bindTabSwitching() {
         button.addEventListener("click", () => {
             const tabKey = button.dataset.settingsTab;
 
+            // Close legal editor if open when switching tabs
+            const legalModal = document.getElementById("legalEditorModal");
+            if (legalModal && !legalModal.classList.contains("settings-hidden")) {
+                closeLegalModal(legalModal);
+            }
+
             tabButtons.forEach((btn) => {
                 btn.classList.remove("btn-primary", "is-active");
                 btn.classList.add("btn-outline-secondary");
