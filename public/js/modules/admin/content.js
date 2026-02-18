@@ -258,65 +258,10 @@ function renderContentInterface() {
 
     container.innerHTML = `
         <style>
-            .glass-toolbar {
-                background: rgba(255, 255, 255, 0.95);
-                backdrop-filter: blur(10px);
-                border: 1px solid rgba(212, 175, 55, 0.2);
-                border-radius: 12px;
-                padding: 12px;
-                box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-                margin-bottom: 20px;
-                transition: all 0.3s ease;
-            }
-            .dark-mode .glass-toolbar {
-                background: rgba(15, 23, 42, 0.85);
-                border-color: rgba(212, 175, 55, 0.15);
-            }
-            .filter-row {
-                display: flex;
-                gap: 10px;
-                align-items: center;
-                flex-wrap: wrap;
-            }
-            .filter-input-group {
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                background: rgba(0,0,0,0.03);
-                padding: 4px 10px;
-                border-radius: 8px;
-                border: 1px solid rgba(0,0,0,0.05);
-            }
-            .dark-mode .filter-input-group {
-                background: rgba(255,255,255,0.05);
-                border-color: rgba(255,255,255,0.05);
-            }
-            .filter-input-group input, .filter-input-group select {
-                border: none;
-                background: transparent;
-                outline: none;
-                font-size: 0.9rem;
-                color: var(--text-main);
-                padding: 4px;
-            }
-            .advanced-filters {
-                display: none;
-                margin-top: 12px;
-                padding-top: 12px;
-                border-top: 1px solid rgba(0,0,0,0.05);
-                animation: slideDown 0.2s ease-out;
-            }
-            .dark-mode .advanced-filters {
-                border-top-color: rgba(255,255,255,0.1);
-            }
-            @keyframes slideDown {
-                from { opacity: 0; transform: translateY(-5px); }
-                to { opacity: 1; transform: translateY(0); }
-            }
             .compact-btn {
-                padding: 6px 12px;
-                font-size: 0.85rem;
-                border-radius: 8px;
+                padding: 0.5rem 0.9rem;
+                font-size: 0.9rem;
+                border-radius: 10px;
                 display: inline-flex;
                 align-items: center;
                 gap: 6px;
@@ -324,6 +269,113 @@ function renderContentInterface() {
             }
             .compact-btn:hover {
                 transform: translateY(-1px);
+            }
+            .question-filter-card {
+                border-radius: 16px;
+                border: 1px solid var(--border-color);
+                background: var(--bg-surface-elevated);
+            }
+            [data-theme="dark"] .question-filter-card,
+            .dark-mode .question-filter-card {
+                border-color: var(--border-color);
+                background: var(--bg-surface-elevated);
+            }
+            .question-filter-head {
+                padding: 1rem 1.1rem;
+                border-bottom: 1px solid var(--border-color);
+            }
+            [data-theme="dark"] .question-filter-head,
+            .dark-mode .question-filter-head {
+                border-bottom-color: var(--border-color);
+            }
+            .question-filter-actions {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 0.5rem;
+            }
+            .question-filter-actions .btn {
+                white-space: nowrap;
+            }
+            .filter-module {
+                border-radius: 14px;
+                border: 1px solid var(--border-color);
+                background: var(--bg-surface);
+                padding: 0.95rem;
+                height: 100%;
+                box-shadow: none;
+            }
+            [data-theme="dark"] .filter-module,
+            .dark-mode .filter-module {
+                border-color: var(--border-color);
+                background: var(--bg-surface);
+                box-shadow: none;
+            }
+            .filter-module-title {
+                font-size: 0.74rem;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 0.08em;
+                margin-bottom: 0.7rem;
+                color: var(--heading-color);
+            }
+            .question-filter-card h5,
+            .question-filter-card .form-label {
+                color: var(--text-main);
+            }
+            .question-filter-card .text-muted {
+                color: var(--text-muted) !important;
+            }
+            .question-filter-card .form-label {
+                font-size: 0.72rem;
+                font-weight: 700;
+                letter-spacing: 0.02em;
+                margin-bottom: 0.3rem;
+            }
+            .question-filter-card .form-control,
+            .question-filter-card .form-select {
+                min-height: 42px;
+                border-radius: 10px;
+            }
+            .pagination-panel {
+                border: 1px solid var(--border-color);
+                border-radius: 12px;
+                padding: 0.6rem 0.85rem;
+                background: var(--bg-surface);
+            }
+            [data-theme="dark"] .pagination-panel,
+            .dark-mode .pagination-panel {
+                border-color: var(--border-color);
+                background: var(--bg-surface);
+            }
+            @media (max-width: 991.98px) {
+                .question-filter-head {
+                    flex-direction: column;
+                    align-items: stretch !important;
+                }
+                .question-filter-actions {
+                    width: 100%;
+                }
+            }
+            @media (max-width: 767.98px) {
+                .section-header {
+                    flex-direction: column;
+                    align-items: stretch !important;
+                    gap: 0.75rem;
+                }
+                .section-header > div:last-child {
+                    display: grid !important;
+                    grid-template-columns: 1fr 1fr;
+                }
+                .question-filter-actions {
+                    grid-template-columns: 1fr;
+                }
+                .question-filter-card .p-3 {
+                    padding: 0.95rem !important;
+                }
+                .pagination-panel {
+                    flex-direction: column;
+                    align-items: flex-start !important;
+                }
             }
         </style>
 
@@ -338,12 +390,11 @@ function renderContentInterface() {
         </div>
 
         <div class="card mb-4 border-0 shadow-sm question-filter-card">
-            <div class="p-3 border-bottom d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <div class="question-filter-head d-flex flex-wrap justify-content-between align-items-center gap-2">
                 <div>
                     <h5 class="mb-1">Filtreler</h5>
-                    <p class="text-muted small mb-0">Filtreler modüler alanlara ayrıldı. Tüm alanlar sabit görünür, açılır panel yok.</p>
                 </div>
-                <div class="d-flex flex-wrap gap-2 justify-content-end">
+                <div class="question-filter-actions">
                     <button id="btnFilter" class="btn btn-secondary">Ara / Filtrele</button>
                     <button id="btnResetFilters" class="btn btn-outline-secondary">Temizle</button>
                     <button id="btnExportJson" class="btn btn-outline-success">JSON İndir</button>
@@ -354,11 +405,8 @@ function renderContentInterface() {
             <div class="p-3">
                 <div class="row g-3">
                     <div class="col-12">
-                        <div class="border rounded-3 p-3 bg-white">
-                            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
-                                <div class="small fw-bold text-uppercase text-primary">Temel Filtreler</div>
-                                <span class="badge bg-light text-dark border">Hızlı kullanım</span>
-                            </div>
+                        <div class="filter-module">
+                            <div class="filter-module-title">Temel Filtreler</div>
                             <div class="row g-2 align-items-end">
                                 <div class="col-xxl-5 col-xl-4 col-lg-6">
                                     <label class="form-label small fw-bold text-muted">GENEL ARAMA</label>
@@ -392,8 +440,8 @@ function renderContentInterface() {
                     </div>
 
                     <div class="col-xl-6">
-                        <div class="border rounded-3 p-3 bg-white h-100">
-                            <div class="small fw-bold text-uppercase text-primary mb-2">İçerik ve Sıralama</div>
+                        <div class="filter-module">
+                            <div class="filter-module-title">İçerik ve Sıralama</div>
                             <div class="row g-2 align-items-end">
                                 <div class="col-md-4">
                                     <label class="form-label small fw-bold text-muted">ZORLUK</label>
@@ -422,8 +470,8 @@ function renderContentInterface() {
                     </div>
 
                     <div class="col-xl-6">
-                        <div class="border rounded-3 p-3 bg-white h-100">
-                            <div class="small fw-bold text-uppercase text-primary mb-2">Mevzuat ve Mükerrer</div>
+                        <div class="filter-module">
+                            <div class="filter-module-title">Mevzuat ve Mükerrer</div>
                             <div class="row g-2 align-items-end">
                                 <div class="col-md-4">
                                     <label class="form-label small fw-bold text-muted">MEVZUAT DURUMU</label>
@@ -452,7 +500,6 @@ function renderContentInterface() {
                                     </select>
                                 </div>
                             </div>
-                            <div class="text-muted small mt-2 question-filter-hint">Mevzuat değişikliğinde ilgili kanun/maddeyi filtreleyip topluca işlem yapabilirsiniz.</div>
                         </div>
                     </div>
                 </div>
@@ -491,20 +538,11 @@ function renderContentInterface() {
                 </table>
             </div>
         </div>
-        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-3" id="questionPaginationContainer">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-3 pagination-panel" id="questionPaginationContainer">
             <div class="small text-muted" id="questionPaginationInfo">Toplam 0 soru</div>
             <div class="d-flex align-items-center gap-2">
                 <button class="btn btn-sm btn-outline-secondary" id="questionPrevPage">← Önceki</button>
                 <span class="small" id="questionPageIndicator">Sayfa 1 / 1</span>
-                <button class="btn btn-sm btn-outline-secondary" id="questionNextPage">Sonraki →</button>
-            </div>
-        </div>
-        
-        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-3 px-2" id="questionPaginationContainer">
-            <div class="small text-muted" id="questionPaginationInfo">Toplam 0 soru</div>
-            <div class="d-flex align-items-center gap-2">
-                <button class="btn btn-sm btn-outline-secondary" id="questionPrevPage">← Önceki</button>
-                <span class="small fw-bold" id="questionPageIndicator">1 / 1</span>
                 <button class="btn btn-sm btn-outline-secondary" id="questionNextPage">Sonraki →</button>
             </div>
         </div>
