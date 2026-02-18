@@ -1781,6 +1781,17 @@ tr.highlight {
 }
 
 
+.topic-title-child {
+    padding-left: 14px;
+}
+
+.topic-branch {
+    display: inline-block;
+    min-width: 12px;
+    font-weight: 500;
+}
+
+
 
 
 /* ==========================================================================

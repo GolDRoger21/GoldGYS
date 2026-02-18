@@ -253,7 +253,8 @@ function renderTopicsTable() {
         <tr class="topic-row topic-row-parent">
             <td>${displayOrder}</td>
             <td>
-                <div class="topic-title">
+                <div class="topic-title ${depth ? 'topic-title-child' : ''}">
+                    ${depth ? "<span class=\"topic-branch\" aria-hidden=\"true\">↳</span>" : ""}
                     <strong>${topic.title}</strong>
                 </div>
             </td>
