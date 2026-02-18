@@ -40,28 +40,37 @@
     transform: translateY(-1px);
 }
 
+/* --- PREMIUM UI UTILITIES --- */
+
 .glass-panel {
     position: relative;
     background: var(--glass-surface);
-    border: 1px solid transparent;
     border-radius: var(--radius-lg);
     box-shadow: var(--glass-shadow);
     backdrop-filter: var(--glass-backdrop-filter);
     -webkit-backdrop-filter: var(--glass-backdrop-filter);
+    border: 1px solid transparent;
+    /* Required for border-mask trick */
     overflow: hidden;
-    isolation: isolate;
+    transition: transform var(--transition-medium), box-shadow var(--transition-medium);
 }
 
+/* Premium Gradient Border Implementation */
 .glass-panel::before {
     content: "";
     position: absolute;
     inset: 0;
     border-radius: inherit;
     padding: 1px;
+    /* Border width */
     background: var(--glass-border-gradient);
-    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask:
+        linear-gradient(#fff 0 0) content-box,
+        linear-gradient(#fff 0 0);
     -webkit-mask-composite: xor;
-    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    mask:
+        linear-gradient(#fff 0 0) content-box,
+        linear-gradient(#fff 0 0);
     mask-composite: exclude;
     pointer-events: none;
 }
@@ -71,19 +80,20 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 0.45rem;
-    padding: 0.65rem 1.15rem;
-    border: 1px solid transparent;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
     border-radius: var(--radius-md);
     background: var(--glass-surface-strong);
     color: var(--text-main);
+    box-shadow: var(--shadow-sm);
     backdrop-filter: var(--glass-backdrop-filter);
     -webkit-backdrop-filter: var(--glass-backdrop-filter);
-    box-shadow: var(--shadow-sm);
-    text-decoration: none;
+    border: 1px solid transparent;
     font-weight: 600;
+    text-decoration: none;
     cursor: pointer;
-    transition: transform var(--transition-fast), box-shadow var(--transition-fast), color var(--transition-fast);
+    transition: all var(--transition-medium);
+    overflow: hidden;
 }
 
 .glass-button::before {
@@ -93,22 +103,26 @@
     border-radius: inherit;
     padding: 1px;
     background: var(--glass-border-gradient);
-    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask:
+        linear-gradient(#fff 0 0) content-box,
+        linear-gradient(#fff 0 0);
     -webkit-mask-composite: xor;
-    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    mask:
+        linear-gradient(#fff 0 0) content-box,
+        linear-gradient(#fff 0 0);
     mask-composite: exclude;
     pointer-events: none;
 }
 
 .glass-button:hover {
-    transform: translateY(-1px);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md), 0 0 15px rgba(212, 175, 55, 0.2);
+    /* Gold glow */
     color: var(--color-primary-hover);
-    box-shadow: var(--shadow-md);
 }
 
-.glass-button:focus-visible {
-    outline: none;
-    box-shadow: var(--focus-ring), var(--shadow-md);
+.glass-button:active {
+    transform: translateY(0);
 }
 
 .text-gradient-gold {
@@ -117,6 +131,8 @@
     background-clip: text;
     color: transparent;
     -webkit-text-fill-color: transparent;
+    /* Optional: Improves rendering on some browsers */
+    display: inline-block;
 }
 
 /* --- BİLDİRİM TOASTLARI (Moved to layout.css) --- */

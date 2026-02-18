@@ -4,23 +4,23 @@
   --font-family-serif: "Playfair Display", Georgia, serif;
 
   /* --- Spacing & Layout --- */
-  --header-height: 64px;
-  --sidebar-width: 260px;
-  --sidebar-width-collapsed: 72px;
+  --header-height: 70px; /* Slightly taller for premium feel */
+  --sidebar-width: 280px; /* Generous whitespace */
+  --sidebar-width-collapsed: 80px;
 
-  --radius-sm: 6px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
-  --radius-xl: 18px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --radius-xl: 32px;
   --radius-full: 9999px;
 
-  --space-2xs: 2px;
-  --space-xs: 4px;
-  --space-sm: 8px;
-  --space-md: 16px;
-  --space-lg: 24px;
-  --space-xl: 32px;
-  --space-2xl: 48px;
+  --space-2xs: 4px;
+  --space-xs: 8px;
+  --space-sm: 12px;
+  --space-md: 20px;
+  --space-lg: 32px;
+  --space-xl: 48px;
+  --space-2xl: 64px;
 
   --font-size-base: 1rem;
   --font-size-md: 1rem;
@@ -28,6 +28,8 @@
   --font-size-xs: 0.75rem;
   --font-size-lg: 1.125rem;
   --font-size-xl: 1.25rem;
+  --font-size-2xl: 1.5rem;
+  --font-size-3xl: 2rem;
 
   /* --- Z-Index Layers --- */
   --z-content: 1;
@@ -41,219 +43,118 @@
 
   /* --- Transitions --- */
   --transition-fast: 0.2s ease;
-  --transition-medium: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-medium: 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); /* Smoother, more premium */
+  --transition-slow: 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
 
-  --focus-ring: 0 0 0 3px color-mix(in srgb, var(--color-primary) 28%, transparent);
-
-  --success: var(--color-success);
-  --warning: var(--color-warning);
-  --danger: var(--color-danger);
+  --focus-ring: 0 0 0 3px rgba(184, 158, 95, 0.3);
 
   /* --- Theme: Royal Porcelain (Light / Default) --- */
-  --color-primary: #b89e5f;
-  --color-primary-hover: #ccb57b;
-  --color-primary-dim: #8d743a;
+  /* "Lüks Kağıt" hissi veren çok açık krem/kırık beyaz */
+  --bg-body: #FAF9F6;
+  --bg-main: #FAF9F6;
 
-  --gold-primary: #b89e5f;
-  --gold-main: #b89e5f;
-  --gold-light: #f4e4bc;
-  --gold-dark: #8f7640;
+  /* Typography */
+  --text-main: #2C2C2C; /* Koyu, nötr gri */
+  --text-muted: #6B6B6B;
+  --text-on-gold: #FAF9F6;
+  --heading-color: #6D5632; /* Derin Bronz/Kahve */
+  --heading-text-shadow: 0 1px 2px rgba(184, 158, 95, 0.15); /* Hafif metalik his */
+  --text-gradient-gold: linear-gradient(135deg, #8D6F3D 0%, #B89E5F 50%, #6D5632 100%);
 
-  --navy-deep: #403522;
-  --navy-light: #6d5632;
-  --navy-border: #c7b084;
+  /* Primary Colors - Gold/Bronze */
+  --color-primary: #B89E5F; /* Antik Bronz */
+  --color-primary-hover: #CCB57B;
+  --color-primary-dim: #8D743A;
 
-  --color-danger: #b94b45;
-  --color-success: #2f7a55;
-  --color-warning: #b3812f;
-  --color-info: #4c6e91;
+  /* Glass / Surfaces */
+  --glass-surface: rgba(255, 255, 255, 0.7); /* Beyazın %70 opak hali */
+  --glass-surface-strong: rgba(255, 255, 255, 0.85);
+  --glass-border: rgba(184, 158, 95, 0.2); /* Antik Bronz %20 opak */
+  --glass-border-gradient: linear-gradient(to bottom, rgba(184, 158, 95, 0.3), rgba(184, 158, 95, 0.05));
+  --glass-shadow: 0 8px 32px rgba(184, 158, 95, 0.1); /* Hafif altın/kahve tonlu gölge */
+  --glass-backdrop-filter: blur(12px);
 
-  --bg-body: #faf9f6;
-  --bg-header: rgba(255, 255, 255, 0.76);
-  --bg-sidebar: rgba(255, 255, 255, 0.8);
-  --bg-surface: rgba(255, 255, 255, 0.7);
-  --bg-hover: rgba(184, 158, 95, 0.1);
-  --bg-input: rgba(255, 255, 255, 0.82);
-  --bg-dropdown: rgba(255, 255, 255, 0.88);
-  --bg-backdrop: rgba(68, 54, 33, 0.28);
-
-  --bg-body-gradient:
-    radial-gradient(circle at 12% -14%, rgba(212, 175, 55, 0.2), transparent 45%),
-    radial-gradient(circle at 90% 2%, rgba(184, 158, 95, 0.14), transparent 42%),
-    var(--bg-body);
-  --bg-surface-elevated: linear-gradient(160deg, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.65));
-
-  --text-main: #2c2c2c;
-  --text-muted: #5e5a52;
-  --text-on-gold: #1f1a12;
-  --heading-color: #6d5632;
-  --heading-text-shadow: 0 1px 2px rgba(184, 158, 95, 0.22);
-  --text-gradient-gold: linear-gradient(135deg, #8d6f3d 0%, #6d5632 100%);
-
-  --text-logo: #7a6036;
-  --text-light: #f7f2e8;
-  --text-white: #ffffff;
-
-  --logo-gold: #b89e5f;
-  --logo-khaki: #9c6f45;
-  --logo-highlight: #ddc792;
-
+  /* Borders & Shadows */
   --border-color: rgba(184, 158, 95, 0.2);
-  --border-subtle: rgba(184, 158, 95, 0.14);
-  --glass-border-gradient: linear-gradient(to bottom, rgba(184, 158, 95, 0.2), rgba(184, 158, 95, 0.08));
+  --shadow-sm: 0 4px 12px rgba(184, 158, 95, 0.08);
+  --shadow-md: 0 12px 24px rgba(184, 158, 95, 0.12);
+  --shadow-lg: 0 24px 48px rgba(184, 158, 95, 0.15);
 
-  --shadow-sm: 0 4px 14px rgba(184, 158, 95, 0.08);
-  --shadow-md: 0 10px 28px rgba(184, 158, 95, 0.12);
-  --shadow-lg: 0 18px 44px rgba(184, 158, 95, 0.14);
-  --shadow-gold: 0 8px 32px rgba(184, 158, 95, 0.1);
+  /* Semantic Colors */
+  --color-success: #2F7A55;
+  --color-warning: #B3812F;
+  --color-danger: #B94B45;
+  --color-info: #4C6E91;
 
-  --gold-surface: rgba(184, 158, 95, 0.14);
-  --gold-border: rgba(184, 158, 95, 0.3);
-  --nav-glass-bg: rgba(255, 255, 255, 0.7);
-  --nav-glass-border: rgba(184, 158, 95, 0.2);
+  /* Additional Backgrounds */
+  --bg-sidebar: rgba(255, 255, 255, 0.75);
+  --bg-header: rgba(255, 255, 255, 0.8);
+  --bg-input: rgba(255, 255, 255, 0.6);
+  --bg-hover: rgba(184, 158, 95, 0.08);
 
-  --glass-surface: rgba(255, 255, 255, 0.7);
-  --glass-surface-strong: rgba(255, 255, 255, 0.82);
-  --glass-backdrop-filter: blur(12px) saturate(135%);
-  --glass-shadow: 0 8px 32px rgba(184, 158, 95, 0.1);
-
-  --bg-main: var(--bg-body);
-  --bg-panel: var(--bg-surface);
-  --bg-dark: #d9d0bf;
-
-  --color-bg: var(--bg-body);
-  --color-surface: var(--bg-surface);
-  --color-layer: var(--color-primary);
-  --color-layer-strong: #8f7640;
-  --color-layer-soft: rgba(184, 158, 95, 0.14);
-  --color-text: var(--text-main);
-  --color-text-muted: var(--text-muted);
-  --color-text-contrast: var(--text-on-gold);
-  --color-border: var(--border-color);
-  --color-border-strong: rgba(184, 158, 95, 0.34);
-  --color-overlay: rgba(74, 60, 38, 0.26);
-  --color-neutral-50: rgba(255, 255, 255, 0.92);
-  --color-neutral-100: rgba(255, 255, 255, 0.74);
-
-  --color-primary-soft: rgba(184, 158, 95, 0.14);
-  --color-danger-soft: rgba(185, 75, 69, 0.12);
-  --color-danger-border: rgba(185, 75, 69, 0.25);
-  --color-success-soft: rgba(47, 122, 85, 0.12);
-  --color-success-border: rgba(47, 122, 85, 0.24);
-  --color-warning-soft: rgba(179, 129, 47, 0.12);
-  --color-warning-border: rgba(179, 129, 47, 0.24);
-
-  --gradient-primary: linear-gradient(135deg, #d8bf84 0%, #b89e5f 100%);
-  --shadow-soft: var(--shadow-md);
-  --shadow-strong: var(--shadow-lg);
+  /* Gradients */
+  --bg-body-gradient: radial-gradient(circle at 15% 0%, rgba(184, 158, 95, 0.1), transparent 40%),
+                      radial-gradient(circle at 85% 10%, rgba(184, 158, 95, 0.08), transparent 40%),
+                      var(--bg-body);
 }
 
 [data-theme="dark"] {
   /* --- Theme: Midnight Gold --- */
-  --color-primary: #d4af37;
-  --color-primary-hover: #f4e4bc;
-  --color-primary-dim: #977a24;
+  /* Derin, mat, hafif maviye çalan antrasit. Simsiyah DEĞİL. */
+  --bg-body: #0B0D12;
+  --bg-main: #0B0D12;
 
-  --gold-primary: #d4af37;
-  --gold-main: #d4af37;
-  --gold-light: #f4e4bc;
-  --gold-dark: #a88428;
+  /* Typography */
+  --text-main: #E0E0E0; /* Gümüş Gri */
+  --text-muted: #A0A0A0;
+  --text-on-gold: #0B0D12;
+  --heading-color: #F4E4BC; /* Champagne Gold */
+  --heading-text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+  --text-gradient-gold: linear-gradient(135deg, #F4E4BC 0%, #D4AF37 50%, #B08A24 100%); /* Champagne to Metallic */
 
-  --navy-deep: #0b0d12;
-  --navy-light: #141923;
-  --navy-border: #2d3442;
+  /* Primary Colors - Gold */
+  --color-primary: #D4AF37; /* Metallic Gold */
+  --color-primary-hover: #F4E4BC;
+  --color-primary-dim: #977A24;
 
-  --color-danger: #e06666;
-  --color-success: #48b18b;
-  --color-warning: #d6a149;
-  --color-info: #6a93d4;
+  /* Glass / Surfaces */
+  --glass-surface: rgba(10, 10, 10, 0.60); /* Siyahın %60 opak hali */
+  --glass-surface-strong: rgba(15, 17, 22, 0.75);
+  --glass-border: rgba(212, 175, 55, 0.3); /* Metallic Gold %30 */
+  --glass-border-gradient: linear-gradient(to bottom, rgba(212, 175, 55, 0.3), rgba(212, 175, 55, 0.05)); /* Yukarıdan aşağı kaybolan */
+  --glass-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+  --glass-backdrop-filter: blur(16px) saturate(180%); /* Arkadaki renkleri canlandıran bulanıklık */
 
-  --bg-body: #0b0d12;
-  --bg-header: rgba(10, 10, 10, 0.72);
-  --bg-sidebar: rgba(10, 10, 10, 0.76);
-  --bg-surface: rgba(10, 10, 10, 0.6);
-  --bg-hover: rgba(212, 175, 55, 0.14);
-  --bg-input: rgba(16, 16, 18, 0.72);
-  --bg-dropdown: rgba(12, 12, 15, 0.82);
-  --bg-backdrop: rgba(4, 5, 8, 0.74);
+  /* Borders & Shadows */
+  --border-color: rgba(212, 175, 55, 0.15);
+  --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 12px 32px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 24px 64px rgba(0, 0, 0, 0.7);
 
-  --bg-body-gradient:
-    radial-gradient(circle at 14% -18%, rgba(212, 175, 55, 0.16), transparent 46%),
-    radial-gradient(circle at 88% 0%, rgba(80, 106, 147, 0.14), transparent 40%),
-    var(--bg-body);
-  --bg-surface-elevated: linear-gradient(165deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.02));
+  /* Semantic Colors (Slightly desaturated/brightened for dark mode) */
+  --color-success: #48B18B;
+  --color-warning: #D6A149;
+  --color-danger: #E06666;
+  --color-info: #6A93D4;
 
-  --text-main: #e0e0e0;
-  --text-muted: #b5b8c1;
-  --text-on-gold: #181308;
-  --heading-color: #f4e4bc;
-  --heading-text-shadow: 0 1px 2px rgba(11, 13, 18, 0.45);
-  --text-gradient-gold: linear-gradient(120deg, #f4e4bc 0%, #d4af37 55%, #b08a24 100%);
+  /* Additional Backgrounds */
+  --bg-sidebar: rgba(11, 13, 18, 0.7);
+  --bg-header: rgba(11, 13, 18, 0.75);
+  --bg-input: rgba(20, 22, 28, 0.6);
+  --bg-hover: rgba(212, 175, 55, 0.12);
 
-  --text-logo: #f4e4bc;
-  --text-light: #f4e4bc;
-  --text-white: #ffffff;
-
-  --logo-gold: #d4af37;
-  --logo-khaki: #be8d44;
-  --logo-highlight: #f7e8c5;
-
-  --border-color: rgba(212, 175, 55, 0.16);
-  --border-subtle: rgba(212, 175, 55, 0.1);
-  --glass-border-gradient: linear-gradient(to bottom, rgba(212, 175, 55, 0.3), rgba(212, 175, 55, 0.05));
-
-  --shadow-sm: 0 6px 18px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 16px 30px rgba(0, 0, 0, 0.44);
-  --shadow-lg: 0 26px 54px rgba(0, 0, 0, 0.52);
-  --shadow-gold: 0 0 28px rgba(212, 175, 55, 0.24);
-
-  --gold-surface: rgba(212, 175, 55, 0.16);
-  --gold-border: rgba(212, 175, 55, 0.42);
-  --nav-glass-bg: rgba(10, 10, 10, 0.66);
-  --nav-glass-border: rgba(212, 175, 55, 0.24);
-
-  --glass-surface: rgba(10, 10, 10, 0.6);
-  --glass-surface-strong: rgba(12, 12, 13, 0.78);
-  --glass-backdrop-filter: blur(16px) saturate(180%);
-  --glass-shadow: 0 20px 48px rgba(0, 0, 0, 0.5);
-
-  --bg-main: var(--bg-body);
-  --bg-panel: var(--bg-surface);
-  --bg-dark: #07080b;
-
-  --color-bg: var(--bg-body);
-  --color-surface: var(--bg-surface);
-  --color-layer: var(--color-primary);
-  --color-layer-strong: #f4e4bc;
-  --color-layer-soft: rgba(212, 175, 55, 0.2);
-  --color-text: var(--text-main);
-  --color-text-muted: var(--text-muted);
-  --color-text-contrast: var(--text-on-gold);
-  --color-border: var(--border-color);
-  --color-border-strong: rgba(212, 175, 55, 0.34);
-  --color-overlay: rgba(3, 4, 7, 0.74);
-  --color-neutral-50: rgba(15, 16, 20, 0.84);
-  --color-neutral-100: rgba(20, 21, 26, 0.92);
-
-  --color-primary-soft: rgba(212, 175, 55, 0.2);
-  --color-danger-soft: rgba(224, 102, 102, 0.18);
-  --color-danger-border: rgba(224, 102, 102, 0.34);
-  --color-success-soft: rgba(72, 177, 139, 0.18);
-  --color-success-border: rgba(72, 177, 139, 0.34);
-  --color-warning-soft: rgba(214, 161, 73, 0.18);
-  --color-warning-border: rgba(214, 161, 73, 0.34);
-
-  --gradient-primary: linear-gradient(135deg, #d4af37 0%, #f4e4bc 100%);
-  --shadow-soft: var(--shadow-md);
-  --shadow-strong: var(--shadow-lg);
+  /* Gradients */
+  --bg-body-gradient: radial-gradient(circle at 20% 0%, rgba(212, 175, 55, 0.08), transparent 45%),
+                      radial-gradient(circle at 80% 10%, rgba(20, 30, 50, 0.4), transparent 50%),
+                      var(--bg-body);
 }
 
 @media (max-width: 768px) {
   :root {
-    --header-height: 56px;
-    --sidebar-width: 280px;
-    --space-lg: 20px;
-    --space-xl: 24px;
-    --space-2xl: 32px;
+    --header-height: 60px;
+    --sidebar-width: 100%;
+    --space-lg: 24px;
+    --space-xl: 32px;
+    --space-2xl: 40px;
   }
 }
