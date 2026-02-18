@@ -12,6 +12,9 @@ const selectedQuestionIds = new Set();
 let lastVisibleQuestionIds = [];
 let filteredQuestions = [];
 let duplicateInsightsById = new Map();
+let currentPage = 1;
+
+const QUESTIONS_PER_PAGE = 25;
 
 const DUPLICATE_SETTINGS = {
     exactMinLength: 25,
@@ -265,27 +268,28 @@ function renderContentInterface() {
         <div class="card mb-4 p-3 border-0 shadow-sm question-filter-card">
             <div class="question-filter-header">
                 <div>
-                    <h5>Filtreler</h5>
-                    <p class="text-muted small mb-0">Soru bankasını hızlıca daraltmak için aşağıdaki kriterleri kullanın.</p>
+                    <h5 class="mb-1">Filtreler</h5>
+                    <p class="text-muted small mb-0">Temel filtreler üstte, gelişmiş filtreler aşağıdaki açılır alanda.</p>
                 </div>
                 <div class="d-flex flex-wrap gap-2 justify-content-end">
                     <button id="btnFilter" class="btn btn-secondary">Ara / Filtrele</button>
+                    <button id="btnResetFilters" class="btn btn-outline-secondary">Temizle</button>
                     <button id="btnExportJson" class="btn btn-outline-success">JSON İndir</button>
                     <button id="btnExportExcel" class="btn btn-outline-success">Excel (CSV) İndir</button>
                 </div>
             </div>
-            <div class="row g-3 align-items-end">
-                <div class="col-lg-4 col-md-6">
+            <div class="row g-2 align-items-end mb-2">
+                <div class="col-xl-5 col-lg-6 col-md-12">
                     <label class="form-label small fw-bold text-muted">GENEL ARAMA</label>
                     <input type="text" id="searchQuestion" class="form-control" placeholder="Soru metni, ID, kategori veya mevzuat ara...">
                 </div>
-                <div class="col-lg-3 col-md-6">
+                <div class="col-xl-3 col-lg-3 col-md-6">
                     <label class="form-label small fw-bold text-muted">KATEGORİ</label>
                     <select id="filterCategory" class="form-select">
                         <option value="">Tüm Kategoriler</option>
                     </select>
                 </div>
-                <div class="col-lg-2 col-md-6">
+                <div class="col-xl-2 col-lg-3 col-md-6">
                     <label class="form-label small fw-bold text-muted">DURUM</label>
                     <select id="filterStatus" class="form-select">
                         <option value="active">✅ Aktif</option>
@@ -294,36 +298,80 @@ function renderContentInterface() {
                         <option value="all">📌 Tümü</option>
                     </select>
                 </div>
-                <div class="col-lg-3 col-md-6">
-                    <label class="form-label small fw-bold text-muted">MEVZUAT DURUMU</label>
-                    <select id="filterLegMode" class="form-select">
+                <div class="col-xl-2 col-lg-3 col-md-6">
+                    <label class="form-label small fw-bold text-muted">SORU TİPİ</label>
+                    <select id="filterType" class="form-select">
                         <option value="all">Tümü</option>
-                        <option value="with">Mevzuatlı</option>
-                        <option value="without">Mevzuatsız</option>
-                    </select>
-                </div>
-                <div class="col-lg-3 col-md-6">
-                    <label class="form-label small fw-bold text-muted">KANUN NO</label>
-                    <input type="text" id="filterLegCode" class="form-control" placeholder="Örn: 5271">
-                </div>
-                <div class="col-lg-3 col-md-6">
-                    <label class="form-label small fw-bold text-muted">MADDE NO</label>
-                    <input type="text" id="filterLegArticle" class="form-control" placeholder="Örn: 12">
-                </div>
-                <div class="col-lg-6 col-md-12 d-flex align-items-end">
-                    <div class="text-muted small question-filter-hint">Mevzuat değişikliğinde ilgili kanun/maddeyi filtreleyip topluca işlem yapabilirsiniz.</div>
-                </div>
-                <div class="col-lg-3 col-md-6">
-                    <label class="form-label small fw-bold text-muted">MÜKERRER FİLTRE</label>
-                    <select id="filterDuplicateMode" class="form-select">
-                        <option value="all">Tümü</option>
-                        <option value="exact">Kesin Mükerrer</option>
-                        <option value="near">Olası Mükerrer</option>
-                        <option value="any">Tüm Mükerrer Adayları</option>
-                        <option value="clean">Mükerrer Olmayan</option>
+                        <option value="standard">Standart</option>
+                        <option value="oncullu">Öncüllü</option>
                     </select>
                 </div>
             </div>
+
+            <div class="row g-2 align-items-end mb-2">
+                <div class="col-xl-3 col-lg-4 col-md-6">
+                    <label class="form-label small fw-bold text-muted">ZORLUK</label>
+                    <select id="filterDifficulty" class="form-select">
+                        <option value="all">Tümü</option>
+                        <option value="1">1 - Çok Kolay</option>
+                        <option value="2">2 - Kolay</option>
+                        <option value="3">3 - Orta</option>
+                        <option value="4">4 - Zor</option>
+                        <option value="5">5 - Çok Zor</option>
+                    </select>
+                </div>
+                <div class="col-xl-4 col-lg-4 col-md-6">
+                    <label class="form-label small fw-bold text-muted">SIRALAMA</label>
+                    <select id="filterSort" class="form-select">
+                        <option value="createdDesc">En Yeni</option>
+                        <option value="createdAsc">En Eski</option>
+                        <option value="articleAsc">Madde No (Artan)</option>
+                        <option value="articleDesc">Madde No (Azalan)</option>
+                        <option value="difficultyAsc">Zorluk (Kolay→Zor)</option>
+                        <option value="difficultyDesc">Zorluk (Zor→Kolay)</option>
+                    </select>
+                </div>
+                <div class="col-xl-5 col-lg-4 col-md-12">
+                    <div class="bg-light rounded-3 px-3 py-2 h-100 d-flex align-items-center small text-muted">
+                        Hızlı kullanım için temel filtreler burada tutuldu. Detaylı mevzuat ve mükerrer filtreleri için "Gelişmiş Filtreler"i açın.
+                    </div>
+                </div>
+            </div>
+
+            <details class="border rounded-3 p-2 bg-white">
+                <summary class="fw-semibold small" style="cursor:pointer;">Gelişmiş Filtreler (Mevzuat + Mükerrer)</summary>
+                <div class="row g-2 align-items-end mt-1">
+                    <div class="col-lg-3 col-md-6">
+                        <label class="form-label small fw-bold text-muted">MEVZUAT DURUMU</label>
+                        <select id="filterLegMode" class="form-select">
+                            <option value="all">Tümü</option>
+                            <option value="with">Mevzuatlı</option>
+                            <option value="without">Mevzuatsız</option>
+                        </select>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <label class="form-label small fw-bold text-muted">KANUN NO</label>
+                        <input type="text" id="filterLegCode" class="form-control" placeholder="Örn: 5271">
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <label class="form-label small fw-bold text-muted">MADDE NO</label>
+                        <input type="text" id="filterLegArticle" class="form-control" placeholder="Örn: 12">
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <label class="form-label small fw-bold text-muted">MÜKERRER FİLTRE</label>
+                        <select id="filterDuplicateMode" class="form-select">
+                            <option value="all">Tümü</option>
+                            <option value="exact">Kesin Mükerrer</option>
+                            <option value="near">Olası Mükerrer</option>
+                            <option value="any">Tüm Mükerrer Adayları</option>
+                            <option value="clean">Mükerrer Olmayan</option>
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <div class="text-muted small question-filter-hint">Mevzuat değişikliğinde ilgili kanun/maddeyi filtreleyip topluca işlem yapabilirsiniz.</div>
+                    </div>
+                </div>
+            </details>
         </div>
 
         <div class="users-bulk-bar mb-3" id="questionBulkBar" style="display:none;">
@@ -360,6 +408,14 @@ function renderContentInterface() {
                 </table>
             </div>
         </div>
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-3" id="questionPaginationContainer">
+            <div class="small text-muted" id="questionPaginationInfo">Toplam 0 soru</div>
+            <div class="d-flex align-items-center gap-2">
+                <button class="btn btn-sm btn-outline-secondary" id="questionPrevPage">← Önceki</button>
+                <span class="small" id="questionPageIndicator">Sayfa 1 / 1</span>
+                <button class="btn btn-sm btn-outline-secondary" id="questionNextPage">Sonraki →</button>
+            </div>
+        </div>
         
         <div id="questionTrashModal" class="modal-overlay" style="display:none; z-index: 100010;">
             <div class="admin-modal-content" style="max-width:800px;">
@@ -387,6 +443,7 @@ function renderContentInterface() {
 function bindPageEvents() {
     const btnNew = document.getElementById('btnNewQuestion');
     const btnFilter = document.getElementById('btnFilter');
+    const btnResetFilters = document.getElementById('btnResetFilters');
     const btnExportJson = document.getElementById('btnExportJson');
     const btnExportExcel = document.getElementById('btnExportExcel');
     const selectAll = document.getElementById('selectAllQuestions');
@@ -396,9 +453,12 @@ function bindPageEvents() {
     const bulkFlag = document.getElementById('bulkFlag');
     const bulkUnflag = document.getElementById('bulkUnflag');
     const bulkDelete = document.getElementById('bulkDelete');
+    const prevPageBtn = document.getElementById('questionPrevPage');
+    const nextPageBtn = document.getElementById('questionNextPage');
 
     if (btnNew) btnNew.onclick = () => openQuestionEditor();
     if (btnFilter) btnFilter.onclick = loadQuestions;
+    if (btnResetFilters) btnResetFilters.onclick = resetQuestionFilters;
     if (btnExportJson) btnExportJson.onclick = () => exportFilteredQuestions('json');
     if (btnExportExcel) btnExportExcel.onclick = () => exportFilteredQuestions('excel');
     if (selectAll) selectAll.onchange = (e) => toggleSelectAll(e.target.checked);
@@ -408,6 +468,8 @@ function bindPageEvents() {
     if (bulkFlag) bulkFlag.onclick = () => runBulkUpdate({ isFlaggedForReview: true }, "Seçilen sorular incelemeye alındı.");
     if (bulkUnflag) bulkUnflag.onclick = () => runBulkUpdate({ isFlaggedForReview: false }, "Seçilen sorular incelemeden çıkarıldı.");
     if (bulkDelete) bulkDelete.onclick = () => bulkSoftDelete();
+    if (prevPageBtn) prevPageBtn.onclick = () => changeQuestionPage(-1);
+    if (nextPageBtn) nextPageBtn.onclick = () => changeQuestionPage(1);
 
     // Global Fonksiyonlar (HTML onclick için)
     window.removeOnculInternal = removeOncul;
@@ -416,6 +478,28 @@ function bindPageEvents() {
     window.permanentDeleteQuestion = permanentDeleteQuestion;
     window.softDeleteQuestion = softDeleteQuestion;
     window.toggleQuestionActive = toggleQuestionActive;
+}
+
+function resetQuestionFilters() {
+    const defaults = {
+        searchQuestion: '',
+        filterCategory: '',
+        filterStatus: 'active',
+        filterType: 'all',
+        filterDifficulty: 'all',
+        filterSort: 'createdDesc',
+        filterLegMode: 'all',
+        filterLegCode: '',
+        filterLegArticle: '',
+        filterDuplicateMode: 'all'
+    };
+
+    Object.entries(defaults).forEach(([id, value]) => {
+        const el = document.getElementById(id);
+        if (el) el.value = value;
+    });
+
+    loadQuestions();
 }
 
 // --- VERİ YÖNETİMİ ---
@@ -433,16 +517,18 @@ async function loadQuestions() {
     const legArticle = document.getElementById('filterLegArticle')?.value.toLowerCase();
     const legMode = document.getElementById('filterLegMode')?.value || 'all';
     const duplicateMode = document.getElementById('filterDuplicateMode')?.value || 'all';
+    const questionType = document.getElementById('filterType')?.value || 'all';
+    const difficulty = document.getElementById('filterDifficulty')?.value || 'all';
+    const sortMode = document.getElementById('filterSort')?.value || 'createdDesc';
 
     // Temel Sorgu
-    let q = query(collection(db, "questions"), orderBy("createdAt", "desc"), limit(500));
+    let q = query(collection(db, "questions"), orderBy("createdAt", "desc"));
 
     try {
         const snap = await getDocs(q);
-        tbody.innerHTML = '';
-        let count = 0;
         lastVisibleQuestionIds = [];
         filteredQuestions = [];
+        currentPage = 1;
 
         const candidates = [];
         snap.forEach(doc => {
@@ -462,6 +548,8 @@ async function loadQuestions() {
             if (legMode === 'without' && hasLegislation) return;
             if (legCode && !legCodeValue.toLowerCase().includes(legCode)) return;
             if (legArticle && !legArticleValue.toLowerCase().includes(legArticle)) return;
+            if (questionType !== 'all' && (d.type || 'standard') !== questionType) return;
+            if (difficulty !== 'all' && String(d.difficulty ?? '') !== difficulty) return;
 
             candidates.push({ id: doc.id, ...d });
         });
@@ -489,62 +577,137 @@ async function loadQuestions() {
                 if (!textMatch && !idMatch && !legMatch && !catMatch) return;
             }
 
-            count++;
-            lastVisibleQuestionIds.push(d.id);
             filteredQuestions.push({ ...d, duplicateInsight: info });
-            const tr = document.createElement('tr');
-            const isSelected = selectedQuestionIds.has(d.id);
-            const statusBadge = d.isActive === false
-                ? '<span class="badge badge-status-inactive">Pasif</span>'
-                : '<span class="badge badge-status-active">Aktif</span>';
-            const flaggedBadge = d.isFlaggedForReview
-                ? '<span class="badge badge-status-flagged">İncelenecek</span>'
-                : '';
-            const duplicateBadge = info.isExactDuplicate
-                ? `<span class="badge bg-danger-subtle text-danger border">Mükerrer (${info.exactCount})</span>`
-                : info.isNearDuplicate
-                    ? `<span class="badge bg-warning-subtle text-warning border">Olası Mükerrer (${info.nearCount})</span>`
-                    : '';
-            const legLabel = hasLegislation
-                ? `${legCodeValue || '-'} / Md.${legArticleValue || '-'}`
-                : 'Mevzuat Yok';
-            tr.innerHTML = `
-                <td><input type="checkbox" class="question-select" data-id="${d.id}" ${isSelected ? 'checked' : ''}></td>
-                <td><small class="text-muted">${d.id.substring(0, 5)}</small></td>
-                <td>
-                    <div class="fw-bold">${d.category || '-'}</div>
-                    <small class="text-muted">${legLabel}</small>
-                </td>
-                <td title="${d.text}">${(d.text || '').substring(0, 60)}...</td>
-                <td><span class="badge bg-light text-dark border">${d.type === 'oncullu' ? 'Öncüllü' : 'Std'}</span></td>
-                <td>
-                    <div class="d-flex flex-column gap-1">
-                        ${statusBadge}
-                        ${flaggedBadge}
-                        ${duplicateBadge}
-                    </div>
-                </td>
-                <td>
-                    <div class="question-actions">
-                        <button class="btn btn-sm btn-primary" title="Soruyu düzenle" onclick="window.QuestionBank.openEditor('${d.id}')">✏️</button>
-                        <button class="btn btn-sm btn-outline-secondary" title="${d.isActive === false ? 'Aktifleştir' : 'Pasife al'}" onclick="window.toggleQuestionActive('${d.id}', ${d.isActive === false})">${d.isActive === false ? '▶️' : '⏸️'}</button>
-                        <button class="btn btn-sm btn-danger" title="Çöp kutusuna taşı" onclick="window.softDeleteQuestion('${d.id}')">🗑️</button>
-                    </div>
-                </td>
-            `;
-            tbody.appendChild(tr);
         });
 
-        if (count === 0) tbody.innerHTML = '<tr><td colspan="7" class="text-center p-4">Kriterlere uygun soru bulunamadı.</td></tr>';
+        sortQuestions(sortMode);
+
+        if (filteredQuestions.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" class="text-center p-4">Kriterlere uygun soru bulunamadı.</td></tr>';
+        } else {
+            renderQuestionRows();
+        }
 
         selectedQuestionIds.forEach(id => {
-            if (!lastVisibleQuestionIds.includes(id)) selectedQuestionIds.delete(id);
+            if (!filteredQuestions.some(question => question.id === id)) selectedQuestionIds.delete(id);
         });
 
-        bindRowSelection();
+        renderQuestionPagination();
         updateSelectionUI();
 
     } catch (e) { console.error(e); }
+}
+
+function sortQuestions(sortMode) {
+    const getCreatedAt = (question) => {
+        const created = question.createdAt;
+        if (created?.toDate) return created.toDate().getTime();
+        if (typeof created?.seconds === 'number') return created.seconds * 1000;
+        return 0;
+    };
+    const getArticleNumber = (question) => {
+        const raw = String(question.legislationRef?.article || '').trim();
+        const match = raw.match(/\d+/);
+        return match ? Number(match[0]) : Number.POSITIVE_INFINITY;
+    };
+
+    filteredQuestions.sort((a, b) => {
+        if (sortMode === 'createdAsc') return getCreatedAt(a) - getCreatedAt(b);
+        if (sortMode === 'createdDesc') return getCreatedAt(b) - getCreatedAt(a);
+        if (sortMode === 'articleAsc') return getArticleNumber(a) - getArticleNumber(b);
+        if (sortMode === 'articleDesc') return getArticleNumber(b) - getArticleNumber(a);
+        if (sortMode === 'difficultyAsc') return (a.difficulty || 0) - (b.difficulty || 0);
+        if (sortMode === 'difficultyDesc') return (b.difficulty || 0) - (a.difficulty || 0);
+        return 0;
+    });
+}
+
+function renderQuestionRows() {
+    const tbody = document.getElementById('questionsTableBody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+
+    const totalPages = Math.max(1, Math.ceil(filteredQuestions.length / QUESTIONS_PER_PAGE));
+    currentPage = Math.min(Math.max(1, currentPage), totalPages);
+
+    const startIndex = (currentPage - 1) * QUESTIONS_PER_PAGE;
+    const currentRows = filteredQuestions.slice(startIndex, startIndex + QUESTIONS_PER_PAGE);
+    lastVisibleQuestionIds = currentRows.map((item) => item.id);
+
+    currentRows.forEach((d) => {
+        const legRef = d.legislationRef || {};
+        const legCodeValue = (legRef.code || '').toString();
+        const legArticleValue = (legRef.article || '').toString();
+        const hasLegislation = Boolean(legCodeValue || legArticleValue);
+        const info = d.duplicateInsight || buildEmptyDuplicateInsight();
+        const tr = document.createElement('tr');
+        const isSelected = selectedQuestionIds.has(d.id);
+        const statusBadge = d.isActive === false
+            ? '<span class="badge badge-status-inactive">Pasif</span>'
+            : '<span class="badge badge-status-active">Aktif</span>';
+        const flaggedBadge = d.isFlaggedForReview
+            ? '<span class="badge badge-status-flagged">İncelenecek</span>'
+            : '';
+        const duplicateBadge = info.isExactDuplicate
+            ? `<span class="badge bg-danger-subtle text-danger border">Mükerrer (${info.exactCount})</span>`
+            : info.isNearDuplicate
+                ? `<span class="badge bg-warning-subtle text-warning border">Olası Mükerrer (${info.nearCount})</span>`
+                : '';
+        const legLabel = hasLegislation
+            ? `${legCodeValue || '-'} / Md.${legArticleValue || '-'}`
+            : 'Mevzuat Yok';
+
+        tr.innerHTML = `
+            <td><input type="checkbox" class="question-select" data-id="${d.id}" ${isSelected ? 'checked' : ''}></td>
+            <td><small class="text-muted">${d.id.substring(0, 5)}</small></td>
+            <td>
+                <div class="fw-bold">${d.category || '-'}</div>
+                <small class="text-muted">${legLabel}</small>
+            </td>
+            <td title="${d.text}">${(d.text || '').substring(0, 60)}...</td>
+            <td><span class="badge bg-light text-dark border">${d.type === 'oncullu' ? 'Öncüllü' : 'Std'}</span></td>
+            <td>
+                <div class="d-flex flex-column gap-1">
+                    ${statusBadge}
+                    ${flaggedBadge}
+                    ${duplicateBadge}
+                </div>
+            </td>
+            <td>
+                <div class="question-actions">
+                    <button class="btn btn-sm btn-primary" title="Soruyu düzenle" onclick="window.QuestionBank.openEditor('${d.id}')">✏️</button>
+                    <button class="btn btn-sm btn-outline-secondary" title="${d.isActive === false ? 'Aktifleştir' : 'Pasife al'}" onclick="window.toggleQuestionActive('${d.id}', ${d.isActive === false})">${d.isActive === false ? '▶️' : '⏸️'}</button>
+                    <button class="btn btn-sm btn-danger" title="Çöp kutusuna taşı" onclick="window.softDeleteQuestion('${d.id}')">🗑️</button>
+                </div>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+
+    bindRowSelection();
+    updateSelectionUI();
+}
+
+function renderQuestionPagination() {
+    const totalPages = Math.max(1, Math.ceil(filteredQuestions.length / QUESTIONS_PER_PAGE));
+    const infoEl = document.getElementById('questionPaginationInfo');
+    const pageEl = document.getElementById('questionPageIndicator');
+    const prevBtn = document.getElementById('questionPrevPage');
+    const nextBtn = document.getElementById('questionNextPage');
+
+    if (infoEl) infoEl.textContent = `Toplam ${filteredQuestions.length} soru • Sayfa başına ${QUESTIONS_PER_PAGE}`;
+    if (pageEl) pageEl.textContent = `Sayfa ${currentPage} / ${totalPages}`;
+    if (prevBtn) prevBtn.disabled = currentPage <= 1;
+    if (nextBtn) nextBtn.disabled = currentPage >= totalPages;
+}
+
+function changeQuestionPage(direction) {
+    const totalPages = Math.max(1, Math.ceil(filteredQuestions.length / QUESTIONS_PER_PAGE));
+    const nextPage = currentPage + direction;
+    if (nextPage < 1 || nextPage > totalPages) return;
+    currentPage = nextPage;
+    renderQuestionRows();
+    renderQuestionPagination();
 }
 
 function exportFilteredQuestions(format) {
@@ -967,26 +1130,41 @@ async function loadDynamicCategories() {
     if (!filterSelect && !dataList) return;
 
     try {
-        const q = query(collection(db, "topics"), orderBy("title", "asc"));
-        const snapshot = await getDocs(q);
+        const [topicSnapshot, questionsSnapshot] = await Promise.all([
+            getDocs(query(collection(db, "topics"), orderBy("title", "asc"))),
+            getDocs(query(collection(db, "questions"), orderBy("createdAt", "desc"), limit(1500)))
+        ]);
+
+        const categorySet = new Set();
+
+        topicSnapshot.forEach((item) => {
+            const title = (item.data()?.title || '').trim();
+            if (title) categorySet.add(title);
+        });
+
+        questionsSnapshot.forEach((item) => {
+            const data = item.data() || {};
+            if (data.isDeleted === true) return;
+            const title = (data.category || '').trim();
+            if (title) categorySet.add(title);
+        });
+
+        const categories = Array.from(categorySet).sort((a, b) => a.localeCompare(b, 'tr'));
 
         if (filterSelect) filterSelect.innerHTML = '<option value="">Tüm Kategoriler</option>';
         if (dataList) dataList.innerHTML = '';
 
-        snapshot.forEach(doc => {
-            const topic = doc.data();
-            const t = topic.title;
-
+        categories.forEach((category) => {
             if (filterSelect) {
                 const opt = document.createElement('option');
-                opt.value = t;
-                opt.innerText = t;
+                opt.value = category;
+                opt.innerText = category;
                 filterSelect.appendChild(opt);
             }
 
             if (dataList) {
                 const listOpt = document.createElement('option');
-                listOpt.value = t;
+                listOpt.value = category;
                 dataList.appendChild(listOpt);
             }
         });
