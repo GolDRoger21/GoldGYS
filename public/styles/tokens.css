@@ -46,7 +46,7 @@
   --transition-medium: 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); /* Smoother, more premium */
   --transition-slow: 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
 
-  --focus-ring: 0 0 0 3px rgba(184, 158, 95, 0.3);
+  --focus-ring: 0 0 0 3px rgba(153, 101, 21, 0.28);
 
   /* --- Theme: Royal Porcelain (Light / Default) --- */
   /* "Lüks Kağıt" hissi veren çok açık krem/kırık beyaz */
@@ -54,31 +54,31 @@
   --bg-main: #FAF9F6;
 
   /* Typography */
-  --text-main: #2C2C2C; /* Koyu, nötr gri */
+  --text-main: #2A2A2A; /* İstenen premium okunabilir koyu gri */
   --text-muted: #6B6B6B;
   --text-on-gold: #FAF9F6;
-  --heading-color: #6D5632; /* Derin Bronz/Kahve */
+  --heading-color: #996515; /* Heading'lerde sınıf bazlı gradyan tercih edilir */
   --heading-text-shadow: 0 1px 2px rgba(184, 158, 95, 0.15); /* Hafif metalik his */
-  --text-gradient-gold: linear-gradient(135deg, #8D6F3D 0%, #B89E5F 50%, #6D5632 100%);
+  --text-gradient-gold: linear-gradient(135deg, #BF953F 0%, #FCF6BA 50%, #B38728 100%);
 
   /* Primary Colors - Gold/Bronze */
-  --color-primary: #B89E5F; /* Antik Bronz */
-  --color-primary-hover: #CCB57B;
-  --color-primary-dim: #8D743A;
+  --color-primary: #996515; /* Golden Brown */
+  --color-primary-hover: #B57A26;
+  --color-primary-dim: #6E4710;
 
   /* Glass / Surfaces */
   --glass-surface: rgba(255, 255, 255, 0.7); /* Beyazın %70 opak hali */
   --glass-surface-strong: rgba(255, 255, 255, 0.85);
-  --glass-border: rgba(184, 158, 95, 0.2); /* Antik Bronz %20 opak */
-  --glass-border-gradient: linear-gradient(to bottom, rgba(184, 158, 95, 0.3), rgba(184, 158, 95, 0.05));
-  --glass-shadow: 0 8px 32px rgba(184, 158, 95, 0.1); /* Hafif altın/kahve tonlu gölge */
-  --glass-backdrop-filter: blur(12px);
+  --glass-border: rgba(153, 101, 21, 0.22);
+  --glass-border-gradient: linear-gradient(to bottom, rgba(191, 149, 63, 0.45), rgba(191, 149, 63, 0.08));
+  --glass-shadow: 0 14px 40px rgba(120, 79, 18, 0.12);
+  --glass-backdrop-filter: blur(20px);
 
   /* Borders & Shadows */
-  --border-color: rgba(184, 158, 95, 0.2);
-  --shadow-sm: 0 4px 12px rgba(184, 158, 95, 0.08);
-  --shadow-md: 0 12px 24px rgba(184, 158, 95, 0.12);
-  --shadow-lg: 0 24px 48px rgba(184, 158, 95, 0.15);
+  --border-color: rgba(153, 101, 21, 0.18);
+  --shadow-sm: 0 6px 16px rgba(103, 68, 16, 0.1);
+  --shadow-md: 0 14px 30px rgba(103, 68, 16, 0.15);
+  --shadow-lg: 0 28px 56px rgba(103, 68, 16, 0.2);
 
   /* Semantic Colors */
   --color-success: #2F7A55;
@@ -90,27 +90,50 @@
   --bg-sidebar: rgba(255, 255, 255, 0.75);
   --bg-header: rgba(255, 255, 255, 0.8);
   --bg-input: rgba(255, 255, 255, 0.6);
-  --bg-hover: rgba(184, 158, 95, 0.08);
+  --bg-hover: rgba(153, 101, 21, 0.08);
 
   /* Gradients */
-  --bg-body-gradient: radial-gradient(circle at 15% 0%, rgba(184, 158, 95, 0.1), transparent 40%),
-                      radial-gradient(circle at 85% 10%, rgba(184, 158, 95, 0.08), transparent 40%),
+  --bg-body-gradient: radial-gradient(circle at 15% 0%, rgba(191, 149, 63, 0.12), transparent 42%),
+                      radial-gradient(circle at 85% 10%, rgba(179, 135, 40, 0.1), transparent 42%),
                       var(--bg-body);
+
+  /* Cross-file compatibility aliases (admin/dashboard/landing) */
+  --gold-main: var(--color-primary);
+  --gold-dark: #7A4D11;
+  --gold-light: #FCF6BA;
+  --gold-primary: var(--color-primary);
+  --gold-border: var(--border-color);
+  --gold-surface: rgba(191, 149, 63, 0.11);
+  --gradient-primary: linear-gradient(135deg, #BF953F 0%, #FCF6BA 50%, #B38728 100%);
+  --shadow-gold: 0 10px 24px rgba(153, 101, 21, 0.25);
+  --nav-glass-bg: rgba(250, 249, 246, 0.82);
+  --nav-glass-border: rgba(153, 101, 21, 0.2);
+  --bg-surface: rgba(255, 255, 255, 0.7);
+  --bg-surface-elevated: rgba(255, 255, 255, 0.88);
+  --border-subtle: rgba(153, 101, 21, 0.12);
+  --text-light: #1B1B1B;
+  --text-white: #FFFFFF;
+  --navy-light: #EDE6D7;
+  --navy-deep: #2A2A2A;
+  --text-logo: #5B3A0F;
+  --logo-gold: #BF953F;
+  --logo-khaki: #B38728;
+  --logo-highlight: #FCF6BA;
 }
 
 [data-theme="dark"] {
   /* --- Theme: Midnight Gold --- */
   /* Derin, mat, hafif maviye çalan antrasit. Simsiyah DEĞİL. */
-  --bg-body: #0B0D12;
-  --bg-main: #0B0D12;
+  --bg-body: #0A0A0C;
+  --bg-main: #0A0A0C;
 
   /* Typography */
-  --text-main: #E0E0E0; /* Gümüş Gri */
+  --text-main: #E5E5E5; /* Platin Gri */
   --text-muted: #A0A0A0;
   --text-on-gold: #0B0D12;
   --heading-color: #F4E4BC; /* Champagne Gold */
   --heading-text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
-  --text-gradient-gold: linear-gradient(135deg, #F4E4BC 0%, #D4AF37 50%, #B08A24 100%); /* Champagne to Metallic */
+  --text-gradient-gold: linear-gradient(135deg, #F4E4BC 0%, #D4AF37 50%, #B38728 100%); /* Champagne + metallic */
 
   /* Primary Colors - Gold */
   --color-primary: #D4AF37; /* Metallic Gold */
@@ -118,12 +141,12 @@
   --color-primary-dim: #977A24;
 
   /* Glass / Surfaces */
-  --glass-surface: rgba(10, 10, 10, 0.60); /* Siyahın %60 opak hali */
-  --glass-surface-strong: rgba(15, 17, 22, 0.75);
+  --glass-surface: rgba(8, 8, 10, 0.62);
+  --glass-surface-strong: rgba(16, 14, 11, 0.78);
   --glass-border: rgba(212, 175, 55, 0.3); /* Metallic Gold %30 */
-  --glass-border-gradient: linear-gradient(to bottom, rgba(212, 175, 55, 0.3), rgba(212, 175, 55, 0.05)); /* Yukarıdan aşağı kaybolan */
+  --glass-border-gradient: linear-gradient(to bottom, rgba(244, 228, 188, 0.38), rgba(212, 175, 55, 0.08));
   --glass-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
-  --glass-backdrop-filter: blur(16px) saturate(180%); /* Arkadaki renkleri canlandıran bulanıklık */
+  --glass-backdrop-filter: blur(20px) saturate(180%);
 
   /* Borders & Shadows */
   --border-color: rgba(212, 175, 55, 0.15);
@@ -141,12 +164,34 @@
   --bg-sidebar: rgba(11, 13, 18, 0.7);
   --bg-header: rgba(11, 13, 18, 0.75);
   --bg-input: rgba(20, 22, 28, 0.6);
-  --bg-hover: rgba(212, 175, 55, 0.12);
+  --bg-hover: rgba(212, 175, 55, 0.14);
 
   /* Gradients */
-  --bg-body-gradient: radial-gradient(circle at 20% 0%, rgba(212, 175, 55, 0.08), transparent 45%),
-                      radial-gradient(circle at 80% 10%, rgba(20, 30, 50, 0.4), transparent 50%),
+  --bg-body-gradient: radial-gradient(circle at 20% 0%, rgba(244, 228, 188, 0.09), transparent 45%),
+                      radial-gradient(circle at 80% 10%, rgba(212, 175, 55, 0.12), transparent 48%),
                       var(--bg-body);
+
+  --gold-main: #D4AF37;
+  --gold-dark: #A87D1A;
+  --gold-light: #F4E4BC;
+  --gold-primary: #D4AF37;
+  --gold-border: rgba(212, 175, 55, 0.24);
+  --gold-surface: rgba(212, 175, 55, 0.12);
+  --gradient-primary: linear-gradient(135deg, #BF953F 0%, #FCF6BA 50%, #B38728 100%);
+  --shadow-gold: 0 12px 28px rgba(212, 175, 55, 0.3);
+  --nav-glass-bg: rgba(10, 10, 12, 0.78);
+  --nav-glass-border: rgba(212, 175, 55, 0.22);
+  --bg-surface: rgba(16, 16, 19, 0.78);
+  --bg-surface-elevated: rgba(22, 22, 27, 0.9);
+  --border-subtle: rgba(212, 175, 55, 0.14);
+  --text-light: #F5F5F5;
+  --text-white: #FFFFFF;
+  --navy-light: #19171A;
+  --navy-deep: #E5E5E5;
+  --text-logo: #F4E4BC;
+  --logo-gold: #D4AF37;
+  --logo-khaki: #BF953F;
+  --logo-highlight: #F4E4BC;
 }
 
 @media (max-width: 768px) {

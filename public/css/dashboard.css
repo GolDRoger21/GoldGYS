@@ -21,7 +21,7 @@
 
 /* --- WELCOME SECTION (Restored) --- */
 .welcome-section {
-    background: linear-gradient(135deg, var(--navy-light), var(--navy-deep));
+    background: linear-gradient(135deg, color-mix(in srgb, var(--bg-surface-elevated) 88%, var(--color-primary) 12%), color-mix(in srgb, var(--bg-surface) 92%, var(--color-primary) 8%));
     padding: 30px;
     border-radius: 24px;
     margin-bottom: 30px;
@@ -35,9 +35,9 @@
 }
 
 [data-theme="light"] .welcome-section {
-    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-    border: 1px solid rgba(0, 0, 0, 0.05);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    background: linear-gradient(135deg, color-mix(in srgb, var(--bg-surface-elevated) 90%, #fff 10%) 0%, color-mix(in srgb, var(--bg-surface) 94%, #fff 6%) 100%);
+    border: 1px solid var(--border-subtle);
+    box-shadow: var(--shadow-sm);
 }
 
 .welcome-section::before {
@@ -55,11 +55,11 @@
     font-size: 2rem;
     margin-bottom: 8px;
     font-weight: 700;
-    color: var(--text-light);
+    color: var(--text-main);
 }
 
 [data-theme="light"] .welcome-text h1 {
-    color: var(--navy-deep);
+    color: var(--text-main);
 }
 
 .welcome-text p {
@@ -92,11 +92,11 @@
     font-size: 2.5rem;
     font-weight: 800;
     line-height: 1;
-    color: var(--gold-main);
+    color: var(--color-primary);
 }
 
 [data-theme="light"] .exam-countdown .days {
-    color: var(--gold-dark);
+    color: var(--color-primary-dim);
 }
 
 .exam-countdown .label {
@@ -120,9 +120,9 @@
 }
 
 .stat-card {
-    background: rgba(15, 23, 42, 0.6);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: var(--glass-surface);
+    backdrop-filter: var(--glass-backdrop-filter);
+    border: 1px solid var(--border-subtle);
     border-radius: 20px;
     padding: 24px;
     display: flex;
@@ -160,7 +160,7 @@
 
 .stat-icon.gold {
     background: rgba(212, 175, 55, 0.15);
-    color: var(--gold-main);
+    color: var(--color-primary);
 }
 
 .stat-icon.blue {
@@ -175,7 +175,7 @@
 
 [data-theme="light"] .stat-icon.gold {
     background: rgba(212, 175, 55, 0.1);
-    color: var(--gold-dark);
+    color: var(--color-primary-dim);
 }
 
 [data-theme="light"] .stat-icon.blue {
@@ -207,12 +207,12 @@
 .stat-info .stat-value {
     font-size: 1.8rem;
     font-weight: 800;
-    color: var(--text-light);
+    color: var(--text-main);
     line-height: 1.2;
 }
 
 [data-theme="light"] .stat-info .stat-value {
-    color: var(--navy-deep);
+    color: var(--text-main);
 }
 
 .progress-bar-container {
@@ -230,25 +230,25 @@
 
 .progress-bar {
     height: 100%;
-    background: var(--gold-main);
+    background: var(--color-primary);
     border-radius: 99px;
 }
 
 .link-small a {
     font-size: 0.85rem;
-    color: var(--gold-main);
+    color: var(--color-primary);
     text-decoration: none;
     font-weight: 600;
 }
 
 [data-theme="light"] .link-small a {
-    color: var(--gold-dark);
+    color: var(--color-primary-dim);
 }
 
 /* --- QUICK ACCESS (Restored) --- */
 .section-title {
     font-size: 1.25rem;
-    color: var(--text-light);
+    color: var(--text-main);
     margin-bottom: 20px;
     font-weight: 700;
     display: flex;
@@ -257,7 +257,7 @@
 }
 
 [data-theme="light"] .section-title {
-    color: var(--navy-deep);
+    color: var(--text-main);
 }
 
 .section-icon {
@@ -269,13 +269,13 @@
     justify-content: center;
     font-size: 1.1rem;
     background: rgba(212, 175, 55, 0.18);
-    color: var(--gold-main);
+    color: var(--color-primary);
     flex-shrink: 0;
 }
 
 [data-theme="light"] .section-icon {
     background: rgba(212, 175, 55, 0.2);
-    color: var(--gold-dark);
+    color: var(--color-primary-dim);
 }
 
 .quick-grid {
@@ -286,11 +286,11 @@
 
 .quick-card {
     background: rgba(15, 23, 42, 0.4);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid var(--border-subtle);
     border-radius: 20px;
     padding: 24px;
     text-decoration: none;
-    color: var(--text-light);
+    color: var(--text-main);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -304,14 +304,14 @@
 [data-theme="light"] .quick-card {
     background: rgba(255, 255, 255, 0.9);
     border: 1px solid rgba(0, 0, 0, 0.05);
-    color: var(--navy-deep);
+    color: var(--text-main);
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
 }
 
 .quick-card:hover {
-    border-color: var(--gold-main);
+    border-color: var(--color-primary);
     transform: translateY(-4px);
-    background: rgba(15, 23, 42, 0.6);
+    background: var(--glass-surface);
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
 }
 
@@ -340,11 +340,11 @@
 
 .panel-card,
 .recent-activity {
-    background: rgba(15, 23, 42, 0.6);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: var(--glass-surface);
+    border: 1px solid var(--border-subtle);
     border-radius: 20px;
     padding: 24px;
-    backdrop-filter: blur(12px);
+    backdrop-filter: var(--glass-backdrop-filter);
 }
 
 [data-theme="light"] .panel-card,
@@ -374,7 +374,7 @@
     border-radius: 999px;
     border: 1px solid rgba(255, 255, 255, 0.15);
     background: rgba(255, 255, 255, 0.06);
-    color: var(--text-light);
+    color: var(--text-main);
     font-size: 0.85rem;
     font-weight: 600;
     text-decoration: none;
@@ -384,17 +384,17 @@
 [data-theme="light"] .panel-link {
     border: 1px solid rgba(15, 23, 42, 0.12);
     background: rgba(15, 23, 42, 0.04);
-    color: var(--navy-deep);
+    color: var(--text-main);
 }
 
 .panel-link:hover {
     transform: translateY(-1px);
     border-color: rgba(212, 175, 55, 0.4);
-    color: var(--gold-main);
+    color: var(--color-primary);
 }
 
 [data-theme="light"] .panel-link:hover {
-    color: var(--gold-dark);
+    color: var(--color-primary-dim);
 }
 
 .panel-link .link-icon {
@@ -437,11 +437,11 @@
 .panel-item strong {
     display: block;
     font-size: 1rem;
-    color: var(--text-light);
+    color: var(--text-main);
 }
 
 [data-theme="light"] .panel-item strong {
-    color: var(--navy-deep);
+    color: var(--text-main);
 }
 
 .panel-meta {
@@ -455,12 +455,12 @@
     font-size: 0.75rem;
     font-weight: 600;
     background: rgba(212, 175, 55, 0.12);
-    color: var(--gold-main);
+    color: var(--color-primary);
 }
 
 [data-theme="light"] .panel-pill {
     background: rgba(212, 175, 55, 0.2);
-    color: var(--gold-dark);
+    color: var(--color-primary-dim);
 }
 
 .panel-item-content {
@@ -486,7 +486,7 @@
 
 .panel-item-icon.gold {
     background: rgba(212, 175, 55, 0.2);
-    color: var(--gold-main);
+    color: var(--color-primary);
 }
 
 .panel-item-icon.purple {
@@ -533,11 +533,11 @@
 
 .activity-title {
     font-weight: 600;
-    color: var(--text-light);
+    color: var(--text-main);
 }
 
 [data-theme="light"] .activity-title {
-    color: var(--navy-deep);
+    color: var(--text-main);
 }
 
 
@@ -577,10 +577,10 @@
 
 /* --- GLASS CARD (PREMIUM) --- */
 .glass-card {
-    background: rgba(15, 23, 42, 0.6);
+    background: var(--glass-surface);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid var(--border-subtle);
     border-radius: 24px;
     box-shadow:
         0 4px 6px -1px rgba(0, 0, 0, 0.1),
@@ -605,7 +605,7 @@
 }
 
 [data-theme="light"] .card-title {
-    color: var(--navy-deep);
+    color: var(--text-main);
 }
 
 [data-theme="light"] .metric-label {
@@ -629,14 +629,14 @@
 .card-title {
     font-size: 1.1rem;
     font-weight: 700;
-    color: var(--text-light);
+    color: var(--text-main);
     display: flex;
     align-items: center;
     gap: 10px;
 }
 
 [data-theme="light"] .card-title {
-    color: var(--navy-deep);
+    color: var(--text-main);
 }
 
 .card-body {
@@ -655,14 +655,14 @@
     font-size: 3.5rem;
     font-weight: 800;
     line-height: 1;
-    background: linear-gradient(135deg, var(--gold-main) 0%, #fff 100%);
+    background: linear-gradient(135deg, var(--color-primary) 0%, color-mix(in srgb, var(--gold-light) 70%, #fff 30%) 100%);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
 }
 
 [data-theme="light"] .metric-big-value {
-    background: linear-gradient(135deg, var(--gold-dark) 0%, var(--gold-main) 100%);
+    background: linear-gradient(135deg, var(--color-primary-dim) 0%, var(--color-primary) 100%);
     -webkit-background-clip: text;
     background-clip: text;
 }
@@ -676,11 +676,11 @@
 }
 
 .current-level-value {
-    color: var(--text-light);
+    color: var(--text-main);
 }
 
 [data-theme="light"] .current-level-value {
-    color: var(--navy-deep);
+    color: var(--text-main);
 }
 
 /* --- KPI STAT CARDS (SMALL) --- */
@@ -713,11 +713,11 @@
 .kpi-value {
     font-size: 2rem;
     font-weight: 800;
-    color: var(--text-light);
+    color: var(--text-main);
 }
 
 [data-theme="light"] .kpi-value {
-    color: var(--navy-deep);
+    color: var(--text-main);
 }
 
 .kpi-title {
@@ -781,12 +781,12 @@
 
 .topic-name {
     font-weight: 600;
-    color: var(--text-light);
+    color: var(--text-main);
     font-size: 1rem;
 }
 
 [data-theme="light"] .topic-name {
-    color: var(--navy-deep);
+    color: var(--text-main);
 }
 
 .topic-desc {
@@ -813,18 +813,18 @@
 
 .progress-mini-fill {
     height: 100%;
-    background: var(--gold-main);
+    background: var(--color-primary);
     border-radius: 99px;
 }
 
 .progress-mini-percent {
     font-weight: 700;
-    color: var(--text-light);
+    color: var(--text-main);
     font-size: 0.9rem;
 }
 
 [data-theme="light"] .progress-mini-percent {
-    color: var(--navy-deep);
+    color: var(--text-main);
 }
 
 /* Action & Status */
@@ -841,12 +841,12 @@
 
 .action-btn:hover {
     background: rgba(255, 255, 255, 0.1);
-    color: var(--text-light);
+    color: var(--text-main);
 }
 
 [data-theme="light"] .action-btn:hover {
     background: rgba(0, 0, 0, 0.05);
-    color: var(--navy-deep);
+    color: var(--text-main);
 }
 
 .status-pill {
@@ -942,11 +942,11 @@
 .exam-date-day {
     font-size: 1.2rem;
     font-weight: 700;
-    color: var(--text-light);
+    color: var(--text-main);
 }
 
 [data-theme="light"] .exam-date-day {
-    color: var(--navy-deep);
+    color: var(--text-main);
 }
 
 .exam-info {
@@ -955,12 +955,12 @@
 
 .exam-title {
     font-weight: 600;
-    color: var(--text-light);
+    color: var(--text-main);
     margin-bottom: 4px;
 }
 
 [data-theme="light"] .exam-title {
-    color: var(--navy-deep);
+    color: var(--text-main);
 }
 
 .exam-meta {
@@ -972,11 +972,11 @@
     text-align: center;
     font-size: 1.2rem;
     font-weight: 800;
-    color: var(--text-light);
+    color: var(--text-main);
 }
 
 [data-theme="light"] .exam-score-box {
-    color: var(--navy-deep);
+    color: var(--text-main);
 }
 
 /* --- RESPONSIVE --- */
@@ -1082,4 +1082,15 @@
         width: 100%;
         margin-top: 8px;
     }
+}
+
+/* --- Luxury theme harmonization --- */
+.welcome-text h1,
+.exam-countdown .days,
+.stat-info .stat-value {
+    background: var(--text-gradient-gold);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
 }
