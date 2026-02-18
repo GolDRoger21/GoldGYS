@@ -250,7 +250,7 @@ function renderTopicsTable() {
     if (badge) badge.innerText = `${rows.length} Kayıt`;
 
     tbody.innerHTML = rows.length ? rows.map(({ topic, depth, displayOrder }) => `
-        <tr class="topic-row ${depth ? 'topic-row-child' : 'topic-row-parent'}">
+        <tr class="topic-row topic-row-parent">
             <td>${displayOrder}</td>
             <td>
                 <div class="topic-title ${depth ? 'topic-title-child' : ''}">
