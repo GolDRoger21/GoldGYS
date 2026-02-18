@@ -113,7 +113,7 @@
   --bg-surface-elevated: rgba(255, 250, 240, 0.93);
   --border-subtle: rgba(179, 135, 40, 0.18);
   --text-light: #1B1B1B;
-  --text-white: #FFFFFF;
+  --text-white: #F4E6C3;
   --navy-light: #EDE6D7;
   --navy-deep: #2A2A2A;
   --text-logo: #5B3A0F;
@@ -129,17 +129,17 @@
   --bg-main: #0F0D09;
 
   /* Typography */
-  --text-main: #ECE3D2; /* Platin Gri */
-  --text-muted: #B7AB95;
+  --text-main: #F4E6C3; /* Premium altın ana metin */
+  --text-muted: #D2BA88;
   --text-on-gold: #0B0D12;
-  --heading-color: #F2D58A; /* Champagne Gold */
+  --heading-color: #F8E8BE; /* Champagne Gold */
   --heading-text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
-  --text-gradient-gold: linear-gradient(135deg, #F5E6BE 0%, #E0BC56 48%, #B98724 100%); /* Champagne + metallic */
+  --text-gradient-gold: linear-gradient(135deg, #FAEDCC 0%, #E7C76C 48%, #BE912E 100%); /* Champagne + metallic */
 
   /* Primary Colors - Gold */
-  --color-primary: #D9B24A; /* Metallic Gold */
-  --color-primary-hover: #F5E6BE;
-  --color-primary-dim: #A67A1E;
+  --color-primary: #E0BC56; /* Metallic Gold */
+  --color-primary-hover: #FAEDCC;
+  --color-primary-dim: #B48726;
 
   /* Glass / Surfaces */
   --glass-surface: rgba(20, 16, 11, 0.68);
@@ -186,14 +186,14 @@
   --bg-surface: rgba(25, 20, 14, 0.82);
   --bg-surface-elevated: rgba(34, 27, 19, 0.92);
   --border-subtle: rgba(217, 178, 74, 0.2);
-  --text-light: #F5F5F5;
-  --text-white: #FFFFFF;
+  --text-light: #F4E6C3;
+  --text-white: #F4E6C3;
   --navy-light: #19171A;
-  --navy-deep: #E5E5E5;
-  --text-logo: #F4E4BC;
-  --logo-gold: #D4AF37;
+  --navy-deep: #F4E6C3;
+  --text-logo: #FAEDCC;
+  --logo-gold: #E7C76C;
   --logo-khaki: #BF953F;
-  --logo-highlight: #F4E4BC;
+  --logo-highlight: #FAEDCC;
 }
 
 @media (max-width: 768px) {
