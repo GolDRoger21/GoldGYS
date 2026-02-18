@@ -254,191 +254,210 @@ export async function openQuestionEditor(id = null) {
 
 function renderContentInterface() {
     const container = document.getElementById('section-content');
-    if (!container) return; // Sayfada değilsek çık
+    if (!container) return;
 
     container.innerHTML = `
-            <div class="section-header">
-                <div><h2>📚 Soru Bankası Yönetimi</h2><p class="text-muted">Soruları ekleyin, düzenleyin veya arşivleyin.</p></div>
+        <style>
+            .glass-toolbar {
+                background: rgba(255, 255, 255, 0.95);
+                backdrop-filter: blur(10px);
+                border: 1px solid rgba(212, 175, 55, 0.2);
+                border-radius: 12px;
+                padding: 12px;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+                margin-bottom: 20px;
+                transition: all 0.3s ease;
+            }
+            .dark-mode .glass-toolbar {
+                background: rgba(15, 23, 42, 0.85);
+                border-color: rgba(212, 175, 55, 0.15);
+            }
+            .filter-row {
+                display: flex;
+                gap: 10px;
+                align-items: center;
+                flex-wrap: wrap;
+            }
+            .filter-input-group {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                background: rgba(0,0,0,0.03);
+                padding: 4px 10px;
+                border-radius: 8px;
+                border: 1px solid rgba(0,0,0,0.05);
+            }
+            .dark-mode .filter-input-group {
+                background: rgba(255,255,255,0.05);
+                border-color: rgba(255,255,255,0.05);
+            }
+            .filter-input-group input, .filter-input-group select {
+                border: none;
+                background: transparent;
+                outline: none;
+                font-size: 0.9rem;
+                color: var(--text-main);
+                padding: 4px;
+            }
+            .advanced-filters {
+                display: none;
+                margin-top: 12px;
+                padding-top: 12px;
+                border-top: 1px solid rgba(0,0,0,0.05);
+                animation: slideDown 0.2s ease-out;
+            }
+            .dark-mode .advanced-filters {
+                border-top-color: rgba(255,255,255,0.1);
+            }
+            @keyframes slideDown {
+                from { opacity: 0; transform: translateY(-5px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+            .compact-btn {
+                padding: 6px 12px;
+                font-size: 0.85rem;
+                border-radius: 8px;
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                transition: all 0.2s;
+            }
+            .compact-btn:hover {
+                transform: translateY(-1px);
+            }
+        </style>
+
+        <div class="section-header mb-3" style="border-bottom:none; padding-bottom:0;">
+            <div>
+                <h2 class="m-0" style="font-size:1.5rem;">📚 Soru Bankası</h2>
+            </div>
             <div class="d-flex gap-2">
-                <button class="btn btn-warning" onclick="window.openTrashModal()">🗑️ Çöp Kutusu</button>
-                <button id="btnNewQuestion" class="btn btn-primary">➕ Yeni Soru</button>
+                 <button class="btn btn-warning compact-btn" onclick="window.openTrashModal()">🗑️ Çöp</button>
+                 <button id="btnNewQuestion" class="btn btn-primary compact-btn">➕ Yeni Soru</button>
             </div>
         </div>
 
-        <div class="card mb-4 p-3 border-0 shadow-sm question-filter-card">
-            <div class="question-filter-header mb-3">
-                <div>
-                    <h5 class="mb-1">Filtreler</h5>
-                    <p class="text-muted small mb-0">Modüler yapı: Temel filtreler, içerik filtreleri ve mevzuat/mükerrer filtreleri ayrı kartlarda.</p>
-                </div>
-                <div class="d-flex flex-wrap gap-2 justify-content-end">
-                    <button id="btnFilter" class="btn btn-secondary">Ara / Filtrele</button>
-                    <button id="btnResetFilters" class="btn btn-outline-secondary">Temizle</button>
-                    <button id="btnExportJson" class="btn btn-outline-success">JSON İndir</button>
-                    <button id="btnExportExcel" class="btn btn-outline-success">Excel (CSV) İndir</button>
-                </div>
-            </div>
-
-            <div class="row g-3">
-                <div class="col-xl-5 col-lg-6">
-                    <div class="border rounded-3 h-100 p-3 bg-white">
-                        <div class="small fw-bold text-primary mb-2">🔎 Temel Arama</div>
-                        <div class="row g-2">
-                            <div class="col-12">
-                                <label class="form-label small fw-bold text-muted">GENEL ARAMA</label>
-                                <input type="text" id="searchQuestion" class="form-control" placeholder="Soru metni, ID, kategori veya mevzuat ara...">
-                            </div>
-                            <div class="col-md-7">
-                                <label class="form-label small fw-bold text-muted">KATEGORİ</label>
-                                <select id="filterCategory" class="form-select">
-                                    <option value="">Tüm Kategoriler</option>
-                                </select>
-                            </div>
-                            <div class="col-md-5">
-                                <label class="form-label small fw-bold text-muted">DURUM</label>
-                                <select id="filterStatus" class="form-select">
-                                    <option value="active">✅ Aktif</option>
-                                    <option value="inactive">⏸️ Pasif</option>
-                                    <option value="flagged">⚠️ İncelenecek</option>
-                                    <option value="all">📌 Tümü</option>
-                                </select>
-                            </div>
-                        </div>
+        <div class="glass-toolbar">
+            <!-- Primary Toolbar -->
+            <div class="filter-row justify-content-between">
+                <div class="d-flex gap-2 flex-grow-1 flex-wrap">
+                    <div class="filter-input-group flex-grow-1" style="max-width:300px;">
+                        <span>🔍</span>
+                        <input type="text" id="searchQuestion" placeholder="Soru ara..." style="width:100%;">
                     </div>
+                    
+                    <div class="filter-input-group">
+                        <select id="filterCategory" style="min-width:140px; cursor:pointer;">
+                            <option value="">Tüm Kategoriler</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-input-group">
+                        <select id="filterStatus" style="cursor:pointer;">
+                            <option value="active">✅ Aktif</option>
+                            <option value="inactive">⏸️ Pasif</option>
+                            <option value="flagged">⚠️ İncelenecek</option>
+                            <option value="all">📌 Tümü</option>
+                        </select>
+                    </div>
+
+                    <button id="btnToggleAdvanced" class="btn btn-outline-secondary compact-btn" style="border:1px solid rgba(0,0,0,0.1);">
+                        ⚙️ Filtreler
+                    </button>
+                    
+                     <button id="btnFilter" class="btn btn-secondary compact-btn">Ara</button>
                 </div>
 
-                <div class="col-xl-4 col-lg-6">
-                    <div class="border rounded-3 h-100 p-3 bg-white">
-                        <div class="small fw-bold text-primary mb-2">🧭 İçerik Filtreleri</div>
-                        <div class="row g-2">
-                            <div class="col-md-6">
-                                <label class="form-label small fw-bold text-muted">SORU TİPİ</label>
-                                <select id="filterType" class="form-select">
-                                    <option value="all">Tümü</option>
-                                    <option value="standard">Standart</option>
-                                    <option value="oncullu">Öncüllü</option>
-                                </select>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label small fw-bold text-muted">ZORLUK</label>
-                                <select id="filterDifficulty" class="form-select">
-                                    <option value="all">Tümü</option>
-                                    <option value="1">1 - Çok Kolay</option>
-                                    <option value="2">2 - Kolay</option>
-                                    <option value="3">3 - Orta</option>
-                                    <option value="4">4 - Zor</option>
-                                    <option value="5">5 - Çok Zor</option>
-                                </select>
-                            </div>
-                            <div class="col-12">
-                                <label class="form-label small fw-bold text-muted">SIRALAMA</label>
-                                <select id="filterSort" class="form-select">
-                                    <option value="createdDesc">En Yeni</option>
-                                    <option value="createdAsc">En Eski</option>
-                                    <option value="articleAsc">Madde No (Artan)</option>
-                                    <option value="articleDesc">Madde No (Azalan)</option>
-                                    <option value="difficultyAsc">Zorluk (Kolay→Zor)</option>
-                                    <option value="difficultyDesc">Zorluk (Zor→Kolay)</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-xl-3 col-lg-12">
-                    <div class="border rounded-3 h-100 p-3 bg-light-subtle">
-                        <div class="small fw-bold text-primary mb-2">⚖️ Mevzuat & Mükerrer</div>
-                        <div class="row g-2">
-                            <div class="col-md-4 col-lg-3 col-xl-12">
-                                <label class="form-label small fw-bold text-muted">MEVZUAT DURUMU</label>
-                                <select id="filterLegMode" class="form-select">
-                                    <option value="all">Tümü</option>
-                                    <option value="with">Mevzuatlı</option>
-                                    <option value="without">Mevzuatsız</option>
-                                </select>
-                            </div>
-                            <div class="col-md-4 col-lg-3 col-xl-12">
-                                <label class="form-label small fw-bold text-muted">KANUN NO</label>
-                                <input type="text" id="filterLegCode" class="form-control" placeholder="Örn: 5271">
-                            </div>
-                            <div class="col-md-4 col-lg-3 col-xl-12">
-                                <label class="form-label small fw-bold text-muted">MADDE NO</label>
-                                <input type="text" id="filterLegArticle" class="form-control" placeholder="Örn: 12">
-                            </div>
-                            <div class="col-md-12 col-lg-3 col-xl-12">
-                                <label class="form-label small fw-bold text-muted">MÜKERRER FİLTRE</label>
-                                <select id="filterDuplicateMode" class="form-select">
-                                    <option value="all">Tümü</option>
-                                    <option value="exact">Kesin Mükerrer</option>
-                                    <option value="near">Olası Mükerrer</option>
-                                    <option value="any">Tüm Mükerrer Adayları</option>
-                                    <option value="clean">Mükerrer Olmayan</option>
-                                </select>
-                            </div>
-                            <div class="col-12">
-                                <div class="text-muted small question-filter-hint">Mevzuat değişikliğinde ilgili kanun/maddeyi filtreleyip topluca işlem yapabilirsiniz.</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-xl-5 col-lg-4 col-md-12">
-                    <div class="bg-light rounded-3 px-3 py-2 h-100 d-flex align-items-center small text-muted">
-                        Hızlı kullanım için temel filtreler burada tutuldu. Detaylı mevzuat ve mükerrer filtreleri için "Gelişmiş Filtreler"i açın.
+                <div class="d-flex gap-2 mt-2 mt-md-0">
+                    <div class="dropdown">
+                        <button class="btn btn-outline-secondary compact-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            📤 Dışa Aktar
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#" id="btnExportJson">JSON Olarak İndir</a></li>
+                            <li><a class="dropdown-item" href="#" id="btnExportExcel">Excel (CSV) Olarak İndir</a></li>
+                        </ul>
                     </div>
                 </div>
             </div>
 
-            <details class="border rounded-3 p-2 bg-white">
-                <summary class="fw-semibold small" style="cursor:pointer;">Gelişmiş Filtreler (Mevzuat + Mükerrer)</summary>
-                <div class="row g-2 align-items-end mt-1">
-                    <div class="col-lg-3 col-md-6">
-                        <label class="form-label small fw-bold text-muted">MEVZUAT DURUMU</label>
-                        <select id="filterLegMode" class="form-select">
+            <!-- Advanced Filters (Collapsible) -->
+            <div id="advancedFiltersArea" class="advanced-filters">
+                <div class="filter-row">
+                    <div class="filter-input-group">
+                        <span class="text-muted small">Mevzuat:</span>
+                        <select id="filterLegMode">
                             <option value="all">Tümü</option>
-                            <option value="with">Mevzuatlı</option>
-                            <option value="without">Mevzuatsız</option>
+                            <option value="with">Var</option>
+                            <option value="without">Yok</option>
                         </select>
                     </div>
-                    <div class="col-lg-3 col-md-6">
-                        <label class="form-label small fw-bold text-muted">KANUN NO</label>
-                        <input type="text" id="filterLegCode" class="form-control" placeholder="Örn: 5271">
+
+                     <div class="filter-input-group">
+                        <input type="text" id="filterLegCode" placeholder="Kanun No" style="width:80px;">
                     </div>
-                    <div class="col-lg-3 col-md-6">
-                        <label class="form-label small fw-bold text-muted">MADDE NO</label>
-                        <input type="text" id="filterLegArticle" class="form-control" placeholder="Örn: 12">
+                     <div class="filter-input-group">
+                        <input type="text" id="filterLegArticle" placeholder="Madde No" style="width:80px;">
                     </div>
-                    <div class="col-lg-3 col-md-6">
-                        <label class="form-label small fw-bold text-muted">MÜKERRER FİLTRE</label>
-                        <select id="filterDuplicateMode" class="form-select">
+
+                    <div class="filter-input-group">
+                        <span class="text-muted small">Mükerrer:</span>
+                         <select id="filterDuplicateMode">
                             <option value="all">Tümü</option>
-                            <option value="exact">Kesin Mükerrer</option>
-                            <option value="near">Olası Mükerrer</option>
-                            <option value="any">Tüm Mükerrer Adayları</option>
-                            <option value="clean">Mükerrer Olmayan</option>
+                            <option value="exact">Kesin</option>
+                            <option value="near">Olası</option>
+                            <option value="clean">Temiz</option>
                         </select>
                     </div>
-                    <div class="col-12">
-                        <div class="text-muted small question-filter-hint">Mevzuat değişikliğinde ilgili kanun/maddeyi filtreleyip topluca işlem yapabilirsiniz.</div>
+
+                    <div class="filter-input-group">
+                        <span class="text-muted small">Tip:</span>
+                         <select id="filterType">
+                            <option value="all">Tümü</option>
+                            <option value="standard">Standart</option>
+                            <option value="oncullu">Öncüllü</option>
+                        </select>
                     </div>
+                     <div class="filter-input-group">
+                        <span class="text-muted small">Zorluk:</span>
+                         <select id="filterDifficulty">
+                            <option value="all">Tümü</option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                        </select>
+                    </div>
+                     <div class="filter-input-group">
+                        <span class="text-muted small">Sırala:</span>
+                         <select id="filterSort">
+                            <option value="createdDesc">En Yeni</option>
+                            <option value="createdAsc">En Eski</option>
+                            <option value="articleAsc">Madde (Artan)</option>
+                        </select>
+                    </div>
+                    
+                    <button id="btnResetFilters" class="btn btn-link text-danger text-decoration-none small fw-bold ms-auto">
+                        Filtreleri Temizle
+                    </button>
                 </div>
-            </details>
+            </div>
         </div>
 
-        <div class="users-bulk-bar mb-3" id="questionBulkBar" style="display:none;">
-            <label class="users-select-all">
+        <div class="users-bulk-bar mb-3" id="questionBulkBar" style="display:none; background:rgba(var(--primary-rgb), 0.05); border:1px solid rgba(var(--primary-rgb), 0.2);">
+            <label class="users-select-all me-3">
                 <input type="checkbox" id="selectAllQuestions">
-                <span>Seçilen: <strong id="selectedCount">0</strong></span>
+                <span><strong id="selectedCount">0</strong> Seçildi</span>
             </label>
-            <div class="users-bulk-actions">
-                <button class="btn btn-outline-primary btn-sm" id="bulkActivate">▶️ Aktifleştir</button>
-                <button class="btn btn-outline-warning btn-sm" id="bulkDeactivate">⏸️ Pasife Al</button>
-                <button class="btn btn-outline-secondary btn-sm" id="bulkFlag">⚠️ İncelemeye Al</button>
-                <button class="btn btn-outline-success btn-sm" id="bulkUnflag">✅ İncelemeden Çıkar</button>
-                <button class="btn btn-outline-danger btn-sm" id="bulkDelete">🗑️ Çöp Kutusu</button>
+            <div class="users-bulk-actions gap-2">
+                <button class="btn btn-outline-primary btn-sm" id="bulkActivate">Aktifleştir</button>
+                <button class="btn btn-outline-warning btn-sm" id="bulkDeactivate">Pasife Al</button>
+                <button class="btn btn-outline-danger btn-sm" id="bulkDelete">Sil</button>
             </div>
         </div>
 
-        <div class="card p-0 border-0 shadow-sm overflow-hidden">
+        <div class="card p-0 border-0 shadow-sm overflow-hidden" style="border-radius:12px;">
             <div class="table-responsive">
                 <table class="admin-table table-hover">
                     <thead class="bg-light">
@@ -458,15 +477,17 @@ function renderContentInterface() {
                 </table>
             </div>
         </div>
-        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-3" id="questionPaginationContainer">
+        
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-3 px-2" id="questionPaginationContainer">
             <div class="small text-muted" id="questionPaginationInfo">Toplam 0 soru</div>
             <div class="d-flex align-items-center gap-2">
                 <button class="btn btn-sm btn-outline-secondary" id="questionPrevPage">← Önceki</button>
-                <span class="small" id="questionPageIndicator">Sayfa 1 / 1</span>
+                <span class="small fw-bold" id="questionPageIndicator">1 / 1</span>
                 <button class="btn btn-sm btn-outline-secondary" id="questionNextPage">Sonraki →</button>
             </div>
         </div>
         
+        <!-- Trash Modal (Hidden) -->
         <div id="questionTrashModal" class="modal-overlay" style="display:none; z-index: 100010;">
             <div class="admin-modal-content" style="max-width:800px;">
                 <div class="modal-header">
@@ -483,10 +504,7 @@ function renderContentInterface() {
         </div>
     `;
 
-    // Modal HTML'ini yükle (Sayfa render edildiğinde)
     ensureQuestionEditorReady();
-
-    // Sayfa içi butonları bağla
     bindPageEvents();
 }
 
@@ -500,11 +518,20 @@ function bindPageEvents() {
     const selectAllHead = document.getElementById('selectAllQuestionsHead');
     const bulkActivate = document.getElementById('bulkActivate');
     const bulkDeactivate = document.getElementById('bulkDeactivate');
-    const bulkFlag = document.getElementById('bulkFlag');
-    const bulkUnflag = document.getElementById('bulkUnflag');
     const bulkDelete = document.getElementById('bulkDelete');
     const prevPageBtn = document.getElementById('questionPrevPage');
     const nextPageBtn = document.getElementById('questionNextPage');
+
+    // Toggle Advanced
+    const btnToggle = document.getElementById('btnToggleAdvanced');
+    const advancedArea = document.getElementById('advancedFiltersArea');
+    if (btnToggle && advancedArea) {
+        btnToggle.onclick = () => {
+            const isHidden = getComputedStyle(advancedArea).display === 'none';
+            advancedArea.style.display = isHidden ? 'block' : 'none';
+            btnToggle.classList.toggle('active', isHidden);
+        };
+    }
 
     if (btnNew) btnNew.onclick = () => openQuestionEditor();
     if (btnFilter) btnFilter.onclick = loadQuestions;
@@ -515,13 +542,18 @@ function bindPageEvents() {
     if (selectAllHead) selectAllHead.onchange = (e) => toggleSelectAll(e.target.checked);
     if (bulkActivate) bulkActivate.onclick = () => runBulkUpdate({ isActive: true, isDeleted: false }, "Seçilen sorular aktifleştirildi.");
     if (bulkDeactivate) bulkDeactivate.onclick = () => runBulkUpdate({ isActive: false }, "Seçilen sorular pasife alındı.");
-    if (bulkFlag) bulkFlag.onclick = () => runBulkUpdate({ isFlaggedForReview: true }, "Seçilen sorular incelemeye alındı.");
-    if (bulkUnflag) bulkUnflag.onclick = () => runBulkUpdate({ isFlaggedForReview: false }, "Seçilen sorular incelemeden çıkarıldı.");
     if (bulkDelete) bulkDelete.onclick = () => bulkSoftDelete();
     if (prevPageBtn) prevPageBtn.onclick = () => changeQuestionPage(-1);
     if (nextPageBtn) nextPageBtn.onclick = () => changeQuestionPage(1);
 
-    // Global Fonksiyonlar (HTML onclick için)
+    // Enter Key Search Support
+    const searchInput = document.getElementById('searchQuestion');
+    if (searchInput) {
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') loadQuestions();
+        });
+    }
+
     window.removeOnculInternal = removeOncul;
     window.openTrashModal = openTrashModal;
     window.restoreQuestion = restoreQuestion;
