@@ -266,10 +266,10 @@ function renderContentInterface() {
         </div>
 
         <div class="card mb-4 p-3 border-0 shadow-sm question-filter-card">
-            <div class="question-filter-header">
+            <div class="question-filter-header mb-3">
                 <div>
                     <h5 class="mb-1">Filtreler</h5>
-                    <p class="text-muted small mb-0">Temel filtreler üstte, gelişmiş filtreler aşağıdaki açılır alanda.</p>
+                    <p class="text-muted small mb-0">Modüler yapı: Temel filtreler, içerik filtreleri ve mevzuat/mükerrer filtreleri ayrı kartlarda.</p>
                 </div>
                 <div class="d-flex flex-wrap gap-2 justify-content-end">
                     <button id="btnFilter" class="btn btn-secondary">Ara / Filtrele</button>
@@ -278,88 +278,108 @@ function renderContentInterface() {
                     <button id="btnExportExcel" class="btn btn-outline-success">Excel (CSV) İndir</button>
                 </div>
             </div>
-            <div class="row g-2 align-items-end mb-2">
-                <div class="col-xl-5 col-lg-6 col-md-12">
-                    <label class="form-label small fw-bold text-muted">GENEL ARAMA</label>
-                    <input type="text" id="searchQuestion" class="form-control" placeholder="Soru metni, ID, kategori veya mevzuat ara...">
-                </div>
-                <div class="col-xl-3 col-lg-3 col-md-6">
-                    <label class="form-label small fw-bold text-muted">KATEGORİ</label>
-                    <select id="filterCategory" class="form-select">
-                        <option value="">Tüm Kategoriler</option>
-                    </select>
-                </div>
-                <div class="col-xl-2 col-lg-3 col-md-6">
-                    <label class="form-label small fw-bold text-muted">DURUM</label>
-                    <select id="filterStatus" class="form-select">
-                        <option value="active">✅ Aktif</option>
-                        <option value="inactive">⏸️ Pasif</option>
-                        <option value="flagged">⚠️ İncelenecek</option>
-                        <option value="all">📌 Tümü</option>
-                    </select>
-                </div>
-                <div class="col-xl-2 col-lg-3 col-md-6">
-                    <label class="form-label small fw-bold text-muted">SORU TİPİ</label>
-                    <select id="filterType" class="form-select">
-                        <option value="all">Tümü</option>
-                        <option value="standard">Standart</option>
-                        <option value="oncullu">Öncüllü</option>
-                    </select>
-                </div>
-                <div class="col-lg-3 col-md-6">
-                    <label class="form-label small fw-bold text-muted">SORU TİPİ</label>
-                    <select id="filterType" class="form-select">
-                        <option value="all">Tümü</option>
-                        <option value="standard">Standart</option>
-                        <option value="oncullu">Öncüllü</option>
-                    </select>
-                </div>
-                <div class="col-lg-3 col-md-6">
-                    <label class="form-label small fw-bold text-muted">ZORLUK</label>
-                    <select id="filterDifficulty" class="form-select">
-                        <option value="all">Tümü</option>
-                        <option value="1">1 - Çok Kolay</option>
-                        <option value="2">2 - Kolay</option>
-                        <option value="3">3 - Orta</option>
-                        <option value="4">4 - Zor</option>
-                        <option value="5">5 - Çok Zor</option>
-                    </select>
-                </div>
-                <div class="col-lg-3 col-md-6">
-                    <label class="form-label small fw-bold text-muted">SIRALAMA</label>
-                    <select id="filterSort" class="form-select">
-                        <option value="createdDesc">En Yeni</option>
-                        <option value="createdAsc">En Eski</option>
-                        <option value="articleAsc">Madde No (Artan)</option>
-                        <option value="articleDesc">Madde No (Azalan)</option>
-                        <option value="difficultyAsc">Zorluk (Kolay→Zor)</option>
-                        <option value="difficultyDesc">Zorluk (Zor→Kolay)</option>
-                    </select>
-                </div>
-            </div>
 
-            <div class="row g-2 align-items-end mb-2">
-                <div class="col-xl-3 col-lg-4 col-md-6">
-                    <label class="form-label small fw-bold text-muted">ZORLUK</label>
-                    <select id="filterDifficulty" class="form-select">
-                        <option value="all">Tümü</option>
-                        <option value="1">1 - Çok Kolay</option>
-                        <option value="2">2 - Kolay</option>
-                        <option value="3">3 - Orta</option>
-                        <option value="4">4 - Zor</option>
-                        <option value="5">5 - Çok Zor</option>
-                    </select>
+            <div class="row g-3">
+                <div class="col-xl-5 col-lg-6">
+                    <div class="border rounded-3 h-100 p-3 bg-white">
+                        <div class="small fw-bold text-primary mb-2">🔎 Temel Arama</div>
+                        <div class="row g-2">
+                            <div class="col-12">
+                                <label class="form-label small fw-bold text-muted">GENEL ARAMA</label>
+                                <input type="text" id="searchQuestion" class="form-control" placeholder="Soru metni, ID, kategori veya mevzuat ara...">
+                            </div>
+                            <div class="col-md-7">
+                                <label class="form-label small fw-bold text-muted">KATEGORİ</label>
+                                <select id="filterCategory" class="form-select">
+                                    <option value="">Tüm Kategoriler</option>
+                                </select>
+                            </div>
+                            <div class="col-md-5">
+                                <label class="form-label small fw-bold text-muted">DURUM</label>
+                                <select id="filterStatus" class="form-select">
+                                    <option value="active">✅ Aktif</option>
+                                    <option value="inactive">⏸️ Pasif</option>
+                                    <option value="flagged">⚠️ İncelenecek</option>
+                                    <option value="all">📌 Tümü</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="col-xl-4 col-lg-4 col-md-6">
-                    <label class="form-label small fw-bold text-muted">SIRALAMA</label>
-                    <select id="filterSort" class="form-select">
-                        <option value="createdDesc">En Yeni</option>
-                        <option value="createdAsc">En Eski</option>
-                        <option value="articleAsc">Madde No (Artan)</option>
-                        <option value="articleDesc">Madde No (Azalan)</option>
-                        <option value="difficultyAsc">Zorluk (Kolay→Zor)</option>
-                        <option value="difficultyDesc">Zorluk (Zor→Kolay)</option>
-                    </select>
+
+                <div class="col-xl-4 col-lg-6">
+                    <div class="border rounded-3 h-100 p-3 bg-white">
+                        <div class="small fw-bold text-primary mb-2">🧭 İçerik Filtreleri</div>
+                        <div class="row g-2">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-muted">SORU TİPİ</label>
+                                <select id="filterType" class="form-select">
+                                    <option value="all">Tümü</option>
+                                    <option value="standard">Standart</option>
+                                    <option value="oncullu">Öncüllü</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-muted">ZORLUK</label>
+                                <select id="filterDifficulty" class="form-select">
+                                    <option value="all">Tümü</option>
+                                    <option value="1">1 - Çok Kolay</option>
+                                    <option value="2">2 - Kolay</option>
+                                    <option value="3">3 - Orta</option>
+                                    <option value="4">4 - Zor</option>
+                                    <option value="5">5 - Çok Zor</option>
+                                </select>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label small fw-bold text-muted">SIRALAMA</label>
+                                <select id="filterSort" class="form-select">
+                                    <option value="createdDesc">En Yeni</option>
+                                    <option value="createdAsc">En Eski</option>
+                                    <option value="articleAsc">Madde No (Artan)</option>
+                                    <option value="articleDesc">Madde No (Azalan)</option>
+                                    <option value="difficultyAsc">Zorluk (Kolay→Zor)</option>
+                                    <option value="difficultyDesc">Zorluk (Zor→Kolay)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-3 col-lg-12">
+                    <div class="border rounded-3 h-100 p-3 bg-light-subtle">
+                        <div class="small fw-bold text-primary mb-2">⚖️ Mevzuat & Mükerrer</div>
+                        <div class="row g-2">
+                            <div class="col-md-4 col-lg-3 col-xl-12">
+                                <label class="form-label small fw-bold text-muted">MEVZUAT DURUMU</label>
+                                <select id="filterLegMode" class="form-select">
+                                    <option value="all">Tümü</option>
+                                    <option value="with">Mevzuatlı</option>
+                                    <option value="without">Mevzuatsız</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4 col-lg-3 col-xl-12">
+                                <label class="form-label small fw-bold text-muted">KANUN NO</label>
+                                <input type="text" id="filterLegCode" class="form-control" placeholder="Örn: 5271">
+                            </div>
+                            <div class="col-md-4 col-lg-3 col-xl-12">
+                                <label class="form-label small fw-bold text-muted">MADDE NO</label>
+                                <input type="text" id="filterLegArticle" class="form-control" placeholder="Örn: 12">
+                            </div>
+                            <div class="col-md-12 col-lg-3 col-xl-12">
+                                <label class="form-label small fw-bold text-muted">MÜKERRER FİLTRE</label>
+                                <select id="filterDuplicateMode" class="form-select">
+                                    <option value="all">Tümü</option>
+                                    <option value="exact">Kesin Mükerrer</option>
+                                    <option value="near">Olası Mükerrer</option>
+                                    <option value="any">Tüm Mükerrer Adayları</option>
+                                    <option value="clean">Mükerrer Olmayan</option>
+                                </select>
+                            </div>
+                            <div class="col-12">
+                                <div class="text-muted small question-filter-hint">Mevzuat değişikliğinde ilgili kanun/maddeyi filtreleyip topluca işlem yapabilirsiniz.</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <div class="col-xl-5 col-lg-4 col-md-12">
                     <div class="bg-light rounded-3 px-3 py-2 h-100 d-flex align-items-center small text-muted">
