@@ -1773,9 +1773,6 @@ tr.highlight {
     color: var(--color-danger);
 }
 
-.topic-row-child td {
-    background: var(--bg-hover);
-}
 
 .topic-title {
     display: flex;
@@ -1783,14 +1780,7 @@ tr.highlight {
     gap: 8px;
 }
 
-.topic-title-child {
-    padding-left: 16px;
-}
 
-.topic-branch {
-    color: var(--text-muted);
-    font-weight: 600;
-}
 
 
 /* ==========================================================================
