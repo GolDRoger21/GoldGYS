@@ -17,8 +17,8 @@
 }
 
 .premium-gold-text {
-    background: linear-gradient(110deg, var(--gold-dark) 0%, var(--gold-light) 45%, var(--gold-light) 55%, var(--gold-dark) 100%);
-    background-size: 200% auto;
+    background: linear-gradient(135deg, #BF953F 0%, #FCF6BA 50%, #B38728 100%);
+    background-size: 220% auto;
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
@@ -27,17 +27,19 @@
 }
 
 .premium-gold-btn {
-    background: linear-gradient(110deg, var(--gold-dark) 0%, var(--gold-light) 45%, var(--gold-light) 55%, var(--gold-dark) 100%);
-    background-size: 200% auto;
+    background: linear-gradient(135deg, #BF953F 0%, #FCF6BA 50%, #B38728 100%);
+    background-size: 220% auto;
     animation: shimmer 4s linear infinite;
     color: var(--text-on-gold);
-    border: none;
+    border: 1px solid rgba(179, 135, 40, 0.45);
     font-weight: 700;
+    transition: transform var(--transition-fast), box-shadow var(--transition-fast), filter var(--transition-fast);
 }
 
 .premium-gold-btn:hover {
-    box-shadow: 0 0 15px rgba(212, 175, 55, 0.4);
+    box-shadow: 0 0 20px rgba(212, 175, 55, 0.4), 0 8px 24px rgba(103, 68, 16, 0.3);
     transform: translateY(-1px);
+    filter: brightness(1.03);
 }
 
 /* --- PREMIUM UI UTILITIES --- */
@@ -46,7 +48,7 @@
     position: relative;
     background: var(--glass-surface);
     border-radius: var(--radius-lg);
-    box-shadow: var(--glass-shadow);
+    box-shadow: var(--glass-shadow), inset 0 0 20px rgba(255, 255, 255, 0.05);
     backdrop-filter: var(--glass-backdrop-filter);
     -webkit-backdrop-filter: var(--glass-backdrop-filter);
     border: 1px solid transparent;
@@ -126,7 +128,7 @@
 }
 
 .text-gradient-gold {
-    background: var(--text-gradient-gold);
+    background: linear-gradient(135deg, #BF953F 0%, #FCF6BA 50%, #B38728 100%);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
@@ -224,11 +226,14 @@
     background: var(--gradient-primary);
     color: var(--text-on-gold);
     box-shadow: var(--shadow-gold);
+    border: 1px solid rgba(179, 135, 40, 0.45);
+    transition: transform var(--transition-fast), box-shadow var(--transition-fast), filter var(--transition-fast);
 }
 
 .btn-primary:hover {
     filter: brightness(1.03);
     transform: translateY(-1px);
+    box-shadow: 0 0 20px rgba(212, 175, 55, 0.4), var(--shadow-gold);
 }
 
 .btn-outline {
