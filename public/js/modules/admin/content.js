@@ -254,14 +254,86 @@ export async function openQuestionEditor(id = null) {
 
 function renderContentInterface() {
     const container = document.getElementById('section-content');
-    if (!container) return; // Sayfada değilsek çık
+    if (!container) return;
 
     container.innerHTML = `
-            <div class="section-header">
-                <div><h2>📚 Soru Bankası Yönetimi</h2><p class="text-muted">Soruları ekleyin, düzenleyin veya arşivleyin.</p></div>
+        <style>
+            .glass-toolbar {
+                background: rgba(255, 255, 255, 0.95);
+                backdrop-filter: blur(10px);
+                border: 1px solid rgba(212, 175, 55, 0.2);
+                border-radius: 12px;
+                padding: 12px;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+                margin-bottom: 20px;
+                transition: all 0.3s ease;
+            }
+            .dark-mode .glass-toolbar {
+                background: rgba(15, 23, 42, 0.85);
+                border-color: rgba(212, 175, 55, 0.15);
+            }
+            .filter-row {
+                display: flex;
+                gap: 10px;
+                align-items: center;
+                flex-wrap: wrap;
+            }
+            .filter-input-group {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                background: rgba(0,0,0,0.03);
+                padding: 4px 10px;
+                border-radius: 8px;
+                border: 1px solid rgba(0,0,0,0.05);
+            }
+            .dark-mode .filter-input-group {
+                background: rgba(255,255,255,0.05);
+                border-color: rgba(255,255,255,0.05);
+            }
+            .filter-input-group input, .filter-input-group select {
+                border: none;
+                background: transparent;
+                outline: none;
+                font-size: 0.9rem;
+                color: var(--text-main);
+                padding: 4px;
+            }
+            .advanced-filters {
+                display: none;
+                margin-top: 12px;
+                padding-top: 12px;
+                border-top: 1px solid rgba(0,0,0,0.05);
+                animation: slideDown 0.2s ease-out;
+            }
+            .dark-mode .advanced-filters {
+                border-top-color: rgba(255,255,255,0.1);
+            }
+            @keyframes slideDown {
+                from { opacity: 0; transform: translateY(-5px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+            .compact-btn {
+                padding: 6px 12px;
+                font-size: 0.85rem;
+                border-radius: 8px;
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                transition: all 0.2s;
+            }
+            .compact-btn:hover {
+                transform: translateY(-1px);
+            }
+        </style>
+
+        <div class="section-header mb-3" style="border-bottom:none; padding-bottom:0;">
+            <div>
+                <h2 class="m-0" style="font-size:1.5rem;">📚 Soru Bankası</h2>
+            </div>
             <div class="d-flex gap-2">
-                <button class="btn btn-warning" onclick="window.openTrashModal()">🗑️ Çöp Kutusu</button>
-                <button id="btnNewQuestion" class="btn btn-primary">➕ Yeni Soru</button>
+                 <button class="btn btn-warning compact-btn" onclick="window.openTrashModal()">🗑️ Çöp</button>
+                 <button id="btnNewQuestion" class="btn btn-primary compact-btn">➕ Yeni Soru</button>
             </div>
         </div>
 
@@ -387,21 +459,19 @@ function renderContentInterface() {
             </div>
         </div>
 
-        <div class="users-bulk-bar mb-3" id="questionBulkBar" style="display:none;">
-            <label class="users-select-all">
+        <div class="users-bulk-bar mb-3" id="questionBulkBar" style="display:none; background:rgba(var(--primary-rgb), 0.05); border:1px solid rgba(var(--primary-rgb), 0.2);">
+            <label class="users-select-all me-3">
                 <input type="checkbox" id="selectAllQuestions">
-                <span>Seçilen: <strong id="selectedCount">0</strong></span>
+                <span><strong id="selectedCount">0</strong> Seçildi</span>
             </label>
-            <div class="users-bulk-actions">
-                <button class="btn btn-outline-primary btn-sm" id="bulkActivate">▶️ Aktifleştir</button>
-                <button class="btn btn-outline-warning btn-sm" id="bulkDeactivate">⏸️ Pasife Al</button>
-                <button class="btn btn-outline-secondary btn-sm" id="bulkFlag">⚠️ İncelemeye Al</button>
-                <button class="btn btn-outline-success btn-sm" id="bulkUnflag">✅ İncelemeden Çıkar</button>
-                <button class="btn btn-outline-danger btn-sm" id="bulkDelete">🗑️ Çöp Kutusu</button>
+            <div class="users-bulk-actions gap-2">
+                <button class="btn btn-outline-primary btn-sm" id="bulkActivate">Aktifleştir</button>
+                <button class="btn btn-outline-warning btn-sm" id="bulkDeactivate">Pasife Al</button>
+                <button class="btn btn-outline-danger btn-sm" id="bulkDelete">Sil</button>
             </div>
         </div>
 
-        <div class="card p-0 border-0 shadow-sm overflow-hidden">
+        <div class="card p-0 border-0 shadow-sm overflow-hidden" style="border-radius:12px;">
             <div class="table-responsive">
                 <table class="admin-table table-hover">
                     <thead class="bg-light">
@@ -430,6 +500,16 @@ function renderContentInterface() {
             </div>
         </div>
         
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-3 px-2" id="questionPaginationContainer">
+            <div class="small text-muted" id="questionPaginationInfo">Toplam 0 soru</div>
+            <div class="d-flex align-items-center gap-2">
+                <button class="btn btn-sm btn-outline-secondary" id="questionPrevPage">← Önceki</button>
+                <span class="small fw-bold" id="questionPageIndicator">1 / 1</span>
+                <button class="btn btn-sm btn-outline-secondary" id="questionNextPage">Sonraki →</button>
+            </div>
+        </div>
+        
+        <!-- Trash Modal (Hidden) -->
         <div id="questionTrashModal" class="modal-overlay" style="display:none; z-index: 100010;">
             <div class="admin-modal-content" style="max-width:800px;">
                 <div class="modal-header">
@@ -446,10 +526,7 @@ function renderContentInterface() {
         </div>
     `;
 
-    // Modal HTML'ini yükle (Sayfa render edildiğinde)
     ensureQuestionEditorReady();
-
-    // Sayfa içi butonları bağla
     bindPageEvents();
 }
 
@@ -463,8 +540,6 @@ function bindPageEvents() {
     const selectAllHead = document.getElementById('selectAllQuestionsHead');
     const bulkActivate = document.getElementById('bulkActivate');
     const bulkDeactivate = document.getElementById('bulkDeactivate');
-    const bulkFlag = document.getElementById('bulkFlag');
-    const bulkUnflag = document.getElementById('bulkUnflag');
     const bulkDelete = document.getElementById('bulkDelete');
     const prevPageBtn = document.getElementById('questionPrevPage');
     const nextPageBtn = document.getElementById('questionNextPage');
@@ -478,8 +553,6 @@ function bindPageEvents() {
     if (selectAllHead) selectAllHead.onchange = (e) => toggleSelectAll(e.target.checked);
     if (bulkActivate) bulkActivate.onclick = () => runBulkUpdate({ isActive: true, isDeleted: false }, "Seçilen sorular aktifleştirildi.");
     if (bulkDeactivate) bulkDeactivate.onclick = () => runBulkUpdate({ isActive: false }, "Seçilen sorular pasife alındı.");
-    if (bulkFlag) bulkFlag.onclick = () => runBulkUpdate({ isFlaggedForReview: true }, "Seçilen sorular incelemeye alındı.");
-    if (bulkUnflag) bulkUnflag.onclick = () => runBulkUpdate({ isFlaggedForReview: false }, "Seçilen sorular incelemeden çıkarıldı.");
     if (bulkDelete) bulkDelete.onclick = () => bulkSoftDelete();
     if (prevPageBtn) prevPageBtn.onclick = () => changeQuestionPage(-1);
     if (nextPageBtn) nextPageBtn.onclick = () => changeQuestionPage(1);
@@ -501,7 +574,6 @@ function bindPageEvents() {
         });
     });
 
-    // Global Fonksiyonlar (HTML onclick için)
     window.removeOnculInternal = removeOncul;
     window.openTrashModal = openTrashModal;
     window.restoreQuestion = restoreQuestion;
