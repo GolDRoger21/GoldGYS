@@ -381,7 +381,47 @@ function renderContentInterface() {
                         </div>
                     </div>
                 </div>
+                <div class="col-xl-5 col-lg-4 col-md-12">
+                    <div class="bg-light rounded-3 px-3 py-2 h-100 d-flex align-items-center small text-muted">
+                        Hızlı kullanım için temel filtreler burada tutuldu. Detaylı mevzuat ve mükerrer filtreleri için "Gelişmiş Filtreler"i açın.
+                    </div>
+                </div>
             </div>
+
+            <details class="border rounded-3 p-2 bg-white">
+                <summary class="fw-semibold small" style="cursor:pointer;">Gelişmiş Filtreler (Mevzuat + Mükerrer)</summary>
+                <div class="row g-2 align-items-end mt-1">
+                    <div class="col-lg-3 col-md-6">
+                        <label class="form-label small fw-bold text-muted">MEVZUAT DURUMU</label>
+                        <select id="filterLegMode" class="form-select">
+                            <option value="all">Tümü</option>
+                            <option value="with">Mevzuatlı</option>
+                            <option value="without">Mevzuatsız</option>
+                        </select>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <label class="form-label small fw-bold text-muted">KANUN NO</label>
+                        <input type="text" id="filterLegCode" class="form-control" placeholder="Örn: 5271">
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <label class="form-label small fw-bold text-muted">MADDE NO</label>
+                        <input type="text" id="filterLegArticle" class="form-control" placeholder="Örn: 12">
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <label class="form-label small fw-bold text-muted">MÜKERRER FİLTRE</label>
+                        <select id="filterDuplicateMode" class="form-select">
+                            <option value="all">Tümü</option>
+                            <option value="exact">Kesin Mükerrer</option>
+                            <option value="near">Olası Mükerrer</option>
+                            <option value="any">Tüm Mükerrer Adayları</option>
+                            <option value="clean">Mükerrer Olmayan</option>
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <div class="text-muted small question-filter-hint">Mevzuat değişikliğinde ilgili kanun/maddeyi filtreleyip topluca işlem yapabilirsiniz.</div>
+                    </div>
+                </div>
+            </details>
         </div>
 
         <div class="users-bulk-bar mb-3" id="questionBulkBar" style="display:none;">
