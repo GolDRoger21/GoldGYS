@@ -296,12 +296,24 @@ function bindAssetUpload({ fileInputId, uploadButtonId, fileNameId, previewImage
             showToast(successMessage, "success");
         } catch (error) {
             console.error(`${assetLabel} yüklenemedi:`, error);
-            showToast(`${assetLabel} yüklenemedi: ${error.message}`, "error");
+            const errorMessage = formatAssetUploadError(error, assetLabel);
+            showToast(errorMessage, "error");
         } finally {
             uploadButton.disabled = !fileInput.files?.length;
             uploadButton.textContent = originalText;
         }
     });
+}
+
+function formatAssetUploadError(error, assetLabel) {
+    const rawMessage = String(error?.message || "");
+    const isCorsFailure = /CORS|preflight|ERR_FAILED|XMLHttpRequest/i.test(rawMessage);
+
+    if (isCorsFailure) {
+        return `${assetLabel} yüklenemedi: Firebase Storage CORS ayarı eksik görünüyor. Bucket için https://goldgys.web.app origin'ine izin verin veya geçici olarak URL alanından manuel bağlantı girin.`;
+    }
+
+    return `${assetLabel} yüklenemedi: ${rawMessage || "Bilinmeyen hata"}`;
 }
 
 
