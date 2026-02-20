@@ -1068,10 +1068,11 @@ main {
 }
 
 .footer-brand-mark img {
-    width: 42px;
+    width: auto;
     height: 42px;
     border-radius: 10px;
-    object-fit: cover;
+    max-width: min(160px, 42vw);
+    object-fit: contain;
     border: 1px solid var(--landing-card-border);
     background: #fff;
     padding: 4px;
