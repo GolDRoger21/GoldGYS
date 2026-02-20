@@ -1,20 +1,39 @@
 import { initializeApp, cert } from 'firebase-admin/app';
 import { getStorage } from 'firebase-admin/storage';
 import { createRequire } from 'module';
+import fs from 'fs';
 
 const require = createRequire(import.meta.url);
 const serviceAccount = require('../serviceAccountKey.json');
 
-// Initialize Firebase Admin with the service account
-initializeApp({
-    credential: cert(serviceAccount),
-    storageBucket: 'goldgys.appspot.com'
-});
+const logFile = 'cors-log.txt';
+function log(message) {
+    const msg = typeof message === 'string' ? message : JSON.stringify(message, null, 2);
+    fs.appendFileSync(logFile, msg + '\n');
+    console.log(msg);
+}
 
-const bucket = getStorage().bucket();
+fs.writeFileSync(logFile, 'STARTING LOG\n');
+
+log('Initializing Firebase Admin...');
+log('Project ID from Service Account: ' + serviceAccount.project_id);
+
+try {
+    initializeApp({
+        credential: cert(serviceAccount),
+        storageBucket: 'goldgys.appspot.com'
+    });
+    log('Firebase Admin Initialized.');
+} catch (e) {
+    log('Initialization Error: ' + e.message);
+}
+
+const bucketName = 'goldgys.appspot.com';
+log('Getting bucket reference for: ' + bucketName);
+const bucket = getStorage().bucket(bucketName);
 
 async function setCors() {
-    console.log('Applying CORS configuration to bucket:', bucket.name);
+    log('Starting CORS update...');
 
     const corsConfiguration = [
         {
@@ -26,12 +45,22 @@ async function setCors() {
     ];
 
     try {
-        await bucket.setMetadata({
+        log('Calling bucket.setMetadata()...');
+        const [result] = await bucket.setMetadata({
             cors: corsConfiguration
         });
-        console.log('✅ CORS configuration applied successfully!');
+        log('--------------------------------------------------');
+        log('✅ SUCCESS: CORS configuration applied!');
+        log('--------------------------------------------------');
     } catch (error) {
-        console.error('❌ Error applying CORS configuration:', error);
+        log('--------------------------------------------------');
+        log('❌ FAILURE: Error applying CORS configuration.');
+        log('Error Code: ' + error.code);
+        log('Error Message: ' + error.message);
+        if (error.response) {
+            log('Response Status: ' + error.response.status);
+        }
+        log('--------------------------------------------------');
     }
 }
 

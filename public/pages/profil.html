@@ -1,10 +1,10 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="tr">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profil Ayarları | GOLD GYS</title>
+    <title>Profil AyarlarÄ± | GOLD GYS</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -17,8 +17,7 @@
     <link rel="stylesheet" href="../css/dashboard.css">
     <link rel="stylesheet" href="../css/profile.css">
 
-    <link rel="icon"
-        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230F172A'/><text x='50' y='70' font-family='serif' font-size='60' fill='%23D4AF37' text-anchor='middle' font-weight='bold'>G</text></svg>">
+    <link rel="icon" href="/img/logo.png">
     <style>
         body {
             visibility: hidden;
@@ -43,7 +42,7 @@
         });
     </script>
 
-    <!-- Sayfaya Özel İçerik -->
+    <!-- Sayfaya Ã–zel Ä°Ã§erik -->
     <div class="dashboard-container profile-container-fix">
         <div class="profile-sidebar-col">
             <div class="profile-card">
@@ -53,7 +52,7 @@
                     <div class="avatar-placeholder" id="profileAvatarPlaceholder">?</div>
                 </div>
 
-                <h2 id="profileNameMain" class="p-name">Yükleniyor...</h2>
+                <h2 id="profileNameMain" class="p-name">YÃ¼kleniyor...</h2>
                 <p id="profileRoleMain" class="p-role">...</p>
 
                 <div class="p-stats-row">
@@ -78,9 +77,9 @@
 
             <div class="stats-overview">
                 <div class="stat-card-advanced" style="grid-column: span 2;">
-                    <div class="stat-icon-box" style="background: rgba(59, 130, 246, 0.1); color: #3b82f6;">📚</div>
+                    <div class="stat-icon-box" style="background: rgba(59, 130, 246, 0.1); color: #3b82f6;">ğŸ“š</div>
                     <div class="stat-info" style="flex: 1;">
-                        <h4>Konu İlerleme</h4>
+                        <h4>Konu Ä°lerleme</h4>
                         <div class="stat-value" id="statTopicRatio">0 / 0</div>
                         <div class="progress-section">
                             <div class="progress-track">
@@ -91,7 +90,7 @@
                 </div>
 
                 <div class="stat-card-advanced">
-                    <div class="stat-icon-box" style="background: rgba(16, 185, 129, 0.1); color: #10b981;">📝</div>
+                    <div class="stat-icon-box" style="background: rgba(16, 185, 129, 0.1); color: #10b981;">ğŸ“</div>
                     <div class="stat-info">
                         <h4>Testler</h4>
                         <div class="stat-value" id="statTestsCompleted">0</div>
@@ -101,8 +100,8 @@
 
             <div class="settings-card">
                 <div class="tabs-header">
-                    <button class="tab-link active" data-tab="personal">Kişisel Bilgiler</button>
-                    <button class="tab-link" data-tab="security">Güvenlik</button>
+                    <button class="tab-link active" data-tab="personal">KiÅŸisel Bilgiler</button>
+                    <button class="tab-link" data-tab="security">GÃ¼venlik</button>
                 </div>
 
                 <div id="tab-personal" class="tab-body active">
@@ -125,22 +124,22 @@
                                 <input type="tel" id="inpPhone">
                             </div>
                             <div class="form-group">
-                                <label>Ünvan</label>
+                                <label>Ãœnvan</label>
                                 <input type="text" id="inpTitle">
                             </div>
                             <div class="form-group">
-                                <label>Hedef Sınav</label>
+                                <label>Hedef SÄ±nav</label>
                                 <select id="inpExam">
-                                    <option value="">Seçiniz</option>
-                                    <option value="Yazı İşleri Müdürlüğü">Yazı İşleri Müdürlüğü</option>
-                                    <option value="İcra Müdürlüğü">İcra Müdürlüğü</option>
-                                    <option value="Görevde Yükselme">Görevde Yükselme</option>
-                                    <option value="Unvan Değişikliği">Unvan Değişikliği</option>
+                                    <option value="">SeÃ§iniz</option>
+                                    <option value="YazÄ± Ä°ÅŸleri MÃ¼dÃ¼rlÃ¼ÄŸÃ¼">YazÄ± Ä°ÅŸleri MÃ¼dÃ¼rlÃ¼ÄŸÃ¼</option>
+                                    <option value="Ä°cra MÃ¼dÃ¼rlÃ¼ÄŸÃ¼">Ä°cra MÃ¼dÃ¼rlÃ¼ÄŸÃ¼</option>
+                                    <option value="GÃ¶revde YÃ¼kselme">GÃ¶revde YÃ¼kselme</option>
+                                    <option value="Unvan DeÄŸiÅŸikliÄŸi">Unvan DeÄŸiÅŸikliÄŸi</option>
                                 </select>
                             </div>
                         </div>
                         <div class="form-footer">
-                            <button type="submit" class="btn-primary">Değişiklikleri Kaydet</button>
+                            <button type="submit" class="btn-primary">DeÄŸiÅŸiklikleri Kaydet</button>
                             <span id="saveMessage" class="status-msg"></span>
                         </div>
                     </form>
@@ -148,12 +147,12 @@
 
                 <div id="tab-security" class="tab-body">
                     <div class="security-alert-box">
-                        <div class="security-icon">🔒</div>
+                        <div class="security-icon">ğŸ”’</div>
                         <div class="security-content">
-                            <h4>Şifre Yenileme</h4>
-                            <p>Güvenliğiniz için şifrenizi periyodik olarak değiştirin.</p>
+                            <h4>Åifre Yenileme</h4>
+                            <p>GÃ¼venliÄŸiniz iÃ§in ÅŸifrenizi periyodik olarak deÄŸiÅŸtirin.</p>
                             <button id="btnResetPassword" class="btn-primary">
-                                Şifre Sıfırlama E-postası Gönder
+                                Åifre SÄ±fÄ±rlama E-postasÄ± GÃ¶nder
                             </button>
                         </div>
                     </div>

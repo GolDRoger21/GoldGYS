@@ -1,0 +1,13 @@
+STARTING LOG
+Initializing Firebase Admin...
+Project ID from Service Account: goldgys
+Firebase Admin Initialized.
+Getting bucket reference for: goldgys.appspot.com
+Starting CORS update...
+Calling bucket.setMetadata()...
+--------------------------------------------------
+❌ FAILURE: Error applying CORS configuration.
+Error Code: 404
+Error Message: The specified bucket does not exist.
+Response Status: undefined
+--------------------------------------------------
