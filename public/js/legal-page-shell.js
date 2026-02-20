@@ -29,7 +29,7 @@ function renderHeader(container) {
     container.innerHTML = `
         <nav class="landing-nav">
             <div class="header-inner">
-                <a href="/" class="brand-logo" data-site-setting="site-name">GOLD <span>GYS</span></a>
+                <a href="/" class="brand-logo"><img src="/img/logo.png" alt="GoldGYS" class="header-logo"></a>
                 <div class="header-actions-group">
                     ${getThemeToggleMarkup()}
                     <div class="auth-buttons-desktop">

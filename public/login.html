@@ -4,8 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GiriÅŸ Yap | GOLD GYS</title>
-    <meta name="description" content="Gold GYS Personel ve YÃ¶netici GiriÅŸ EkranÄ±">
+    <title>Giriş Yap | GOLD GYS</title>
+    <meta name="description" content="Gold GYS Personel ve Yönetici Giriş Ekranı">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -18,7 +18,7 @@
         document.addEventListener("DOMContentLoaded", () => applySiteConfigToDocument());
     </script>
 
-    <link rel="icon" href="/img/logo.png">
+    <link rel="icon" href="/icons/favicon.png">
 
     <style>
         /* Reset & Base overrides are handled by browser default, but ensure box-sizing */
@@ -55,7 +55,7 @@
             pointer-events: none;
         }
 
-        /* Navbar / Geri DÃ¶n Butonu */
+        /* Navbar / Geri Dön Butonu */
         .auth-nav {
             position: fixed;
             top: 0;
@@ -161,7 +161,7 @@
             display: none;
         }
 
-        /* Sol Taraf: GiriÅŸ ve Logo */
+        /* Sol Taraf: Giriş ve Logo */
         .auth-main {
             flex: 1;
             padding: 3rem;
@@ -172,7 +172,7 @@
             border-right: 1px solid var(--border-subtle);
         }
 
-        /* SaÄŸ Taraf: SÃ¶zleÅŸme */
+        /* Sağ Taraf: Sözleşme */
         .auth-agreement-panel {
             flex: 1;
             padding: 3rem;
@@ -182,7 +182,7 @@
             justify-content: center;
         }
 
-        /* Logo & BaÅŸlÄ±klar */
+        /* Logo & Başlıklar */
         .brand-logo {
             font-family: var(--font-family-serif);
             font-size: 2.75rem;
@@ -273,7 +273,7 @@
             margin-bottom: 0.25rem;
         }
 
-        /* SÃ¶zleÅŸme AlanÄ± */
+        /* Sözleşme Alanı */
         .agreement-section h3 {
             font-size: 1.1rem;
             margin-bottom: 1rem;
@@ -283,7 +283,7 @@
 
         .agreement-text {
             height: 300px;
-            /* Sabit yÃ¼kseklik, daha geniÅŸ alan */
+            /* Sabit yükseklik, daha geniş alan */
             overflow-y: auto;
             padding: 1rem;
             font-size: 0.9rem;
@@ -450,7 +450,7 @@
 
             .btn-back span {
                 display: inline;
-                /* Show text on mobile as requested implicitly by "sanki mobilde sayfa aÅŸaÄŸÄ± doÄŸru gereksiz uzunlukta" - wait, actually standard is icon only, but "ana sayfaya dÃ¶n" visible is better if we have space. Let's keep icon only if space is tight, but actually user just said "mobilde sayfa yapÄ±sÄ±nÄ± iyileÅŸtir". Previous code hid span. Let's make the button look cleaner. */
+                /* Show text on mobile as requested implicitly by "sanki mobilde sayfa aşağı doğru gereksiz uzunlukta" - wait, actually standard is icon only, but "ana sayfaya dön" visible is better if we have space. Let's keep icon only if space is tight, but actually user just said "mobilde sayfa yapısını iyileştir". Previous code hid span. Let's make the button look cleaner. */
                 display: none;
             }
 
@@ -521,8 +521,8 @@
 <body>
 
     <nav class="auth-nav">
-        <a href="/" class="btn-back" aria-label="Ana sayfaya dÃ¶n">
-            <span>â† Ana Sayfaya DÃ¶n</span>
+        <a href="/" class="btn-back" aria-label="Ana sayfaya dön">
+            <span>← Ana Sayfaya Dön</span>
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <line x1="19" y1="12" x2="5" y2="12"></line>
@@ -541,12 +541,12 @@
                 </div>
 
                 <p class="card-subtitle">
-                    Adalet BakanlÄ±ÄŸÄ± Personel GÃ¶revde YÃ¼kselme PortalÄ±na HoÅŸ Geldiniz.
+                    Adalet Bakanlığı Personel Görevde Yükselme Portalına Hoş Geldiniz.
                 </p>
 
                 <div class="info-banner">
                     <strong>Bilgilendirme</strong>
-                    Yeni Ã¼yelikler, yÃ¶netici onayÄ± sonrasÄ±nda aktif hale gelir.
+                    Yeni üyelikler, yönetici onayı sonrasında aktif hale gelir.
                 </div>
 
                 <!-- Agreement Section (Now embedded, hidden by default) -->
@@ -557,16 +557,16 @@
                         <input type="checkbox" id="agreementCheck"
                             style="margin-top: 0.2rem; width: 16px; height: 16px; accent-color: var(--color-primary); flex-shrink: 0;">
                         <span style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5;">
-                            KayÄ±t olarak
+                            Kayıt olarak
                             <a href="/pages/legal/acik-riza.html" target="_blank"
-                                style="color: var(--color-primary); text-decoration: underline;">AÃ§Ä±k RÄ±za Metni</a>,
+                                style="color: var(--color-primary); text-decoration: underline;">Açık Rıza Metni</a>,
                             <a href="/pages/legal/aydinlatma-metni.html" target="_blank"
-                                style="color: var(--color-primary); text-decoration: underline;">AydÄ±nlatma Metni</a>,
+                                style="color: var(--color-primary); text-decoration: underline;">Aydınlatma Metni</a>,
                             <a href="/pages/legal/gizlilik-sozlesmesi.html" target="_blank"
-                                style="color: var(--color-primary); text-decoration: underline;">Gizlilik SÃ¶zleÅŸmesi</a>
+                                style="color: var(--color-primary); text-decoration: underline;">Gizlilik Sözleşmesi</a>
                             ve
                             <a href="/pages/legal/uyelik-sozlesmesi.html" target="_blank"
-                                style="color: var(--color-primary); text-decoration: underline;">Ãœyelik SÃ¶zleÅŸmesi</a>ni
+                                style="color: var(--color-primary); text-decoration: underline;">Üyelik Sözleşmesi</a>ni
                             okudum ve kabul ediyorum.
                         </span>
                     </label>
@@ -587,7 +587,7 @@
                             d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
                             fill="#EA4335" />
                     </svg>
-                    Google ile GiriÅŸ Yap
+                    Google ile Giriş Yap
                 </button>
 
                 <div id="loader" class="loader"></div>
