@@ -106,7 +106,7 @@ function applyBranding(config) {
             img.alt = siteName || "Logo";
         } else {
             // Restore Text Mode - NO LONGER APPLICABLE
-            // We are using a static image logo across the site now (/img/logo.png).
+            // We are using a static image logo across the site now (/img/logo.svg).
             // Do not remove the image or overwrite the text.
         }
     });
