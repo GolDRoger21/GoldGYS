@@ -158,9 +158,11 @@
 
 /* --- LOKO / BRANDING --- */
 .header-logo {
-    height: 48px;
+    height: clamp(36px, 4vw, 46px);
     width: auto;
+    max-width: min(220px, 42vw);
     object-fit: contain;
+    object-position: left center;
     transition: transform var(--transition-fast, 0.3s ease);
 }
 
