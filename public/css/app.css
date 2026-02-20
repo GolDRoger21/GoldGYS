@@ -158,10 +158,18 @@
 
 /* --- LOKO / BRANDING --- */
 .header-logo {
-    height: 48px;
+    height: clamp(36px, 4vw, 46px);
     width: auto;
+    max-width: min(220px, 42vw);
     object-fit: contain;
+    object-position: left center;
     transition: transform var(--transition-fast, 0.3s ease);
+}
+
+body:not(.admin-body) .app-layout .header-logo {
+    height: 34px;
+    max-width: min(170px, 32vw);
+    mix-blend-mode: multiply;
 }
 
 .brand-logo:hover .header-logo {
@@ -170,6 +178,11 @@
 
 [data-theme="dark"] .header-logo {
     filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.1));
+}
+
+[data-theme="dark"] body:not(.admin-body) .app-layout .header-logo {
+    mix-blend-mode: screen;
+    opacity: 0.92;
 }
 
 /* --- ÜST NAVİGASYON (LANDING) --- */
