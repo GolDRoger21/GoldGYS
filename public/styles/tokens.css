@@ -89,6 +89,7 @@
   /* Additional Backgrounds */
   --bg-sidebar: rgba(255, 251, 243, 0.82);
   --bg-header: rgba(255, 250, 241, 0.86);
+  --bg-dropdown: #FFF8EE;
   --bg-input: rgba(255, 250, 240, 0.72);
   --bg-hover: rgba(179, 135, 40, 0.12);
 
@@ -164,6 +165,7 @@
   /* Additional Backgrounds */
   --bg-sidebar: rgba(18, 14, 10, 0.74);
   --bg-header: rgba(18, 14, 10, 0.8);
+  --bg-dropdown: #1E1710;
   --bg-input: rgba(31, 24, 16, 0.65);
   --bg-hover: rgba(217, 178, 74, 0.2);
 

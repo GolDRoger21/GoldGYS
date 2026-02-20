@@ -292,7 +292,7 @@ body:not(.admin-body) .app-sidebar .nav-label {
     top: 120%;
     right: 0;
     width: 280px;
-    background: var(--bg-dropdown);
+    background-color: var(--bg-dropdown);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-md);
