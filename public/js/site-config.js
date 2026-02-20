@@ -105,17 +105,9 @@ function applyBranding(config) {
             img.src = logoUrl;
             img.alt = siteName || "Logo";
         } else {
-            // Restore Text Mode
-            // Check if we have an image to remove
-            const img = el.querySelector('img.dynamic-logo');
-            if (img) img.remove();
-
-            // Set text content if it's not "Gold GYS" with usage of spans (preserving existing complex HTML if generic)
-            // But user specifically wants to toggle.
-            // If the element is empty or has our dynamic logo, set the text.
-            if (siteName) {
-                el.textContent = siteName;
-            }
+            // Restore Text Mode - NO LONGER APPLICABLE
+            // We are using a static image logo across the site now (/img/logo.png).
+            // Do not remove the image or overwrite the text.
         }
     });
 

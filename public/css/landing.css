@@ -321,16 +321,6 @@ main {
     text-shadow: 0 0 18px rgba(194, 97, 68, 0.3);
 }
 
-.landing-nav .brand-logo::before {
-    content: '';
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    background: conic-gradient(from 210deg, var(--logo-gold), var(--logo-khaki), var(--logo-highlight), var(--logo-gold));
-    border: 1px solid rgba(255, 255, 255, 0.25);
-    box-shadow: 0 8px 18px rgba(212, 175, 55, 0.25);
-    flex-shrink: 0;
-}
 
 @supports (-webkit-background-clip: text) or (background-clip: text) {
     .landing-nav .brand-logo {
