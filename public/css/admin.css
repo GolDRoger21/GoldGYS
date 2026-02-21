@@ -1791,6 +1791,43 @@ tr.highlight {
     font-weight: 500;
 }
 
+.studio-topic-actions {
+    margin-top: 12px;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.btn-studio-soft,
+.btn-studio-danger {
+    border-radius: 10px;
+    font-weight: 600;
+    border: 1px solid var(--border-color);
+    transition: all .2s ease;
+}
+
+.btn-studio-soft {
+    color: var(--text-main);
+    background: var(--bg-surface);
+}
+
+.btn-studio-soft:hover {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+    background: color-mix(in srgb, var(--color-primary) 8%, var(--bg-surface));
+}
+
+.btn-studio-danger {
+    color: var(--color-danger);
+    background: color-mix(in srgb, var(--color-danger) 8%, var(--bg-surface));
+    border-color: color-mix(in srgb, var(--color-danger) 35%, var(--border-color));
+}
+
+.btn-studio-danger:hover {
+    background: var(--color-danger);
+    border-color: var(--color-danger);
+    color: #fff;
+}
 
 
 

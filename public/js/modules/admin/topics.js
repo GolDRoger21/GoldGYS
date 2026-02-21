@@ -121,6 +121,23 @@ function closeEditor() {
     document.getElementById('topicModal').style.display = 'none';
 }
 
+function renderStudioTopicActions() {
+    const wrap = document.getElementById('studioTopicActions');
+    const demoteBtn = document.getElementById('btnStudioDemote');
+    const deleteBtn = document.getElementById('btnStudioDeleteTopic');
+    if (!wrap || !demoteBtn || !deleteBtn) return;
+
+    const topic = state.allTopics.find(t => t.id === state.activeTopicId);
+    if (!topic) {
+        wrap.style.display = 'none';
+        return;
+    }
+
+    wrap.style.display = 'flex';
+    demoteBtn.style.display = topic.parentId ? 'inline-flex' : 'none';
+    deleteBtn.innerHTML = topic.parentId ? '🗑️ Alt Konuyu Sil' : '🗑️ Konuyu Sil';
+}
+
 function closeModalById(id) {
     const el = document.getElementById(id);
     if (el) el.style.display = 'none';
@@ -252,7 +269,7 @@ function renderTopicsTable() {
     if (badge) badge.innerText = `${rows.length} Kayıt`;
 
     tbody.innerHTML = rows.length ? rows.map(({ topic, depth, displayOrder }) => `
-        <tr class="topic-row topic-row-parent">
+        <tr class="topic-row ${depth ? 'topic-row-child' : 'topic-row-parent'}">
             <td>${displayOrder}</td>
             <td>
                 <div class="topic-title ${depth ? 'topic-title-child' : ''}">
@@ -265,8 +282,6 @@ function renderTopicsTable() {
             <td>${topic.lessonCount || 0}</td>
             <td>${topic.isActive ? '<span class="text-success">Yayında</span>' : '<span class="text-muted">Taslak</span>'}</td>
             <td class="text-end">
-                ${depth ? `<button class="btn btn-sm btn-outline-secondary me-1" onclick="window.Studio.demoteToLesson('${topic.id}', event)" title="Ders Notu Yap">📄</button>` : ''}
-                <button class="btn btn-sm btn-outline-danger me-1" onclick="window.Studio.deleteTopic('${topic.id}', event)" title="Sil">🗑️</button>
                 <button class="btn btn-sm btn-primary" onclick="window.Studio.open('${topic.id}')">Stüdyo</button>
             </td>
         </tr>
@@ -310,6 +325,7 @@ async function openEditor(id = null) {
             syncTopicFilterBadge();
             await loadLessons(id);
         }
+        renderStudioTopicActions();
 
         // İçerik seçilene kadar boş durum kalsın
         document.getElementById('emptyState').style.display = 'flex';
@@ -331,6 +347,7 @@ async function openEditor(id = null) {
 
         updateActiveTopicTitle("Yeni Konu Oluşturuluyor...");
         syncTopicFilterBadge();
+        renderStudioTopicActions();
 
         document.getElementById('emptyState').style.display = 'flex';
         document.getElementById('contentEditor').style.display = 'none';
@@ -541,6 +558,7 @@ async function saveTopicMeta() {
         }
         state.activeTopicTitle = title;
         syncTopicFilterBadge();
+        renderStudioTopicActions();
         showToast("Konu ayarları kaydedildi.", "success");
         loadTopics();
     } catch (e) {
@@ -725,8 +743,15 @@ async function promoteToSubtopic(id, ev) {
 
 async function deleteTopic(id, ev) {
     ev?.stopPropagation();
+    const topicId = id || state.activeTopicId;
+    if (!topicId) {
+        showToast("Silinecek konu bulunamadı.", "info");
+        return;
+    }
+    const topic = state.allTopics.find(x => x.id === topicId);
+    const topicLabel = topic?.parentId ? 'alt konuyu' : 'konuyu';
     const shouldDelete = await showConfirm("Bu konuyu silmek/çöpe taşımak istediğinize emin misiniz?", {
-        title: "Konuyu Sil",
+        title: topic?.parentId ? "Alt Konuyu Sil" : "Konuyu Sil",
         confirmText: "Sil",
         cancelText: "Vazgeç",
         tone: "error"
@@ -734,13 +759,14 @@ async function deleteTopic(id, ev) {
     if (!shouldDelete) return;
 
     try {
-        await updateDoc(doc(db, "topics", id), {
+        await updateDoc(doc(db, "topics", topicId), {
             status: 'deleted',
             isDeleted: true,
             deletedAt: serverTimestamp(),
             updatedAt: serverTimestamp()
         });
-        showToast("Konu çöp kutusuna taşındı.", "success");
+        showToast(`${topicLabel.charAt(0).toUpperCase() + topicLabel.slice(1)} çöp kutusuna taşındı.`, "success");
+        if (state.activeTopicId === topicId) closeEditor();
         loadTopics();
     } catch (e) {
         showToast("Silme hatası: " + e.message, "error");
@@ -749,7 +775,8 @@ async function deleteTopic(id, ev) {
 
 async function demoteToLesson(id, ev) {
     ev?.stopPropagation();
-    const item = state.allTopics.find(x => x.id === id);
+    const topicId = id || state.activeTopicId;
+    const item = state.allTopics.find(x => x.id === topicId);
     if (!item || !item.parentId) {
         showToast("Sadece alt konular ders notuna dönüştürülebilir.", "info");
         return;
@@ -774,7 +801,7 @@ async function demoteToLesson(id, ev) {
             updatedAt: serverTimestamp()
         };
         await addDoc(collection(db, `topics/${item.parentId}/lessons`), lessonPayload);
-        await updateDoc(doc(db, "topics", id), {
+        await updateDoc(doc(db, "topics", topicId), {
             status: 'deleted',
             isDeleted: true,
             deletedAt: serverTimestamp(),
@@ -782,6 +809,7 @@ async function demoteToLesson(id, ev) {
         });
 
         showToast("Ders notuna dönüştürüldü.", "success");
+        if (state.activeTopicId === topicId) closeEditor();
         loadTopics();
     } catch (e) {
         console.error(e);
