@@ -2,12 +2,13 @@
 
 import { db } from "../../firebase-config.js";
 import {
-    collection, getDocs, doc, addDoc, updateDoc, deleteDoc, serverTimestamp, query, orderBy, where
+    collection, getDocs, doc, addDoc, updateDoc, deleteDoc, serverTimestamp, query, orderBy, where, writeBatch
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { showConfirm, showToast } from "../../notifications.js";
 import { openQuestionEditor } from './content.js';
 import { UI_SHELL, renderNavItem } from './topics.ui.js';
 import { TOPIC_KEYWORDS } from './keyword-map.js';
+import { EXAM_RULES } from '../../data/exam-rules.js';
 
 // ============================================================
 // --- GLOBAL STATE ---
@@ -50,6 +51,7 @@ export function initTopicsPage() {
         close: closeEditor,
         settings: toggleMetaDrawer,
         saveMeta: saveTopicMeta,
+        applyExamDistribution,
         newContent: createNewContent,
         selectContent: selectContentItem,
         saveContent: saveContent,
@@ -113,6 +115,130 @@ export function initTopicsPage() {
     };
 
     loadTopics();
+}
+
+function normalizeTopicName(text = '') {
+    return String(text)
+        .toLocaleLowerCase('tr-TR')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/\((ortak|alan|genel)\)/g, ' ')
+        .replace(/kanunu|kanun|yonetmeligi|yonetmelikleri/g, ' ')
+        .replace(/[^a-z0-9ğüşıöç\s]/gi, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+}
+
+function findTopicByRule(rule) {
+    const ruleNorm = normalizeTopicName(rule.title);
+    const inCategory = state.allTopics.filter(t => t.category === rule.category);
+    let found = inCategory.find(topic => {
+        const name = normalizeTopicName(topic.title);
+        return name === ruleNorm || name.includes(ruleNorm) || ruleNorm.includes(name);
+    });
+    if (!found) {
+        found = inCategory.find(topic => normalizeTopicName(topic.title).includes(normalizeTopicName(rule.id)));
+    }
+    return found || null;
+}
+
+function findSubtopicByLesson(children = [], lessonTitle = '') {
+    const lessonNorm = normalizeTopicName(lessonTitle);
+    return children.find(child => {
+        const childNorm = normalizeTopicName(child.title);
+        return childNorm === lessonNorm || childNorm.includes(lessonNorm) || lessonNorm.includes(childNorm);
+    }) || null;
+}
+
+async function applyExamDistribution() {
+    const ok = await showConfirm('Hazır soru dağılımları ilgili konulara otomatik uygulanacak. Devam edilsin mi?', {
+        title: 'Hazır Dağılımı Uygula',
+        confirmText: 'Uygula',
+        cancelText: 'İptal',
+        tone: 'info'
+    });
+    if (!ok) return;
+
+    try {
+        if (!state.allTopics.length) {
+            await loadTopics();
+        }
+
+        const batch = writeBatch(db);
+        const now = serverTimestamp();
+        const childrenByParent = new Map();
+        state.allTopics.forEach(topic => {
+            if (!topic.parentId) return;
+            const list = childrenByParent.get(topic.parentId) || [];
+            list.push(topic);
+            childrenByParent.set(topic.parentId, list);
+        });
+
+        let parentUpdated = 0;
+        let childUpdated = 0;
+        let childCreated = 0;
+
+        EXAM_RULES.forEach(rule => {
+            const parent = findTopicByRule(rule);
+            if (!parent) return;
+
+            batch.update(doc(db, 'topics', parent.id), {
+                totalQuestionTarget: Number(rule.totalQuestionTarget) || 0,
+                updatedAt: now
+            });
+            parentUpdated += 1;
+
+            const children = childrenByParent.get(parent.id) || [];
+            let nextOrder = children.length
+                ? Math.max(...children.map(t => Number(t.order) || 0)) + 1
+                : 1;
+
+            (rule.lessons || []).forEach(lesson => {
+                const target = Number(lesson?.qTarget);
+                if (!Number.isFinite(target) || target <= 0) return;
+                const existingChild = findSubtopicByLesson(children, lesson.title);
+                if (existingChild) {
+                    batch.update(doc(db, 'topics', existingChild.id), {
+                        totalQuestionTarget: target,
+                        updatedAt: now
+                    });
+                    childUpdated += 1;
+                    return;
+                }
+
+                const newRef = doc(collection(db, 'topics'));
+                const payload = {
+                    title: lesson.title,
+                    description: `${parent.title} alt konusu`,
+                    order: nextOrder++,
+                    category: parent.category,
+                    isActive: true,
+                    parentId: parent.id,
+                    lessonCount: 0,
+                    status: 'active',
+                    keywords: [],
+                    totalQuestionTarget: target,
+                    createdAt: now,
+                    updatedAt: now
+                };
+                batch.set(newRef, payload);
+                children.push({ id: newRef.id, ...payload });
+                childCreated += 1;
+            });
+        });
+
+        if (parentUpdated === 0 && childUpdated === 0 && childCreated === 0) {
+            showToast('Hazır dağılım için eşleşen konu bulunamadı.', 'info');
+            return;
+        }
+
+        await batch.commit();
+        showToast(`Dağılım uygulandı: ${parentUpdated} üst, ${childUpdated} alt güncellendi, ${childCreated} alt konu oluşturuldu.`, 'success');
+        await loadTopics();
+    } catch (error) {
+        console.error('Hazır dağılım uygulanamadı:', error);
+        showToast(error.message || 'Hazır dağılım uygulanamadı.', 'error');
+    }
 }
 
 function closeEditor() {
@@ -189,7 +315,7 @@ function updateParentOptions(currentId = null) {
 // ============================================================
 async function loadTopics() {
     const tbody = document.getElementById('topicsTableBody');
-    if (tbody) tbody.innerHTML = '<tr><td colspan="7" class="text-center p-3">Yükleniyor...</td></tr>';
+    if (tbody) tbody.innerHTML = '<tr><td colspan="8" class="text-center p-3">Yükleniyor...</td></tr>';
 
     try {
         const q = query(collection(db, "topics"), orderBy("order", "asc"));
@@ -208,7 +334,7 @@ async function loadTopics() {
         updateParentOptions(state.activeTopicId);
     } catch (e) {
         console.error("Konular yüklenirken hata:", e);
-        if (tbody) tbody.innerHTML = `<tr><td colspan="7" class="text-center text-danger">Hata: ${e.message}</td></tr>`;
+        if (tbody) tbody.innerHTML = `<tr><td colspan="8" class="text-center text-danger">Hata: ${e.message}</td></tr>`;
     }
 }
 
@@ -231,6 +357,13 @@ function renderTopicsTable() {
     });
     const visibleTopics = state.allTopics.filter(t => visibleIds.has(t.id));
     const topicMap = new Map(state.allTopics.map(t => [t.id, t]));
+    const childrenByParent = new Map();
+    state.allTopics.forEach(topic => {
+        if (!topic.parentId) return;
+        const list = childrenByParent.get(topic.parentId) || [];
+        list.push(topic);
+        childrenByParent.set(topic.parentId, list);
+    });
     const { roots, byParent } = buildTopicHierarchy(visibleTopics);
     const rows = [];
 
@@ -261,10 +394,23 @@ function renderTopicsTable() {
             <td>${topic.parentId ? (topicMap.get(topic.parentId)?.title || '-') : '-'}</td>
             <td><span class="badge bg-light border text-dark">${topic.category}</span></td>
             <td>${topic.lessonCount || 0}</td>
+            <td>${resolveTopicQuestionTarget(topic, childrenByParent)}</td>
             <td>${topic.isActive ? '<span class="text-success">Yayında</span>' : '<span class="text-muted">Taslak</span>'}</td>
             <td class="text-end"><button class="btn btn-sm btn-primary" onclick="window.Studio.open('${topic.id}')">Stüdyo</button></td>
         </tr>
-    `).join('') : '<tr><td colspan="7" class="text-center p-4">Kayıt bulunamadı.</td></tr>';
+    `).join('') : '<tr><td colspan="8" class="text-center p-4">Kayıt bulunamadı.</td></tr>';
+}
+
+function resolveTopicQuestionTarget(topic, childrenByParent = new Map()) {
+    const ownTarget = Number(topic?.totalQuestionTarget);
+    if (Number.isFinite(ownTarget) && ownTarget > 0) return ownTarget;
+
+    const children = childrenByParent.get(topic?.id) || [];
+    const sum = children.reduce((acc, child) => {
+        const childTarget = Number(child?.totalQuestionTarget);
+        return acc + (Number.isFinite(childTarget) && childTarget > 0 ? childTarget : 0);
+    }, 0);
+    return sum;
 }
 
 // ============================================================
@@ -291,6 +437,7 @@ async function openEditor(id = null) {
             document.getElementById('inpTopicOrder').value = t.order;
             document.getElementById('inpTopicCategory').value = t.category;
             document.getElementById('inpTopicStatus').value = t.isActive;
+            document.getElementById('inpTopicQuestionTarget').value = t.totalQuestionTarget || 0;
             // Keywords
             const kwInput = document.getElementById('inpTopicKeywords');
             if (kwInput) kwInput.value = (t.keywords || []).join(', ');
@@ -317,6 +464,7 @@ async function openEditor(id = null) {
         document.getElementById('inpTopicOrder').value = getNextOrderForParent(null);
         updateParentOptions(null);
         document.getElementById('inpTopicParent').value = '';
+        document.getElementById('inpTopicQuestionTarget').value = 0;
         // Reset/Auto-Populate Keywords (Event listener will handle auto-pop on title change)
         const kwInput = document.getElementById('inpTopicKeywords');
         if (kwInput) kwInput.value = "";
@@ -517,6 +665,7 @@ async function saveTopicMeta() {
             .split(',')
             .map(k => k.trim().toLowerCase())
             .filter(Boolean),
+        totalQuestionTarget: Math.max(0, parseInt(document.getElementById('inpTopicQuestionTarget')?.value, 10) || 0),
         updatedAt: serverTimestamp()
     };
     if (!id) {

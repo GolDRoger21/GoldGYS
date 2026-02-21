@@ -4,6 +4,7 @@ export const UI_SHELL = `
     <div class="section-header">
         <h2>📑 Konu Yönetimi</h2>
         <div class="d-flex gap-2">
+            <button class="btn btn-outline-secondary btn-sm" onclick="window.Studio.applyExamDistribution()">⚡ Soru Dağılımını Uygula</button>
             <button class="btn btn-primary btn-sm" onclick="window.Studio.open()">➕ Yeni Konu</button>
         </div>
     </div>
@@ -29,6 +30,7 @@ export const UI_SHELL = `
                         <th>Üst Konu</th>
                         <th>Kategori</th>
                         <th>İçerik</th>
+                        <th>Hedef Soru</th>
                         <th>Durum</th>
                         <th class="text-end">İşlem</th>
                     </tr>
@@ -239,6 +241,11 @@ export const UI_SHELL = `
                             <label class="form-label fw-bold small text-muted">ANAHTAR KELİMELER</label>
                             <textarea id="inpTopicKeywords" class="form-control" rows="2" placeholder="örn: anayasa, 2709, temel haklar (virgülle ayırın)"></textarea>
                             <div class="form-text small">Otomatik eşleştirme için kullanılır.</div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-muted">SINAVDA ÇIKACAK SORU ADEDİ</label>
+                            <input type="number" id="inpTopicQuestionTarget" class="form-control" min="0" step="1" placeholder="örn: 6">
+                            <div class="form-text small">Alt konularda adet girin. Üst konularda toplamı ayrıca güncelleyebilirsiniz.</div>
                         </div>
                         <div class="mb-4">
                             <label class="form-label fw-bold small text-muted">YAYIN DURUMU</label>
