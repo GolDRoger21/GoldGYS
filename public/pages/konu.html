@@ -342,6 +342,39 @@
       margin: 0;
     }
 
+    .topic-header-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .topic-header-top {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 14px;
+    }
+
+    .progress-wrapper {
+      margin-top: 20px;
+      background: var(--bg-hover);
+      height: 6px;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .progress-bar {
+      width: 0%;
+      height: 100%;
+      background: var(--color-primary);
+      transition: width 0.4s ease;
+    }
+
+    .progress-text {
+      color: var(--text-muted);
+      display: inline-block;
+      margin-top: 6px;
+    }
+
     @media (max-width: 900px) {
       .content-container {
         grid-template-columns: 1fr;
@@ -364,16 +397,59 @@
 
     @media (max-width: 768px) {
       .content-container {
-        padding: 20px 14px;
+        padding: 16px 14px;
+        gap: 20px;
       }
 
       .topic-header {
-        padding: 20px 14px;
+        padding: 16px 14px;
         background: var(--bg-surface);
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        border-bottom: 1px solid var(--border-color);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        /* Native shadow */
+      }
+
+      .topic-header-top {
+        flex-direction: row;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .topic-back-btn {
+        margin-bottom: 0;
+        padding: 0;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        /* Circle shape */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: none;
+        background: var(--bg-hover);
+        flex-shrink: 0;
+      }
+
+      .topic-back-btn:active {
+        background: var(--border-color);
+        transform: scale(0.95);
+      }
+
+      .topic-back-btn .material-icons {
+        margin: 0;
+        font-size: 1.2rem;
+      }
+
+      .topic-back-text {
+        display: none;
+        /* Hide text on mobile */
       }
 
       .topic-title {
-        font-size: 1.4rem;
+        font-size: 1.25rem;
         display: -webkit-box;
         -webkit-box-orient: vertical;
         -webkit-line-clamp: 2;
@@ -381,26 +457,107 @@
         overflow: hidden;
         text-overflow: ellipsis;
         word-break: break-word;
+        margin: 0;
+        padding-right: 10px;
+      }
+
+      .progress-wrapper {
+        margin-top: 14px;
+        height: 4px;
+        /* Thinner progress bar */
+      }
+
+      .test-card,
+      .study-mode-card,
+      .subtopic-section,
+      .learning-companion {
+        padding: 16px;
+        border-radius: 16px;
+        /* Native rounded corners */
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.03);
+        /* Soft shadow */
       }
 
       .study-mode-card {
-        padding: 16px;
+        padding: 20px 16px;
+      }
+
+      .study-mode-card::after {
+        font-size: 6rem;
+        /* Smaller brain emoji */
+        right: -10px;
+        bottom: -10px;
+        opacity: 0.05;
+      }
+
+      .study-mode-card h2 {
+        font-size: 1.3rem !important;
       }
 
       .study-mode-header {
         align-items: stretch;
       }
 
-      .subtopic-section {
-        padding: 16px;
-      }
-
       .subtopic-grid {
         grid-template-columns: 1fr;
       }
 
+      /* Horizontal scrolling for KPIs */
+      .companion-kpis {
+        display: flex;
+        overflow-x: auto;
+        padding-bottom: 8px;
+        gap: 10px;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+        margin-right: -14px;
+        padding-right: 14px;
+      }
+
+      /* Hide native scrollbar */
+      .companion-kpis::-webkit-scrollbar {
+        display: none;
+      }
+
+      .companion-kpi {
+        flex: 0 0 calc(50% - 14px);
+        min-width: 120px;
+        scroll-snap-align: start;
+        flex-direction: column;
+        align-items: flex-start;
+        justify-content: center;
+        padding: 12px;
+        gap: 6px;
+        border-radius: 12px;
+      }
+
+      .companion-kpi span {
+        font-size: 0.75rem;
+      }
+
+      .companion-kpi strong {
+        font-size: 1.1rem;
+      }
+
       .study-mode-status-metrics {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+        margin-top: 6px;
+      }
+
+      .study-mode-metric {
+        padding: 10px 8px;
+        min-height: 60px;
+        border-radius: 12px;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.02);
+      }
+
+      .study-mode-metric-label {
+        font-size: 0.65rem;
+      }
+
+      .study-mode-metric-value {
+        font-size: 1.05rem;
       }
 
       .mode-options {
@@ -411,52 +568,43 @@
       .mode-btn {
         flex-direction: column;
         justify-content: center;
-        padding: 10px 12px;
-        gap: 4px;
+        padding: 12px;
+        gap: 6px;
         font-size: 0.85rem;
-        min-height: 82px;
+        min-height: 86px;
         white-space: normal;
         line-height: 1.2;
+        border-radius: 14px;
+      }
+
+      .mode-btn:active,
+      .test-card:active,
+      .subtopic-card:active,
+      .btn:active {
+        transform: scale(0.97);
+        transition: transform 0.1s;
       }
 
       .mode-icon {
-        font-size: 1.1rem;
+        font-size: 1.2rem;
       }
 
       .study-mode-status {
         max-width: 100%;
       }
 
-      .learning-companion {
-        padding: 14px;
-      }
-
       #topicMaterialsSection {
         margin-top: 6px;
       }
-    }
 
-    @media (max-width: 600px) {
-      .study-mode-status-metrics {
-        grid-template-columns: 1fr;
-      }
-
-      .subtopic-actions .btn {
-        flex-basis: 100%;
+      .section-title-block h3 {
+        font-size: 1.15rem;
       }
     }
 
     @media (max-width: 420px) {
-      .mode-options {
-        grid-template-columns: 1fr;
-      }
-
       .companion-kpi {
-        padding: 9px 10px;
-      }
-
-      .companion-kpi strong {
-        font-size: 0.92rem;
+        flex: 0 0 calc(60% - 10px);
       }
     }
   </style>
@@ -471,17 +619,18 @@
   </script>
 
   <header class="topic-header">
-    <div style="max-width: 1200px; margin: 0 auto;">
-      <a href="/konular" class="btn btn-sm btn-outline-primary topic-back-btn" aria-label="Tüm konulara dön">
-        <span class="material-icons">arrow_back</span> Tüm Konular
-      </a>
-      <h1 id="topicTitle" class="topic-title">Yükleniyor...</h1>
-      <div class="progress-wrapper"
-        style="margin-top:20px; background:var(--bg-hover); height:6px; border-radius:10px;">
-        <div class="progress-bar" id="topicProgressBar" style="width:0%; height:100%; background:var(--color-primary);">
-        </div>
+    <div class="topic-header-inner">
+      <div class="topic-header-top">
+        <a href="/konular" class="btn btn-sm btn-outline-primary topic-back-btn" aria-label="Tüm konulara dön"
+          title="Tüm Konular">
+          <span class="material-icons">arrow_back</span> <span class="topic-back-text">Tüm Konular</span>
+        </a>
+        <h1 id="topicTitle" class="topic-title">Yükleniyor...</h1>
       </div>
-      <small id="progressText" style="color:var(--text-muted);">%0 Tamamlandı</small>
+      <div class="progress-wrapper">
+        <div class="progress-bar" id="topicProgressBar"></div>
+      </div>
+      <small id="progressText" class="progress-text">%0 Tamamlandı</small>
     </div>
   </header>
 
