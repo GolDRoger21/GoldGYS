@@ -117,7 +117,7 @@
 
     .study-mode-status-metrics {
       display: grid;
-      grid-template-columns: repeat(3, minmax(120px, 1fr));
+      grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 10px;
     }
 
@@ -129,6 +129,9 @@
       display: grid;
       gap: 2px;
       min-height: 70px;
+      text-align: center;
+      align-content: center;
+      justify-items: center;
     }
 
     .study-mode-metric-label {
@@ -136,12 +139,14 @@
       text-transform: uppercase;
       letter-spacing: 0.04em;
       color: var(--text-muted);
+      text-align: center;
     }
 
     .study-mode-metric-value {
       font-size: 1.25rem;
       font-weight: 700;
       color: var(--text-main);
+      text-align: center;
     }
 
     .study-mode-status-empty {
@@ -488,7 +493,7 @@
       }
 
       .study-mode-status-metrics {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-template-columns: repeat(4, minmax(0, 1fr));
       }
 
       #topicMaterialsSection {
