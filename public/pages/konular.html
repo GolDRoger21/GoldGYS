@@ -251,6 +251,11 @@
       gap: 10px;
       align-items: center;
       margin-top: 16px;
+      padding: 12px 14px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-subtle);
+      background: linear-gradient(160deg, rgba(191, 149, 63, 0.12), rgba(191, 149, 63, 0.03) 45%, var(--bg-surface-elevated));
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 3px 10px rgba(0, 0, 0, 0.04);
     }
 
     .topic-question-chip {
@@ -697,27 +702,33 @@
 
     function pickIcon(title, category, isSubtopic = false) {
       const iconRules = [
-        { match: /anayasa|anayasal/i, icon: '⚖️' },
-        { match: /atatürk|inkılap|tarih|ulusal/i, icon: '🇹🇷' },
-        { match: /ceza|tck|cmk|infaz|suç|kovuşturma/i, icon: '🚔' },
-        { match: /idare|idari|yönetim|teşkilat/i, icon: '🏛️' },
-        { match: /yazışma|yazı işleri|dilekçe|dil bilgisi/i, icon: '✍️' },
+        { match: /anayasa|anayasal/i, icon: '📘' },
+        { match: /yasama|tbmm|meclis/i, icon: '🏛️' },
+        { match: /yürütme|cumhurbaşkanı|bakanlar|hükümet/i, icon: '🗂️' },
+        { match: /yargı|mahkeme|hâkim|savcı/i, icon: '⚖️' },
+        { match: /atatürk|inkılap|kurtuluş|mill[iî] mücadele|osmanlı|çağdaş türk/i, icon: '🇹🇷' },
+        { match: /ceza|tck|cmk|infaz|suç|kovuşturma/i, icon: '🚨' },
+        { match: /icra|iflas/i, icon: '📂' },
+        { match: /idare|idari|kamu yönetimi|teşkilat/i, icon: '🏢' },
         { match: /tebligat|bildirim/i, icon: '📩' },
-        { match: /insan hak|eşitlik|hak/i, icon: '🤝' },
-        { match: /uluslararası|avrupa|küresel/i, icon: '🌍' },
+        { match: /insan hak|eşitlik/i, icon: '🤝' },
+        { match: /uluslararası|avrupa birliği|ab müktesebat|küresel/i, icon: '🌍' },
         { match: /vergi|mali|muhasebe|bütçe|finans/i, icon: '💰' },
-        { match: /icra|iflas/i, icon: '📑' },
-        { match: /medeni|aile|miras/i, icon: '🏠' },
-        { match: /ticaret|şirket|sermaye/i, icon: '🏢' },
-        { match: /iş hukuk|çalışma|sosyal güvenlik/i, icon: '👷' },
+        { match: /medeni|aile|miras/i, icon: '👨‍👩‍👧' },
+        { match: /ticaret|şirket|sermaye/i, icon: '📈' },
+        { match: /iş hukuku|çalışma|sosyal güvenlik/i, icon: '🧰' },
+        { match: /yazışma|resm[iî] yazışma|dilekçe/i, icon: '📝' },
+        { match: /türkçe|dil bilgisi|imla|noktalama/i, icon: '🔤' },
         { match: /mevzuat|yönetmelik|genelge/i, icon: '📜' },
-        { match: /etik|disiplin|kurallar/i, icon: '🧭' },
-        { match: /iletişim|halkla|tanıtım/i, icon: '💬' },
+        { match: /etik|disiplin|meslek ilkeleri/i, icon: '🧭' },
+        { match: /iletişim|halkla ilişkiler|tanıtım/i, icon: '💬' },
         { match: /teknoloji|bilişim|siber|veri/i, icon: '💻' },
         { match: /sağlık|tıp/i, icon: '🩺' },
         { match: /eğitim|öğretim/i, icon: '🎓' },
         { match: /güvenlik|asayiş|jandarma|polis/i, icon: '🛡️' },
-        { match: /çevre|imar|şehir/i, icon: '🌿' }
+        { match: /çevre|imar|şehircilik/i, icon: '🌿' },
+        { match: /coğrafya/i, icon: '🗺️' },
+        { match: /matematik|sayısal|istatistik/i, icon: '📐' }
       ];
       const matchedRule = iconRules.find(rule => rule.match.test(title));
       if (matchedRule) return matchedRule.icon;
@@ -794,7 +805,15 @@
         const progressBase = Math.max(expectedQuestionCount || 0, 1);
         const progress = Math.min(100, Math.round((solvedTotal / progressBase) * 100));
         const completionBase = Math.max(expectedQuestionCount || 0);
-        const isCompleted = completionBase > 0 && solvedTotal >= completionBase;
+        const hasChildren = allChildrenForTotals.length > 0;
+        const areAllChildrenCompleted = hasChildren
+          ? allChildrenForTotals.every((child) => {
+            const childQuestionCount = getQuestionCount(child.id);
+            if (childQuestionCount <= 0) return false;
+            return (userStats[child.id]?.solved || 0) >= childQuestionCount;
+          })
+          : false;
+        const isCompleted = completionBase > 0 && (hasChildren ? areAllChildrenCompleted : solvedTotal >= completionBase);
 
         return {
           topic: t,
@@ -866,9 +885,9 @@
                 ${isCompleted ? '<div class="topic-completed-badge">🏁 Bu konu tamamlandı</div>' : ''}
                 <p class="topic-desc">${t.description || 'Konu açıklaması bulunmuyor.'}</p>
 
-                ${progressHtml}
             </a>
             ${subtopicsHtml}
+            ${progressHtml}
         `;
         container.appendChild(card);
       });
