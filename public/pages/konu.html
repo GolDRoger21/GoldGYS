@@ -684,7 +684,7 @@
       }
 
       .study-mode-status-metrics {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-template-columns: repeat(4, minmax(0, 1fr));
         gap: 8px;
         margin-top: 6px;
       }
@@ -815,12 +815,23 @@
       }
 
       .study-mode-status-metrics {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 4px;
       }
 
       .study-mode-metric {
         min-height: auto;
-        padding: 6px 4px;
+        padding: 6px 2px;
+      }
+
+      .study-mode-metric-label {
+        font-size: 0.6rem;
+        word-break: break-word;
+        text-align: center;
+      }
+
+      .study-mode-metric-value {
+        font-size: 0.95rem;
       }
 
       .mode-options {
@@ -921,25 +932,29 @@
                   <span class="study-mode-metric-label">Kalan</span>
                   <strong class="study-mode-metric-value">0</strong>
                 </div>
+                <div class="study-mode-metric">
+                  <span class="study-mode-metric-label">Yanlış</span>
+                  <strong class="study-mode-metric-value" style="color:var(--color-danger)">0</strong>
+                </div>
               </div>
             </div>
           </div>
 
           <div class="mode-options">
             <button class="mode-btn" onclick="startSmartTest('random')">
-              <span class="mode-icon">🔀</span>
+              <span class="material-icons mode-icon">shuffle</span>
               <span>Karışık</span>
             </button>
             <button class="mode-btn" onclick="startSmartTest('order')">
-              <span class="mode-icon">abc</span>
-              <span>Madde Sırasına Göre</span>
+              <span class="material-icons mode-icon">format_list_numbered</span>
+              <span>Mevzuat Sırası</span>
             </button>
             <button class="mode-btn" onclick="startSmartTest('wrongs')">
-              <span class="mode-icon">⚠️</span>
+              <span class="material-icons mode-icon">error_outline</span>
               <span>Sadece Yanlışlar</span>
             </button>
             <button class="mode-btn" onclick="startSmartTest('favorites')">
-              <span class="mode-icon">⭐</span>
+              <span class="material-icons mode-icon">bookmark_border</span>
               <span>Favoriler</span>
             </button>
           </div>
@@ -1375,6 +1390,7 @@
       try {
         let totalCount = 0;
         let solvedCount = 0;
+        let wrongCount = 0;
 
         // Öncelikle alt konu var mı kontrol et (Firestore Index hatası/eksik field hatası almamak için tümünü çekip js ile süzüyoruz)
         const subtopicsQuery = query(
@@ -1415,6 +1431,7 @@
             if (auth.currentUser) {
               const progress = await TopicService.getUserProgress(auth.currentUser.uid, sId);
               solvedCount += (progress.solvedIds || []).length;
+              wrongCount += (progress.wrongIds || []).length;
             }
           }
         } else {
@@ -1433,20 +1450,21 @@
             totalCount = allIds.length;
           }
 
-          // 2. Çözülenler
+          // 2. Çözülenler ve Yanlışlar
           if (auth.currentUser) {
             const progress = await TopicService.getUserProgress(auth.currentUser.uid, currentTopicId);
             solvedCount = (progress.solvedIds || []).length;
+            wrongCount = (progress.wrongIds || []).length;
           }
         }
 
-        updateStudyModeState(totalCount, solvedCount);
+        updateStudyModeState(totalCount, solvedCount, wrongCount);
       } catch (e) {
         console.warn("Soru sayısı çekilemedi:", e);
       }
     }
 
-    function updateStudyModeState(totalCount, solvedCount) {
+    function updateStudyModeState(totalCount, solvedCount, wrongCount) {
       const status = document.getElementById('studyModeStatus');
       const modeButtons = document.querySelectorAll('.mode-btn');
       const progressBar = document.getElementById('topicProgressBar');
@@ -1493,6 +1511,10 @@
             <div class="study-mode-metric">
               <span class="study-mode-metric-label">Kalan</span>
               <strong class="study-mode-metric-value">${remaining}</strong>
+            </div>
+            <div class="study-mode-metric">
+              <span class="study-mode-metric-label">Yanlış</span>
+              <strong class="study-mode-metric-value" style="color:var(--color-danger)">${wrongCount || 0}</strong>
             </div>
           </div>`;
       }
