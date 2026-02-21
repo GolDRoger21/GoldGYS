@@ -248,14 +248,15 @@
     .topic-progress-hero {
       display: grid;
       grid-template-columns: minmax(0, 1fr) auto;
-      gap: 10px;
+      gap: 12px;
       align-items: center;
-      margin-top: 16px;
-      padding: 12px 14px;
+      margin-top: 18px;
+      padding: 14px 16px;
       border-radius: var(--radius-md);
-      border: 1px solid var(--border-subtle);
-      background: linear-gradient(160deg, rgba(191, 149, 63, 0.12), rgba(191, 149, 63, 0.03) 45%, var(--bg-surface-elevated));
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 3px 10px rgba(0, 0, 0, 0.04);
+      border: 1px solid rgba(191, 149, 63, 0.4);
+      background: linear-gradient(160deg, rgba(191, 149, 63, 0.15), rgba(191, 149, 63, 0.05) 100%, var(--bg-surface-elevated));
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 4px 12px rgba(191, 149, 63, 0.1);
+      position: relative;
     }
 
     .topic-question-chip {
@@ -505,39 +506,56 @@
 
     /* Mobil Uyum */
     @media (max-width: 768px) {
+      .dashboard-container {
+        padding: 16px 12px;
+      }
+
       .filter-section {
         flex-direction: column;
         align-items: stretch;
         gap: 16px;
+        margin-bottom: 20px;
       }
 
       .search-box input {
         padding-top: 12px;
         padding-bottom: 12px;
+        font-size: 1rem;
       }
 
       .tabs {
         width: 100%;
         justify-content: center;
-        flex-wrap: wrap;
-        padding: 8px;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        padding: 6px;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        /* Firefox */
+      }
+
+      .tabs::-webkit-scrollbar {
+        display: none;
+        /* Chrome/Safari */
       }
 
       .tab-btn {
-        flex: 1;
+        flex: 1 0 auto;
         text-align: center;
         padding: 10px 16px;
         min-width: 80px;
+        white-space: nowrap;
       }
 
       .topics-grid {
         grid-template-columns: 1fr;
-        gap: 20px;
+        gap: 16px;
       }
 
       .topic-card {
-        padding: 24px;
+        padding: 20px;
         border-radius: var(--radius-lg);
+        min-height: auto;
       }
 
       .topic-icon {
@@ -550,26 +568,38 @@
         flex-direction: column;
         align-items: flex-start;
         padding: 14px;
+        gap: 8px;
       }
 
       .subtopic-meta {
         width: 100%;
-        margin-top: 6px;
-        padding-left: 2px;
+        margin-top: 4px;
       }
 
       .topic-progress-line {
         flex-direction: column;
         align-items: flex-start;
+        gap: 4px;
+        font-size: 0.8rem;
       }
 
       .topic-progress-hero {
         grid-template-columns: 1fr;
         align-items: stretch;
+        padding: 16px;
       }
 
       .topic-question-chip {
         justify-content: center;
+        margin-top: 8px;
+      }
+
+      .topic-title {
+        font-size: 1.15rem;
+      }
+
+      .topic-desc {
+        font-size: 0.9rem;
       }
     }
   </style>
@@ -702,33 +732,68 @@
 
     function pickIcon(title, category, isSubtopic = false) {
       const iconRules = [
+        // Temel Hukuk & Anayasa
         { match: /anayasa|anayasal/i, icon: '📘' },
-        { match: /yasama|tbmm|meclis/i, icon: '🏛️' },
-        { match: /yürütme|cumhurbaşkanı|bakanlar|hükümet/i, icon: '🗂️' },
-        { match: /yargı|mahkeme|hâkim|savcı/i, icon: '⚖️' },
-        { match: /atatürk|inkılap|kurtuluş|mill[iî] mücadele|osmanlı|çağdaş türk/i, icon: '🇹🇷' },
-        { match: /ceza|tck|cmk|infaz|suç|kovuşturma/i, icon: '🚨' },
+        { match: /yasama|tbmm|meclis|kanun/i, icon: '🏛️' },
+        { match: /yürütme|cumhurbaşkanı|bakanlar|hükümet|kararname/i, icon: '🗂️' },
+        { match: /yargı|mahkeme|hâkim|savcı|adalet/i, icon: '⚖️' },
+
+        // Tarih & İnkılap
+        { match: /atatürk|inkılap|kurtuluş|mill[iî] mücadele|osmanlı|çağdaş türk|tarih/i, icon: '🇹🇷' },
+
+        // Ceza Hukuku
+        { match: /ceza|tck|cmk|infaz|suç|kovuşturma|soruşturma/i, icon: '🚨' },
+
+        // İcra & İflas
         { match: /icra|iflas/i, icon: '📂' },
-        { match: /idare|idari|kamu yönetimi|teşkilat/i, icon: '🏢' },
+
+        // İdare Hukuku
+        { match: /idare|idari|kamu yönetimi|teşkilat|memur|personel/i, icon: '🏢' },
+        { match: /bilgi edinme|dilekçe/i, icon: '📬' },
+
+        // Tebligat & İletişim
         { match: /tebligat|bildirim/i, icon: '📩' },
-        { match: /insan hak|eşitlik/i, icon: '🤝' },
+        { match: /yazışma|resm[iî] yazışma/i, icon: '📝' },
+        { match: /iletişim|halkla ilişkiler|tanıtım|medya/i, icon: '💬' },
+
+        // İnsan Hakları & Uluslararası
+        { match: /insan hak|eşitlik|özgürlük/i, icon: '🤝' },
         { match: /uluslararası|avrupa birliği|ab müktesebat|küresel/i, icon: '🌍' },
-        { match: /vergi|mali|muhasebe|bütçe|finans/i, icon: '💰' },
-        { match: /medeni|aile|miras/i, icon: '👨‍👩‍👧' },
-        { match: /ticaret|şirket|sermaye/i, icon: '📈' },
-        { match: /iş hukuku|çalışma|sosyal güvenlik/i, icon: '🧰' },
-        { match: /yazışma|resm[iî] yazışma|dilekçe/i, icon: '📝' },
-        { match: /türkçe|dil bilgisi|imla|noktalama/i, icon: '🔤' },
-        { match: /mevzuat|yönetmelik|genelge/i, icon: '📜' },
+
+        // Maliye & Vergi
+        { match: /vergi|mali|muhasebe|bütçe|finans|ekonomi/i, icon: '💰' },
+
+        // Medeni & Borçlar Hukuku
+        { match: /medeni|aile|miras|eşya/i, icon: '👨‍👩‍👧' },
+        { match: /borç/i, icon: '🧾' },
+
+        // Ticaret & İş Hukuku
+        { match: /ticaret|şirket|sermaye|kıymetli evrak/i, icon: '📈' },
+        { match: /iş hukuku|çalışma|sosyal güvenlik|sendika/i, icon: '🧰' },
+
+        // Türkçe & Edebiyat
+        { match: /türkçe|dil bilgisi|imla|noktalama|paragraf|sözcük/i, icon: '🔤' },
+
+        // Mevzuat & Kurallar
+        { match: /mevzuat|yönetmelik|genelge|tüzük|yönerge/i, icon: '📜' },
         { match: /etik|disiplin|meslek ilkeleri/i, icon: '🧭' },
-        { match: /iletişim|halkla ilişkiler|tanıtım/i, icon: '💬' },
-        { match: /teknoloji|bilişim|siber|veri/i, icon: '💻' },
+
+        // Bilişim & Teknoloji
+        { match: /teknoloji|bilişim|siber|veri|bilgisayar|internet/i, icon: '💻' },
+
+        // Sağlık & Çevre
         { match: /sağlık|tıp/i, icon: '🩺' },
-        { match: /eğitim|öğretim/i, icon: '🎓' },
+        { match: /çevre|imar|şehircilik|doğa/i, icon: '🌿' },
+
+        // Diğer Genel Konular
+        { match: /eğitim|öğretim|pedagoji/i, icon: '🎓' },
         { match: /güvenlik|asayiş|jandarma|polis/i, icon: '🛡️' },
-        { match: /çevre|imar|şehircilik/i, icon: '🌿' },
         { match: /coğrafya/i, icon: '🗺️' },
-        { match: /matematik|sayısal|istatistik/i, icon: '📐' }
+        { match: /matematik|sayısal|istatistik|geometri/i, icon: '📐' },
+        { match: /vatandaşlık/i, icon: '🙋' },
+        { match: /mantık/i, icon: '🧩' },
+        { match: /giriş/i, icon: '💡' },
+        { match: /genel|temel/i, icon: '📌' }
       ];
       const matchedRule = iconRules.find(rule => rule.match.test(title));
       if (matchedRule) return matchedRule.icon;
@@ -805,15 +870,7 @@
         const progressBase = Math.max(expectedQuestionCount || 0, 1);
         const progress = Math.min(100, Math.round((solvedTotal / progressBase) * 100));
         const completionBase = Math.max(expectedQuestionCount || 0);
-        const hasChildren = allChildrenForTotals.length > 0;
-        const areAllChildrenCompleted = hasChildren
-          ? allChildrenForTotals.every((child) => {
-            const childQuestionCount = getQuestionCount(child.id);
-            if (childQuestionCount <= 0) return false;
-            return (userStats[child.id]?.solved || 0) >= childQuestionCount;
-          })
-          : false;
-        const isCompleted = completionBase > 0 && (hasChildren ? areAllChildrenCompleted : solvedTotal >= completionBase);
+        const isCompleted = progress >= 100;
 
         return {
           topic: t,
