@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dersler & Konular | GOLD GYS</title>
   <link rel="stylesheet" href="../styles/tokens.css">
-    <link rel="stylesheet" href="../css/app.css">
+  <link rel="stylesheet" href="../css/app.css">
   <link rel="stylesheet" href="../css/layout.css">
   <link rel="stylesheet" href="../css/dashboard.css">
   <link rel="icon" type="image/svg+xml" href="../icons/favicon.svg">
@@ -208,6 +208,7 @@
       flex-grow: 1;
       display: -webkit-box;
       -webkit-line-clamp: 2;
+      line-clamp: 2;
       -webkit-box-orient: vertical;
       overflow: hidden;
     }
@@ -315,7 +316,7 @@
       }
     }
   </style>
-    <script src="/js/theme-init.js"></script>
+  <script src="/js/theme-init.js"></script>
 </head>
 
 <body>
@@ -507,14 +508,13 @@
         const totalQuestionCount = getQuestionCount(t.id)
           + allChildrenForTotals.reduce((sum, child) => sum + getQuestionCount(child.id), 0);
 
-        const card = document.createElement('a');
-        card.href = `/konu/${encodeURIComponent(t.id)}`;
+        const card = document.createElement('div');
         card.className = 'topic-card';
 
         const subtopicsHtml = childrenToShow.length ? `
                     <div class="subtopic-list">
                         ${childrenToShow.map(child => `
-                            <a class="subtopic-link" href="/konu/${encodeURIComponent(child.id)}">
+                            <a class="subtopic-link" href="/konu/${encodeURIComponent(child.id)}" style="text-decoration:none;">
                                 <span>${child.title}</span>
                                 <span class="subtopic-meta">Sıra ${child.order || '-'} • ${getQuestionCount(child.id)} Soru</span>
                             </a>
@@ -540,21 +540,23 @@
                 `;
 
         card.innerHTML = `
-                    <div class="card-header-row">
-                        <div class="topic-icon">${icon}</div>
-                        <span class="topic-badge badge-${t.category}">${t.category === 'ortak' ? 'Ortak' : 'Alan'}</span>
-                    </div>
-                    
-                    <h3 class="topic-title">${t.title}</h3>
-                    <p class="topic-desc">${t.description || 'Konu açıklaması bulunmuyor.'}</p>
-                    <div class="topic-meta">
-                        <span class="topic-meta-item">📌 ${childrenTotal} Alt Konu</span>
-                        <span class="topic-meta-item">🧮 ${totalQuestionCount} Soru</span>
-                        <span class="topic-meta-item">🎯 ${questionTarget} Hedef Soru</span>
-                    </div>
-                    ${subtopicsHtml}
-                    ${statsHtml}
-                `;
+            <a href="/konu/${encodeURIComponent(t.id)}" class="topic-main-link" style="text-decoration:none; color:inherit; display:block; flex-grow: 1;">
+                <div class="card-header-row">
+                    <div class="topic-icon">${icon}</div>
+                    <span class="topic-badge badge-${t.category}">${t.category === 'ortak' ? 'Ortak' : 'Alan'}</span>
+                </div>
+                
+                <h3 class="topic-title">${t.title}</h3>
+                <p class="topic-desc">${t.description || 'Konu açıklaması bulunmuyor.'}</p>
+                <div class="topic-meta">
+                    <span class="topic-meta-item">📌 ${childrenTotal} Alt Konu</span>
+                    <span class="topic-meta-item">🧮 ${totalQuestionCount} Soru</span>
+                    <span class="topic-meta-item">🎯 ${questionTarget} Hedef Soru</span>
+                </div>
+            </a>
+            ${subtopicsHtml}
+            ${statsHtml}
+        `;
         container.appendChild(card);
       });
     }

@@ -4,6 +4,7 @@ export const UI_SHELL = `
     <div class="section-header">
         <h2>📑 Konu Yönetimi</h2>
         <div class="d-flex gap-2">
+            <button class="btn btn-light border btn-sm text-muted fw-bold" onclick="window.Studio.trash.open()" title="Çöp Kutusu">🗑️ Çöp Kutusu</button>
             <button class="btn btn-primary btn-sm" onclick="window.Studio.open()">➕ Yeni Konu</button>
         </div>
     </div>

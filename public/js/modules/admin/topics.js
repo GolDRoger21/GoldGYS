@@ -55,6 +55,8 @@ export function initTopicsPage() {
         saveContent: saveContent,
         deleteContent: deleteContent,
         promoteToSubtopic: promoteToSubtopic,
+        deleteTopic: deleteTopic,
+        demoteToLesson: demoteToLesson,
 
         // Materyal İşlemleri
         addMat: addMaterialUI,
@@ -262,7 +264,11 @@ function renderTopicsTable() {
             <td><span class="badge bg-light border text-dark">${topic.category}</span></td>
             <td>${topic.lessonCount || 0}</td>
             <td>${topic.isActive ? '<span class="text-success">Yayında</span>' : '<span class="text-muted">Taslak</span>'}</td>
-            <td class="text-end"><button class="btn btn-sm btn-primary" onclick="window.Studio.open('${topic.id}')">Stüdyo</button></td>
+            <td class="text-end">
+                ${depth ? `<button class="btn btn-sm btn-outline-secondary me-1" onclick="window.Studio.demoteToLesson('${topic.id}', event)" title="Ders Notu Yap">📄</button>` : ''}
+                <button class="btn btn-sm btn-outline-danger me-1" onclick="window.Studio.deleteTopic('${topic.id}', event)" title="Sil">🗑️</button>
+                <button class="btn btn-sm btn-primary" onclick="window.Studio.open('${topic.id}')">Stüdyo</button>
+            </td>
         </tr>
     `).join('') : '<tr><td colspan="7" class="text-center p-4">Kayıt bulunamadı.</td></tr>';
 }
@@ -714,6 +720,72 @@ async function promoteToSubtopic(id, ev) {
     } catch (e) {
         console.error(e);
         showToast(`Alt konu oluşturulamadı: ${e.message}`, "error");
+    }
+}
+
+async function deleteTopic(id, ev) {
+    ev?.stopPropagation();
+    const shouldDelete = await showConfirm("Bu konuyu silmek/çöpe taşımak istediğinize emin misiniz?", {
+        title: "Konuyu Sil",
+        confirmText: "Sil",
+        cancelText: "Vazgeç",
+        tone: "error"
+    });
+    if (!shouldDelete) return;
+
+    try {
+        await updateDoc(doc(db, "topics", id), {
+            status: 'deleted',
+            isDeleted: true,
+            deletedAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
+        });
+        showToast("Konu çöp kutusuna taşındı.", "success");
+        loadTopics();
+    } catch (e) {
+        showToast("Silme hatası: " + e.message, "error");
+    }
+}
+
+async function demoteToLesson(id, ev) {
+    ev?.stopPropagation();
+    const item = state.allTopics.find(x => x.id === id);
+    if (!item || !item.parentId) {
+        showToast("Sadece alt konular ders notuna dönüştürülebilir.", "info");
+        return;
+    }
+
+    const confirmMsg = `"${item.title}" alt konusunu ders notuna dönüştürmek istiyor musunuz?\nBu işlem alt konuyu silip, üst konuya bir ders olarak ekleyecektir.`;
+    const shouldProceed = await showConfirm(confirmMsg, {
+        title: "Ders Notu Yap",
+        confirmText: "Dönüştür",
+        cancelText: "Vazgeç"
+    });
+    if (!shouldProceed) return;
+
+    try {
+        const lessonPayload = {
+            title: item.title,
+            type: 'lesson',
+            order: item.order || 1,
+            isActive: true,
+            materials: [],
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
+        };
+        await addDoc(collection(db, `topics/${item.parentId}/lessons`), lessonPayload);
+        await updateDoc(doc(db, "topics", id), {
+            status: 'deleted',
+            isDeleted: true,
+            deletedAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
+        });
+
+        showToast("Ders notuna dönüştürüldü.", "success");
+        loadTopics();
+    } catch (e) {
+        console.error(e);
+        showToast(`Dönüştürülemedi: ${e.message}`, "error");
     }
 }
 
