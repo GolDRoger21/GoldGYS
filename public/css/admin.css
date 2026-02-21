@@ -1791,6 +1791,19 @@ tr.highlight {
     font-weight: 500;
 }
 
+.studio-topic-actions {
+    padding: 10px 12px;
+    border-top: 1px solid var(--border-color);
+    background: var(--bg-surface);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.studio-topic-actions .btn {
+    justify-content: flex-start;
+    font-weight: 600;
+}
 
 
 
