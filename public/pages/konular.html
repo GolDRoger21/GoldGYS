@@ -251,6 +251,8 @@
       justify-content: space-between;
       align-items: flex-start;
       margin-bottom: 15px;
+      gap: 12px;
+      flex-wrap: wrap;
     }
 
     .topic-progress-hero {
@@ -443,6 +445,7 @@
       font-weight: 600;
       border: 1px solid var(--border-subtle);
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+      min-width: 0;
     }
 
     /* İstatistik Alanı */
@@ -591,6 +594,11 @@
         width: 100%;
       }
 
+      .subtopic-title-wrap>span:last-child {
+        white-space: normal;
+        word-break: break-word;
+      }
+
       .subtopic-meta {
         width: 100%;
         margin-top: 4px;
@@ -622,6 +630,13 @@
 
       .topic-desc {
         font-size: 0.9rem;
+        -webkit-line-clamp: 3;
+        line-clamp: 3;
+      }
+
+      .topic-meta-item {
+        flex: 1 1 140px;
+        justify-content: center;
       }
     }
 
@@ -650,6 +665,35 @@
       .topic-question-chip {
         width: 100%;
         justify-content: center;
+      }
+
+      .topic-progress-hero {
+        padding: 12px;
+      }
+
+      .topic-health,
+      .topic-card {
+        border-radius: 14px;
+      }
+
+      .subtopic-meta-badge {
+        padding: 2px 7px;
+      }
+    }
+
+    @media (max-width: 380px) {
+      .tab-btn {
+        min-width: 72px;
+        padding: 8px 10px;
+      }
+
+      .topic-meta-item {
+        flex-basis: 100%;
+      }
+
+      .topic-health-main {
+        flex-direction: column;
+        align-items: flex-start;
       }
     }
   </style>
