@@ -404,9 +404,6 @@
       .topic-header {
         padding: 16px 14px;
         background: var(--bg-surface);
-        position: sticky;
-        top: 0;
-        z-index: 100;
         border-bottom: 1px solid var(--border-color);
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
         /* Native shadow */
@@ -419,22 +416,22 @@
       }
 
       .topic-back-btn {
-        margin-bottom: 0;
-        padding: 0;
-        width: 36px;
-        height: 36px;
-        border-radius: 50%;
+        margin-bottom: 0 !important;
+        padding: 0 !important;
+        width: 36px !important;
+        height: 36px !important;
+        border-radius: 50% !important;
         /* Circle shape */
-        display: flex;
+        display: flex !important;
         align-items: center;
         justify-content: center;
-        border: none;
-        background: var(--bg-hover);
+        border: none !important;
+        background: var(--bg-hover) !important;
         flex-shrink: 0;
       }
 
       .topic-back-btn:active {
-        background: var(--border-color);
+        background: var(--border-color) !important;
         transform: scale(0.95);
       }
 
@@ -458,7 +455,9 @@
         text-overflow: ellipsis;
         word-break: break-word;
         margin: 0;
-        padding-right: 10px;
+        padding-right: 5px;
+        flex: 1;
+        min-width: 0;
       }
 
       .progress-wrapper {
@@ -510,8 +509,6 @@
         gap: 10px;
         scroll-snap-type: x mandatory;
         -webkit-overflow-scrolling: touch;
-        margin-right: -14px;
-        padding-right: 14px;
       }
 
       /* Hide native scrollbar */
@@ -520,8 +517,9 @@
       }
 
       .companion-kpi {
-        flex: 0 0 calc(50% - 14px);
-        min-width: 120px;
+        flex: 0 0 auto;
+        width: calc(50% - 5px);
+        min-width: 130px;
         scroll-snap-align: start;
         flex-direction: column;
         align-items: flex-start;
@@ -529,6 +527,7 @@
         padding: 12px;
         gap: 6px;
         border-radius: 12px;
+        box-sizing: border-box;
       }
 
       .companion-kpi span {
