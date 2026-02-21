@@ -108,6 +108,7 @@
       font-size: 0.9rem;
       border: 1px solid transparent;
       transition: all 0.2s ease;
+      gap: 10px;
     }
 
     .subtopic-link:hover {
@@ -119,6 +120,21 @@
       font-size: 0.75rem;
       color: var(--text-muted);
       font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .subtopic-title-wrap {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .subtopic-icon {
+      font-size: 1rem;
+      opacity: 0.9;
     }
 
     /* Modern Konu Kartı */
@@ -135,6 +151,7 @@
       color: var(--text-main);
       overflow: hidden;
       min-height: 260px;
+      box-shadow: var(--shadow-sm);
     }
 
     .topic-card:hover {
@@ -220,6 +237,41 @@
       margin-bottom: 16px;
     }
 
+    .topic-health {
+      margin-bottom: 16px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: var(--bg-hover);
+      border: 1px solid var(--border-subtle);
+    }
+
+    .topic-health-title {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      font-weight: 600;
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    .topic-health-main {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .topic-health-value {
+      font-weight: 800;
+      font-size: 1.05rem;
+      color: var(--text-main);
+    }
+
+    .topic-health-target {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
     .topic-meta-item {
       display: inline-flex;
       align-items: center;
@@ -268,17 +320,17 @@
 
     /* Progress Bar */
     .progress-container {
-      position: absolute;
-      bottom: 0;
-      left: 0;
+      margin-top: 12px;
       width: 100%;
-      height: 4px;
+      height: 6px;
       background: var(--bg-hover);
+      border-radius: 999px;
+      overflow: hidden;
     }
 
     .progress-fill {
       height: 100%;
-      background: var(--color-primary);
+      background: linear-gradient(90deg, var(--color-primary), #f8d97d);
       width: 0%;
       transition: width 0.5s ease;
     }
@@ -313,6 +365,15 @@
         width: 44px;
         height: 44px;
         font-size: 1.5rem;
+      }
+
+      .subtopic-link {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .subtopic-meta {
+        width: 100%;
       }
     }
   </style>
@@ -352,12 +413,12 @@
 
   <script type="module">
     import { db, auth } from '../js/firebase-config.js';
-    import { collection, getDocs, query, orderBy, doc, getDoc, where, getCountFromServer } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
     import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
     let allTopics = [];
-    let userStats = {}; // { topicId: { solved: 10, correct: 8 } }
-    let questionCounts = new Map(); // { topicId: count }
+    let userStats = {};
+    let questionCounts = new Map();
 
     document.addEventListener('DOMContentLoaded', () => {
       onAuthStateChanged(auth, async (user) => {
@@ -368,19 +429,19 @@
       });
     });
 
-    // Kullanıcı İstatistiklerini Çek (Mock veya Gerçek)
     async function loadUserStats(uid) {
       try {
-        // Gerçek uygulamada 'user_stats' koleksiyonundan çekilir
-        // Şimdilik demo veri veya boş obje
-        // const snap = await getDocs(collection(db, `users/${uid}/topic_stats`));
-        // snap.forEach(...)
-
-        // Demo Veri (Görseli test etmek için)
-        userStats = {
-          'topic_anayasa': { solved: 45, correct: 38, total: 120 },
-          'topic_cmk': { solved: 12, correct: 5, total: 80 }
-        };
+        const progressSnap = await getDocs(collection(db, `users/${uid}/topic_progress`));
+        const stats = {};
+        progressSnap.forEach((progressDoc) => {
+          const data = progressDoc.data() || {};
+          const solved = Array.isArray(data.solvedIds)
+            ? data.solvedIds.length
+            : Object.keys(data.answers || {}).length;
+          const correct = Number(data.correctCount || 0);
+          stats[progressDoc.id] = { solved, correct };
+        });
+        userStats = stats;
       } catch (e) { console.error(e); }
     }
 
@@ -407,22 +468,55 @@
     }
 
     async function loadQuestionCounts(topics) {
+      const topicIds = new Set(topics.map(topic => topic.id));
       const counts = new Map();
-      await Promise.all(topics.map(async (topic) => {
-        try {
-          const q = query(
-            collection(db, "questions"),
-            where("category", "==", topic.title),
-            where("isActive", "==", true)
-          );
-          const snap = await getCountFromServer(q);
-          counts.set(topic.id, snap.data().count || 0);
-        } catch (e) {
-          console.warn(`Soru sayısı alınamadı: ${topic.title}`, e);
-          counts.set(topic.id, 0);
-        }
-      }));
+      try {
+        const metaSnapshot = await getDocs(collection(db, 'topic_packs_meta'));
+        metaSnapshot.forEach((metaDoc) => {
+          const data = metaDoc.data() || {};
+          const topicId = data.topicId || metaDoc.id;
+          if (topicIds.has(topicId)) {
+            counts.set(topicId, Number(data.questionCount || 0));
+          }
+        });
+      } catch (e) {
+        console.warn('topic_packs_meta verileri okunamadı:', e);
+      }
+
+      topics.forEach((topic) => {
+        if (!counts.has(topic.id)) counts.set(topic.id, 0);
+      });
       questionCounts = counts;
+    }
+
+    function pickIcon(title, category, isSubtopic = false) {
+      const iconRules = [
+        { match: /anayasa|anayasal/i, icon: '⚖️' },
+        { match: /atatürk|inkılap|tarih|ulusal/i, icon: '🇹🇷' },
+        { match: /ceza|tck|cmk|infaz|suç|kovuşturma/i, icon: '🚔' },
+        { match: /idare|idari|yönetim|teşkilat/i, icon: '🏛️' },
+        { match: /yazışma|yazı işleri|dilekçe|dil bilgisi/i, icon: '✍️' },
+        { match: /tebligat|bildirim/i, icon: '📩' },
+        { match: /insan hak|eşitlik|hak/i, icon: '🤝' },
+        { match: /uluslararası|avrupa|küresel/i, icon: '🌍' },
+        { match: /vergi|mali|muhasebe|bütçe|finans/i, icon: '💰' },
+        { match: /icra|iflas/i, icon: '📑' },
+        { match: /medeni|aile|miras/i, icon: '🏠' },
+        { match: /ticaret|şirket|sermaye/i, icon: '🏢' },
+        { match: /iş hukuk|çalışma|sosyal güvenlik/i, icon: '👷' },
+        { match: /mevzuat|yönetmelik|genelge/i, icon: '📜' },
+        { match: /etik|disiplin|kurallar/i, icon: '🧭' },
+        { match: /iletişim|halkla|tanıtım/i, icon: '💬' },
+        { match: /teknoloji|bilişim|siber|veri/i, icon: '💻' },
+        { match: /sağlık|tıp/i, icon: '🩺' },
+        { match: /eğitim|öğretim/i, icon: '🎓' },
+        { match: /güvenlik|asayiş|jandarma|polis/i, icon: '🛡️' },
+        { match: /çevre|imar|şehir/i, icon: '🌿' }
+      ];
+      const matchedRule = iconRules.find(rule => rule.match.test(title));
+      if (matchedRule) return matchedRule.icon;
+      if (isSubtopic) return '▫️';
+      return category === 'alan' ? '📗' : '📘';
     }
 
     function renderTopics(topics, options = {}) {
@@ -464,30 +558,7 @@
       container.innerHTML = '';
       const getQuestionCount = (id) => questionCounts.get(id) || 0;
       visibleParents.forEach(t => {
-        const iconRules = [
-          { match: /anayasa|anayasal/i, icon: '⚖️' },
-          { match: /ceza|tck|cmk|infaz|suç|kovuşturma/i, icon: '🚔' },
-          { match: /idare|idari|yönetim/i, icon: '🏛️' },
-          { match: /yazışma|yazı işleri|dilekçe/i, icon: '✍️' },
-          { match: /tebligat|bildirim/i, icon: '📩' },
-          { match: /insan hak|eşitlik|hak/i, icon: '🤝' },
-          { match: /uluslararası|avrupa|küresel/i, icon: '🌍' },
-          { match: /vergi|mali|muhasebe|bütçe|finans/i, icon: '💰' },
-          { match: /icra|iflas/i, icon: '📑' },
-          { match: /medeni|aile|miras/i, icon: '🏠' },
-          { match: /ticaret|şirket|sermaye/i, icon: '🏢' },
-          { match: /iş hukuk|çalışma|sosyal güvenlik/i, icon: '👷' },
-          { match: /mevzuat|yönetmelik|genelge/i, icon: '📜' },
-          { match: /etik|disiplin|kurallar/i, icon: '🧭' },
-          { match: /iletişim|halkla|tanıtım/i, icon: '💬' },
-          { match: /teknoloji|bilişim|siber|veri/i, icon: '💻' },
-          { match: /sağlık|tıp/i, icon: '🩺' },
-          { match: /eğitim|öğretim/i, icon: '🎓' },
-          { match: /güvenlik|asayiş|jandarma|polis/i, icon: '🛡️' },
-          { match: /çevre|imar|şehir/i, icon: '🌿' }
-        ];
-        const matchedRule = iconRules.find(rule => rule.match.test(t.title));
-        const icon = matchedRule?.icon || (t.category === 'alan' ? '📗' : '📘');
+        const icon = pickIcon(t.title, t.category);
 
         const allChildren = (childrenByParent.get(t.id) || []).filter(child =>
           category === 'all' || child.category === category
@@ -500,13 +571,21 @@
         const childrenToShow = searchTerm && !parentMatches ? matchingChildren : allChildren;
 
         // İstatistikler
-        const stats = userStats[t.id] || { solved: 0, correct: 0, total: t.totalQuestionTarget || 100 };
-        const successRate = stats.solved > 0 ? Math.round((stats.correct / stats.solved) * 100) : 0;
-        const progress = Math.min(100, Math.round((stats.solved / stats.total) * 100));
-        const childrenTotal = (childrenByParent.get(t.id) || []).length;
-        const questionTarget = t.totalQuestionTarget || stats.total || 0;
+        const ownStats = userStats[t.id] || { solved: 0, correct: 0 };
+        const childStats = allChildrenForTotals.reduce((acc, child) => {
+          const childProgress = userStats[child.id] || { solved: 0, correct: 0 };
+          acc.solved += childProgress.solved;
+          acc.correct += childProgress.correct;
+          return acc;
+        }, { solved: 0, correct: 0 });
+        const solvedTotal = ownStats.solved + childStats.solved;
+        const correctTotal = ownStats.correct + childStats.correct;
+        const successRate = solvedTotal > 0 ? Math.round((correctTotal / solvedTotal) * 100) : 0;
+        const questionTarget = t.totalQuestionTarget || 0;
         const totalQuestionCount = getQuestionCount(t.id)
           + allChildrenForTotals.reduce((sum, child) => sum + getQuestionCount(child.id), 0);
+        const progressBase = Math.max(totalQuestionCount || 0, questionTarget || 0, 1);
+        const progress = Math.min(100, Math.round((solvedTotal / progressBase) * 100));
 
         const card = document.createElement('div');
         card.className = 'topic-card';
@@ -515,8 +594,14 @@
                     <div class="subtopic-list">
                         ${childrenToShow.map(child => `
                             <a class="subtopic-link" href="/konu/${encodeURIComponent(child.id)}" style="text-decoration:none;">
-                                <span>${child.title}</span>
-                                <span class="subtopic-meta">Sıra ${child.order || '-'} • ${getQuestionCount(child.id)} Soru</span>
+                                <span class="subtopic-title-wrap">
+                                  <span class="subtopic-icon">${pickIcon(child.title, child.category, true)}</span>
+                                  <span>${child.title}</span>
+                                </span>
+                                <span class="subtopic-meta">
+                                  <span>🧮 ${getQuestionCount(child.id)} soru</span>
+                                  <span>✅ ${(userStats[child.id]?.solved || 0)} çözüldü</span>
+                                </span>
                             </a>
                         `).join('')}
                     </div>
@@ -525,8 +610,8 @@
         const statsHtml = childrenToShow.length ? '' : `
                     <div class="stats-row">
                         <div class="stat-item">
-                            <span class="stat-val stat-total">${stats.solved} / ${stats.total}</span>
-                            <span class="stat-lbl">Çözülen Soru</span>
+                            <span class="stat-val stat-total">${solvedTotal} / ${progressBase}</span>
+                            <span class="stat-lbl">Toplam İlerleme</span>
                         </div>
                         <div class="stat-item">
                             <span class="stat-val stat-success">%${successRate}</span>
@@ -549,9 +634,19 @@
                 <h3 class="topic-title">${t.title}</h3>
                 <p class="topic-desc">${t.description || 'Konu açıklaması bulunmuyor.'}</p>
                 <div class="topic-meta">
-                    <span class="topic-meta-item">📌 ${childrenTotal} Alt Konu</span>
-                    <span class="topic-meta-item">🧮 ${totalQuestionCount} Soru</span>
-                    <span class="topic-meta-item">🎯 ${questionTarget} Hedef Soru</span>
+                    <span class="topic-meta-item">🧮 ${totalQuestionCount} Toplam Soru Havuzu</span>
+                    <span class="topic-meta-item">📊 Sınavda ${questionTarget} Soru</span>
+                    <span class="topic-meta-item">✅ ${solvedTotal} Soru Çözüldü</span>
+                </div>
+                <div class="topic-health">
+                    <span class="topic-health-title">Konu Hazırlık Durumu</span>
+                    <div class="topic-health-main">
+                      <span class="topic-health-value">%${progress}</span>
+                      <span class="topic-health-target">Hedef: ${progressBase} soru bazında</span>
+                    </div>
+                    <div class="progress-container">
+                      <div class="progress-fill" style="width: ${progress}%"></div>
+                    </div>
                 </div>
             </a>
             ${subtopicsHtml}
