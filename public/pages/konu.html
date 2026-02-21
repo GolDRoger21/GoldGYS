@@ -184,6 +184,12 @@
       gap: 40px;
     }
 
+    .main-section {
+      display: grid;
+      gap: 18px;
+      align-content: start;
+    }
+
     .main-section,
     .side-section {
       min-width: 0;
@@ -354,6 +360,28 @@
       margin: 0 auto;
     }
 
+    .topic-header-meta {
+      margin-top: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .topic-header-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--color-primary) 14%, transparent);
+      color: var(--text-main);
+      font-size: 0.78rem;
+      font-weight: 600;
+      border: 1px solid color-mix(in srgb, var(--color-primary) 34%, var(--border-color));
+    }
+
     .topic-header-top {
       display: flex;
       flex-direction: column;
@@ -418,14 +446,18 @@
         gap: 20px;
       }
 
+      .main-section {
+        gap: 14px;
+      }
+
       .topic-header {
         position: sticky;
         top: 0;
-        padding: calc(10px + env(safe-area-inset-top)) 12px 10px;
-        background: var(--bg-surface);
+        padding: calc(10px + env(safe-area-inset-top)) 12px 12px;
+        background: color-mix(in srgb, var(--bg-surface) 86%, transparent);
         border-bottom: 1px solid var(--border-color);
         box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
-        backdrop-filter: saturate(140%) blur(6px);
+        backdrop-filter: saturate(160%) blur(14px);
       }
 
       .topic-header-top {
@@ -481,12 +513,23 @@
 
       .progress-wrapper {
         margin-top: 10px;
-        height: 4px;
+        height: 5px;
+        border-radius: 999px;
       }
 
       .progress-text {
-        font-size: 0.78rem;
-        margin-top: 5px;
+        font-size: 0.74rem;
+        margin-top: 7px;
+        opacity: 0.95;
+      }
+
+      .topic-header-meta {
+        margin-top: 8px;
+      }
+
+      .topic-header-chip {
+        font-size: 0.72rem;
+        padding: 5px 9px;
       }
 
       .test-card,
@@ -494,12 +537,15 @@
       .subtopic-section,
       .learning-companion {
         padding: 14px;
-        border-radius: 18px;
+        border-radius: 20px;
         box-shadow: 0 5px 16px rgba(20, 20, 20, 0.06);
       }
 
       .study-mode-card {
-        padding: 18px 14px;
+        padding: 18px 14px 16px;
+        background: linear-gradient(160deg,
+            color-mix(in srgb, var(--bg-surface) 90%, transparent),
+            color-mix(in srgb, var(--color-primary) 9%, var(--bg-surface)));
       }
 
       .study-mode-card::after {
@@ -515,6 +561,10 @@
         line-height: 1.3;
       }
 
+      .study-mode-status-title {
+        font-size: 0.86rem;
+      }
+
       .study-mode-header {
         align-items: stretch;
       }
@@ -524,7 +574,11 @@
       }
 
       .subtopic-card {
-        min-height: 92px;
+        min-height: 98px;
+        border-radius: 16px;
+        background: linear-gradient(170deg,
+            color-mix(in srgb, var(--bg-surface) 84%, transparent),
+            color-mix(in srgb, var(--bg-hover) 90%, transparent));
       }
 
       /* Horizontal scrolling for KPIs */
@@ -587,19 +641,20 @@
 
       .mode-options {
         grid-template-columns: repeat(2, minmax(124px, 1fr));
-        gap: 8px;
+        gap: 10px;
       }
 
       .mode-btn {
         flex-direction: column;
         justify-content: center;
-        padding: 12px;
+        padding: 13px 10px;
         gap: 6px;
-        font-size: 0.85rem;
-        min-height: 86px;
+        font-size: 0.83rem;
+        min-height: 88px;
         white-space: normal;
         line-height: 1.2;
-        border-radius: 14px;
+        border-radius: 16px;
+        border-color: color-mix(in srgb, var(--border-color) 70%, var(--color-primary));
       }
 
       .section-title-block h3 {
@@ -613,6 +668,15 @@
 
       .side-section {
         margin-top: 6px;
+      }
+
+      .section-title-block {
+        margin-bottom: 10px;
+      }
+
+      .section-title-block h3 {
+        font-size: 1.05rem;
+        border-left-width: 3px;
       }
 
       .mode-btn:active,
@@ -647,6 +711,14 @@
 
       .topic-header {
         padding-inline: 10px;
+      }
+
+      .topic-title {
+        font-size: 1rem;
+      }
+
+      .topic-header-chip {
+        font-size: 0.68rem;
       }
 
       .companion-kpi {
@@ -696,6 +768,10 @@
         <div class="progress-bar" id="topicProgressBar"></div>
       </div>
       <small id="progressText" class="progress-text">%0 Tamamlandı</small>
+      <div class="topic-header-meta">
+        <span class="topic-header-chip"><span class="material-icons" style="font-size:0.95rem">smartphone</span>Mobil Odaklı Çalışma</span>
+        <span class="topic-header-chip"><span class="material-icons" style="font-size:0.95rem">bolt</span>Hızlı Test Akışı</span>
+      </div>
     </div>
   </header>
 
