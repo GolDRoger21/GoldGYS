@@ -56,6 +56,7 @@
       flex-direction: column;
       align-items: center;
       gap: 8px;
+      min-width: 0;
     }
 
     .mode-btn:hover {
@@ -259,14 +260,15 @@
       display: flex;
       gap: 10px;
       margin-top: 8px;
+      flex-wrap: wrap;
     }
 
     /* Butonların mobilde taşmasını engellemek için */
     .subtopic-actions .btn {
-      flex: 1;
-      white-space: nowrap;
-      text-overflow: ellipsis;
-      overflow: hidden;
+      flex: 1 1 170px;
+      min-width: 0;
+      white-space: normal;
+      word-break: break-word;
     }
 
     .subtopic-meta {
@@ -343,6 +345,7 @@
     @media (max-width: 900px) {
       .content-container {
         grid-template-columns: 1fr;
+        gap: 24px;
       }
 
       .learning-companion {
@@ -353,9 +356,13 @@
       .side-section {
         margin-top: 30px;
       }
+
+      .study-mode-status-metrics {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
     }
 
-    @media (max-width: 600px) {
+    @media (max-width: 768px) {
       .content-container {
         padding: 20px 14px;
       }
@@ -380,6 +387,10 @@
         padding: 16px;
       }
 
+      .study-mode-header {
+        align-items: stretch;
+      }
+
       .subtopic-section {
         padding: 16px;
       }
@@ -389,7 +400,7 @@
       }
 
       .study-mode-status-metrics {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
       }
 
       .mode-options {
@@ -398,11 +409,14 @@
       }
 
       .mode-btn {
-        flex-direction: row;
+        flex-direction: column;
         justify-content: center;
         padding: 10px 12px;
-        gap: 6px;
+        gap: 4px;
         font-size: 0.85rem;
+        min-height: 82px;
+        white-space: normal;
+        line-height: 1.2;
       }
 
       .mode-icon {
@@ -415,6 +429,20 @@
 
       .learning-companion {
         padding: 14px;
+      }
+
+      #topicMaterialsSection {
+        margin-top: 6px;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .study-mode-status-metrics {
+        grid-template-columns: 1fr;
+      }
+
+      .subtopic-actions .btn {
+        flex-basis: 100%;
       }
     }
 
