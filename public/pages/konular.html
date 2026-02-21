@@ -594,12 +594,12 @@
       }
 
       .subtopic-link {
-        flex-direction: column;
-        align-items: flex-start;
-        justify-content: center;
+        flex-direction: row;
+        /* keep horizontal like a native list */
+        align-items: center;
         padding: 12px;
-        gap: 8px;
-        min-height: 44px;
+        gap: 12px;
+        min-height: 48px;
       }
 
       .subtopic-title-wrap {
@@ -612,10 +612,11 @@
       }
 
       .subtopic-meta {
-        width: 100%;
-        margin-top: 2px;
-        justify-content: flex-start;
-        flex-wrap: wrap;
+        width: auto;
+        margin-top: 0;
+        justify-content: flex-end;
+        flex-wrap: nowrap;
+        flex-shrink: 0;
       }
 
       .topic-progress-line {
@@ -663,12 +664,16 @@
 
     @media (max-width: 480px) {
       .dashboard-container {
-        padding: 10px 6px;
+        padding: 10px 8px;
       }
 
       .tab-btn {
         padding: 10px 14px;
         font-size: 0.85rem;
+      }
+
+      .tabs {
+        padding: 4px;
       }
 
       .topic-card {
@@ -691,6 +696,9 @@
       .topic-question-chip {
         width: 100%;
         justify-content: center;
+        font-size: 0.8rem;
+        padding: 8px;
+        margin-top: 6px;
       }
 
       .topic-progress-hero {
@@ -702,13 +710,14 @@
       }
 
       .subtopic-meta-badge {
-        padding: 4px 8px;
+        padding: 4px 6px;
+        font-size: 0.72rem;
       }
 
       .topic-icon {
-        width: 40px;
-        height: 40px;
-        font-size: 1.4rem;
+        width: 38px;
+        height: 38px;
+        font-size: 1.3rem;
       }
     }
 
@@ -725,6 +734,18 @@
       .topic-health-main {
         flex-direction: column;
         align-items: flex-start;
+      }
+
+      .subtopic-link {
+        flex-direction: column;
+        /* On extremely tiny screens, fallback to column */
+        align-items: flex-start;
+        gap: 6px;
+      }
+
+      .subtopic-meta {
+        width: 100%;
+        justify-content: flex-start;
       }
     }
   </style>
