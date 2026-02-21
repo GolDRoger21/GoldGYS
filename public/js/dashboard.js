@@ -4,6 +4,7 @@ import { initLayout } from './ui-loader.js';
 import { auth, db } from "./firebase-config.js";
 import { getUserProfile, getLastActivity, getRecentActivities } from "./user-profile.js";
 import { collection, doc, getDoc, getDocs, limit, orderBy, query, where, Timestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { buildTopicPath } from './topic-url.js';
 
 // UI Elementleri
 const ui = {
@@ -105,7 +106,7 @@ async function checkLastActivity(user) {
                     <h4 class="m-0" style="color:var(--text-main);">${activity.title}</h4>
                     <small class="text-muted">${activity.subTitle || 'Konu Çalışması'} • ${timeAgo}</small>
                 </div>
-                <a href="/konu/${encodeURIComponent(activity.id)}" class="btn btn-sm btn-primary">
+                <a href="${buildTopicPath({ id: activity.id, title: activity.title })}" class="btn btn-sm btn-primary">
                     Devam Et ▶
                 </a>
             </div>
