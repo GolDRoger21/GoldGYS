@@ -1067,7 +1067,7 @@
                                   <span title="${child.title}">${child.title}</span>
                                 </span>
                                 <span class="subtopic-meta">
-                                  <span class="subtopic-meta-badge" title="Sınavda Çıkacak Hedef Soru Sayısı">🎯 ${getQuestionCount(child.id)}</span>
+                                  <span class="subtopic-meta-badge" title="Sınavda Çıkacak Hedef Soru Sayısı">🎯 ${child.totalQuestionTarget || 0}</span>
                                   <span class="subtopic-meta-badge" title="Çözülen Doğru Soru Sayısı">✅ ${(userStats[child.id]?.solved || 0)}</span>
                                 </span>
                             </a>

@@ -76,8 +76,8 @@ service cloud.firestore {
 
     // Konular (Topics) ve Altındaki Dersler (Lessons)
     match /topics/{topicId} {
-      allow read: if signedIn();
-      allow write: if isEditor();
+      allow read: if true;
+      allow write: if true;
       
       // Dersler (topics/{id}/lessons/{lessonId})
       match /lessons/{lessonId} {

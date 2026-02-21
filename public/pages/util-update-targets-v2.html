@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Update Topics Target Questions V2</title>
+</head>
+
+<body>
+    <h1>Updating Topic Question Targets V2...</h1>
+    <div id="log"></div>
+    <script type="module">
+        import { db } from '../js/firebase-config.js';
+        import { collection, getDocs, updateDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const syllabus = [
+            { title: "Türkiye Cumhuriyeti Anayasası", target: 6 },
+            {
+                title: "Atatürk İlkeleri ve İnkılap Tarihi, Ulusal Güvenlik", target: 2,
+                children: [
+                    { title: "Atatürk İlkeleri ve İnkılap Tarihi", target: 1 },
+                    { title: "Ulusal Güvenlik", target: 1 }
+                ]
+            },
+            {
+                title: "Devlet Teşkilatı ile İlgili Mevzuat", target: 9,
+                children: [
+                    { title: "5302 Sayılı İl Özel İdaresi", target: 2 },
+                    { title: "5393 Sayılı Belediye", target: 2 },
+                    { title: "5442 Sayılı İl İdaresi", target: 2 },
+                    { title: "1 Sayılı CB", target: 3 }
+                ]
+            },
+            { title: "657 Sayılı Devlet Memurları Kanunu", target: 6 },
+            { title: "Türkçe Dil Bilgisi", target: 2 },
+            { title: "Halkla İlişkiler", target: 1 },
+            { title: "Etik Davranış İlkeleri", target: 1 },
+            {
+                title: "Bakanlık Merkez Teşkilatı", target: 1,
+                children: [
+                    { title: "1 Sayılı CB", target: 1 }
+                ]
+            },
+            { title: "Adli ve İdari Yargı Komisyonları ve Yargı Örgütü", target: 2 },
+            {
+                title: "UYAP Bilişim Sistemi", target: 1,
+                children: [
+                    { title: "UYAP", target: 1 }
+                ]
+            },
+            { title: "5018 Sayılı Kamu Mali", target: 1 },
+            {
+                title: "Bakanlık Teşkilatı", target: 3,
+                children: [
+                    { title: "1 Sayılı CB", target: 3 }
+                ]
+            },
+            {
+                title: "Komisyonlarının Yapısı", target: 1,
+                children: [
+                    { title: "Komisyonların Yapısı", target: 1 }
+                ]
+            },
+            {
+                title: "Yargı Örgütü", target: 4,
+                children: [
+                    { title: "5235", target: 2 },
+                    { title: "2576", target: 2 }
+                ]
+            },
+            {
+                title: "Elektronik İmza ve SEGBİS", target: 3,
+                children: [
+                    { title: "5070", target: 2 },
+                    { title: "SEGBİS", target: 1 }
+                ]
+            },
+            {
+                title: "Resmi Yazışma", target: 6,
+                children: [
+                    { title: "Yazışma Yönetmeliği", target: 3 },
+                    { title: "Yazışma Kılavuzu", target: 3 }
+                ]
+            },
+            {
+                title: "Tebligat", target: 5,
+                children: [
+                    { title: "7201", target: 2 },
+                    { title: "Tebligat Yönetmeliği", target: 1 },
+                    { title: "Elektronik Tebligat", target: 2 }
+                ]
+            },
+            {
+                title: "Devlet Memurları ile İlgili Diğer Mevzuat", target: 7,
+                children: [
+                    { title: "4982", target: 1 },
+                    { title: "3071", target: 1 },
+                    { title: "Disiplin", target: 2 },
+                    { title: "Görevde Yükselme", target: 1 },
+                    { title: "Atama ve Nakil", target: 2 }
+                ]
+            },
+            {
+                title: "Yazı İşleri Hizmetleri ve Harçlar", target: 9,
+                children: [
+                    { title: "Harçlar", target: 1 },
+                    { title: "Adli", target: 4 },
+                    { title: "İdari", target: 4 }
+                ]
+            },
+            { title: "5271", target: 3 },
+            { title: "6100", target: 3 },
+            { title: "2577", target: 2 },
+            { title: "5275", target: 2 }
+        ];
+
+        const logEl = document.getElementById('log');
+        const log = (msg) => {
+            console.log(msg);
+            logEl.innerHTML += `<div>${msg}</div>`;
+        };
+
+        async function doSync() {
+            try {
+                log("Fetching topics from DB...");
+                const snapshot = await getDocs(collection(db, "topics"));
+                let count = 0;
+
+                // Construct Tree
+                const allNodes = [];
+                snapshot.forEach(doc => allNodes.push({ id: doc.id, ...doc.data() }));
+
+                const roots = allNodes.filter(n => !n.parentId);
+                const childrenMap = new Map();
+                allNodes.filter(n => n.parentId).forEach(child => {
+                    if (!childrenMap.has(child.parentId)) childrenMap.set(child.parentId, []);
+                    childrenMap.get(child.parentId).push(child);
+                });
+
+                const cleanStr = (s) => (s || '').toLowerCase().replace(/sayılı|kanunu|yönetmeliği|yön\.|kısım/g, '').trim();
+
+                for (const root of roots) {
+                    let matchedSyllabusRoot = null;
+                    for (const s of syllabus) {
+                        if (cleanStr(root.title).includes(cleanStr(s.title)) || cleanStr(s.title).includes(cleanStr(root.title))) {
+                            matchedSyllabusRoot = s;
+                            break;
+                        }
+                    }
+
+                    if (matchedSyllabusRoot) {
+                        log(`Root Matched: <b>${root.title}</b> -> target: ${matchedSyllabusRoot.target}`);
+                        await updateDoc(doc(db, "topics", root.id), { totalQuestionTarget: matchedSyllabusRoot.target });
+                        count++;
+
+                        // check children
+                        const dbChildren = childrenMap.get(root.id) || [];
+                        const sChildren = matchedSyllabusRoot.children || [];
+
+                        for (const dbChild of dbChildren) {
+                            let matchedChild = null;
+                            for (const sc of sChildren) {
+                                if (cleanStr(dbChild.title).includes(cleanStr(sc.title)) || cleanStr(sc.title).includes(cleanStr(dbChild.title))) {
+                                    matchedChild = sc;
+                                    break;
+                                }
+                            }
+                            if (matchedChild) {
+                                log(`&nbsp;&nbsp;&nbsp;Child Matched: <b>${dbChild.title}</b> -> target: ${matchedChild.target}`);
+                                await updateDoc(doc(db, "topics", dbChild.id), { totalQuestionTarget: matchedChild.target });
+                                count++;
+                            } else {
+                                log(`&nbsp;&nbsp;&nbsp;<span style="color:gray">Child No Match: ${dbChild.title}</span>`);
+                            }
+                        }
+
+                    } else {
+                        log(`<span style="color:gray">Root No Match: ${root.title}</span>`);
+                    }
+                }
+
+                log(`<strong style="color:green">Finished! Updated ${count} topics/subtopics accurately.</strong>`);
+
+            } catch (error) {
+                log(`<strong style="color:red">Error updating: ${error.message}</strong>`);
+                console.error(error);
+            }
+        }
+
+        doSync();
+    </script>
+</body>
+
+</html>
