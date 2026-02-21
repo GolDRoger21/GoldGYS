@@ -117,8 +117,9 @@
 
     .study-mode-status-metrics {
       display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 10px;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-top: 15px;
     }
 
     .study-mode-metric {
@@ -637,13 +638,6 @@
 
       .study-mode-header {
         align-items: stretch;
-      }
-
-      .study-mode-status-metrics {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 12px;
-        margin-top: 15px;
       }
 
       .subtopic-grid {
@@ -1469,6 +1463,9 @@
             wrongCount = (progress.wrongIds || []).length;
           }
         }
+
+        // Fallback: If network fetch failed but user has solved questions, totalCount must be at least solvedCount
+        totalCount = Math.max(totalCount || 0, solvedCount || 0);
 
         updateStudyModeState(totalCount, solvedCount, wrongCount);
       } catch (e) {
