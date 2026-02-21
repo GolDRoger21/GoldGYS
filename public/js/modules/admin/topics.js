@@ -122,18 +122,15 @@ function closeEditor() {
 }
 
 function renderStudioTopicActions() {
-    const demoteBtn = document.getElementById('btnStudioDemote');
     const deleteBtn = document.getElementById('btnStudioDeleteTopic');
-    if (!demoteBtn || !deleteBtn) return;
+    if (!deleteBtn) return;
 
     const topic = state.allTopics.find(t => t.id === state.activeTopicId);
     if (!topic) {
-        demoteBtn.style.display = 'none';
         deleteBtn.style.display = 'none';
         return;
     }
 
-    demoteBtn.style.display = topic.parentId ? 'inline-flex' : 'none';
     deleteBtn.style.display = 'inline-flex';
     deleteBtn.innerHTML = topic.parentId ? '🗑️ Alt Konuyu Sil' : '🗑️ Konuyu Sil';
 }
@@ -410,7 +407,9 @@ function renderContentNav() {
         list.innerHTML = `<div class="text-center p-5 text-muted small opacity-50">Bu kategoride içerik yok.</div>`;
         return;
     }
-    list.innerHTML = items.map(l => renderNavItem(l, isTest, state.activeLessonId)).join('');
+    const activeTopic = state.allTopics.find(t => t.id === state.activeTopicId);
+    const isSubtopic = activeTopic ? !!activeTopic.parentId : false;
+    list.innerHTML = items.map(l => renderNavItem(l, isTest, state.activeLessonId, isSubtopic)).join('');
 }
 
 // ============================================================

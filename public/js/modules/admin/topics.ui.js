@@ -48,10 +48,7 @@ export const UI_SHELL = `
                         <div class="fw-bold text-primary" style="font-size:1.2rem;">⚡ Studio Pro</div>
                         <div class="vr"></div>
                     </div>
-                    <div class="d-flex align-items-center gap-2">
-                        <button id="btnStudioDemote" class="nav-action-btn" style="display:none;" onclick="window.Studio.demoteToLesson(null, event)" title="Alt konuyu ders notuna dönüştür">↰</button>
-                        <div id="activeTopicTitleDisplay" class="text-muted fw-medium studio-topic-title">Konu Seçilmedi</div>
-                    </div>
+                    <div id="activeTopicTitleDisplay" class="text-muted fw-medium studio-topic-title">Konu Seçilmedi</div>
                 </div>
                 <button class="btn btn-icon text-muted" onclick="window.Studio.close()" style="font-size:1.5rem;">&times;</button>
             </div>
@@ -381,7 +378,7 @@ export const UI_SHELL = `
 `;
 
 // Liste Elemanı Render Fonksiyonu (Helper)
-export const renderNavItem = (l, isTestTab, activeId) => `
+export const renderNavItem = (l, isTestTab, activeId, isSubtopic) => `
     <div class="nav-item ${activeId === l.id ? 'active' : ''}" onclick="window.Studio.selectContent('${l.id}')">
         <div class="nav-item-row">
             <span style="font-size:1.2rem;">${isTestTab ? '📝' : '📄'}</span>
@@ -390,7 +387,8 @@ export const renderNavItem = (l, isTestTab, activeId) => `
                 <div class="nav-meta">
                     <span>Sıra: ${l.order}</span>
                     ${isTestTab ? `<span class="badge-mini">${l.qCount || 0} Soru</span>` : ''}
-                    <button class="nav-action-btn" onclick="window.Studio.promoteToSubtopic('${l.id}', event)" title="Alt konu yap">↳</button>
+                    ${!isSubtopic ? `<button class="nav-action-btn" onclick="window.Studio.promoteToSubtopic('${l.id}', event)" title="Alt konu yap">↳</button>` : ''}
+                    ${isSubtopic ? `<button class="nav-action-btn text-warning" onclick="window.Studio.demoteToLesson(null, event)" title="Ders notuna geri dönüştür">↰</button>` : ''}
                 </div>
             </div>
         </div>
