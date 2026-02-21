@@ -67,6 +67,10 @@
       font-size: 1.1rem;
     }
 
+    * {
+      -webkit-tap-highlight-color: transparent;
+    }
+
     .tabs {
       display: flex;
       gap: 5px;
@@ -139,6 +143,11 @@
       background: var(--bg-hover);
       transform: translateX(4px);
       box-shadow: var(--shadow-sm);
+    }
+
+    .subtopic-link:active {
+      transform: scale(0.98);
+      background: var(--bg-surface-elevated);
     }
 
     .subtopic-title-wrap {
@@ -238,6 +247,10 @@
 
     .topic-card:hover::before {
       background: linear-gradient(to bottom, rgba(191, 149, 63, 0.8), rgba(191, 149, 63, 0.2));
+    }
+
+    .topic-card:active {
+      transform: scale(0.98);
     }
 
     .topic-card:focus-visible {
@@ -517,17 +530,16 @@
       font-weight: 700;
     }
 
-    /* Mobil Uyum */
     @media (max-width: 768px) {
       .dashboard-container {
-        padding: 16px 12px;
+        padding: 12px 8px;
       }
 
       .filter-section {
         flex-direction: column;
         align-items: stretch;
-        gap: 16px;
-        margin-bottom: 20px;
+        gap: 12px;
+        margin-bottom: 16px;
       }
 
       .search-box input {
@@ -545,7 +557,7 @@
         justify-content: center;
         flex-wrap: nowrap;
         overflow-x: auto;
-        padding: 6px;
+        padding: 4px;
         -webkit-overflow-scrolling: touch;
         scrollbar-width: none;
         /* Firefox */
@@ -559,35 +571,35 @@
       .tab-btn {
         flex: 1 0 auto;
         text-align: center;
-        padding: 10px 16px;
+        padding: 12px 16px;
         min-width: 80px;
         white-space: nowrap;
       }
 
       .topics-grid {
         grid-template-columns: 1fr;
-        gap: 16px;
+        gap: 12px;
       }
 
       .topic-card {
-        padding: 20px;
+        padding: 16px;
         border-radius: var(--radius-lg);
         min-height: auto;
       }
 
       .topic-icon {
-        width: 48px;
-        height: 48px;
-        font-size: 1.6rem;
+        width: 44px;
+        height: 44px;
+        font-size: 1.5rem;
       }
 
       .subtopic-link {
-        flex-direction: row;
-        align-items: center;
-        justify-content: space-between;
-        flex-wrap: wrap;
-        padding: 14px;
+        flex-direction: column;
+        align-items: flex-start;
+        justify-content: center;
+        padding: 12px;
         gap: 8px;
+        min-height: 44px;
       }
 
       .subtopic-title-wrap {
@@ -601,7 +613,7 @@
 
       .subtopic-meta {
         width: 100%;
-        margin-top: 4px;
+        margin-top: 2px;
         justify-content: flex-start;
         flex-wrap: wrap;
       }
@@ -616,16 +628,19 @@
       .topic-progress-hero {
         grid-template-columns: 1fr;
         align-items: stretch;
-        padding: 16px;
+        padding: 14px;
+        margin-top: 14px;
       }
 
       .topic-question-chip {
         justify-content: center;
         margin-top: 8px;
+        padding: 10px;
       }
 
       .topic-title {
         font-size: 1.15rem;
+        margin-bottom: 6px;
       }
 
       .topic-desc {
@@ -637,25 +652,36 @@
       .topic-meta-item {
         flex: 1 1 140px;
         justify-content: center;
+        padding: 10px;
+      }
+
+      .topic-health {
+        padding: 12px;
+        margin-bottom: 16px;
       }
     }
 
     @media (max-width: 480px) {
       .dashboard-container {
-        padding: 14px 10px;
+        padding: 10px 6px;
       }
 
       .tab-btn {
-        padding: 9px 14px;
+        padding: 10px 14px;
         font-size: 0.85rem;
       }
 
       .topic-card {
-        padding: 16px;
+        padding: 14px;
+        border-radius: 16px;
       }
 
       .topic-title {
-        font-size: 1.05rem;
+        font-size: 1.1rem;
+      }
+
+      .card-header-row {
+        margin-bottom: 10px;
       }
 
       .topic-progress-line {
@@ -671,13 +697,18 @@
         padding: 12px;
       }
 
-      .topic-health,
-      .topic-card {
+      .topic-health {
         border-radius: 14px;
       }
 
       .subtopic-meta-badge {
-        padding: 2px 7px;
+        padding: 4px 8px;
+      }
+
+      .topic-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 1.4rem;
       }
     }
 
