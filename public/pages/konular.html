@@ -392,7 +392,7 @@
         allTopics = [];
         snapshot.forEach(doc => {
           const data = doc.data();
-          if (data.isActive) {
+          if (data.isActive && data.status !== 'deleted' && !data.isDeleted) {
             allTopics.push({ id: doc.id, ...data });
           }
         });
