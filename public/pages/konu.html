@@ -180,7 +180,7 @@
       margin: 0 auto;
       padding: 40px 20px;
       display: grid;
-      grid-template-columns: 2fr 1fr;
+      grid-template-columns: minmax(0, 1.55fr) minmax(280px, 1fr);
       gap: 40px;
     }
 
@@ -382,10 +382,11 @@
       margin-top: 6px;
     }
 
-    @media (max-width: 900px) {
+    @media (max-width: 1100px) {
       .content-container {
         grid-template-columns: 1fr;
-        gap: 24px;
+        gap: 20px;
+        padding: 24px 16px;
       }
 
       .learning-companion {
@@ -394,11 +395,16 @@
 
       /* Mobilde sağ kolonun (ders notları) aşağı inince margin eklemesi */
       .side-section {
-        margin-top: 30px;
+        margin-top: 0;
       }
 
       .study-mode-status-metrics {
         grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      #topicMaterialsSection {
+        border-top: 1px solid var(--border-color);
+        padding-top: 14px;
       }
     }
 
