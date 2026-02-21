@@ -787,6 +787,7 @@
 
   <script type="module">
     import { db, auth } from '../js/firebase-config.js';
+    import { buildTopicPath } from '../js/topic-url.js';
     import { collection, getDocs, query, orderBy, where, documentId } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
     import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
     import { TopicService } from '../js/topic-service.js';
@@ -1061,7 +1062,7 @@
         const subtopicsHtml = childrenToShow.length ? `
                     <div class="subtopic-list">
                         ${childrenToShow.map(child => `
-                            <a class="subtopic-link" href="/konu/${encodeURIComponent(child.id)}">
+                            <a class="subtopic-link" href="${buildTopicPath(child)}">
                                 <span class="subtopic-title-wrap">
                                   <span class="subtopic-icon">${pickIcon(child.title, child.category, true)}</span>
                                   <span title="${child.title}">${child.title}</span>
@@ -1090,7 +1091,7 @@
         `;
 
         card.innerHTML = `
-            <a href="/konu/${encodeURIComponent(t.id)}" class="topic-main-link" style="text-decoration:none; color:inherit; display:block; flex-grow: 1;">
+            <a href="${buildTopicPath(t)}" class="topic-main-link" style="text-decoration:none; color:inherit; display:block; flex-grow: 1;">
                 <div class="card-header-row">
                     <div class="topic-icon">${icon}</div>
                     <span class="topic-badge badge-${t.category}">${t.category === 'ortak' ? 'Ortak' : 'Alan'}</span>

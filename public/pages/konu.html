@@ -999,7 +999,8 @@
     import { db, auth } from '../js/firebase-config.js';
     import { TopicService } from '../js/topic-service.js';
     import { showConfirm, showToast } from '../js/notifications.js';
-    import { doc, getDoc, collection, getDocs, query, orderBy, where, getCountFromServer } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { buildTopicPath, slugifyTopicTitle } from '../js/topic-url.js';
+    import { doc, getDoc, collection, getDocs, query, orderBy, where, getCountFromServer, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
     import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
     let currentTopicId = null;
@@ -1008,18 +1009,23 @@
     document.addEventListener('DOMContentLoaded', async () => {
       const urlParams = new URLSearchParams(window.location.search);
       currentTopicId = urlParams.get('id');
+      let currentTopicSlug = null;
 
       if (!currentTopicId) {
         const pathMatch = window.location.pathname.match(/^\/konu\/([^/]+)$/);
         if (pathMatch) {
-          currentTopicId = decodeURIComponent(pathMatch[1]);
+          currentTopicSlug = decodeURIComponent(pathMatch[1]);
         }
+      }
+
+      if (!currentTopicId && currentTopicSlug) {
+        currentTopicId = await resolveTopicId(currentTopicSlug);
       }
 
       if (!currentTopicId) return window.location.href = '/konular';
 
       if (!window.location.pathname.startsWith('/konu/')) {
-        window.history.replaceState({}, '', `/konu/${encodeURIComponent(currentTopicId)}`);
+        window.history.replaceState({}, '', buildTopicPath(currentTopicId));
       }
 
 
@@ -1051,7 +1057,28 @@
         topicTitle = data.title;
         document.getElementById('topicTitle').innerText = data.title;
         document.title = `${data.title} | Çalışma`;
+
+        const topicPath = buildTopicPath({ id: currentTopicId, title: data.title, slug: data.slug });
+        if (window.location.pathname !== topicPath) {
+          window.history.replaceState({}, '', topicPath);
+        }
       }
+    }
+
+    async function resolveTopicId(segment) {
+      if (!segment) return null;
+
+      const directSnap = await getDoc(doc(db, "topics", segment));
+      if (directSnap.exists()) return segment;
+
+      const bySlugQuery = query(collection(db, "topics"), where("slug", "==", segment), limit(1));
+      const bySlugSnap = await getDocs(bySlugQuery);
+      if (!bySlugSnap.empty) return bySlugSnap.docs[0].id;
+
+      const allTopics = await getDocs(collection(db, "topics"));
+      const normalizedSegment = slugifyTopicTitle(segment);
+      const match = allTopics.docs.find((item) => slugifyTopicTitle(item.data()?.title || '') === normalizedSegment);
+      return match?.id || null;
     }
 
     async function safeGetDocs(primaryQuery, fallbackQuery, contextLabel) {
@@ -1361,7 +1388,7 @@
         const progressPercent = sTotal > 0 ? Math.min(100, Math.round((solvedCount / sTotal) * 100)) : 0;
 
         return `
-          <a href="/konu/${encodeURIComponent(subtopic.id)}" class="subtopic-card" style="text-decoration:none; display:flex; flex-direction:column; height: 100%;">
+          <a href="${buildTopicPath(subtopic)}" class="subtopic-card" style="text-decoration:none; display:flex; flex-direction:column; height: 100%;">
             <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">
                 <h4 class="subtopic-title" style="flex:1; padding-right:10px;">${subtopic.title}</h4>
                 <div style="background:var(--bg-hover); padding:4px 8px; border-radius:6px; font-size:0.75rem; font-weight:600; white-space:nowrap; color:var(--text-main);">
@@ -1497,29 +1524,26 @@
       }
 
       if (status) {
-        if (!hasQuestions) {
-          status.innerHTML = `<div class="study-mode-status-empty">Bu konu için henüz aktif soru bulunmuyor.</div>`;
-          return;
-        }
-
-        const introText = remaining === 0
-          ? '🌟 Tebrikler! Tüm soruları tamamladınız. İsterseniz yanlışlar veya favoriler filtresiyle tekrar yapabilirsiniz.'
-          : 'Hedefinize adım adım yaklaşıyorsunuz. Aşağıdaki özetten anlık durumunuzu takip edin.';
+        const introText = !hasQuestions
+          ? 'Bu konu için henüz aktif soru bulunmuyor. İçerikler eklendikçe istatistikler bu alanda güncellenecek.'
+          : remaining === 0
+            ? '🌟 Tebrikler! Tüm soruları tamamladınız. İsterseniz yanlışlar veya favoriler filtresiyle tekrar yapabilirsiniz.'
+            : 'Hedefinize adım adım yaklaşıyorsunuz. Aşağıdaki özetten anlık durumunuzu takip edin.';
 
         status.innerHTML = `
           <div class="study-mode-status-title">${introText}</div>
           <div class="study-mode-status-metrics">
             <div class="study-mode-metric">
               <span class="study-mode-metric-label">Toplam Soru</span>
-              <strong class="study-mode-metric-value" id="totalQCount">${totalCount}</strong>
+              <strong class="study-mode-metric-value" id="totalQCount">${totalCount || 0}</strong>
             </div>
             <div class="study-mode-metric">
               <span class="study-mode-metric-label">Çözülen</span>
-              <strong class="study-mode-metric-value">${solvedCount}</strong>
+              <strong class="study-mode-metric-value">${solvedCount || 0}</strong>
             </div>
             <div class="study-mode-metric">
               <span class="study-mode-metric-label">Kalan</span>
-              <strong class="study-mode-metric-value">${remaining}</strong>
+              <strong class="study-mode-metric-value">${Math.max(0, remaining) || 0}</strong>
             </div>
             <div class="study-mode-metric">
               <span class="study-mode-metric-label">Yanlış</span>

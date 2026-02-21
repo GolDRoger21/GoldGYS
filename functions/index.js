@@ -936,6 +936,20 @@ exports.onQuestionSoftDeleted = onDocumentUpdated("questions/{questionId}", asyn
   }
 });
 
+
+function slugifyTopicTitle(title = "") {
+  const chars = {
+    "ç": "c", "Ç": "c", "ğ": "g", "Ğ": "g", "ı": "i", "İ": "i", "ö": "o", "Ö": "o", "ş": "s", "Ş": "s", "ü": "u", "Ü": "u",
+  };
+  return String(title)
+    .replace(/[çÇğĞıİöÖşŞüÜ]/g, (ch) => chars[ch] || ch)
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .replace(/-{2,}/g, "-");
+}
+
 // --- SITEMAP GENERATION ---
 exports.sitemap = onRequest(async (req, res) => {
   const baseUrl = "https://goldgys.web.app";
@@ -977,7 +991,9 @@ exports.sitemap = onRequest(async (req, res) => {
     // Dynamic Topics
     topicsSnap.forEach((doc) => {
       xml += "  <url>\n";
-      xml += `    <loc>${baseUrl}/konu/${doc.id}</loc>\n`;
+      const data = doc.data() || {};
+      const topicSlug = data.slug || slugifyTopicTitle(data.title || '') || doc.id;
+      xml += `    <loc>${baseUrl}/konu/${topicSlug}</loc>\n`;
       xml += "    <changefreq>weekly</changefreq>\n";
       xml += "    <priority>0.8</priority>\n";
       xml += "  </url>\n";
