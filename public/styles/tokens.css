@@ -91,6 +91,7 @@
   --bg-header: rgba(255, 250, 241, 0.86);
   --bg-input: rgba(255, 250, 240, 0.72);
   --bg-hover: rgba(179, 135, 40, 0.12);
+  --bg-dropdown: rgba(255, 250, 241, 0.98); /* Almost opaque */
 
   /* Gradients */
   --bg-body-gradient: radial-gradient(circle at 15% 0%, rgba(191, 149, 63, 0.2), transparent 46%),
@@ -166,6 +167,7 @@
   --bg-header: rgba(18, 14, 10, 0.8);
   --bg-input: rgba(31, 24, 16, 0.65);
   --bg-hover: rgba(217, 178, 74, 0.2);
+  --bg-dropdown: rgba(25, 20, 14, 0.98); /* Almost opaque */
 
   /* Gradients */
   --bg-body-gradient: radial-gradient(circle at 20% 0%, rgba(245, 230, 190, 0.14), transparent 48%),

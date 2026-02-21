@@ -863,10 +863,9 @@
         const solvedTotal = ownStats.solved + childStats.solved;
         const correctTotal = ownStats.correct + childStats.correct;
         const successRate = solvedTotal > 0 ? Math.round((correctTotal / solvedTotal) * 100) : 0;
-        const questionTarget = t.totalQuestionTarget || 0;
         const totalQuestionCount = getQuestionCount(t.id)
           + allChildrenForTotals.reduce((sum, child) => sum + getQuestionCount(child.id), 0);
-        const expectedQuestionCount = questionTarget > 0 ? questionTarget : totalQuestionCount;
+        const expectedQuestionCount = totalQuestionCount;
         const progressBase = Math.max(expectedQuestionCount || 0, 1);
         const progress = Math.min(100, Math.round((solvedTotal / progressBase) * 100));
         const completionBase = Math.max(expectedQuestionCount || 0);
