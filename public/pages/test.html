@@ -793,32 +793,76 @@
                     } else {
                         // --- Karışık ve Sıralı Mod (Yeni Sistem) ---
 
-                        // A. Paket Meta Bilgisi
-                        const packMeta = await TopicService.getTopicPackMeta(topicId);
-                        totalCount = packMeta?.questionCount || null;
+                        // Öncelikle alt konu var mı kontrol et
+                        const subtopicsQuery = query(
+                            collection(db, "topics"),
+                            where("parentId", "==", topicId),
+                            where("status", "==", "active"),
+                            where("isDeleted", "==", false)
+                        );
+                        const subtopicsSnap = await getDocs(subtopicsQuery);
+                        const hasSubtopics = !subtopicsSnap.empty;
 
-                        // B. Paket Çek
-                        const packPayload = await TopicService.fetchQuestionPack(topicId);
                         let packQuestions = [];
+                        let totalCountFallback = 0;
 
-                        if (packPayload?.questions?.length) {
-                            packQuestions = packPayload.questions.filter(q => q && !q.isDeleted && q.isActive !== false);
-                        }
+                        if (hasSubtopics) {
+                            // Üst konu kapsayıcı modunda: Tüm alt konuların sorularını birleştir
+                            console.log(`[SmartMode] Üst konu tespit edildi. ${subtopicsSnap.size} alt konudan sorular birleştiriliyor...`);
 
-                        if (!packQuestions.length) {
-                            console.warn("Paket bulunamadı, eski sistem ile sorular çekilecek.");
-                            const fallbackIds = await TopicService.getTopicQuestionIds(topicTitle);
-                            if (!fallbackIds.length) {
-                                throw new Error("Bu konu için soru paketi bulunamadı.");
+                            const subtopicIds = subtopicsSnap.docs.map(doc => doc.id);
+
+                            // Her alt konunun paketlerini (veya eski sistem id'lerini) çek
+                            for (const sId of subtopicIds) {
+                                // 1. Paket Denemesi
+                                const packPayload = await TopicService.fetchQuestionPack(sId);
+                                if (packPayload?.questions?.length) {
+                                    const validQs = packPayload.questions.filter(q => q && !q.isDeleted && q.isActive !== false);
+                                    packQuestions.push(...validQs);
+                                } else {
+                                    // 2. Fallback (Eski Sistem) Denemesi
+                                    const sTitle = subtopicsSnap.docs.find(d => d.id === sId)?.data()?.title;
+                                    if (sTitle) {
+                                        const fallbackIds = await TopicService.getTopicQuestionIds(sTitle);
+                                        if (fallbackIds.length > 0) {
+                                            const rqMap = await fetchQuestionsByIds(fallbackIds);
+                                            const validQs = fallbackIds.map(id => rqMap.get(id)).filter(Boolean);
+                                            packQuestions.push(...validQs);
+                                        }
+                                    }
+                                }
                             }
-                            totalCount = fallbackIds.length;
-                            const fallbackQuestionMap = await fetchQuestionsByIds(fallbackIds);
-                            packQuestions = fallbackIds
-                                .map(id => fallbackQuestionMap.get(id))
-                                .filter(Boolean);
+                            totalCount = packQuestions.length;
+
+                        } else {
+                            // Normal Konu / Alt Konu (Kapsayıcı değil)
+                            // A. Paket Meta Bilgisi
+                            const packMeta = await TopicService.getTopicPackMeta(topicId);
+                            totalCountFallback = packMeta?.questionCount || null;
+
+                            // B. Paket Çek
+                            const packPayload = await TopicService.fetchQuestionPack(topicId);
+
+                            if (packPayload?.questions?.length) {
+                                packQuestions = packPayload.questions.filter(q => q && !q.isDeleted && q.isActive !== false);
+                            }
+
+                            if (!packQuestions.length) {
+                                console.warn("Paket bulunamadı, eski sistem ile sorular çekilecek.");
+                                const fallbackIds = await TopicService.getTopicQuestionIds(topicTitle);
+                                if (!fallbackIds.length) {
+                                    throw new Error("Bu konu için soru paketi bulunamadı.");
+                                }
+                                totalCountFallback = fallbackIds.length;
+                                const fallbackQuestionMap = await fetchQuestionsByIds(fallbackIds);
+                                packQuestions = fallbackIds
+                                    .map(id => fallbackQuestionMap.get(id))
+                                    .filter(Boolean);
+                            }
+                            totalCount = totalCountFallback || packQuestions.length;
                         }
 
-                        // C. İlerleme Kontrolü
+                        // C. İlerleme Kontrolü (Üst konuysa kendi ilerlemesini kullanır)
                         let solvedIds = [];
                         if (user) {
                             const progress = await TopicService.getUserProgress(user.uid, topicId);

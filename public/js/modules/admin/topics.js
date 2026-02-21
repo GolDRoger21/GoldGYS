@@ -423,6 +423,13 @@ function createNewContent(type) {
         return;
     }
 
+    // Alt konusu olan konuya içerik eklemeyi engelle
+    const hasSubtopics = state.allTopics.some(t => t.parentId === state.activeTopicId);
+    if (hasSubtopics) {
+        showToast("Bu konu alt konular içerdiği için doğrudan materyal veya test eklenemez. Lütfen bir alt konu seçin.", "warning");
+        return;
+    }
+
     const contentType = type || state.sidebarTab;
     state.activeLessonId = null;
     state.activeLessonType = contentType;
