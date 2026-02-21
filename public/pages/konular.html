@@ -641,6 +641,7 @@
     import { db, auth } from '../js/firebase-config.js';
     import { collection, getDocs, query, orderBy, where, documentId } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
     import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { TopicService } from '../js/topic-service.js';
 
     let allTopics = [];
     let userStats = {};
@@ -723,6 +724,18 @@
       } catch (e) {
         console.warn('topic_packs_meta verileri okunamadı:', e);
       }
+
+      // Fallback for missing/zero counts
+      await Promise.all(topics.map(async (topic) => {
+        if (!counts.has(topic.id) || counts.get(topic.id) === 0) {
+          try {
+            const qIds = await TopicService.getTopicQuestionIdsById(topic.id);
+            counts.set(topic.id, qIds.length);
+          } catch (e) {
+            counts.set(topic.id, 0);
+          }
+        }
+      }));
 
       topics.forEach((topic) => {
         if (!counts.has(topic.id)) counts.set(topic.id, 0);
@@ -925,7 +938,7 @@
                             <span>· %${successRate} Başarı</span>
                         </div>
                       </div>
-                      <div class="topic-question-chip">🎯 ${Math.max(expectedQuestionCount, 0)} Hedef Soru</div>
+                      ${t.totalQuestionTarget ? `<div class="topic-question-chip">🎯 ${t.totalQuestionTarget} Hedef Soru</div>` : ''}
                     </div>
         `;
 
