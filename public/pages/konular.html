@@ -452,6 +452,22 @@
     }
 
 
+    .topic-progress-line {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      font-size: 0.76rem;
+      margin-top: 8px;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .topic-progress-line strong {
+      color: var(--text-main);
+      font-weight: 700;
+    }
+
     /* Mobil Uyum */
     @media (max-width: 768px) {
       .filter-section {
@@ -779,6 +795,10 @@
                             <div class="topic-progress-fill" style="width: ${progress}%"></div>
                         </div>
                         <span class="topic-target-pill">🎯 Hedef: ${questionTarget}</span>
+                    </div>
+                    <div class="topic-progress-line">
+                        <span><strong>%${progress}</strong> İlerleme · <strong>${solvedTotal} / ${progressBase}</strong> Soru</span>
+                        <span>${!childrenToShow.length ? `%${successRate} Başarı` : ''}</span>
                     </div>
         `;
 
