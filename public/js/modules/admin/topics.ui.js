@@ -65,6 +65,24 @@ export const UI_SHELL = `
                                 📝 Testler
                             </div>
                         </div>
+                        <div id="studioTopicActions" class="studio-topic-actions" style="display:none;">
+                            <button
+                                id="btnStudioDemote"
+                                class="btn btn-sm btn-studio-soft"
+                                onclick="window.Studio.demoteToLesson(null, event)"
+                                title="Alt konuyu ders notuna dönüştür"
+                            >
+                                📄 Ders Notu Yap
+                            </button>
+                            <button
+                                id="btnStudioDeleteTopic"
+                                class="btn btn-sm btn-studio-danger"
+                                onclick="window.Studio.deleteTopic(null, event)"
+                                title="Konuyu sil"
+                            >
+                                🗑️ Konuyu Sil
+                            </button>
+                        </div>
                     </div>
 
                     <div id="contentListNav" class="nav-list-scroll"></div>
