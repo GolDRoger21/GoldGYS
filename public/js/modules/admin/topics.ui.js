@@ -48,7 +48,10 @@ export const UI_SHELL = `
                         <div class="fw-bold text-primary" style="font-size:1.2rem;">⚡ Studio Pro</div>
                         <div class="vr"></div>
                     </div>
-                    <div id="activeTopicTitleDisplay" class="text-muted fw-medium studio-topic-title">Konu Seçilmedi</div>
+                    <div class="d-flex align-items-center gap-2">
+                        <button id="btnStudioDemote" class="nav-action-btn" style="display:none;" onclick="window.Studio.demoteToLesson(null, event)" title="Alt konuyu ders notuna dönüştür">↰</button>
+                        <div id="activeTopicTitleDisplay" class="text-muted fw-medium studio-topic-title">Konu Seçilmedi</div>
+                    </div>
                 </div>
                 <button class="btn btn-icon text-muted" onclick="window.Studio.close()" style="font-size:1.5rem;">&times;</button>
             </div>
@@ -65,42 +68,11 @@ export const UI_SHELL = `
                                 📝 Testler
                             </div>
                         </div>
-                        <div id="studioTopicActions" class="studio-topic-actions" style="display:none;">
-                            <button
-                                id="btnStudioDemote"
-                                class="btn btn-sm btn-studio-soft"
-                                onclick="window.Studio.demoteToLesson(null, event)"
-                                title="Alt konuyu ders notuna dönüştür"
-                            >
-                                📄 Ders Notu Yap
-                            </button>
-                            <button
-                                id="btnStudioDeleteTopic"
-                                class="btn btn-sm btn-studio-danger"
-                                onclick="window.Studio.deleteTopic(null, event)"
-                                title="Konuyu sil"
-                            >
-                                🗑️ Konuyu Sil
-                            </button>
-                        </div>
                     </div>
 
                     <div id="contentListNav" class="nav-list-scroll"></div>
 
-                    <div id="studioTopicActions" class="studio-topic-actions" style="display:none;">
-                        <button
-                            id="btnStudioDemote"
-                            class="btn btn-sm btn-outline-secondary w-100"
-                            onclick="window.Studio.demoteToLesson(null, event)"
-                            title="Alt konuyu ders notuna dönüştür"
-                        >📄 Alt Konuyu Ders Notu Yap</button>
-                        <button
-                            id="btnStudioDeleteTopic"
-                            class="btn btn-sm btn-outline-danger w-100"
-                            onclick="window.Studio.deleteTopic(null, event)"
-                            title="Konuyu sil"
-                        >🗑️ Konuyu Sil</button>
-                    </div>
+
 
                     <div class="sidebar-footer">
                         <button id="sidebarNewContentBtn" class="btn btn-dark w-100 btn-sm" onclick="window.Studio.newContent()">
@@ -284,8 +256,9 @@ export const UI_SHELL = `
                         <button class="btn btn-primary w-100">Değişiklikleri Kaydet</button>
                     </form>
                 </div>
-                <div class="drawer-footer">
+                <div class="drawer-footer d-flex justify-content-between align-items-center w-100">
                     <button class="btn btn-secondary btn-sm" onclick="window.Studio.settings(false)">Kapat</button>
+                    <button id="btnStudioDeleteTopic" class="btn btn-outline-danger btn-sm shadow-sm" style="display:none;" onclick="window.Studio.deleteTopic(null, event)" title="Konuyu sil">🗑️ Konuyu Sil</button>
                 </div>
             </aside>
 

@@ -122,19 +122,19 @@ function closeEditor() {
 }
 
 function renderStudioTopicActions() {
-    const wrap = document.getElementById('studioTopicActions');
     const demoteBtn = document.getElementById('btnStudioDemote');
     const deleteBtn = document.getElementById('btnStudioDeleteTopic');
-    if (!wrap || !demoteBtn || !deleteBtn) return;
+    if (!demoteBtn || !deleteBtn) return;
 
     const topic = state.allTopics.find(t => t.id === state.activeTopicId);
     if (!topic) {
-        wrap.style.display = 'none';
+        demoteBtn.style.display = 'none';
+        deleteBtn.style.display = 'none';
         return;
     }
 
-    wrap.style.display = 'flex';
     demoteBtn.style.display = topic.parentId ? 'inline-flex' : 'none';
+    deleteBtn.style.display = 'inline-flex';
     deleteBtn.innerHTML = topic.parentId ? '🗑️ Alt Konuyu Sil' : '🗑️ Konuyu Sil';
 }
 
