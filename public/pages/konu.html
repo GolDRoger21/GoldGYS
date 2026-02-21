@@ -227,36 +227,70 @@
       color: var(--text-muted);
     }
 
-    .mobile-tab-bar {
-      display: none;
-      gap: 10px;
-      background: var(--bg-surface);
+    .learning-companion {
+      background: linear-gradient(135deg, rgba(212, 175, 55, 0.18), rgba(212, 175, 55, 0.04));
+      border: 1px solid color-mix(in oklab, var(--color-primary) 35%, var(--border-color));
+      border-radius: 16px;
+      padding: 18px;
+      margin-bottom: 22px;
+      display: grid;
+      grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+      gap: 14px;
+    }
+
+    .learning-companion h3 {
+      margin: 0;
+      font-size: 1.05rem;
+    }
+
+    .companion-points {
+      margin: 10px 0 0;
+      padding-left: 20px;
+      color: var(--text-muted);
+      display: grid;
+      gap: 4px;
+      font-size: 0.9rem;
+    }
+
+    .companion-kpis {
+      display: grid;
+      gap: 8px;
+    }
+
+    .companion-kpi {
       border: 1px solid var(--border-color);
-      border-radius: 14px;
-      padding: 10px;
-      margin-bottom: 20px;
-      box-shadow: var(--shadow-sm);
-    }
-
-    .mobile-tab-btn {
-      flex: 1;
-      border: 1px solid transparent;
-      background: var(--bg-hover);
-      color: var(--text-main);
-      padding: 10px 12px;
       border-radius: 12px;
-      font-weight: 600;
+      background: var(--bg-surface);
+      padding: 10px 12px;
       display: flex;
+      justify-content: space-between;
       align-items: center;
-      justify-content: center;
-      gap: 6px;
+      gap: 10px;
     }
 
-    .mobile-tab-btn.active {
-      background: var(--color-primary);
-      color: var(--text-on-gold);
-      border-color: var(--color-primary);
-      box-shadow: var(--shadow-gold);
+    .companion-kpi span {
+      color: var(--text-muted);
+      font-size: 0.82rem;
+    }
+
+    .companion-kpi strong {
+      font-size: 1rem;
+    }
+
+    .section-title-block {
+      margin-bottom: 12px;
+    }
+
+    .section-title-block h3 {
+      border-left: 4px solid var(--color-primary);
+      padding-left: 10px;
+      margin-bottom: 8px;
+    }
+
+    .section-title-note {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      margin: 0;
     }
 
     @media (max-width: 900px) {
@@ -264,17 +298,8 @@
         grid-template-columns: 1fr;
       }
 
-      .mobile-tab-bar {
-        display: flex;
-      }
-
-      [data-tab-content] {
-        display: none;
-      }
-
-      body[data-topic-tab="tests"] #topicContentSection,
-      body[data-topic-tab="materials"] #topicMaterialsSection {
-        display: block !important;
+      .learning-companion {
+        grid-template-columns: 1fr;
       }
 
       /* Mobilde sağ kolonun (ders notları) aşağı inince margin eklemesi */
@@ -354,16 +379,32 @@
         <div id="subtopicLoading" class="text-muted small mt-3" style="display:none;">Alt konular yükleniyor...</div>
       </div>
 
-      <div class="mobile-tab-bar" role="tablist" aria-label="Konu içerik sekmeleri">
-        <button class="mobile-tab-btn active" type="button" data-topic-tab="tests" role="tab" aria-selected="true">
-          🚀 Testler
-        </button>
-        <button class="mobile-tab-btn" type="button" data-topic-tab="materials" role="tab" aria-selected="false">
-          📚 Ders Notları
-        </button>
+      <div class="learning-companion" id="learningCompanion">
+        <div>
+          <h3>🎯 Öğrenci Yol Haritası</h3>
+          <ul class="companion-points">
+            <li>Önce serbest çalışma modu ile eksiklerini tespit et.</li>
+            <li>Sonra konu testlerine geçip kalıcılığı artır.</li>
+            <li>Ders notlarından yalnızca ihtiyaç duyduğun başlıkları tekrar et.</li>
+          </ul>
+        </div>
+        <div class="companion-kpis">
+          <div class="companion-kpi">
+            <span>Hazır Test</span>
+            <strong id="companionTestCount">0</strong>
+          </div>
+          <div class="companion-kpi">
+            <span>Ders Notu</span>
+            <strong id="companionMaterialCount">0</strong>
+          </div>
+          <div class="companion-kpi">
+            <span>Konu İlerleme</span>
+            <strong id="companionProgress">%0</strong>
+          </div>
+        </div>
       </div>
 
-      <div id="topicContentSection" data-tab-content="tests">
+      <div id="topicContentSection">
         <div class="study-mode-card">
           <h2 style="margin:0; font-size:1.5rem;">🚀 Serbest Çalışma Modu</h2>
           <div class="study-mode-header">
@@ -395,16 +436,20 @@
           </div>
         </div>
 
-        <h3 style="border-left:4px solid var(--color-primary); padding-left:10px; margin-bottom:20px;">📝 Konu Testleri
-        </h3>
+        <div class="section-title-block">
+          <h3>📝 Konu Testleri</h3>
+          <p class="section-title-note">Sıralı veya tekrar odaklı çözüm ile konuyu pekiştir.</p>
+        </div>
         <div id="testsList">Yükleniyor...</div>
       </div>
 
     </div>
 
-    <div class="side-section" id="topicMaterialsSection" data-tab-content="materials" style="display:none;">
-      <h3 style="border-left:4px solid var(--color-success); padding-left:10px; margin-bottom:20px;">📚 Ders Notları
-      </h3>
+    <div class="side-section" id="topicMaterialsSection" style="display:block;">
+      <div class="section-title-block">
+        <h3 style="border-left-color:var(--color-success);">📚 Ders Notları</h3>
+        <p class="section-title-note">Kısa tekrarlar için not, video ve özet içerikleri tek alanda.</p>
+      </div>
       <div id="materialsList"></div>
     </div>
 
@@ -437,7 +482,6 @@
         window.history.replaceState({}, '', `/konu/${encodeURIComponent(currentTopicId)}`);
       }
 
-      initMobileTabs();
 
       // 1. Önce Konu Başlığını Çek
       await loadTopicHeader();
@@ -515,17 +559,17 @@
       const subtopicSection = document.getElementById('subtopicSection');
       const testsTitle = document.querySelector('#topicContentSection h3');
       const testsContainer = document.getElementById('testsList');
-      const mobileTabBar = document.querySelector('.mobile-tab-bar');
       const materialsSection = document.getElementById('topicMaterialsSection');
       const contentContainer = document.querySelector('.content-container');
+      const learningCompanion = document.getElementById('learningCompanion');
 
       if (hasSubtopics) {
         await renderSubtopics(subtopics);
         if (subtopicSection) subtopicSection.style.display = 'block';
         if (testsTitle) testsTitle.style.display = 'none';
         if (testsContainer) testsContainer.style.display = 'none';
-        if (mobileTabBar) mobileTabBar.style.display = 'none';
         if (materialsSection) materialsSection.style.display = 'none';
+        if (learningCompanion) learningCompanion.style.display = 'none';
 
         // Genişliği tam ekran yapmak için stili güncelle
         if (contentContainer) contentContainer.style.gridTemplateColumns = '1fr';
@@ -533,12 +577,11 @@
         if (subtopicSection) subtopicSection.style.display = 'none';
         if (testsTitle) testsTitle.style.display = 'block';
         if (testsContainer) testsContainer.style.display = 'block';
-        if (mobileTabBar) mobileTabBar.style.display = 'flex';
         if (materialsSection) materialsSection.style.display = 'block';
+        if (learningCompanion) learningCompanion.style.display = 'grid';
 
         // Orijinal genişliğe döndür
         if (contentContainer) contentContainer.style.gridTemplateColumns = '2fr 1fr';
-        initMobileTabs(); // Mobildeyse tabları aktive et
       }
 
       // İÇERİKLERİ YÜKLE (Index hatası olsa bile burası çalışmalı)
@@ -703,6 +746,11 @@
       }
 
 
+
+      const testCountEl = document.getElementById('companionTestCount');
+      const materialCountEl = document.getElementById('companionMaterialCount');
+      if (testCountEl) testCountEl.textContent = String(testCount);
+      if (materialCountEl) materialCountEl.textContent = String(materialCount);
 
       return { testCount, materialCount, totalCount: testCount + materialCount };
     }
@@ -881,6 +929,8 @@
         const percent = Math.min(100, Math.round((solvedCount / totalCount) * 100));
         progressBar.style.width = `${percent}%`;
         if (progressText) progressText.innerText = `%${percent} Tamamlandı (${solvedCount}/${totalCount})`;
+        const companionProgress = document.getElementById('companionProgress');
+        if (companionProgress) companionProgress.textContent = `%${percent}`;
       }
 
       if (status) {
@@ -936,26 +986,6 @@
       const filter = encodeURIComponent(mode);
       window.location.href = `/test/${encodeURIComponent(currentTopicId)}/smart?filter=${filter}`;
     };
-
-    function initMobileTabs() {
-      const tabButtons = document.querySelectorAll('[data-topic-tab]');
-      if (!tabButtons.length) return;
-
-      const setActiveTab = (tab) => {
-        document.body.dataset.topicTab = tab;
-        tabButtons.forEach((btn) => {
-          const isActive = btn.dataset.topicTab === tab;
-          btn.classList.toggle('active', isActive);
-          btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
-        });
-      };
-
-      tabButtons.forEach((btn) => {
-        btn.addEventListener('click', () => setActiveTab(btn.dataset.topicTab));
-      });
-
-      setActiveTab(document.body.dataset.topicTab || 'tests');
-    }
 
   </script>
 </body>
