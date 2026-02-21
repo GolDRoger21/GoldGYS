@@ -286,6 +286,64 @@
       line-height: 1.3;
     }
 
+    .topic-progress-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .topic-progress-track {
+      flex: 1;
+      height: 8px;
+      background: var(--bg-input);
+      border-radius: var(--radius-full);
+      overflow: hidden;
+      box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.08);
+    }
+
+    .topic-progress-fill {
+      height: 100%;
+      background: var(--gradient-primary);
+      width: 0%;
+      transition: width 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+      box-shadow: 0 0 10px rgba(191, 149, 63, 0.35);
+    }
+
+    .topic-target-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 5px 9px;
+      border-radius: var(--radius-full);
+      border: 1px solid var(--gold-border);
+      background: var(--gold-surface);
+      color: var(--gold-main);
+      font-size: 0.72rem;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .topic-card.completed {
+      opacity: 0.92;
+      border-color: rgba(16, 185, 129, 0.28);
+    }
+
+    .topic-complete-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      margin-bottom: 10px;
+      padding: 5px 10px;
+      border-radius: var(--radius-full);
+      background: rgba(16, 185, 129, 0.14);
+      color: #10b981;
+      border: 1px solid rgba(16, 185, 129, 0.35);
+      font-size: 0.74rem;
+      font-weight: 700;
+      width: fit-content;
+    }
+
     .topic-desc {
       font-size: 0.85rem;
       color: var(--text-muted);
@@ -393,24 +451,6 @@
       color: var(--text-main);
     }
 
-    /* Progress Bar */
-    .progress-container {
-      margin-top: 14px;
-      width: 100%;
-      height: 8px;
-      background: var(--bg-input);
-      border-radius: var(--radius-full);
-      overflow: hidden;
-      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
-    }
-
-    .progress-fill {
-      height: 100%;
-      background: var(--gradient-primary);
-      width: 0%;
-      transition: width 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
-      box-shadow: 0 0 10px rgba(191, 149, 63, 0.4);
-    }
 
     /* Mobil Uyum */
     @media (max-width: 768px) {
@@ -466,6 +506,15 @@
         margin-top: 6px;
         padding-left: 2px;
       }
+
+      .topic-progress-header {
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+
+      .topic-target-pill {
+        font-size: 0.7rem;
+      }
     }
   </style>
   <script src="/js/theme-init.js"></script>
@@ -504,7 +553,7 @@
 
   <script type="module">
     import { db, auth } from '../js/firebase-config.js';
-    import { collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { collection, getDocs, query, orderBy, where, documentId } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
     import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
     let allTopics = [];
@@ -559,17 +608,32 @@
     }
 
     async function loadQuestionCounts(topics) {
-      const topicIds = new Set(topics.map(topic => topic.id));
+      const topicIds = topics.map(topic => topic.id);
       const counts = new Map();
+
+      if (!topicIds.length) {
+        questionCounts = counts;
+        return;
+      }
+
+      const chunkSize = 30;
+      const idChunks = [];
+      for (let i = 0; i < topicIds.length; i += chunkSize) {
+        idChunks.push(topicIds.slice(i, i + chunkSize));
+      }
+
       try {
-        const metaSnapshot = await getDocs(collection(db, 'topic_packs_meta'));
-        metaSnapshot.forEach((metaDoc) => {
-          const data = metaDoc.data() || {};
-          const topicId = data.topicId || metaDoc.id;
-          if (topicIds.has(topicId)) {
-            counts.set(topicId, Number(data.questionCount || 0));
-          }
-        });
+        await Promise.all(idChunks.map(async (chunk) => {
+          const metaQuery = query(
+            collection(db, 'topic_packs_meta'),
+            where(documentId(), 'in', chunk)
+          );
+          const metaSnapshot = await getDocs(metaQuery);
+          metaSnapshot.forEach((metaDoc) => {
+            const data = metaDoc.data() || {};
+            counts.set(metaDoc.id, Number(data.questionCount || 0));
+          });
+        }));
       } catch (e) {
         console.warn('topic_packs_meta verileri okunamadı:', e);
       }
@@ -636,6 +700,27 @@
         return true;
       });
 
+      const getQuestionCount = (id) => questionCounts.get(id) || 0;
+
+      const getTopicSummary = (topic) => {
+        const allChildrenForTotals = childrenByParent.get(topic.id) || [];
+        const ownStats = userStats[topic.id] || { solved: 0, correct: 0 };
+        const childStats = allChildrenForTotals.reduce((acc, child) => {
+          const childProgress = userStats[child.id] || { solved: 0, correct: 0 };
+          acc.solved += childProgress.solved;
+          acc.correct += childProgress.correct;
+          return acc;
+        }, { solved: 0, correct: 0 });
+        const solvedTotal = ownStats.solved + childStats.solved;
+        const questionTarget = topic.totalQuestionTarget || 0;
+        const totalQuestionCount = getQuestionCount(topic.id)
+          + allChildrenForTotals.reduce((sum, child) => sum + getQuestionCount(child.id), 0);
+        const progressBase = Math.max(totalQuestionCount || 0, questionTarget || 0, 1);
+        const progress = Math.min(100, Math.round((solvedTotal / progressBase) * 100));
+        const isCompleted = solvedTotal >= progressBase;
+        return { questionTarget, progress, isCompleted };
+      };
+
       if (visibleParents.length === 0) {
         container.innerHTML = `
           <div class="text-center p-5 text-muted" style="grid-column: 1/-1;">
@@ -647,39 +732,29 @@
       }
 
       container.innerHTML = '';
-      const getQuestionCount = (id) => questionCounts.get(id) || 0;
-      visibleParents.forEach(t => {
+      const sortedParents = [...visibleParents].sort((a, b) => {
+        const aCompleted = getTopicSummary(a).isCompleted;
+        const bCompleted = getTopicSummary(b).isCompleted;
+        if (aCompleted === bCompleted) return 0;
+        return aCompleted ? 1 : -1;
+      });
+
+      sortedParents.forEach(t => {
         const icon = pickIcon(t.title, t.category);
 
         const allChildren = (childrenByParent.get(t.id) || []).filter(child =>
           category === 'all' || child.category === category
         );
-        const allChildrenForTotals = childrenByParent.get(t.id) || [];
         const parentMatches = !searchTerm || t.title.toLowerCase().includes(searchTerm);
         const matchingChildren = searchTerm
           ? allChildren.filter(child => child.title.toLowerCase().includes(searchTerm))
           : allChildren;
         const childrenToShow = searchTerm && !parentMatches ? matchingChildren : allChildren;
 
-        // İstatistikler
-        const ownStats = userStats[t.id] || { solved: 0, correct: 0 };
-        const childStats = allChildrenForTotals.reduce((acc, child) => {
-          const childProgress = userStats[child.id] || { solved: 0, correct: 0 };
-          acc.solved += childProgress.solved;
-          acc.correct += childProgress.correct;
-          return acc;
-        }, { solved: 0, correct: 0 });
-        const solvedTotal = ownStats.solved + childStats.solved;
-        const correctTotal = ownStats.correct + childStats.correct;
-        const successRate = solvedTotal > 0 ? Math.round((correctTotal / solvedTotal) * 100) : 0;
-        const questionTarget = t.totalQuestionTarget || 0;
-        const totalQuestionCount = getQuestionCount(t.id)
-          + allChildrenForTotals.reduce((sum, child) => sum + getQuestionCount(child.id), 0);
-        const progressBase = Math.max(totalQuestionCount || 0, questionTarget || 0, 1);
-        const progress = Math.min(100, Math.round((solvedTotal / progressBase) * 100));
+        const { questionTarget, progress, isCompleted } = getTopicSummary(t);
 
         const card = document.createElement('div');
-        card.className = 'topic-card';
+        card.className = `topic-card${isCompleted ? ' completed' : ''}`;
 
         const subtopicsHtml = childrenToShow.length ? `
                     <div class="subtopic-list">
@@ -699,37 +774,25 @@
                 ` : '';
 
         const progressHtml = `
-                    <div class="topic-compact-stats">
-                        <div class="topic-compact-stats-left">
-                           <span class="compact-stat-title">İlerleme</span>
-                           <span class="compact-stat-value">%${progress}</span>
+                    <div class="topic-progress-header">
+                        <div class="topic-progress-track" role="progressbar" aria-label="${t.title} ilerleme" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${progress}">
+                            <div class="topic-progress-fill" style="width: ${progress}%"></div>
                         </div>
-                        <div class="topic-compact-stats-right">
-                           <span class="compact-stat-sub">${solvedTotal} / ${progressBase} Soru</span>
-                           ${!childrenToShow.length ? `<span class="compact-success-rate">%${successRate} Başarı</span>` : ''}
-                        </div>
-                    </div>
-                    <div class="progress-container">
-                        <div class="progress-fill" style="width: ${progress}%"></div>
+                        <span class="topic-target-pill">🎯 Hedef: ${questionTarget}</span>
                     </div>
         `;
 
         card.innerHTML = `
             <a href="/konu/${encodeURIComponent(t.id)}" class="topic-main-link" style="text-decoration:none; color:inherit; display:block; flex-grow: 1;">
+                ${progressHtml}
+
                 <div class="card-header-row">
                     <div class="topic-icon">${icon}</div>
                     <span class="topic-badge badge-${t.category}">${t.category === 'ortak' ? 'Ortak' : 'Alan'}</span>
                 </div>
-                
+
                 <h3 class="topic-title">${t.title}</h3>
-                
-                ${progressHtml}
-                
-                <div class="topic-meta" style="margin-top: 12px;">
-                    <span class="topic-meta-item">🧮 ${totalQuestionCount} Soru</span>
-                    <span class="topic-meta-item">🎯 Hedef: ${questionTarget}</span>
-                    <span class="topic-meta-item">✅ ${solvedTotal} Çözülen</span>
-                </div>
+                ${isCompleted ? '<div class="topic-complete-badge">✅ Konu tamamlandı</div>' : ''}
                 <p class="topic-desc">${t.description || 'Konu açıklaması bulunmuyor.'}</p>
             </a>
             ${subtopicsHtml}
