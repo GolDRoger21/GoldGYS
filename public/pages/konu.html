@@ -196,6 +196,10 @@
       gap: 40px;
     }
 
+    .content-container.full-width {
+      grid-template-columns: 1fr;
+    }
+
     .main-section {
       display: grid;
       gap: 18px;
@@ -1025,7 +1029,10 @@
         if (learningCompanion) learningCompanion.style.display = 'none';
 
         // Genişliği tam ekran yapmak için stili güncelle
-        if (contentContainer) contentContainer.style.gridTemplateColumns = '1fr';
+        if (contentContainer) {
+          contentContainer.style.gridTemplateColumns = '';
+          contentContainer.classList.add('full-width');
+        }
       } else {
         if (subtopicSection) subtopicSection.style.display = 'none';
         if (testsTitle) testsTitle.style.display = 'block';
@@ -1034,7 +1041,10 @@
         if (learningCompanion) learningCompanion.style.display = 'grid';
 
         // Orijinal genişliğe döndür
-        if (contentContainer) contentContainer.style.gridTemplateColumns = '2fr 1fr';
+        if (contentContainer) {
+          contentContainer.style.gridTemplateColumns = '';
+          contentContainer.classList.remove('full-width');
+        }
       }
 
       // İÇERİKLERİ YÜKLE (Index hatası olsa bile burası çalışmalı)
