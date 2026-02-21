@@ -796,21 +796,26 @@
                         // Öncelikle alt konu var mı kontrol et
                         const subtopicsQuery = query(
                             collection(db, "topics"),
-                            where("parentId", "==", topicId),
-                            where("status", "==", "active"),
-                            where("isDeleted", "==", false)
+                            where("parentId", "==", topicId)
                         );
                         const subtopicsSnap = await getDocs(subtopicsQuery);
-                        const hasSubtopics = !subtopicsSnap.empty;
+                        const activeSubtopics = [];
+                        subtopicsSnap.forEach(doc => {
+                            const d = doc.data();
+                            if (d.isActive !== false && d.status !== 'deleted' && !d.isDeleted) {
+                                activeSubtopics.push({ id: doc.id, ...d });
+                            }
+                        });
+                        const hasSubtopics = activeSubtopics.length > 0;
 
                         let packQuestions = [];
                         let totalCountFallback = 0;
 
                         if (hasSubtopics) {
                             // Üst konu kapsayıcı modunda: Tüm alt konuların sorularını birleştir
-                            console.log(`[SmartMode] Üst konu tespit edildi. ${subtopicsSnap.size} alt konudan sorular birleştiriliyor...`);
+                            console.log(`[SmartMode] Üst konu tespit edildi. ${activeSubtopics.length} alt konudan sorular birleştiriliyor...`);
 
-                            const subtopicIds = subtopicsSnap.docs.map(doc => doc.id);
+                            const subtopicIds = activeSubtopics.map(t => t.id);
 
                             // Her alt konunun paketlerini (veya eski sistem id'lerini) çek
                             for (const sId of subtopicIds) {

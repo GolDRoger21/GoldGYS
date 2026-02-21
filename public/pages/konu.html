@@ -501,6 +501,7 @@
         subtopicSnap.forEach(doc => {
           const data = doc.data();
           if (data?.isActive === false) return;
+          if (data?.status === 'deleted' || data?.isDeleted) return;
           subtopics.push({ id: doc.id, ...data });
         });
       } catch (e) {
@@ -785,19 +786,24 @@
         let totalCount = 0;
         let solvedCount = 0;
 
-        // Öncelikle alt konu var mı kontrol et
+        // Öncelikle alt konu var mı kontrol et (Firestore Index hatası/eksik field hatası almamak için tümünü çekip js ile süzüyoruz)
         const subtopicsQuery = query(
           collection(db, "topics"),
-          where("parentId", "==", currentTopicId),
-          where("status", "==", "active"),
-          where("isDeleted", "==", false)
+          where("parentId", "==", currentTopicId)
         );
         const subtopicsSnap = await getDocs(subtopicsQuery);
-        const hasSubtopics = !subtopicsSnap.empty;
+        const activeSubtopics = [];
+        subtopicsSnap.forEach(doc => {
+          const d = doc.data();
+          if (d.isActive !== false && d.status !== 'deleted' && !d.isDeleted) {
+            activeSubtopics.push({ id: doc.id, ...d });
+          }
+        });
+        const hasSubtopics = activeSubtopics.length > 0;
 
         if (hasSubtopics) {
           // Üst Konu (Kapsayıcı Modu): Tüm alt konuların verilerini topla
-          const subtopicIds = subtopicsSnap.docs.map(doc => doc.id);
+          const subtopicIds = activeSubtopics.map(t => t.id);
           for (const sId of subtopicIds) {
             // 1. Toplam Soru Sayısı
             const meta = await TopicService.getTopicPackMeta(sId);
