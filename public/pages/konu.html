@@ -64,6 +64,13 @@
       box-shadow: var(--shadow-sm);
     }
 
+    .mode-btn:focus-visible,
+    .subtopic-card:focus-visible,
+    .topic-back-btn:focus-visible {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 2px;
+    }
+
     .mode-btn.active {
       background: var(--color-primary);
       border-color: var(--color-primary);
@@ -94,10 +101,6 @@
       margin-bottom: 0;
       opacity: 0.8;
       max-width: 520px;
-    }
-
-    .reset-progress-btn {
-      white-space: nowrap;
     }
 
     .topic-header {
@@ -343,6 +346,24 @@
       .study-mode-status {
         max-width: 100%;
       }
+
+      .learning-companion {
+        padding: 14px;
+      }
+    }
+
+    @media (max-width: 420px) {
+      .mode-options {
+        grid-template-columns: 1fr;
+      }
+
+      .companion-kpi {
+        padding: 9px 10px;
+      }
+
+      .companion-kpi strong {
+        font-size: 0.92rem;
+      }
     }
   </style>
   <script src="/js/theme-init.js"></script>
@@ -410,10 +431,6 @@
           <div class="study-mode-header">
             <p id="studyModeStatus" class="study-mode-status">Bu konuya ait <strong id="totalQCount">0</strong> soruyu
               dilediğin gibi çöz.</p>
-            <button id="resetProgressBtn" class="btn btn-sm btn-outline-danger reset-progress-btn" style="display:none;"
-              onclick="resetTopicProgress()">
-              <span class="material-icons" style="font-size:1rem; vertical-align:middle;">refresh</span> Sıfırla
-            </button>
           </div>
 
           <div class="mode-options">
@@ -907,7 +924,6 @@
     function updateStudyModeState(totalCount, solvedCount) {
       const status = document.getElementById('studyModeStatus');
       const modeButtons = document.querySelectorAll('.mode-btn');
-      const resetBtn = document.getElementById('resetProgressBtn');
       const progressBar = document.getElementById('topicProgressBar');
       const progressText = document.getElementById('progressText');
 
@@ -918,11 +934,6 @@
       modeButtons.forEach((btn) => {
         btn.disabled = !hasQuestions;
       });
-
-      // Reset Butonu: Eğer çözülen varsa göster
-      if (resetBtn) {
-        resetBtn.style.display = (solvedCount > 0 && hasQuestions) ? 'inline-flex' : 'none';
-      }
 
       // Progress Bar Güncelle
       if (progressBar && totalCount > 0) {
@@ -935,7 +946,7 @@
 
       if (status) {
         if (remaining === 0 && totalCount > 0) {
-          status.innerHTML = `🌟 Tebrikler! <strong>${totalCount}</strong> sorunun tamamını çözdünüz. Tekrar çözmek için sıfırlayabilirsiniz.`;
+          status.innerHTML = `🌟 Tebrikler! <strong>${totalCount}</strong> sorunun tamamını çözdünüz. İlerleme sıfırlama için Raporlar sayfasını kullanabilirsiniz.`;
         } else {
           status.innerHTML = hasQuestions
             ? `Bu konuda toplam <strong id="totalQCount">${totalCount}</strong> soru var. <br> <small>(${solvedCount} çözüldü, ${remaining} kaldı)</small>`
@@ -943,41 +954,6 @@
         }
       }
     }
-
-    window.resetTopicProgress = async () => {
-      if (!auth.currentUser) return;
-      const shouldReset = await showConfirm("Bu konudaki ilerlemenizi sıfırlamak istiyor musunuz? Çözdüğünüz sorular tekrar karşınıza çıkacaktır.", {
-        title: "İlerlemeyi Sıfırla",
-        confirmText: "Evet, sıfırla",
-        cancelText: "Vazgeç",
-        tone: "warning"
-      });
-      if (!shouldReset) return;
-
-      const btn = document.getElementById('resetProgressBtn');
-      const originalLabel = btn?.innerHTML;
-      if (btn) {
-        btn.disabled = true;
-        btn.setAttribute('aria-busy', 'true');
-        btn.innerHTML = '<span class="material-icons" style="font-size:1rem; vertical-align:middle;">refresh</span> Sıfırlanıyor...';
-      }
-
-      const resetOk = await TopicService.resetProgress(auth.currentUser.uid, currentTopicId);
-      if (resetOk) {
-        showToast("İlerleme sıfırlandı.", "success");
-
-        // Arayüzü yenile
-        await loadQuestionCount();
-      } else {
-        showToast("İlerleme sıfırlanamadı. Lütfen tekrar deneyin.", "error");
-      }
-
-      if (btn) {
-        btn.disabled = false;
-        btn.removeAttribute('aria-busy');
-        if (originalLabel) btn.innerHTML = originalLabel;
-      }
-    };
 
     window.startSmartTest = (mode) => {
       // SEO-Friendly Smart Mode Link
