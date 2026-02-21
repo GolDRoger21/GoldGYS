@@ -143,6 +143,8 @@
       background: var(--bg-hover);
       transform: translateX(4px);
       box-shadow: var(--shadow-sm);
+      text-decoration: none;
+      /* Removed underline */
     }
 
     .subtopic-link:active {
@@ -1065,8 +1067,8 @@
                                   <span title="${child.title}">${child.title}</span>
                                 </span>
                                 <span class="subtopic-meta">
-                                  <span class="subtopic-meta-badge">🎯 ${getQuestionCount(child.id)}</span>
-                                  <span class="subtopic-meta-badge">✅ ${(userStats[child.id]?.solved || 0)}</span>
+                                  <span class="subtopic-meta-badge" title="Sınavda Çıkacak Hedef Soru Sayısı">🎯 ${getQuestionCount(child.id)}</span>
+                                  <span class="subtopic-meta-badge" title="Çözülen Doğru Soru Sayısı">✅ ${(userStats[child.id]?.solved || 0)}</span>
                                 </span>
                             </a>
                         `).join('')}
@@ -1084,7 +1086,7 @@
                             <span>· %${successRate} Başarı</span>
                         </div>
                       </div>
-                      ${t.totalQuestionTarget ? `<div class="topic-question-chip">🎯 ${t.totalQuestionTarget} Hedef Soru</div>` : ''}
+                      ${t.totalQuestionTarget ? `<div class="topic-question-chip" title="Sınavda Çıkacak Hedef Soru Sayısı">🎯 ${t.totalQuestionTarget}</div>` : ''}
                     </div>
         `;
 

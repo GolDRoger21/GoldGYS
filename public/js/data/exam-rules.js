@@ -29,7 +29,7 @@ export const EXAM_RULES = [
             { "title": "5302 Sayılı İl Özel İdaresi Kanunu", "legislationCode": "5302", "articleRange": "ALL", "qTarget": 2 },
             { "title": "5393 Sayılı Belediye Kanunu", "legislationCode": "5393", "articleRange": "ALL", "qTarget": 2 },
             { "title": "5442 Sayılı İl İdaresi Kanunu", "legislationCode": "5442", "articleRange": "ALL", "qTarget": 2 },
-            { "title": "1 Sayılı CB Kararnamesi (Genel)", "legislationCode": "CBK-1", "articleRange": "1-37", "qTarget": 3 }
+            { "title": "1 Sayılı CB Kararnamesi", "legislationCode": "CBK-1", "articleRange": "1-37", "qTarget": 3 }
         ]
     },
     {
@@ -160,9 +160,8 @@ export const EXAM_RULES = [
         "category": "alan",
         "totalQuestionTarget": 5,
         "lessons": [
-            { "title": "7201 Sayılı Tebligat Kanunu", "legislationCode": "7201", "articleRange": "ALL", "qTarget": 2 },
-            { "title": "Tebligat Yönetmeliği", "legislationCode": "YONETMELIK_TEBLIGAT", "articleRange": "ALL", "qTarget": 2 },
-            { "title": "Elektronik Tebligat Yönetmeliği", "legislationCode": "YONETMELIK_ETEBLIGAT", "articleRange": "ALL", "qTarget": 1 }
+            { "title": "7201 Sayılı Tebligat Kanunu", "legislationCode": "7201", "articleRange": "ALL", "qTarget": 3 },
+            { "title": "Elektronik Tebligat Yönetmeliği", "legislationCode": "YONETMELIK_ETEBLIGAT", "articleRange": "ALL", "qTarget": 2 }
         ]
     },
     {
@@ -195,9 +194,9 @@ export const EXAM_RULES = [
         "category": "alan",
         "totalQuestionTarget": 3,
         "lessons": [
-            { "title": "Birinci Kitap (Genel Hükümler)", "legislationCode": "5271", "articleRange": "1-156", "qTarget": 0 },
-            { "title": "İkinci Kitap (Soruşturma)", "legislationCode": "5271", "articleRange": "157-174", "qTarget": 0 },
-            { "title": "Üçüncü Kitap (Kovuşturma)", "legislationCode": "5271", "articleRange": "175-232", "qTarget": 0 },
+            { "title": "Birinci Kitap (Genel Hükümler)", "legislationCode": "5271", "articleRange": "1-156", "qTarget": 1 },
+            { "title": "İkinci Kitap (Soruşturma)", "legislationCode": "5271", "articleRange": "157-174", "qTarget": 1 },
+            { "title": "Üçüncü Kitap (Kovuşturma)", "legislationCode": "5271", "articleRange": "175-232", "qTarget": 1 },
             { "title": "Dördüncü Kitap (Mağdur, Tanık)", "legislationCode": "5271", "articleRange": "233-252", "qTarget": 0 },
             { "title": "Beşinci Kitap (Özel Yargılama)", "legislationCode": "5271", "articleRange": "253-255", "qTarget": 0 },
             { "title": "Altıncı Kitap (Kanun Yolları)", "legislationCode": "5271", "articleRange": "260-323", "qTarget": 0 },
@@ -210,9 +209,9 @@ export const EXAM_RULES = [
         "category": "alan",
         "totalQuestionTarget": 3,
         "lessons": [
-            { "title": "Birinci Kısım (Genel Hükümler)", "legislationCode": "6100", "articleRange": "1-108", "qTarget": 0 },
-            { "title": "İkinci Kısım (Dava Çeşitleri)", "legislationCode": "6100", "articleRange": "109-117", "qTarget": 0 },
-            { "title": "Üçüncü Kısım (Yazılı Yargılama)", "legislationCode": "6100", "articleRange": "118-186", "qTarget": 0 },
+            { "title": "Birinci Kısım (Genel Hükümler)", "legislationCode": "6100", "articleRange": "1-108", "qTarget": 1 },
+            { "title": "İkinci Kısım (Dava Çeşitleri)", "legislationCode": "6100", "articleRange": "109-117", "qTarget": 1 },
+            { "title": "Üçüncü Kısım (Yazılı Yargılama)", "legislationCode": "6100", "articleRange": "118-186", "qTarget": 1 },
             { "title": "Beşinci Kısım (Hüküm)", "legislationCode": "6100", "articleRange": "294-303", "qTarget": 0 },
             { "title": "Kanun Yolları (İstinaf/Temyiz)", "legislationCode": "6100", "articleRange": "341-373", "qTarget": 0 },
             { "title": "Onuncu Kısım (Yargılama Giderleri)", "legislationCode": "6100", "articleRange": "323-340", "qTarget": 0 }
@@ -224,8 +223,8 @@ export const EXAM_RULES = [
         "category": "alan",
         "totalQuestionTarget": 2,
         "lessons": [
-            { "title": "Birinci Bölüm (Genel Esaslar)", "legislationCode": "2577", "articleRange": "1-10", "qTarget": 0 },
-            { "title": "İkinci Bölüm (İdari Dava Açılması)", "legislationCode": "2577", "articleRange": "11-32", "qTarget": 0 },
+            { "title": "Birinci Bölüm (Genel Esaslar)", "legislationCode": "2577", "articleRange": "1-10", "qTarget": 1 },
+            { "title": "İkinci Bölüm (İdari Dava Açılması)", "legislationCode": "2577", "articleRange": "11-32", "qTarget": 1 },
             { "title": "Üçüncü Bölüm (Kararlar)", "legislationCode": "2577", "articleRange": "33-55", "qTarget": 0 }
         ]
     },
@@ -235,8 +234,8 @@ export const EXAM_RULES = [
         "category": "alan",
         "totalQuestionTarget": 2,
         "lessons": [
-            { "title": "Birinci Kitap (İnfazın İlkeleri)", "legislationCode": "5275", "articleRange": "1-19", "qTarget": 0 },
-            { "title": "Dördüncü Kısım (Cezaların İnfazı)", "legislationCode": "5275", "articleRange": "80-100", "qTarget": 0 }
+            { "title": "Birinci Kitap (İnfazın İlkeleri)", "legislationCode": "5275", "articleRange": "1-19", "qTarget": 1 },
+            { "title": "Dördüncü Kısım (Cezaların İnfazı)", "legislationCode": "5275", "articleRange": "80-100", "qTarget": 1 }
         ]
     }
 ];
