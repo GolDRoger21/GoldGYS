@@ -250,7 +250,7 @@
       grid-template-columns: minmax(0, 1fr) auto;
       gap: 10px;
       align-items: center;
-      margin-bottom: 16px;
+      margin-top: 16px;
     }
 
     .topic-question-chip {
@@ -359,7 +359,7 @@
     .topic-desc {
       font-size: 0.85rem;
       color: var(--text-muted);
-      margin-bottom: 16px;
+      margin-bottom: 0;
       flex-grow: 1;
       display: -webkit-box;
       -webkit-line-clamp: 2;
@@ -790,9 +790,10 @@
         const questionTarget = t.totalQuestionTarget || 0;
         const totalQuestionCount = getQuestionCount(t.id)
           + allChildrenForTotals.reduce((sum, child) => sum + getQuestionCount(child.id), 0);
-        const progressBase = Math.max(totalQuestionCount || 0, questionTarget || 0, 1);
+        const expectedQuestionCount = questionTarget > 0 ? questionTarget : totalQuestionCount;
+        const progressBase = Math.max(expectedQuestionCount || 0, 1);
         const progress = Math.min(100, Math.round((solvedTotal / progressBase) * 100));
-        const completionBase = Math.max(totalQuestionCount || 0, questionTarget || 0);
+        const completionBase = Math.max(expectedQuestionCount || 0);
         const isCompleted = completionBase > 0 && solvedTotal >= completionBase;
 
         return {
@@ -803,7 +804,8 @@
           progressBase,
           successRate,
           isCompleted,
-          solvedTotal
+          solvedTotal,
+          expectedQuestionCount
         };
       };
 
@@ -815,7 +817,7 @@
         return a.isCompleted ? 1 : -1;
       });
 
-      decoratedTopics.forEach(({ topic: t, icon, childrenToShow, progress, progressBase, successRate, isCompleted, solvedTotal }) => {
+      decoratedTopics.forEach(({ topic: t, icon, childrenToShow, progress, progressBase, successRate, isCompleted, solvedTotal, expectedQuestionCount }) => {
 
         const card = document.createElement('div');
         card.className = `topic-card${isCompleted ? ' is-completed' : ''}`;
@@ -845,10 +847,10 @@
                         </div>
                         <div class="topic-progress-line">
                             <span><strong>%${progress}</strong> İlerleme · <strong>${solvedTotal} / ${progressBase}</strong></span>
-                            <span>${!childrenToShow.length ? `· %${successRate} Başarı` : ''}</span>
+                            <span>· %${successRate} Başarı</span>
                         </div>
                       </div>
-                      <div class="topic-question-chip">🎯 ${Math.max(progressBase, 0)} Soru</div>
+                      <div class="topic-question-chip">🎯 ${Math.max(expectedQuestionCount, 0)} Hedef Soru</div>
                     </div>
         `;
 
@@ -861,10 +863,10 @@
                 
                 <h3 class="topic-title">${t.title}</h3>
                 
-                ${progressHtml}
-
                 ${isCompleted ? '<div class="topic-completed-badge">🏁 Bu konu tamamlandı</div>' : ''}
                 <p class="topic-desc">${t.description || 'Konu açıklaması bulunmuyor.'}</p>
+
+                ${progressHtml}
             </a>
             ${subtopicsHtml}
         `;
