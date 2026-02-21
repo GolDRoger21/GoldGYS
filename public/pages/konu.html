@@ -99,8 +99,52 @@
     .study-mode-status {
       margin-top: 5px;
       margin-bottom: 0;
-      opacity: 0.8;
-      max-width: 520px;
+      max-width: 620px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .study-mode-status-title {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+
+    .study-mode-status-metrics {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(120px, 1fr));
+      gap: 10px;
+    }
+
+    .study-mode-metric {
+      border: 1px solid var(--border-color);
+      background: color-mix(in srgb, var(--bg-hover) 72%, transparent);
+      border-radius: 10px;
+      padding: 10px 12px;
+      display: grid;
+      gap: 2px;
+      min-height: 70px;
+    }
+
+    .study-mode-metric-label {
+      font-size: 0.76rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+    }
+
+    .study-mode-metric-value {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .study-mode-status-empty {
+      border: 1px dashed var(--border-color);
+      border-radius: 10px;
+      padding: 12px;
+      color: var(--text-muted);
+      font-size: 0.92rem;
     }
 
     .topic-header {
@@ -326,6 +370,10 @@
         padding: 18px;
       }
 
+      .study-mode-status-metrics {
+        grid-template-columns: 1fr;
+      }
+
       .mode-options {
         grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 10px;
@@ -429,8 +477,23 @@
         <div class="study-mode-card">
           <h2 style="margin:0; font-size:1.5rem;">🚀 Serbest Çalışma Modu</h2>
           <div class="study-mode-header">
-            <p id="studyModeStatus" class="study-mode-status">Bu konuya ait <strong id="totalQCount">0</strong> soruyu
-              dilediğin gibi çöz.</p>
+            <div id="studyModeStatus" class="study-mode-status">
+              <div class="study-mode-status-title">Performans özetiniz hazırlanıyor...</div>
+              <div class="study-mode-status-metrics">
+                <div class="study-mode-metric">
+                  <span class="study-mode-metric-label">Toplam Soru</span>
+                  <strong class="study-mode-metric-value" id="totalQCount">0</strong>
+                </div>
+                <div class="study-mode-metric">
+                  <span class="study-mode-metric-label">Çözülen</span>
+                  <strong class="study-mode-metric-value">0</strong>
+                </div>
+                <div class="study-mode-metric">
+                  <span class="study-mode-metric-label">Kalan</span>
+                  <strong class="study-mode-metric-value">0</strong>
+                </div>
+              </div>
+            </div>
           </div>
 
           <div class="mode-options">
@@ -945,13 +1008,31 @@
       }
 
       if (status) {
-        if (remaining === 0 && totalCount > 0) {
-          status.innerHTML = `🌟 Tebrikler! <strong>${totalCount}</strong> sorunun tamamını çözdünüz. İlerleme sıfırlama için Raporlar sayfasını kullanabilirsiniz.`;
-        } else {
-          status.innerHTML = hasQuestions
-            ? `Bu konuda toplam <strong id="totalQCount">${totalCount}</strong> soru var. <br> <small>(${solvedCount} çözüldü, ${remaining} kaldı)</small>`
-            : 'Bu konu için henüz aktif soru bulunmuyor.';
+        if (!hasQuestions) {
+          status.innerHTML = `<div class="study-mode-status-empty">Bu konu için henüz aktif soru bulunmuyor.</div>`;
+          return;
         }
+
+        const introText = remaining === 0
+          ? '🌟 Tebrikler! Tüm soruları tamamladınız. İsterseniz yanlışlar veya favoriler filtresiyle tekrar yapabilirsiniz.'
+          : 'Hedefinize adım adım yaklaşıyorsunuz. Aşağıdaki özetten anlık durumunuzu takip edin.';
+
+        status.innerHTML = `
+          <div class="study-mode-status-title">${introText}</div>
+          <div class="study-mode-status-metrics">
+            <div class="study-mode-metric">
+              <span class="study-mode-metric-label">Toplam Soru</span>
+              <strong class="study-mode-metric-value" id="totalQCount">${totalCount}</strong>
+            </div>
+            <div class="study-mode-metric">
+              <span class="study-mode-metric-label">Çözülen</span>
+              <strong class="study-mode-metric-value">${solvedCount}</strong>
+            </div>
+            <div class="study-mode-metric">
+              <span class="study-mode-metric-label">Kalan</span>
+              <strong class="study-mode-metric-value">${remaining}</strong>
+            </div>
+          </div>`;
       }
     }
 
