@@ -226,16 +226,20 @@ export const UI_SHELL = `
                             </select>
                         </div>
                         <div class="row mb-3">
-                            <div class="col-6">
+                            <div class="col-4">
                                 <label class="form-label fw-bold small text-muted">SIRA NO</label>
                                 <input type="number" id="inpTopicOrder" class="form-control">
                             </div>
-                            <div class="col-6">
+                            <div class="col-4">
                                 <label class="form-label fw-bold small text-muted">KATEGORİ</label>
                                 <select id="inpTopicCategory" class="form-select">
                                     <option value="ortak">Ortak Konular</option>
                                     <option value="alan">Alan Konuları</option>
                                 </select>
+                            </div>
+                            <div class="col-4">
+                                <label class="form-label fw-bold small text-muted">HEDEF SORU</label>
+                                <input type="number" id="inpTopicTarget" class="form-control" placeholder="Örn: 5">
                             </div>
                         </div>
                         <div class="mb-3">

@@ -309,6 +309,7 @@ async function openEditor(id = null) {
             document.getElementById('inpTopicOrder').value = t.order;
             document.getElementById('inpTopicCategory').value = t.category;
             document.getElementById('inpTopicStatus').value = t.isActive;
+            document.getElementById('inpTopicTarget').value = t.totalQuestionTarget || '';
             // Keywords
             const kwInput = document.getElementById('inpTopicKeywords');
             if (kwInput) kwInput.value = (t.keywords || []).join(', ');
@@ -334,6 +335,7 @@ async function openEditor(id = null) {
         document.getElementById('inpTopicTitle').value = "";
         document.getElementById('inpTopicDescription').value = "";
         document.getElementById('inpTopicOrder').value = getNextOrderForParent(null);
+        document.getElementById('inpTopicTarget').value = '';
         updateParentOptions(null);
         document.getElementById('inpTopicParent').value = '';
         // Reset/Auto-Populate Keywords (Event listener will handle auto-pop on title change)
@@ -540,6 +542,7 @@ async function saveTopicMeta() {
         description: document.getElementById('inpTopicDescription').value.trim(),
         order: parseInt(document.getElementById('inpTopicOrder').value) || 0,
         category: document.getElementById('inpTopicCategory').value,
+        totalQuestionTarget: parseInt(document.getElementById('inpTopicTarget').value) || 0,
         isActive: document.getElementById('inpTopicStatus').value === 'true',
         parentId,
         keywords: (document.getElementById('inpTopicKeywords')?.value || '')
