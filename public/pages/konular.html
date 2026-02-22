@@ -895,8 +895,9 @@
     function pickIcon(title, category, isSubtopic = false) {
       const iconRules = [
         // Özel Eşleşmeler (Vurgulu Konular)
+        { match: /atatürk ilkeleri ve inkılap tarihi, ulusal güvenlik/i, icon: '🎖️' }, // Bütünleşik konu için madalya/nişan
         { match: /1 sayılı cb|cumhurbaşkanlığı/i, icon: '☀️' }, // Cumhurbaşkanlığı Forsunu (Güneş) temsil eder
-        { match: /anayasa|anayasal/i, icon: '⚖️' }, // Türkiye Cumhuriyeti Anayasası (Adalet/Yasa)
+        { match: /anayasa|anayasal/i, icon: '📖' }, // Türkiye Cumhuriyeti Anayasası (Temel Kitap)
         { match: /atatürk|inkılap|kurtuluş|mill[iî] mücadele/i, icon: '🇹🇷' },
 
         // Devlet Teşkilatı ve İdare
@@ -907,13 +908,13 @@
 
         // Yargı, Yazı İşleri, SEGBİS
         { match: /yazı işleri|harçlar|kalem/i, icon: '🗃️' }, // Yazı İşleri ve Harçlar (Dosyalar/Kutu)
-        { match: /segbis|elektronik imza|e-imza|uyap/i, icon: '🖥️' }, // SEGBİS / Teknoloji / Elektronik İmza
+        { match: /segbis|elektronik imza|e-imza|uyap/i, icon: '�' }, // SEGBİS / Teknoloji / Elektronik İmza (Kilitli Kalem)
         { match: /yargı|mahkeme|hâkim|savcı|danıştay|sayıştay|uyuşmazlık/i, icon: '⚖️' },
 
         // Özel Kanunlar (Ceza, Medeni, HMK, CMK, İnfaz vb.)
-        { match: /cmk|ceza muhakemesi|5271/i, icon: '🛡️' }, // CMK (Savunma / Hak Arama / Kalkan)
+        { match: /cmk|ceza muhakemesi|5271/i, icon: '�' }, // CMK (Mahkeme Tokmağı / Yargılama)
         { match: /infaz|5275|cezaevi|tevkifevi/i, icon: '⛓️' }, // İnfaz Kanunu (Zincir / Hapishane)
-        { match: /hmk|hukuk muhakemeleri|6100/i, icon: '👨‍⚖️' }, // HMK (Hukuk Hakimi / Yargılama Süreci)
+        { match: /hmk|hukuk muhakemeleri|6100/i, icon: '⚖️' }, // HMK (Adalet Terazisi / Hukuk Mahkemesi)
         { match: /ceza|tck|suç|kovuşturma|soruşturma/i, icon: '🚨' }, // Genel Ceza / TCK (Acil/Polis)
         { match: /icra|iflas/i, icon: '📉' }, // İcra / İflas
 
@@ -925,14 +926,14 @@
 
         // İletişim, Tebligat ve Yazışma
         { match: /resm[iî] yazışma/i, icon: '🖋️' }, // Resmi Yazışma Kuralları (Dolma Kalem)
-        { match: /halkla ilişkiler/i, icon: '🤝' }, // Halkla İlişkiler (Tokalaşma / İletişim)
+        { match: /halkla ilişkiler/i, icon: '📢' }, // Halkla İlişkiler (Duyuru / İletişim / Hoparlör)
         { match: /tebligat|bildirim/i, icon: '📩' },
         { match: /bilgi edinme/i, icon: 'ℹ️' },
         { match: /dilekçe/i, icon: '✍️' },
         { match: /iletişim|tanıtım|medya|protokol/i, icon: '💬' },
 
         // Güvenlik ve İnsan Hakları
-        { match: /ulusal güvenlik|güvenlik|asayiş|jandarma|polis/i, icon: '�' },
+        { match: /ulusal güvenlik|güvenlik|asayiş|jandarma|polis/i, icon: '🛡️' }, // Kalkan / Koruma
         { match: /insan hak|eşitlik|özgürlük/i, icon: '🕊️' },
         { match: /uluslararası|avrupa birliği|ab müktesebat/i, icon: '🌍' },
 
