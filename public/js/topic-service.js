@@ -228,12 +228,19 @@ export const TopicService = {
             if (docSnap.exists()) {
                 const data = docSnap.data();
                 const answers = data.answers || {};
+                const answerIds = Object.keys(answers);
                 const solvedIds = Array.isArray(data.solvedIds)
-                    ? data.solvedIds
-                    : Object.keys(answers);
+                    ? Array.from(new Set([...data.solvedIds, ...answerIds]))
+                    : answerIds;
+                const wrongIds = Object.entries(answers)
+                    .filter(([, value]) => value?.isCorrect === false)
+                    .map(([questionId]) => questionId);
+
+                const persistedWrongIds = Array.isArray(data.wrongIds) ? data.wrongIds : [];
                 return {
                     solvedIds: solvedIds, // Çözülen soru ID'leri (Array)
                     answers: answers,
+                    wrongIds: Array.from(new Set([...persistedWrongIds, ...wrongIds])),
                     lastDocId: data.lastDocId || null, // Sıralı mod için son kalınan yer
                     totalSolved: solvedIds.length
                 };
@@ -268,11 +275,18 @@ export const TopicService = {
             const docSnap = await getDoc(docRef);
             const existingAnswers = docSnap.exists() ? (docSnap.data().answers || {}) : {};
             const merged = { ...existingAnswers, ...answers };
+            const solvedIds = Object.keys(merged);
+            const wrongIds = Object.entries(merged)
+                .filter(([, value]) => value?.isCorrect === false)
+                .map(([questionId]) => questionId);
 
             await setDoc(docRef, {
                 topicId: topicId,
                 answers: merged,
-                solvedCount: Object.keys(merged).length,
+                solvedIds,
+                solvedCount: solvedIds.length,
+                wrongIds,
+                wrongCount: wrongIds.length,
                 lastSyncedAt: serverTimestamp()
             }, { merge: true });
 

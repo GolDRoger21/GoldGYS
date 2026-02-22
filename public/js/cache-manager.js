@@ -105,11 +105,12 @@ export const CacheManager = {
         }
     },
 
-    async getData(key) {
+    async getData(key, maxAge = null) {
         try {
             const record = await idb.get(STORES.METADATA, key);
             if (!record) return null;
-            if (Date.now() - record.timestamp > record.ttl) {
+            const effectiveTtl = Number.isFinite(maxAge) && maxAge > 0 ? Math.min(record.ttl || DEFAULT_TTL, maxAge) : (record.ttl || DEFAULT_TTL);
+            if (Date.now() - record.timestamp > effectiveTtl) {
                 await idb.delete(STORES.METADATA, key);
                 return null;
             }
