@@ -121,18 +121,19 @@
                 <div class="topic-controls">
                     <input type="search" id="topicSearchInput" placeholder="Konu ara...">
                     <select id="topicSortSelect">
-                        <option value="weakest">En Zayıf</option>
-                        <option value="strongest">En Güçlü</option>
+                        <option value="smart">Akıllı (Varsayılan)</option>
+                        <option value="weakest">En Zayıf Başarı</option>
+                        <option value="strongest">En Yüksek Başarı</option>
                         <option value="alphabetical">A-Z</option>
                     </select>
                     <div class="chip-group" id="topicFilterChips">
-                        <button class="status-badge badge-blue status-in-progress" data-filter="all">Tümü</button>
-                        <button class="status-badge badge-gray status-pending"
+                        <button class="status-badge badge-blue status-in-progress"
                             data-filter="in_progress">Çalışılanlar</button>
                         <button class="status-badge badge-gray status-pending"
-                            data-filter="completed">Bitirilenler</button>
-                        <button class="status-badge badge-gray status-pending"
                             data-filter="pending">Başlanmayanlar</button>
+                        <button class="status-badge badge-gray status-pending"
+                            data-filter="completed">Bitirilenler</button>
+                        <button class="status-badge badge-gray status-pending" data-filter="all">Tümü</button>
                     </div>
                 </div>
             </div>

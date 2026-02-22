@@ -3,6 +3,7 @@ import { collection, query, orderBy, limit, getDocs, doc, setDoc, getDoc, server
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { showConfirm, showToast } from "./notifications.js";
 import { TopicService } from "./topic-service.js";
+import { buildTopicPath } from "./topic-url.js";
 
 const state = {
     userId: null,
@@ -13,9 +14,9 @@ const state = {
     currentTopicId: null,
     statsResetAt: null,
     topicResets: {},
-    topicFilter: 'all',
+    topicFilter: 'in_progress',
     search: '',
-    sortBy: 'weakest',
+    sortBy: 'smart',
     charts: { progress: null, topic: null }
 };
 
@@ -399,7 +400,22 @@ function renderHistoryTable(results) {
 function sortTopics(rows) {
     if (state.sortBy === 'alphabetical') return rows.sort((a, b) => a.topic.title.localeCompare(b.topic.title, 'tr'));
     if (state.sortBy === 'strongest') return rows.sort((a, b) => b.success - a.success);
-    return rows.sort((a, b) => a.success - b.success);
+    if (state.sortBy === 'weakest') return rows.sort((a, b) => a.success - b.success);
+
+    // state.sortBy === 'smart' varsayılan sıralama stratejisi
+    return rows.sort((a, b) => {
+        // Eğer Çalışılanlar veya Bitirilenler sekmesindeysek, ilerleme oranına (success) göre en iyi olanı başa koy (soru saysından ziyade)
+        if (state.topicFilter === 'in_progress' || state.topicFilter === 'completed') {
+            if (b.success !== a.success) return b.success - a.success;
+        }
+
+        // Diğer sekmelerde (Başlanmayanlar / Tümü) veya oran aynıysa -> Sınavda çıkacak Soru/Hedef sayısına göre sırala (En çok soru çıkan 1. sıraya)
+        const tA = parseNum(a.topic.totalQuestionTarget || a.topic.targetQuestions || a.topic._fetchedTotal);
+        const tB = parseNum(b.topic.totalQuestionTarget || b.topic.targetQuestions || b.topic._fetchedTotal);
+
+        if (tB !== tA) return tB - tA;
+        return b.success - a.success;
+    });
 }
 
 function renderTopicList() {
@@ -426,13 +442,14 @@ function renderTopicList() {
         const badgeData = getBadgeHTMLForStatus(status);
         const focusEmoji = topic.id === state.currentTopicId ? '🎯' : '⭕';
         const isCurrentRow = topic.id === state.currentTopicId ? 'active-focus-row' : '';
+        const topicUrl = buildTopicPath ? buildTopicPath(topic) : `/konu/${topic.slug || topic.id}`;
 
         return `<tr class="topic-row ${isCurrentRow}" data-status="${status}">
             <td>
-                <div class="topic-title-main">
-                    ${topic.title}
+                <a href="${topicUrl}" class="topic-title-main" style="text-decoration:none; display:flex; align-items:center; gap:8px;">
+                    <span style="color:var(--text-main); transition:color 0.2s;" onmouseover="this.style.color='var(--color-primary)'" onmouseout="this.style.color='var(--text-main)'">${topic.title}</span>
                     ${topic.id === state.currentTopicId ? '<span class="focus-indicator">🌟 Odak</span>' : ''}
-                </div>
+                </a>
                 <div class="topic-desc-sub">${topic.description || 'Açıklama veya ek bilgi yok.'}</div>
             </td>
             <td>
