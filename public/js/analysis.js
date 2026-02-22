@@ -2,6 +2,7 @@ import { db, auth } from "./firebase-config.js";
 import { collection, query, orderBy, limit, getDocs, doc, setDoc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { showConfirm, showToast } from "./notifications.js";
+import { TopicService } from "./topic-service.js";
 
 const state = {
     userId: null,
@@ -43,6 +44,7 @@ function getExamTotal(exam) {
 
 function getTopicQuestionTotal(topic, progress = null) {
     return [
+        topic?._fetchedTotal,
         topic?.totalQuestions,
         topic?.questionCount,
         topic?.questionsCount,
@@ -128,6 +130,23 @@ async function initAnalysis(userId) {
         state.results = applyGlobalReset(rawResults, state.statsResetAt);
         state.topics = topicsSnap.docs.map(d => ({ id: d.id, ...d.data() }))
             .filter(t => t.isActive !== false && t.status !== 'deleted' && t.isDeleted !== true);
+
+        // Tüm konu başlıkları için güncel soru sayısını (metadata) veritabanından/cache'den çek
+        await Promise.all(state.topics.map(async (t) => {
+            try {
+                const meta = await TopicService.getTopicPackMeta(t.id);
+                if (meta) {
+                    t._fetchedTotal = meta.questionCount || (meta.questionIds ? meta.questionIds.length : 0);
+                } else {
+                    // Fallback for topics without meta directly in topic_packs_meta
+                    const allIds = await TopicService.getTopicQuestionIdsById(t.id);
+                    t._fetchedTotal = allIds.length;
+                }
+            } catch (err) {
+                console.warn("Topic meta fetch error:", err);
+            }
+        }));
+
         state.progressMap = new Map(progressSnap.docs.map(d => [d.id, d.data()]));
 
         const categoryTotals = buildCategoryTotals(state.results, state.topics, state.topicResets);
