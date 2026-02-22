@@ -1622,14 +1622,7 @@
         `).join('');
       }
 
-
-
-      const testCountEl = document.getElementById('companionTestCount');
-      const materialCountEl = document.getElementById('companionMaterialCount');
-      if (testCountEl) testCountEl.textContent = String(testCount);
-      if (materialCountEl) materialCountEl.textContent = String(materialCount);
-
-      return { testCount, materialCount, totalCount: testCount + materialCount };
+      return true;
     }
 
     function pickIcon(title, category, isSubtopic = false) {
