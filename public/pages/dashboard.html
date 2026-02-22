@@ -54,10 +54,31 @@
             </div>
         </section>
 
-        <!-- Son Aktivite Kartı (JS ile dolacak) -->
-        <div id="lastActivityCard" style="display:none;" class="mb-4">
-            <!-- İçerik JS ile gelecek -->
-        </div>
+        <section class="premium-highlight-grid">
+            <article class="panel-card premium-highlight-card">
+                <div class="panel-header">
+                    <div>
+                        <h2 class="section-title"><span class="section-icon">🎯</span><span>Odaklandığın Konular</span></h2>
+                        <p class="text-muted">Analiz ekranında seçtiğin odak konularına buradan devam et.</p>
+                    </div>
+                </div>
+                <div id="focusTopicsList" class="panel-body">
+                    <p class="text-muted">Odak konuların yükleniyor...</p>
+                </div>
+            </article>
+
+            <article class="panel-card premium-highlight-card">
+                <div class="panel-header">
+                    <div>
+                        <h2 class="section-title"><span class="section-icon">📚</span><span>Son Çalışmaların</span></h2>
+                        <p class="text-muted">Son çalıştığın 5 konuya tek dokunuşla geri dön.</p>
+                    </div>
+                </div>
+                <div id="recentActivityList" class="panel-body">
+                    <p class="text-muted">Son aktiviteler yükleniyor...</p>
+                </div>
+            </article>
+        </section>
 
         <section class="stats-grid">
             <div class="stat-card">
@@ -126,18 +147,6 @@
                     <p class="text-muted">Duyurular yükleniyor...</p>
                 </div>
             </article>
-        </section>
-
-        <section class="recent-activity">
-            <div class="panel-header">
-                <div>
-                    <h2 class="section-title"><span class="section-icon">📚</span><span>Son Çalışmaların</span></h2>
-                    <p class="text-muted">En son çalıştığın konu ve çözdüğün testler.</p>
-                </div>
-            </div>
-            <div id="recentActivityList" class="panel-body">
-                <p class="text-muted">Son aktiviteler yükleniyor...</p>
-            </div>
         </section>
 
     </div>
