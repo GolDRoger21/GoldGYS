@@ -1113,6 +1113,31 @@
 
     <div class="main-section">
 
+      <div class="learning-companion" id="learningCompanion" style="display:none;">
+        <div>
+          <h3>🎯 Öğrenci Yol Haritası</h3>
+          <ul class="companion-points">
+            <li>Önce serbest çalışma modu ile eksiklerini tespit et.</li>
+            <li>Sonra konu testlerine geçip kalıcılığı artır.</li>
+            <li>Ders notlarından yalnızca ihtiyaç duyduğun başlıkları tekrar et.</li>
+          </ul>
+        </div>
+        <div class="companion-kpis">
+          <div class="companion-kpi">
+            <span>Hazır Test</span>
+            <strong id="companionTestCount">0</strong>
+          </div>
+          <div class="companion-kpi">
+            <span>Ders Notu</span>
+            <strong id="companionMaterialCount">0</strong>
+          </div>
+          <div class="companion-kpi">
+            <span>Konu İlerleme</span>
+            <strong id="companionProgress">%0</strong>
+          </div>
+        </div>
+      </div>
+
       <div id="topicContentSection" style="display:none;">
         <div class="study-mode-card">
           <h2 style="margin:0; font-size:1.5rem;">🚀 Serbest Çalışma Modu</h2>
@@ -1178,31 +1203,6 @@
       <div id="subtopicSection" style="display:none; margin-bottom: 30px; margin-top: 10px;">
         <div id="subtopicList" class="topics-grid" style="margin-top:0;"></div>
         <div id="subtopicLoading" class="text-muted small mt-3" style="display:none;">Alt konular yükleniyor...</div>
-      </div>
-
-      <div class="learning-companion" id="learningCompanion" style="display:none;">
-        <div>
-          <h3>🎯 Öğrenci Yol Haritası</h3>
-          <ul class="companion-points">
-            <li>Önce serbest çalışma modu ile eksiklerini tespit et.</li>
-            <li>Sonra konu testlerine geçip kalıcılığı artır.</li>
-            <li>Ders notlarından yalnızca ihtiyaç duyduğun başlıkları tekrar et.</li>
-          </ul>
-        </div>
-        <div class="companion-kpis">
-          <div class="companion-kpi">
-            <span>Hazır Test</span>
-            <strong id="companionTestCount">0</strong>
-          </div>
-          <div class="companion-kpi">
-            <span>Ders Notu</span>
-            <strong id="companionMaterialCount">0</strong>
-          </div>
-          <div class="companion-kpi">
-            <span>Konu İlerleme</span>
-            <strong id="companionProgress">%0</strong>
-          </div>
-        </div>
       </div>
 
     </div>
@@ -1383,6 +1383,12 @@
         if (testsContainer) testsContainer.style.display = 'block';
         if (materialsSection) materialsSection.style.display = 'block';
         if (learningCompanion) learningCompanion.style.display = 'grid';
+
+        const materialsWrapper = document.getElementById('materialsSectionWrapper');
+        if (materialsWrapper) materialsWrapper.style.display = 'block';
+
+        const testsWrapper = document.getElementById('testsSectionWrapper');
+        if (testsWrapper) testsWrapper.style.display = 'block';
 
         // Mobilde sekmeleri göster
         const mobileTabs = document.getElementById('mobileContentTabs');
