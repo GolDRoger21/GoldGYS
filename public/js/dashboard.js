@@ -439,16 +439,26 @@ async function loadRecentActivities(uid) {
         const topicPromises = progressSnap.docs.map(async docSnap => {
             const pData = docSnap.data();
             const topicId = pData.topicId || docSnap.id;
+            const solvedCount = Number(pData.solvedCount || 0);
+            const answersCount = pData.answers && typeof pData.answers === 'object'
+                ? Object.keys(pData.answers).length
+                : 0;
+
+            // "Son Çalışmalar" listesinde yalnızca gerçekten soru çözülmüş konuları göster.
+            if (solvedCount <= 0 && answersCount <= 0) {
+                return null;
+            }
+
             const tSnap = await getDoc(doc(db, "topics", topicId));
             if (!tSnap.exists()) return null;
             const tData = tSnap.data();
-            const lastActivityDate = parseDate(pData.lastSyncedAt) || parseDate(pData.updatedAt) || parseDate(pData.createdAt);
+            const lastActivityDate = parseDate(pData.lastSyncedAt) || parseDate(pData.updatedAt);
 
             return {
                 topicId,
                 title: tData.title,
                 slug: tData.slug,
-                solvedCount: pData.solvedCount,
+                solvedCount,
                 lastActivityDate
             };
         });
