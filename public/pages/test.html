@@ -639,6 +639,7 @@
         import { initLayout } from "/js/ui-loader.js";
         import { TopicService } from "/js/topic-service.js"; // Added Import
         import { CacheManager } from "/js/cache-manager.js";
+        import { buildTopicPath, slugifyTopicTitle } from "/js/topic-url.js";
         import { WrongSummaryService } from "/js/wrong-summary-service.js";
         import { auth, db } from "/js/firebase-config.js";
         import { showConfirm, showToast } from "/js/notifications.js";
@@ -650,57 +651,38 @@
             const urlParams = new URLSearchParams(window.location.search);
             const path = window.location.pathname;
 
-            // --- URL PARSING LOGIC ---
+            // --- NEW SEO URL PARSING LOGIC ---
             let examId = urlParams.get('id');
             let topicId = urlParams.get('topic');
             let mode = urlParams.get('mode') || 'select';
             let filter = urlParams.get('filter'); // random, order, wrongs, favorites
 
-            // 1. Try calculating from path: /test/:topicId/:examId  OR  /test/:examId (legacy)
-            // Regex for: /test/TOPIC_ID/TEST_ID  or  /test/TOPIC_ID/smart
-            const routeMatch = path.match(/^\/test\/([^\/]+)(?:\/([^\/]+))?$/);
+            const routeMatch = path.match(/^\/konu\/([^/]+)\/test-coz\/([^/]+)$/);
 
             if (routeMatch) {
-                const segment1 = decodeURIComponent(routeMatch[1]); // Could be topicId OR examId (legacy)
-                const segment2 = routeMatch[2] ? decodeURIComponent(routeMatch[2]) : null;
+                const topicSlug = decodeURIComponent(routeMatch[1]);
+                const testSlug = decodeURIComponent(routeMatch[2]);
 
-                if (segment2) {
-                    // New Format: /test/TOPIC/ID or /test/TOPIC/smart
-                    topicId = segment1;
+                // 1. Resolve Topic ID from slug
+                topicId = await resolveTopicId(topicSlug);
 
-                    if (segment2 === 'smart') {
+                // 2. Extract Test ID safely (collision-proof --ID suffix)
+                if (testSlug.includes('--')) {
+                    const parts = testSlug.split('--');
+                    examId = parts.pop(); // The last segment is the ID
+
+                    if (examId === 'smart') {
                         mode = 'smart';
-                        examId = null; // No specific test ID in smart mode
-                    } else {
-                        examId = segment2;
-                        // Determine mode if not passed, default to 'select' implies normal test
-                        if (mode === 'select') mode = 'practice'; // 'select' is actually just a placeholder, commonly 'practice'
+                        examId = null;
+                    } else if (mode === 'select') {
+                        mode = 'practice';
                     }
+                } else if (testSlug === 'smart') {
+                    mode = 'smart';
+                    examId = null;
                 } else {
-                    // Legacy Format: /test/ID  (No topic in path)
-                    // If calculation above failed to find topic, we assume segment1 is examId
-                    // BUT, checking if it might be a topic is hard without data.
-                    // We stick to legacy invalidation: if only 1 segment, it's examId.
-                    if (!examId) examId = segment1;
+                    examId = testSlug;
                 }
-            }
-
-            // Soft Redirect for Legacy Links with Query Params -> SEO Friendly
-            // If we have topicId and examId but path is old /test/ID, upgrade it visually.
-            if (examId && topicId && !path.includes(`/${topicId}/`)) {
-                const newPath = `/test/${encodeURIComponent(topicId)}/${encodeURIComponent(examId)}`;
-                // Preserve other relevant params like 'mode', but 'topic' and 'id' are now in path
-                const newParams = new URLSearchParams(window.location.search);
-                newParams.delete('topic');
-                newParams.delete('id');
-                window.history.replaceState({}, '', `${newPath}?${newParams.toString()}`);
-            } else if (mode === 'smart' && topicId && !path.includes('/smart')) {
-                const newPath = `/test/${encodeURIComponent(topicId)}/smart`;
-                const newParams = new URLSearchParams(window.location.search);
-                newParams.delete('topic');
-                newParams.delete('mode');
-                // filter param stays
-                window.history.replaceState({}, '', `${newPath}?${newParams.toString()}`);
             }
 
             const duration = parseInt(urlParams.get('duration')) || 0;
@@ -1358,6 +1340,29 @@
             if (cancelBtn) cancelBtn.addEventListener('click', handleClose);
             if (confirmBtn) confirmBtn.addEventListener('click', handleConfirm);
             modal.addEventListener('click', handleOverlayClick);
+        }
+
+        async function resolveTopicId(segment) {
+            if (!segment) return null;
+
+            // 1. Direct ID match
+            const directSnap = await getDoc(doc(db, "topics", segment));
+            if (directSnap.exists()) return segment;
+
+            const normalizedSegment = slugifyTopicTitle(segment);
+
+            // 2. Exact Title Match (Güncel Başlık Üzerinden)
+            const allTopicsSnap = await getDocs(collection(db, "topics"));
+            const allTopics = allTopicsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+            const titleMatch = allTopics.find(t => slugifyTopicTitle(t.title || '') === normalizedSegment);
+            if (titleMatch) return titleMatch.id;
+
+            // 3. Fallback: Veritabanındaki slug field'ı
+            const dbSlugMatch = allTopics.find(t => t.slug === segment);
+            if (dbSlugMatch) return dbSlugMatch.id;
+
+            return null;
         }
     </script>
 </body>

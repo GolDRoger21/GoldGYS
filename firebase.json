@@ -28,11 +28,7 @@
         "destination": "/pages/konu.html"
       },
       {
-        "source": "/test",
-        "destination": "/pages/test.html"
-      },
-      {
-        "source": "/test/**",
+        "source": "/konu/*/test-coz/**",
         "destination": "/pages/test.html"
       },
       {

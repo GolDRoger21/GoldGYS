@@ -1473,7 +1473,10 @@
           if (isTest) {
             testCount += 1;
             const qCount = item.qCount || (item.questions ? item.questions.length : 0);
-            const testUrl = `/test/${encodeURIComponent(currentTopicId)}/${encodeURIComponent(item.id)}?mode=select`;
+
+            const topicSlug = slugifyTopicTitle(topicTitle) || currentTopicId;
+            const testSlug = slugifyTopicTitle(item.title) || item.id;
+            const testUrl = `/konu/${encodeURIComponent(topicSlug)}/test-coz/${encodeURIComponent(testSlug)}--${encodeURIComponent(item.id)}?mode=select`;
 
             let badgeHtml = '';
             if (validCompletedIds.has(item.id)) {
@@ -1934,10 +1937,9 @@
 
     window.startSmartTest = (mode) => {
       // SEO-Friendly Smart Mode Link
-      // Old: /test?topic=...&mode=smart&filter=...
-      // New: /test/${topicId}/smart?filter=...
       const filter = encodeURIComponent(mode);
-      window.location.href = `/test/${encodeURIComponent(currentTopicId)}/smart?filter=${filter}`;
+      const topicSlug = slugifyTopicTitle(topicTitle) || currentTopicId;
+      window.location.href = `/konu/${encodeURIComponent(topicSlug)}/test-coz/serbest-calisma-modu--smart?filter=${filter}`;
     };
 
     // --- MOBİL SEKMELER ---
