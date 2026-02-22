@@ -1227,7 +1227,8 @@
             updateThemeIcon(savedTheme);
 
             if (themeToggle) {
-                themeToggle.addEventListener('click', () => {
+                themeToggle.addEventListener('click', (event) => {
+                    event.stopPropagation();
                     const current = document.documentElement.getAttribute('data-theme') || 'light';
                     const next = current === 'dark' ? 'light' : 'dark';
                     document.documentElement.setAttribute('data-theme', next);
