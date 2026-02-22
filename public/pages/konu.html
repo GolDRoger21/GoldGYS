@@ -235,6 +235,23 @@
       margin-top: 16px;
     }
 
+    /* Dinamik Izgara Genişlikleri */
+    .topics-grid.grid-1 {
+      grid-template-columns: 1fr;
+    }
+
+    .topics-grid.grid-2 {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .topics-grid.grid-3 {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .topics-grid.grid-even {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
     .topic-card {
       background: var(--glass-surface);
       border-radius: var(--radius-xl);
@@ -871,7 +888,11 @@
         margin-top: 12px;
       }
 
-      .topics-grid {
+      .topics-grid,
+      .topics-grid.grid-1,
+      .topics-grid.grid-2,
+      .topics-grid.grid-3,
+      .topics-grid.grid-even {
         grid-template-columns: 1fr;
         gap: 12px;
       }
@@ -1092,7 +1113,7 @@
 
     <div class="main-section">
 
-      <div id="topicContentSection">
+      <div id="topicContentSection" style="display:none;">
         <div class="study-mode-card">
           <h2 style="margin:0; font-size:1.5rem;">🚀 Serbest Çalışma Modu</h2>
           <div class="study-mode-header">
@@ -1159,7 +1180,7 @@
         <div id="subtopicLoading" class="text-muted small mt-3" style="display:none;">Alt konular yükleniyor...</div>
       </div>
 
-      <div class="learning-companion" id="learningCompanion">
+      <div class="learning-companion" id="learningCompanion" style="display:none;">
         <div>
           <h3>🎯 Öğrenci Yol Haritası</h3>
           <ul class="companion-points">
@@ -1186,7 +1207,7 @@
 
     </div>
 
-    <div class="side-section materials-section-wrapper" id="materialsSectionWrapper">
+    <div class="side-section materials-section-wrapper" id="materialsSectionWrapper" style="display:none;">
       <div id="topicMaterialsSection" style="display:block;">
         <div class="section-title-block">
           <h3 style="border-left-color:var(--color-success);">📚 Ders Notları</h3>
@@ -1625,6 +1646,18 @@
     async function renderSubtopics(subtopics) {
       const list = document.getElementById('subtopicList');
       if (!list) return;
+
+      // Öğeleri dinamik sütunlara böl
+      list.className = 'topics-grid';
+      if (subtopics.length === 1) {
+        list.classList.add('grid-1');
+      } else if (subtopics.length === 2) {
+        list.classList.add('grid-2');
+      } else if (subtopics.length === 3) {
+        list.classList.add('grid-3');
+      } else {
+        list.classList.add('grid-even');
+      }
 
       const subtopicCards = await Promise.all(subtopics.map(async (subtopic) => {
         // İstatistik çekimi
