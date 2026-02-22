@@ -366,6 +366,13 @@
 .topic-link-item:hover {
     transform: translateY(-2px);
     border-color: rgba(212, 175, 55, 0.38);
+    text-decoration: none;
+}
+
+.topic-link-item:hover strong,
+.topic-link-item:hover .panel-meta,
+.topic-link-item:hover .panel-pill {
+    text-decoration: none;
 }
 
 .topic-link-item .panel-meta {
