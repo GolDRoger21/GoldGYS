@@ -792,6 +792,7 @@
     import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
     import { TopicService } from '../js/topic-service.js';
     import { CacheManager } from '../js/cache-manager.js';
+    import { pickTopicIcon } from '../js/topic-icon-map.js';
 
     let allTopics = [];
     let userStats = {};
@@ -929,80 +930,6 @@
       return counts;
     }
 
-    function pickIcon(title, category, isSubtopic = false) {
-      const iconRules = [
-        // Özel Eşleşmeler (Vurgulu Konular)
-        { match: /atatürk ilkeleri ve inkılap tarihi, ulusal güvenlik/i, icon: '�🇷' }, // Türk Bayrağı
-        { match: /1 sayılı cb|cumhurbaşkanlığı/i, icon: '☀️' }, // Cumhurbaşkanlığı Forsunu (Güneş) temsil eder
-        { match: /anayasa|anayasal/i, icon: '⚖️' }, // Anayasa Mahkemesi / Temel Yargı (Adalet Terazisi)
-        { match: /atatürk|inkılap|kurtuluş|mill[iî] mücadele/i, icon: '🇹🇷' },
-
-        // Devlet Teşkilatı ve İdare
-        { match: /bakanlık teşkilatı|adalet bakanlığı/i, icon: '🏛️' }, // Bakanlık (Devlet Binası / Adalet Sarayı)
-        { match: /yargı örgütü|adliye/i, icon: '🏛️' }, // Yargı Örgütü (Adliye Binası)
-        { match: /devlet teşkilatı|tbmm|meclis|yasama/i, icon: '🏛️' }, // Devlet kurumları
-        { match: /belediye/i, icon: '🏙️' },
-        { match: /özel idare|il idaresi|köy/i, icon: '🗺️' },
-        { match: /idare|idari|kamu yönetimi|teşkilat|bakanlık/i, icon: '🏢' },
-
-        // Yargı, Yazı İşleri, SEGBİS
-        { match: /yazı işleri|harçlar|kalem/i, icon: '🗃️' }, // Yazı İşleri ve Harçlar (Dosyalar/Kutu)
-        { match: /segbis|elektronik imza|e-imza|uyap/i, icon: '💻' }, // SEGBİS ve UYAP (Bilgisayar / Sistem - Soru işareti sorunu çözümü)
-        { match: /yargı|mahkeme|hâkim|savcı|danıştay|sayıştay|uyuşmazlık/i, icon: '⚖️' },
-
-        // Özel Kanunlar (Ceza, Medeni, HMK, CMK, İnfaz vb.)
-        { match: /cmk|ceza muhakemesi|5271/i, icon: '📕' }, // CMK (Kırmızı Kapak - Ceza Hâkimi Yakası)
-        { match: /infaz|5275|cezaevi|tevkifevi/i, icon: '⛓️' }, // İnfaz Kanunu (Zincir / Hapishane)
-        { match: /hmk|hukuk muhakemeleri|6100/i, icon: '📗' }, // HMK (Yeşil Kapak - Hukuk Hâkimi Yakası)
-        { match: /ceza|tck|suç|kovuşturma|soruşturma/i, icon: '🚨' }, // Genel Ceza / TCK (Acil/Polis)
-        { match: /icra|iflas/i, icon: '📉' }, // İcra / İflas
-
-        // Memuriyet ve Etik
-        { match: /657|memur|personel|kamu görevlileri/i, icon: '💼' },
-        { match: /mal bildirim|yolsuzluk/i, icon: '📋' },
-        { match: /etik|meslek ilkeleri/i, icon: '🧭' },
-        { match: /disiplin/i, icon: '⚠️' },
-
-        // İletişim, Tebligat ve Yazışma
-        { match: /resm[iî] yazışma/i, icon: '🖋️' }, // Resmi Yazışma Kuralları (Dolma Kalem)
-        { match: /halkla ilişkiler/i, icon: '�' }, // Halkla İlişkiler (Toplum / İnsanlar)
-        { match: /tebligat|bildirim/i, icon: '📩' },
-        { match: /bilgi edinme/i, icon: 'ℹ️' },
-        { match: /dilekçe/i, icon: '✍️' },
-        { match: /iletişim|tanıtım|medya|protokol/i, icon: '💬' },
-
-        // Güvenlik ve İnsan Hakları
-        { match: /ulusal güvenlik|güvenlik|asayiş|jandarma|polis/i, icon: '🛡️' }, // Kalkan / Koruma
-        { match: /insan hak|eşitlik|özgürlük/i, icon: '🕊️' },
-        { match: /uluslararası|avrupa birliği|ab müktesebat/i, icon: '🌍' },
-
-        // Medeni, Borçlar, Ticaret ve İş Hukuku
-        { match: /medeni|aile|miras|eşya/i, icon: '👨‍👩‍👧' },
-        { match: /borç/i, icon: '💸' },
-        { match: /ticaret|şirket|sermaye|kıymetli evrak/i, icon: '📈' },
-        { match: /iş hukuku|çalışma|sosyal güvenlik|sendika/i, icon: '👷' },
-
-        // Maliye ve Ekonomi
-        { match: /vergi|mali|muhasebe|bütçe|finans|ekonomi/i, icon: '💰' },
-
-        // Dil, Eğitim ve Bilişim
-        { match: /türkçe|dil bilgisi|imla|noktalama|paragraf|sözcük/i, icon: '🔤' },
-        { match: /eğitim|öğretim|pedagoji/i, icon: '🎓' },
-        { match: /teknoloji|bilişim|siber|veri|bilgisayar|internet/i, icon: '💻' },
-
-        // Genel Mevzuat ve Fallbackler
-        { match: /kanun|mevzuat|yönetmelik|genelge|tüzük|kararname|yönerge/i, icon: '📜' },
-        { match: /sağlık|tıp/i, icon: '🩺' },
-        { match: /çevre|imar|şehircilik|doğa/i, icon: '🌿' },
-        { match: /tarih|çağdaş türk|osmanlı/i, icon: '⏳' },
-        { match: /genel|temel/i, icon: '📌' }
-      ];
-      const matchedRule = iconRules.find(rule => rule.match.test(title));
-      if (matchedRule) return matchedRule.icon;
-      if (isSubtopic) return '▫️';
-      return category === 'alan' ? '📗' : '📘';
-    }
-
     function renderTopics(topics, options = {}) {
       const { category = 'all', search = '' } = options;
       const container = document.getElementById('topicsContainer');
@@ -1042,7 +969,7 @@
       container.innerHTML = '';
       const getQuestionCount = (id) => questionCounts.get(id) || 0;
       const decorateTopic = (t) => {
-        const icon = pickIcon(t.title, t.category);
+        const icon = pickTopicIcon(t.title, t.category);
 
         const allChildren = (childrenByParent.get(t.id) || []).filter(child =>
           category === 'all' || child.category === category
@@ -1104,7 +1031,7 @@
                         ${childrenToShow.map(child => `
                             <a class="subtopic-link" href="${buildTopicPath(child)}">
                                 <span class="subtopic-title-wrap">
-                                  <span class="subtopic-icon">${pickIcon(child.title, child.category, true)}</span>
+                                  <span class="subtopic-icon">${pickTopicIcon(child.title, child.category, { isSubtopic: true })}</span>
                                   <span title="${child.title}">${child.title}</span>
                                 </span>
                                 <span class="subtopic-meta">
