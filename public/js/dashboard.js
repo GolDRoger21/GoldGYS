@@ -6,6 +6,7 @@ import { getUserProfile } from "./user-profile.js";
 import { collection, doc, getDoc, getDocs, limit, orderBy, query, where, Timestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { buildTopicPath } from './topic-url.js';
 import { CacheManager } from './cache-manager.js';
+import { pickTopicIcon } from './topic-icon-map.js';
 
 // UI Elementleri
 const ui = {
@@ -479,7 +480,7 @@ async function loadRecentActivities(uid) {
             return `
                 <a href="${topicUrl}" class="panel-item topic-link-item" style="display:flex;">
                     <div class="panel-item-content">
-                        <div class="panel-item-icon blue">📝</div>
+                        <div class="panel-item-icon blue">${pickTopicIcon(act.title)}</div>
                         <div>
                             <strong>${act.title}</strong>
                             <div class="panel-meta">${act.solvedCount || 0} soru çözüldü</div>
