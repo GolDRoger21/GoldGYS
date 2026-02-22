@@ -1,0 +1,26 @@
+[
+  {
+    "id": "8twT7fkoocZFnwawKONJ",
+    "parentId": "topic_ortak_02",
+    "title": "Atatürk İlkeleri ve İnkılap Tarihi"
+  },
+  {
+    "id": "UQTLuWVZeVJal5xOF0Ki",
+    "parentId": "8twT7fkoocZFnwawKONJ",
+    "title": "Atatürk İlkeleri ve İnkılap Tarihi"
+  },
+  {
+    "id": "VzqyQ1jcXO3URLqLfkfU",
+    "parentId": "topic_ortak_02",
+    "title": "Ulusal Güvenlik"
+  },
+  {
+    "id": "gILy4JRj26pI2IEVjRC2",
+    "parentId": "8twT7fkoocZFnwawKONJ",
+    "title": "Ulusal Güvenlik"
+  },
+  {
+    "id": "topic_ortak_02",
+    "title": "Atatürk İlkeleri ve İnkılap Tarihi, Ulusal Güvenlik"
+  }
+]
