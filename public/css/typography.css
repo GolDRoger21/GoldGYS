@@ -168,9 +168,11 @@ a {
     transition: color 0.2s;
 }
 
-a:hover {
+a:hover,
+a:focus,
+a:active {
     color: var(--text-main, var(--text-white));
-    text-decoration: underline;
+    text-decoration: none !important;
 }
 
 /* Buton içi linklerde alt çizgi olmasın */
