@@ -1000,12 +1000,12 @@
 
       .tests-section-wrapper,
       .materials-section-wrapper {
-        display: none;
+        display: none !important;
       }
 
       .tests-section-wrapper.active,
       .materials-section-wrapper.active {
-        display: block;
+        display: block !important;
       }
 
       #topicMaterialsSection {
@@ -1224,7 +1224,7 @@
     import { TopicService } from '../js/topic-service.js';
     import { showConfirm, showToast } from '../js/notifications.js';
     import { buildTopicPath, slugifyTopicTitle } from '../js/topic-url.js';
-    import { getDocs, query, orderBy, where, getCountFromServer, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { doc, getDoc, collection, getDocs, query, orderBy, where, getCountFromServer, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
     import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
     import { CacheManager } from '../js/cache-manager.js';
 
