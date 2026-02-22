@@ -644,7 +644,7 @@
         import { auth, db } from "/js/firebase-config.js";
         import { showConfirm, showToast } from "/js/notifications.js";
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { doc, getDoc, collection, query, where, limit, getDocs, documentId } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { doc, getDoc, setDoc, serverTimestamp, collection, query, where, limit, getDocs, documentId } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         document.addEventListener('DOMContentLoaded', async () => {
             await initLayout();
@@ -1346,22 +1346,41 @@
         async function resolveTopicId(segment) {
             if (!segment) return null;
 
+            const cacheKey = `topic_slug_id_${segment}`;
+            const cachedTopicId = sessionStorage.getItem(cacheKey);
+            if (cachedTopicId) {
+                return cachedTopicId;
+            }
+
             // 1. Direct ID match
             const directSnap = await getDoc(doc(db, "topics", segment));
-            if (directSnap.exists()) return segment;
+            if (directSnap.exists()) {
+                sessionStorage.setItem(cacheKey, segment);
+                return segment;
+            }
 
             const normalizedSegment = slugifyTopicTitle(segment);
 
-            // 2. Exact Title Match (Güncel Başlık Üzerinden)
+            // 2. Slug alanı üzerinden tek doküman okumayı dene
+            try {
+                const slugQuery = query(collection(db, "topics"), where("slug", "==", segment), limit(1));
+                const slugSnap = await getDocs(slugQuery);
+                if (!slugSnap.empty) {
+                    const topicId = slugSnap.docs[0].id;
+                    sessionStorage.setItem(cacheKey, topicId);
+                    return topicId;
+                }
+            } catch (error) {
+                console.warn("Slug bazlı konu çözümlemesi başarısız, başlığa göre fallback uygulanıyor.", error);
+            }
+
+            // 3. Fallback: Başlık üzerinden eşleştirme (maliyetli)
             const allTopicsSnap = await getDocs(collection(db, "topics"));
-            const allTopics = allTopicsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-
-            const titleMatch = allTopics.find(t => slugifyTopicTitle(t.title || '') === normalizedSegment);
-            if (titleMatch) return titleMatch.id;
-
-            // 3. Fallback: Veritabanındaki slug field'ı
-            const dbSlugMatch = allTopics.find(t => t.slug === segment);
-            if (dbSlugMatch) return dbSlugMatch.id;
+            const titleMatch = allTopicsSnap.docs.find(d => slugifyTopicTitle(d.data()?.title || '') === normalizedSegment);
+            if (titleMatch) {
+                sessionStorage.setItem(cacheKey, titleMatch.id);
+                return titleMatch.id;
+            }
 
             return null;
         }
