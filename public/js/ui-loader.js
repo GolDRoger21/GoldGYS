@@ -103,9 +103,9 @@ async function loadRequiredHTML(isAdminPage) {
     // Admin ve User için aynı header yapısını kullanıyoruz artık (tutarlılık için)
     // Ancak içerik farklı olabilir diye dosya isimlerini koruyoruz.
 
-    // Distraction-Free Mode for Test Pages
-    // Test sayfalarında header ve sidebar'ı yükleme
-    if (window.location.pathname.startsWith('/test/')) return;
+    // Distraction-Free Mode for Test & Exam Pages
+    // Test/deneme çözüm ekranlarında header ve sidebar'ı yükleme
+    if (isDistractionFreePage(window.location.pathname)) return;
 
     const headerUrl = isAdminPage ? '/partials/admin-header.html' : '/partials/header.html';
     const sidebarUrl = isAdminPage ? '/partials/admin-sidebar.html' : '/partials/sidebar.html';
@@ -195,6 +195,16 @@ async function loadRequiredHTML(isAdminPage) {
         loadHTML(headerUrl, headerContainer),
         loadHTML(sidebarUrl, sidebarContainer)
     ]);
+}
+
+function isDistractionFreePage(pathname) {
+    if (!pathname) return false;
+
+    return pathname === '/pages/test.html'
+        || pathname === '/pages/deneme.html'
+        || pathname.startsWith('/test/')
+        || pathname.startsWith('/deneme/')
+        || /^\/konu\/[^/]+\/test-coz\//.test(pathname);
 }
 
 async function loadHTML(url, element) {
