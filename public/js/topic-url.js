@@ -20,7 +20,8 @@ export function slugifyTopicTitle(title = '') {
 export function buildTopicPath(topicOrId, title = '') {
   if (topicOrId && typeof topicOrId === 'object') {
     const topic = topicOrId;
-    const slug = (topic.slug || slugifyTopicTitle(topic.title || '') || topic.id || '').trim();
+    // Stale DB slug'ları yoksayıyoruz, her zaman güncel başlıktan URL türet.
+    const slug = (slugifyTopicTitle(topic.title || '') || topic.id || '').trim();
     return `/konu/${encodeURIComponent(slug)}`;
   }
 

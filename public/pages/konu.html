@@ -1292,17 +1292,26 @@
     async function resolveTopicId(segment) {
       if (!segment) return null;
 
+      // 1. Direct ID match
       const directSnap = await getDoc(doc(db, "topics", segment));
       if (directSnap.exists()) return segment;
 
-      const bySlugQuery = query(collection(db, "topics"), where("slug", "==", segment), limit(1));
-      const bySlugSnap = await getDocs(bySlugQuery);
-      if (!bySlugSnap.empty) return bySlugSnap.docs[0].id;
-
-      const allTopics = await getDocs(collection(db, "topics"));
       const normalizedSegment = slugifyTopicTitle(segment);
-      const match = allTopics.docs.find((item) => slugifyTopicTitle(item.data()?.title || '') === normalizedSegment);
-      return match?.id || null;
+
+      // 2. Exact Title Match (Güncel Başlık Üzerinden)
+      // Firestore'daki 'slug' field'ları eski/stale kalmış olabilir. Bu yüzden en güncel title
+      // üzerinden slugify yaparak eşleşme arıyoruz. Aksi halde ana konu, alt konuyu ezer.
+      const allTopicsSnap = await getDocs(collection(db, "topics"));
+      const allTopics = allTopicsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+      const titleMatch = allTopics.find(t => slugifyTopicTitle(t.title || '') === normalizedSegment);
+      if (titleMatch) return titleMatch.id;
+
+      // 3. Fallback: Veritabanındaki slug field'ı
+      const dbSlugMatch = allTopics.find(t => t.slug === segment);
+      if (dbSlugMatch) return dbSlugMatch.id;
+
+      return null;
     }
 
     async function safeGetDocs(primaryQuery, fallbackQuery, contextLabel) {
