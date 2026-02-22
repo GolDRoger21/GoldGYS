@@ -217,12 +217,13 @@ function renderProgressChart(results) {
 
 function normalizeStr(str) {
     if (!str) return '';
-    // Tüm görünmez karakterleri, \u200B (zero-width space) vb. karakterleri ve baş/son boşlukları sil+
-    // Ayrıca case-insensitive olması için toLocaleLowerCase kullan.
-    return str.toString()
-        .replace(/[\u200B-\u200D\uFEFF]/g, '')
-        .trim()
-        .toLocaleLowerCase('tr-TR');
+    // Sadece whitespace'leri değil, tüm noktalama işaretlerini, tireleri ve görünmez boşlukları yokedelim.
+    // Aynı zamanda Türkçe karakter sorununu toLocaleLowerCase('tr-TR') ile çözdükten sonra 
+    // tüm mantıksız simgeleri uçurarak salt harfe/sayıya indirgeyelim ki %100 eşleşme sağlansın.
+    let s = str.toString().toLocaleLowerCase('tr-TR');
+    s = s.replace(/[\u200B-\u200D\uFEFF]/g, ''); // Görünmez harfler
+    s = s.replace(/[\W_]+/g, '');              // Harf veya sayı OLMAYAN her şeyi sil (boşluk, tire, nokta vb. uçar)
+    return s;
 }
 
 function buildCategoryTotals(results, topics, topicResets) {
@@ -248,8 +249,15 @@ function buildCategoryTotals(results, topics, topicResets) {
 function buildTopicSuccessMap(topics, categoryTotals) {
     const map = new Map();
     topics.forEach(topic => {
+        // Topic adını normalize et, total'de tutulan değere bak
         const stats = categoryTotals[topic.title];
-        const value = stats && stats.total > 0 ? Math.round((stats.correct / stats.total) * 100) : 0;
+        let value = 0;
+        if (stats && stats.total > 0) {
+            // Soru sayısından ziyade test sonuçlarında "Net" bazında mı bir başarı istiyoruz?
+            // "Toplam Soru" ve "Doğru Sayısı" orantısı yeterlidir. (Yani Net değil, Salt Doğru / Soru)
+            // İsteğe bağlı NET başarı oranı: Math.max(0, (stats.correct - (stats.wrong || 0)*0.25) / stats.total * 100);
+            value = Math.round((stats.correct / stats.total) * 100);
+        }
         map.set(topic.id, value);
     });
     return map;
