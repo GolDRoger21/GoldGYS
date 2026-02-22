@@ -26,11 +26,22 @@
         <section class="analysis-header glass-card">
             <div>
                 <h1>📊 Öğrenci Analiz & Konu Takip Merkezi</h1>
-                <p class="text-muted">İlerlemeni gerçek verilerle takip et, eksik konuları tespit et, hedeflerini sistematik şekilde yönet.</p>
+                <p class="text-muted">Performansını detaylı incele, zayıf olduğun konulara odaklan ve gerçek netlerin
+                    üzerinden sınav stratejini oluştur.</p>
             </div>
             <div class="header-actions">
-                <div class="status-pill status-in-progress" id="lastUpdate">Güncelleniyor...</div>
-                <button class="status-pill reset-stats-btn" id="resetAllStatsBtn" type="button">Tüm Verileri Sıfırla</button>
+                <div class="status-badge badge-blue" id="lastUpdate"><span
+                        class="badge-dot pulse"></span>Güncelleniyor...</div>
+                <button class="glass-btn btn-reset reset-stats-btn" id="resetAllStatsBtn" type="button"
+                    title="Tüm Analiz ve Konu Verilerini Sıfırla" style="width: auto; padding: 0 16px;">
+                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                        style="margin-right: 6px;">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                        </path>
+                    </svg>
+                    Sıfırla
+                </button>
             </div>
         </section>
 
@@ -44,7 +55,7 @@
                 <strong id="avgScore">%0</strong>
             </article>
             <article class="glass-card kpi-card">
-                <span>ÇÖZÜLEN SORU</span>
+                <span>TOPLAM SORU</span>
                 <strong id="totalQuestions">0</strong>
             </article>
             <article class="glass-card kpi-card">
@@ -52,18 +63,20 @@
                 <strong id="wrongRate">%0</strong>
             </article>
             <article class="glass-card kpi-card">
-                <span>7 GÜNDE ÇALIŞMA</span>
+                <span>SON 7 GÜN</span>
                 <strong id="last7DaysCount">0</strong>
             </article>
             <article class="glass-card kpi-card">
-                <span>VERİ TUTARLILIĞI</span>
+                <span>ANALİZ GÜVENİLİRLİĞİ</span>
                 <strong id="dataQuality">%100</strong>
             </article>
         </section>
 
         <section class="analysis-main-grid">
             <article class="glass-card">
-                <div class="card-header"><div class="card-title">Tahmini Puan</div></div>
+                <div class="card-header">
+                    <div class="card-title">Tahmini Puan</div>
+                </div>
                 <div class="prediction-wrap">
                     <div id="predictedScore" class="prediction-value">--</div>
                     <p class="text-muted" id="predictionHint">Son 5 deneme, zamana göre ağırlıklı ortalama.</p>
@@ -71,22 +84,33 @@
             </article>
 
             <article class="glass-card">
-                <div class="card-header"><div class="card-title">🚀 Seviye ve İvme</div><div class="status-pill status-completed" id="currentLevelBadge">Seviye 1</div></div>
+                <div class="card-header">
+                    <div class="card-title">🚀 Seviye ve İvme</div>
+                    <div class="score-badge" id="currentLevelBadge">Seviye 1</div>
+                </div>
                 <div class="card-body compact">
-                    <div class="level-row"><span id="currentLevel">Çaylak</span><strong id="currentLevelXp">0 XP</strong></div>
-                    <div class="progress-bar-container"><div class="progress-bar" id="levelProgressBar"></div></div>
-                    <div class="level-row text-muted small"><span id="levelProgressText">0 / 0 XP</span><span id="levelNextTarget">Sonraki: -</span></div>
+                    <div class="level-row"><span id="currentLevel">Çaylak</span><strong id="currentLevelXp">0
+                            XP</strong></div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar" id="levelProgressBar"></div>
+                    </div>
+                    <div class="level-row text-muted small"><span id="levelProgressText">0 / 0 XP</span><span
+                            id="levelNextTarget">Sonraki: -</span></div>
                     <div id="missionList" class="mission-grid"></div>
                 </div>
             </article>
 
             <article class="glass-card chart-card">
-                <div class="card-header"><div class="card-title">📈 Gelişim Grafiği (Son 12 Deneme)</div></div>
+                <div class="card-header">
+                    <div class="card-title">📈 Gelişim Grafiği (Son 12 Deneme)</div>
+                </div>
                 <div class="card-body chart-body"><canvas id="progressChart"></canvas></div>
             </article>
 
             <article class="glass-card chart-card">
-                <div class="card-header"><div class="card-title">🎯 Konu Başarı Haritası (En Zayıf 8)</div></div>
+                <div class="card-header">
+                    <div class="card-title">⚠️ Dikkat: Zayıf Olduğun İlk 8 Konu</div>
+                </div>
                 <div class="card-body chart-body"><canvas id="topicChart"></canvas></div>
             </article>
         </section>
@@ -102,10 +126,13 @@
                         <option value="alphabetical">A-Z</option>
                     </select>
                     <div class="chip-group" id="topicFilterChips">
-                        <button class="status-pill status-in-progress" data-filter="all">Tümü</button>
-                        <button class="status-pill status-pending" data-filter="in_progress">Çalışılan</button>
-                        <button class="status-pill status-pending" data-filter="completed">Tamamlanan</button>
-                        <button class="status-pill status-pending" data-filter="pending">Bekleyen</button>
+                        <button class="status-badge badge-blue status-in-progress" data-filter="all">Tümü</button>
+                        <button class="status-badge badge-gray status-pending"
+                            data-filter="in_progress">Çalışılanlar</button>
+                        <button class="status-badge badge-gray status-pending"
+                            data-filter="completed">Bitirilenler</button>
+                        <button class="status-badge badge-gray status-pending"
+                            data-filter="pending">Başlanmayanlar</button>
                     </div>
                 </div>
             </div>
@@ -113,10 +140,17 @@
                 <div class="mastery-table-container">
                     <table class="mastery-table">
                         <thead>
-                            <tr><th>Konu</th><th>Başarı</th><th>Durum</th><th class="align-right">İşlemler</th></tr>
+                            <tr>
+                                <th>Konu</th>
+                                <th>Başarı</th>
+                                <th>Durum</th>
+                                <th class="align-right">İşlemler</th>
+                            </tr>
                         </thead>
                         <tbody id="topicMasteryList">
-                            <tr><td colspan="4" class="text-center">Yükleniyor...</td></tr>
+                            <tr>
+                                <td colspan="4" class="text-center">Yükleniyor...</td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
@@ -124,10 +158,19 @@
         </section>
 
         <section class="glass-card">
-            <div class="card-header"><div class="card-title">📜 Son Sınavlar</div></div>
+            <div class="card-header">
+                <div class="card-title">📜 Son Sınavlar</div>
+            </div>
             <div class="card-body table-responsive">
                 <table class="admin-table">
-                    <thead><tr><th>Tarih</th><th>Sınav</th><th>Net</th><th>Puan</th></tr></thead>
+                    <thead>
+                        <tr>
+                            <th>Test Tarihi</th>
+                            <th>Sınav / Test Adı</th>
+                            <th>Performans (Doğru / Yanlış / Net)</th>
+                            <th>Başarı</th>
+                        </tr>
+                    </thead>
                     <tbody id="historyTableBody"></tbody>
                 </table>
             </div>

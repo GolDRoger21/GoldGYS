@@ -133,10 +133,23 @@ function setLastUpdateState() {
 
 function calculateKPIs(results) {
     const totalExams = results.length;
+
+    // Gerçek sınav verilerinden puanları çek
     const totalScore = results.reduce((sum, exam) => sum + parseNum(exam.score), 0);
     const avgScore = totalExams ? Math.round(totalScore / totalExams) : 0;
+
     const totalQuestions = results.reduce((sum, exam) => sum + getExamTotal(exam), 0);
+    const totalCorrect = results.reduce((sum, exam) => sum + parseNum(exam.correct), 0);
     const totalWrong = results.reduce((sum, exam) => sum + parseNum(exam.wrong), 0);
+
+    // NET hesabı: Her 4 yanlış 1 doğruyu götürür mantığı (Öğrenci dostu veya kurum politikası. Standart: D - Y/4)
+    // Eğer kurumda "Net" mantığı yoksa ve sadece salt doğru isteniyorsa "totalCorrect" kullanılır.
+    // GYS sınavlarında genelde 4 yanlış mantığı yoktur, o yüzden standart salt "Net Değer" olarak doğru sayısını veya gelişmiş mantığı kullanalım:
+    // GoldGYS standardı: Yanlışlar doğruyu götürmez varsayımı daha motive edicidir, ancak doğrusu:
+    // Biz saf doğru ve yanlış oranı üzerinden Net çıkartalım:
+    const netCount = Math.max(0, totalCorrect - (totalWrong * 0.25)); // 4 yanlış 1 doğru örneği, isteğe göre kapanabilir.
+
+    // Hata Oranı
     const wrongRate = totalQuestions ? Math.round((totalWrong / totalQuestions) * 100) : 0;
 
     const now = Date.now();
@@ -160,6 +173,7 @@ function calculateKPIs(results) {
 
     document.getElementById('totalExams').innerText = totalExams;
     document.getElementById('avgScore').innerText = `%${avgScore}`;
+    // Çözülen soru yerine "Net Sayısı" veya "Net / Soru" görünümü daha şık olabilir ama şimdilik tasarımı bozmayalım
     document.getElementById('totalQuestions').innerText = totalQuestions;
     document.getElementById('wrongRate').innerText = `%${wrongRate}`;
     document.getElementById('last7DaysCount').innerText = last7DaysCount;
@@ -202,7 +216,13 @@ function renderProgressChart(results) {
 }
 
 function normalizeStr(str) {
-    return (str || '').toString().trim().toLocaleLowerCase('tr-TR');
+    if (!str) return '';
+    // Tüm görünmez karakterleri, \u200B (zero-width space) vb. karakterleri ve baş/son boşlukları sil+
+    // Ayrıca case-insensitive olması için toLocaleLowerCase kullan.
+    return str.toString()
+        .replace(/[\u200B-\u200D\uFEFF]/g, '')
+        .trim()
+        .toLocaleLowerCase('tr-TR');
 }
 
 function buildCategoryTotals(results, topics, topicResets) {
@@ -242,8 +262,25 @@ function getTopicStatus(topicId) {
     const topicResetAt = state.topicResets?.[topicId];
     if (topicResetAt && progressUpdatedAt && progressUpdatedAt <= topicResetAt) return 'pending';
     if (progress?.status === 'completed') return 'completed';
+    // Eğer konu focus olarak seçildiyse doğrudan in_progress kabul et
     if (progress?.status === 'in_progress' || topicId === state.currentTopicId) return 'in_progress';
     return 'pending';
+}
+
+function getBadgeHTMLForStatus(status) {
+    if (status === 'completed') {
+        return '<span class="status-badge badge-green"><span class="badge-dot"></span>Tamamlandı</span>';
+    } else if (status === 'in_progress') {
+        return '<span class="status-badge badge-blue"><span class="badge-dot pulse"></span>Çalışılıyor</span>';
+    }
+    return '<span class="status-badge badge-gray"><span class="badge-dot"></span>Başlanmadı</span>';
+}
+
+function getProgressColor(val) {
+    if (val >= 80) return 'var(--color-success)';
+    if (val >= 50) return 'var(--color-warning)';
+    if (val > 0) return 'var(--color-danger)';
+    return 'var(--border-color)';
 }
 
 function renderTopicChart(categoryTotals) {
@@ -263,17 +300,24 @@ function renderTopicChart(categoryTotals) {
 function renderHistoryTable(results) {
     const body = document.getElementById('historyTableBody');
     if (!results.length) {
-        body.innerHTML = '<tr><td colspan="4" class="text-center">Henüz sınav verisi bulunmuyor.</td></tr>';
+        body.innerHTML = '<tr><td colspan="4" class="text-center" style="padding: 24px; color: var(--text-muted);">Henüz sınav verisi bulunmuyor. İlk denemeni çöz!</td></tr>';
         return;
     }
     body.innerHTML = results.slice(0, 12).map(r => {
         const completed = getCompletedSeconds(r);
-        const date = completed ? new Date(completed * 1000).toLocaleDateString('tr-TR') : '-';
+        const date = completed ? new Date(completed * 1000).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' }) : '-';
+        const net = parseNum(r.correct) - (parseNum(r.wrong) * 0.25);
+        const finalNet = net % 1 === 0 ? net : net.toFixed(2);
+
         return `<tr>
-            <td>${date}</td>
-            <td>${r.examTitle || 'Genel Test'}</td>
-            <td>${parseNum(r.correct)} D • ${parseNum(r.wrong)} Y • ${parseNum(r.empty)} B</td>
-            <td>%${parseNum(r.score)}</td>
+            <td><div class="table-date-pill">${date}</div></td>
+            <td><strong style="color:var(--text-primary); font-weight:500;">${r.examTitle || 'Genel Test'}</strong></td>
+            <td>
+               <span style="color:var(--color-success)">${parseNum(r.correct)}D</span>
+               <span style="color:var(--color-danger); margin-left:4px;">${parseNum(r.wrong)}Y</span>
+               <span style="color:var(--text-muted); margin-left:8px; font-weight:600;">${finalNet} Net</span>
+            </td>
+            <td><div class="score-badge">%${parseNum(r.score)}</div></td>
         </tr>`;
     }).join('');
 }
@@ -305,17 +349,38 @@ function renderTopicList() {
     }
 
     container.innerHTML = rows.map(({ topic, success, status }) => {
-        const badge = status === 'completed' ? 'status-completed">Tamamlandı' : status === 'in_progress' ? 'status-in-progress">Çalışılıyor' : 'status-pending">Bekliyor';
-        const focusEmoji = topic.id === state.currentTopicId ? '🚫' : '🎯';
-        return `<tr class="topic-row" data-status="${status}">
-            <td><strong>${topic.title}</strong><div class="text-muted">${topic.description || 'Açıklama yok.'}</div></td>
-            <td><div class="progress-mini-wrapper"><div class="progress-mini-fill" style="width:${success}%"></div></div><span class="progress-mini-percent">%${success}</span></td>
-            <td><span class="status-pill ${badge}</span></td>
+        const badgeData = getBadgeHTMLForStatus(status);
+        const focusEmoji = topic.id === state.currentTopicId ? '🎯' : '⭕';
+        const isCurrentRow = topic.id === state.currentTopicId ? 'active-focus-row' : '';
+
+        return `<tr class="topic-row ${isCurrentRow}" data-status="${status}">
+            <td>
+                <div class="topic-title-main">
+                    ${topic.title}
+                    ${topic.id === state.currentTopicId ? '<span class="focus-indicator">🌟 Odak</span>' : ''}
+                </div>
+                <div class="topic-desc-sub">${topic.description || 'Açıklama veya ek bilgi yok.'}</div>
+            </td>
+            <td>
+                <div class="progress-container">
+                    <div class="progress-bar-wrap">
+                        <div class="progress-bar-fill" style="width:${success}%; background: ${getProgressColor(success)};"></div>
+                    </div>
+                    <span class="progress-val" style="color: ${getProgressColor(success)};">%${success}</span>
+                </div>
+            </td>
+            <td>${badgeData}</td>
             <td>
               <div class="action-buttons">
-                <button class="btn-icon" onclick="window.toggleTopicStatus('${topic.id}', 'completed')" title="Tamamlandı">✅</button>
-                <button class="btn-icon" onclick="window.setFocusTopic('${topic.id}')" title="Odak">${focusEmoji}</button>
-                <button class="btn-icon" onclick="window.resetTopicStats('${topic.id}')" title="Sıfırla">♻️</button>
+                <button class="glass-btn btn-complete" onclick="window.toggleTopicStatus('${topic.id}', 'completed')" title="Öğrendim / Çalıştım">
+                    <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                </button>
+                <button class="glass-btn btn-focus ${topic.id === state.currentTopicId ? 'is-focused' : ''}" onclick="window.setFocusTopic('${topic.id}')" title="Bu konuya odaklan">
+                    ${focusEmoji}
+                </button>
+                <button class="glass-btn btn-reset" onclick="window.resetTopicStats('${topic.id}')" title="İstatistikleri ve ilerlemeyi tamemen sıfırla">
+                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                </button>
               </div>
             </td>
         </tr>`;
