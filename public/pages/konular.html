@@ -895,12 +895,14 @@
     function pickIcon(title, category, isSubtopic = false) {
       const iconRules = [
         // Özel Eşleşmeler (Vurgulu Konular)
-        { match: /atatürk ilkeleri ve inkılap tarihi, ulusal güvenlik/i, icon: '🎖️' }, // Bütünleşik konu için madalya/nişan
+        { match: /atatürk ilkeleri ve inkılap tarihi, ulusal güvenlik/i, icon: '�🇷' }, // Türk Bayrağı
         { match: /1 sayılı cb|cumhurbaşkanlığı/i, icon: '☀️' }, // Cumhurbaşkanlığı Forsunu (Güneş) temsil eder
-        { match: /anayasa|anayasal/i, icon: '📖' }, // Türkiye Cumhuriyeti Anayasası (Temel Kitap)
+        { match: /anayasa|anayasal/i, icon: '⚖️' }, // Anayasa Mahkemesi / Temel Yargı (Adalet Terazisi)
         { match: /atatürk|inkılap|kurtuluş|mill[iî] mücadele/i, icon: '🇹🇷' },
 
         // Devlet Teşkilatı ve İdare
+        { match: /bakanlık teşkilatı|adalet bakanlığı/i, icon: '🏛️' }, // Bakanlık (Devlet Binası / Adalet Sarayı)
+        { match: /yargı örgütü|adliye/i, icon: '🏛️' }, // Yargı Örgütü (Adliye Binası)
         { match: /devlet teşkilatı|tbmm|meclis|yasama/i, icon: '🏛️' }, // Devlet kurumları
         { match: /belediye/i, icon: '🏙️' },
         { match: /özel idare|il idaresi|köy/i, icon: '🗺️' },
@@ -908,13 +910,13 @@
 
         // Yargı, Yazı İşleri, SEGBİS
         { match: /yazı işleri|harçlar|kalem/i, icon: '🗃️' }, // Yazı İşleri ve Harçlar (Dosyalar/Kutu)
-        { match: /segbis|elektronik imza|e-imza|uyap/i, icon: '�' }, // SEGBİS / Teknoloji / Elektronik İmza (Kilitli Kalem)
+        { match: /segbis|elektronik imza|e-imza|uyap/i, icon: '💻' }, // SEGBİS ve UYAP (Bilgisayar / Sistem - Soru işareti sorunu çözümü)
         { match: /yargı|mahkeme|hâkim|savcı|danıştay|sayıştay|uyuşmazlık/i, icon: '⚖️' },
 
         // Özel Kanunlar (Ceza, Medeni, HMK, CMK, İnfaz vb.)
-        { match: /cmk|ceza muhakemesi|5271/i, icon: '�' }, // CMK (Mahkeme Tokmağı / Yargılama)
+        { match: /cmk|ceza muhakemesi|5271/i, icon: '📕' }, // CMK (Kırmızı Kapak - Ceza Hâkimi Yakası)
         { match: /infaz|5275|cezaevi|tevkifevi/i, icon: '⛓️' }, // İnfaz Kanunu (Zincir / Hapishane)
-        { match: /hmk|hukuk muhakemeleri|6100/i, icon: '⚖️' }, // HMK (Adalet Terazisi / Hukuk Mahkemesi)
+        { match: /hmk|hukuk muhakemeleri|6100/i, icon: '📗' }, // HMK (Yeşil Kapak - Hukuk Hâkimi Yakası)
         { match: /ceza|tck|suç|kovuşturma|soruşturma/i, icon: '🚨' }, // Genel Ceza / TCK (Acil/Polis)
         { match: /icra|iflas/i, icon: '📉' }, // İcra / İflas
 
@@ -926,7 +928,7 @@
 
         // İletişim, Tebligat ve Yazışma
         { match: /resm[iî] yazışma/i, icon: '🖋️' }, // Resmi Yazışma Kuralları (Dolma Kalem)
-        { match: /halkla ilişkiler/i, icon: '📢' }, // Halkla İlişkiler (Duyuru / İletişim / Hoparlör)
+        { match: /halkla ilişkiler/i, icon: '�' }, // Halkla İlişkiler (Toplum / İnsanlar)
         { match: /tebligat|bildirim/i, icon: '📩' },
         { match: /bilgi edinme/i, icon: 'ℹ️' },
         { match: /dilekçe/i, icon: '✍️' },
