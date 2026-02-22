@@ -5,6 +5,7 @@ import { auth, db } from "./firebase-config.js";
 import { getUserProfile, getLastActivity, getRecentActivities } from "./user-profile.js";
 import { collection, doc, getDoc, getDocs, limit, orderBy, query, where, Timestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { buildTopicPath } from './topic-url.js';
+import { CacheManager } from './cache-manager.js';
 
 // UI Elementleri
 const ui = {
@@ -26,6 +27,26 @@ const ui = {
 };
 
 let examCountdownInterval = null;
+
+
+const DASHBOARD_STATS_TTL = 2 * 60 * 1000; // 2 dakika
+const DASHBOARD_FEED_TTL = 6 * 60 * 60 * 1000; // 6 saat
+
+function getDashboardDateKey() {
+    return new Date().toISOString().slice(0, 10);
+}
+
+function applyStatsToUI(totalStats, todayStats) {
+    const successRate = totalStats.total > 0
+        ? Math.round((totalStats.correct / totalStats.total) * 100)
+        : 0;
+
+    if (ui.solvedTodayCount) ui.solvedTodayCount.textContent = todayStats.total.toLocaleString('tr-TR');
+    if (ui.solvedTotalCount) ui.solvedTotalCount.textContent = totalStats.total.toLocaleString('tr-TR');
+    if (ui.wrongTodayCount) ui.wrongTodayCount.textContent = todayStats.wrong.toLocaleString('tr-TR');
+    if (ui.successRateText) ui.successRateText.textContent = `%${successRate}`;
+    if (ui.successRateBar) ui.successRateBar.style.width = `${successRate}%`;
+}
 
 document.addEventListener("DOMContentLoaded", async () => {
     try {
@@ -152,21 +173,21 @@ async function loadDashboardStats(uid) {
     const userSnap = await getDoc(doc(db, "users", uid));
     const userData = userSnap.exists() ? userSnap.data() : {};
     const statsResetAt = normalizeResetTimestamp(userData.statsResetAt);
+    const cacheKey = `dashboard_stats_${uid}_${statsResetAt || 'none'}_${getDashboardDateKey()}`;
+
+    const cached = await CacheManager.getData(cacheKey);
+    if (cached?.cached && cached.data?.totalStats && cached.data?.todayStats) {
+        applyStatsToUI(cached.data.totalStats, cached.data.todayStats);
+        return;
+    }
 
     const [totalStats, todayStats] = await Promise.all([
         fetchExamStats(uid, { resetAtSeconds: statsResetAt }),
         fetchExamStats(uid, { range: getTodayRange(), resetAtSeconds: statsResetAt })
     ]);
 
-    const successRate = totalStats.total > 0
-        ? Math.round((totalStats.correct / totalStats.total) * 100)
-        : 0;
-
-    if (ui.solvedTodayCount) ui.solvedTodayCount.textContent = todayStats.total.toLocaleString('tr-TR');
-    if (ui.solvedTotalCount) ui.solvedTotalCount.textContent = totalStats.total.toLocaleString('tr-TR');
-    if (ui.wrongTodayCount) ui.wrongTodayCount.textContent = todayStats.wrong.toLocaleString('tr-TR');
-    if (ui.successRateText) ui.successRateText.textContent = `%${successRate}`;
-    if (ui.successRateBar) ui.successRateBar.style.width = `${successRate}%`;
+    applyStatsToUI(totalStats, todayStats);
+    await CacheManager.saveData(cacheKey, { totalStats, todayStats }, DASHBOARD_STATS_TTL);
 }
 
 function normalizeResetTimestamp(timestamp) {
@@ -229,6 +250,15 @@ function getTodayRange() {
 async function loadExamAnnouncement() {
     if (!ui.examPanelBody) return;
 
+    const cacheKey = "dashboard_exam_announcement_v1";
+    const cached = await CacheManager.getData(cacheKey);
+    if (cached?.cached && cached.data?.html) {
+        ui.examPanelBody.innerHTML = cached.data.html;
+        setCountdownState(cached.data.examDate ? new Date(cached.data.examDate) : null);
+        if (ui.examStatusBadge) ui.examStatusBadge.textContent = cached.data.statusBadge || "Aktif";
+        return;
+    }
+
     try {
         const examQuery = query(
             collection(db, "examAnnouncements"),
@@ -253,6 +283,11 @@ async function loadExamAnnouncement() {
             `;
             setCountdownState(null);
             if (ui.examStatusBadge) ui.examStatusBadge.textContent = "İlan Yok";
+            await CacheManager.saveData(cacheKey, {
+                html: ui.examPanelBody.innerHTML,
+                examDate: null,
+                statusBadge: "İlan Yok"
+            }, DASHBOARD_FEED_TTL);
             return;
         }
 
@@ -297,6 +332,11 @@ async function loadExamAnnouncement() {
 
         if (ui.examStatusBadge) ui.examStatusBadge.textContent = "Aktif";
         setCountdownState(examDate);
+        await CacheManager.saveData(cacheKey, {
+            html: ui.examPanelBody.innerHTML,
+            examDate: examDate ? examDate.toISOString() : null,
+            statusBadge: "Aktif"
+        }, DASHBOARD_FEED_TTL);
     } catch (error) {
         console.error("Sınav ilanı yüklenemedi:", error);
         ui.examPanelBody.innerHTML = `<p class="text-muted">Sınav bilgileri yüklenemedi.</p>`;
@@ -339,6 +379,13 @@ function setCountdownState(examDate) {
 async function loadAnnouncements() {
     if (!ui.announcementList) return;
 
+    const cacheKey = "dashboard_announcements_v1";
+    const cached = await CacheManager.getData(cacheKey);
+    if (cached?.cached && cached.data?.html) {
+        ui.announcementList.innerHTML = cached.data.html;
+        return;
+    }
+
     try {
         const announcementQuery = query(
             collection(db, "announcements"),
@@ -360,6 +407,7 @@ async function loadAnnouncements() {
                     </div>
                 </div>
             `;
+            await CacheManager.saveData(cacheKey, { html: ui.announcementList.innerHTML }, DASHBOARD_FEED_TTL);
             return;
         }
 
@@ -380,6 +428,7 @@ async function loadAnnouncements() {
                 </div>
             `;
         }).join('');
+        await CacheManager.saveData(cacheKey, { html: ui.announcementList.innerHTML }, DASHBOARD_FEED_TTL);
     } catch (error) {
         console.error("Duyurular yüklenemedi:", error);
         ui.announcementList.innerHTML = `<p class="text-muted">Duyurular yüklenemedi.</p>`;

@@ -1,11 +1,22 @@
 import { db } from "./firebase-config.js";
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { CacheManager } from "./cache-manager.js";
+
+const LEGAL_PAGE_TTL = 6 * 60 * 60 * 1000; // 6 saat
 
 export async function loadLegalContent(slug) {
     const contentEl = document.querySelector('.policy-content');
     if (!contentEl) return;
 
     try {
+        const cacheKey = `legal_page_${slug}`;
+        const cached = await CacheManager.getData(cacheKey);
+        if (cached?.cached && typeof cached.data === "string" && cached.data.trim()) {
+            contentEl.innerHTML = cached.data;
+            contentEl.classList.add('dynamic-loaded');
+            return;
+        }
+
         const docRef = doc(db, "legal_pages", slug);
         const snap = await getDoc(docRef);
 
@@ -21,6 +32,7 @@ export async function loadLegalContent(slug) {
             // Actually, let's just append an "Edit" note or date if we want.
             // But replacing innerHTML is the standard CMS behavior.
             contentEl.innerHTML = snap.data().content;
+            await CacheManager.saveData(cacheKey, snap.data().content, LEGAL_PAGE_TTL);
 
             // Add a "Dynamic Content" class for styling tweaks if needed
             contentEl.classList.add('dynamic-loaded');

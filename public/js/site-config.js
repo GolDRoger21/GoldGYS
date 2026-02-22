@@ -1,17 +1,29 @@
 import { db } from "./firebase-config.js";
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { DEFAULT_PUBLIC_CONFIG, mergeWithDefaultPublicConfig } from "./config-defaults.js";
+import { CacheManager } from "./cache-manager.js";
 
 let configCache = null;
+const PUBLIC_CONFIG_CACHE_KEY = "site_config_public_v1";
+const PUBLIC_CONFIG_TTL = 60 * 60 * 1000; // 1 saat
 
 export async function loadSiteConfig(options = {}) {
     const { force = false } = options;
 
     if (!force && configCache) return configCache;
 
+    if (!force) {
+        const cached = await CacheManager.getData(PUBLIC_CONFIG_CACHE_KEY);
+        if (cached?.cached && cached.data) {
+            configCache = mergeWithDefaultPublicConfig(cached.data);
+            return configCache;
+        }
+    }
+
     try {
         const snap = await getDoc(doc(db, "config", "public"));
         configCache = mergeWithDefaultPublicConfig(snap.exists() ? snap.data() : {});
+        await CacheManager.saveData(PUBLIC_CONFIG_CACHE_KEY, configCache, PUBLIC_CONFIG_TTL);
         return configCache;
     } catch (error) {
         console.warn("Site config okunamadı:", error);
