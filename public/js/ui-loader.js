@@ -220,7 +220,7 @@ async function loadHTML(url, element) {
 
 function initThemeAndSidebar() {
     // Tema Kontrolü
-    const savedTheme = localStorage.getItem('theme') || 'light'; // Varsayılan Light
+    const savedTheme = localStorage.getItem('theme') || 'dark'; // Varsayılan Dark
     document.documentElement.setAttribute('data-theme', savedTheme);
     updateThemeIcon(savedTheme);
 

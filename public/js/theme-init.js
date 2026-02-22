@@ -7,8 +7,7 @@
   }
 
   if (theme !== 'light' && theme !== 'dark') {
-    var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-    theme = prefersDark ? 'dark' : 'light';
+    theme = 'dark';
   }
 
   document.documentElement.setAttribute('data-theme', theme);
