@@ -41,14 +41,25 @@ function getExamTotal(exam) {
     return parseNum(exam.correct) + parseNum(exam.wrong) + parseNum(exam.empty);
 }
 
-function getTopicQuestionTotal(topic) {
+function getTopicQuestionTotal(topic, progress = null) {
     return [
         topic?.totalQuestions,
         topic?.questionCount,
         topic?.questionsCount,
         topic?.stats?.totalQuestions,
-        topic?.meta?.totalQuestions
+        topic?.meta?.totalQuestions,
+        progress?.totalQuestions,
+        progress?.questionCount,
+        progress?.questionsCount
     ].map(parseNum).find(v => v > 0) || 0;
+}
+
+function getProgressSolvedCount(progress = {}) {
+    return Math.max(
+        parseNum(progress?.solvedCount),
+        Array.isArray(progress?.solvedIds) ? progress.solvedIds.length : 0,
+        progress?.answers ? Object.keys(progress.answers).length : 0
+    );
 }
 
 function getCompletedSeconds(exam) {
@@ -259,23 +270,20 @@ function buildCategoryTotals(results, topics, topicResets) {
 function buildTopicSuccessMap(topics, categoryTotals) {
     const map = new Map();
     topics.forEach(topic => {
+        const progress = state.progressMap.get(topic.id) || {};
+        const solvedCount = getProgressSolvedCount(progress);
+        const totalQuestions = getTopicQuestionTotal(topic, progress);
+
+        if (totalQuestions > 0 && solvedCount > 0) {
+            map.set(topic.id, Math.min(100, Math.round((solvedCount / totalQuestions) * 100)));
+            return;
+        }
+
         // Topic adını normalize et, total'de tutulan değere bak
         const stats = categoryTotals[topic.title];
         let value = 0;
         if (stats && stats.total > 0) {
-            // Soru sayısından ziyade test sonuçlarında "Net" bazında mı bir başarı istiyoruz?
-            // "Toplam Soru" ve "Doğru Sayısı" orantısı yeterlidir. (Yani Net değil, Salt Doğru / Soru)
-            // İsteğe bağlı NET başarı oranı: Math.max(0, (stats.correct - (stats.wrong || 0)*0.25) / stats.total * 100);
             value = Math.round((stats.correct / stats.total) * 100);
-        } else {
-            // Eski sınav kayıtlarında categoryStats olmayabiliyor. Bu durumda
-            // konu ilerlemesinden (çözülen soru / konu toplam sorusu) fallback hesapla.
-            const progress = state.progressMap.get(topic.id) || {};
-            const solvedCount = Math.max(parseNum(progress.solvedCount), Array.isArray(progress.solvedIds) ? progress.solvedIds.length : 0);
-            const totalQuestions = getTopicQuestionTotal(topic);
-            if (totalQuestions > 0 && solvedCount > 0) {
-                value = Math.min(100, Math.round((solvedCount / totalQuestions) * 100));
-            }
         }
         map.set(topic.id, value);
     });
@@ -284,11 +292,13 @@ function buildTopicSuccessMap(topics, categoryTotals) {
 
 function getTopicStatus(topicId) {
     const progress = state.progressMap.get(topicId);
+    const solvedCount = getProgressSolvedCount(progress);
     const progressUpdatedAt = normalizeResetTimestamp(progress?.updatedAt);
     if (state.statsResetAt && progressUpdatedAt && progressUpdatedAt <= state.statsResetAt) return 'pending';
     const topicResetAt = state.topicResets?.[topicId];
     if (topicResetAt && progressUpdatedAt && progressUpdatedAt <= topicResetAt) return 'pending';
     if (progress?.status === 'completed') return 'completed';
+    if (solvedCount > 0) return 'in_progress';
     // Eğer konu focus olarak seçildiyse doğrudan in_progress kabul et
     if (progress?.status === 'in_progress' || topicId === state.currentTopicId) return 'in_progress';
     return 'pending';
@@ -350,7 +360,7 @@ function renderHistoryTable(results) {
 }
 
 function sortTopics(rows) {
-    if (state.sortBy === 'alphabetical') return rows.sort((a, b) => a.title.localeCompare(b.title, 'tr'));
+    if (state.sortBy === 'alphabetical') return rows.sort((a, b) => a.topic.title.localeCompare(b.topic.title, 'tr'));
     if (state.sortBy === 'strongest') return rows.sort((a, b) => b.success - a.success);
     return rows.sort((a, b) => a.success - b.success);
 }
