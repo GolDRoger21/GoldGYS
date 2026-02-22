@@ -1224,8 +1224,9 @@
     import { TopicService } from '../js/topic-service.js';
     import { showConfirm, showToast } from '../js/notifications.js';
     import { buildTopicPath, slugifyTopicTitle } from '../js/topic-url.js';
-    import { doc, getDoc, collection, getDocs, query, orderBy, where, getCountFromServer, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getDocs, query, orderBy, where, getCountFromServer, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
     import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { CacheManager } from '../js/cache-manager.js';
 
     let currentTopicId = null;
     let topicTitle = "";
@@ -1327,8 +1328,19 @@
     }
 
     async function loadTopicData() {
-      // ALT KONULARI ÇEKME (Firestore Index Hatası burada olabilir, try-catch ile koruyoruz)
+      // 1. Önce Cache Kontrolü
+      const cacheKey = `topic_subtopics_${currentTopicId}`;
+      const cachedData = await CacheManager.getData(cacheKey);
       let subtopics = [];
+      let hasCache = false;
+
+      if (cachedData?.cached && cachedData.data) {
+        subtopics = cachedData.data;
+        hasCache = true;
+        console.log(`[Cache Hit] Alt konular IndexedDB'den yüklendi (${cacheKey})`);
+      }
+
+      // SWR: Arka Planda Firestore Sorgusu
       try {
         const subtopicQuery = query(
           collection(db, "topics"),
@@ -1341,18 +1353,29 @@
           where("parentId", "==", currentTopicId),
           orderBy("order", "asc")
         );
+
         const subtopicSnap = await safeGetDocs(subtopicQuery, subtopicFallbackQuery, 'Alt konular');
+        const freshSubtopics = [];
         subtopicSnap.forEach(doc => {
           const data = doc.data();
           if (data?.isActive === false) return;
           if (data?.status === 'deleted' || data?.isDeleted) return;
-          subtopics.push({ id: doc.id, ...data });
+          freshSubtopics.push({ id: doc.id, ...data });
         });
+
+        // Cache'i güncelle (24 saat)
+        await CacheManager.saveData(cacheKey, freshSubtopics, 24 * 60 * 60 * 1000);
+
+        if (!hasCache) {
+          subtopics = freshSubtopics;
+        }
+
       } catch (e) {
         console.warn("Alt konular çekilemedi (Muhtemelen eksik Index):", e);
-        // Alt konu bölümünü gizle ama hata fırlatma, içerik yüklemeye devam et
-        const subtopicSection = document.getElementById('subtopicSection');
-        if (subtopicSection) subtopicSection.style.display = 'none';
+        if (!hasCache) {
+          const subtopicSection = document.getElementById('subtopicSection');
+          if (subtopicSection) subtopicSection.style.display = 'none';
+        }
       }
 
       const hasSubtopics = subtopics.length > 0;
@@ -1425,13 +1448,7 @@
       const testsContainer = document.getElementById('testsList');
       const materialsContainer = document.getElementById('materialsList');
 
-      testsContainer.innerHTML = '';
-      materialsContainer.innerHTML = '';
-
-      let testCount = 0;
-      let materialCount = 0;
-      const validCompletedIds = new Set();
-
+      let validCompletedIds = new Set();
       if (auth.currentUser) {
         try {
           const completedRef = collection(db, `users/${auth.currentUser.uid}/completed_tests`);
@@ -1443,24 +1460,19 @@
         }
       }
 
-      try {
-        const lessonsQuery = query(collection(db, `topics/${currentTopicId}/lessons`), orderBy("order", "asc"));
-        const lessonsFallback = collection(db, `topics/${currentTopicId}/lessons`);
-        const snapshot = await safeGetDocs(lessonsQuery, lessonsFallback, 'Konu içerikleri');
+      // Fonksiyon: İçerikleri Ekrana Render Etme
+      const renderContent = (contentLessons) => {
+        testsContainer.innerHTML = '';
+        materialsContainer.innerHTML = '';
+        let testCount = 0;
+        let materialCount = 0;
 
-        snapshot.forEach(doc => {
-          const item = { id: doc.id, ...doc.data() };
-          if (item?.status === 'deleted' || item?.isDeleted || item?.isActive === false) return;
-
+        contentLessons.forEach(item => {
           const isTest = item.type === 'test' || (Array.isArray(item.questions) && item.questions.length > 0) || Number.isFinite(item.qCount);
 
           if (isTest) {
             testCount += 1;
             const qCount = item.qCount || (item.questions ? item.questions.length : 0);
-
-            // SEO-Friendly Link Generation
-            // Old: /test/${item.id}?topic=${currentTopicId}&mode=select&return=...
-            // New: /test/${currentTopicId}/${item.id}?mode=select (return is inferred by router)
             const testUrl = `/test/${encodeURIComponent(currentTopicId)}/${encodeURIComponent(item.id)}?mode=select`;
 
             let badgeHtml = '';
@@ -1485,7 +1497,6 @@
                       </div>
                   `;
           } else {
-            // Materyalleri işle
             if (item.materials && item.materials.length > 0) {
               item.materials.forEach(mat => {
                 materialCount++;
@@ -1527,6 +1538,43 @@
             }
           }
         });
+
+        if (testCount === 0) testsContainer.innerHTML = '<div class="test-card text-muted">Açılabilir konu testi bulunmuyor.</div>';
+        if (materialCount === 0) materialsContainer.innerHTML = '<div class="test-card text-muted">Eklenmiş bir ders notu bulunmuyor.</div>';
+
+        const domMaterialCount = document.getElementById('companionMaterialCount');
+        const domTestCount = document.getElementById('companionTestCount');
+        if (domMaterialCount) domMaterialCount.innerText = materialCount;
+        if (domTestCount) domTestCount.innerText = testCount;
+      };
+
+      try {
+        const cacheKey = `topic_lessons_${currentTopicId}`;
+        const cachedData = await CacheManager.getData(cacheKey);
+        let hasCache = false;
+
+        if (cachedData?.cached && cachedData.data) {
+          hasCache = true;
+          console.log(`[Cache Hit] Ders notları IndexedDB'den yüklendi (${cacheKey})`);
+          renderContent(cachedData.data);
+        }
+
+        const lessonsQuery = query(collection(db, `topics/${currentTopicId}/lessons`), orderBy("order", "asc"));
+        const lessonsFallback = collection(db, `topics/${currentTopicId}/lessons`);
+        const snapshot = await safeGetDocs(lessonsQuery, lessonsFallback, 'Konu içerikleri');
+
+        const freshLessons = [];
+        snapshot.forEach(doc => {
+          const item = { id: doc.id, ...doc.data() };
+          if (item?.status === 'deleted' || item?.isDeleted || item?.isActive === false) return;
+          freshLessons.push(item);
+        });
+
+        await CacheManager.saveData(cacheKey, freshLessons, 24 * 60 * 60 * 1000);
+
+        if (!hasCache) {
+          renderContent(freshLessons);
+        }
 
       } catch (error) {
         console.error('İçerik yükleme hatası:', error);

@@ -791,6 +791,7 @@
     import { collection, getDocs, query, orderBy, where, documentId } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
     import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
     import { TopicService } from '../js/topic-service.js';
+    import { CacheManager } from '../js/cache-manager.js';
 
     let allTopics = [];
     let userStats = {};
@@ -821,21 +822,58 @@
       } catch (e) { console.error(e); }
     }
 
+    // SWR (Stale-While-Revalidate) Topic Loader
     async function loadTopics() {
       try {
+        // 1. Önce Hızlı IndexedDB Önbelleğinden Oku (Eğer varsa anında ekrana çiz)
+        const cachedTopics = await CacheManager.getData('all_topics_catalog');
+        const cachedCounts = await CacheManager.getData('all_topics_counts');
+        let hasCache = false;
+
+        if (cachedTopics?.cached && cachedTopics.data && cachedCounts?.cached && cachedCounts.data) {
+          allTopics = cachedTopics.data;
+
+          // Geri dönüştürülmüş Map objesini oluştur
+          const countsObj = cachedCounts.data;
+          questionCounts = new Map(Object.entries(countsObj));
+
+          console.log("[Cache Hit] Konular belleği anında IndexedDB'den yüklendi.");
+          renderTopics(allTopics);
+          hasCache = true;
+        }
+
+        // 2. Arka plan Firestore kontrolü (Veritabanı native persistent-cache sayesinde
+        // zaten hızlıdır ancak güncel veriyi almak için her ihtimale karşı sorgu atılır)
         const q = query(collection(db, "topics"), orderBy("order", "asc"));
         const snapshot = await getDocs(q);
 
-        allTopics = [];
+        const freshTopics = [];
         snapshot.forEach(doc => {
           const data = doc.data();
           if (data.isActive && data.status !== 'deleted' && !data.isDeleted) {
-            allTopics.push({ id: doc.id, ...data });
+            freshTopics.push({ id: doc.id, ...data });
           }
         });
 
-        await loadQuestionCounts(allTopics);
-        renderTopics(allTopics);
+        const freshCountsMap = await loadQuestionCounts(freshTopics);
+
+        // Map'i JSON'a çevirilebilir Object'e dönüştür
+        const freshCountsObj = Object.fromEntries(freshCountsMap);
+
+        // Veri IndexedDB'ye 1 saatlik (3600000 ms) kısa önbellekle kaydediliyor
+        await CacheManager.saveData('all_topics_catalog', freshTopics, 3600000);
+        await CacheManager.saveData('all_topics_counts', freshCountsObj, 3600000);
+
+        // Eğer ilk girişte cache hiç yoktuysa şimdi ekrana çiz
+        if (!hasCache) {
+          allTopics = freshTopics;
+          questionCounts = freshCountsMap;
+          renderTopics(allTopics);
+        } else {
+          // Cache vardı ama background sunucu güncellemesi "farklı" veriler getirdiyse:
+          // DOM'u zorla tazelemek isterseniz burada "if JSON.stringify(old) !== JSON.stringify(new)" 
+          // yapabilirsiniz. Şimdilik arkaplan güncellemesini sadece DB'ye yazdık, UI'ı sarsmıyoruz.
+        }
 
       } catch (error) {
         console.error("Hata:", error);
@@ -848,8 +886,7 @@
       const counts = new Map();
 
       if (!topicIds.length) {
-        questionCounts = counts;
-        return;
+        return counts;
       }
 
       const chunkSize = 30;
@@ -889,7 +926,7 @@
       topics.forEach((topic) => {
         if (!counts.has(topic.id)) counts.set(topic.id, 0);
       });
-      questionCounts = counts;
+      return counts;
     }
 
     function pickIcon(title, category, isSubtopic = false) {

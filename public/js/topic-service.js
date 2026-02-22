@@ -25,18 +25,11 @@ export const TopicService = {
         if (!topicTitle) return [];
 
         const cacheKey = `topic_ids_${btoa(unescape(encodeURIComponent(topicTitle)))}`;
-        const cachedData = localStorage.getItem(cacheKey);
+        const cachedData = await CacheManager.getData(cacheKey);
 
-        if (cachedData) {
-            try {
-                const { timestamp, ids } = JSON.parse(cachedData);
-                if (Date.now() - timestamp < CACHE_DURATION && Array.isArray(ids) && ids.length > 0) {
-                    console.log(`[Cache Hit] ${topicTitle} için ${ids.length} soru ID'si yerel hafızadan alındı.`);
-                    return ids;
-                }
-            } catch (e) {
-                console.warn("Cache parse hatası, yenileniyor...", e);
-            }
+        if (cachedData?.cached && Array.isArray(cachedData.data) && cachedData.data.length > 0) {
+            console.log(`[Cache Hit] ${topicTitle} için ${cachedData.data.length} soru ID'si yerel hafızadan alındı.`);
+            return cachedData.data;
         }
 
         // Cache yoksa veya süresi dolduysa Firestore'dan çek
@@ -47,13 +40,8 @@ export const TopicService = {
             const metaData = metaSnap.exists() ? metaSnap.data() : null;
             const ids = Array.isArray(metaData?.questionIds) ? metaData.questionIds : [];
 
-            // Cache'e kaydet
-            // Cache'e kaydet (Sadece veri varsa)
             if (ids.length > 0) {
-                localStorage.setItem(cacheKey, JSON.stringify({
-                    timestamp: Date.now(),
-                    ids: ids
-                }));
+                await CacheManager.saveData(cacheKey, ids, CACHE_DURATION);
             }
 
             return ids;
@@ -67,18 +55,11 @@ export const TopicService = {
         if (!topicId) return [];
 
         const cacheKey = `topic_ids_by_id_${topicId}`;
-        const cachedData = localStorage.getItem(cacheKey);
+        const cachedData = await CacheManager.getData(cacheKey);
 
-        if (cachedData) {
-            try {
-                const { timestamp, ids } = JSON.parse(cachedData);
-                if (Date.now() - timestamp < CACHE_DURATION && Array.isArray(ids) && ids.length > 0) {
-                    console.log(`[Cache Hit] ${topicId} için ${ids.length} soru ID'si yerel hafızadan alındı.`);
-                    return ids;
-                }
-            } catch (e) {
-                console.warn("Cache parse hatası, yenileniyor...", e);
-            }
+        if (cachedData?.cached && Array.isArray(cachedData.data) && cachedData.data.length > 0) {
+            console.log(`[Cache Hit] ${topicId} için ${cachedData.data.length} soru ID'si yerel hafızadan alındı.`);
+            return cachedData.data;
         }
 
         console.log(`[Cache Miss] ${topicId} için soru ID'leri Firestore'dan çekiliyor...`);
@@ -88,10 +69,7 @@ export const TopicService = {
             const ids = Array.isArray(metaData?.questionIds) ? metaData.questionIds : [];
 
             if (ids.length > 0) {
-                localStorage.setItem(cacheKey, JSON.stringify({
-                    timestamp: Date.now(),
-                    ids: ids
-                }));
+                await CacheManager.saveData(cacheKey, ids, CACHE_DURATION);
             }
 
             return ids;
