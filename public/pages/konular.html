@@ -905,8 +905,17 @@
         { match: /özel idare|il idaresi|köy/i, icon: '🗺️' },
         { match: /idare|idari|kamu yönetimi|teşkilat|bakanlık/i, icon: '🏢' },
 
-        // Yargı
-        { match: /yargı|mahkeme|hâkim|savcı|adalet|danıştay|sayıştay|uyuşmazlık/i, icon: '⚖️' },
+        // Yargı, Yazı İşleri, SEGBİS
+        { match: /yazı işleri|harçlar|kalem/i, icon: '🗃️' }, // Yazı İşleri ve Harçlar (Dosyalar/Kutu)
+        { match: /segbis|elektronik imza|e-imza|uyap/i, icon: '🖥️' }, // SEGBİS / Teknoloji / Elektronik İmza
+        { match: /yargı|mahkeme|hâkim|savcı|danıştay|sayıştay|uyuşmazlık/i, icon: '⚖️' },
+
+        // Özel Kanunlar (Ceza, Medeni, HMK, CMK, İnfaz vb.)
+        { match: /cmk|ceza muhakemesi|5271/i, icon: '🛡️' }, // CMK (Savunma / Hak Arama / Kalkan)
+        { match: /infaz|5275|cezaevi|tevkifevi/i, icon: '⛓️' }, // İnfaz Kanunu (Zincir / Hapishane)
+        { match: /hmk|hukuk muhakemeleri|6100/i, icon: '👨‍⚖️' }, // HMK (Hukuk Hakimi / Yargılama Süreci)
+        { match: /ceza|tck|suç|kovuşturma|soruşturma/i, icon: '🚨' }, // Genel Ceza / TCK (Acil/Polis)
+        { match: /icra|iflas/i, icon: '📉' }, // İcra / İflas
 
         // Memuriyet ve Etik
         { match: /657|memur|personel|kamu görevlileri/i, icon: '💼' },
@@ -915,26 +924,21 @@
         { match: /disiplin/i, icon: '⚠️' },
 
         // İletişim, Tebligat ve Yazışma
+        { match: /resm[iî] yazışma/i, icon: '🖋️' }, // Resmi Yazışma Kuralları (Dolma Kalem)
+        { match: /halkla ilişkiler/i, icon: '🤝' }, // Halkla İlişkiler (Tokalaşma / İletişim)
         { match: /tebligat|bildirim/i, icon: '📩' },
-        { match: /resm[iî] yazışma/i, icon: '✉️' },
         { match: /bilgi edinme/i, icon: 'ℹ️' },
         { match: /dilekçe/i, icon: '✍️' },
-        { match: /iletişim|halkla ilişkiler|tanıtım|medya|protokol/i, icon: '💬' },
+        { match: /iletişim|tanıtım|medya|protokol/i, icon: '💬' },
 
         // Güvenlik ve İnsan Hakları
-        { match: /ulusal güvenlik|güvenlik|asayiş|jandarma|polis/i, icon: '🛡️' },
+        { match: /ulusal güvenlik|güvenlik|asayiş|jandarma|polis/i, icon: '�' },
         { match: /insan hak|eşitlik|özgürlük/i, icon: '🕊️' },
         { match: /uluslararası|avrupa birliği|ab müktesebat/i, icon: '🌍' },
 
-        // Ceza ve İnfaz
-        { match: /ceza|tck|cmk|infaz|suç|kovuşturma|soruşturma/i, icon: '🚨' },
-
-        // İcra ve İflas
-        { match: /icra|iflas/i, icon: '📉' },
-
         // Medeni, Borçlar, Ticaret ve İş Hukuku
         { match: /medeni|aile|miras|eşya/i, icon: '👨‍👩‍👧' },
-        { match: /borç/i, icon: '🤝' },
+        { match: /borç/i, icon: '💸' },
         { match: /ticaret|şirket|sermaye|kıymetli evrak/i, icon: '📈' },
         { match: /iş hukuku|çalışma|sosyal güvenlik|sendika/i, icon: '👷' },
 
@@ -947,7 +951,7 @@
         { match: /teknoloji|bilişim|siber|veri|bilgisayar|internet/i, icon: '💻' },
 
         // Genel Mevzuat ve Fallbackler
-        { match: /kanun|mevzuat|yönetmelik|genelge|tüzük|kararname|yönerge/i, icon: '📜' }, // Diğer tüm yazılı kâğıt/metinler için ferman-parşömen
+        { match: /kanun|mevzuat|yönetmelik|genelge|tüzük|kararname|yönerge/i, icon: '📜' },
         { match: /sağlık|tıp/i, icon: '🩺' },
         { match: /çevre|imar|şehircilik|doğa/i, icon: '🌿' },
         { match: /tarih|çağdaş türk|osmanlı/i, icon: '⏳' },
