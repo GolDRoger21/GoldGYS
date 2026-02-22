@@ -297,9 +297,9 @@ function buildTopicSuccessMap(topics, categoryTotals) {
         const totalQuestions = getTopicQuestionTotal(topic, progress);
 
         // İstatistiklerin en son ne zaman sıfırlandığını kontrol edelim
-        const progressUpdatedAt = normalizeResetTimestamp(progress?.updatedAt);
-        const isReset = (state.statsResetAt && progressUpdatedAt && progressUpdatedAt <= state.statsResetAt) ||
-            (state.topicResets?.[topic.id] && progressUpdatedAt && progressUpdatedAt <= state.topicResets[topic.id]);
+        const progressUpdatedAt = normalizeResetTimestamp(progress?.updatedAt) || normalizeResetTimestamp(progress?.lastSyncedAt) || 0;
+        const isReset = (state.statsResetAt && progressUpdatedAt <= state.statsResetAt) ||
+            (state.topicResets?.[topic.id] && progressUpdatedAt <= state.topicResets[topic.id]);
 
         let successValue = 0;
 
@@ -324,11 +324,11 @@ function getTopicStatus(topicId) {
     const progress = state.progressMap.get(topicId) || state.progressMap.get(topic.slug) || {};
 
     const solvedCount = getProgressSolvedCount(progress);
-    const progressUpdatedAt = normalizeResetTimestamp(progress?.updatedAt);
+    const progressUpdatedAt = normalizeResetTimestamp(progress?.updatedAt) || normalizeResetTimestamp(progress?.lastSyncedAt) || 0;
 
-    if (state.statsResetAt && progressUpdatedAt && progressUpdatedAt <= state.statsResetAt) return 'pending';
+    if (state.statsResetAt && progressUpdatedAt <= state.statsResetAt) return 'pending';
     const topicResetAt = state.topicResets?.[topicId];
-    if (topicResetAt && progressUpdatedAt && progressUpdatedAt <= topicResetAt) return 'pending';
+    if (topicResetAt && progressUpdatedAt <= topicResetAt) return 'pending';
 
     if (progress?.status === 'completed') return 'completed';
     // Test motorunda / konu tabında en az 1 soru bile çozmüşse (manuel veya sıfırlanma harici)
@@ -587,7 +587,18 @@ window.resetTopicStats = async (topicId) => {
     }
 
     await setDoc(doc(db, 'users', state.userId), updates, { merge: true });
-    await setDoc(doc(db, `users/${state.userId}/topic_progress`, topicId), { status: 'pending', manualCompleted: false, updatedAt: serverTimestamp() }, { merge: true });
+
+    // Güvenliği garantiye almak ve %100 sıfırlama için topic_progress bilgilerini siliyoruz.
+    await setDoc(doc(db, `users/${state.userId}/topic_progress`, topicId), {
+        status: 'pending',
+        manualCompleted: false,
+        updatedAt: serverTimestamp(),
+        lastSyncedAt: serverTimestamp(),
+        solvedCount: 0,
+        solvedIds: [],
+        answers: {}
+    }, { merge: true });
+
     await initAnalysis(state.userId);
 };
 
@@ -601,5 +612,25 @@ async function resetAllStats() {
         currentTopicUpdatedAt: serverTimestamp(),
         updatedAt: serverTimestamp()
     }, { merge: true });
+
+    // Kullanıcının tüm progress objelerini arka planda tek seferde temizle ki sıfırlamadan sonra çözdüğünde tarihsel soru sayıları eklenmesin.
+    try {
+        const progressSnap = await getDocs(collection(db, `users/${state.userId}/topic_progress`));
+        const batchUpdates = progressSnap.docs.map(d =>
+            setDoc(d.ref, {
+                status: 'pending',
+                manualCompleted: false,
+                updatedAt: serverTimestamp(),
+                lastSyncedAt: serverTimestamp(),
+                solvedCount: 0,
+                solvedIds: [],
+                answers: {}
+            }, { merge: true })
+        );
+        await Promise.all(batchUpdates);
+    } catch (err) {
+        console.warn("Toplu progress sıfırlama uyarısı:", err);
+    }
+
     await initAnalysis(state.userId);
 }
