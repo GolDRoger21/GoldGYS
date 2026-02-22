@@ -1702,6 +1702,11 @@ tr.highlight {
     backdrop-filter: blur(4px);
 }
 
+/* SweetAlert2 Modal - Needs to be above everything, especially .modal-overlay */
+.swal2-container {
+    z-index: 100010 !important;
+}
+
 /* Modal İçeriği - Studio için */
 .studio-modal-container {
     width: 95vw !important;
@@ -3138,6 +3143,7 @@ tr.highlight {
     padding: 6px 12px;
     font-size: 0.85rem;
 }
+
 /* Settings > Branding assets */
 .settings-asset-card {
     border-color: var(--border-color) !important;
