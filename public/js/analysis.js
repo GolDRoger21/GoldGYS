@@ -46,6 +46,7 @@ function getTopicQuestionTotal(topic, progress = null) {
         topic?.totalQuestions,
         topic?.questionCount,
         topic?.questionsCount,
+        topic?.targetQuestions,
         topic?.stats?.totalQuestions,
         topic?.meta?.totalQuestions,
         progress?.totalQuestions,
@@ -57,7 +58,12 @@ function getTopicQuestionTotal(topic, progress = null) {
 function getProgressSolvedCount(progress = {}) {
     return Math.max(
         parseNum(progress?.solvedCount),
+        parseNum(progress?.answeredCount),
+        parseNum(progress?.correctCount) + parseNum(progress?.wrongCount),
+        parseNum(progress?.stats?.solvedCount),
+        parseNum(progress?.stats?.correct) + parseNum(progress?.stats?.wrong),
         Array.isArray(progress?.solvedIds) ? progress.solvedIds.length : 0,
+        Array.isArray(progress?.answered) ? progress.answered.length : 0,
         progress?.answers ? Object.keys(progress.answers).length : 0
     );
 }
@@ -180,25 +186,12 @@ function calculateKPIs(results) {
         return sec && sec * 1000 >= sevenDayAgo;
     }).length;
 
-    const consistencyIssues = results.reduce((acc, exam) => {
-        const total = getExamTotal(exam);
-        const correct = parseNum(exam.correct);
-        const wrong = parseNum(exam.wrong);
-        if (correct + wrong > total) return acc + 1;
-        const score = parseNum(exam.score);
-        if (score < 0 || score > 100) return acc + 1;
-        return acc;
-    }, 0);
-
-    const dataQuality = totalExams ? Math.max(0, Math.round(((totalExams - consistencyIssues) / totalExams) * 100)) : 100;
-
     document.getElementById('totalExams').innerText = totalExams;
     document.getElementById('avgScore').innerText = `%${avgScore}`;
-    // Çözülen soru yerine "Net Sayısı" veya "Net / Soru" görünümü daha şık olabilir ama şimdilik tasarımı bozmayalım
     document.getElementById('totalQuestions').innerText = totalQuestions;
     document.getElementById('wrongRate').innerText = `%${wrongRate}`;
     document.getElementById('last7DaysCount').innerText = last7DaysCount;
-    document.getElementById('dataQuality').innerText = `%${dataQuality}`;
+    // dataQuality was removed, 'completedTopicsCount' is managed in renderLevelSystem.
 }
 
 function calculatePredictedScore(results) {
@@ -238,30 +231,38 @@ function renderProgressChart(results) {
 
 function normalizeStr(str) {
     if (!str) return '';
-    // Sadece whitespace'leri değil, tüm noktalama işaretlerini, tireleri ve görünmez boşlukları yokedelim.
-    // Aynı zamanda Türkçe karakter sorununu toLocaleLowerCase('tr-TR') ile çözdükten sonra 
-    // tüm mantıksız simgeleri uçurarak salt harfe/sayıya indirgeyelim ki %100 eşleşme sağlansın.
-    let s = str.toString().toLocaleLowerCase('tr-TR');
-    s = s.replace(/[\u200B-\u200D\uFEFF]/g, ''); // Görünmez harfler
-    s = s.replace(/[\W_]+/g, '');              // Harf veya sayı OLMAYAN her şeyi sil (boşluk, tire, nokta vb. uçar)
+    let s = str.toString().toLocaleLowerCase('tr-TR').trim();
+    // Yalnızca görünmez boşlukları (zero-width vb), standart boşlukları, tire, nokta, virgül ve parantez gibi 
+    // eşleşmeyi bozabilecek non-alfanümerik işaretleri temizleriz. 
+    // Önceden \W_ kullanmak ç,ş,ğ,ü gibi harfleri bozuyordu, şimdi onu kaldırdık.
+    s = s.replace(/[\u200B-\u200D\uFEFF]/g, '');
+    s = s.replace(/[\s\-_.,;()'"]/g, '');
     return s;
 }
 
 function buildCategoryTotals(results, topics, topicResets) {
     const categoryTotals = {};
-    const titleToTopic = new Map(topics.map(topic => [normalizeStr(topic.title), topic]));
-    topics.forEach(topic => { categoryTotals[topic.title] = { correct: 0, total: 0 }; });
+    topics.forEach(topic => { categoryTotals[topic.id] = { correct: 0, total: 0 }; });
 
     results.forEach(exam => {
         if (!exam.categoryStats) return;
         const completedAt = getCompletedSeconds(exam);
         Object.entries(exam.categoryStats).forEach(([cat, stats]) => {
-            const topic = titleToTopic.get(normalizeStr(cat));
+            const normCat = normalizeStr(cat);
+            // Kategori stringi ile Topic'leri daha güvenli bir şekilde eşleştir
+            const topic = topics.find(t =>
+                t.id === cat ||
+                t.slug === cat ||
+                normalizeStr(t.title) === normCat ||
+                (t.shortName && normalizeStr(t.shortName) === normCat) ||
+                (normCat.length > 5 && normalizeStr(t.title).includes(normCat)) ||
+                (normCat.length > 5 && normCat.includes(normalizeStr(t.title)))
+            );
             if (!topic) return;
             const resetAt = topicResets?.[topic.id];
             if (resetAt && completedAt && completedAt <= resetAt) return;
-            categoryTotals[topic.title].correct += parseNum(stats.correct);
-            categoryTotals[topic.title].total += parseNum(stats.total);
+            categoryTotals[topic.id].correct += parseNum(stats.correct);
+            categoryTotals[topic.id].total += parseNum(stats.total);
         });
     });
     return categoryTotals;
@@ -270,37 +271,54 @@ function buildCategoryTotals(results, topics, topicResets) {
 function buildTopicSuccessMap(topics, categoryTotals) {
     const map = new Map();
     topics.forEach(topic => {
-        const progress = state.progressMap.get(topic.id) || {};
+        // İlerleme belgesi hem doc.id ile hem de topic.slug id'si ile kayıtlı olabilir
+        const progress = state.progressMap.get(topic.id) || state.progressMap.get(topic.slug) || {};
         const solvedCount = getProgressSolvedCount(progress);
         const totalQuestions = getTopicQuestionTotal(topic, progress);
 
-        if (totalQuestions > 0 && solvedCount > 0) {
-            map.set(topic.id, Math.min(100, Math.round((solvedCount / totalQuestions) * 100)));
-            return;
+        // İstatistiklerin en son ne zaman sıfırlandığını kontrol edelim
+        const progressUpdatedAt = normalizeResetTimestamp(progress?.updatedAt);
+        const isReset = (state.statsResetAt && progressUpdatedAt && progressUpdatedAt <= state.statsResetAt) ||
+            (state.topicResets?.[topic.id] && progressUpdatedAt && progressUpdatedAt <= state.topicResets[topic.id]);
+
+        let successValue = 0;
+
+        // Eğer ilerleme manuel sıfırlanmamışsa önce konu ilerlemesine bakalım
+        if (!isReset && totalQuestions > 0 && solvedCount > 0) {
+            successValue = Math.round((solvedCount / totalQuestions) * 100);
+        } else {
+            // İlerlemede veri yoksa en baştaki test analizlerinden (categoryTotals) gelen puanlamaya bakalım
+            const stats = categoryTotals[topic.id];
+            if (stats && stats.total > 0) {
+                successValue = Math.round((stats.correct / stats.total) * 100);
+            }
         }
 
-        // Topic adını normalize et, total'de tutulan değere bak
-        const stats = categoryTotals[topic.title];
-        let value = 0;
-        if (stats && stats.total > 0) {
-            value = Math.round((stats.correct / stats.total) * 100);
-        }
-        map.set(topic.id, value);
+        map.set(topic.id, Math.min(100, successValue));
     });
     return map;
 }
 
 function getTopicStatus(topicId) {
-    const progress = state.progressMap.get(topicId);
+    const topic = state.topics.find(t => t.id === topicId) || {};
+    const progress = state.progressMap.get(topicId) || state.progressMap.get(topic.slug) || {};
+
     const solvedCount = getProgressSolvedCount(progress);
     const progressUpdatedAt = normalizeResetTimestamp(progress?.updatedAt);
+
     if (state.statsResetAt && progressUpdatedAt && progressUpdatedAt <= state.statsResetAt) return 'pending';
     const topicResetAt = state.topicResets?.[topicId];
     if (topicResetAt && progressUpdatedAt && progressUpdatedAt <= topicResetAt) return 'pending';
+
     if (progress?.status === 'completed') return 'completed';
+    // Test motorunda / konu tabında en az 1 soru bile çozmüşse (manuel veya sıfırlanma harici)
     if (solvedCount > 0) return 'in_progress';
-    // Eğer konu focus olarak seçildiyse doğrudan in_progress kabul et
+    // CategoryTotals (sınavlardan) gelen success > 0 ise
+    const successVal = state.successMap ? state.successMap.get(topicId) : 0;
+    if (successVal > 0) return 'in_progress';
+
     if (progress?.status === 'in_progress' || topicId === state.currentTopicId) return 'in_progress';
+
     return 'pending';
 }
 
@@ -460,8 +478,12 @@ function renderLevelSystem() {
     const streakDays = calculateStudyStreak(state.results);
     document.getElementById('missionList').innerHTML = `
         <div class="mission-item"><strong>🔥 Çalışma Serisi</strong><div class="text-muted">${streakDays} gün kesintisiz</div></div>
-        <div class="mission-item"><strong>📚 Tamamlanan Konu</strong><div class="text-muted">${completedTopics} konu tamamlandı</div></div>
+        <div class="mission-item"><strong>🏆 Yetkinlik Seviyesi</strong><div class="text-muted">${xp} Toplam TP</div></div>
     `;
+
+    // completedTopics KPI update
+    const completedTopicsEl = document.getElementById('completedTopicsCount');
+    if (completedTopicsEl) completedTopicsEl.innerText = completedTopics;
 }
 
 function calculateStudyStreak(results) {
@@ -476,9 +498,12 @@ function bindUIEvents() {
     chips.forEach(chip => {
         chip.addEventListener('click', () => {
             state.topicFilter = chip.dataset.filter;
-            chips.forEach(c => { c.classList.remove('status-in-progress'); c.classList.add('status-pending'); });
-            chip.classList.remove('status-pending');
-            chip.classList.add('status-in-progress');
+            chips.forEach(c => {
+                c.classList.remove('badge-blue');
+                c.classList.add('badge-gray');
+            });
+            chip.classList.remove('badge-gray');
+            chip.classList.add('badge-blue');
             renderTopicList();
         });
     });
