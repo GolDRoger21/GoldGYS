@@ -228,88 +228,193 @@
       box-sizing: border-box;
     }
 
-    .subtopic-list {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
+    .topics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 24px;
       margin-top: 16px;
     }
 
-    .subtopic-link {
+    .topic-card {
+      background: var(--glass-surface);
+      border-radius: var(--radius-xl);
+      padding: 28px;
+      position: relative;
+      transition: transform var(--transition-medium), box-shadow var(--transition-medium), filter var(--transition-medium);
       display: flex;
-      align-items: center;
-      gap: 15px;
-      padding: 16px 20px;
-      background: var(--bg-surface);
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-lg);
+      flex-direction: column;
       text-decoration: none;
       color: var(--text-main);
-      transition: all var(--transition-medium);
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.02);
-    }
-
-    .subtopic-link:hover {
-      transform: translateX(4px);
-      border-color: rgba(191, 149, 63, 0.4);
-      box-shadow: 0 4px 12px rgba(191, 149, 63, 0.08);
-      background: linear-gradient(to right, rgba(191, 149, 63, 0.03), var(--bg-surface));
-    }
-
-    .subtopic-link:active {
-      transform: scale(0.98);
-      background: var(--bg-surface-elevated);
-    }
-
-    .subtopic-title-wrap {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      flex: 1;
-      min-width: 0;
-    }
-
-    .subtopic-title-wrap>span:last-child {
-      white-space: nowrap;
+      min-height: 280px;
+      box-shadow: var(--glass-shadow), inset 0 0 20px rgba(255, 255, 255, 0.05);
+      backdrop-filter: var(--glass-backdrop-filter);
+      -webkit-backdrop-filter: var(--glass-backdrop-filter);
+      border: 1px solid transparent;
       overflow: hidden;
-      text-overflow: ellipsis;
-      color: var(--text-main);
-      font-weight: 700;
-      font-size: 1.05rem;
     }
 
-    .subtopic-icon {
-      font-size: 1.25rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 32px;
-      height: 32px;
-      border-radius: 8px;
-      background: var(--bg-input);
-      border: 1px solid var(--border-subtle);
-      flex-shrink: 0;
+    .topic-card.is-completed {
+      border-color: rgba(16, 185, 129, 0.45);
+      background: linear-gradient(150deg, rgba(16, 185, 129, 0.08), rgba(16, 185, 129, 0.02) 38%, var(--glass-surface));
     }
 
-    .subtopic-meta-badges {
+    .topic-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      padding: 1px;
+      background: var(--glass-border-gradient);
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      mask-composite: exclude;
+      pointer-events: none;
+      transition: opacity var(--transition-medium);
+    }
+
+    .topic-card:hover {
+      transform: translateY(-5px);
+      box-shadow: var(--shadow-lg), 0 0 20px rgba(179, 135, 40, 0.15);
+    }
+
+    .topic-card:hover::before {
+      background: linear-gradient(to bottom, rgba(191, 149, 63, 0.8), rgba(191, 149, 63, 0.2));
+    }
+
+    .card-header-row {
       display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-shrink: 0;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 15px;
+      gap: 12px;
       flex-wrap: wrap;
     }
 
-    .subtopic-meta-badge {
+    .topic-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: var(--radius-md);
+      background: var(--gold-surface);
+      color: var(--gold-main);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      box-shadow: inset 0 0 0 1px var(--gold-border), 0 4px 10px rgba(0, 0, 0, 0.05);
+      transition: transform var(--transition-medium), box-shadow var(--transition-medium), background var(--transition-medium);
+    }
+
+    .topic-card:hover .topic-icon {
+      transform: scale(1.08) rotate(5deg);
+      box-shadow: 0 8px 20px rgba(179, 135, 40, 0.25), inset 0 0 0 1px rgba(179, 135, 40, 0.5);
+      background: rgba(179, 135, 40, 0.25);
+    }
+
+    .topic-badge {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 4px 8px;
+      border-radius: 6px;
+      letter-spacing: 0.5px;
+      background: rgba(59, 130, 246, 0.1);
+      color: #3b82f6;
+    }
+
+    .topic-title {
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+      line-height: 1.3;
+      word-break: break-word;
+    }
+
+    .topic-completed-badge {
       display: inline-flex;
       align-items: center;
-      gap: 5px;
-      padding: 4px 10px;
+      gap: 6px;
+      padding: 6px 10px;
       border-radius: var(--radius-full);
-      background: var(--bg-input);
-      border: 1px solid var(--border-color);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      background: rgba(16, 185, 129, 0.14);
+      color: #047857;
       font-size: 0.75rem;
-      font-weight: 600;
+      font-weight: 700;
+      margin-top: 10px;
+      width: fit-content;
+    }
+
+    .topic-desc {
+      font-size: 0.85rem;
       color: var(--text-muted);
+      margin-bottom: 0;
+      flex-grow: 1;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      line-height: 1.5;
+    }
+
+    .topic-progress-hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 12px;
+      align-items: center;
+      margin-top: 18px;
+      padding: 14px 16px;
+      border-radius: var(--radius-md);
+      border: 1px solid rgba(191, 149, 63, 0.4);
+      background: linear-gradient(160deg, rgba(191, 149, 63, 0.15), rgba(191, 149, 63, 0.05) 100%, var(--bg-surface-elevated));
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 4px 12px rgba(191, 149, 63, 0.1);
+    }
+
+    .progress-container {
+      width: 100%;
+      height: 9px;
+      background: var(--bg-input);
+      border-radius: var(--radius-full);
+      overflow: hidden;
+      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--gradient-primary);
+      transition: width 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+      box-shadow: 0 0 10px rgba(191, 149, 63, 0.4);
+    }
+
+    .topic-progress-line {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      font-size: 0.76rem;
+      margin-top: 6px;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .topic-progress-line strong {
+      color: var(--text-main);
+      font-weight: 700;
+    }
+
+    .topic-question-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+      border-radius: var(--radius-full);
+      padding: 7px 11px;
+      border: 1px solid var(--border-subtle);
+      background: var(--bg-surface-elevated);
+      color: var(--text-main);
+      font-size: 0.78rem;
+      font-weight: 700;
     }
 
     .subtopic-card:active {
@@ -766,25 +871,52 @@
         margin-top: 12px;
       }
 
-      .subtopic-link {
+      .topics-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+
+      .topic-card {
+        padding: 16px;
+        border-radius: var(--radius-lg);
+        min-height: auto;
+      }
+
+      .topic-icon {
+        width: 44px;
+        height: 44px;
+        font-size: 1.5rem;
+      }
+
+      .topic-progress-line {
         flex-direction: column;
         align-items: flex-start;
-        padding: 16px;
-        gap: 14px;
+        gap: 4px;
+        font-size: 0.8rem;
       }
 
-      .subtopic-title-wrap {
-        width: 100%;
+      .topic-progress-hero {
+        grid-template-columns: 1fr;
+        align-items: stretch;
+        padding: 14px;
+        margin-top: 14px;
       }
 
-      .subtopic-title-wrap>span:last-child {
-        white-space: normal;
-        word-break: break-word;
+      .topic-question-chip {
+        justify-content: center;
+        margin-top: 8px;
+        padding: 10px;
       }
 
-      .subtopic-meta-badges {
-        width: 100%;
-        justify-content: flex-start;
+      .topic-title {
+        font-size: 1.15rem;
+        margin-bottom: 6px;
+      }
+
+      .topic-desc {
+        font-size: 0.9rem;
+        -webkit-line-clamp: 3;
+        line-clamp: 3;
       }
 
       .mode-btn {
@@ -1458,36 +1590,44 @@
 
         const progressPercent = sTotal > 0 ? Math.min(100, Math.round((solvedCount / sTotal) * 100)) : 0;
 
-        // Dynamically get the icon just like in konular.html
         let iconHtml = '';
         if (typeof pickIcon === 'function') {
           const emoji = pickIcon(subtopic.title, subtopic.category, true);
-          iconHtml = `<div class="subtopic-icon">${emoji}</div>`;
+          iconHtml = `<div class="topic-icon">${emoji}</div>`;
         }
 
-        return `
-          <a href="${buildTopicPath(subtopic)}" class="subtopic-link w-100">
-            <div class="subtopic-title-wrap">
-              ${iconHtml}
-              <span title="${subtopic.title}">${subtopic.title}</span>
-            </div>
-            
-            <div class="subtopic-meta-badges">
-              <span class="subtopic-meta-badge">📄 ${lessonCount}</span>
-              <span class="subtopic-meta-badge">📝 ${testCount}</span>
-              <span class="subtopic-meta-badge" style="color:var(--color-primary); border-color:var(--color-primary); background:rgba(191, 149, 63, 0.05);">🎯 ${sTotal}</span>
-            </div>
+        const isCompleted = progressPercent >= 100;
 
-            <div class="topic-progress-line" style="min-width: 140px;">
-              <div style="display:flex; justify-content:space-between; width:100%;">
-                <span>İlerleme</span>
-                <span><strong>${solvedCount}</strong> / ${sTotal}</span>
-              </div>
-              <div class="progress-container" style="height:6px; margin-top:4px;">
-                <div class="progress-fill" style="width: ${progressPercent}%;"></div>
-              </div>
+        return `
+          <div class="topic-card ${isCompleted ? 'is-completed' : ''}">
+            <a href="${buildTopicPath(subtopic)}" class="topic-main-link" style="text-decoration:none; color:inherit; display:block; flex-grow: 1;">
+                <div class="card-header-row">
+                    ${iconHtml}
+                    <span class="topic-badge badge-${subtopic.category || 'ortak'}">${subtopic.category === 'alan' ? 'Alan' : 'Ortak'}</span>
+                </div>
+                
+                <h3 class="topic-title">${subtopic.title}</h3>
+                
+                ${isCompleted ? '<div class="topic-completed-badge">🏁 Bu konu tamamlandı</div>' : ''}
+                <p class="topic-desc">${subtopic.description || 'Bu alt konunun henüz açıklaması bulunmuyor.'}</p>
+            </a>
+
+            <div class="topic-progress-hero">
+                <div>
+                <div class="progress-container" role="progressbar" aria-label="${subtopic.title} ilerleme" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${progressPercent}">
+                    <div class="progress-fill" style="width: ${progressPercent}%"></div>
+                </div>
+                <div class="topic-progress-line">
+                    <span style="display:block; margin-bottom:4px;"><strong>%${progressPercent}</strong> İlerleme · <strong>${solvedCount} / ${sTotal}</strong> Soru</span>
+                    <span style="display:flex; gap:6px;">
+                        <span style="display:inline-flex; align-items:center; gap:4px; padding:3px 8px; border-radius:20px; background:var(--bg-input); border:1px solid var(--border-color); font-size:0.75rem; color:var(--text-muted); font-weight:600;">📄 ${lessonCount} Not</span>
+                        <span style="display:inline-flex; align-items:center; gap:4px; padding:3px 8px; border-radius:20px; background:var(--bg-input); border:1px solid var(--border-color); font-size:0.75rem; color:var(--text-muted); font-weight:600;">📝 ${testCount} Test</span>
+                    </span>
+                </div>
+                </div>
+                ${subtopic.totalQuestionTarget ? `<div class="topic-question-chip" title="Sınavda Çıkacak Hedef Soru Sayısı">🎯 ${subtopic.totalQuestionTarget}</div>` : ''}
             </div>
-          </a>
+          </div>
         `;
       }));
 
