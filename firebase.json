@@ -24,12 +24,12 @@
         "destination": "/pages/konular.html"
       },
       {
-        "source": "/konu/**",
-        "destination": "/pages/konu.html"
-      },
-      {
         "source": "/konu/*/test-coz/**",
         "destination": "/pages/test.html"
+      },
+      {
+        "source": "/konu/**",
+        "destination": "/pages/konu.html"
       },
       {
         "source": "/denemeler",
