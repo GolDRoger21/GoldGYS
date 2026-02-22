@@ -114,26 +114,39 @@ function hideLoader() {
 }
 
 async function checkLastActivity(user) {
-    const activity = await getLastActivity(user.uid);
+    const userSnap = await getDoc(doc(db, "users", user.uid));
+    const userData = userSnap.exists() ? userSnap.data() : null;
     const card = document.getElementById('lastActivityCard');
 
-    if (activity && card) {
-        const timeAgo = new Date(activity.timestamp.seconds * 1000).toLocaleDateString('tr-TR');
+    if (userData && userData.currentTopicId && card) {
+        // Find the topic title
+        const topicSnap = await getDoc(doc(db, "topics", userData.currentTopicId));
+        if (topicSnap.exists()) {
+            const topic = topicSnap.data();
+            const topicUrl = buildTopicPath ? buildTopicPath({ id: userData.currentTopicId, slug: topic.slug }) : `/konu/${topic.slug || userData.currentTopicId}`;
 
-        card.innerHTML = `
-            <div class="card p-3 d-flex justify-content-between align-items-center" style="background: linear-gradient(to right, var(--bg-surface), var(--bg-hover)); border-left: 4px solid var(--color-primary);">
-                <div>
-                    <small class="text-muted text-uppercase" style="font-size:0.75rem;">Son Çalışılan</small>
-                    <h4 class="m-0" style="color:var(--text-main);">${activity.title}</h4>
-                    <small class="text-muted">${activity.subTitle || 'Konu Çalışması'} • ${timeAgo}</small>
+            card.innerHTML = `
+                <div class="card p-3 d-flex justify-content-between align-items-center" style="background: linear-gradient(135deg, rgba(16,185,129,0.1) 0%, rgba(16,185,129,0.05) 100%); border-left: 4px solid var(--color-success); border-radius: 12px; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
+                    <div>
+                        <div style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">
+                            <span style="font-size:1.2rem;">🌟</span>
+                            <small class="text-uppercase" style="font-size:0.75rem; color:var(--color-success); font-weight:700; letter-spacing:0.5px;">Odaklanılan Konu</small>
+                        </div>
+                        <h4 class="m-0" style="color:var(--text-main); font-weight:600; font-size:1.1rem;">${topic.title}</h4>
+                        <small class="text-muted" style="font-size:0.85rem; display:block; margin-top:4px;">Analiz sayfasından seçildi • Kaldığın yerden devam et</small>
+                    </div>
+                    <a href="${topicUrl}" class="btn btn-sm btn-primary" style="white-space:nowrap; display:flex; align-items:center; gap:6px; padding:8px 16px; border-radius:8px;">
+                        Devam Et <span style="font-size:1.1em;">▶</span>
+                    </a>
                 </div>
-                <a href="${buildTopicPath({ id: activity.id, title: activity.title })}" class="btn btn-sm btn-primary">
-                    Devam Et ▶
-                </a>
-            </div>
-        `;
-        card.style.display = 'block';
+            `;
+            card.style.display = 'block';
+            return;
+        }
     }
+
+    // Fallback if no focus topic is selected
+    if (card) card.style.display = 'none';
 }
 
 function showSmartTip() {
@@ -439,7 +452,25 @@ async function loadRecentActivities(uid) {
     if (!ui.recentActivityList) return;
 
     try {
-        const activities = await getRecentActivities(uid, 4);
+        const progressRef = collection(db, `users/${uid}/topic_progress`);
+        const q = query(progressRef, orderBy("lastSyncedAt", "desc"), limit(5));
+        const progressSnap = await getDocs(q);
+
+        const topicPromises = progressSnap.docs.map(async docSnap => {
+            const pData = docSnap.data();
+            const tSnap = await getDoc(doc(db, "topics", pData.topicId));
+            if (!tSnap.exists()) return null;
+            const tData = tSnap.data();
+            return {
+                topicId: pData.topicId,
+                title: tData.title,
+                slug: tData.slug,
+                solvedCount: pData.solvedCount,
+                lastSyncedAt: pData.lastSyncedAt
+            };
+        });
+
+        const activities = (await Promise.all(topicPromises)).filter(Boolean);
 
         if (!activities.length) {
             ui.recentActivityList.innerHTML = `
@@ -448,7 +479,7 @@ async function loadRecentActivities(uid) {
                         <div class="panel-item-icon teal">✨</div>
                         <div>
                             <strong>Henüz aktivite yok.</strong>
-                            <div class="panel-meta">İlk konunu çalıştığında burada görünecek.</div>
+                            <div class="panel-meta">Test çözdükçe burada görünecek.</div>
                         </div>
                     </div>
                 </div>
@@ -456,28 +487,26 @@ async function loadRecentActivities(uid) {
             return;
         }
 
-        ui.recentActivityList.innerHTML = `
-            <div class="activity-list">
-                ${activities.map(activity => {
-                    const timeAgo = activity.timestamp?.toDate
-                        ? activity.timestamp.toDate().toLocaleDateString('tr-TR')
-                        : '';
-                    const icon = activity.type === 'test' ? '📝' : '📖';
-                    return `
-                        <div class="activity-item">
-                            <div class="activity-icon">${icon}</div>
-                            <div>
-                                <div class="activity-title">${activity.title || 'Çalışma'}</div>
-                                <div class="panel-meta">${activity.subTitle || 'Konu Çalışması'} • ${timeAgo}</div>
-                            </div>
+        ui.recentActivityList.innerHTML = activities.map(act => {
+            const actDate = parseDate(act.lastSyncedAt);
+            const topicUrl = buildTopicPath ? buildTopicPath({ id: act.topicId, slug: act.slug }) : `/konu/${act.slug || act.topicId}`;
+
+            return `
+                <a href="${topicUrl}" class="panel-item" style="text-decoration:none; display:flex;">
+                    <div class="panel-item-content">
+                        <div class="panel-item-icon blue">📝</div>
+                        <div>
+                            <strong style="color:var(--text-main); transition:color 0.2s;" onmouseover="this.style.color='var(--color-primary)'" onmouseout="this.style.color='var(--text-main)'">${act.title}</strong>
+                            <div class="panel-meta">${act.solvedCount} Soru Çözüldü</div>
                         </div>
-                    `;
-                }).join('')}
-            </div>
-        `;
+                    </div>
+                    <span class="panel-pill">${actDate ? formatDate(actDate) : 'Yakın Zamanda'}</span>
+                </a>
+            `;
+        }).join('');
     } catch (error) {
         console.error("Aktiviteler yüklenemedi:", error);
-        ui.recentActivityList.innerHTML = `<p class="text-muted">Aktivite bilgisi yüklenemedi.</p>`;
+        ui.recentActivityList.innerHTML = `<p class="text-muted">Aktivite geçmişi alınamadı.</p>`;
     }
 }
 
