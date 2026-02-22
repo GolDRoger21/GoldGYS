@@ -285,19 +285,35 @@ function renderHistoryTable(results) {
     }).join('');
 }
 
+function normalizeStr(str) {
+    return (str || '').toString().trim().toLowerCase();
+}
+
 function buildCategoryTotals(results, topics, topicResets) {
     const categoryTotals = {};
-    const titleToId = new Map(topics.map(topic => [topic.title, topic.id]));
+    const titleToId = new Map(topics.map(topic => [normalizeStr(topic.title), topic.id]));
+    
+    // Tüm aktif konuların verisini başlangıçta başlat (%0 hesaplanabilmesi için)
+    topics.forEach(topic => {
+        categoryTotals[topic.title] = { correct: 0, total: 0 };
+    });
+
     results.forEach(exam => {
         if (!exam.categoryStats) return;
         const completedAt = exam.completedAt?.seconds;
         Object.entries(exam.categoryStats).forEach(([cat, stats]) => {
-            const topicId = titleToId.get(cat);
-            const resetAt = topicId ? topicResets?.[topicId] : null;
-            if (resetAt && completedAt && completedAt <= resetAt) return;
-            if (!categoryTotals[cat]) categoryTotals[cat] = { correct: 0, total: 0 };
-            categoryTotals[cat].correct += stats.correct || 0;
-            categoryTotals[cat].total += stats.total || 0;
+            const normalizedCat = normalizeStr(cat);
+            const topicId = titleToId.get(normalizedCat);
+            const topicDesc = topics.find(t => normalizeStr(t.title) === normalizedCat);
+            
+            // Sadece sistemde tanımlı ve aktif olan bir konuysa veriye ekle
+            if (topicId && topicDesc) {
+                const resetAt = topicResets?.[topicId];
+                if (resetAt && completedAt && completedAt <= resetAt) return;
+                
+                categoryTotals[topicDesc.title].correct += stats.correct || 0;
+                categoryTotals[topicDesc.title].total += stats.total || 0;
+            }
         });
     });
     return categoryTotals;
@@ -331,7 +347,9 @@ async function loadTopicProgress(userId, results) {
         getDoc(doc(db, "users", userId))
     ]);
 
-    const topics = topicsSnap.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() }));
+    const topics = topicsSnap.docs
+        .map(docSnap => ({ id: docSnap.id, ...docSnap.data() }))
+        .filter(t => t.isActive !== false && t.status !== 'deleted' && t.isDeleted !== true);
     const progressMap = new Map(progressSnap.docs.map(docSnap => [docSnap.id, docSnap.data()]));
     const userData = userSnap.exists() ? userSnap.data() : {};
     state.statsResetAt = normalizeResetTimestamp(userData.statsResetAt);
@@ -408,13 +426,13 @@ function renderTopicList(topics, progressMap, currentTopicId, successMap, topicR
                 <td>${statusBadge}</td>
                 <td>
                     <div style="display:flex; justify-content:flex-end; gap:8px;">
-                        <button class="action-btn" title="Dışarıda tamamlandı olarak işaretle" onclick="window.toggleTopicStatus('${topic.id}', 'completed')">
+                        <button class="glass-button action-btn" style="color: var(--color-success); border: 1px solid rgba(16, 185, 129, 0.3); background: rgba(16, 185, 129, 0.08); border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 34px; height: 34px; transition: all 0.2s;" title="Bu konuya çalıştım." onclick="window.toggleTopicStatus('${topic.id}', 'completed')">
                             ✅
                         </button>
-                        <button class="action-btn" title="${focusTitle}" onclick="window.setFocusTopic('${topic.id}')">
+                        <button class="glass-button action-btn" style="color: var(--color-primary); border: 1px solid rgba(59, 130, 246, 0.3); background: rgba(59, 130, 246, 0.08); border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 34px; height: 34px; transition: all 0.2s;" title="${focusTitle}" onclick="window.setFocusTopic('${topic.id}')">
                             ${focusIcon}
                         </button>
-                        <button class="action-btn" title="Konu istatistiklerini sıfırla" onclick="window.resetTopicStats('${topic.id}')">
+                        <button class="glass-button action-btn" style="color: var(--color-danger); border: 1px solid rgba(239, 68, 68, 0.3); background: rgba(239, 68, 68, 0.08); border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 34px; height: 34px; transition: all 0.2s;" title="Konu istatistiklerini sıfırla" onclick="window.resetTopicStats('${topic.id}')">
                             ♻️
                         </button>
                     </div>
@@ -595,7 +613,9 @@ async function renderLevelSystem(userId, results, topicResets, statsResetAt) {
         getDocs(collection(db, `users/${userId}/topic_progress`))
     ]);
 
-    const topics = topicsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+    const topics = topicsSnap.docs
+        .map(d => ({ id: d.id, ...d.data() }))
+        .filter(t => t.isActive !== false && t.status !== 'deleted' && t.isDeleted !== true);
     const progressMap = new Map(progressSnap.docs.map(d => [d.id, d.data()]));
 
     // XP Hesaplama
