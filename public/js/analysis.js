@@ -41,6 +41,16 @@ function getExamTotal(exam) {
     return parseNum(exam.correct) + parseNum(exam.wrong) + parseNum(exam.empty);
 }
 
+function getTopicQuestionTotal(topic) {
+    return [
+        topic?.totalQuestions,
+        topic?.questionCount,
+        topic?.questionsCount,
+        topic?.stats?.totalQuestions,
+        topic?.meta?.totalQuestions
+    ].map(parseNum).find(v => v > 0) || 0;
+}
+
 function getCompletedSeconds(exam) {
     return exam?.completedAt?.seconds || null;
 }
@@ -257,6 +267,15 @@ function buildTopicSuccessMap(topics, categoryTotals) {
             // "Toplam Soru" ve "Doğru Sayısı" orantısı yeterlidir. (Yani Net değil, Salt Doğru / Soru)
             // İsteğe bağlı NET başarı oranı: Math.max(0, (stats.correct - (stats.wrong || 0)*0.25) / stats.total * 100);
             value = Math.round((stats.correct / stats.total) * 100);
+        } else {
+            // Eski sınav kayıtlarında categoryStats olmayabiliyor. Bu durumda
+            // konu ilerlemesinden (çözülen soru / konu toplam sorusu) fallback hesapla.
+            const progress = state.progressMap.get(topic.id) || {};
+            const solvedCount = Math.max(parseNum(progress.solvedCount), Array.isArray(progress.solvedIds) ? progress.solvedIds.length : 0);
+            const totalQuestions = getTopicQuestionTotal(topic);
+            if (totalQuestions > 0 && solvedCount > 0) {
+                value = Math.min(100, Math.round((solvedCount / totalQuestions) * 100));
+            }
         }
         map.set(topic.id, value);
     });
