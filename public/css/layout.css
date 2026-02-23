@@ -5,14 +5,25 @@
     padding: 0;
 }
 
+html {
+    scroll-behavior: smooth;
+    overscroll-behavior-y: none;
+    /* iOS/Android app feel - prevents outer bounce */
+    -webkit-tap-highlight-color: transparent;
+    /* Removes blue tap box on mobile */
+}
+
 body {
     background: var(--bg-body-gradient);
     color: var(--text-main);
     font-family: var(--font-family-sans);
     overflow-x: hidden;
+    overscroll-behavior-y: none;
     transition: background-color var(--transition-medium), color var(--transition-medium);
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
+    padding-bottom: env(safe-area-inset-bottom);
+    /* iPhone bottom bar safety */
 }
 
 img,
@@ -237,6 +248,99 @@ body:not(.admin-body) .app-sidebar .nav-label {
     transition: opacity var(--transition-medium);
 }
 
+/* --- MOBILE BOTTOM NAV (Native App Feel) --- */
+.mobile-bottom-nav {
+    display: none;
+    /* Desktopta Gizli */
+}
+
+@media (max-width: 768px) {
+
+    /* Hide the old top hamburger toggle since we use bottom nav now */
+    #sidebarToggle.menu-toggle-btn {
+        display: none !important;
+    }
+
+    /* Keep sidebar hidden securely on mobile */
+    .app-sidebar {
+        display: none !important;
+    }
+
+    .app-layout {
+        grid-template-columns: 1fr;
+        grid-template-areas:
+            "header"
+            "content";
+    }
+
+    .app-main {
+        /* Extra padding so bottom content isn't hidden behind the nav bar */
+        padding-bottom: calc(85px + env(safe-area-inset-bottom)) !important;
+    }
+
+    .mobile-bottom-nav {
+        display: flex;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: calc(65px + env(safe-area-inset-bottom));
+        background: var(--nav-glass-bg, rgba(255, 255, 255, 0.85));
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-top: 1px solid var(--border-color);
+        justify-content: space-around;
+        align-items: center;
+        padding-bottom: env(safe-area-inset-bottom);
+        z-index: 1000;
+        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.05);
+    }
+
+    [data-theme="dark"] .mobile-bottom-nav {
+        background: rgba(15, 23, 42, 0.85);
+        /* Slate 900 / Glass */
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .mobile-nav-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        flex: 1;
+        height: 100%;
+        color: var(--text-muted);
+        text-decoration: none;
+        gap: 4px;
+        transition: color 0.2s ease, transform 0.2s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+        user-select: none;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    .mobile-nav-item:active {
+        transform: scale(0.92);
+    }
+
+    .mobile-nav-item .icon {
+        font-size: 1.3rem;
+        transition: transform 0.3s ease;
+    }
+
+    .mobile-nav-item .label {
+        font-size: 0.65rem;
+        font-weight: 600;
+        letter-spacing: 0.3px;
+    }
+
+    .mobile-nav-item.active {
+        color: var(--color-primary);
+    }
+
+    .mobile-nav-item.active .icon {
+        transform: translateY(-2px);
+    }
+}
+
 /* --- MAIN CONTENT --- */
 .app-main {
     grid-area: content;
@@ -408,13 +512,15 @@ body:not(.admin-body) .app-sidebar .nav-label {
     margin: 4px 0;
 }
 
-/* --- UI UTILITIES (Buttons, Badges, Spacing) --- */
 .btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 6px;
-    padding: 10px 16px;
+    padding: 12px 20px;
+    /* Increased for mobile touch target */
+    min-height: 44px;
+    /* Minimum iOS/Android touch target size */
     border-radius: var(--radius-md);
     border: 1px solid transparent;
     background: var(--bg-hover);
@@ -440,7 +546,9 @@ body:not(.admin-body) .app-sidebar .nav-label {
 }
 
 .btn-sm {
-    padding: 6px 12px;
+    padding: 8px 16px;
+    /* Increased touch target */
+    min-height: 38px;
     font-size: 0.85rem;
     border-radius: 6px;
 }
@@ -776,6 +884,41 @@ body:not(.admin-body) .app-sidebar .nav-label {
     display: flex;
     flex-direction: column;
     gap: 12px;
+}
+
+/* 
+   MOBILE BOTTOM SHEET OVERRIDE
+   Transforms standard centered modals into native slide-up bottom sheets 
+*/
+@media (max-width: 768px) {
+    .confirm-overlay {
+        align-items: flex-end;
+        /* Anchor to bottom */
+        padding: 0;
+        /* Full width stretching */
+    }
+
+    .confirm-dialog {
+        border-radius: 24px 24px 0 0;
+        /* Only round top corners */
+        border: none;
+        border-top: 4px solid var(--color-primary);
+        padding-bottom: calc(24px + env(safe-area-inset-bottom));
+        /* Notch safety */
+        animation: slideUpSheet 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+}
+
+@keyframes slideUpSheet {
+    from {
+        transform: translateY(100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
 }
 
 .confirm-title {

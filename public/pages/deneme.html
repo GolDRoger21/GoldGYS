@@ -195,6 +195,34 @@
                 width: 100%;
                 justify-content: space-between;
             }
+
+            /* MOBILE BOTTOM SHEET FOR RESULTS MODAL */
+            .modal-overlay {
+                align-items: flex-end !important;
+                padding: 0 !important;
+            }
+
+            .modal-overlay .card {
+                max-width: 100% !important;
+                width: 100% !important;
+                border-radius: 24px 24px 0 0 !important;
+                border: none !important;
+                border-top: 4px solid var(--color-primary) !important;
+                padding-bottom: calc(28px + env(safe-area-inset-bottom)) !important;
+                animation: slideUpSheet 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+            }
+        }
+
+        @keyframes slideUpSheet {
+            from {
+                transform: translateY(100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
         }
     </style>
     <link rel="icon" type="image/svg+xml" href="../icons/favicon.svg">

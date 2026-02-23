@@ -37,8 +37,9 @@ export async function initLayout() {
             // 1. HTML Parçalarını Yükle
             await loadRequiredHTML(isAdminPage);
 
-            // 2. Tema ve Sidebar Durumunu Yükle
+            // 2. Tema, Sidebar ve PWA Meta Tag'lerini Yükle
             initThemeAndSidebar();
+            injectPWAMetaTags();
 
             // 3. Auth Kontrolü ve UI Güncelleme
             await checkUserAuthState();
@@ -191,6 +192,32 @@ async function loadRequiredHTML(isAdminPage) {
         document.body.appendChild(overlay);
     }
 
+    // Mobil Bottom Navigation (Sadece Kullanıcı Paneli İçin)
+    if (!isAdminPage && !document.getElementById('mobileBottomNav')) {
+        const bottomNav = document.createElement('nav');
+        bottomNav.className = 'mobile-bottom-nav';
+        bottomNav.id = 'mobileBottomNav';
+        bottomNav.innerHTML = `
+            <a href="/dashboard" class="mobile-nav-item" data-page="dashboard">
+                <span class="icon">🏠</span>
+                <span class="label">Anasayfa</span>
+            </a>
+            <a href="/konular" class="mobile-nav-item" data-page="lessons">
+                <span class="icon">📚</span>
+                <span class="label">Dersler</span>
+            </a>
+            <a href="/denemeler" class="mobile-nav-item" data-page="trials">
+                <span class="icon">📝</span>
+                <span class="label">Denemeler</span>
+            </a>
+            <a href="/profil" class="mobile-nav-item" data-page="profile">
+                <span class="icon">👤</span>
+                <span class="label">Profil</span>
+            </a>
+        `;
+        document.querySelector('.app-layout').appendChild(bottomNav);
+    }
+
     await Promise.all([
         loadHTML(headerUrl, headerContainer),
         loadHTML(sidebarUrl, sidebarContainer)
@@ -228,6 +255,44 @@ function initThemeAndSidebar() {
     const isCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
     if (isCollapsed) {
         document.body.classList.add('sidebar-collapsed');
+    }
+}
+
+function injectPWAMetaTags() {
+    // 1. Mobile Web App Capable (Hides browser UI on iOS when added to homescreen)
+    if (!document.querySelector('meta[name="apple-mobile-web-app-capable"]')) {
+        const metaCapable = document.createElement('meta');
+        metaCapable.name = "apple-mobile-web-app-capable";
+        metaCapable.content = "yes";
+        document.head.appendChild(metaCapable);
+    }
+
+    if (!document.querySelector('meta[name="mobile-web-app-capable"]')) {
+        const metaCapableAnd = document.createElement('meta');
+        metaCapableAnd.name = "mobile-web-app-capable";
+        metaCapableAnd.content = "yes";
+        document.head.appendChild(metaCapableAnd);
+    }
+
+    // 2. Status Bar Style
+    if (!document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]')) {
+        const metaStatus = document.createElement('meta');
+        metaStatus.name = "apple-mobile-web-app-status-bar-style";
+        metaStatus.content = "black-translucent"; // Blends with app header
+        document.head.appendChild(metaStatus);
+    }
+
+    // 3. Prevent Double Tap Zoom (Crucial for App Feel)
+    let viewportMeta = document.querySelector('meta[name="viewport"]');
+    if (viewportMeta) {
+        if (!viewportMeta.content.includes('user-scalable=no')) {
+            viewportMeta.content += ', maximum-scale=1.0, user-scalable=no';
+        }
+    } else {
+        viewportMeta = document.createElement('meta');
+        viewportMeta.name = "viewport";
+        viewportMeta.content = "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no";
+        document.head.appendChild(viewportMeta);
     }
 }
 
@@ -407,8 +472,13 @@ function updateUIWithUserData(user, profile, hasPrivilege) {
 
 function setActiveMenuItem(pageId) {
     document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+    document.querySelectorAll('.mobile-nav-item').forEach(item => item.classList.remove('active'));
 
     // Hem data-page hem data-tab (admin için) kontrol et
-    const activeItem = document.querySelector(`.nav-item[data-page="${pageId}"], .nav-item[data-tab="${pageId}"]`);
-    if (activeItem) activeItem.classList.add('active');
+    const activeSidebar = document.querySelector(`.nav-item[data-page="${pageId}"], .nav-item[data-tab="${pageId}"]`);
+    if (activeSidebar) activeSidebar.classList.add('active');
+
+    // Bottom Nav Aktiflik Kontrolü
+    const activeBottom = document.querySelector(`.mobile-nav-item[data-page="${pageId}"]`);
+    if (activeBottom) activeBottom.classList.add('active');
 }
