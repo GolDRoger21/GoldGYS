@@ -3,9 +3,9 @@
 
 <head>
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -1733,7 +1733,17 @@
         try {
           const lessonQuery = query(collection(db, `topics/${subtopic.id}/lessons`), orderBy("order", "asc"));
           const lessonFallback = collection(db, `topics/${subtopic.id}/lessons`);
-          const lessonSnap = await safeGetDocs(lessonQuery, lessonFallback, 'Alt konu içerikleri');
+
+          let metaPromise = TopicService.getTopicPackMeta(subtopic.id);
+          let progressPromise = auth.currentUser ? TopicService.getUserProgress(auth.currentUser.uid, subtopic.id) : Promise.resolve({});
+
+          // Paralel Data Fetch - Lessons and Meta and Progress
+          const [lessonSnap, meta, progress] = await Promise.all([
+            safeGetDocs(lessonQuery, lessonFallback, 'Alt konu içerikleri'),
+            metaPromise,
+            progressPromise
+          ]);
+
           lessonSnap.forEach(doc => {
             const item = doc.data();
             if (item?.status === 'deleted' || item?.isDeleted) return;
@@ -1742,7 +1752,6 @@
           });
 
           // Soru istatistikleri
-          const meta = await TopicService.getTopicPackMeta(subtopic.id);
           sTotal = meta?.questionCount || meta?.questionIds?.length || 0;
           if (!sTotal) {
             const allIds = await TopicService.getTopicQuestionIdsById(subtopic.id);
@@ -1753,10 +1762,7 @@
             sTotal = allIds.length;
           }
 
-          if (auth.currentUser) {
-            const progress = await TopicService.getUserProgress(auth.currentUser.uid, subtopic.id);
-            solvedCount = (progress.solvedIds || []).length;
-          }
+          solvedCount = (progress.solvedIds || []).length;
         } catch (e) { console.log('Subtopic istatistik hatası', e); }
 
         const progressPercent = sTotal > 0 ? Math.min(100, Math.round((solvedCount / sTotal) * 100)) : 0;
@@ -1829,30 +1835,38 @@
 
         if (hasSubtopics) {
           // Üst Konu (Kapsayıcı Modu): Tüm alt konuların verilerini topla
-          const subtopicIds = activeSubtopics.map(t => t.id);
-          for (const sId of subtopicIds) {
-            // 1. Toplam Soru Sayısı
-            const meta = await TopicService.getTopicPackMeta(sId);
-            let sTotal = meta?.questionCount || meta?.questionIds?.length || 0;
+          const subtopicPromises = activeSubtopics.map(async (subtopic) => {
+            const sId = subtopic.id;
+            let sTotal = 0;
+            let sSolved = 0;
+            let sWrong = 0;
+
+            const metaPromise = TopicService.getTopicPackMeta(sId);
+            const progressPromise = auth.currentUser ? TopicService.getUserProgress(auth.currentUser.uid, sId) : Promise.resolve({});
+
+            const [meta, progress] = await Promise.all([metaPromise, progressPromise]);
+
+            sTotal = meta?.questionCount || meta?.questionIds?.length || 0;
             if (!sTotal) {
               const allIds = await TopicService.getTopicQuestionIdsById(sId);
               sTotal = allIds.length;
             }
-            if (!sTotal) {
-              const sTitle = subtopicsSnap.docs.find(d => d.id === sId)?.data()?.title;
-              if (sTitle) {
-                const allIds = await TopicService.getTopicQuestionIds(sTitle);
-                sTotal = allIds.length;
-              }
+            if (!sTotal && subtopic.title) {
+              const allIds = await TopicService.getTopicQuestionIds(subtopic.title);
+              sTotal = allIds.length;
             }
-            totalCount += sTotal;
 
-            // 2. Çözülenler (Kullanıcı giriş yaptıysa)
-            if (auth.currentUser) {
-              const progress = await TopicService.getUserProgress(auth.currentUser.uid, sId);
-              solvedCount += (progress.solvedIds || []).length;
-              wrongCount += (progress.wrongIds || []).length;
-            }
+            sSolved = (progress.solvedIds || []).length;
+            sWrong = (progress.wrongIds || []).length;
+
+            return { sTotal, sSolved, sWrong };
+          });
+
+          const results = await Promise.all(subtopicPromises);
+          for (const res of results) {
+            totalCount += res.sTotal;
+            solvedCount += res.sSolved;
+            wrongCount += res.sWrong;
           }
         } else {
           // Normal Konu
