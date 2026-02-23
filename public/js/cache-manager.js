@@ -105,6 +105,14 @@ export const CacheManager = {
         }
     },
 
+    async deleteData(key) {
+        try {
+            await idb.delete(STORES.METADATA, key);
+        } catch (e) {
+            console.warn('DeleteData failed', e);
+        }
+    },
+
     async getData(key, maxAge = null) {
         try {
             const record = await idb.get(STORES.METADATA, key);

@@ -1342,42 +1342,38 @@
       if (cachedData?.cached && cachedData.data) {
         subtopics = cachedData.data;
         hasCache = true;
-        console.log(`[Cache Hit] Alt konular IndexedDB'den yüklendi (${cacheKey})`);
-      }
+        console.log(`[Cache Hit] Alt konular IndexedDB'den yüklendi (${cacheKey}) ve Firestore sorgusu atlandı.`);
+      } else {
+        console.log(`[Cache Miss] Alt konular Firestore'dan çekiliyor...`);
+        // SWR: Arka Planda Firestore Sorgusu (Strict Caching)
+        try {
+          const subtopicQuery = query(
+            collection(db, "topics"),
+            where("parentId", "==", currentTopicId),
+            where("isActive", "==", true),
+            orderBy("order", "asc")
+          );
+          const subtopicFallbackQuery = query(
+            collection(db, "topics"),
+            where("parentId", "==", currentTopicId),
+            orderBy("order", "asc")
+          );
 
-      // SWR: Arka Planda Firestore Sorgusu
-      try {
-        const subtopicQuery = query(
-          collection(db, "topics"),
-          where("parentId", "==", currentTopicId),
-          where("isActive", "==", true),
-          orderBy("order", "asc")
-        );
-        const subtopicFallbackQuery = query(
-          collection(db, "topics"),
-          where("parentId", "==", currentTopicId),
-          orderBy("order", "asc")
-        );
+          const subtopicSnap = await safeGetDocs(subtopicQuery, subtopicFallbackQuery, 'Alt konular');
+          const freshSubtopics = [];
+          subtopicSnap.forEach(doc => {
+            const data = doc.data();
+            if (data?.isActive === false) return;
+            if (data?.status === 'deleted' || data?.isDeleted) return;
+            freshSubtopics.push({ id: doc.id, ...data });
+          });
 
-        const subtopicSnap = await safeGetDocs(subtopicQuery, subtopicFallbackQuery, 'Alt konular');
-        const freshSubtopics = [];
-        subtopicSnap.forEach(doc => {
-          const data = doc.data();
-          if (data?.isActive === false) return;
-          if (data?.status === 'deleted' || data?.isDeleted) return;
-          freshSubtopics.push({ id: doc.id, ...data });
-        });
-
-        // Cache'i güncelle (24 saat)
-        await CacheManager.saveData(cacheKey, freshSubtopics, 24 * 60 * 60 * 1000);
-
-        if (!hasCache) {
+          // Cache'i güncelle (24 saat)
+          await CacheManager.saveData(cacheKey, freshSubtopics, 24 * 60 * 60 * 1000);
           subtopics = freshSubtopics;
-        }
 
-      } catch (e) {
-        console.warn("Alt konular çekilemedi (Muhtemelen eksik Index):", e);
-        if (!hasCache) {
+        } catch (e) {
+          console.warn("Alt konular çekilemedi (Muhtemelen eksik Index):", e);
           const subtopicSection = document.getElementById('subtopicSection');
           if (subtopicSection) subtopicSection.style.display = 'none';
         }
@@ -1559,28 +1555,25 @@
       try {
         const cacheKey = `topic_lessons_${currentTopicId}`;
         const cachedData = await CacheManager.getData(cacheKey);
-        let hasCache = false;
 
         if (cachedData?.cached && cachedData.data) {
-          hasCache = true;
-          console.log(`[Cache Hit] Ders notları IndexedDB'den yüklendi (${cacheKey})`);
+          console.log(`[Cache Hit] Ders notları IndexedDB'den yüklendi (${cacheKey}) ve Firestore sorgusu atlandı.`);
           renderContent(cachedData.data);
-        }
+        } else {
+          console.log(`[Cache Miss] Ders notları Firestore'dan çekiliyor... (${currentTopicId})`);
 
-        const lessonsQuery = query(collection(db, `topics/${currentTopicId}/lessons`), orderBy("order", "asc"));
-        const lessonsFallback = collection(db, `topics/${currentTopicId}/lessons`);
-        const snapshot = await safeGetDocs(lessonsQuery, lessonsFallback, 'Konu içerikleri');
+          const lessonsQuery = query(collection(db, `topics/${currentTopicId}/lessons`), orderBy("order", "asc"));
+          const lessonsFallback = collection(db, `topics/${currentTopicId}/lessons`);
+          const snapshot = await safeGetDocs(lessonsQuery, lessonsFallback, 'Konu içerikleri');
 
-        const freshLessons = [];
-        snapshot.forEach(doc => {
-          const item = { id: doc.id, ...doc.data() };
-          if (item?.status === 'deleted' || item?.isDeleted || item?.isActive === false) return;
-          freshLessons.push(item);
-        });
+          const freshLessons = [];
+          snapshot.forEach(doc => {
+            const item = { id: doc.id, ...doc.data() };
+            if (item?.status === 'deleted' || item?.isDeleted || item?.isActive === false) return;
+            freshLessons.push(item);
+          });
 
-        await CacheManager.saveData(cacheKey, freshLessons, 24 * 60 * 60 * 1000);
-
-        if (!hasCache) {
+          await CacheManager.saveData(cacheKey, freshLessons, 24 * 60 * 60 * 1000);
           renderContent(freshLessons);
         }
 

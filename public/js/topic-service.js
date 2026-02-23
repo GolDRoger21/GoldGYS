@@ -221,6 +221,16 @@ export const TopicService = {
     async getUserProgress(userId, topicId) {
         if (!userId || !topicId) return { solvedIds: [], lastDocId: null, totalSolved: 0 };
 
+        const cacheKey = `user_progress_${userId}_${topicId}`;
+        const cachedData = await CacheManager.getData(cacheKey, 24 * 60 * 60 * 1000); // 24 hours TTL for progress
+
+        if (cachedData?.cached && cachedData.data) {
+            console.log(`[Cache Hit] Kullanıcı ilerlemesi IndexedDB'den yüklendi (${cacheKey})`);
+            return cachedData.data;
+        }
+
+        console.log(`[Cache Miss] Kullanıcı ilerlemesi Firestore'dan çekiliyor... (${topicId})`);
+
         try {
             const docRef = doc(db, `users/${userId}/topic_progress/${topicId}`);
             const docSnap = await getDoc(docRef);
@@ -237,19 +247,26 @@ export const TopicService = {
                     .map(([questionId]) => questionId);
 
                 const persistedWrongIds = Array.isArray(data.wrongIds) ? data.wrongIds : [];
-                return {
+
+                const progressResult = {
                     solvedIds: solvedIds, // Çözülen soru ID'leri (Array)
                     answers: answers,
                     wrongIds: Array.from(new Set([...persistedWrongIds, ...wrongIds])),
                     lastDocId: data.lastDocId || null, // Sıralı mod için son kalınan yer
                     totalSolved: solvedIds.length
                 };
+
+                // Cache it
+                await CacheManager.saveData(cacheKey, progressResult, 24 * 60 * 60 * 1000);
+                return progressResult;
             }
         } catch (error) {
             console.error("İlerleme verisi çekilemedi:", error);
         }
 
-        return { solvedIds: [], lastDocId: null, totalSolved: 0 };
+        const defaultResult = { solvedIds: [], lastDocId: null, totalSolved: 0 };
+        await CacheManager.saveData(cacheKey, defaultResult, 24 * 60 * 60 * 1000);
+        return defaultResult;
     },
 
     /**
@@ -291,6 +308,11 @@ export const TopicService = {
             }, { merge: true });
 
             console.log(`${Object.keys(answers).length} cevap toplu olarak senkronize edildi.`);
+
+            // Invalidate the local progress cache so the next view reflects the new score immediately
+            const cacheKey = `user_progress_${userId}_${topicId}`;
+            await CacheManager.deleteData(cacheKey);
+
         } catch (error) {
             console.error("İlerleme senkronizasyonu başarısız:", error);
         }
@@ -305,6 +327,11 @@ export const TopicService = {
         try {
             await deleteDoc(doc(db, `users/${userId}/topic_progress/${topicId}`));
             await CacheManager.clearDraftAnswers(`topic_${topicId}`);
+
+            // Invalidate the progress cache
+            const cacheKey = `user_progress_${userId}_${topicId}`;
+            await CacheManager.deleteData(cacheKey);
+
             console.log("İlerleme sıfırlandı.");
             return true;
         } catch (error) {

@@ -3,9 +3,9 @@
 
 <head>
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -845,13 +845,13 @@
           const countsObj = cachedCounts.data;
           questionCounts = new Map(Object.entries(countsObj));
 
-          console.log("[Cache Hit] Konular belleği anında IndexedDB'den yüklendi.");
+          console.log("[Cache Hit] Konular belleği anında IndexedDB'den yüklendi ve Firestore sorgusu atlandı.");
           renderTopics(allTopics);
-          hasCache = true;
+          return; // ERKEN DÖNÜŞ: Arka plan güncellemesini iptal et (Strict Caching)
         }
 
-        // 2. Arka plan Firestore kontrolü (Veritabanı native persistent-cache sayesinde
-        // zaten hızlıdır ancak güncel veriyi almak için her ihtimale karşı sorgu atılır)
+        console.log("[Cache Miss] Konular IndexedDB'de bulunamadı veya süresi doldu. Firestore'dan çekiliyor...");
+        // 2. Arka plan Firestore kontrolü
         const q = query(collection(db, "topics"), orderBy("order", "asc"));
         const snapshot = await getDocs(q);
 
@@ -868,20 +868,13 @@
         // Map'i JSON'a çevirilebilir Object'e dönüştür
         const freshCountsObj = Object.fromEntries(freshCountsMap);
 
-        // Veri IndexedDB'ye 1 saatlik (3600000 ms) kısa önbellekle kaydediliyor
-        await CacheManager.saveData('all_topics_catalog', freshTopics, 3600000);
-        await CacheManager.saveData('all_topics_counts', freshCountsObj, 3600000);
+        // Veri IndexedDB'ye 24 saatlik kısa önbellekle kaydediliyor
+        await CacheManager.saveData('all_topics_catalog', freshTopics, 24 * 60 * 60 * 1000);
+        await CacheManager.saveData('all_topics_counts', freshCountsObj, 24 * 60 * 60 * 1000);
 
-        // Eğer ilk girişte cache hiç yoktuysa şimdi ekrana çiz
-        if (!hasCache) {
-          allTopics = freshTopics;
-          questionCounts = freshCountsMap;
-          renderTopics(allTopics);
-        } else {
-          // Cache vardı ama background sunucu güncellemesi "farklı" veriler getirdiyse:
-          // DOM'u zorla tazelemek isterseniz burada "if JSON.stringify(old) !== JSON.stringify(new)" 
-          // yapabilirsiniz. Şimdilik arkaplan güncellemesini sadece DB'ye yazdık, UI'ı sarsmıyoruz.
-        }
+        allTopics = freshTopics;
+        questionCounts = freshCountsMap;
+        renderTopics(allTopics);
 
       } catch (error) {
         console.error("Hata:", error);

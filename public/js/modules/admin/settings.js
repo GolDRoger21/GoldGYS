@@ -158,17 +158,27 @@ function bindClearCacheButton() {
 
     btn.addEventListener("click", async () => {
         const confirmed = await showConfirm(
-            "Tüm yerel veriler (localStorage, sessionStorage) temizlenecek ve sayfa yenilenecek. Devam edilsin mi?",
+            "Tüm yerel veriler (localStorage, sessionStorage ve Veritabanı Önbelleği) temizlenecek ve sayfa yenilenecek. Devam edilsin mi?",
             { title: "Önbelleği Temizle", confirmText: "Evet, Temizle", tone: "warning" }
         );
 
         if (confirmed) {
             localStorage.clear();
             sessionStorage.clear();
+
+            // Delete IndexedDB caching entirely
+            try {
+                indexedDB.deleteDatabase('GoldGYSCache');
+                console.log("IndexedDB (GoldGYSCache) flushed.");
+            } catch (e) {
+                console.error("IndexedDB temizlenirken hata:", e);
+            }
+
             if ('caches' in window) {
                 try {
                     const keys = await caches.keys();
                     await Promise.all(keys.map(key => caches.delete(key)));
+                    console.log("Service Worker Cache API flushed.");
                 } catch (e) {
                     console.error("Cache storage temizlenirken hata:", e);
                 }
