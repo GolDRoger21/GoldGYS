@@ -5,25 +5,14 @@
     padding: 0;
 }
 
-html {
-    scroll-behavior: smooth;
-    overscroll-behavior-y: none;
-    /* iOS/Android app feel - prevents outer bounce */
-    -webkit-tap-highlight-color: transparent;
-    /* Removes blue tap box on mobile */
-}
-
 body {
     background: var(--bg-body-gradient);
     color: var(--text-main);
     font-family: var(--font-family-sans);
     overflow-x: hidden;
-    overscroll-behavior-y: none;
     transition: background-color var(--transition-medium), color var(--transition-medium);
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
-    padding-bottom: env(safe-area-inset-bottom);
-    /* iPhone bottom bar safety */
 }
 
 img,
@@ -248,8 +237,6 @@ body:not(.admin-body) .app-sidebar .nav-label {
     transition: opacity var(--transition-medium);
 }
 
-/* --- MOBILE BOTTOM NAV (Native App Feel) - REMOVED PER USER REQUEST --- */
-
 /* --- MAIN CONTENT --- */
 .app-main {
     grid-area: content;
@@ -421,15 +408,13 @@ body:not(.admin-body) .app-sidebar .nav-label {
     margin: 4px 0;
 }
 
+/* --- UI UTILITIES (Buttons, Badges, Spacing) --- */
 .btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 6px;
-    padding: 12px 20px;
-    /* Increased for mobile touch target */
-    min-height: 44px;
-    /* Minimum iOS/Android touch target size */
+    padding: 10px 16px;
     border-radius: var(--radius-md);
     border: 1px solid transparent;
     background: var(--bg-hover);
@@ -455,9 +440,7 @@ body:not(.admin-body) .app-sidebar .nav-label {
 }
 
 .btn-sm {
-    padding: 8px 16px;
-    /* Increased touch target */
-    min-height: 38px;
+    padding: 6px 12px;
     font-size: 0.85rem;
     border-radius: 6px;
 }
@@ -793,41 +776,6 @@ body:not(.admin-body) .app-sidebar .nav-label {
     display: flex;
     flex-direction: column;
     gap: 12px;
-}
-
-/* 
-   MOBILE BOTTOM SHEET OVERRIDE
-   Transforms standard centered modals into native slide-up bottom sheets 
-*/
-@media (max-width: 768px) {
-    .confirm-overlay {
-        align-items: flex-end;
-        /* Anchor to bottom */
-        padding: 0;
-        /* Full width stretching */
-    }
-
-    .confirm-dialog {
-        border-radius: 24px 24px 0 0;
-        /* Only round top corners */
-        border: none;
-        border-top: 4px solid var(--color-primary);
-        padding-bottom: calc(24px + env(safe-area-inset-bottom));
-        /* Notch safety */
-        animation: slideUpSheet 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    }
-}
-
-@keyframes slideUpSheet {
-    from {
-        transform: translateY(100%);
-        opacity: 0;
-    }
-
-    to {
-        transform: translateY(0);
-        opacity: 1;
-    }
 }
 
 .confirm-title {
