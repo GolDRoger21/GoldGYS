@@ -1,7 +1,8 @@
 import { auth, db } from "./firebase-config.js";
 import { sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { doc, updateDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { doc, updateDoc, collection, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { getUserProfile, updateUserCache } from "./user-profile.js";
+import { CacheManager } from "./cache-manager.js";
 import { showConfirm, showToast } from "./notifications.js";
 
 // DOM Elemanlarını dinamik olarak alacağız
@@ -152,27 +153,28 @@ function updateGlobalHeader(data, user) {
 
 async function calculateUserStats(uid) {
     const dom = getDom();
+    if (!dom.statCompleted && !dom.statScore) return;
+
     try {
-        const progressRef = collection(db, `users/${uid}/progress`);
-        const snap = await getDocs(progressRef);
+        const resultsCacheKey = `exam_results_col_${uid}`;
+        let rawResults = [];
+        const cachedResults = await CacheManager.getData(resultsCacheKey, 5 * 60 * 1000); // 5 dakika
 
-        let completed = 0;
-        let scoreSum = 0;
-        let count = 0;
+        if (cachedResults?.cached && cachedResults.data) {
+            rawResults = cachedResults.data;
+        } else {
+            const resultsQuery = query(collection(db, `users/${uid}/exam_results`), orderBy('completedAt', 'desc'), limit(100));
+            const resultSnap = await getDocs(resultsQuery);
+            rawResults = resultSnap.docs.map(d => d.data());
+            await CacheManager.saveData(resultsCacheKey, rawResults, 5 * 60 * 1000);
+        }
 
-        snap.forEach(doc => {
-            const d = doc.data();
-            completed += Number(d.completedTests || 0);
-            if (d.scoreAvg) {
-                scoreSum += Number(d.scoreAvg);
-                count++;
-            }
-        });
-
-        const avg = count > 0 ? (scoreSum / count).toFixed(0) : "0";
+        let completed = rawResults.length;
+        let scoreSum = rawResults.reduce((sum, exam) => sum + Number(exam.score || 0), 0);
+        const avg = completed > 0 ? (scoreSum / completed).toFixed(0) : "0";
 
         if (dom.statCompleted) dom.statCompleted.textContent = completed;
-        if (dom.statScore) dom.statScore.textContent = avg;
+        if (dom.statScore) dom.statScore.textContent = `%${avg}`;
     } catch (e) {
         console.warn("İstatistik hatası:", e);
     }

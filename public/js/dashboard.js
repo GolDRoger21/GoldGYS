@@ -119,10 +119,23 @@ async function loadFocusTopics(uid, currentTopicId) {
     if (!ui.focusTopicsList) return;
 
     try {
-        const progressRef = collection(db, `users/${uid}/topic_progress`);
-        const inProgressQuery = query(progressRef, where("status", "==", "in_progress"), limit(6));
-        const inProgressSnap = await getDocs(inProgressQuery);
-        const inProgressIds = inProgressSnap.docs.map((snap) => snap.id);
+        // --- CACHE DESTEKLİ ÇEKİM ---
+        const cacheKey = `topic_progress_col_${uid}`;
+        let progressMapDocs = [];
+        const cachedProgCol = await CacheManager.getData(cacheKey, 5 * 60 * 1000); // 5 dakika
+
+        if (cachedProgCol?.cached && cachedProgCol.data) {
+            progressMapDocs = cachedProgCol.data;
+        } else {
+            const progressSnap = await getDocs(collection(db, `users/${uid}/topic_progress`));
+            progressMapDocs = progressSnap.docs.map(d => ({ id: d.id, data: d.data() }));
+            await CacheManager.saveData(cacheKey, progressMapDocs, 5 * 60 * 1000);
+        }
+
+        const inProgressIds = progressMapDocs
+            .filter(d => d.data.status === 'in_progress')
+            .map(d => d.id)
+            .slice(0, 6);
 
         const focusIds = currentTopicId
             ? [currentTopicId, ...inProgressIds.filter((id) => id !== currentTopicId)]
@@ -134,12 +147,21 @@ async function loadFocusTopics(uid, currentTopicId) {
             return;
         }
 
-        const topicSnaps = await Promise.all(selectedIds.map((topicId) => getDoc(doc(db, "topics", topicId))));
-        const topicItems = topicSnaps
-            .map((snap, idx) => {
-                if (!snap.exists()) return null;
-                const topic = snap.data();
-                const topicId = selectedIds[idx];
+        // Tüm konuları önbellekten al (Dashboard hızlı yüklenmesi için)
+        let allTopics = [];
+        const cachedTopics = await CacheManager.getData('all_topics', 24 * 60 * 60 * 1000);
+        if (cachedTopics?.cached && cachedTopics.data) {
+            allTopics = cachedTopics.data;
+        } else {
+            const topicsSnap = await getDocs(query(collection(db, "topics"), orderBy("order", "asc")));
+            allTopics = topicsSnap.docs.map(d => ({ id: d.id, ...d.data() })).filter(t => t.isActive !== false && t.status !== 'deleted' && t.isDeleted !== true);
+            await CacheManager.saveData('all_topics', allTopics, 24 * 60 * 60 * 1000);
+        }
+
+        const topicItems = selectedIds
+            .map((topicId) => {
+                const topic = allTopics.find(t => t.id === topicId);
+                if (!topic) return null;
                 const topicUrl = buildTopicPath ? buildTopicPath({ id: topicId, slug: topic.slug }) : `/konu/${topic.slug || topicId}`;
                 const isPrimaryFocus = topicId === currentTopicId;
                 return `
@@ -167,22 +189,52 @@ async function loadFocusTopics(uid, currentTopicId) {
 async function loadDashboardStats(uid) {
     const userSnap = await getDoc(doc(db, "users", uid));
     const userData = userSnap.exists() ? userSnap.data() : {};
-    const statsResetAt = normalizeResetTimestamp(userData.statsResetAt);
-    const cacheKey = `dashboard_stats_${uid}_${statsResetAt || 'none'}_${getDashboardDateKey()}`;
+    const statsResetAtSeconds = normalizeResetTimestamp(userData.statsResetAt);
 
-    const cached = await CacheManager.getData(cacheKey);
-    if (cached?.cached && cached.data?.totalStats && cached.data?.todayStats) {
-        applyStatsToUI(cached.data.totalStats, cached.data.todayStats);
-        return;
+    // Bütün analizleri bellek üzerinden (cached) hesaplayacağız DB masrafı olmasın:
+    const resultsCacheKey = `exam_results_col_${uid}`;
+    let rawResults = [];
+    const cachedResults = await CacheManager.getData(resultsCacheKey, 5 * 60 * 1000);
+    if (cachedResults?.cached && cachedResults.data) {
+        rawResults = cachedResults.data;
+    } else {
+        const resultsQuery = query(collection(db, `users/${uid}/exam_results`), orderBy('completedAt', 'desc'), limit(100));
+        const resultSnap = await getDocs(resultsQuery);
+        rawResults = resultSnap.docs.map(d => d.data());
+        await CacheManager.saveData(resultsCacheKey, rawResults, 5 * 60 * 1000);
     }
 
-    const [totalStats, todayStats] = await Promise.all([
-        fetchExamStats(uid, { resetAtSeconds: statsResetAt }),
-        fetchExamStats(uid, { range: getTodayRange(), resetAtSeconds: statsResetAt })
-    ]);
+    const { start: todayStart, end: todayEnd } = getTodayRange();
+    let totalStats = { total: 0, correct: 0, wrong: 0 };
+    let todayStats = { total: 0, correct: 0, wrong: 0 };
+
+    rawResults.forEach(exam => {
+        let completedAtSec = null;
+        if (exam.completedAt?.seconds) completedAtSec = exam.completedAt.seconds;
+        else if (exam.completedAt) completedAtSec = Math.floor(new Date(exam.completedAt).getTime() / 1000);
+
+        if (!completedAtSec) return;
+
+        // Reset yapılmışsa ve sınav eski ise yoksay
+        if (statsResetAtSeconds && completedAtSec <= statsResetAtSeconds) return;
+
+        const dateScoreTotal = exam.total || ((exam.correct || 0) + (exam.wrong || 0) + (exam.empty || 0));
+        const examDate = new Date(completedAtSec * 1000);
+
+        // Genel İstatistik Ekle 
+        totalStats.total += dateScoreTotal;
+        totalStats.correct += (exam.correct || 0);
+        totalStats.wrong += (exam.wrong || 0);
+
+        // Bugün İstatistiğine uyuyorsa Ekle
+        if (examDate >= todayStart && examDate < todayEnd) {
+            todayStats.total += dateScoreTotal;
+            todayStats.correct += (exam.correct || 0);
+            todayStats.wrong += (exam.wrong || 0);
+        }
+    });
 
     applyStatsToUI(totalStats, todayStats);
-    await CacheManager.saveData(cacheKey, { totalStats, todayStats }, DASHBOARD_STATS_TTL);
 }
 
 function normalizeResetTimestamp(timestamp) {
@@ -434,24 +486,39 @@ async function loadRecentActivities(uid) {
     if (!ui.recentActivityList) return;
 
     try {
-        const progressSnap = await getDocs(collection(db, `users/${uid}/topic_progress`));
+        // --- CACHE DESTEKLİ PROGRESS ÇEKİMİ ---
+        const cacheKey = `topic_progress_col_${uid}`;
+        let progressMapDocs = [];
+        const cachedProgCol = await CacheManager.getData(cacheKey, 5 * 60 * 1000);
 
-        const topicPromises = progressSnap.docs.map(async docSnap => {
-            const pData = docSnap.data();
+        if (cachedProgCol?.cached && cachedProgCol.data) {
+            progressMapDocs = cachedProgCol.data;
+        } else {
+            const progressSnap = await getDocs(collection(db, `users/${uid}/topic_progress`));
+            progressMapDocs = progressSnap.docs.map(d => ({ id: d.id, data: d.data() }));
+            await CacheManager.saveData(cacheKey, progressMapDocs, 5 * 60 * 1000);
+        }
+
+        // Tüm konuları önbellekten çek (Hızlı adlandırma için)
+        let allTopics = [];
+        const cachedTopics = await CacheManager.getData('all_topics', 24 * 60 * 60 * 1000);
+        if (cachedTopics?.cached && cachedTopics.data) {
+            allTopics = cachedTopics.data;
+        }
+
+        const activitiesRaw = progressMapDocs.map(docSnap => {
+            const pData = docSnap.data;
             const topicId = pData.topicId || docSnap.id;
             const solvedCount = Number(pData.solvedCount || 0);
             const answersCount = pData.answers && typeof pData.answers === 'object'
                 ? Object.keys(pData.answers).length
                 : 0;
 
-            // "Son Çalışmalar" listesinde yalnızca gerçekten soru çözülmüş konuları göster.
             if (solvedCount <= 0 && answersCount <= 0) {
                 return null;
             }
 
-            const tSnap = await getDoc(doc(db, "topics", topicId));
-            if (!tSnap.exists()) return null;
-            const tData = tSnap.data();
+            const tData = allTopics.find(t => t.id === topicId) || { title: "Bilinmeyen Konu", slug: topicId };
             const lastActivityDate = parseDate(pData.lastSyncedAt) || parseDate(pData.updatedAt);
 
             return {
@@ -463,7 +530,7 @@ async function loadRecentActivities(uid) {
             };
         });
 
-        const activities = (await Promise.all(topicPromises))
+        const activities = activitiesRaw
             .filter(Boolean)
             .sort((a, b) => (b.lastActivityDate?.getTime?.() || 0) - (a.lastActivityDate?.getTime?.() || 0))
             .slice(0, 5);

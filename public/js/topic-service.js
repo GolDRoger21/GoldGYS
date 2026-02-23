@@ -313,6 +313,9 @@ export const TopicService = {
             const cacheKey = `user_progress_${userId}_${topicId}`;
             await CacheManager.deleteData(cacheKey);
 
+            // Ayrıca analiz ve anasayfa listeleme collection cache'i de düşürülür (Gerçek zamanlı UI tepkisi)
+            await CacheManager.deleteData(`topic_progress_col_${userId}`);
+
         } catch (error) {
             console.error("İlerleme senkronizasyonu başarısız:", error);
         }
@@ -331,6 +334,9 @@ export const TopicService = {
             // Invalidate the progress cache
             const cacheKey = `user_progress_${userId}_${topicId}`;
             await CacheManager.deleteData(cacheKey);
+
+            // Collection listeleme önbelleği temizlenir (Anında dashboard güncellemesi için)
+            await CacheManager.deleteData(`topic_progress_col_${userId}`);
 
             console.log("İlerleme sıfırlandı.");
             return true;

@@ -5,6 +5,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { httpsCallable } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-functions.js";
 import { WrongSummaryService } from "./wrong-summary-service.js";
+import { CacheManager } from "./cache-manager.js";
 
 export class TestEngine {
     constructor(containerId, questionsData, options = {}) {
@@ -547,6 +548,11 @@ export class TestEngine {
                 mode: stats.mode || this.mode
             });
 
+            // Sınav sonucu eklendiği için lokal analitik ve istatistik listesi (cache) düşürülür
+            await CacheManager.deleteData(`exam_results_col_${auth.currentUser.uid}`);
+            await CacheManager.deleteData(`dashboard_stats_${auth.currentUser.uid}`); // Dashboard özetini de düşür
+
+
             // 2. Yanlış Yapılanları 'wrong_summaries' koleksiyonuna işle (Sınav modunda toplu işlem)
             // Practice modunda anlık işleniyor, Exam modunda burada işlenmeli.
             // Ancak basitlik adına: Practice modunda anlık işledik. Exam modunda ise burada döngüyle işleyelim.
@@ -592,138 +598,138 @@ export class TestEngine {
 
     // Yanlış yapılan soruyu havuza atar veya sayacını artırır
     async saveWrongAnswer(qId, qData) {
-            if (!auth.currentUser) return;
-            const safeText = qData?.text ? qData.text.substring(0, 150) + "..." : "";
-            const category = qData?.category || 'Genel';
-            const existing = this.pendingWrongAnswers.get(qId);
-            if (existing) {
-                existing.count += 1;
-                return;
-            }
-
-            this.pendingWrongAnswers.set(qId, {
-                questionId: qId,
-                text: safeText,
-                category,
-                examId: this.examId,
-                count: 1
-            });
-
-            if (!this.deferWrongWrites && this.pendingWrongAnswers.size >= 5) {
-                await this.flushWrongAnswers();
-            }
-        }
-
-    async clearWrongAnswer(qId) {
+        if (!auth.currentUser) return;
+        const safeText = qData?.text ? qData.text.substring(0, 150) + "..." : "";
+        const category = qData?.category || 'Genel';
+        const existing = this.pendingWrongAnswers.get(qId);
+        if (existing) {
+            existing.count += 1;
             return;
         }
 
+        this.pendingWrongAnswers.set(qId, {
+            questionId: qId,
+            text: safeText,
+            category,
+            examId: this.examId,
+            count: 1
+        });
+
+        if (!this.deferWrongWrites && this.pendingWrongAnswers.size >= 5) {
+            await this.flushWrongAnswers();
+        }
+    }
+
+    async clearWrongAnswer(qId) {
+        return;
+    }
+
     async flushWrongAnswers() {
-            if (!auth.currentUser || this.pendingWrongAnswers.size === 0) return;
-            const dateKey = new Date().toISOString().slice(0, 10);
-            const ref = doc(db, `users/${auth.currentUser.uid}/wrong_summaries/${dateKey}`);
-            const updates = {
-                updatedAt: serverTimestamp()
+        if (!auth.currentUser || this.pendingWrongAnswers.size === 0) return;
+        const dateKey = new Date().toISOString().slice(0, 10);
+        const ref = doc(db, `users/${auth.currentUser.uid}/wrong_summaries/${dateKey}`);
+        const updates = {
+            updatedAt: serverTimestamp()
+        };
+        const questionIds = [];
+
+        this.pendingWrongAnswers.forEach((payload, qId) => {
+            updates[`wrongCounts.${qId}`] = increment(payload.count);
+            updates[`questionMeta.${qId}`] = {
+                questionId: payload.questionId,
+                text: payload.text,
+                category: payload.category,
+                examId: payload.examId,
+                lastAttempt: serverTimestamp()
             };
-            const questionIds = [];
+            questionIds.push(qId);
+        });
 
-            this.pendingWrongAnswers.forEach((payload, qId) => {
-                updates[`wrongCounts.${qId}`] = increment(payload.count);
-                updates[`questionMeta.${qId}`] = {
-                    questionId: payload.questionId,
-                    text: payload.text,
-                    category: payload.category,
-                    examId: payload.examId,
-                    lastAttempt: serverTimestamp()
-                };
-                questionIds.push(qId);
-            });
-
-            if (questionIds.length > 0) {
-                updates.questionIds = arrayUnion(...questionIds);
-            }
-
-            try {
-                await setDoc(ref, updates, { merge: true });
-                this.pendingWrongAnswers.clear();
-            } catch (e) {
-                console.error("Yanlış soru toplu kaydı hatası:", e);
-            }
+        if (questionIds.length > 0) {
+            updates.questionIds = arrayUnion(...questionIds);
         }
 
-        updateCounters() {
-            const correct = Object.values(this.answers).filter(a => a.isCorrect).length;
-            const wrong = Object.values(this.answers).filter(a => a.isCorrect === false).length;
-            const answered = Object.keys(this.answers).length;
-
-            if (this.ui.trueVal) this.ui.trueVal.innerText = correct;
-            if (this.ui.falseVal) this.ui.falseVal.innerText = wrong;
-            if (this.ui.remainVal) this.ui.remainVal.innerText = this.questions.length - answered;
+        try {
+            await setDoc(ref, updates, { merge: true });
+            this.pendingWrongAnswers.clear();
+        } catch (e) {
+            console.error("Yanlış soru toplu kaydı hatası:", e);
         }
+    }
+
+    updateCounters() {
+        const correct = Object.values(this.answers).filter(a => a.isCorrect).length;
+        const wrong = Object.values(this.answers).filter(a => a.isCorrect === false).length;
+        const answered = Object.keys(this.answers).length;
+
+        if (this.ui.trueVal) this.ui.trueVal.innerText = correct;
+        if (this.ui.falseVal) this.ui.falseVal.innerText = wrong;
+        if (this.ui.remainVal) this.ui.remainVal.innerText = this.questions.length - answered;
+    }
 
     async loadUserFavorites() {
-            if (!auth.currentUser) return;
-            try {
-                // Favorileri çek (Sadece ID'leri tutuyoruz)
-                // Not: Çok fazla favori varsa bu yöntem optimize edilmeli, şimdilik yeterli.
-                const snap = await getDoc(doc(db, `users/${auth.currentUser.uid}/favorites/_index`));
-                // Alternatif: Subcollection'dan çekmek daha maliyetli olabilir, 
-                // ama veri modelinde subcollection demiştik. O yüzden collection query yapalım.
-                // Ancak performans için sadece ID'leri çekmek daha iyi olurdu.
-                // Şimdilik basit yöntem:
-                // (Gerçek uygulamada favori ID'lerini user profilinde array olarak tutmak daha hızlıdır)
-            } catch (e) { }
-        }
+        if (!auth.currentUser) return;
+        try {
+            // Favorileri çek (Sadece ID'leri tutuyoruz)
+            // Not: Çok fazla favori varsa bu yöntem optimize edilmeli, şimdilik yeterli.
+            const snap = await getDoc(doc(db, `users/${auth.currentUser.uid}/favorites/_index`));
+            // Alternatif: Subcollection'dan çekmek daha maliyetli olabilir, 
+            // ama veri modelinde subcollection demiştik. O yüzden collection query yapalım.
+            // Ancak performans için sadece ID'leri çekmek daha iyi olurdu.
+            // Şimdilik basit yöntem:
+            // (Gerçek uygulamada favori ID'lerini user profilinde array olarak tutmak daha hızlıdır)
+        } catch (e) { }
+    }
 
     async toggleFavorite(qId) {
-            if (!auth.currentUser) {
-                showToast("Bu işlem için giriş yapmalısınız.", "error");
-                return;
-            }
-
-            const btn = document.querySelector(`#q-${qId} .fav-btn`);
-            const ref = doc(db, `users/${auth.currentUser.uid}/favorites/${qId}`);
-
-            if (this.favorites.has(qId)) {
-                this.favorites.delete(qId);
-                if (btn) {
-                    btn.innerText = '☆';
-                    btn.classList.remove('active');
-                }
-                await deleteDoc(ref);
-            } else {
-                this.favorites.add(qId);
-                if (btn) {
-                    btn.innerText = '★';
-                    btn.classList.add('active');
-                }
-                const q = this.questions.find(i => i.id === qId);
-                await setDoc(ref, {
-                    questionId: q.id,
-                    text: q.text,
-                    category: q.category,
-                    addedAt: serverTimestamp()
-                });
-            }
+        if (!auth.currentUser) {
+            showToast("Bu işlem için giriş yapmalısınız.", "error");
+            return;
         }
 
-        openReportModal(qId) {
-            const desc = prompt("Bu soruda ne gibi bir hata var? (Örn: Cevap yanlış, Yazım hatası)");
-            if (desc && auth.currentUser) {
-                const submitReport = httpsCallable(functions, "submitReport");
-                submitReport({
-                    questionId: qId,
-                    description: desc,
-                    type: "question_error",
-                    source: "question_modal"
-                })
-                    .then(() => showToast("Bildiriminiz alındı. Teşekkürler!", "success"))
-                    .catch((error) => {
-                        console.error("Bildirimi gönderme hatası:", error);
-                        showToast(`Bildiriminiz gönderilemedi: ${error.message}`, "error");
-                    });
-            }
-        }
+        const btn = document.querySelector(`#q-${qId} .fav-btn`);
+        const ref = doc(db, `users/${auth.currentUser.uid}/favorites/${qId}`);
 
-        setupMobileGestures() { }
+        if (this.favorites.has(qId)) {
+            this.favorites.delete(qId);
+            if (btn) {
+                btn.innerText = '☆';
+                btn.classList.remove('active');
+            }
+            await deleteDoc(ref);
+        } else {
+            this.favorites.add(qId);
+            if (btn) {
+                btn.innerText = '★';
+                btn.classList.add('active');
+            }
+            const q = this.questions.find(i => i.id === qId);
+            await setDoc(ref, {
+                questionId: q.id,
+                text: q.text,
+                category: q.category,
+                addedAt: serverTimestamp()
+            });
+        }
     }
+
+    openReportModal(qId) {
+        const desc = prompt("Bu soruda ne gibi bir hata var? (Örn: Cevap yanlış, Yazım hatası)");
+        if (desc && auth.currentUser) {
+            const submitReport = httpsCallable(functions, "submitReport");
+            submitReport({
+                questionId: qId,
+                description: desc,
+                type: "question_error",
+                source: "question_modal"
+            })
+                .then(() => showToast("Bildiriminiz alındı. Teşekkürler!", "success"))
+                .catch((error) => {
+                    console.error("Bildirimi gönderme hatası:", error);
+                    showToast(`Bildiriminiz gönderilemedi: ${error.message}`, "error");
+                });
+        }
+    }
+
+    setupMobileGestures() { }
+}

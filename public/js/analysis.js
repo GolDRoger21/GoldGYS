@@ -609,6 +609,9 @@ window.setFocusTopic = async (topicId) => {
     if (!isCurrent) {
         await setDoc(doc(db, `users/${state.userId}/topic_progress`, topicId), { status: 'in_progress', updatedAt: serverTimestamp() }, { merge: true });
     }
+
+    // YENİ: Anasayfadaki listelerin anında senkronize olması için önbellek sıfırlanır
+    await CacheManager.deleteData(`topic_progress_col_${state.userId}`);
     await initAnalysis(state.userId);
 };
 
