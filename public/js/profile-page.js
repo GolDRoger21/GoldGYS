@@ -14,7 +14,7 @@ const getDom = () => ({
     statCompleted: document.getElementById("statCompleted"),
     statScore: document.getElementById("statScore"),
     displayTarget: document.getElementById("displayTarget"),
-    
+
     // Form Elementleri
     inpAd: document.getElementById("inpAd"),
     inpSoyad: document.getElementById("inpSoyad"),
@@ -25,11 +25,7 @@ const getDom = () => ({
     profileForm: document.getElementById("profileForm"),
     saveMessage: document.getElementById("saveMessage"),
     btnResetPassword: document.getElementById("btnResetPassword"),
-    
-    // İstatistikler
-    statTopicRatio: document.getElementById("statTopicRatio"),
-    statTopicProgress: document.getElementById("statTopicProgress"),
-    statTestsCompleted: document.getElementById("statTestsCompleted"),
+
 });
 
 export function initProfilePage() {
@@ -37,7 +33,7 @@ export function initProfilePage() {
     if (user) {
         initTabs();
         loadFullProfile(user);
-        
+
         const dom = getDom();
         if (dom.profileForm) {
             dom.profileForm.onsubmit = (e) => {
@@ -45,7 +41,7 @@ export function initProfilePage() {
                 saveProfile(user.uid);
             };
         }
-        
+
         if (dom.btnResetPassword) {
             dom.btnResetPassword.onclick = () => handlePasswordReset(user.email);
         }
@@ -55,7 +51,7 @@ export function initProfilePage() {
 async function loadFullProfile(user) {
     const dom = getDom();
     if (dom.inpEmail) dom.inpEmail.value = user.email;
-    
+
     try {
         const userData = await getUserProfile(user.uid);
         if (userData) {
@@ -90,7 +86,7 @@ function populateForm(userData, user) {
 function updateInfoCard(data, user) {
     const dom = getDom();
     const fullName = `${data.ad || ''} ${data.soyad || ''}`.trim() || user.displayName || "İsimsiz";
-    
+
     if (dom.profileNameMain) dom.profileNameMain.textContent = fullName;
     if (dom.profileRoleMain) dom.profileRoleMain.textContent = translateRole(data.role);
     if (dom.displayTarget) dom.displayTarget.textContent = data.targetExam || "Belirtilmedi";
@@ -100,7 +96,7 @@ function updateInfoCard(data, user) {
     if (photoURL && dom.profileAvatarMain) {
         dom.profileAvatarMain.src = photoURL;
         dom.profileAvatarMain.style.display = 'block';
-        if(dom.profileAvatarPlaceholder) dom.profileAvatarPlaceholder.style.display = 'none';
+        if (dom.profileAvatarPlaceholder) dom.profileAvatarPlaceholder.style.display = 'none';
     } else {
         if (dom.profileAvatarMain) dom.profileAvatarMain.style.display = 'none';
         if (dom.profileAvatarPlaceholder) {
@@ -118,7 +114,7 @@ function updateGlobalHeader(data, user) {
 
     // header.html ve ui-loader.js ile uyumlu ID'ler
     const globalIds = {
-        names: ['userNameLabel', 'dropdownUserName', 'headerUserName'], 
+        names: ['userNameLabel', 'dropdownUserName', 'headerUserName'],
         circles: ['userAvatarCircle', 'dropdownAvatarCircle'],
         images: ['userAvatarImage', 'dropdownAvatarImage'],
         initials: ['userAvatarInitial', 'dropdownAvatarInitial']
@@ -127,7 +123,7 @@ function updateGlobalHeader(data, user) {
     // İsimleri güncelle
     globalIds.names.forEach(id => {
         const el = document.getElementById(id);
-        if(el) el.textContent = fullName;
+        if (el) el.textContent = fullName;
     });
 
     // Resimleri/Baş harfleri güncelle
@@ -142,11 +138,11 @@ function updateGlobalHeader(data, user) {
             circle.classList.add('has-photo');
             img.src = photoURL;
             img.style.display = 'block';
-            if(initEl) initEl.style.display = 'none';
+            if (initEl) initEl.style.display = 'none';
         } else {
             circle.classList.remove('has-photo');
             img.style.display = 'none';
-            if(initEl) {
+            if (initEl) {
                 initEl.style.display = 'flex';
                 initEl.textContent = initial;
             }
@@ -159,7 +155,7 @@ async function calculateUserStats(uid) {
     try {
         const progressRef = collection(db, `users/${uid}/progress`);
         const snap = await getDocs(progressRef);
-        
+
         let completed = 0;
         let scoreSum = 0;
         let count = 0;
@@ -174,19 +170,9 @@ async function calculateUserStats(uid) {
         });
 
         const avg = count > 0 ? (scoreSum / count).toFixed(0) : "0";
-        
+
         if (dom.statCompleted) dom.statCompleted.textContent = completed;
         if (dom.statScore) dom.statScore.textContent = avg;
-        if (dom.statTestsCompleted) dom.statTestsCompleted.textContent = completed;
-
-        // Demo amaçlı topic sayısı
-        const totalTopics = 20; 
-        const worked = snap.size;
-        const ratio = Math.min(100, Math.round((worked / totalTopics) * 100));
-
-        if (dom.statTopicRatio) dom.statTopicRatio.textContent = `${worked} / ${totalTopics} Konu`;
-        if (dom.statTopicProgress) dom.statTopicProgress.style.width = `${ratio}%`;
-
     } catch (e) {
         console.warn("İstatistik hatası:", e);
     }
@@ -196,7 +182,7 @@ async function saveProfile(uid) {
     const dom = getDom();
     const btn = dom.profileForm.querySelector("button[type='submit']");
     const originalText = btn.textContent;
-    
+
     btn.disabled = true;
     btn.textContent = "Kaydediliyor...";
     dom.saveMessage.textContent = "";
@@ -213,11 +199,11 @@ async function saveProfile(uid) {
 
         await updateDoc(doc(db, "users", uid), payload);
         await updateUserCache(uid, payload);
-        
+
         // UI güncelle
         const user = auth.currentUser;
         const newData = await getUserProfile(user.uid, { force: true });
-        
+
         // 1. Sayfa içi kartı güncelle
         updateInfoCard(newData, user);
         // 2. Header ve Menüyü anlık güncelle (YENİ)
@@ -225,9 +211,9 @@ async function saveProfile(uid) {
 
         dom.saveMessage.textContent = "✓ Kaydedildi";
         dom.saveMessage.style.color = "var(--color-success)";
-        
+
         // 3 saniye sonra mesajı sil
-        setTimeout(() => { if(dom.saveMessage) dom.saveMessage.textContent = ""; }, 3000);
+        setTimeout(() => { if (dom.saveMessage) dom.saveMessage.textContent = ""; }, 3000);
 
     } catch (e) {
         dom.saveMessage.textContent = "Hata: " + e.message;
@@ -239,7 +225,7 @@ async function saveProfile(uid) {
 }
 
 async function handlePasswordReset(email) {
-    if(!email) return;
+    if (!email) return;
     const shouldSend = await showConfirm("Şifre sıfırlama bağlantısını e-posta adresinize göndermek istiyor musunuz?", {
         title: "Şifre Sıfırlama",
         confirmText: "Gönder",
@@ -260,7 +246,7 @@ function initTabs() {
         btn.addEventListener("click", () => {
             tabs.forEach(t => t.classList.remove("active"));
             btn.classList.add("active");
-            
+
             const targetId = `tab-${btn.dataset.tab}`;
             bodies.forEach(b => {
                 b.classList.toggle("active", b.id === targetId);
@@ -270,7 +256,7 @@ function initTabs() {
 }
 
 function translateRole(role) {
-    if(role === 'admin') return 'Yönetici';
-    if(role === 'editor') return 'Editör';
+    if (role === 'admin') return 'Yönetici';
+    if (role === 'editor') return 'Editör';
     return 'Öğrenci';
 }

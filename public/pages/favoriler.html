@@ -3,15 +3,15 @@
 
 <head>
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Favoriler | GOLD GYS</title>
   <link rel="stylesheet" href="../styles/tokens.css">
-    <link rel="stylesheet" href="../css/app.css">
+  <link rel="stylesheet" href="../css/app.css">
   <link rel="stylesheet" href="../css/layout.css">
   <link rel="stylesheet" href="../css/dashboard.css">
   <style>
@@ -269,7 +269,7 @@
   </style>
   <link rel="icon" type="image/svg+xml" href="../icons/favicon.svg">
   <link rel="manifest" href="/manifest.json">
-    <script src="/js/theme-init.js"></script>
+  <script src="/js/theme-init.js"></script>
 </head>
 
 <body>
@@ -458,19 +458,37 @@
       }
 
       try {
-        let q = query(
-          collection(db, `users/${uid}/favorites`),
-          // orderBy('addedAt', 'desc'), // Eğer addedAt varsa eklenmeli, şimdilik default
-          limit(state.PAGE_SIZE)
-        );
+        const cacheKey = `user_favorites_${uid}`;
+        let allFavoritesRaw = [];
 
-        if (state.lastVisible) {
-          q = query(q, startAfter(state.lastVisible));
+        const cachedFavs = await CacheManager.getData(cacheKey, 60 * 60 * 1000); // 1 hour TTL
+
+        if (cachedFavs?.cached && Array.isArray(cachedFavs.data)) {
+          allFavoritesRaw = cachedFavs.data;
+          console.log("[Cache] Favoriler IndexedDB'den yüklendi (/favoriler)");
+        } else {
+          console.log("[Network] Favoriler Firestore'dan çekiliyor...");
+          // Instead of pulling page by page, load up to 500 favorites and cache them for client-side pagination.
+          const q = query(
+            collection(db, `users/${uid}/favorites`),
+            limit(500)
+          );
+          const snapshot = await getDocs(q);
+
+          allFavoritesRaw = snapshot.docs.map(docSnap => ({
+            id: docSnap.id,
+            questionId: docSnap.data().questionId || docSnap.id,
+            data: docSnap.data()
+          }));
+
+          await CacheManager.saveData(cacheKey, allFavoritesRaw, 60 * 60 * 1000);
         }
 
-        const snapshot = await getDocs(q);
+        const startIndex = state.favorites.length;
+        const endIndex = startIndex + state.PAGE_SIZE;
+        const pagedFavorites = allFavoritesRaw.slice(startIndex, endIndex);
 
-        if (snapshot.empty) {
+        if (pagedFavorites.length === 0) {
           state.hasMore = false;
           if (isInitial) renderEmptyState();
           else updateLoadMoreButton(); // Butonu kaldır
@@ -478,13 +496,11 @@
           return;
         }
 
-        state.lastVisible = snapshot.docs[snapshot.docs.length - 1];
+        if (endIndex >= allFavoritesRaw.length) {
+          state.hasMore = false;
+        }
 
-        const rawFavorites = snapshot.docs.map(docSnap => ({
-          id: docSnap.id,
-          questionId: docSnap.data().questionId || docSnap.id,
-          data: docSnap.data()
-        }));
+        const rawFavorites = pagedFavorites;
 
         // Soruları Çek (Cache -> Firestore)
         const activeQuestions = await fetchActiveQuestionsEfficiently(rawFavorites.map(fav => fav.questionId));
@@ -805,6 +821,9 @@
 
       const uid = auth.currentUser.uid;
       await deleteDoc(doc(db, `users/${uid}/favorites`, id));
+
+      // Invalidate cache so it doesn't reappear on reload
+      await CacheManager.deleteData(`user_favorites_${uid}`);
 
       state.favorites = state.favorites.filter(item => item.id !== id);
       buildCategoryData();

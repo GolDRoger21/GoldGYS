@@ -11,8 +11,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Deneme Sınavları | GOLD GYS</title>
     <link rel="stylesheet" href="../styles/tokens.css">
-      <link rel="stylesheet" href="../css/app.css">
-  <link rel="stylesheet" href="../css/layout.css">
+    <link rel="stylesheet" href="../css/app.css">
+    <link rel="stylesheet" href="../css/layout.css">
     <link rel="stylesheet" href="../css/dashboard.css">
     <style>
         body {
@@ -358,6 +358,7 @@
     <script type="module">
         import { initLayout } from '../js/ui-loader.js';
         import { db } from "../js/firebase-config.js";
+        import { CacheManager } from "../js/cache-manager.js";
         import { collection, getDocs, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const state = {
@@ -471,30 +472,46 @@
             `;
 
             try {
-                const q = query(
-                    collection(db, "exams"),
-                    where("isActive", "==", true),
-                    orderBy("createdAt", "desc")
-                );
+                const cacheKey = 'global_active_exams';
+                const cachedExams = await CacheManager.getData(cacheKey, 24 * 60 * 60 * 1000); // 24 hours
 
-                const snapshot = await getDocs(q);
+                if (cachedExams?.cached && cachedExams.data) {
+                    state.exams = cachedExams.data;
+                    console.log("[Cache] Deneme sınavları IndexedDB'den yüklendi.");
+                } else {
+                    const q = query(
+                        collection(db, "exams"),
+                        where("isActive", "==", true),
+                        orderBy("createdAt", "desc")
+                    );
 
-                if (snapshot.empty) {
-                    state.exams = [];
-                    renderStats(state.exams);
-                    updateRoleFilter(state.exams);
-                    showEmptyExamsState();
-                    return;
+                    const snapshot = await getDocs(q);
+
+                    if (snapshot.empty) {
+                        state.exams = [];
+                        await CacheManager.saveData(cacheKey, state.exams, 24 * 60 * 60 * 1000);
+                        renderStats(state.exams);
+                        updateRoleFilter(state.exams);
+                        showEmptyExamsState();
+                        return;
+                    }
+
+                    state.exams = snapshot.docs.map((docSnap) => ({
+                        id: docSnap.id,
+                        ...docSnap.data()
+                    }));
+
+                    await CacheManager.saveData(cacheKey, state.exams, 24 * 60 * 60 * 1000);
+                    console.log("[Network] Deneme sınavları Firestore'dan çekildi.");
                 }
 
-                state.exams = snapshot.docs.map((docSnap) => ({
-                    id: docSnap.id,
-                    ...docSnap.data()
-                }));
-
-                renderStats(state.exams);
-                updateRoleFilter(state.exams);
-                renderExams(state.exams);
+                if (state.exams.length === 0) {
+                    showEmptyExamsState();
+                } else {
+                    renderStats(state.exams);
+                    updateRoleFilter(state.exams);
+                    renderExams(state.exams);
+                }
             } catch (error) {
                 console.error("Hata:", error);
                 grid.innerHTML = `<div class="empty-state">Bağlantı hatası: ${error.message}</div>`;
