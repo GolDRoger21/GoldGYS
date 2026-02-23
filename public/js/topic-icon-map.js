@@ -1,9 +1,11 @@
 export function pickTopicIcon(title = '', category, { isSubtopic = false } = {}) {
+  const trFlagStr = '<img src="https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f1f9-1f1f7.svg" alt="🇹🇷" style="width: 1em; height: 1em; margin: 0 0.05em 0 0.1em; vertical-align: -0.1em; pointer-events: none;">';
+
   const iconRules = [
-    { match: /atatürk ilkeleri ve inkılap tarihi, ulusal güvenlik/i, icon: '🇹🇷' },
+    { match: /atatürk ilkeleri ve inkılap tarihi, ulusal güvenlik/i, icon: trFlagStr },
     { match: /1 sayılı cb|cumhurbaşkanlığı/i, icon: '☀️' },
     { match: /anayasa|anayasal/i, icon: '⚖️' },
-    { match: /atatürk|inkılap|kurtuluş|mill[iî] mücadele/i, icon: '🇹🇷' },
+    { match: /atatürk|inkılap|kurtuluş|mill[iî] mücadele/i, icon: trFlagStr },
 
     { match: /bakanlık teşkilatı|adalet bakanlığı/i, icon: '🏛️' },
     { match: /yargı örgütü|adliye/i, icon: '🏛️' },
