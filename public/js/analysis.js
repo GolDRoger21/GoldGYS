@@ -191,15 +191,7 @@ async function initAnalysis(userId) {
 
         const categoryTotals = buildCategoryTotals(state.results, state.topics, state.topicResets);
         state.successMap = buildTopicSuccessMap(state.topics, categoryTotals);
-
-        calculateKPIs(state.results);
-        calculatePredictedScore(state.results);
-        renderProgressChart(state.results);
-        renderTopicChart(categoryTotals);
-        renderHistoryTable(state.results);
-        renderTopicList();
-        renderLevelSystem();
-        setLastUpdateState();
+        renderAnalysisState(categoryTotals);
     } catch (error) {
         console.error("Analiz hatası:", error);
         const updateEl = document.getElementById('lastUpdate');
@@ -215,6 +207,19 @@ function setLastUpdateState() {
     updateEl.innerText = `Son Güncelleme: ${new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}`;
     updateEl.classList.remove('status-in-progress');
     updateEl.classList.add('status-completed');
+}
+
+function renderAnalysisState(categoryTotals = null) {
+    const totals = categoryTotals || buildCategoryTotals(state.results, state.topics, state.topicResets);
+    state.successMap = buildTopicSuccessMap(state.topics, totals);
+    calculateKPIs(state.results);
+    calculatePredictedScore(state.results);
+    renderProgressChart(state.results);
+    renderTopicChart(totals);
+    renderHistoryTable(state.results);
+    renderTopicList();
+    renderLevelSystem();
+    setLastUpdateState();
 }
 
 function calculateKPIs(results) {
@@ -424,14 +429,14 @@ function renderHistoryTable(results) {
         const finalNet = net % 1 === 0 ? net : net.toFixed(2);
 
         return `<tr>
-            <td><div class="table-date-pill">${date}</div></td>
-            <td><strong style="color:var(--text-primary); font-weight:500;">${r.examTitle || 'Genel Test'}</strong></td>
-            <td>
+            <td data-label="Test Tarihi"><div class="table-date-pill">${date}</div></td>
+            <td data-label="Sınav / Test Adı"><strong style="color:var(--text-primary); font-weight:500;">${r.examTitle || 'Genel Test'}</strong></td>
+            <td data-label="Performans">
                <span style="color:var(--color-success)">${parseNum(r.correct)}D</span>
                <span style="color:var(--color-danger); margin-left:4px;">${parseNum(r.wrong)}Y</span>
                <span style="color:var(--text-muted); margin-left:8px; font-weight:600;">${finalNet} Net</span>
             </td>
-            <td><div class="score-badge">%${parseNum(r.score)}</div></td>
+            <td data-label="Başarı"><div class="score-badge">%${parseNum(r.score)}</div></td>
         </tr>`;
     }).join('');
 }
@@ -484,14 +489,14 @@ function renderTopicList() {
         const topicUrl = buildTopicPath ? buildTopicPath(topic) : `/konu/${topic.slug || topic.id}`;
 
         return `<tr class="topic-row ${isCurrentRow}" data-status="${status}">
-            <td>
+            <td data-label="Konu">
                 <a href="${topicUrl}" class="topic-title-main" style="text-decoration:none; display:flex; align-items:center; gap:8px;">
                     <span style="color:var(--text-main); transition:color 0.2s;" onmouseover="this.style.color='var(--color-primary)'" onmouseout="this.style.color='var(--text-main)'">${topic.title}</span>
                     ${topic.id === state.currentTopicId ? '<span class="focus-indicator">🌟 Odak</span>' : ''}
                 </a>
                 <div class="topic-desc-sub">${topic.description || 'Açıklama veya ek bilgi yok.'}</div>
             </td>
-            <td>
+            <td data-label="Başarı">
                 <div class="progress-container">
                     <div class="progress-bar-wrap">
                         <div class="progress-bar-fill" style="width:${success}%; background: ${getProgressColor(success)};"></div>
@@ -499,8 +504,8 @@ function renderTopicList() {
                     <span class="progress-val" style="color: ${getProgressColor(success)};">%${success}</span>
                 </div>
             </td>
-            <td>${badgeData}</td>
-            <td>
+            <td data-label="Durum">${badgeData}</td>
+            <td data-label="İşlemler">
               <div class="action-buttons">
                 <button class="glass-btn btn-complete" onclick="window.toggleTopicStatus('${topic.id}', 'completed')" title="Öğrendim / Çalıştım">
                     <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
@@ -596,7 +601,11 @@ window.toggleTopicStatus = async (topicId, newStatus) => {
     const shouldUpdate = await showConfirm('Konu durumunu güncellemek istiyor musun?', { title: 'Durum Güncelle', confirmText: 'Güncelle', cancelText: 'Vazgeç', tone: 'warning' });
     if (!shouldUpdate) return;
     await setDoc(doc(db, `users/${state.userId}/topic_progress`, topicId), { status: newStatus, manualCompleted: true, updatedAt: serverTimestamp() }, { merge: true });
-    await initAnalysis(state.userId);
+    const nowSeconds = Math.floor(Date.now() / 1000);
+    const current = state.progressMap.get(topicId) || {};
+    state.progressMap.set(topicId, { ...current, status: newStatus, manualCompleted: true, updatedAt: { seconds: nowSeconds } });
+    await CacheManager.saveData(`topic_progress_col_${state.userId}`, [...state.progressMap.entries()].map(([id, data]) => ({ id, data })), 5 * 60 * 1000);
+    renderAnalysisState();
 };
 
 window.setFocusTopic = async (topicId) => {
@@ -610,9 +619,14 @@ window.setFocusTopic = async (topicId) => {
         await setDoc(doc(db, `users/${state.userId}/topic_progress`, topicId), { status: 'in_progress', updatedAt: serverTimestamp() }, { merge: true });
     }
 
-    // YENİ: Anasayfadaki listelerin anında senkronize olması için önbellek sıfırlanır
-    await CacheManager.deleteData(`topic_progress_col_${state.userId}`);
-    await initAnalysis(state.userId);
+    const nowSeconds = Math.floor(Date.now() / 1000);
+    state.currentTopicId = isCurrent ? null : topicId;
+    if (!isCurrent) {
+        const current = state.progressMap.get(topicId) || {};
+        state.progressMap.set(topicId, { ...current, status: 'in_progress', updatedAt: { seconds: nowSeconds } });
+    }
+    await CacheManager.saveData(`topic_progress_col_${state.userId}`, [...state.progressMap.entries()].map(([id, data]) => ({ id, data })), 5 * 60 * 1000);
+    renderAnalysisState();
 };
 
 window.resetTopicStats = async (topicId) => {
@@ -641,8 +655,22 @@ window.resetTopicStats = async (topicId) => {
         answers: {}
     }, { merge: true });
 
-    await CacheManager.deleteData(`topic_progress_col_${state.userId}`);
-    await initAnalysis(state.userId);
+    const nowSeconds = Math.floor(Date.now() / 1000);
+    state.topicResets[topicId] = nowSeconds;
+    if (state.currentTopicId === topicId) state.currentTopicId = null;
+    const current = state.progressMap.get(topicId) || {};
+    state.progressMap.set(topicId, {
+        ...current,
+        status: 'pending',
+        manualCompleted: false,
+        updatedAt: { seconds: nowSeconds },
+        lastSyncedAt: { seconds: nowSeconds },
+        solvedCount: 0,
+        solvedIds: [],
+        answers: {}
+    });
+    await CacheManager.saveData(`topic_progress_col_${state.userId}`, [...state.progressMap.entries()].map(([id, data]) => ({ id, data })), 5 * 60 * 1000);
+    renderAnalysisState();
 };
 
 async function resetAllStats() {
@@ -675,7 +703,22 @@ async function resetAllStats() {
         console.warn("Toplu progress sıfırlama uyarısı:", err);
     }
 
-    await CacheManager.deleteData(`topic_progress_col_${state.userId}`);
-    await CacheManager.deleteData(`exam_results_col_${state.userId}`);
-    await initAnalysis(state.userId);
+    const nowSeconds = Math.floor(Date.now() / 1000);
+    state.statsResetAt = nowSeconds;
+    state.topicResets = {};
+    state.currentTopicId = null;
+    state.progressMap.forEach((data, key) => {
+        state.progressMap.set(key, {
+            ...data,
+            status: 'pending',
+            manualCompleted: false,
+            updatedAt: { seconds: nowSeconds },
+            lastSyncedAt: { seconds: nowSeconds },
+            solvedCount: 0,
+            solvedIds: [],
+            answers: {}
+        });
+    });
+    await CacheManager.saveData(`topic_progress_col_${state.userId}`, [...state.progressMap.entries()].map(([id, data]) => ({ id, data })), 5 * 60 * 1000);
+    renderAnalysisState();
 }
