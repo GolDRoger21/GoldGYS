@@ -719,3 +719,123 @@
     grid-template-columns: 1fr;
   }
 }
+
+
+/* --- Mobile refinement pass: compact KPIs + professional list cards --- */
+@media (max-width: 768px) {
+  .stats-grid {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .stats-grid::-webkit-scrollbar {
+    height: 4px;
+  }
+
+  .stats-grid::-webkit-scrollbar-thumb {
+    background: rgba(212, 175, 55, 0.4);
+    border-radius: 999px;
+  }
+
+  .stats-grid .kpi-card {
+    flex: 0 0 130px;
+    min-height: 76px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    gap: 4px;
+    scroll-snap-align: start;
+  }
+
+  .stats-grid .kpi-card span {
+    font-size: 0.65rem;
+    letter-spacing: 0.35px;
+    line-height: 1.2;
+  }
+
+  .stats-grid .kpi-card strong {
+    font-size: 1.15rem;
+    line-height: 1.1;
+  }
+
+  .analysis-page > .glass-card {
+    border-radius: 16px;
+  }
+
+  .analysis-page .card-header {
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .analysis-page .card-title {
+    font-size: 0.98rem;
+    line-height: 1.35;
+  }
+
+  .topic-controls {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 12px;
+    padding: 10px;
+  }
+
+  .chip-group button.status-badge {
+    border-radius: 10px;
+    font-size: 0.8rem;
+  }
+
+  .mastery-table tr,
+  .admin-table tr {
+    padding: 10px;
+    border-radius: 12px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .mastery-table td,
+  .admin-table td {
+    display: block;
+    text-align: left;
+    padding: 6px 4px;
+  }
+
+  .mastery-table td::before,
+  .admin-table td::before {
+    display: block;
+    margin-bottom: 4px;
+    max-width: 100%;
+    font-size: 0.68rem;
+  }
+
+  .topic-title-main,
+  .topic-desc-sub {
+    text-align: left;
+    justify-content: flex-start;
+  }
+
+  .progress-container {
+    min-width: 0;
+  }
+
+  .action-buttons {
+    justify-content: flex-start;
+    padding-top: 2px;
+  }
+
+  #historyTableBody td .score-badge {
+    display: inline-flex;
+  }
+}
+
+@media (max-width: 420px) {
+  .stats-grid .kpi-card {
+    flex-basis: 120px;
+  }
+
+  .analysis-page .card-title {
+    font-size: 0.92rem;
+  }
+}
