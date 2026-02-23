@@ -192,32 +192,6 @@ async function loadRequiredHTML(isAdminPage) {
         document.body.appendChild(overlay);
     }
 
-    // Mobil Bottom Navigation (Sadece Kullanıcı Paneli İçin)
-    if (!isAdminPage && !document.getElementById('mobileBottomNav')) {
-        const bottomNav = document.createElement('nav');
-        bottomNav.className = 'mobile-bottom-nav';
-        bottomNav.id = 'mobileBottomNav';
-        bottomNav.innerHTML = `
-            <a href="/dashboard" class="mobile-nav-item" data-page="dashboard">
-                <span class="icon">🏠</span>
-                <span class="label">Anasayfa</span>
-            </a>
-            <a href="/konular" class="mobile-nav-item" data-page="lessons">
-                <span class="icon">📚</span>
-                <span class="label">Dersler</span>
-            </a>
-            <a href="/denemeler" class="mobile-nav-item" data-page="trials">
-                <span class="icon">📝</span>
-                <span class="label">Denemeler</span>
-            </a>
-            <a href="/profil" class="mobile-nav-item" data-page="profile">
-                <span class="icon">👤</span>
-                <span class="label">Profil</span>
-            </a>
-        `;
-        document.querySelector('.app-layout').appendChild(bottomNav);
-    }
-
     await Promise.all([
         loadHTML(headerUrl, headerContainer),
         loadHTML(sidebarUrl, sidebarContainer)
@@ -472,13 +446,8 @@ function updateUIWithUserData(user, profile, hasPrivilege) {
 
 function setActiveMenuItem(pageId) {
     document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
-    document.querySelectorAll('.mobile-nav-item').forEach(item => item.classList.remove('active'));
 
     // Hem data-page hem data-tab (admin için) kontrol et
-    const activeSidebar = document.querySelector(`.nav-item[data-page="${pageId}"], .nav-item[data-tab="${pageId}"]`);
-    if (activeSidebar) activeSidebar.classList.add('active');
-
-    // Bottom Nav Aktiflik Kontrolü
-    const activeBottom = document.querySelector(`.mobile-nav-item[data-page="${pageId}"]`);
-    if (activeBottom) activeBottom.classList.add('active');
+    const activeItem = document.querySelector(`.nav-item[data-page="${pageId}"], .nav-item[data-tab="${pageId}"]`);
+    if (activeItem) activeItem.classList.add('active');
 }
