@@ -1258,26 +1258,27 @@
         window.history.replaceState({}, '', buildTopicPath(currentTopicId));
       }
 
-
-      // 1. Önce Konu Başlığını Çek
-      await loadTopicHeader();
-
-      // 2. Alt Konuları ve İçerikleri Çek (Hata olursa devam et)
       try {
-        await loadTopicData();
+        // BAŞLIK VE VERİLERİ PARALEL BAŞLATIYORUZ (Performans kazanımı)
+        const headerPromise = loadTopicHeader();
+        const dataPromise = loadTopicData();
+
+        const [_, hasSubtopics] = await Promise.all([headerPromise, dataPromise]);
+
+        // EĞER SADECE TEKİL KONU İSE (Alt konuları yoksa) KENDİ İSTATİSTİKLERİNİ ÇEK VE GÖSTER
+        if (!hasSubtopics) {
+          await loadSingleTopicQuestionCount();
+          onAuthStateChanged(auth, async (user) => {
+            if (user) {
+              await loadSingleTopicQuestionCount();
+            }
+          });
+        }
+
       } catch (error) {
         console.error("Veri yükleme sırasında hata:", error);
-        // Hata olsa bile "Yükleniyor" yazısını kaldırıp boş state gösterelim
         document.getElementById('testsList').innerHTML = '<div class="test-card">Veriler yüklenirken bir bağlantı hatası oluştu.</div>';
       }
-
-      await loadQuestionCount();
-
-      onAuthStateChanged(auth, async (user) => {
-        if (user) {
-          await loadQuestionCount();
-        }
-      });
     });
 
     async function loadTopicHeader() {
@@ -1450,16 +1451,20 @@
       const materialsContainer = document.getElementById('materialsList');
 
       let validCompletedIds = new Set();
-      if (auth.currentUser) {
-        try {
-          const completedRef = collection(db, `users/${auth.currentUser.uid}/completed_tests`);
-          const q = query(completedRef, where("topicId", "==", currentTopicId));
-          const snap = await getDocs(q);
-          snap.forEach(d => validCompletedIds.add(d.id));
-        } catch (e) {
-          console.warn("Tamamlanan testler çekilemedi:", e);
+
+      // Tamamlanmış testler sorgusu
+      const fetchCompletedTests = async () => {
+        if (auth.currentUser) {
+          try {
+            const completedRef = collection(db, `users/${auth.currentUser.uid}/completed_tests`);
+            const q = query(completedRef, where("topicId", "==", currentTopicId));
+            const snap = await getDocs(q);
+            snap.forEach(d => validCompletedIds.add(d.id));
+          } catch (e) {
+            console.warn("Tamamlanan testler çekilemedi:", e);
+          }
         }
-      }
+      };
 
       // Fonksiyon: İçerikleri Ekrana Render Etme
       const renderContent = (contentLessons) => {
@@ -1552,34 +1557,46 @@
         if (domTestCount) domTestCount.innerText = testCount;
       };
 
-      try {
-        const cacheKey = `topic_lessons_${currentTopicId}`;
-        const cachedData = await CacheManager.getData(cacheKey);
+      // Ders İçerikleri Sorgusu (Cache veya Firestore)
+      const fetchLessons = async () => {
+        try {
+          const cacheKey = `topic_lessons_${currentTopicId}`;
+          const cachedData = await CacheManager.getData(cacheKey);
 
-        if (cachedData?.cached && cachedData.data) {
-          console.log(`[Cache Hit] Ders notları IndexedDB'den yüklendi (${cacheKey}) ve Firestore sorgusu atlandı.`);
-          renderContent(cachedData.data);
-        } else {
-          console.log(`[Cache Miss] Ders notları Firestore'dan çekiliyor... (${currentTopicId})`);
+          if (cachedData?.cached && cachedData.data) {
+            console.log(`[Cache Hit] Ders notları IndexedDB'den yüklendi (${cacheKey}) ve Firestore sorgusu atlandı.`);
+            return cachedData.data;
+          } else {
+            console.log(`[Cache Miss] Ders notları Firestore'dan çekiliyor... (${currentTopicId})`);
 
-          const lessonsQuery = query(collection(db, `topics/${currentTopicId}/lessons`), orderBy("order", "asc"));
-          const lessonsFallback = collection(db, `topics/${currentTopicId}/lessons`);
-          const snapshot = await safeGetDocs(lessonsQuery, lessonsFallback, 'Konu içerikleri');
+            const lessonsQuery = query(collection(db, `topics/${currentTopicId}/lessons`), orderBy("order", "asc"));
+            const lessonsFallback = collection(db, `topics/${currentTopicId}/lessons`);
+            const snapshot = await safeGetDocs(lessonsQuery, lessonsFallback, 'Konu içerikleri');
 
-          const freshLessons = [];
-          snapshot.forEach(doc => {
-            const item = { id: doc.id, ...doc.data() };
-            if (item?.status === 'deleted' || item?.isDeleted || item?.isActive === false) return;
-            freshLessons.push(item);
-          });
+            const freshLessons = [];
+            snapshot.forEach(doc => {
+              const item = { id: doc.id, ...doc.data() };
+              if (item?.status === 'deleted' || item?.isDeleted || item?.isActive === false) return;
+              freshLessons.push(item);
+            });
 
-          await CacheManager.saveData(cacheKey, freshLessons, 24 * 60 * 60 * 1000);
-          renderContent(freshLessons);
+            await CacheManager.saveData(cacheKey, freshLessons, 24 * 60 * 60 * 1000);
+            return freshLessons;
+          }
+
+        } catch (error) {
+          console.error('İçerik yükleme hatası:', error);
+          return [];
         }
+      };
 
-      } catch (error) {
-        console.error('İçerik yükleme hatası:', error);
-      }
+      // İki asenkron işlemi paralel başlatıp bekle
+      const [_, contentLessons] = await Promise.all([
+        fetchCompletedTests(),
+        fetchLessons()
+      ]);
+
+      renderContent(contentLessons || []);
 
       // --- BOŞ DURUM YÖNETİMİ (Kritik Kısım) ---
 
@@ -1704,7 +1721,6 @@
       const list = document.getElementById('subtopicList');
       if (!list) return;
 
-      // Öğeleri dinamik sütunlara böl
       list.className = 'topics-grid';
       if (subtopics.length === 1) {
         list.classList.add('grid-1');
@@ -1716,12 +1732,17 @@
         list.classList.add('grid-even');
       }
 
-      const subtopicCards = await Promise.all(subtopics.map(async (subtopic) => {
-        // İstatistik çekimi
+      // Kümülatif (Genel) Mod İstatistiklerini Toplamak İçin Global Değişkenler
+      let globalTotalQuestions = 0;
+      let globalSolvedQuestions = 0;
+      let globalWrongQuestions = 0;
+
+      const subtopicPromises = subtopics.map(async (subtopic) => {
         let lessonCount = 0;
         let testCount = 0;
         let sTotal = 0;
         let solvedCount = 0;
+        let wrongCount = 0;
 
         try {
           const lessonQuery = query(collection(db, `topics/${subtopic.id}/lessons`), orderBy("order", "asc"));
@@ -1730,7 +1751,6 @@
           let metaPromise = TopicService.getTopicPackMeta(subtopic.id);
           let progressPromise = auth.currentUser ? TopicService.getUserProgress(auth.currentUser.uid, subtopic.id) : Promise.resolve({});
 
-          // Paralel Data Fetch - Lessons and Meta and Progress
           const [lessonSnap, meta, progress] = await Promise.all([
             safeGetDocs(lessonQuery, lessonFallback, 'Alt konu içerikleri'),
             metaPromise,
@@ -1744,22 +1764,21 @@
             else lessonCount += 1;
           });
 
-          // Soru istatistikleri
           sTotal = meta?.questionCount || meta?.questionIds?.length || 0;
-          if (!sTotal) {
-            const allIds = await TopicService.getTopicQuestionIdsById(subtopic.id);
-            sTotal = allIds.length;
-          }
           if (!sTotal && subtopic.title) {
             const allIds = await TopicService.getTopicQuestionIds(subtopic.title);
             sTotal = allIds.length;
           }
 
           solvedCount = (progress.solvedIds || []).length;
+          wrongCount = (progress.wrongIds || []).length;
+
+          globalTotalQuestions += sTotal;
+          globalSolvedQuestions += solvedCount;
+          globalWrongQuestions += wrongCount;
         } catch (e) { console.log('Subtopic istatistik hatası', e); }
 
         const progressPercent = sTotal > 0 ? Math.min(100, Math.round((solvedCount / sTotal) * 100)) : 0;
-
         let iconHtml = '';
         if (typeof pickIcon === 'function') {
           const emoji = pickIcon(subtopic.title, subtopic.category, true);
@@ -1795,99 +1814,45 @@
                     </span>
                 </div>
                 </div>
-                ${subtopic.totalQuestionTarget ? `<div class="topic-question-chip" title="Sınavda Çıkacak Hedef Soru Sayısı">🎯 ${subtopic.totalQuestionTarget}</div>` : ''}
+                ${subtopic.totalQuestionTarget ? `<div class="topic-question-chip" title="Sınavda Hedef ${subtopic.totalQuestionTarget} Soru">🎯 ${subtopic.totalQuestionTarget}</div>` : ''}
             </div>
           </div>
         `;
-      }));
+      });
 
+      const subtopicCards = await Promise.all(subtopicPromises);
       list.innerHTML = subtopicCards.join('');
+
+      // Ana konu statlarını güncelle (2. kez getDocs atlamış olduk)
+      updateStudyModeState(globalTotalQuestions, globalSolvedQuestions, globalWrongQuestions);
     }
 
-    async function loadQuestionCount() {
+    async function loadSingleTopicQuestionCount() {
       if (!currentTopicId) return;
       try {
         let totalCount = 0;
         let solvedCount = 0;
         let wrongCount = 0;
 
-        // Öncelikle alt konu var mı kontrol et (Firestore Index hatası/eksik field hatası almamak için tümünü çekip js ile süzüyoruz)
-        const subtopicsQuery = query(
-          collection(db, "topics"),
-          where("parentId", "==", currentTopicId)
-        );
-        const subtopicsSnap = await getDocs(subtopicsQuery);
-        const activeSubtopics = [];
-        subtopicsSnap.forEach(doc => {
-          const d = doc.data();
-          if (d.isActive !== false && d.status !== 'deleted' && !d.isDeleted) {
-            activeSubtopics.push({ id: doc.id, ...d });
-          }
-        });
-        const hasSubtopics = activeSubtopics.length > 0;
+        // TEKİL KONU - Yalnızca kendi metadatası ve ilerlemesini çeker (ekstra fallback getDocs iptal edilmiştir)
+        let metaPromise = TopicService.getTopicPackMeta(currentTopicId);
+        let progressPromise = auth.currentUser ? TopicService.getUserProgress(auth.currentUser.uid, currentTopicId) : Promise.resolve({});
 
-        if (hasSubtopics) {
-          // Üst Konu (Kapsayıcı Modu): Tüm alt konuların verilerini topla
-          const subtopicPromises = activeSubtopics.map(async (subtopic) => {
-            const sId = subtopic.id;
-            let sTotal = 0;
-            let sSolved = 0;
-            let sWrong = 0;
+        const [meta, progress] = await Promise.all([metaPromise, progressPromise]);
 
-            const metaPromise = TopicService.getTopicPackMeta(sId);
-            const progressPromise = auth.currentUser ? TopicService.getUserProgress(auth.currentUser.uid, sId) : Promise.resolve({});
+        totalCount = meta?.questionCount || meta?.questionIds?.length || 0;
 
-            const [meta, progress] = await Promise.all([metaPromise, progressPromise]);
-
-            sTotal = meta?.questionCount || meta?.questionIds?.length || 0;
-            if (!sTotal) {
-              const allIds = await TopicService.getTopicQuestionIdsById(sId);
-              sTotal = allIds.length;
-            }
-            if (!sTotal && subtopic.title) {
-              const allIds = await TopicService.getTopicQuestionIds(subtopic.title);
-              sTotal = allIds.length;
-            }
-
-            sSolved = (progress.solvedIds || []).length;
-            sWrong = (progress.wrongIds || []).length;
-
-            return { sTotal, sSolved, sWrong };
-          });
-
-          const results = await Promise.all(subtopicPromises);
-          for (const res of results) {
-            totalCount += res.sTotal;
-            solvedCount += res.sSolved;
-            wrongCount += res.sWrong;
-          }
-        } else {
-          // Normal Konu
-          // 1. Toplam Soru Sayısı
-          const meta = await TopicService.getTopicPackMeta(currentTopicId);
-          totalCount = meta?.questionCount || meta?.questionIds?.length || 0;
-
-          if (!totalCount) {
-            const allIds = await TopicService.getTopicQuestionIdsById(currentTopicId);
-            totalCount = allIds.length;
-          }
-
-          if (!totalCount && topicTitle) {
-            const allIds = await TopicService.getTopicQuestionIds(topicTitle);
-            totalCount = allIds.length;
-          }
-
-          // 2. Çözülenler ve Yanlışlar
-          if (auth.currentUser) {
-            const progress = await TopicService.getUserProgress(auth.currentUser.uid, currentTopicId);
-            solvedCount = (progress.solvedIds || []).length;
-            wrongCount = (progress.wrongIds || []).length;
-          }
+        if (!totalCount && topicTitle) {
+          const allIds = await TopicService.getTopicQuestionIds(topicTitle);
+          totalCount = allIds.length;
         }
 
-        // Fallback: If network fetch failed but user has solved questions, totalCount must be at least solvedCount
-        totalCount = Math.max(totalCount || 0, solvedCount || 0);
+        if (auth.currentUser) {
+          solvedCount = (progress.solvedIds || []).length;
+          wrongCount = (progress.wrongIds || []).length;
+        }
 
+        totalCount = Math.max(totalCount || 0, solvedCount || 0);
         updateStudyModeState(totalCount, solvedCount, wrongCount);
       } catch (e) {
         console.warn("Soru sayısı çekilemedi:", e);
