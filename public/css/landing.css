@@ -218,6 +218,15 @@ main {
     display: flex;
     align-items: center;
     justify-content: center;
+    transition: color 0.3s;
+}
+
+.btn-icon-mobile:hover {
+    color: var(--gold-main);
+}
+
+.nav-auth-buttons {
+    display: none;
 }
 
 /* Accessibility Utility */
@@ -1238,18 +1247,22 @@ main {
     }
 
     .nav-auth-buttons {
+        display: flex;
         flex-direction: column;
         gap: 1rem;
         margin-left: 0;
         width: 100%;
         margin-top: 2rem;
+        padding: 0 1.5rem;
     }
 
     .nav-auth-buttons .btn {
-        width: min(280px, 80%);
-        padding: 0.8rem 1.5rem;
-        font-size: 1rem;
+        width: 100%;
+        padding: 0.9rem 1.5rem;
+        font-size: 1.05rem;
         justify-content: center;
+        text-align: center;
+        font-weight: 600;
     }
 
     /* Hero Mobile Adjustments */
@@ -1424,6 +1437,17 @@ main {
 
     .hero-title {
         font-size: 2rem;
+    }
+
+    .hero-actions {
+        flex-direction: column !important;
+        gap: 1rem;
+        width: 100%;
+    }
+
+    .hero-actions .btn {
+        width: 100%;
+        justify-content: center;
     }
 
     .feature-card,

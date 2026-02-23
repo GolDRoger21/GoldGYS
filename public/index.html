@@ -29,8 +29,8 @@
         content="Yapay zeka destekli analizler ve mevzuata tam uyumlu denemelerle kariyerinizde zirveye çıkın.">
     <meta property="twitter:image" content="https://goldgys.web.app/img/og-image.jpg">
 
-    
-    
+
+
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:wght@700;800&display=swap"
         rel="stylesheet">
@@ -59,6 +59,11 @@
                 <a href="#journey" class="nav-link">Nasıl Çalışır?</a>
                 <a href="/pages/yardim.html" class="nav-link">Yardım</a>
 
+                <!-- Sadece mobilde görünen menü içi butonlar -->
+                <div class="nav-auth-buttons">
+                    <a href="login.html?mode=login" class="btn btn-glass" id="mobileMenuLoginBtn">Giriş Yap</a>
+                    <a href="login.html?mode=register" class="btn btn-primary" id="mobileMenuRegisterBtn">Kayıt Ol</a>
+                </div>
             </div>
 
             <div class="header-actions-group">
@@ -96,6 +101,17 @@
                             <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
                             <polyline points="10 17 15 12 10 7" />
                             <line x1="15" y1="12" x2="3" y2="12" />
+                        </svg>
+                    </a>
+
+                    <a href="login.html?mode=register" class="btn-icon-mobile" id="mobileRegisterBtn"
+                        aria-label="Kayıt Ol">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                            <circle cx="8.5" cy="7" r="4" />
+                            <line x1="20" y1="8" x2="20" y2="14" />
+                            <line x1="23" y1="11" x2="17" y2="11" />
                         </svg>
                     </a>
                 </div>
@@ -419,7 +435,7 @@
                 }
                 if (navRegBtn) navRegBtn.style.display = "none";
 
-                // Mobil Buton Güncellemesi
+                // Mobil Buton Güncellemesi (Header İkonları)
                 if (mobLoginBtn) {
                     mobLoginBtn.href = "/dashboard";
                     mobLoginBtn.classList.add("text-success"); // Vurgula
@@ -433,11 +449,24 @@
                     `;
                 }
                 if (mobRegBtn) mobRegBtn.style.display = "none";
+
+                // Mobil Menü Büyük Butonlar
+                const mobMenuLogin = document.getElementById("mobileMenuLoginBtn");
+                const mobMenuReg = document.getElementById("mobileMenuRegisterBtn");
+                if (mobMenuLogin) {
+                    mobMenuLogin.textContent = "Panele Git";
+                    mobMenuLogin.href = "/dashboard";
+                    mobMenuLogin.className = "btn btn-primary";
+                }
+                if (mobMenuReg) mobMenuReg.style.display = "none";
             } else {
                 // Çıkış yapılmışsa (veya hiç girilmemişse) varsayılana döndür
                 const mobLoginBtn = document.getElementById("mobileLoginBtn");
                 const mobRegBtn = document.getElementById("mobileRegisterBtn");
+                const mobMenuLogin = document.getElementById("mobileMenuLoginBtn");
+                const mobMenuReg = document.getElementById("mobileMenuRegisterBtn");
 
+                // Header mobile icons
                 if (mobLoginBtn) {
                     mobLoginBtn.href = "login.html?mode=login";
                     mobLoginBtn.classList.remove("text-success");
@@ -451,6 +480,14 @@
                     `;
                 }
                 if (mobRegBtn) mobRegBtn.style.display = "flex"; // Tekrar göster
+
+                // Menu big buttons
+                if (mobMenuLogin) {
+                    mobMenuLogin.textContent = "Giriş Yap";
+                    mobMenuLogin.href = "login.html?mode=login";
+                    mobMenuLogin.className = "btn btn-glass";
+                }
+                if (mobMenuReg) mobMenuReg.style.display = "flex";
             }
         });
     </script>
