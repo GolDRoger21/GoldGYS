@@ -460,19 +460,71 @@
 
 .weakness-item {
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 10px;
-  padding: 10px;
+  border-radius: 12px;
+  padding: 12px;
   margin-bottom: 8px;
+  background: rgba(255, 255, 255, 0.02);
 }
 
 .weakness-item strong {
   font-size: 0.9rem;
+  color: #ef4444;
 }
 
 .weakness-item p {
   margin: 5px 0 0;
   color: var(--text-main);
   font-size: 0.83rem;
+}
+
+/* Exam Progress Bar Custom Classes */
+.exam-progress-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+  margin-top: 4px;
+}
+
+.exam-bar-container {
+  display: flex;
+  height: 6px;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.exam-bar-correct {
+  background: #10b981;
+  height: 100%;
+}
+
+.exam-bar-wrong {
+  background: #ef4444;
+  height: 100%;
+}
+
+.exam-stats-text {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  display: flex;
+  justify-content: space-between;
+}
+
+.exam-stats-text span.s-correct {
+  color: #34d399;
+  font-weight: 600;
+}
+
+.exam-stats-text span.s-wrong {
+  color: #f87171;
+  font-weight: 600;
+}
+
+.exam-stats-text span.s-net {
+  color: var(--gold-light);
+  font-weight: 700;
 }
 
 @media (max-width: 1200px) {
@@ -641,25 +693,32 @@
     grid-column: 1 / -1;
     display: flex;
     flex-wrap: nowrap;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
     gap: 6px;
     padding-bottom: 2px;
   }
 
-  .chip-group::-webkit-scrollbar {
-    display: none;
-  }
-
   .chip-group .status-badge {
     justify-content: center;
-    border-radius: 999px;
-    min-height: 30px;
-    font-size: 0.72rem;
-    padding: 4px 12px;
-    flex: 0 0 auto;
+    border-radius: 12px;
+    min-height: 40px;
+    font-size: 0.7rem;
+    padding: 6px 4px;
+    flex: 1 1 0;
     white-space: nowrap;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+  }
+
+  .chip-group .status-badge .fb-icon {
+    font-size: 1rem;
+    line-height: 1;
+  }
+
+  .chip-group .status-badge .fb-text {
+    font-size: 0.6rem;
+    font-weight: 600;
   }
 
   .mastery-table,
@@ -765,19 +824,18 @@
 
   .admin-table td:nth-child(3) {
     grid-area: perf;
-    flex-direction: row;
-    gap: 8px;
+    flex-direction: column;
+    gap: 4px;
     margin-top: 6px;
     padding-top: 8px;
     border-top: 1px dashed rgba(255, 255, 255, 0.1);
-    font-size: 0.8rem;
-    align-items: center;
+    width: 100%;
   }
 
   .admin-table td:nth-child(4) {
     grid-area: score;
     align-items: flex-end;
-    justify-content: center;
+    justify-content: flex-start;
   }
 
   .topic-title-main,
@@ -809,9 +867,14 @@
     height: 14px;
   }
 
-  .insight-grid,
-  .insight-kpis {
+  .insight-grid {
     grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .insight-kpis {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 8px;
   }
 

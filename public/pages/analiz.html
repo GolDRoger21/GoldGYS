@@ -127,7 +127,7 @@
         <section class="insight-grid">
             <article class="glass-card">
                 <div class="card-header">
-                    <div class="card-title">🧠 Bilimsel İlerleme Özeti</div>
+                    <div class="card-title">🧠 İstihbarat Raporu</div>
                 </div>
                 <div class="card-body">
                     <div class="insight-kpis" id="insightKpiGrid"></div>
@@ -136,7 +136,7 @@
             </article>
             <article class="glass-card">
                 <div class="card-header">
-                    <div class="card-title">🎯 Zayıf Alan Eylem Planı</div>
+                    <div class="card-title">⚔️ Taktiksel Operasyon Planı</div>
                 </div>
                 <div class="card-body" id="weaknessPlanList">
                     <p class="text-muted">Öneriler hazırlanıyor...</p>
@@ -156,13 +156,18 @@
                         <option value="alphabetical">A-Z</option>
                     </select>
                     <div class="chip-group" id="topicFilterChips">
-                        <button class="status-badge badge-blue status-in-progress"
-                            data-filter="in_progress">Çalışılanlar</button>
-                        <button class="status-badge badge-gray status-pending"
-                            data-filter="pending">Başlanmayanlar</button>
-                        <button class="status-badge badge-gray status-pending"
-                            data-filter="completed">Bitirilenler</button>
-                        <button class="status-badge badge-gray status-pending" data-filter="all">Tümü</button>
+                        <button class="status-badge badge-blue status-in-progress" data-filter="in_progress">
+                            <span class="fb-icon">⏳</span><span class="fb-text">Çalış.</span>
+                        </button>
+                        <button class="status-badge badge-gray status-pending" data-filter="pending">
+                            <span class="fb-icon">💤</span><span class="fb-text">Başla.</span>
+                        </button>
+                        <button class="status-badge badge-gray status-pending" data-filter="completed">
+                            <span class="fb-icon">✅</span><span class="fb-text">Biten</span>
+                        </button>
+                        <button class="status-badge badge-gray status-pending" data-filter="all">
+                            <span class="fb-icon">🌐</span><span class="fb-text">Tümü</span>
+                        </button>
                     </div>
                 </div>
             </div>

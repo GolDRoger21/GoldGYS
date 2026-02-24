@@ -467,18 +467,45 @@ function renderHistoryTable(results) {
     body.innerHTML = results.slice(0, 12).map(r => {
         const completed = getCompletedSeconds(r);
         const date = completed ? new Date(completed * 1000).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' }) : '-';
-        const net = parseNum(r.correct) - (parseNum(r.wrong) * 0.25);
-        const finalNet = net % 1 === 0 ? net : net.toFixed(2);
+        const correctCount = parseNum(r.correct);
+        const wrongCount = parseNum(r.wrong);
+        const total = getExamTotal(r) || (correctCount + wrongCount) || 1; // avoid divide by zero
+        const net = correctCount - (wrongCount * 0.25);
+        const finalNet = net > 0 ? (net % 1 === 0 ? net : net.toFixed(2)) : 0;
+        const correctPct = Math.round((correctCount / total) * 100);
+        const wrongPct = Math.round((wrongCount / total) * 100);
+        const score = getExamScore(r);
+
+        let displayTopicTitle = r.examTitle || 'Genel Test';
+        if (r.topicId) {
+            const matchedTopic = state.topics.find(t => t.id === r.topicId || t.slug === r.topicId);
+            if (matchedTopic) displayTopicTitle = matchedTopic.title;
+        } else if (r.categoryId) {
+            const matchedCat = state.topics.find(t => t.id === r.categoryId || t.slug === r.categoryId);
+            if (matchedCat) displayTopicTitle = matchedCat.title;
+        }
 
         return `<tr>
             <td data-label="Test Tarihi"><div class="table-date-pill">${date}</div></td>
-            <td data-label="Sınav / Test Adı"><strong style="color:var(--text-primary); font-weight:500;">${r.examTitle || 'Genel Test'}</strong></td>
+            <td data-label="Sınav / Test Adı"><strong style="color:var(--text-primary); font-weight:500;">${displayTopicTitle}</strong></td>
             <td data-label="Performans">
-               <span style="color:var(--color-success)">${parseNum(r.correct)}D</span>
-               <span style="color:var(--color-danger); margin-left:4px;">${parseNum(r.wrong)}Y</span>
-               <span style="color:var(--text-muted); margin-left:8px; font-weight:600;">${finalNet} Net</span>
+               <div class="exam-progress-wrap">
+                  <div class="exam-stats-text">
+                     <span>Toplam: ${total} Soru</span>
+                     <span class="s-net">${finalNet} Net</span>
+                  </div>
+                  <div class="exam-bar-container">
+                     <div class="exam-bar-correct" style="width: ${correctPct}%"></div>
+                     <div class="exam-bar-wrong" style="width: ${wrongPct}%"></div>
+                  </div>
+                  <div class="exam-stats-text" style="font-size: 0.65rem; margin-top:2px;">
+                     <span class="s-correct">${correctCount} D</span>
+                     <span class="s-wrong">${wrongCount} Y</span>
+                     <span>${total - correctCount - wrongCount} B</span>
+                  </div>
+               </div>
             </td>
-            <td data-label="Başarı"><div class="score-badge">%${getExamScore(r)}</div></td>
+            <td data-label="Başarı"><div class="score-badge">%${score}</div></td>
         </tr>`;
     }).join('');
 }
@@ -521,10 +548,10 @@ function renderScientificInsights(categoryTotals) {
 
     const insightGrid = document.getElementById('insightKpiGrid');
     insightGrid.innerHTML = `
-      <div class="insight-pill"><span>Haftalık tempo</span><strong>${weeklyCount} deneme</strong></div>
-      <div class="insight-pill"><span>İstikrar</span><strong>%${consistency}</strong></div>
-      <div class="insight-pill"><span>Trend</span><strong>${trend.delta > 0 ? '+' : ''}${trend.delta} puan</strong></div>
-      <div class="insight-pill"><span>Toplam birikim</span><strong>${exams} deneme</strong></div>
+      <div class="insight-pill"><span>🏃 Haftalık Tempo</span><strong>${weeklyCount} deneme</strong></div>
+      <div class="insight-pill"><span>🛡️ İstikrar</span><strong>%${consistency}</strong></div>
+      <div class="insight-pill"><span>📈 İvme/Trend</span><strong>${trend.delta > 0 ? '+' : ''}${trend.delta} puan</strong></div>
+      <div class="insight-pill"><span>📚 Toplam Birikim</span><strong>${exams} deneme</strong></div>
     `;
 
     const summary = document.getElementById('insightSummaryText');
@@ -542,12 +569,12 @@ function renderScientificInsights(categoryTotals) {
     weaknessPlanList.innerHTML = weakTopics.map((item, index) => {
         const total = categoryTotals[item.topicId]?.total || 0;
         const plan = total < 15
-            ? 'Bu konuda ölçüm az. Önce 20 soruluk mini tarama çöz.'
-            : '2 gün arayla kısa tekrar + 10 soruluk pekiştirme uygula.';
+            ? '⚡ Veri eksik. Hemen 20 soruluk mini bir tekrar testi çözerek zayıflığını ölç.'
+            : '🎯 Öncelikli Görev: 2 gün arayla kısa konu tekrarı yap ve 10 soruluk bir konsept pekiştirme testi uygulamadan diğer konuya geçme.';
         return `
           <article class="weakness-item">
-            <strong>${index + 1}. ${item.topic.title}</strong>
-            <div class="text-muted">Başarı: %${item.success} · Ölçülen soru: ${total}</div>
+            <strong>Kritik Tespit ${index + 1}: ${item.topic.title}</strong>
+            <div class="text-muted" style="margin-top: 4px; font-size: 0.78rem;">Başarı Durumu: <strong>%${item.success}</strong> · Toplam Analiz Edilen Soru: ${total}</div>
             <p>${plan}</p>
           </article>
         `;
