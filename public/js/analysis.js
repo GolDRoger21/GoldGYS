@@ -33,6 +33,18 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
+
+function getEffectiveTopics(topics = state.topics) {
+    const childParentIds = new Set(topics.filter(t => t?.parentId).map(t => t.parentId));
+    return topics.filter(topic => !childParentIds.has(topic.id));
+}
+
+function getTopicCompletionSummary() {
+    const effectiveTopics = getEffectiveTopics();
+    const completed = effectiveTopics.filter(topic => getTopicStatus(topic.id) === 'completed').length;
+    const remaining = Math.max(0, effectiveTopics.length - completed);
+    return { completed, remaining, total: effectiveTopics.length };
+}
 function parseNum(v) {
     const num = Number(v);
     return Number.isFinite(num) ? num : 0;
@@ -624,7 +636,7 @@ function renderTopicList() {
 
 function renderLevelSystem() {
     const totalCorrect = state.results.reduce((sum, exam) => sum + parseNum(exam.correct), 0);
-    const completedTopics = state.topics.filter(topic => getTopicStatus(topic.id) === 'completed').length;
+    const { completed: completedTopics, remaining: remainingTopics } = getTopicCompletionSummary();
     const xp = (totalCorrect * 2) + (state.results.length * 20) + (completedTopics * 50);
 
     const levels = [
@@ -664,6 +676,9 @@ function renderLevelSystem() {
     // completedTopics KPI update
     const completedTopicsEl = document.getElementById('completedTopicsCount');
     if (completedTopicsEl) completedTopicsEl.innerText = completedTopics;
+
+    const remainingTopicsEl = document.getElementById('remainingTopicsCount');
+    if (remainingTopicsEl) remainingTopicsEl.innerText = remainingTopics;
 }
 
 function calculateStudyStreak(results) {
