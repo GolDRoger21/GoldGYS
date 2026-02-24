@@ -110,46 +110,58 @@ function applyGlobalReset(results, resetAtSeconds) {
 
 async function initAnalysis(userId) {
     try {
-        // --- CACHE: TOPICS (24 Saat) ---
-        let allTopics = [];
-        const cachedTopics = await CacheManager.getData('all_topics', 24 * 60 * 60 * 1000);
-        if (cachedTopics?.cached && cachedTopics.data) {
-            allTopics = cachedTopics.data;
-            console.log("[Cache] Konular IndexedDB'den yüklendi (/analiz)");
-        } else {
-            const topicsSnap = await getDocs(query(collection(db, "topics"), orderBy("order", "asc")));
-            allTopics = topicsSnap.docs.map(d => ({ id: d.id, ...d.data() })).filter(t => t.isActive !== false && t.status !== 'deleted' && t.isDeleted !== true);
-            await CacheManager.saveData('all_topics', allTopics, 24 * 60 * 60 * 1000);
-            console.log("[Network] Konular Firestore'dan çekildi ve önbelleğe alındı.");
-        }
+        const fetchTopics = async () => {
+            const cachedTopics = await CacheManager.getData('all_topics', 24 * 60 * 60 * 1000);
+            if (cachedTopics?.cached && cachedTopics.data) {
+                console.log("[Cache] Konular IndexedDB'den yüklendi (/analiz)");
+                return cachedTopics.data;
+            } else {
+                const topicsSnap = await getDocs(query(collection(db, "topics"), orderBy("order", "asc")));
+                const allTopics = topicsSnap.docs.map(d => ({ id: d.id, ...d.data() })).filter(t => t.isActive !== false && t.status !== 'deleted' && t.isDeleted !== true);
+                await CacheManager.saveData('all_topics', allTopics, 24 * 60 * 60 * 1000);
+                console.log("[Network] Konular Firestore'dan çekildi ve önbelleğe alındı.");
+                return allTopics;
+            }
+        };
 
-        // --- CACHE: EXAM RESULTS (5 Dakika) ---
-        const resultsCacheKey = `exam_results_col_${userId}`;
-        let rawResults = [];
-        const cachedResults = await CacheManager.getData(resultsCacheKey, 5 * 60 * 1000);
-        if (cachedResults?.cached && cachedResults.data) {
-            rawResults = cachedResults.data;
-        } else {
-            const resultsQuery = query(collection(db, `users/${userId}/exam_results`), orderBy('completedAt', 'desc'), limit(100));
-            const resultSnap = await getDocs(resultsQuery);
-            rawResults = resultSnap.docs.map(d => d.data());
-            await CacheManager.saveData(resultsCacheKey, rawResults, 5 * 60 * 1000);
-        }
+        const fetchResults = async () => {
+            const resultsCacheKey = `exam_results_col_${userId}`;
+            const cachedResults = await CacheManager.getData(resultsCacheKey, 5 * 60 * 1000);
+            if (cachedResults?.cached && cachedResults.data) {
+                return cachedResults.data;
+            } else {
+                const resultsQuery = query(collection(db, `users/${userId}/exam_results`), orderBy('completedAt', 'desc'), limit(100));
+                const resultSnap = await getDocs(resultsQuery);
+                const rawResults = resultSnap.docs.map(d => d.data());
+                await CacheManager.saveData(resultsCacheKey, rawResults, 5 * 60 * 1000);
+                return rawResults;
+            }
+        };
 
-        // --- CACHE: TOPIC PROGRESS (5 Dakika) ---
-        const progressColCacheKey = `topic_progress_col_${userId}`;
-        let progressMapDocs = [];
-        const cachedProgCol = await CacheManager.getData(progressColCacheKey, 5 * 60 * 1000);
-        if (cachedProgCol?.cached && cachedProgCol.data) {
-            progressMapDocs = cachedProgCol.data;
-        } else {
-            const progressSnap = await getDocs(collection(db, `users/${userId}/topic_progress`));
-            progressMapDocs = progressSnap.docs.map(d => ({ id: d.id, data: d.data() }));
-            await CacheManager.saveData(progressColCacheKey, progressMapDocs, 5 * 60 * 1000);
-        }
+        const fetchProgress = async () => {
+            const progressColCacheKey = `topic_progress_col_${userId}`;
+            const cachedProgCol = await CacheManager.getData(progressColCacheKey, 5 * 60 * 1000);
+            if (cachedProgCol?.cached && cachedProgCol.data) {
+                return cachedProgCol.data;
+            } else {
+                const progressSnap = await getDocs(collection(db, `users/${userId}/topic_progress`));
+                const progressMapDocs = progressSnap.docs.map(d => ({ id: d.id, data: d.data() }));
+                await CacheManager.saveData(progressColCacheKey, progressMapDocs, 5 * 60 * 1000);
+                return progressMapDocs;
+            }
+        };
 
-        // User Meta Dökümanı (Sadece 1 read olduğu için canlı kalabilir veya SWR eklenebilir. Şimdilik canlı)
-        const userSnap = await getDoc(doc(db, "users", userId));
+        const fetchUser = async () => {
+            return await getDoc(doc(db, "users", userId));
+        };
+
+        // Verileri paralel olarak asenkron başlatıyoruz ki sayfa açılış gecikmesi yaşanmasın (Waterfall'ı kırıyoruz)
+        const [allTopics, rawResults, progressMapDocs, userSnap] = await Promise.all([
+            fetchTopics(),
+            fetchResults(),
+            fetchProgress(),
+            fetchUser()
+        ]);
 
         const userData = userSnap.exists() ? userSnap.data() : {};
         state.statsResetAt = normalizeResetTimestamp(userData.statsResetAt);
