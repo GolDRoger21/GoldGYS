@@ -521,7 +521,7 @@ function renderHistoryTable(results) {
             smartTestBadge = '<span class="status-badge badge-gray" style="padding: 2px 6px; font-size: 0.65rem; margin-top:4px;">🔀 Karışık Tekrar</span>';
         }
 
-        let topicSlug = currentTopicId;
+        let topicSlug = null;
         if (r.topicId || r.categoryId) {
             const matchedTheme = state.topics.find(t => t.id === (r.topicId || r.categoryId) || t.slug === (r.topicId || r.categoryId));
             if (matchedTheme) {
