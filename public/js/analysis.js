@@ -76,6 +76,13 @@ function getCompletedSeconds(exam) {
     return exam?.completedAt?.seconds || null;
 }
 
+function getExamScore(exam) {
+    const explicitScore = parseNum(exam?.score);
+    if (explicitScore > 0) return explicitScore;
+    const total = getExamTotal(exam);
+    return total ? Math.round((parseNum(exam.correct) / total) * 100) : 0;
+}
+
 function normalizeResetTimestamp(timestamp) {
     if (!timestamp) return null;
     if (typeof timestamp.seconds === 'number') return timestamp.seconds;
@@ -176,28 +183,7 @@ async function initAnalysis(userId) {
         state.results = applyGlobalReset(rawResults, state.statsResetAt);
         state.topics = allTopics;
 
-        // Tüm konu başlıkları için güncel soru sayısını (metadata) veritabanından/cache'den çek
-        await Promise.all(state.topics.map(async (t) => {
-            try {
-                const meta = await TopicService.getTopicPackMeta(t.id);
-                if (meta) {
-                    t._fetchedTotal = meta.questionCount || (meta.questionIds ? meta.questionIds.length : 0);
-                } else {
-                    // Fallback using CacheManager to prevent heavy `getTopicQuestionIdsById` reads directly
-                    const allIdsCacheKey = `topic_q_ids_${t.id}`;
-                    const cachedIds = await CacheManager.getData(allIdsCacheKey, 24 * 60 * 60 * 1000);
-                    if (cachedIds?.cached && cachedIds.data) {
-                        t._fetchedTotal = cachedIds.data.length;
-                    } else {
-                        const allIds = await TopicService.getTopicQuestionIdsById(t.id);
-                        t._fetchedTotal = allIds.length;
-                        await CacheManager.saveData(allIdsCacheKey, allIds, 24 * 60 * 60 * 1000);
-                    }
-                }
-            } catch (err) {
-                console.warn("Topic meta fetch error:", err);
-            }
-        }));
+        await hydrateTopicTotals(state.topics);
 
         state.progressMap = new Map(progressMapDocs.map(d => [d.id, d.data]));
 
@@ -231,7 +217,39 @@ function renderAnalysisState(categoryTotals = null) {
     renderHistoryTable(state.results);
     renderTopicList();
     renderLevelSystem();
+    renderScientificInsights(totals);
     setLastUpdateState();
+}
+
+async function hydrateTopicTotals(topics) {
+    const unresolved = [];
+    for (const topic of topics) {
+        const totalFromDoc = getTopicQuestionTotal(topic);
+        if (totalFromDoc > 0) {
+            topic._fetchedTotal = totalFromDoc;
+            continue;
+        }
+
+        const cacheKey = `topic_pack_meta_${topic.id}`;
+        const cachedMeta = await CacheManager.getData(cacheKey, 24 * 60 * 60 * 1000);
+        const cachedCount = parseNum(cachedMeta?.data?.questionCount);
+        if (cachedCount > 0) {
+            topic._fetchedTotal = cachedCount;
+            continue;
+        }
+        unresolved.push(topic);
+    }
+
+    // Firestore kotasını korumak için sadece ilk 12 eksik konu için canlı metadata okuması.
+    await Promise.all(unresolved.slice(0, 12).map(async (topic) => {
+        try {
+            const meta = await TopicService.getTopicPackMeta(topic.id);
+            const count = parseNum(meta?.questionCount || (Array.isArray(meta?.questionIds) ? meta.questionIds.length : 0));
+            if (count > 0) topic._fetchedTotal = count;
+        } catch (err) {
+            console.warn('Topic meta read skipped:', err);
+        }
+    }));
 }
 
 function calculateKPIs(results) {
@@ -280,7 +298,7 @@ function calculatePredictedScore(results) {
     let totalWeight = 0;
     recent.forEach((exam, index) => {
         const weight = index + 1;
-        weightedSum += parseNum(exam.score) * weight;
+        weightedSum += getExamScore(exam) * weight;
         totalWeight += weight;
     });
     document.getElementById('predictedScore').innerText = `%${Math.round(weightedSum / totalWeight)}`;
@@ -448,8 +466,78 @@ function renderHistoryTable(results) {
                <span style="color:var(--color-danger); margin-left:4px;">${parseNum(r.wrong)}Y</span>
                <span style="color:var(--text-muted); margin-left:8px; font-weight:600;">${finalNet} Net</span>
             </td>
-            <td data-label="Başarı"><div class="score-badge">%${parseNum(r.score)}</div></td>
+            <td data-label="Başarı"><div class="score-badge">%${getExamScore(r)}</div></td>
         </tr>`;
+    }).join('');
+}
+
+function calculateConsistencyScore(results) {
+    if (results.length < 2) return 0;
+    const sorted = [...results].sort((a, b) => getCompletedSeconds(a) - getCompletedSeconds(b));
+    const scores = sorted.map(getExamScore);
+    const diffs = scores.slice(1).map((value, i) => Math.abs(value - scores[i]));
+    const avgDiff = diffs.reduce((sum, d) => sum + d, 0) / diffs.length;
+    return Math.max(0, Math.min(100, Math.round(100 - (avgDiff * 2))));
+}
+
+function calculateTrend(results) {
+    if (results.length < 4) return { delta: 0, label: 'Veri birikiyor' };
+    const ordered = [...results].sort((a, b) => getCompletedSeconds(a) - getCompletedSeconds(b));
+    const half = Math.floor(ordered.length / 2);
+    const firstAvg = ordered.slice(0, half).reduce((sum, exam) => sum + getExamScore(exam), 0) / Math.max(half, 1);
+    const secondAvg = ordered.slice(half).reduce((sum, exam) => sum + getExamScore(exam), 0) / Math.max(ordered.length - half, 1);
+    const delta = Math.round(secondAvg - firstAvg);
+    if (delta >= 4) return { delta, label: 'Yükseliş trendi' };
+    if (delta <= -4) return { delta, label: 'Düşüş trendi' };
+    return { delta, label: 'Dengeli seyir' };
+}
+
+function renderScientificInsights(categoryTotals) {
+    const exams = state.results.length;
+    const weeklyCount = state.results.filter(exam => {
+        const sec = getCompletedSeconds(exam);
+        return sec && sec * 1000 >= Date.now() - (7 * 24 * 60 * 60 * 1000);
+    }).length;
+    const consistency = calculateConsistencyScore(state.results);
+    const trend = calculateTrend(state.results);
+    const weakTopics = [...state.successMap.entries()]
+        .map(([topicId, success]) => ({ topicId, success, topic: state.topics.find(t => t.id === topicId) }))
+        .filter(row => row.topic)
+        .sort((a, b) => a.success - b.success)
+        .slice(0, 3);
+
+    const insightGrid = document.getElementById('insightKpiGrid');
+    insightGrid.innerHTML = `
+      <div class="insight-pill"><span>Haftalık tempo</span><strong>${weeklyCount} deneme</strong></div>
+      <div class="insight-pill"><span>İstikrar</span><strong>%${consistency}</strong></div>
+      <div class="insight-pill"><span>Trend</span><strong>${trend.delta > 0 ? '+' : ''}${trend.delta} puan</strong></div>
+      <div class="insight-pill"><span>Toplam birikim</span><strong>${exams} deneme</strong></div>
+    `;
+
+    const summary = document.getElementById('insightSummaryText');
+    const weakText = weakTopics.length
+        ? `Öncelik: ${weakTopics.map(item => item.topic.title).join(', ')}.`
+        : 'Henüz zayıf konu tespiti için veri birikmedi.';
+    summary.textContent = `${trend.label}. Son 7 günde ${weeklyCount} deneme çözmüşsün. ${weakText}`;
+
+    const weaknessPlanList = document.getElementById('weaknessPlanList');
+    if (!weakTopics.length) {
+        weaknessPlanList.innerHTML = '<p class="text-muted">Zayıf konu analizi için daha fazla deneme çözmelisin.</p>';
+        return;
+    }
+
+    weaknessPlanList.innerHTML = weakTopics.map((item, index) => {
+        const total = categoryTotals[item.topicId]?.total || 0;
+        const plan = total < 15
+            ? 'Bu konuda ölçüm az. Önce 20 soruluk mini tarama çöz.'
+            : '2 gün arayla kısa tekrar + 10 soruluk pekiştirme uygula.';
+        return `
+          <article class="weakness-item">
+            <strong>${index + 1}. ${item.topic.title}</strong>
+            <div class="text-muted">Başarı: %${item.success} · Ölçülen soru: ${total}</div>
+            <p>${plan}</p>
+          </article>
+        `;
     }).join('');
 }
 
