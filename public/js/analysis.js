@@ -768,10 +768,13 @@ function renderLevelSystem() {
     }
 
     const streakDays = calculateStudyStreak(state.results);
-    document.getElementById('missionList').innerHTML = `
-        <div class="mission-item"><strong>🔥 Çalışma Serisi</strong><div class="text-muted">${streakDays} gün kesintisiz</div></div>
-        <div class="mission-item"><strong>🏆 Yetkinlik Seviyesi</strong><div class="text-muted">${xp} Toplam TP</div></div>
-    `;
+    const missionList = document.getElementById('missionList');
+    if (missionList) {
+        missionList.innerHTML = `
+            <div class="mission-item"><strong>🔥 Çalışma Serisi</strong><div class="text-muted">${streakDays} gün kesintisiz</div></div>
+            <div class="mission-item"><strong>🏆 Yetkinlik Seviyesi</strong><div class="text-muted">${xp} Toplam TP</div></div>
+        `;
+    }
 
     // completedTopics KPI update
     const completedTopicsEl = document.getElementById('completedTopicsCount');
