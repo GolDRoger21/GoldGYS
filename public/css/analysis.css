@@ -802,11 +802,11 @@
   /* ADMIN TABLE CARDS (Recent Exams) */
   .admin-table tr {
     display: grid;
-    grid-template-columns: 1fr auto;
+    grid-template-columns: 1fr;
     grid-template-areas:
-      "title score"
-      "date score"
-      "perf perf";
+      "date-score"
+      "title"
+      "perf";
     gap: 6px 8px;
   }
 
@@ -816,8 +816,10 @@
   }
 
   .admin-table td:nth-child(1) {
-    grid-area: date;
-    align-items: flex-start;
+    grid-area: date-score;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
   }
 
   .admin-table td:nth-child(2) {
@@ -837,9 +839,8 @@
   }
 
   .admin-table td:nth-child(4) {
-    grid-area: score;
-    align-items: flex-end;
-    justify-content: flex-start;
+    display: none;
+    /* Artık badge'i 1. sütunla birleştirdik, bu alana gerek yok */
   }
 
   .topic-title-main,

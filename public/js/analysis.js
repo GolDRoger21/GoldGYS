@@ -482,9 +482,24 @@ function renderHistoryTable(results) {
         body.innerHTML = '<tr><td colspan="4" class="text-center" style="padding: 24px; color: var(--text-muted);">Henüz sınav verisi bulunmuyor. İlk denemeni çöz!</td></tr>';
         return;
     }
-    body.innerHTML = results.slice(0, 12).map(r => {
+
+    // Filtreleme: Aynı sınav (examId) birden fazla kaydedilmişse en güncel olanı tut
+    const uniqueResults = [];
+    const seenExams = new Set();
+
+    for (const r of results) {
+        const uniqueKey = r.examId || `${r.topicId}_${getCompletedSeconds(r)}`;
+        if (!seenExams.has(uniqueKey)) {
+            uniqueResults.push(r);
+            seenExams.add(uniqueKey);
+        }
+    }
+
+    body.innerHTML = uniqueResults.slice(0, 12).map(r => {
         const completed = getCompletedSeconds(r);
-        const date = completed ? new Date(completed * 1000).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' }) : '-';
+        const dateObj = completed ? new Date(completed * 1000) : null;
+        const date = dateObj ? dateObj.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '-';
+
         const correctCount = parseNum(r.correct);
         const wrongCount = parseNum(r.wrong);
         const total = getExamTotal(r) || (correctCount + wrongCount) || 1; // avoid divide by zero
@@ -495,18 +510,51 @@ function renderHistoryTable(results) {
         const score = getExamScore(r);
 
         let displayTopicTitle = r.examTitle || 'Genel Test';
-        if (r.topicId) {
-            const matchedTopic = state.topics.find(t => t.id === r.topicId || t.slug === r.topicId);
-            if (matchedTopic) displayTopicTitle = matchedTopic.title;
-        } else if (r.categoryId) {
-            const matchedCat = state.topics.find(t => t.id === r.categoryId || t.slug === r.categoryId);
-            if (matchedCat) displayTopicTitle = matchedCat.title;
+        let isSmartTest = false;
+        let smartTestBadge = '';
+
+        if (r.mode === 'wrongs' || displayTopicTitle.toLowerCase().includes('yanlış')) {
+            isSmartTest = true;
+            smartTestBadge = '<span class="status-badge badge-red" style="padding: 2px 6px; font-size: 0.65rem; margin-top:4px;">🚨 Yanlışlar Testi</span>';
+        } else if (r.mode === 'random') {
+            isSmartTest = true;
+            smartTestBadge = '<span class="status-badge badge-gray" style="padding: 2px 6px; font-size: 0.65rem; margin-top:4px;">🔀 Karışık Tekrar</span>';
+        }
+
+        let topicSlug = currentTopicId;
+        if (r.topicId || r.categoryId) {
+            const matchedTheme = state.topics.find(t => t.id === (r.topicId || r.categoryId) || t.slug === (r.topicId || r.categoryId));
+            if (matchedTheme) {
+                displayTopicTitle = isSmartTest ? matchedTheme.title : (r.examTitle || matchedTheme.title);
+                topicSlug = matchedTheme.slug || matchedTheme.id; // slugify logic skip for safety since building URL will handle it via ID fallback
+                if (!matchedTheme.slug) topicSlug = normalizeStr(matchedTheme.title).replace(/\W+/g, '-');
+            }
+        } else if (isSmartTest) {
+            displayTopicTitle = "Genel Karışık Soru Modu";
+        }
+
+        let testUrl = '#';
+        if (isSmartTest && r.mode) {
+            testUrl = `/konu/${encodeURIComponent(topicSlug || 'genel')}/test-coz/serbest-calisma-modu--smart?filter=${encodeURIComponent(r.mode)}`;
+        } else if (r.examId && topicSlug) {
+            const testSlug = normalizeStr(displayTopicTitle).replace(/\W+/g, '-') || r.examId;
+            testUrl = `/konu/${encodeURIComponent(topicSlug)}/test-coz/${encodeURIComponent(testSlug)}--${encodeURIComponent(r.examId)}?mode=select`;
         }
 
         return `<tr>
-            <td data-label="Test Tarihi"><div class="table-date-pill">${date}</div></td>
-            <td data-label="Sınav / Test Adı"><strong style="color:var(--text-primary); font-weight:500;">${displayTopicTitle}</strong></td>
-            <td data-label="Performans">
+            <td data-label="Test Tarihi">
+              <div style="display:flex; align-items:center; gap:8px;">
+                 <div class="table-date-pill">${date}</div>
+                 <div class="score-badge">%${score}</div>
+              </div>
+            </td>
+            <td data-label="Sınav / Test Adı" class="history-title-cell">
+                <a href="${testUrl}" style="text-decoration:none; display:flex; flex-direction:column; align-items:flex-start;">
+                    <strong style="color:var(--text-primary); font-weight:500; transition: color 0.2s;" onmouseover="this.style.color='var(--color-primary)'" onmouseout="this.style.color='var(--text-primary)'">${displayTopicTitle}</strong>
+                    ${smartTestBadge}
+                </a>
+            </td>
+            <td data-label="Performans" style="grid-column: 1 / -1;">
                <div class="exam-progress-wrap">
                   <div class="exam-stats-text">
                      <span>Toplam: ${total} Soru</span>
@@ -523,7 +571,6 @@ function renderHistoryTable(results) {
                   </div>
                </div>
             </td>
-            <td data-label="Başarı"><div class="score-badge">%${score}</div></td>
         </tr>`;
     }).join('');
 }
