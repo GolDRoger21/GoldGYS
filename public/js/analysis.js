@@ -306,14 +306,32 @@ function calculatePredictedScore(results) {
         document.getElementById('predictedScore').innerText = '--';
         return;
     }
-    let weightedSum = 0;
-    let totalWeight = 0;
-    recent.forEach((exam, index) => {
-        const weight = index + 1;
-        weightedSum += getExamScore(exam) * weight;
-        totalWeight += weight;
+
+    // YENİ MANTIK: 80 Soru = 100 Puan. (Yani 1 Doğru = 1.25 Puan).
+    // Yanlışlar doğruları götürmemektedir.
+
+    let totalCorrects = 0;
+    let totalQuestions = 0;
+
+    recent.forEach((exam) => {
+        totalCorrects += parseNum(exam.correct);
+        const examTotalQs = getExamTotal(exam) || (parseNum(exam.correct) + parseNum(exam.wrong)) || 1;
+        totalQuestions += examTotalQs;
     });
-    document.getElementById('predictedScore').innerText = `%${Math.round(weightedSum / totalWeight)}`;
+
+    if (totalQuestions <= 0) {
+        document.getElementById('predictedScore').innerText = '--';
+        return;
+    }
+
+    // Soruların yüzde kaçını doğru yaptı?
+    const successRatio = totalCorrects / totalQuestions;
+
+    // 100 Puan üzerinden tahmini puanı (maks 100)
+    const predictedBase100 = Math.min(100, Math.round(successRatio * 100));
+
+    document.getElementById('predictedScore').innerText = `${predictedBase100} Puan`;
+    document.getElementById('predictedScore').style.fontSize = "clamp(2rem, 1.5rem + 3vw, 3rem)"; // Text'e uyumlu font küçültmesi
 }
 
 function ensureChartDestroy(chartKey) {
@@ -547,22 +565,23 @@ function renderScientificInsights(categoryTotals) {
         .slice(0, 3);
 
     const insightGrid = document.getElementById('insightKpiGrid');
-    insightGrid.innerHTML = `
-      <div class="insight-pill"><span>🏃 Haftalık Tempo</span><strong>${weeklyCount} deneme</strong></div>
-      <div class="insight-pill"><span>🛡️ İstikrar</span><strong>%${consistency}</strong></div>
-      <div class="insight-pill"><span>📈 İvme/Trend</span><strong>${trend.delta > 0 ? '+' : ''}${trend.delta} puan</strong></div>
-      <div class="insight-pill"><span>📚 Toplam Birikim</span><strong>${exams} deneme</strong></div>
-    `;
-
-    const summary = document.getElementById('insightSummaryText');
-    const weakText = weakTopics.length
-        ? `Öncelik: ${weakTopics.map(item => item.topic.title).join(', ')}.`
-        : 'Henüz zayıf konu tespiti için veri birikmedi.';
-    summary.textContent = `${trend.label}. Son 7 günde ${weeklyCount} deneme çözmüşsün. ${weakText}`;
+    if (insightGrid) {
+        insightGrid.innerHTML = `
+        <div class="insight-pill"><span>🏃 Haftalık Tempo</span><strong>${weeklyCount} deneme</strong></div>
+        <div class="insight-pill"><span>🛡️ İstikrar</span><strong>%${consistency}</strong></div>
+        <div class="insight-pill"><span>📈 İvme/Trend</span><strong>${trend.delta > 0 ? '+' : ''}${trend.delta} puan</strong></div>
+        <div class="insight-pill"><span>📚 Toplam Birikim</span><strong>${exams} deneme</strong></div>
+      `;
+    }
 
     const weaknessPlanList = document.getElementById('weaknessPlanList');
     if (!weakTopics.length) {
-        weaknessPlanList.innerHTML = '<p class="text-muted">Zayıf konu analizi için daha fazla deneme çözmelisin.</p>';
+        weaknessPlanList.innerHTML = `
+        <div style="text-align:center; padding: 20px 10px;">
+           <div style="font-size:2rem; margin-bottom:10px;">🛡️</div>
+           <strong style="color:var(--text-main); font-size:1rem;">Zayıf Nokta Tespit Edilmedi</strong>
+           <p class="text-muted" style="margin-top:6px; font-size:0.85rem;">Şu an için analiz sistemine takılan kritik bir zayıf konun bulunmuyor. Düzenli olarak branş ve genel deneme çözmeye devam et!</p>
+        </div>`;
         return;
     }
 
@@ -573,7 +592,7 @@ function renderScientificInsights(categoryTotals) {
             : '🎯 Öncelikli Görev: 2 gün arayla kısa konu tekrarı yap ve 10 soruluk bir konsept pekiştirme testi uygulamadan diğer konuya geçme.';
         return `
           <article class="weakness-item">
-            <strong>Kritik Tespit ${index + 1}: ${item.topic.title}</strong>
+            <strong><span class="alert-color">Kritik Tespit ${index + 1}:</span> ${item.topic.title}</strong>
             <div class="text-muted" style="margin-top: 4px; font-size: 0.78rem;">Başarı Durumu: <strong>%${item.success}</strong> · Toplam Analiz Edilen Soru: ${total}</div>
             <p>${plan}</p>
           </article>
@@ -635,9 +654,12 @@ function renderTopicList() {
             <td data-label="Konu">
                 <a href="${topicUrl}" class="topic-title-main" style="text-decoration:none; display:flex; align-items:center; gap:8px;">
                     <span style="color:var(--text-main); transition:color 0.2s;" onmouseover="this.style.color='var(--color-primary)'" onmouseout="this.style.color='var(--text-main)'">${topic.title}</span>
-                    ${topic.id === state.currentTopicId ? '<span class="focus-indicator">🌟 Odak</span>' : ''}
                 </a>
-                <div class="topic-desc-sub">${topic.description || 'Açıklama veya ek bilgi yok.'}</div>
+                <div style="display: flex; gap: 6px; align-items: center; margin-top: 4px; flex-wrap: wrap;">
+                   ${badgeData}
+                   ${topic.id === state.currentTopicId ? '<span class="focus-indicator">🌟 Odak</span>' : ''}
+                </div>
+                <div class="topic-desc-sub" style="margin-top:4px;">${topic.description || ''}</div>
             </td>
             <td data-label="Başarı">
                 <div class="progress-container">

@@ -88,13 +88,14 @@
                 </div>
                 <div class="prediction-wrap">
                     <div id="predictedScore" class="prediction-value">--</div>
-                    <p class="text-muted" id="predictionHint">Son 5 deneme, zamana göre ağırlıklı ortalama.</p>
+                    <p class="text-muted" id="predictionHint">Son 5 deneme ortalamasına göre hesaplanmıştır (80 Soru =
+                        100 Puan).</p>
                 </div>
             </article>
 
             <article class="glass-card">
                 <div class="card-header">
-                    <div class="card-title">🚀 Seviye ve İvme</div>
+                    <div class="card-title">🚀 Profil & Başarı İvmesi</div>
                     <div class="score-badge" id="currentLevelBadge">Seviye 1</div>
                 </div>
                 <div class="card-body compact">
@@ -105,7 +106,10 @@
                     </div>
                     <div class="level-row text-muted small"><span id="levelProgressText">0 / 0 XP</span><span
                             id="levelNextTarget">Sonraki: -</span></div>
-                    <div id="missionList" class="mission-grid"></div>
+
+                    <div style="margin-top: 14px; border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 14px;">
+                        <div class="insight-kpis" id="insightKpiGrid"></div>
+                    </div>
                 </div>
             </article>
 
@@ -124,16 +128,7 @@
             </article>
         </section>
 
-        <section class="insight-grid">
-            <article class="glass-card">
-                <div class="card-header">
-                    <div class="card-title">🧠 İstihbarat Raporu</div>
-                </div>
-                <div class="card-body">
-                    <div class="insight-kpis" id="insightKpiGrid"></div>
-                    <p class="text-muted insight-summary" id="insightSummaryText">Analiz hazırlanıyor...</p>
-                </div>
-            </article>
+        <section class="insight-grid" style="grid-template-columns: 1fr;">
             <article class="glass-card">
                 <div class="card-header">
                     <div class="card-title">⚔️ Taktiksel Operasyon Planı</div>

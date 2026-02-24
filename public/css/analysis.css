@@ -468,7 +468,11 @@
 
 .weakness-item strong {
   font-size: 0.9rem;
-  color: #ef4444;
+  color: var(--text-main);
+}
+
+.weakness-item strong span.alert-color {
+  color: var(--gold-light);
 }
 
 .weakness-item p {
