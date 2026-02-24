@@ -512,9 +512,10 @@ function renderScientificInsights(categoryTotals) {
     }).length;
     const consistency = calculateConsistencyScore(state.results);
     const trend = calculateTrend(state.results);
+    const effectiveTopicsIds = new Set(getEffectiveTopics(state.topics).map(t => t.id));
     const weakTopics = [...state.successMap.entries()]
         .map(([topicId, success]) => ({ topicId, success, topic: state.topics.find(t => t.id === topicId) }))
-        .filter(row => row.topic)
+        .filter(row => row.topic && effectiveTopicsIds.has(row.topicId))
         .sort((a, b) => a.success - b.success)
         .slice(0, 3);
 
@@ -576,7 +577,10 @@ function sortTopics(rows) {
 
 function renderTopicList() {
     const container = document.getElementById('topicMasteryList');
-    let rows = state.topics.map(topic => {
+    // Sadece etkili konuları (alt konuları olan üst konuları hariç tut) gösteriyoruz:
+    const effectiveTopics = getEffectiveTopics(state.topics);
+
+    let rows = effectiveTopics.map(topic => {
         const success = state.successMap.get(topic.id) || 0;
         const status = getTopicStatus(topic.id);
         return { topic, success, status };
