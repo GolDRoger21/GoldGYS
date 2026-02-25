@@ -460,7 +460,10 @@ function getProgressColor(val) {
 
 function renderTopicChart(categoryTotals) {
     ensureChartDestroy('topic');
-    const rows = state.topics.map(topic => ({ title: topic.title, success: state.successMap.get(topic.id) || 0 }));
+    const rows = state.topics
+        .map(topic => ({ title: topic.title, success: state.successMap.get(topic.id) || 0, status: getTopicStatus(topic.id) }))
+        .filter(row => row.status !== 'pending');
+
     const weakest = rows.sort((a, b) => a.success - b.success).slice(0, 8);
     const labels = weakest.length ? weakest.map(r => r.title.length > 20 ? r.title.substring(0, 20) + '...' : r.title) : ['Veri Yok'];
     const data = weakest.length ? weakest.map(r => r.success) : [0];
