@@ -301,7 +301,7 @@ function calculateKPIs(results) {
 }
 
 function calculatePredictedScore(results) {
-    const recent = results.slice(0, 5).reverse();
+    const recent = results;
     if (!recent.length) {
         document.getElementById('predictedScore').innerText = '--';
         return;
