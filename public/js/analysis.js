@@ -522,39 +522,41 @@ function renderHistoryTable(results) {
         }
 
         let topicSlug = null;
+        let parentTopicName = '';
+
         if (r.topicId || r.categoryId) {
             const matchedTheme = state.topics.find(t => t.id === (r.topicId || r.categoryId) || t.slug === (r.topicId || r.categoryId));
             if (matchedTheme) {
+                parentTopicName = matchedTheme.title;
                 displayTopicTitle = isSmartTest ? matchedTheme.title : (r.examTitle || matchedTheme.title);
                 topicSlug = matchedTheme.slug || matchedTheme.id; // slugify logic skip for safety since building URL will handle it via ID fallback
                 if (!matchedTheme.slug) topicSlug = normalizeStr(matchedTheme.title).replace(/\W+/g, '-');
             }
         } else if (isSmartTest) {
             displayTopicTitle = "Genel Karışık Soru Modu";
+            parentTopicName = "Genel Tekrar";
         }
 
         let testUrl = '#';
         if (isSmartTest && r.mode) {
-            testUrl = `/konu/${encodeURIComponent(topicSlug || 'genel')}/test-coz/serbest-calisma-modu--smart?filter=${encodeURIComponent(r.mode)}`;
+            testUrl = `/konu/${topicSlug || 'genel'}/test-coz/serbest-calisma-modu--smart?filter=${encodeURIComponent(r.mode)}`;
         } else if (r.examId && topicSlug) {
             const testSlug = normalizeStr(displayTopicTitle).replace(/\W+/g, '-') || r.examId;
-            testUrl = `/konu/${encodeURIComponent(topicSlug)}/test-coz/${encodeURIComponent(testSlug)}--${encodeURIComponent(r.examId)}?mode=select`;
+            testUrl = `/konu/${topicSlug}/test-coz/${testSlug}--${r.examId}?mode=select`;
         }
 
         return `<tr>
             <td data-label="Test Tarihi">
-              <div style="display:flex; align-items:center; gap:8px;">
                  <div class="table-date-pill">${date}</div>
-                 <div class="score-badge">%${score}</div>
-              </div>
             </td>
             <td data-label="Sınav / Test Adı" class="history-title-cell">
-                <a href="${testUrl}" style="text-decoration:none; display:flex; flex-direction:column; align-items:flex-start;">
-                    <strong style="color:var(--text-primary); font-weight:500; transition: color 0.2s;" onmouseover="this.style.color='var(--color-primary)'" onmouseout="this.style.color='var(--text-primary)'">${displayTopicTitle}</strong>
+                 <a href="${testUrl}" style="text-decoration:none; display:flex; flex-direction:column; align-items:flex-start;">
+                    ${parentTopicName ? `<div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 3px;">📚 ${parentTopicName}</div>` : ''}
+                    <strong style="color:var(--text-primary); font-weight:500; transition: color 0.2s;" onmouseover="this.style.color='var(--color-primary)'" onmouseout="this.style.color='var(--text-primary)'">${r.examTitle || displayTopicTitle}</strong>
                     ${smartTestBadge}
                 </a>
             </td>
-            <td data-label="Performans" style="grid-column: 1 / -1;">
+            <td data-label="Performans">
                <div class="exam-progress-wrap">
                   <div class="exam-stats-text">
                      <span>Toplam: ${total} Soru</span>
@@ -570,6 +572,9 @@ function renderHistoryTable(results) {
                      <span>${total - correctCount - wrongCount} B</span>
                   </div>
                </div>
+            </td>
+            <td data-label="Başarı">
+                 <div class="score-badge">%${score}</div>
             </td>
         </tr>`;
     }).join('');
@@ -702,10 +707,6 @@ function renderTopicList() {
                 <a href="${topicUrl}" class="topic-title-main" style="text-decoration:none; display:flex; align-items:center; gap:8px;">
                     <span style="color:var(--text-main); transition:color 0.2s;" onmouseover="this.style.color='var(--color-primary)'" onmouseout="this.style.color='var(--text-main)'">${topic.title}</span>
                 </a>
-                <div style="display: flex; gap: 6px; align-items: center; margin-top: 4px; flex-wrap: wrap;">
-                   ${badgeData}
-                   ${topic.id === state.currentTopicId ? '<span class="focus-indicator">🌟 Odak</span>' : ''}
-                </div>
                 <div class="topic-desc-sub" style="margin-top:4px;">${topic.description || ''}</div>
             </td>
             <td data-label="Başarı">
@@ -716,7 +717,12 @@ function renderTopicList() {
                     <span class="progress-val" style="color: ${getProgressColor(success)};">%${success}</span>
                 </div>
             </td>
-            <td data-label="Durum">${badgeData}</td>
+            <td data-label="Durum">
+                <div style="display: flex; flex-direction: column; gap: 8px; align-items: flex-start;">
+                    ${badgeData}
+                    ${topic.id === state.currentTopicId ? '<span class="focus-indicator" style="margin: 0;">🌟 Odak</span>' : ''}
+                </div>
+            </td>
             <td data-label="İşlemler">
               <div class="action-buttons">
                 <button class="glass-btn btn-complete" onclick="window.toggleTopicStatus('${topic.id}', 'completed')" title="Öğrendim / Çalıştım">
