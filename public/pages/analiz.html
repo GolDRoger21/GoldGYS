@@ -50,38 +50,38 @@
             </div>
         </section>
 
-        <section class="stats-grid">
-            <article class="glass-card kpi-card">
-                <span>TOPLAM DENEME</span>
-                <strong id="totalExams">0</strong>
-            </article>
-            <article class="glass-card kpi-card">
-                <span>TOPLAM SORU</span>
-                <strong id="totalQuestions">0</strong>
-            </article>
-            <article class="glass-card kpi-card">
-                <span>HATA ORANI</span>
-                <strong id="wrongRate">%0</strong>
-            </article>
-            <article class="glass-card kpi-card">
-                <span>TAMAMLANAN KONU</span>
-                <strong id="completedTopicsCount">0</strong>
-            </article>
-            <article class="glass-card kpi-card">
-                <span>KALAN KONU</span>
-                <strong id="remainingTopicsCount">0</strong>
-            </article>
-        </section>
-
         <section class="analysis-main-grid">
-            <article class="glass-card">
+            <article class="glass-card prediction-card">
                 <div class="card-header">
-                    <div class="card-title">Tahmini Puan</div>
+                    <div class="card-title">Tahmini Puan & Analiz Özeti</div>
                 </div>
-                <div class="prediction-wrap">
-                    <div id="predictedScore" class="prediction-value">--</div>
-                    <p class="text-muted" id="predictionHint">Tüm deneme ve test çözümlerinin ortalamasına göre
-                        hesaplanmıştır.</p>
+                <div class="prediction-grid-layout">
+                    <div class="prediction-score-section">
+                        <div id="predictedScore" class="prediction-value">--</div>
+                        <div class="prediction-label text-muted">Ağırlıklı Puanı</div>
+                    </div>
+                    <div class="prediction-stats-section">
+                        <div class="prediction-stat-item">
+                            <span class="stat-label">TOPLAM DENEME</span>
+                            <strong class="stat-val" id="totalExams">0</strong>
+                        </div>
+                        <div class="prediction-stat-item">
+                            <span class="stat-label">TOPLAM SORU</span>
+                            <strong class="stat-val" id="totalQuestions">0</strong>
+                        </div>
+                        <div class="prediction-stat-item">
+                            <span class="stat-label">HATA ORANI</span>
+                            <strong class="stat-val" id="wrongRate">%0</strong>
+                        </div>
+                        <div class="prediction-stat-item">
+                            <span class="stat-label">TAMAMLANAN KONU</span>
+                            <strong class="stat-val" id="completedTopicsCount">0</strong>
+                        </div>
+                        <div class="prediction-stat-item">
+                            <span class="stat-label">KALAN KONU</span>
+                            <strong class="stat-val" id="remainingTopicsCount">0</strong>
+                        </div>
+                    </div>
                 </div>
             </article>
 
