@@ -544,10 +544,12 @@ function renderHistoryTable(results) {
             if (matchedTheme) {
                 parentTopicName = matchedTheme.title;
                 displayTopicTitle = isSmartTest ? matchedTheme.title : (r.examTitle || matchedTheme.title);
-                topicSlug = matchedTheme.slug || matchedTheme.id; // slugify logic skip for safety since building URL will handle it via ID fallback
+                topicSlug = matchedTheme.slug || matchedTheme.id;
                 if (!matchedTheme.slug) topicSlug = normalizeStr(matchedTheme.title).replace(/\W+/g, '-');
             }
-        } else if (isSmartTest) {
+        }
+
+        if (!parentTopicName && isSmartTest) {
             displayTopicTitle = "Genel Karışık Soru Modu";
             parentTopicName = "Genel Tekrar";
         }
@@ -555,9 +557,10 @@ function renderHistoryTable(results) {
         let testUrl = '#';
         if (isSmartTest && r.mode) {
             testUrl = `/konu/${topicSlug || 'genel'}/test-coz/serbest-calisma-modu--smart?filter=${encodeURIComponent(r.mode)}`;
-        } else if (r.examId && topicSlug) {
+        } else if (r.examId) {
+            const urlSlug = topicSlug || 'genel-deneme';
             const testSlug = normalizeStr(displayTopicTitle).replace(/\W+/g, '-') || r.examId;
-            testUrl = `/konu/${topicSlug}/test-coz/${testSlug}--${r.examId}?mode=select`;
+            testUrl = `/konu/${urlSlug}/test-coz/${testSlug}--${r.examId}?mode=select`;
         }
 
         return `<tr>
