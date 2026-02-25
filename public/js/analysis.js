@@ -639,6 +639,8 @@ function renderScientificInsights(categoryTotals) {
     }
 
     const weaknessPlanList = document.getElementById('weaknessPlanList');
+    if (!weaknessPlanList) return;
+
     if (!weakTopics.length) {
         weaknessPlanList.innerHTML = `
         <div style="text-align:center; padding: 20px 10px;">
