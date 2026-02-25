@@ -264,8 +264,20 @@ async function hydrateTopicTotals(topics) {
     }));
 }
 
+function isDenemeExam(exam) {
+    const title = (exam.examTitle || '').toLowerCase();
+    if (title.includes('deneme')) return true;
+
+    // Eğer konu testi veya smart test değilse (örn. mode === 'exam' veya categoryStats çok genişse)
+    const cats = Object.keys(exam.categoryStats || {});
+    if (cats.length > 2 && !title.includes('yanlış')) return true;
+
+    return false;
+}
+
 function calculateKPIs(results) {
-    const totalExams = results.length;
+    const denemeResults = results.filter(isDenemeExam);
+    const totalExams = denemeResults.length;
 
     // Gerçek sınav verilerinden puanları çek
     const totalScore = results.reduce((sum, exam) => sum + parseNum(exam.score), 0);
@@ -275,29 +287,12 @@ function calculateKPIs(results) {
     const totalCorrect = results.reduce((sum, exam) => sum + parseNum(exam.correct), 0);
     const totalWrong = results.reduce((sum, exam) => sum + parseNum(exam.wrong), 0);
 
-    // NET hesabı: Her 4 yanlış 1 doğruyu götürür mantığı (Öğrenci dostu veya kurum politikası. Standart: D - Y/4)
-    // Eğer kurumda "Net" mantığı yoksa ve sadece salt doğru isteniyorsa "totalCorrect" kullanılır.
-    // GYS sınavlarında genelde 4 yanlış mantığı yoktur, o yüzden standart salt "Net Değer" olarak doğru sayısını veya gelişmiş mantığı kullanalım:
-    // GoldGYS standardı: Yanlışlar doğruyu götürmez varsayımı daha motive edicidir, ancak doğrusu:
-    // Biz saf doğru ve yanlış oranı üzerinden Net çıkartalım:
-    const netCount = Math.max(0, totalCorrect - (totalWrong * 0.25)); // 4 yanlış 1 doğru örneği, isteğe göre kapanabilir.
-
     // Hata Oranı
     const wrongRate = totalQuestions ? Math.round((totalWrong / totalQuestions) * 100) : 0;
 
-    const now = Date.now();
-    const sevenDayAgo = now - (7 * 24 * 60 * 60 * 1000);
-    const last7DaysCount = results.filter(exam => {
-        const sec = getCompletedSeconds(exam);
-        return sec && sec * 1000 >= sevenDayAgo;
-    }).length;
-
     document.getElementById('totalExams').innerText = totalExams;
-    document.getElementById('avgScore').innerText = `%${avgScore}`;
     document.getElementById('totalQuestions').innerText = totalQuestions;
     document.getElementById('wrongRate').innerText = `%${wrongRate}`;
-    document.getElementById('last7DaysCount').innerText = last7DaysCount;
-    // dataQuality was removed, 'completedTopicsCount' is managed in renderLevelSystem.
 }
 
 function calculatePredictedScore(results) {
@@ -340,7 +335,8 @@ function ensureChartDestroy(chartKey) {
 
 function renderProgressChart(results) {
     ensureChartDestroy('progress');
-    const chartData = [...results].slice(0, 12).reverse();
+    const denemeResults = results.filter(isDenemeExam);
+    const chartData = [...denemeResults].slice(0, 12).reverse();
     const labels = chartData.length
         ? chartData.map(r => new Date(getCompletedSeconds(r) * 1000).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' }))
         : ['Veri Yok'];
@@ -466,13 +462,29 @@ function renderTopicChart(categoryTotals) {
     ensureChartDestroy('topic');
     const rows = state.topics.map(topic => ({ title: topic.title, success: state.successMap.get(topic.id) || 0 }));
     const weakest = rows.sort((a, b) => a.success - b.success).slice(0, 8);
-    const labels = weakest.length ? weakest.map(r => r.title) : ['Veri Yok'];
+    const labels = weakest.length ? weakest.map(r => r.title.length > 20 ? r.title.substring(0, 20) + '...' : r.title) : ['Veri Yok'];
     const data = weakest.length ? weakest.map(r => r.success) : [0];
 
     state.charts.topic = new Chart(document.getElementById('topicChart').getContext('2d'), {
-        type: 'bar',
-        data: { labels, datasets: [{ label: 'Başarı', data, backgroundColor: 'rgba(16,185,129,.6)', borderRadius: 6 }] },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, max: 100 } } }
+        type: 'polarArea',
+        data: {
+            labels, datasets: [{
+                label: 'Başarı', data, backgroundColor: [
+                    'rgba(239, 68, 68, 0.7)', 'rgba(249, 115, 22, 0.7)', 'rgba(245, 158, 11, 0.7)',
+                    'rgba(234, 179, 8, 0.7)', 'rgba(132, 204, 22, 0.7)', 'rgba(34, 197, 94, 0.7)',
+                    'rgba(16, 185, 129, 0.7)', 'rgba(20, 184, 166, 0.7)'
+                ], borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'right', labels: { color: 'rgba(255,255,255,0.7)', font: { size: 10 } } },
+                tooltip: { callbacks: { label: (ctx) => `${ctx.label}: %${ctx.raw}` } }
+            },
+            scales: { r: { ticks: { backdropColor: 'transparent', color: 'rgba(255,255,255,0.5)' }, grid: { color: 'rgba(255,255,255,0.1)' } } }
+        }
     });
 }
 
