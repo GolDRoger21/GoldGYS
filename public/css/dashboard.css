@@ -348,13 +348,22 @@
 .premium-highlight-card {
     position: relative;
     overflow: hidden;
+    background: linear-gradient(145deg, rgba(212, 175, 55, 0.05) 0%, var(--glass-surface) 100%);
+    border: 1px solid rgba(212, 175, 55, 0.2);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="light"] .premium-highlight-card {
+    background: linear-gradient(145deg, rgba(212, 175, 55, 0.03) 0%, rgba(255, 255, 255, 0.95) 100%);
+    border: 1px solid rgba(212, 175, 55, 0.3);
+    box-shadow: 0 8px 24px rgba(212, 175, 55, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.8);
 }
 
 .premium-highlight-card::after {
     content: '';
     position: absolute;
     inset: 0;
-    background: radial-gradient(circle at top right, rgba(212, 175, 55, 0.14), transparent 45%);
+    background: radial-gradient(circle at top right, rgba(212, 175, 55, 0.18), transparent 50%);
     pointer-events: none;
 }
 
