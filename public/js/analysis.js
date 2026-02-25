@@ -794,12 +794,9 @@ function renderLevelSystem() {
         `;
     }
 
-    // completedTopics KPI update
-    const completedTopicsEl = document.getElementById('completedTopicsCount');
-    if (completedTopicsEl) completedTopicsEl.innerText = completedTopics;
-
-    const remainingTopicsEl = document.getElementById('remainingTopicsCount');
-    if (remainingTopicsEl) remainingTopicsEl.innerText = remainingTopics;
+    // combinedTopics KPI update
+    const combinedTopicsEl = document.getElementById('combinedTopicsCount');
+    if (combinedTopicsEl) combinedTopicsEl.innerText = `${completedTopics} / ${remainingTopics}`;
 }
 
 function calculateStudyStreak(results) {
