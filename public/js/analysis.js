@@ -816,6 +816,14 @@ function calculateStudyStreak(results) {
 function bindUIEvents() {
     document.getElementById('resetAllStatsBtn').addEventListener('click', resetAllStats);
     const chips = document.querySelectorAll('#topicFilterChips button');
+    const filterDesc = document.getElementById('filterDescription');
+    const filterTexts = {
+        'in_progress': 'Şu an çalışmaya devam ettiğiniz veya odaklandığınız konular',
+        'pending': 'Henüz çalışmaya veya test çözmeye başlamadığınız konular',
+        'completed': 'Başarıyla tamamladığınız veya testlerini bitirdiğiniz konular',
+        'all': 'Müfredattaki tüm konuların listesi'
+    };
+
     chips.forEach(chip => {
         chip.addEventListener('click', () => {
             state.topicFilter = chip.dataset.filter;
@@ -825,9 +833,28 @@ function bindUIEvents() {
             });
             chip.classList.remove('badge-gray');
             chip.classList.add('badge-blue');
+            
+            if (filterDesc) {
+                if (window.innerWidth <= 768) {
+                    filterDesc.style.display = 'block';
+                    filterDesc.innerText = filterTexts[state.topicFilter] || '';
+                } else {
+                    filterDesc.style.display = 'none';
+                }
+            }
+            
             renderTopicList();
         });
     });
+    
+    // Initial setup for the description if a default filter is active on mobile
+    if (filterDesc && window.innerWidth <= 768) {
+        const activeChip = Array.from(chips).find(c => c.classList.contains('badge-blue'));
+        if (activeChip) {
+            filterDesc.style.display = 'block';
+            filterDesc.innerText = filterTexts[activeChip.dataset.filter] || '';
+        }
+    }
     document.getElementById('topicSearchInput').addEventListener('input', (e) => {
         state.search = e.target.value;
         renderTopicList();
