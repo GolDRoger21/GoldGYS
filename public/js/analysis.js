@@ -556,43 +556,45 @@ function renderHistoryTable(results) {
 
         let testUrl = '#';
         if (isSmartTest && r.mode) {
-            testUrl = `/konu/${topicSlug || 'genel'}/test-coz/serbest-calisma-modu--smart?filter=${encodeURIComponent(r.mode)}`;
+            testUrl = `/konu/${topicSlug || 'genel'}/test-coz/serbest-calisma-modu--smart?filter=${encodeURIComponent(r.mode)}&ref=/analiz`;
         } else if (r.examId) {
             const urlSlug = topicSlug || 'genel-deneme';
             const testSlug = normalizeStr(displayTopicTitle).replace(/\W+/g, '-') || r.examId;
-            testUrl = `/konu/${urlSlug}/test-coz/${testSlug}--${r.examId}?mode=select`;
+            testUrl = `/konu/${urlSlug}/test-coz/${testSlug}--${r.examId}?mode=select&ref=/analiz`;
         }
 
         return `<tr>
-            <td data-label="Test Tarihi">
+            <td data-label="Test Tarihi" style="width: 100px;">
                  <div class="table-date-pill">${date}</div>
             </td>
             <td data-label="Sınav / Test Adı" class="history-title-cell">
                  <a href="${testUrl}" style="text-decoration:none; display:flex; flex-direction:column; align-items:flex-start;">
-                    ${parentTopicName ? `<div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 3px;">📚 ${parentTopicName}</div>` : ''}
-                    <strong style="color:var(--text-primary); font-weight:500; transition: color 0.2s;" onmouseover="this.style.color='var(--color-primary)'" onmouseout="this.style.color='var(--text-primary)'">${r.examTitle || displayTopicTitle}</strong>
+                    ${parentTopicName ? `<div style="font-size: 0.72rem; color: var(--gold-light); margin-bottom: 4px; display: inline-flex; align-items: center; gap: 4px; padding: 2px 6px; background: rgba(212,175,55,0.1); border-radius: 4px; border: 1px solid rgba(212,175,55,0.2);">📚 ${parentTopicName}</div>` : ''}
+                    <strong style="color:var(--text-primary); font-weight:600; font-size: 0.95rem; transition: color 0.2s;" onmouseover="this.style.color='var(--color-primary)'" onmouseout="this.style.color='var(--text-primary)'">${r.examTitle || displayTopicTitle}</strong>
                     ${smartTestBadge}
                 </a>
             </td>
-            <td data-label="Performans">
-               <div class="exam-progress-wrap">
-                  <div class="exam-stats-text">
-                     <span>Toplam: ${total} Soru</span>
-                     <span class="s-net">${finalNet} Net</span>
+            <td data-label="Performans" style="flex: 2;">
+               <div class="exam-progress-wrap" style="margin-top: 2px;">
+                  <div class="exam-stats-text" style="display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 6px;">
+                     <span style="color: var(--text-muted);">Toplam: ${total} Soru</span>
+                     <span class="s-net" style="font-weight: 600; color: var(--text-main);">${finalNet} Net</span>
                   </div>
-                  <div class="exam-bar-container">
-                     <div class="exam-bar-correct" style="width: ${correctPct}%"></div>
-                     <div class="exam-bar-wrong" style="width: ${wrongPct}%"></div>
+                  <div class="exam-bar-container" style="position: relative; height: 22px; border-radius: 6px; background: rgba(255,255,255,0.05); overflow: hidden;">
+                     <div class="exam-bar-correct" style="width: ${correctPct}%; height: 100%; transition: width 0.5s;"></div>
+                     <div class="exam-bar-wrong" style="width: ${wrongPct}%; height: 100%; transition: width 0.5s;"></div>
+                     
+                     <!-- Score Badge inside Progress Bar -->
+                     <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 5; pointer-events: none;">
+                        <span style="font-size: 0.75rem; font-weight: 700; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,0.9); letter-spacing: 0.5px;">Başarı: %${score}</span>
+                     </div>
                   </div>
-                  <div class="exam-stats-text" style="font-size: 0.65rem; margin-top:2px;">
-                     <span class="s-correct">${correctCount} D</span>
-                     <span class="s-wrong">${wrongCount} Y</span>
-                     <span>${total - correctCount - wrongCount} B</span>
+                  <div class="exam-stats-text" style="font-size: 0.65rem; margin-top: 6px; display: flex; gap: 12px; opacity: 0.8;">
+                     <span class="s-correct" style="color: #34d399;">${correctCount} Doğru</span>
+                     <span class="s-wrong" style="color: #f87171;">${wrongCount} Yanlış</span>
+                     <span style="color: var(--text-muted);">${total - correctCount - wrongCount} Boş</span>
                   </div>
                </div>
-            </td>
-            <td data-label="Başarı">
-                 <div class="score-badge">%${score}</div>
             </td>
         </tr>`;
     }).join('');
@@ -833,7 +835,7 @@ function bindUIEvents() {
             });
             chip.classList.remove('badge-gray');
             chip.classList.add('badge-blue');
-            
+
             if (filterDesc) {
                 if (window.innerWidth <= 768) {
                     filterDesc.style.display = 'block';
@@ -842,11 +844,11 @@ function bindUIEvents() {
                     filterDesc.style.display = 'none';
                 }
             }
-            
+
             renderTopicList();
         });
     });
-    
+
     // Initial setup for the description if a default filter is active on mobile
     if (filterDesc && window.innerWidth <= 768) {
         const activeChip = Array.from(chips).find(c => c.classList.contains('badge-blue'));

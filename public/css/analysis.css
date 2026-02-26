@@ -647,36 +647,43 @@
   }
 
   .prediction-grid-layout {
-    grid-template-columns: 100px 1fr;
-    gap: 12px;
-    padding: 12px;
+    grid-template-columns: 1fr;
+    gap: 16px;
+    padding: 16px;
     align-items: center;
+    text-align: center;
   }
 
   .prediction-score-section {
-    border-right: 1px dashed rgba(255, 255, 255, 0.1);
-    border-bottom: none;
-    padding-right: 12px;
-    padding-bottom: 0;
+    border-right: none;
+    border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
+    padding-right: 0;
+    padding-bottom: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
   }
 
   .prediction-value {
-    font-size: 2rem !important;
-    /* Forces smaller text on very tight screens */
+    font-size: 2.5rem !important;
   }
 
   .prediction-stats-section {
     padding-left: 0;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
   }
 
   .prediction-stat-item {
     padding: 6px;
-    background: rgba(255, 255, 255, 0.02);
-    border-radius: 8px;
-    border: 1px solid rgba(255, 255, 255, 0.04);
+    background: transparent;
+    border-radius: 0;
+    border: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
   }
 
   .analysis-header {
@@ -1008,10 +1015,9 @@
   }
 
   .topic-desc-sub {
-    font-size: 0.77rem;
-    line-height: 1.3;
+    display: none;
+    /* Hide topic descriptions on mobile */
   }
-
 
   .progress-container {
     gap: 6px;
