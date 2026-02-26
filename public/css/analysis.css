@@ -193,13 +193,30 @@
   align-items: center;
   flex-wrap: wrap;
   justify-content: flex-end;
+  padding: 10px;
+  border-radius: 14px;
+  border: 1px solid rgba(96, 165, 250, 0.22);
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.16), rgba(37, 99, 235, 0.05));
+  box-shadow: inset 0 0 0 1px rgba(96, 165, 250, 0.08);
+}
+
+.topic-controls-label {
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  font-weight: 700;
+  color: #93c5fd;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(30, 64, 175, 0.28);
+  border: 1px solid rgba(147, 197, 253, 0.35);
 }
 
 .topic-controls input,
 .topic-controls select {
-  background: var(--bg-input);
+  background: rgba(15, 23, 42, 0.65);
   color: var(--text-main);
-  border: 1px solid var(--border-color);
+  border: 1px solid rgba(147, 197, 253, 0.28);
   border-radius: 10px;
   padding: 10px 12px;
   font-size: 0.9rem;
@@ -224,8 +241,23 @@
 
 .chip-group .status-badge {
   min-height: 38px;
-  padding: 8px 12px;
+  padding: 8px 13px;
   border-radius: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.32);
+  background: rgba(15, 23, 42, 0.62);
+  color: #cbd5e1;
+}
+
+.chip-group .status-badge:hover {
+  border-color: rgba(96, 165, 250, 0.65);
+  box-shadow: 0 6px 18px rgba(30, 64, 175, 0.18);
+}
+
+.chip-group .status-badge.is-active {
+  color: #eff6ff;
+  border-color: rgba(96, 165, 250, 0.72);
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.46), rgba(37, 99, 235, 0.18));
+  box-shadow: 0 10px 22px rgba(37, 99, 235, 0.25);
 }
 
 .chip-group .chip-icon {
@@ -255,8 +287,8 @@
   animation: fadeInDown 0.3s ease forwards;
   padding: 4px 8px;
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(15, 23, 42, 0.5);
+  border: 1px solid rgba(147, 197, 253, 0.22);
 }
 
 [data-theme="light"] .filter-description-text {
@@ -292,6 +324,22 @@
   border-spacing: 0;
   min-width: 640px;
 }
+
+.mastery-table {
+  table-layout: fixed;
+}
+
+.mastery-table th:nth-child(1),
+.mastery-table td:nth-child(1) { width: 40%; }
+
+.mastery-table th:nth-child(2),
+.mastery-table td:nth-child(2) { width: 30%; }
+
+.mastery-table th:nth-child(3),
+.mastery-table td:nth-child(3) { width: 18%; }
+
+.mastery-table th:nth-child(4),
+.mastery-table td:nth-child(4) { width: 12%; }
 
 .mastery-table th,
 .admin-table th {
@@ -340,13 +388,14 @@
   padding: 2px 8px;
   border-radius: 12px;
   font-weight: 500;
+  white-space: nowrap;
 }
 
 .topic-status-cell {
   display: flex;
   align-items: center;
   gap: 8px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
 }
 
 .topic-status-cell .focus-indicator {
@@ -361,16 +410,30 @@
 
 .progress-bar-wrap {
   flex: 1;
-  height: 6px;
+  min-width: 170px;
+  height: 10px;
   background: rgba(255, 255, 255, 0.1);
-  border-radius: 3px;
+  border-radius: 999px;
   overflow: hidden;
 }
 
 .progress-bar-fill {
   height: 100%;
-  border-radius: 3px;
+  border-radius: 999px;
   transition: width 0.5s ease-out;
+}
+
+.history-topic-badge {
+  font-size: 0.76rem;
+  color: #fef3c7;
+  margin-bottom: 5px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  background: rgba(212, 175, 55, 0.15);
+  border-radius: 999px;
+  border: 1px solid rgba(212, 175, 55, 0.38);
 }
 
 .progress-val {
@@ -818,11 +881,16 @@
     display: grid;
     grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
     align-items: center;
-    background: rgba(255, 255, 255, 0.02);
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    border-radius: 10px;
+    background: linear-gradient(145deg, rgba(37, 99, 235, 0.2), rgba(15, 23, 42, 0.4));
+    border: 1px solid rgba(96, 165, 250, 0.4);
+    border-radius: 12px;
     padding: 8px;
     gap: 8px;
+  }
+
+  .topic-controls-label {
+    grid-column: 1 / -1;
+    justify-self: start;
   }
 
   .topic-controls input,
@@ -843,9 +911,9 @@
   .chip-group .status-badge {
     justify-content: center;
     border-radius: 12px;
-    min-height: 40px;
-    padding: 0;
-    flex: 1 1 calc(25% - 6px);
+    min-height: 42px;
+    padding: 0 8px;
+    flex: 1 1 calc(50% - 6px);
     align-items: center;
     position: relative;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -857,9 +925,9 @@
     height: 20px;
   }
 
-  /* Hide the text entirely on mobile to save space */
   .chip-group .status-badge .fb-text {
-    display: none;
+    display: inline;
+    font-size: 0.73rem;
   }
 
   .mastery-table,
@@ -975,6 +1043,8 @@
     align-items: center;
     justify-content: flex-start;
     margin-bottom: 4px;
+    flex-wrap: wrap;
+    gap: 6px;
   }
 
   .admin-table td:nth-child(2) a {
@@ -998,6 +1068,10 @@
     justify-content: flex-end;
   }
 
+
+  .history-topic-badge {
+    font-size: 0.72rem;
+  }
   .topic-title-main {
     font-size: 0.95rem;
   }
@@ -1008,7 +1082,17 @@
   }
 
   .progress-container {
-    gap: 6px;
+    gap: 8px;
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+  }
+
+  .progress-bar-wrap {
+    min-width: 0;
+    width: 100%;
+    height: 12px;
   }
 
   .action-buttons {
