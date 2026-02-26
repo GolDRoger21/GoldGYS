@@ -647,20 +647,36 @@
   }
 
   .prediction-grid-layout {
-    grid-template-columns: 1fr;
-    gap: 16px;
-    padding: 16px;
+    grid-template-columns: 100px 1fr;
+    gap: 12px;
+    padding: 12px;
+    align-items: center;
   }
 
   .prediction-score-section {
-    border-right: none;
-    border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
-    padding-right: 0;
-    padding-bottom: 16px;
+    border-right: 1px dashed rgba(255, 255, 255, 0.1);
+    border-bottom: none;
+    padding-right: 12px;
+    padding-bottom: 0;
+  }
+
+  .prediction-value {
+    font-size: 2rem !important;
+    /* Forces smaller text on very tight screens */
   }
 
   .prediction-stats-section {
     padding-left: 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+
+  .prediction-stat-item {
+    padding: 6px;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.04);
   }
 
   .analysis-header {
@@ -866,14 +882,14 @@
   .mastery-table tr {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 8px;
+    padding: 10px;
   }
 
   .mastery-table td {
     border: none;
     padding: 0;
     display: flex;
-    flex-direction: column;
   }
 
   .mastery-table td::before,
@@ -881,23 +897,40 @@
     display: none !important;
   }
 
+  /* Row 1: Title */
   .mastery-table td:nth-child(1) {
-    justify-content: flex-start;
+    width: 100%;
+    margin-bottom: 2px;
+  }
+
+  /* Row 2 Wrapper for Progress + Status + Actions */
+  .mastery-master-row {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
   }
 
   .mastery-table td:nth-child(2) {
-    margin-top: 2px;
-    justify-content: flex-start;
-    align-items: stretch;
-    /* tam genişlikte progress bar için */
+    /* Progress bar cell */
+    flex: 1;
+    min-width: 0;
   }
 
   .mastery-table td:nth-child(3) {
-    justify-content: flex-start;
+    /* Status Badge cell */
+    flex-shrink: 0;
+  }
+
+  .mastery-table td:nth-child(4) {
+    /* Actions cell */
+    flex-shrink: 0;
   }
 
   .mastery-table td:nth-child(3)>div {
     flex-direction: row !important;
+    gap: 4px;
     align-items: center !important;
     gap: 8px !important;
   }
@@ -923,13 +956,10 @@
 
   /* ADMIN TABLE CARDS (Recent Exams) */
   .admin-table tr {
-    display: grid;
-    grid-template-columns: 1fr auto;
-    grid-template-areas:
-      "date score"
-      "title title"
-      "perf perf";
-    gap: 6px 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px;
   }
 
   .admin-table td {
@@ -939,39 +969,49 @@
   }
 
   .admin-table td:nth-child(1) {
-    grid-area: date;
-    align-items: center;
-    justify-content: flex-start;
+    /* The Date Pill is now inline next to the Title */
+    display: inline-flex;
+    margin-right: 8px;
   }
 
   .admin-table td:nth-child(2) {
-    grid-area: title;
-    font-size: 0.95rem;
-    align-items: flex-start;
-    flex-direction: column;
+    /* Title Cell (Includes date pill and title now inline) */
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    margin-bottom: 4px;
+  }
+
+  .admin-table td:nth-child(2) a {
+    flex: 1;
   }
 
   .admin-table td:nth-child(3) {
-    grid-area: perf;
+    /* Performance Cell */
+    width: 100%;
+    margin-bottom: 4px;
     flex-direction: column;
     gap: 4px;
     margin-top: 6px;
     padding-top: 8px;
     border-top: 1px dashed rgba(255, 255, 255, 0.1);
-    width: 100%;
   }
 
   .admin-table td:nth-child(4) {
-    grid-area: score;
+    /* Grade/Score Badge Cell */
+    width: 100%;
     justify-content: flex-end;
-    align-items: center;
   }
 
-  .topic-title-main,
-  .topic-desc-sub {
-    text-align: left;
-    justify-content: flex-start;
+  .topic-title-main {
+    font-size: 0.95rem;
   }
+
+  .topic-desc-sub {
+    font-size: 0.77rem;
+    line-height: 1.3;
+  }
+
 
   .progress-container {
     gap: 6px;
@@ -1019,6 +1059,19 @@
 
   .topic-controls {
     grid-template-columns: 1fr;
+  }
+
+  .insight-pill {
+    padding: 8px 10px;
+    border-radius: 8px;
+  }
+
+  .insight-pill strong {
+    font-size: 0.88rem;
+  }
+
+  .insight-pill span {
+    font-size: 0.68rem;
   }
 
   .analysis-page>.glass-card {
