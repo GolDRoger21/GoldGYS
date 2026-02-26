@@ -330,16 +330,24 @@
 }
 
 .mastery-table th:nth-child(1),
-.mastery-table td:nth-child(1) { width: 40%; }
+.mastery-table td:nth-child(1) {
+  width: 40%;
+}
 
 .mastery-table th:nth-child(2),
-.mastery-table td:nth-child(2) { width: 30%; }
+.mastery-table td:nth-child(2) {
+  width: 30%;
+}
 
 .mastery-table th:nth-child(3),
-.mastery-table td:nth-child(3) { width: 18%; }
+.mastery-table td:nth-child(3) {
+  width: 18%;
+}
 
 .mastery-table th:nth-child(4),
-.mastery-table td:nth-child(4) { width: 12%; }
+.mastery-table td:nth-child(4) {
+  width: 12%;
+}
 
 .mastery-table th,
 .admin-table th {
@@ -371,7 +379,10 @@
   margin-bottom: 4px;
   color: var(--text-main);
   display: flex;
-  align-items: center;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  word-break: break-word;
+  /* Allows long text to break normally */
   gap: 8px;
 }
 
@@ -395,7 +406,8 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
+  /* Allowed to wrap if screen is very thin */
 }
 
 .topic-status-cell .focus-indicator {
@@ -451,6 +463,8 @@
   border-radius: 20px;
   font-size: 0.82rem;
   font-weight: 500;
+  flex-shrink: 0;
+  /* Prevents badge from squeezing */
 }
 
 .badge-dot {
@@ -526,6 +540,8 @@
   border-radius: 10px;
   border: none;
   cursor: pointer;
+  flex-shrink: 0;
+  /* Prevents button from squeezing */
 }
 
 .glass-btn svg {
@@ -1072,6 +1088,7 @@
   .history-topic-badge {
     font-size: 0.72rem;
   }
+
   .topic-title-main {
     font-size: 0.95rem;
   }
@@ -1097,7 +1114,9 @@
 
   .action-buttons {
     justify-content: flex-end;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
+    /* Prevent squishing into multiple rows */
+    align-items: center;
     padding-top: 4px;
     gap: 8px;
     width: 100%;
@@ -1107,6 +1126,7 @@
     width: 30px;
     height: 30px;
     border-radius: 8px;
+    flex-shrink: 0;
   }
 
   .action-buttons .glass-btn svg {
