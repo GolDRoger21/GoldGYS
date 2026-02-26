@@ -115,16 +115,36 @@
                     </select>
                     <div class="chip-group" id="topicFilterChips">
                         <button class="status-badge badge-blue status-in-progress" data-filter="in_progress">
-                            <span class="fb-icon">⏳</span><span class="fb-text">Çalış.</span>
+                            <span class="chip-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 7v5l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </span>
+                            <span class="fb-text">Çalışılıyor</span>
                         </button>
                         <button class="status-badge badge-gray status-pending" data-filter="pending">
-                            <span class="fb-icon">💤</span><span class="fb-text">Başla.</span>
+                            <span class="chip-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l2.5 2.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </span>
+                            <span class="fb-text">Başlanmadı</span>
                         </button>
                         <button class="status-badge badge-gray status-pending" data-filter="completed">
-                            <span class="fb-icon">✅</span><span class="fb-text">Biten</span>
+                            <span class="chip-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                </svg>
+                            </span>
+                            <span class="fb-text">Tamamlanan</span>
                         </button>
                         <button class="status-badge badge-gray status-pending" data-filter="all">
-                            <span class="fb-icon">🌐</span><span class="fb-text">Tümü</span>
+                            <span class="chip-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12h18M12 3a15.3 15.3 0 014 9 15.3 15.3 0 01-4 9 15.3 15.3 0 01-4-9 15.3 15.3 0 014-9z" />
+                                </svg>
+                            </span>
+                            <span class="fb-text">Tümü</span>
                         </button>
                     </div>
                 </div>
