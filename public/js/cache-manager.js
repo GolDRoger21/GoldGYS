@@ -1,3 +1,6 @@
+import { db } from "./firebase-config.js";
+import { doc, getDocFromServer } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
 const DB_NAME = 'GoldGYSCache';
 const DB_VERSION = 1;
 const DEFAULT_TTL = 24 * 60 * 60 * 1000; // 24 saat
@@ -88,10 +91,76 @@ class IndexedDBCache {
 }
 
 const idb = new IndexedDBCache();
+const CACHE_BUSTER_STORAGE_KEY = 'goldgys_cache_buster';
+const CACHE_BUSTER_SYNC_INTERVAL = 60 * 1000; // 1 dakika
+
+let cacheBusterSyncPromise = null;
+let lastCacheBusterSyncAt = 0;
+
+function readLocalCacheBuster() {
+    const rawValue = localStorage.getItem(CACHE_BUSTER_STORAGE_KEY);
+    const parsed = Number(rawValue || 0);
+    return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function persistLocalCacheBuster(value) {
+    const normalized = Number(value);
+    if (!Number.isFinite(normalized) || normalized <= 0) return;
+    localStorage.setItem(CACHE_BUSTER_STORAGE_KEY, String(normalized));
+}
+
+async function clearGoldGysLocalCaches() {
+    try {
+        if (idb.db) {
+            idb.db.close();
+            idb.db = null;
+            idb.initPromise = idb.init();
+        }
+        await new Promise((resolve) => {
+            const request = indexedDB.deleteDatabase(DB_NAME);
+            request.onsuccess = () => resolve(true);
+            request.onerror = () => resolve(false);
+            request.onblocked = () => resolve(false);
+        });
+    } catch (error) {
+        console.warn('GoldGYSCache temizlenemedi:', error);
+    }
+}
+
+async function syncCacheBusterFromServer(force = false) {
+    const now = Date.now();
+    if (!force && now - lastCacheBusterSyncAt < CACHE_BUSTER_SYNC_INTERVAL) {
+        return;
+    }
+    if (cacheBusterSyncPromise) return cacheBusterSyncPromise;
+
+    cacheBusterSyncPromise = (async () => {
+        try {
+            const snap = await getDocFromServer(doc(db, 'config', 'public'));
+            const remoteValue = Number(snap.data()?.system?.cacheBuster || 0);
+            const localValue = readLocalCacheBuster();
+
+            if (Number.isFinite(remoteValue) && remoteValue > 0) {
+                if (remoteValue > localValue) {
+                    await clearGoldGysLocalCaches();
+                }
+                persistLocalCacheBuster(remoteValue);
+            }
+        } catch (error) {
+            // Ağ yoksa veya kullanıcı anonimse sessizce devam et
+        } finally {
+            lastCacheBusterSyncAt = Date.now();
+            cacheBusterSyncPromise = null;
+        }
+    })();
+
+    return cacheBusterSyncPromise;
+}
 
 export const CacheManager = {
     // --- GENERIC ---
     async saveData(key, data, ttl = DEFAULT_TTL) {
+        await syncCacheBusterFromServer();
         const payload = {
             key,
             data,
@@ -106,6 +175,7 @@ export const CacheManager = {
     },
 
     async deleteData(key) {
+        await syncCacheBusterFromServer();
         try {
             await idb.delete(STORES.METADATA, key);
         } catch (e) {
@@ -114,6 +184,7 @@ export const CacheManager = {
     },
 
     async getData(key, maxAge = null) {
+        await syncCacheBusterFromServer();
         try {
             const record = await idb.get(STORES.METADATA, key);
             if (!record) return null;
@@ -131,6 +202,7 @@ export const CacheManager = {
 
     // --- PACKS (Topic Packs) ---
     async savePack(key, data) {
+        await syncCacheBusterFromServer();
         const payload = {
             key,
             data,
@@ -144,6 +216,7 @@ export const CacheManager = {
     },
 
     async getPack(key, maxAge = DEFAULT_TTL) {
+        await syncCacheBusterFromServer();
         try {
             const record = await idb.get(STORES.PACKS, key);
             if (!record) return null;
@@ -159,6 +232,7 @@ export const CacheManager = {
 
     // --- QUESTIONS (Individual Cache) ---
     async saveQuestion(question) {
+        await syncCacheBusterFromServer();
         if (!question?.id) return;
         const payload = {
             id: question.id,
@@ -171,6 +245,7 @@ export const CacheManager = {
     },
 
     async getQuestion(id) {
+        await syncCacheBusterFromServer();
         try {
             const q = await idb.get(STORES.QUESTIONS, id);
             return q || null;
@@ -180,6 +255,7 @@ export const CacheManager = {
     },
 
     async getQuestions(ids) {
+        await syncCacheBusterFromServer();
         const results = new Map();
         try {
             // Batch get optimization could be done here with cursor, 
@@ -194,6 +270,7 @@ export const CacheManager = {
 
     // --- DRAFTS ---
     async saveDraftAnswer(scopeKey, questionId, answerPayload) {
+        await syncCacheBusterFromServer();
         const key = `draft_${scopeKey}`;
         try {
             let record = await idb.get(STORES.DRAFTS, key);
@@ -209,6 +286,7 @@ export const CacheManager = {
     },
 
     async getDraftAnswers(scopeKey) {
+        await syncCacheBusterFromServer();
         const key = `draft_${scopeKey}`;
         try {
             const record = await idb.get(STORES.DRAFTS, key);
@@ -219,6 +297,7 @@ export const CacheManager = {
     },
 
     async clearDraftAnswers(scopeKey) {
+        await syncCacheBusterFromServer();
         const key = `draft_${scopeKey}`;
         try {
             await idb.delete(STORES.DRAFTS, key);

@@ -163,12 +163,31 @@ function bindClearCacheButton() {
         );
 
         if (confirmed) {
+            try {
+                await setDoc(doc(db, "config", "public"), {
+                    system: {
+                        cacheBuster: Date.now()
+                    },
+                    meta: {
+                        cacheClearedAt: serverTimestamp(),
+                        cacheClearedBy: auth.currentUser?.uid || null
+                    }
+                }, { merge: true });
+            } catch (error) {
+                console.error("Global cache invalidation yazılamadı:", error);
+            }
+
             localStorage.clear();
             sessionStorage.clear();
 
             // Delete IndexedDB caching entirely
             try {
-                indexedDB.deleteDatabase('GoldGYSCache');
+                await new Promise((resolve) => {
+                    const request = indexedDB.deleteDatabase('GoldGYSCache');
+                    request.onsuccess = () => resolve(true);
+                    request.onerror = () => resolve(false);
+                    request.onblocked = () => resolve(false);
+                });
                 console.log("IndexedDB (GoldGYSCache) flushed.");
             } catch (e) {
                 console.error("IndexedDB temizlenirken hata:", e);
