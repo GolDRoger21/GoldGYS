@@ -588,7 +588,7 @@ function renderHistoryTable(results) {
             </td>
             <td data-label="Sınav / Test Adı" class="history-title-cell">
                  <a href="${testUrl}" style="text-decoration:none; display:flex; flex-direction:column; align-items:flex-start;">
-                    ${parentTopicName ? `<div style="font-size: 0.72rem; color: var(--gold-light); margin-bottom: 4px; display: inline-flex; align-items: center; gap: 4px; padding: 2px 6px; background: rgba(212,175,55,0.1); border-radius: 4px; border: 1px solid rgba(212,175,55,0.2);">📚 ${parentTopicName}</div>` : ''}
+                    ${parentTopicName ? `<div class="history-topic-badge">📚 ${parentTopicName}</div>` : `<div class="history-topic-badge">📚 Genel Konu</div>`}
                     <strong style="color:var(--text-primary); font-weight:600; font-size: 0.95rem; transition: color 0.2s;" onmouseover="this.style.color='var(--color-primary)'" onmouseout="this.style.color='var(--text-primary)'">${r.examTitle || displayTopicTitle}</strong>
                     ${smartTestBadge}
                 </a>
@@ -849,11 +849,11 @@ function bindUIEvents() {
         chip.addEventListener('click', () => {
             state.topicFilter = chip.dataset.filter;
             chips.forEach(c => {
-                c.classList.remove('badge-blue');
+                c.classList.remove('badge-blue', 'is-active');
                 c.classList.add('badge-gray');
             });
             chip.classList.remove('badge-gray');
-            chip.classList.add('badge-blue');
+            chip.classList.add('badge-blue', 'is-active');
 
             if (filterDesc) {
                 if (window.innerWidth <= 768) {
@@ -869,12 +869,15 @@ function bindUIEvents() {
     });
 
     // Initial setup for the description if a default filter is active on mobile
-    if (filterDesc && window.innerWidth <= 768) {
-        const activeChip = Array.from(chips).find(c => c.classList.contains('badge-blue'));
-        if (activeChip) {
-            filterDesc.style.display = 'block';
-            filterDesc.innerText = filterTexts[activeChip.dataset.filter] || '';
-        }
+    const activeChip = Array.from(chips).find(c => c.dataset.filter === state.topicFilter) || Array.from(chips).find(c => c.classList.contains('badge-blue'));
+    if (activeChip) {
+        chips.forEach(c => c.classList.remove('is-active'));
+        activeChip.classList.add('is-active');
+    }
+
+    if (filterDesc && window.innerWidth <= 768 && activeChip) {
+        filterDesc.style.display = 'block';
+        filterDesc.innerText = filterTexts[activeChip.dataset.filter] || '';
     }
     document.getElementById('topicSearchInput').addEventListener('input', (e) => {
         state.search = e.target.value;
