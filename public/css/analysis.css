@@ -924,20 +924,36 @@
   .chip-group {
     grid-column: 1 / -1;
     display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    padding-bottom: 2px;
+    flex-wrap: nowrap;
+    gap: 10px;
+    padding: 2px 2px 4px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scroll-snap-type: x proximity;
+  }
+
+  .chip-group::-webkit-scrollbar {
+    height: 4px;
+  }
+
+  .chip-group::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: rgba(148, 163, 184, 0.45);
   }
 
   .chip-group .status-badge {
-    justify-content: center;
-    border-radius: 12px;
-    min-height: 42px;
-    padding: 0 8px;
-    flex: 1 1 calc(50% - 6px);
+    justify-content: flex-start;
+    border-radius: 999px;
+    min-height: 40px;
+    padding: 8px 12px;
+    min-width: max-content;
+    flex: 0 0 auto;
     align-items: center;
+    gap: 7px;
     position: relative;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    scroll-snap-align: start;
   }
 
   /* Make icons larger when text is hidden */
@@ -948,7 +964,22 @@
 
   .chip-group .status-badge .fb-text {
     display: inline;
-    font-size: 0.73rem;
+    font-size: 0.76rem;
+    white-space: nowrap;
+  }
+
+  .chip-group .status-badge.is-active {
+    border-color: rgba(125, 211, 252, 0.95);
+    box-shadow: 0 10px 24px rgba(37, 99, 235, 0.32);
+  }
+
+  .chip-group .status-badge.is-active::after {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    border: 1px solid rgba(191, 219, 254, 0.55);
+    pointer-events: none;
   }
 
   .mastery-table,
@@ -1185,6 +1216,19 @@
 
   .topic-controls {
     grid-template-columns: 1fr;
+  }
+
+  .chip-group {
+    gap: 8px;
+  }
+
+  .chip-group .status-badge {
+    min-height: 38px;
+    padding: 7px 11px;
+  }
+
+  .chip-group .status-badge .fb-text {
+    font-size: 0.72rem;
   }
 
   .insight-pill {
