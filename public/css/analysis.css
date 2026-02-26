@@ -777,9 +777,16 @@
   .chip-group {
     grid-column: 1 / -1;
     display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    padding-bottom: 2px;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    gap: 8px;
+    padding-bottom: 8px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  
+  .chip-group::-webkit-scrollbar {
+    display: none;
   }
 
   .chip-group .status-badge {
@@ -787,8 +794,8 @@
     border-radius: 12px;
     min-height: 34px;
     font-size: 0.72rem;
-    padding: 6px 10px;
-    flex: 1 1 calc(50% - 6px);
+    padding: 6px 14px;
+    flex: 0 0 auto;
     white-space: nowrap;
     align-items: center;
     gap: 6px;
@@ -986,10 +993,6 @@
 
   .topic-controls {
     grid-template-columns: 1fr;
-  }
-
-  .chip-group .status-badge {
-    flex: 1 1 100%;
   }
 
   .analysis-page>.glass-card {
