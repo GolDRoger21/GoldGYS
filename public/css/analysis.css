@@ -1016,31 +1016,37 @@
     width: 100%;
   }
 
-  /* Row 4: Actions (Right) */
+  /* Row 3: Actions (Right) */
   .mastery-table td:nth-child(4) {
     order: 4;
     justify-content: flex-end;
     align-items: center;
     border-top: 1px dashed rgba(255, 255, 255, 0.1);
-    padding-top: 10px;
-    margin-top: 4px;
+    padding-top: 12px;
+    margin-top: 6px;
+    width: 100%;
   }
 
+  /* Make sure badges inside row 2 display correctly */
   .mastery-table td:nth-child(3)>div {
-    flex-direction: row !important;
-    gap: 8px !important;
-    align-items: center !important;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
   }
 
   .mastery-table td:nth-child(3) .status-badge {
     font-size: 0.72rem;
     min-height: 28px;
     padding: 5px 10px;
+    margin-bottom: 0;
   }
 
   .mastery-table td:nth-child(3) .focus-indicator {
     font-size: 0.7rem;
-    padding: 2px 7px;
+    padding: 3px 8px;
+    display: inline-flex;
+    align-items: center;
   }
 
   /* ADMIN TABLE CARDS (Recent Exams) */
@@ -1101,17 +1107,18 @@
 
   .topic-title-main {
     font-size: 0.95rem;
-    flex-wrap: nowrap;
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
+    flex-wrap: wrap;
+    /* Let titles wrap across multiple lines */
+    white-space: normal;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
+    line-height: 1.4;
   }
 
   .topic-title-main span {
-    overflow: hidden;
-    text-overflow: ellipsis;
+    white-space: normal;
+    word-break: break-word;
+    /* Prevents long words from overflowing */
   }
 
   .topic-desc-sub {
@@ -1138,21 +1145,21 @@
     flex-wrap: nowrap;
     /* Prevent squishing into multiple rows */
     align-items: center;
-    padding-top: 4px;
-    gap: 8px;
+    padding-top: 0;
+    gap: 12px;
     width: 100%;
   }
 
   .action-buttons .glass-btn {
-    width: 30px;
-    height: 30px;
-    border-radius: 8px;
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
     flex-shrink: 0;
   }
 
   .action-buttons .glass-btn svg {
-    width: 14px;
-    height: 14px;
+    width: 18px;
+    height: 18px;
   }
 
   .insight-grid {
