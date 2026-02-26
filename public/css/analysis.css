@@ -777,38 +777,31 @@
   .chip-group {
     grid-column: 1 / -1;
     display: flex;
-    flex-wrap: nowrap;
-    overflow-x: auto;
+    flex-wrap: wrap;
     gap: 8px;
-    padding-bottom: 8px;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-  }
-  
-  .chip-group::-webkit-scrollbar {
-    display: none;
+    padding-bottom: 2px;
   }
 
   .chip-group .status-badge {
     justify-content: center;
     border-radius: 12px;
-    min-height: 34px;
-    font-size: 0.72rem;
-    padding: 6px 14px;
-    flex: 0 0 auto;
-    white-space: nowrap;
+    min-height: 40px;
+    padding: 0;
+    flex: 1 1 calc(25% - 6px);
     align-items: center;
-    gap: 6px;
+    position: relative;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
+  /* Make icons larger when text is hidden */
   .chip-group .status-badge .chip-icon {
-    width: 14px;
-    height: 14px;
+    width: 20px;
+    height: 20px;
   }
 
+  /* Hide the text entirely on mobile to save space */
   .chip-group .status-badge .fb-text {
-    font-size: 0.68rem;
-    font-weight: 600;
+    display: none;
   }
 
   .mastery-table,
