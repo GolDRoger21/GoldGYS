@@ -738,9 +738,9 @@ function renderTopicList() {
                 </div>
             </td>
             <td data-label="Durum">
-                <div style="display: flex; flex-direction: column; gap: 8px; align-items: flex-start;">
+                <div class="topic-status-cell">
                     ${badgeData}
-                    ${topic.id === state.currentTopicId ? '<span class="focus-indicator" style="margin: 0;">🌟 Odak</span>' : ''}
+                    ${topic.id === state.currentTopicId ? '<span class="focus-indicator">Odak</span>' : ''}
                 </div>
             </td>
             <td data-label="İşlemler">
