@@ -889,10 +889,11 @@
 
   /* MASTERY TABLE CARDS */
   .mastery-table tr {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    padding: 10px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 8px 12px;
+    padding: 12px;
+    align-items: center;
   }
 
   .mastery-table td {
@@ -908,40 +909,33 @@
 
   /* Row 1: Title */
   .mastery-table td:nth-child(1) {
-    width: 100%;
+    grid-column: 1 / -1;
     margin-bottom: 2px;
   }
 
-  /* Row 2 Wrapper for Progress + Status + Actions */
-  .mastery-master-row {
-    display: flex;
-    width: 100%;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-  }
-
+  /* Row 2: Progress bar full width */
   .mastery-table td:nth-child(2) {
-    /* Progress bar cell */
-    flex: 1;
-    min-width: 0;
+    grid-column: 1 / -1;
+    width: 100%;
   }
 
+  /* Row 3: Status Badge (Left) */
   .mastery-table td:nth-child(3) {
-    /* Status Badge cell */
-    flex-shrink: 0;
+    grid-column: 1 / 2;
+    align-items: center;
   }
 
+  /* Row 3: Actions (Right) */
   .mastery-table td:nth-child(4) {
-    /* Actions cell */
-    flex-shrink: 0;
+    grid-column: 2 / 3;
+    justify-content: flex-end;
+    align-items: center;
   }
 
   .mastery-table td:nth-child(3)>div {
     flex-direction: row !important;
-    gap: 4px;
-    align-items: center !important;
     gap: 8px !important;
+    align-items: center !important;
   }
 
   .mastery-table td:nth-child(3) .status-badge {
@@ -953,14 +947,6 @@
   .mastery-table td:nth-child(3) .focus-indicator {
     font-size: 0.7rem;
     padding: 2px 7px;
-  }
-
-  .mastery-table td:nth-child(4) {
-    flex-direction: row;
-    justify-content: flex-end;
-    margin-top: 4px;
-    padding-top: 12px;
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
   }
 
   /* ADMIN TABLE CARDS (Recent Exams) */

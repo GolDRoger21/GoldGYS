@@ -549,6 +549,25 @@ function renderHistoryTable(results) {
             }
         }
 
+        // Fallback: If topic name isn't found above, try to guess from categoryStats or examId
+        if (!parentTopicName) {
+            if (r.categoryStats && Object.keys(r.categoryStats).length > 0) {
+                const potentialCat = Object.keys(r.categoryStats)[0];
+                const matchedTheme = state.topics.find(t => t.id === potentialCat || t.slug === potentialCat);
+                if (matchedTheme) {
+                    parentTopicName = matchedTheme.title;
+                    topicSlug = matchedTheme.slug || matchedTheme.id;
+                }
+            } else if (r.examId && r.examId.includes('_')) {
+                const possibleSlug = r.examId.split('_')[0];
+                const matchedTheme = state.topics.find(t => t.slug === possibleSlug || t.id.includes(possibleSlug));
+                if (matchedTheme) {
+                    parentTopicName = matchedTheme.title;
+                    topicSlug = matchedTheme.slug || matchedTheme.id;
+                }
+            }
+        }
+
         if (!parentTopicName && isSmartTest) {
             displayTopicTitle = "Genel Karışık Soru Modu";
             parentTopicName = "Genel Tekrar";
