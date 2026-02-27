@@ -997,6 +997,7 @@
     display: flex;
     flex-direction: column;
     gap: 8px;
+    width: 100%;
   }
 
   .mastery-table tr,
@@ -1005,13 +1006,15 @@
     background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02));
     border-radius: 12px;
     padding: 12px;
+    width: 100%;
+    box-sizing: border-box;
   }
 
   /* MASTERY TABLE CARDS */
   .mastery-table tr {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 10px;
     padding: 14px;
     align-items: stretch;
   }
@@ -1021,6 +1024,7 @@
     padding: 0;
     display: flex;
     width: 100%;
+    min-width: 0;
   }
 
   .mastery-table td::before,
@@ -1032,6 +1036,19 @@
   .mastery-table td:nth-child(1) {
     margin-bottom: 2px;
     order: 1;
+    display: block;
+  }
+
+  .mastery-table td:nth-child(1) .topic-title-main {
+    display: block !important;
+    width: 100%;
+    line-height: 1.35;
+  }
+
+  .mastery-table td:nth-child(1) .topic-title-main span {
+    display: inline;
+    white-space: normal;
+    overflow-wrap: anywhere;
   }
 
   /* Row 2: Status Badge (Under Title) */
