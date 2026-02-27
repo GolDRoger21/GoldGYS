@@ -1036,12 +1036,10 @@
 
   .mastery-table td:nth-child(1) .topic-title-main span {
     display: block;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    word-break: normal;
-    overflow-wrap: normal;
+    white-space: normal;
+    word-break: break-word;
     max-width: 100%;
+    line-height: 1.4;
   }
 
   /* Row 2: Status Badge (Under Title) */
@@ -1071,7 +1069,8 @@
   /* Make sure badges inside row 2 display correctly */
   .mastery-table td:nth-child(3)>div {
     display: flex;
-    flex-wrap: wrap;
+    flex-direction: row;
+    flex-wrap: nowrap;
     gap: 8px;
     align-items: center;
   }
