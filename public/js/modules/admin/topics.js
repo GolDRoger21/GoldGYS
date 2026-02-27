@@ -678,14 +678,23 @@ async function deleteContent() {
     });
     if (!shouldDelete) return;
 
+    const deletedType = state.activeLessonType;
+
     await updateDoc(doc(db, `topics/${state.activeTopicId}/lessons`, state.activeLessonId), {
         status: 'deleted',
         isActive: false,
         deletedAt: serverTimestamp(),
         updatedAt: serverTimestamp()
     });
-    loadLessons(state.activeTopicId);
-    showMetaEditor(); // Ana ekrana dön
+
+    await loadLessons(state.activeTopicId);
+
+    // Silinen içeriğin ardından konu ayarlarını otomatik açma.
+    // Aktif sekmede temiz bir editör açarak Test Kağıdı / materyal alanını sıfırla.
+    createNewContent(deletedType === 'test' ? 'test' : 'lesson');
+    renderContentNav();
+
+    showToast("İçerik silindi.", "success");
 }
 
 async function promoteToSubtopic(id, ev) {
