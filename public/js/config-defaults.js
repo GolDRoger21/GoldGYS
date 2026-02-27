@@ -4,7 +4,7 @@ export const DEFAULT_PUBLIC_CONFIG = {
     slogan: "Adalet Bakanlığı Görevde Yükselme sınavına giden en net yol",
     footerText: "© {year} GOLD GYS. Tüm hakları saklıdır.",
     logoUrl: "",
-    faviconUrl: "/icons/favicon.svg"
+    faviconUrl: "/icons/favicon.png"
   },
   contact: {
     supportEmail: "destek@goldgys.com",
