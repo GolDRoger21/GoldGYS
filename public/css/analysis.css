@@ -504,6 +504,13 @@
   border: 1px solid rgba(212, 175, 55, 0.38);
 }
 
+
+.history-test-title {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
 .progress-val {
   font-weight: 600;
   font-size: 0.9rem;
@@ -1343,6 +1350,13 @@
 
   .history-topic-badge {
     font-size: 0.72rem;
+    max-width: 100%;
+    white-space: normal;
+  }
+
+  .history-test-title {
+    font-size: 0.9rem !important;
+    line-height: 1.35;
   }
 
   .topic-title-main {
