@@ -703,7 +703,7 @@
 }
 
 .weakness-item strong span.alert-color {
-  color: var(--gold-light);
+  color: #D4AF37;
 }
 
 .weakness-item p {
@@ -1468,4 +1468,41 @@
   .analysis-page>.glass-card {
     padding: 10px;
   }
+}
+
+/* --- History Topic Badge light mode contrast --- */
+[data-theme="light"] .history-topic-badge,
+:root:not([data-theme="dark"]) .history-topic-badge {
+  color: #4A3716;
+  background: rgba(191, 149, 63, 0.18);
+  border-color: rgba(191, 149, 63, 0.45);
+  font-weight: 700;
+}
+
+/* --- Ensure chart headings and other labels are readable --- */
+[data-theme="light"] .card-title,
+:root:not([data-theme="dark"]) .card-title {
+  color: #2F2516 !important;
+}
+
+[data-theme="light"] .text-muted,
+:root:not([data-theme="dark"]) .text-muted {
+  color: #645542 !important;
+}
+
+[data-theme="light"] .stat-label,
+:root:not([data-theme="dark"]) .stat-label {
+  color: #7A6650 !important;
+}
+
+[data-theme="light"] .prediction-stat-item,
+:root:not([data-theme="dark"]) .prediction-stat-item {
+  background: rgba(179, 135, 40, 0.08);
+  border-color: rgba(179, 135, 40, 0.22);
+}
+
+[data-theme="light"] .insight-pill,
+:root:not([data-theme="dark"]) .insight-pill {
+  background: rgba(179, 135, 40, 0.08);
+  border-color: rgba(179, 135, 40, 0.22);
 }

@@ -468,6 +468,11 @@ function renderTopicChart(categoryTotals) {
     const labels = weakest.length ? weakest.map(r => r.title.length > 20 ? r.title.substring(0, 20) + '...' : r.title) : ['Veri Yok'];
     const data = weakest.length ? weakest.map(r => r.success) : [0];
 
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    const textColor = isDark ? 'rgba(255,255,255,0.7)' : '#2F2516';
+    const gridColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
+    const tickColor = isDark ? 'rgba(255,255,255,0.5)' : '#7A6650';
+
     state.charts.topic = new Chart(document.getElementById('topicChart').getContext('2d'), {
         type: 'polarArea',
         data: {
@@ -476,17 +481,17 @@ function renderTopicChart(categoryTotals) {
                     'rgba(239, 68, 68, 0.7)', 'rgba(249, 115, 22, 0.7)', 'rgba(245, 158, 11, 0.7)',
                     'rgba(234, 179, 8, 0.7)', 'rgba(132, 204, 22, 0.7)', 'rgba(34, 197, 94, 0.7)',
                     'rgba(16, 185, 129, 0.7)', 'rgba(20, 184, 166, 0.7)'
-                ], borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)'
+                ], borderWidth: 1, borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)'
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-                legend: { position: 'right', labels: { color: 'rgba(255,255,255,0.7)', font: { size: 10 } } },
+                legend: { position: 'right', labels: { color: textColor, font: { size: 10 } } },
                 tooltip: { callbacks: { label: (ctx) => `${ctx.label}: %${ctx.raw}` } }
             },
-            scales: { r: { ticks: { backdropColor: 'transparent', color: 'rgba(255,255,255,0.5)' }, grid: { color: 'rgba(255,255,255,0.1)' } } }
+            scales: { r: { ticks: { backdropColor: 'transparent', color: tickColor }, grid: { color: gridColor } } }
         }
     });
 }
