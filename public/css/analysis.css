@@ -902,8 +902,8 @@
     display: grid;
     grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
     align-items: center;
-    background: linear-gradient(145deg, rgba(37, 99, 235, 0.2), rgba(15, 23, 42, 0.4));
-    border: 1px solid rgba(96, 165, 250, 0.4);
+    background: var(--glass-surface);
+    border: 1px solid var(--glass-border);
     border-radius: 12px;
     padding: 8px;
     gap: 8px;
@@ -955,8 +955,8 @@
   }
 
   .chip-group .status-badge.is-active {
-    border-color: rgba(125, 211, 252, 0.95);
-    box-shadow: 0 10px 24px rgba(37, 99, 235, 0.32);
+    border-color: var(--color-primary);
+    box-shadow: var(--shadow-gold);
   }
 
   .chip-group .status-badge.is-active::after {
@@ -964,7 +964,7 @@
     position: absolute;
     inset: -1px;
     border-radius: inherit;
-    border: 1px solid rgba(191, 219, 254, 0.55);
+    border: 1px solid var(--glass-border);
     pointer-events: none;
   }
 
