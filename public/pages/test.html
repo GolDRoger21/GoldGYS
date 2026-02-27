@@ -733,16 +733,23 @@
             try {
                 let questions = [];
                 let title = "Test";
+                let currentTopicMeta = null;
                 let totalCount = null;
                 let draftScopeKey = null;
                 let draftAnswers = {};
+
+                if (topicId) {
+                    const topicSnap = await getDoc(doc(db, "topics", topicId));
+                    if (topicSnap.exists()) {
+                        currentTopicMeta = { id: topicSnap.id, ...topicSnap.data() };
+                    }
+                }
 
                 if (mode === 'smart' && topicId) {
                     // --- AKILLI ÇALIŞMA MODU (Optimize Edilmiş v2) ---
 
                     // 1. Konu Başlığını Al
-                    const topicSnap = await getDoc(doc(db, "topics", topicId));
-                    const topicTitle = topicSnap.exists() ? topicSnap.data().title : "";
+                    const topicTitle = currentTopicMeta?.title || "";
                     title = `${topicTitle} - Çalışma Modu`;
 
                     const user = auth.currentUser;
@@ -1041,6 +1048,8 @@
                     menuButton: true,
                     examId: examId || topicId || 'custom_practice',
                     title: title,
+                    topicId: topicId || null,
+                    topicTitle: currentTopicMeta?.title || null,
                     deferWrongWrites: mode === 'smart',
                     initialAnswers: buildInitialAnswers(questions, draftAnswers),
                     onQuestionAnswered: async (data) => {
@@ -1088,6 +1097,7 @@
                                     await setDoc(completedRef, {
                                         completedAt: serverTimestamp(),
                                         topicId: topicId || null,
+                                        topicTitle: currentTopicMeta?.title || null,
                                         score: engine.calculateScore(), // TestEngine'e bu metodu eklememiz gerekebilir veya hesaplayalım
                                         examTitle: title || 'Test'
                                     }, { merge: true });

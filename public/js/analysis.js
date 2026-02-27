@@ -542,7 +542,7 @@ function renderHistoryTable(results) {
         }
 
         let topicSlug = null;
-        let parentTopicName = '';
+        let parentTopicName = r.topicTitle || '';
 
         if (r.topicId || r.categoryId) {
             const matchedTheme = state.topics.find(t => t.id === (r.topicId || r.categoryId) || t.slug === (r.topicId || r.categoryId));
@@ -554,11 +554,16 @@ function renderHistoryTable(results) {
             }
         }
 
+        if (!topicSlug && parentTopicName) {
+            const matchedByTitle = state.topics.find(t => normalizeStr(t.title) === normalizeStr(parentTopicName));
+            if (matchedByTitle) topicSlug = matchedByTitle.slug || matchedByTitle.id;
+        }
+
         // Fallback: If topic name isn't found above, try to guess from categoryStats or examId
         if (!parentTopicName) {
             if (r.categoryStats && Object.keys(r.categoryStats).length > 0) {
                 const potentialCat = Object.keys(r.categoryStats)[0];
-                const matchedTheme = state.topics.find(t => t.id === potentialCat || t.slug === potentialCat);
+                const matchedTheme = state.topics.find(t => t.id === potentialCat || t.slug === potentialCat || normalizeStr(t.title) === normalizeStr(potentialCat));
                 if (matchedTheme) {
                     parentTopicName = matchedTheme.title;
                     topicSlug = matchedTheme.slug || matchedTheme.id;
@@ -594,7 +599,7 @@ function renderHistoryTable(results) {
             <td data-label="Sınav / Test Adı" class="history-title-cell">
                  <a href="${testUrl}" style="text-decoration:none; display:flex; flex-direction:column; align-items:flex-start;">
                     ${parentTopicName ? `<div class="history-topic-badge">📚 ${parentTopicName}</div>` : `<div class="history-topic-badge">📚 Genel Konu</div>`}
-                    <strong style="color:var(--text-primary); font-weight:600; font-size: 0.95rem; transition: color 0.2s;" onmouseover="this.style.color='var(--color-primary)'" onmouseout="this.style.color='var(--text-primary)'">${r.examTitle || displayTopicTitle}</strong>
+                    <strong class="history-test-title" style="color:var(--text-primary); font-weight:600; font-size: 0.95rem; transition: color 0.2s;" onmouseover="this.style.color='var(--color-primary)'" onmouseout="this.style.color='var(--text-primary)'">${r.examTitle || displayTopicTitle}</strong>
                     ${smartTestBadge}
                 </a>
             </td>

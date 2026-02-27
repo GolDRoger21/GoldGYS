@@ -16,6 +16,8 @@ export class TestEngine {
         // Ayarlar
         this.examId = options.examId || 'custom_practice';
         this.examTitle = options.title || 'Genel Test';
+        this.topicId = options.topicId || null;
+        this.topicTitle = options.topicTitle || null;
         const rawMode = options.mode || 'practice';
         this.mode = rawMode === 'learning' ? 'practice' : rawMode; // 'exam' (Sınav) veya 'practice' (Çalışma)
         this.duration = options.duration || 0; // Dakika cinsinden
@@ -537,6 +539,8 @@ export class TestEngine {
             await addDoc(collection(db, `users/${auth.currentUser.uid}/exam_results`), {
                 examId: this.examId,
                 examTitle: this.examTitle,
+                topicId: this.topicId,
+                topicTitle: this.topicTitle,
                 score: stats.score,
                 correct: stats.correctCount,
                 wrong: stats.wrongCount,
