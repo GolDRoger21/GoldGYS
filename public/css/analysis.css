@@ -1009,7 +1009,9 @@
     border: none;
     padding: 0;
     display: flex;
-    width: 100%;
+    width: 100% !important;
+    max-width: 100%;
+    box-sizing: border-box !important;
     min-width: 0;
   }
 
