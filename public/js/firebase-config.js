@@ -26,9 +26,10 @@ export const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 
 // App Check'i Başlat
 if (typeof window !== "undefined") {
-  // Sadece localhost'ta debug token kullan
-  if (location.hostname === "localhost") {
+  if (location.hostname === "localhost" || location.hostname === "127.0.0.1") {
+    // Sadece localhost'ta debug token kullan veya geç
     self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
+    console.warn("AppCheck running in debug mode for localhost");
   }
 
   initializeAppCheck(app, {
