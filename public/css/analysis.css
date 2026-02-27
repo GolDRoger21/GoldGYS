@@ -1036,11 +1036,10 @@
 
   .mastery-table td:nth-child(1) .topic-title-main span {
     display: block;
-    flex: 1;
+    width: 100%;
     white-space: normal;
     word-break: normal;
-    overflow-wrap: anywhere;
-    max-width: 100%;
+    overflow-wrap: break-word;
     line-height: 1.4;
   }
 
@@ -1149,19 +1148,21 @@
 
   .topic-title-main {
     font-size: 0.95rem;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     /* Let titles wrap across multiple lines */
     white-space: normal;
     display: flex;
     align-items: flex-start;
     line-height: 1.4;
+    width: 100%;
   }
 
   .topic-title-main span {
     white-space: normal;
     word-break: normal;
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word;
     flex: 1;
+    min-width: 0;
   }
 
   .topic-desc-sub {
