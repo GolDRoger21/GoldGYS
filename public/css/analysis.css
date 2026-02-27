@@ -762,6 +762,133 @@
   font-weight: 700;
 }
 
+/* =============================================
+   LIGHT THEME OVERRIDES — Full Page Harmony
+   ============================================= */
+
+/* --- Weakness Section: alert-color & item cards --- */
+[data-theme="light"] .weakness-item strong span.alert-color,
+:root:not([data-theme="dark"]) .weakness-item strong span.alert-color {
+  color: var(--color-primary);
+}
+
+[data-theme="light"] .weakness-item,
+:root:not([data-theme="dark"]) .weakness-item {
+  border-color: rgba(179, 135, 40, 0.18);
+  background: rgba(179, 135, 40, 0.04);
+}
+
+/* --- Exam stats net score --- */
+[data-theme="light"] .exam-stats-text span.s-net,
+:root:not([data-theme="dark"]) .exam-stats-text span.s-net {
+  color: var(--color-primary);
+}
+
+[data-theme="light"] .exam-stats-text span.s-correct,
+:root:not([data-theme="dark"]) .exam-stats-text span.s-correct {
+  color: #2F7A55;
+}
+
+[data-theme="light"] .exam-stats-text span.s-wrong,
+:root:not([data-theme="dark"]) .exam-stats-text span.s-wrong {
+  color: #B94B45;
+}
+
+/* --- Exam bar container background --- */
+[data-theme="light"] .exam-bar-container,
+:root:not([data-theme="dark"]) .exam-bar-container {
+  background: rgba(0, 0, 0, 0.08);
+}
+
+/* --- Insight pills --- */
+[data-theme="light"] .insight-pill,
+:root:not([data-theme="dark"]) .insight-pill {
+  border-color: rgba(179, 135, 40, 0.16);
+  background: rgba(179, 135, 40, 0.04);
+}
+
+/* --- Mission items --- */
+[data-theme="light"] .mission-item,
+:root:not([data-theme="dark"]) .mission-item {
+  border-color: rgba(179, 135, 40, 0.16);
+  background: rgba(179, 135, 40, 0.04);
+}
+
+/* --- Prediction stat items --- */
+[data-theme="light"] .prediction-stat-item,
+:root:not([data-theme="dark"]) .prediction-stat-item {
+  background: rgba(179, 135, 40, 0.04);
+  border-color: rgba(179, 135, 40, 0.12);
+}
+
+[data-theme="light"] .prediction-stat-item:hover,
+:root:not([data-theme="dark"]) .prediction-stat-item:hover {
+  background: rgba(179, 135, 40, 0.08);
+}
+
+/* --- Prediction score section border --- */
+[data-theme="light"] .prediction-score-section,
+:root:not([data-theme="dark"]) .prediction-score-section {
+  border-right-color: rgba(179, 135, 40, 0.18);
+}
+
+/* --- Table borders --- */
+[data-theme="light"] .mastery-table th,
+[data-theme="light"] .admin-table th,
+:root:not([data-theme="dark"]) .mastery-table th,
+:root:not([data-theme="dark"]) .admin-table th {
+  border-bottom-color: rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="light"] .mastery-table td,
+[data-theme="light"] .admin-table td,
+:root:not([data-theme="dark"]) .mastery-table td,
+:root:not([data-theme="dark"]) .admin-table td {
+  border-bottom-color: rgba(0, 0, 0, 0.04);
+}
+
+/* --- Progress bar background --- */
+[data-theme="light"] .progress-bar-wrap,
+:root:not([data-theme="dark"]) .progress-bar-wrap {
+  background: rgba(0, 0, 0, 0.08);
+}
+
+/* --- Table date pill --- */
+[data-theme="light"] .table-date-pill,
+:root:not([data-theme="dark"]) .table-date-pill {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+/* --- History topic badge --- */
+[data-theme="light"] .history-topic-badge,
+:root:not([data-theme="dark"]) .history-topic-badge {
+  color: #7B571B;
+  background: rgba(191, 149, 63, 0.12);
+  border-color: rgba(191, 149, 63, 0.3);
+}
+
+/* --- Badge colors for light theme (darker text for readability) --- */
+[data-theme="light"] .badge-green,
+:root:not([data-theme="dark"]) .badge-green {
+  color: #2F7A55;
+  background: rgba(16, 185, 129, 0.08);
+  border-color: rgba(16, 185, 129, 0.22);
+}
+
+[data-theme="light"] .badge-blue,
+:root:not([data-theme="dark"]) .badge-blue {
+  color: #3B6EB5;
+  background: rgba(59, 130, 246, 0.08);
+  border-color: rgba(59, 130, 246, 0.22);
+}
+
+[data-theme="light"] .badge-gray,
+:root:not([data-theme="dark"]) .badge-gray {
+  color: #5B6573;
+  background: rgba(148, 163, 184, 0.1);
+  border-color: rgba(148, 163, 184, 0.22);
+}
+
 @media (max-width: 1200px) {
 
   .analysis-main-grid> :nth-child(1),
@@ -1048,6 +1175,14 @@
     box-sizing: border-box;
   }
 
+  [data-theme="light"] .mastery-table tr,
+  [data-theme="light"] .admin-table tr,
+  :root:not([data-theme="dark"]) .mastery-table tr,
+  :root:not([data-theme="dark"]) .admin-table tr {
+    border-color: rgba(179, 135, 40, 0.16);
+    background: linear-gradient(180deg, rgba(179, 135, 40, 0.04), rgba(179, 135, 40, 0.02));
+  }
+
   /* MASTERY TABLE CARDS */
   .mastery-table tr {
     display: flex;
@@ -1121,6 +1256,11 @@
     width: 100%;
   }
 
+  [data-theme="light"] .mastery-table td:nth-child(4),
+  :root:not([data-theme="dark"]) .mastery-table td:nth-child(4) {
+    border-top-color: rgba(0, 0, 0, 0.08);
+  }
+
   /* Make sure badges inside row 2 display correctly */
   .mastery-table td:nth-child(3)>div {
     display: flex;
@@ -1187,6 +1327,11 @@
     margin-top: 6px;
     padding-top: 8px;
     border-top: 1px dashed rgba(255, 255, 255, 0.1);
+  }
+
+  [data-theme="light"] .admin-table td:nth-child(3),
+  :root:not([data-theme="dark"]) .admin-table td:nth-child(3) {
+    border-top-color: rgba(0, 0, 0, 0.08);
   }
 
   .admin-table td:nth-child(4) {
