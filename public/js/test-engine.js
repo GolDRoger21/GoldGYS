@@ -1,7 +1,7 @@
 import { auth, db, functions } from "./firebase-config.js";
 import { showConfirm, showToast } from "./notifications.js";
 import {
-    doc, setDoc, addDoc, collection, serverTimestamp, increment, getDoc, deleteDoc, arrayUnion
+    doc, setDoc, addDoc, collection, serverTimestamp, increment, deleteDoc, arrayUnion
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { httpsCallable } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-functions.js";
 import { WrongSummaryService } from "./wrong-summary-service.js";
@@ -22,6 +22,7 @@ export class TestEngine {
         this.mode = rawMode === 'learning' ? 'practice' : rawMode; // 'exam' (Sınav) veya 'practice' (Çalışma)
         this.duration = options.duration || 0; // Dakika cinsinden
         this.deferWrongWrites = Boolean(options.deferWrongWrites);
+        this.persistPracticeResults = Boolean(options.persistPracticeResults);
         this.onQuestionAnswered = typeof options.onQuestionAnswered === 'function' ? options.onQuestionAnswered : null;
         this.onFinish = typeof options.onFinish === 'function' ? options.onFinish : null;
 
@@ -518,6 +519,12 @@ export class TestEngine {
     async saveExamResult(stats) {
         if (!auth.currentUser) return;
 
+        // Maliyet optimizasyonu: practice modunda her seansı kalıcı exam_result olarak yazmak yerine
+        // varsayılan olarak sadece exam modunu yazıyoruz. İstenirse options.persistPracticeResults=true ile açılabilir.
+        if ((stats.mode || this.mode) === 'practice' && !this.persistPracticeResults) {
+            return;
+        }
+
         // Kategori bazlı analiz
         const categoryBreakdown = {};
         this.questions.forEach(q => {
@@ -619,7 +626,7 @@ export class TestEngine {
             count: 1
         });
 
-        if (!this.deferWrongWrites && this.pendingWrongAnswers.size >= 5) {
+        if (!this.deferWrongWrites && this.pendingWrongAnswers.size >= 20) {
             await this.flushWrongAnswers();
         }
     }
@@ -673,16 +680,9 @@ export class TestEngine {
 
     async loadUserFavorites() {
         if (!auth.currentUser) return;
-        try {
-            // Favorileri çek (Sadece ID'leri tutuyoruz)
-            // Not: Çok fazla favori varsa bu yöntem optimize edilmeli, şimdilik yeterli.
-            const snap = await getDoc(doc(db, `users/${auth.currentUser.uid}/favorites/_index`));
-            // Alternatif: Subcollection'dan çekmek daha maliyetli olabilir, 
-            // ama veri modelinde subcollection demiştik. O yüzden collection query yapalım.
-            // Ancak performans için sadece ID'leri çekmek daha iyi olurdu.
-            // Şimdilik basit yöntem:
-            // (Gerçek uygulamada favori ID'lerini user profilinde array olarak tutmak daha hızlıdır)
-        } catch (e) { }
+        // Bilinçli olarak Firestore okuması yapılmıyor.
+        // Favoriler buton üzerinden doküman bazlı (toggle) yönetiliyor; test açılışında gereksiz
+        // bir `_index` okuması maliyet üretiyordu ve UI'ye katkı sağlamıyordu.
     }
 
     async toggleFavorite(qId) {
