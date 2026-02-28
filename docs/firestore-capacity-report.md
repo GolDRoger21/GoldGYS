@@ -169,3 +169,54 @@ Bu sayfalar özelinde cache kullanımı ve iyileştirmeler:
 - Cache **okuma** yollarından (`getData`, `getQuestion`, `getPack`, vb.) zorunlu buster sync kaldırıldı.
 
 Bu sayede özellikle yüksek etkileşimli sayfalarda arka plandaki gizli Firestore read trafiği ciddi şekilde azalır.
+
+
+## Güncellenmiş maliyet analizi (son optimizasyonlardan sonra)
+
+Bu bölüm, aşağıdaki yeni optimizasyonları da hesaba katar:
+
+- Practice modunda `exam_results` yazımı varsayılan kapalı.
+- Favori değişiklikleri test bitiminde toplu flush (çoklu toggle tek net sonuca düşebilir).
+- Cache buster sunucu senkronu seyrekleştirildi (1 dk → 6 saat) ve sıcak okuma yollarındaki zorunlu sync kaldırıldı.
+- Analiz / dashboard / yanlış özeti sayfalarında TTL artırımı ile tekrar okuma azaltımı.
+
+### Yeni model varsayımları
+
+Sabitler:
+- DAU: **5.000**
+- Kullanıcı başına günlük soru: **1.000**
+- Aylık toplam soru: **150.000.000**
+- Ortalama seans boyu: 20 soru → **7.500.000 seans/ay**
+
+Senaryolar:
+1. **Optimize (iyi cache + düşük write yoğunluğu)**
+   - Cache miss: %10
+   - Toplam read: ~20.0M/ay
+   - Toplam write: ~16.5M/ay
+2. **Gerçekçi (önerilen ana plan)**
+   - Cache miss: %30
+   - Toplam read: ~52.3M/ay
+   - Toplam write: ~21.4M/ay
+3. **Yoğun kullanım (kötümser)**
+   - Cache miss: %60
+   - Toplam read: ~99.5M/ay
+   - Toplam write: ~28.5M/ay
+
+### Güncel maliyet tablosu (Blaze)
+
+| Senaryo | Read/ay | Write/ay | Read maliyeti | Write maliyeti | Toplam |
+|---|---:|---:|---:|---:|---:|
+| Optimize | 20.0M | 16.5M | $12.0 | $29.7 | **$41.7/ay** |
+| Gerçekçi | 52.3M | 21.4M | $31.4 | $38.5 | **$69.9/ay** |
+| Yoğun/Kötümser | 99.5M | 28.5M | $59.7 | $51.3 | **$111.0/ay** |
+
+## Son yorum (hedef: sıfıra yakın maliyet)
+
+- **5.000 DAU ve 150M soru/ay ölçeğinde maliyetin mutlak sıfıra inmesi mümkün değil** (Blaze operasyon ücretleri nedeniyle).
+- Ancak mevcut optimizasyonlarla hedef bandı önceki rapora göre aşağı çekildi:
+  - Yeni gerçekçi beklenti: **~$70/ay**
+  - İyi cache senaryosu: **~$42/ay**
+- Bir sonraki büyük kaldıraç:
+  1. Soru cache hit oranını %30'dan %15'e indirmek,
+  2. Practice ağırlığını artırmak (exam_results write baskısını azaltmak),
+  3. `topic_progress` senkronunu sadece değişen alanlara daha seyrek toplu yazmak.
