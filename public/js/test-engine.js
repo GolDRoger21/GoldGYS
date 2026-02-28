@@ -34,6 +34,7 @@ export class TestEngine {
         this.remainingTime = this.duration * 60;
         this.startTime = Date.now();
         this.pendingWrongAnswers = new Map();
+        this.pendingFavoriteChanges = new Map();
 
         // UI Elementleri (HTML'de bu ID'lerin olduğundan emin olacağız)
         this.ui = {
@@ -70,8 +71,12 @@ export class TestEngine {
 
     setupLifecycleHandlers() {
         const tryFlush = () => {
-            if (this.pendingWrongAnswers.size === 0) return;
-            void this.flushWrongAnswers();
+            if (this.pendingWrongAnswers.size > 0) {
+                void this.flushWrongAnswers();
+            }
+            if (this.pendingFavoriteChanges.size > 0) {
+                void this.flushFavoriteChanges();
+            }
         };
 
         document.addEventListener('visibilitychange', () => {
@@ -476,6 +481,9 @@ export class TestEngine {
             await this.onFinish({ answers: this.answers, isTimeout });
         }
 
+        // Test boyunca biriken favori değişikliklerini tek seferde işle
+        await this.flushFavoriteChanges();
+
         // Veritabanına Kaydet
         await this.saveExamResult({
             score, correctCount, wrongCount, emptyCount, total, timeSpent, mode: modeAtFinish
@@ -685,6 +693,35 @@ export class TestEngine {
         // bir `_index` okuması maliyet üretiyordu ve UI'ye katkı sağlamıyordu.
     }
 
+    async flushFavoriteChanges() {
+        if (!auth.currentUser || this.pendingFavoriteChanges.size === 0) return;
+
+        const operations = [];
+        this.pendingFavoriteChanges.forEach((isFavorite, qId) => {
+            const ref = doc(db, `users/${auth.currentUser.uid}/favorites/${qId}`);
+            if (!isFavorite) {
+                operations.push(deleteDoc(ref));
+                return;
+            }
+
+            const q = this.questions.find(i => i.id === qId);
+            operations.push(setDoc(ref, {
+                questionId: q?.id || qId,
+                text: q?.text || '',
+                category: q?.category || 'Genel',
+                addedAt: serverTimestamp()
+            }, { merge: true }));
+        });
+
+        try {
+            await Promise.all(operations);
+            this.pendingFavoriteChanges.clear();
+            await CacheManager.deleteData(`user_favorites_${auth.currentUser.uid}`);
+        } catch (error) {
+            console.error("Favori değişikliklerini toplu kaydetme hatası:", error);
+        }
+    }
+
     async toggleFavorite(qId) {
         if (!auth.currentUser) {
             showToast("Bu işlem için giriş yapmalısınız.", "error");
@@ -692,28 +729,22 @@ export class TestEngine {
         }
 
         const btn = document.querySelector(`#q-${qId} .fav-btn`);
-        const ref = doc(db, `users/${auth.currentUser.uid}/favorites/${qId}`);
 
         if (this.favorites.has(qId)) {
             this.favorites.delete(qId);
+            this.pendingFavoriteChanges.set(qId, false);
             if (btn) {
                 btn.innerText = '☆';
                 btn.classList.remove('active');
             }
-            await deleteDoc(ref);
-        } else {
-            this.favorites.add(qId);
-            if (btn) {
-                btn.innerText = '★';
-                btn.classList.add('active');
-            }
-            const q = this.questions.find(i => i.id === qId);
-            await setDoc(ref, {
-                questionId: q.id,
-                text: q.text,
-                category: q.category,
-                addedAt: serverTimestamp()
-            });
+            return;
+        }
+
+        this.favorites.add(qId);
+        this.pendingFavoriteChanges.set(qId, true);
+        if (btn) {
+            btn.innerText = '★';
+            btn.classList.add('active');
         }
     }
 

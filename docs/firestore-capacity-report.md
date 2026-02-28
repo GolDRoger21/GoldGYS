@@ -120,13 +120,16 @@ Kodda yaptığınız optimizasyonlar maliyet açısından doğru yönde:
 
 ## Uygulanan maliyet optimizasyonları (bu PR)
 
-Aşağıdaki iki optimizasyon kodda aktif hale getirildi:
+Aşağıdaki optimizasyonlar kodda aktif hale getirildi:
 
 1. **Gereksiz favori index okuması kaldırıldı**
    - Test ekranı açılışında `users/{uid}/favorites/_index` dokümanı okunuyordu; bu veri UI tarafından kullanılmadığı için okuma kaldırıldı.
 2. **Practice sonuçlarının kalıcı `exam_results` yazımı varsayılan olarak kapatıldı**
    - `TestEngine` artık practice modunda varsayılan olarak `exam_results` yazmıyor (`persistPracticeResults: false`).
    - İstenirse ayardan tekrar açılabilir.
+3. **Favori işlemleri test bitimine kadar toplulaştırıldı**
+   - Test sırasında favori ekle/çıkar sadece local state üzerinde tutuluyor.
+   - `Testi Bitir` adımında (ve sayfa kapanışında) favori değişiklikleri toplu flush ile Firestore'a işleniyor.
 
 ### Bu optimizasyonların maliyete etkisi
 
@@ -140,3 +143,29 @@ Aşağıdaki iki optimizasyon kodda aktif hale getirildi:
 - Toplam maliyet (cache miss %30 örneği): **$90/ay → $76.5/ay**
 
 > Not: Bu kazanç, kullanımın practice yoğunluğuna bağlıdır. Exam modu kullanım oranı arttıkça tasarruf azalır.
+
+
+## Önbellek sistemi analizi (analiz / favoriler / yanlışlarım / denemeler)
+
+Bu sayfalar özelinde cache kullanımı ve iyileştirmeler:
+
+- **/analiz**
+  - `exam_results`, `topic_progress` ve kullanıcı profili için cache TTL **30 dk** yapıldı.
+  - Böylece aynı kullanıcı kısa aralıklarla analiz ekranına girince Firestore tekrar okumaları azalır.
+- **/favoriler**
+  - Sayfada favoriler zaten IndexedDB üzerinden cache-first çalışıyor; test içindeki favori değişiklikleri artık toplu işlendiği için favoriler cache'i toplu flush sonrası invalidate ediliyor.
+- **/yanlislarim**
+  - `wrong_summaries` özet cache TTL'i **1 saatten 6 saate** çıkarıldı.
+  - Test bitiminde optimistic cache update mevcut olduğundan kullanıcı günceli görmeye devam eder.
+- **/denemeler**
+  - Global aktif deneme listesi zaten 24 saat cache'leniyor; bu yapı korundu.
+
+### Cache invalidation maliyeti için kritik not
+
+`CacheManager` içinde çalışan `cacheBuster` mekanizması çok sık sunucu okuması yapıyordu. Bu PR ile:
+
+- Senkron aralığı **1 dakika → 6 saat** yükseltildi.
+- `getDocFromServer` yerine `getDoc` kullanıldı.
+- Cache **okuma** yollarından (`getData`, `getQuestion`, `getPack`, vb.) zorunlu buster sync kaldırıldı.
+
+Bu sayede özellikle yüksek etkileşimli sayfalarda arka plandaki gizli Firestore read trafiği ciddi şekilde azalır.
