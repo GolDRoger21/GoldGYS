@@ -1050,7 +1050,11 @@
                     title: title,
                     topicId: topicId || null,
                     topicTitle: currentTopicMeta?.title || null,
-                    deferWrongWrites: mode === 'smart',
+                    // Firestore maliyetini düşürmek için yanlışlar seans sonuna kadar bellekte tutulur
+                    // ve finish adımında toplu tek write olarak flush edilir.
+                    deferWrongWrites: true,
+                    // practice oturum sonuçlarını Firestore'a yazma (maliyet optimizasyonu)
+                    persistPracticeResults: false,
                     initialAnswers: buildInitialAnswers(questions, draftAnswers),
                     onQuestionAnswered: async (data) => {
                         if (mode === 'smart' && topicId) {

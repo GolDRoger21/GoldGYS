@@ -1,7 +1,7 @@
 import { auth, db, functions } from "./firebase-config.js";
 import { showConfirm, showToast } from "./notifications.js";
 import {
-    doc, setDoc, addDoc, collection, serverTimestamp, increment, getDoc, deleteDoc, arrayUnion
+    doc, setDoc, addDoc, collection, serverTimestamp, increment, deleteDoc, arrayUnion
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { httpsCallable } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-functions.js";
 import { WrongSummaryService } from "./wrong-summary-service.js";
@@ -22,6 +22,7 @@ export class TestEngine {
         this.mode = rawMode === 'learning' ? 'practice' : rawMode; // 'exam' (Sınav) veya 'practice' (Çalışma)
         this.duration = options.duration || 0; // Dakika cinsinden
         this.deferWrongWrites = Boolean(options.deferWrongWrites);
+        this.persistPracticeResults = Boolean(options.persistPracticeResults);
         this.onQuestionAnswered = typeof options.onQuestionAnswered === 'function' ? options.onQuestionAnswered : null;
         this.onFinish = typeof options.onFinish === 'function' ? options.onFinish : null;
 
@@ -33,6 +34,7 @@ export class TestEngine {
         this.remainingTime = this.duration * 60;
         this.startTime = Date.now();
         this.pendingWrongAnswers = new Map();
+        this.pendingFavoriteChanges = new Map();
 
         // UI Elementleri (HTML'de bu ID'lerin olduğundan emin olacağız)
         this.ui = {
@@ -69,8 +71,12 @@ export class TestEngine {
 
     setupLifecycleHandlers() {
         const tryFlush = () => {
-            if (this.pendingWrongAnswers.size === 0) return;
-            void this.flushWrongAnswers();
+            if (this.pendingWrongAnswers.size > 0) {
+                void this.flushWrongAnswers();
+            }
+            if (this.pendingFavoriteChanges.size > 0) {
+                void this.flushFavoriteChanges();
+            }
         };
 
         document.addEventListener('visibilitychange', () => {
@@ -475,6 +481,9 @@ export class TestEngine {
             await this.onFinish({ answers: this.answers, isTimeout });
         }
 
+        // Test boyunca biriken favori değişikliklerini tek seferde işle
+        await this.flushFavoriteChanges();
+
         // Veritabanına Kaydet
         await this.saveExamResult({
             score, correctCount, wrongCount, emptyCount, total, timeSpent, mode: modeAtFinish
@@ -517,6 +526,12 @@ export class TestEngine {
 
     async saveExamResult(stats) {
         if (!auth.currentUser) return;
+
+        // Maliyet optimizasyonu: practice modunda her seansı kalıcı exam_result olarak yazmak yerine
+        // varsayılan olarak sadece exam modunu yazıyoruz. İstenirse options.persistPracticeResults=true ile açılabilir.
+        if ((stats.mode || this.mode) === 'practice' && !this.persistPracticeResults) {
+            return;
+        }
 
         // Kategori bazlı analiz
         const categoryBreakdown = {};
@@ -619,7 +634,7 @@ export class TestEngine {
             count: 1
         });
 
-        if (!this.deferWrongWrites && this.pendingWrongAnswers.size >= 5) {
+        if (!this.deferWrongWrites && this.pendingWrongAnswers.size >= 20) {
             await this.flushWrongAnswers();
         }
     }
@@ -673,16 +688,38 @@ export class TestEngine {
 
     async loadUserFavorites() {
         if (!auth.currentUser) return;
+        // Bilinçli olarak Firestore okuması yapılmıyor.
+        // Favoriler buton üzerinden doküman bazlı (toggle) yönetiliyor; test açılışında gereksiz
+        // bir `_index` okuması maliyet üretiyordu ve UI'ye katkı sağlamıyordu.
+    }
+
+    async flushFavoriteChanges() {
+        if (!auth.currentUser || this.pendingFavoriteChanges.size === 0) return;
+
+        const operations = [];
+        this.pendingFavoriteChanges.forEach((isFavorite, qId) => {
+            const ref = doc(db, `users/${auth.currentUser.uid}/favorites/${qId}`);
+            if (!isFavorite) {
+                operations.push(deleteDoc(ref));
+                return;
+            }
+
+            const q = this.questions.find(i => i.id === qId);
+            operations.push(setDoc(ref, {
+                questionId: q?.id || qId,
+                text: q?.text || '',
+                category: q?.category || 'Genel',
+                addedAt: serverTimestamp()
+            }, { merge: true }));
+        });
+
         try {
-            // Favorileri çek (Sadece ID'leri tutuyoruz)
-            // Not: Çok fazla favori varsa bu yöntem optimize edilmeli, şimdilik yeterli.
-            const snap = await getDoc(doc(db, `users/${auth.currentUser.uid}/favorites/_index`));
-            // Alternatif: Subcollection'dan çekmek daha maliyetli olabilir, 
-            // ama veri modelinde subcollection demiştik. O yüzden collection query yapalım.
-            // Ancak performans için sadece ID'leri çekmek daha iyi olurdu.
-            // Şimdilik basit yöntem:
-            // (Gerçek uygulamada favori ID'lerini user profilinde array olarak tutmak daha hızlıdır)
-        } catch (e) { }
+            await Promise.all(operations);
+            this.pendingFavoriteChanges.clear();
+            await CacheManager.deleteData(`user_favorites_${auth.currentUser.uid}`);
+        } catch (error) {
+            console.error("Favori değişikliklerini toplu kaydetme hatası:", error);
+        }
     }
 
     async toggleFavorite(qId) {
@@ -692,28 +729,22 @@ export class TestEngine {
         }
 
         const btn = document.querySelector(`#q-${qId} .fav-btn`);
-        const ref = doc(db, `users/${auth.currentUser.uid}/favorites/${qId}`);
 
         if (this.favorites.has(qId)) {
             this.favorites.delete(qId);
+            this.pendingFavoriteChanges.set(qId, false);
             if (btn) {
                 btn.innerText = '☆';
                 btn.classList.remove('active');
             }
-            await deleteDoc(ref);
-        } else {
-            this.favorites.add(qId);
-            if (btn) {
-                btn.innerText = '★';
-                btn.classList.add('active');
-            }
-            const q = this.questions.find(i => i.id === qId);
-            await setDoc(ref, {
-                questionId: q.id,
-                text: q.text,
-                category: q.category,
-                addedAt: serverTimestamp()
-            });
+            return;
+        }
+
+        this.favorites.add(qId);
+        this.pendingFavoriteChanges.set(qId, true);
+        if (btn) {
+            btn.innerText = '★';
+            btn.classList.add('active');
         }
     }
 

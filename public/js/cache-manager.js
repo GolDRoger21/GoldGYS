@@ -1,5 +1,5 @@
 import { db } from "./firebase-config.js";
-import { doc, getDocFromServer } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const DB_NAME = 'GoldGYSCache';
 const DB_VERSION = 1;
@@ -92,7 +92,7 @@ class IndexedDBCache {
 
 const idb = new IndexedDBCache();
 const CACHE_BUSTER_STORAGE_KEY = 'goldgys_cache_buster';
-const CACHE_BUSTER_SYNC_INTERVAL = 60 * 1000; // 1 dakika
+const CACHE_BUSTER_SYNC_INTERVAL = 6 * 60 * 60 * 1000; // 6 saat
 
 let cacheBusterSyncPromise = null;
 let lastCacheBusterSyncAt = 0;
@@ -136,7 +136,7 @@ async function syncCacheBusterFromServer(force = false) {
 
     cacheBusterSyncPromise = (async () => {
         try {
-            const snap = await getDocFromServer(doc(db, 'config', 'public'));
+            const snap = await getDoc(doc(db, 'config', 'public'));
             const remoteValue = Number(snap.data()?.system?.cacheBuster || 0);
             const localValue = readLocalCacheBuster();
 
@@ -184,7 +184,6 @@ export const CacheManager = {
     },
 
     async getData(key, maxAge = null) {
-        await syncCacheBusterFromServer();
         try {
             const record = await idb.get(STORES.METADATA, key);
             if (!record) return null;
@@ -216,7 +215,6 @@ export const CacheManager = {
     },
 
     async getPack(key, maxAge = DEFAULT_TTL) {
-        await syncCacheBusterFromServer();
         try {
             const record = await idb.get(STORES.PACKS, key);
             if (!record) return null;
@@ -245,7 +243,6 @@ export const CacheManager = {
     },
 
     async getQuestion(id) {
-        await syncCacheBusterFromServer();
         try {
             const q = await idb.get(STORES.QUESTIONS, id);
             return q || null;
@@ -255,7 +252,6 @@ export const CacheManager = {
     },
 
     async getQuestions(ids) {
-        await syncCacheBusterFromServer();
         const results = new Map();
         try {
             // Batch get optimization could be done here with cursor, 
@@ -286,7 +282,6 @@ export const CacheManager = {
     },
 
     async getDraftAnswers(scopeKey) {
-        await syncCacheBusterFromServer();
         const key = `draft_${scopeKey}`;
         try {
             const record = await idb.get(STORES.DRAFTS, key);
