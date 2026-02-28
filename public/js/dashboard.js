@@ -33,6 +33,22 @@ let examCountdownInterval = null;
 
 const DASHBOARD_STATS_TTL = 2 * 60 * 1000; // 2 dakika
 const DASHBOARD_FEED_TTL = 6 * 60 * 60 * 1000; // 6 saat
+const DASHBOARD_DATA_CACHE_TTL = 30 * 60 * 1000; // 30 dakika
+
+
+async function getCachedUserDoc(uid) {
+    const cacheKey = `user_profile_${uid}`;
+    const cachedUser = await CacheManager.getData(cacheKey, DASHBOARD_DATA_CACHE_TTL);
+    if (cachedUser?.cached && cachedUser.data) {
+        return { exists: () => true, data: () => cachedUser.data };
+    }
+
+    const userSnap = await getDoc(doc(db, "users", uid));
+    if (userSnap.exists()) {
+        await CacheManager.saveData(cacheKey, userSnap.data(), DASHBOARD_DATA_CACHE_TTL);
+    }
+    return userSnap;
+}
 
 function getDashboardDateKey() {
     return new Date().toISOString().slice(0, 10);
@@ -122,14 +138,14 @@ async function loadFocusTopics(uid, currentTopicId) {
         // --- CACHE DESTEKLİ ÇEKİM ---
         const cacheKey = `topic_progress_col_${uid}`;
         let progressMapDocs = [];
-        const cachedProgCol = await CacheManager.getData(cacheKey, 5 * 60 * 1000); // 5 dakika
+        const cachedProgCol = await CacheManager.getData(cacheKey, DASHBOARD_DATA_CACHE_TTL); // 5 dakika
 
         if (cachedProgCol?.cached && cachedProgCol.data) {
             progressMapDocs = cachedProgCol.data;
         } else {
             const progressSnap = await getDocs(collection(db, `users/${uid}/topic_progress`));
             progressMapDocs = progressSnap.docs.map(d => ({ id: d.id, data: d.data() }));
-            await CacheManager.saveData(cacheKey, progressMapDocs, 5 * 60 * 1000);
+            await CacheManager.saveData(cacheKey, progressMapDocs, DASHBOARD_DATA_CACHE_TTL);
         }
 
         const inProgressIds = progressMapDocs
@@ -187,21 +203,21 @@ async function loadFocusTopics(uid, currentTopicId) {
 }
 
 async function loadDashboardStats(uid) {
-    const userSnap = await getDoc(doc(db, "users", uid));
+    const userSnap = await getCachedUserDoc(uid);
     const userData = userSnap.exists() ? userSnap.data() : {};
     const statsResetAtSeconds = normalizeResetTimestamp(userData.statsResetAt);
 
     // Bütün analizleri bellek üzerinden (cached) hesaplayacağız DB masrafı olmasın:
     const resultsCacheKey = `exam_results_col_${uid}`;
     let rawResults = [];
-    const cachedResults = await CacheManager.getData(resultsCacheKey, 5 * 60 * 1000);
+    const cachedResults = await CacheManager.getData(resultsCacheKey, DASHBOARD_DATA_CACHE_TTL);
     if (cachedResults?.cached && cachedResults.data) {
         rawResults = cachedResults.data;
     } else {
         const resultsQuery = query(collection(db, `users/${uid}/exam_results`), orderBy('completedAt', 'desc'), limit(100));
         const resultSnap = await getDocs(resultsQuery);
         rawResults = resultSnap.docs.map(d => d.data());
-        await CacheManager.saveData(resultsCacheKey, rawResults, 5 * 60 * 1000);
+        await CacheManager.saveData(resultsCacheKey, rawResults, DASHBOARD_DATA_CACHE_TTL);
     }
 
     const { start: todayStart, end: todayEnd } = getTodayRange();
@@ -489,14 +505,14 @@ async function loadRecentActivities(uid) {
         // --- CACHE DESTEKLİ PROGRESS ÇEKİMİ ---
         const cacheKey = `topic_progress_col_${uid}`;
         let progressMapDocs = [];
-        const cachedProgCol = await CacheManager.getData(cacheKey, 5 * 60 * 1000);
+        const cachedProgCol = await CacheManager.getData(cacheKey, DASHBOARD_DATA_CACHE_TTL);
 
         if (cachedProgCol?.cached && cachedProgCol.data) {
             progressMapDocs = cachedProgCol.data;
         } else {
             const progressSnap = await getDocs(collection(db, `users/${uid}/topic_progress`));
             progressMapDocs = progressSnap.docs.map(d => ({ id: d.id, data: d.data() }));
-            await CacheManager.saveData(cacheKey, progressMapDocs, 5 * 60 * 1000);
+            await CacheManager.saveData(cacheKey, progressMapDocs, DASHBOARD_DATA_CACHE_TTL);
         }
 
         // Tüm konuları önbellekten çek (Hızlı adlandırma için)

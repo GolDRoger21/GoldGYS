@@ -1073,6 +1073,97 @@
     }
 }
 
+
+
+/* --- SYSTEM GUIDE SECTION --- */
+.system-guide-section {
+    margin-bottom: 28px;
+    padding: 22px;
+    border-radius: 20px;
+    border: 1px solid color-mix(in srgb, var(--color-primary) 28%, var(--border-subtle) 72%);
+    background: linear-gradient(160deg,
+            color-mix(in srgb, var(--color-primary) 10%, var(--bg-surface-elevated) 90%) 0%,
+            color-mix(in srgb, var(--color-primary) 5%, var(--bg-surface) 95%) 100%);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18);
+}
+
+[data-theme="light"] .system-guide-section {
+    background: linear-gradient(165deg,
+            color-mix(in srgb, #fff7e2 55%, #ffffff 45%) 0%,
+            color-mix(in srgb, #fffef8 45%, #ffffff 55%) 100%);
+    border: 1px solid color-mix(in srgb, var(--color-primary) 35%, var(--border-subtle) 65%);
+    box-shadow: var(--shadow-sm);
+}
+
+.guide-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+}
+
+.guide-badge {
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+    border-radius: 999px;
+    padding: 6px 10px;
+    color: var(--color-primary);
+    background: rgba(212, 175, 55, 0.14);
+    border: 1px solid rgba(212, 175, 55, 0.32);
+}
+
+.system-guide-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.guide-card {
+    border-radius: 14px;
+    border: 1px solid var(--border-subtle);
+    background: color-mix(in srgb, var(--bg-surface-elevated) 86%, transparent 14%);
+    padding: 14px;
+}
+
+[data-theme="light"] .guide-card {
+    background: color-mix(in srgb, #ffffff 88%, #f8f3e5 12%);
+}
+
+.guide-card h3 {
+    margin: 0 0 6px;
+    font-size: 0.98rem;
+    color: var(--text-main);
+}
+
+.guide-card p {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    line-height: 1.45;
+}
+
+.guide-card a {
+    color: var(--color-primary);
+    font-weight: 600;
+}
+
+.guide-footer-note {
+    margin-top: 14px;
+    border-top: 1px dashed var(--border-subtle);
+    padding-top: 12px;
+    color: var(--text-muted);
+    font-size: 0.88rem;
+}
+
+.guide-footer-note span {
+    color: var(--text-main);
+    font-weight: 700;
+}
+
 @media (max-width: 768px) {
     .dashboard-container {
         padding: 12px;
@@ -1225,6 +1316,27 @@
         grid-template-columns: 1fr;
         gap: 16px;
         margin-bottom: 24px;
+    }
+
+    .system-guide-section {
+        padding: 16px;
+        border-radius: 16px;
+    }
+
+    .system-guide-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .guide-card {
+        padding: 12px;
+    }
+
+    .guide-card h3 {
+        font-size: 0.93rem;
+    }
+
+    .guide-card p {
+        font-size: 0.84rem;
     }
 
     .premium-highlight-card {
