@@ -373,7 +373,7 @@
 }
 
 .premium-highlight-card .panel-header .text-muted {
-    max-width: 42ch;
+    max-width: 100%;
 }
 
 .premium-highlight-card .panel-body {
