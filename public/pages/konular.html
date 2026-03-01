@@ -536,23 +536,34 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      width: 100%;
-      gap: 12px;
-      font-size: 0.74rem;
-      color: var(--text-main);
+      flex-wrap: nowrap;
+      gap: 8px;
+      font-size: 0.76rem;
+      margin-top: 6px;
+      color: var(--text-muted);
       font-weight: 600;
       text-shadow: 0 1px 2px rgba(255, 255, 255, 0.7);
     }
 
-    .progress-stat {
+    .progress-info-item {
       display: inline-flex;
-      align-items: baseline;
-      gap: 4px;
-      white-space: nowrap;
+      align-items: center;
       min-width: 0;
+      white-space: nowrap;
     }
 
-    .progress-stat strong {
+    .progress-info-item-main {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      flex: 1;
+    }
+
+    .progress-info-item-success {
+      flex-shrink: 0;
+      gap: 4px;
+    }
+
+    .topic-progress-line strong {
       color: var(--text-main);
       font-weight: 700;
     }
@@ -655,6 +666,11 @@
         flex-shrink: 0;
       }
 
+      .topic-progress-line {
+        gap: 6px;
+        font-size: 0.74rem;
+      }
+
       .topic-progress-hero {
         padding: 12px;
         margin-top: 12px;
@@ -725,6 +741,11 @@
 
       .card-header-row {
         margin-bottom: 10px;
+      }
+
+      .topic-progress-line {
+        font-size: 0.68rem;
+        gap: 4px;
       }
 
       .topic-question-chip {
@@ -1082,10 +1103,10 @@
                       <div>
                         <div class="progress-container" role="progressbar" aria-label="${t.title} ilerleme" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${progress}">
                             <div class="progress-fill" style="width: ${progress}%"></div>
-                            <div class="progress-overlay">
-                                <span class="progress-stat"><strong>%${progress}</strong> İlerleme <span class="progress-detail">(${solvedTotal}/${progressBase})</span></span>
-                                <span class="progress-stat progress-stat-success"><strong>%${successRate}</strong> Başarı</span>
-                            </div>
+                        </div>
+                        <div class="topic-progress-line">
+                            <span class="progress-info-item progress-info-item-main"><strong>%${progress}</strong> İlerleme <span style="opacity:0.7">(${solvedTotal}/${progressBase})</span></span>
+                            <span class="progress-info-item progress-info-item-success"><span style="opacity:0.5">•</span> <strong>%${successRate}</strong> Başarı</span>
                         </div>
                       </div>
                       ${t.totalQuestionTarget ? `<div class="topic-question-chip" title="Sınavda Çıkacak Hedef Soru Sayısı">🎯 ${t.totalQuestionTarget}</div>` : ''}
