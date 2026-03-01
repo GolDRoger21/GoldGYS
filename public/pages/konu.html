@@ -48,6 +48,33 @@
       margin-top: 20px;
     }
 
+    @media (min-width: 992px) {
+      .study-mode-status {
+        max-width: 100%;
+      }
+
+      .study-mode-status-metrics,
+      .mode-options {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+
+      .mode-options {
+        gap: 12px;
+      }
+
+      .mode-btn {
+        min-height: 70px;
+        padding: 10px 12px;
+        flex-direction: row;
+        justify-content: center;
+        gap: 10px;
+      }
+
+      .mode-icon {
+        font-size: 1.2rem;
+      }
+    }
+
     .mode-btn {
       background: var(--bg-hover);
       border: 1px solid var(--border-color);
