@@ -348,15 +348,15 @@
 .premium-highlight-card {
     position: relative;
     overflow: hidden;
-    background: linear-gradient(145deg, rgba(212, 175, 55, 0.05) 0%, var(--glass-surface) 100%);
-    border: 1px solid rgba(212, 175, 55, 0.2);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    background: linear-gradient(145deg, rgba(212, 175, 55, 0.08) 0%, var(--glass-surface) 100%);
+    border: 2px solid rgba(212, 175, 55, 0.5);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25), 0 0 20px rgba(212, 175, 55, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 [data-theme="light"] .premium-highlight-card {
-    background: linear-gradient(145deg, rgba(212, 175, 55, 0.03) 0%, rgba(255, 255, 255, 0.95) 100%);
-    border: 1px solid rgba(212, 175, 55, 0.3);
-    box-shadow: 0 8px 24px rgba(212, 175, 55, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    background: linear-gradient(145deg, rgba(212, 175, 55, 0.04) 0%, rgba(255, 255, 255, 0.95) 100%);
+    border: 2px solid rgba(212, 175, 55, 0.7);
+    box-shadow: 0 10px 30px rgba(212, 175, 55, 0.15), 0 0 20px rgba(212, 175, 55, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.8);
 }
 
 .premium-highlight-card::after {
