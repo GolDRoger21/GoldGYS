@@ -581,6 +581,24 @@
       gap: 4px;
     }
 
+    .progress-info-item {
+      display: inline-flex;
+      align-items: center;
+      min-width: 0;
+      white-space: nowrap;
+    }
+
+    .progress-info-item-main {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      flex: 1;
+    }
+
+    .progress-info-item-success {
+      flex-shrink: 0;
+      gap: 4px;
+    }
+
     .topic-progress-line strong {
       color: var(--text-main);
       font-weight: 700;
@@ -610,6 +628,40 @@
     .progress-legend-item .legend-icon {
       font-size: 0.9rem;
       line-height: 1;
+    }
+
+    .ui-icon {
+      width: 14px;
+      height: 14px;
+      display: inline-block;
+      color: currentColor;
+      flex-shrink: 0;
+      vertical-align: middle;
+    }
+
+    .ui-icon svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .progress-info-item-main .ui-icon {
+      color: var(--color-primary);
+    }
+
+    .progress-info-item-success .ui-icon {
+      color: var(--color-success);
+    }
+
+    .progress-legend-item-aim .ui-icon,
+    .topic-question-chip .ui-icon,
+    .subtopic-meta-badge .ui-icon {
+      color: var(--color-primary-dim);
     }
 
     @media (max-width: 768px) {
@@ -889,9 +941,9 @@
     </div>
 
     <div class="progress-legend" aria-label="İkon açıklamaları">
-      <span class="progress-legend-item" title="📈 İlerleme oranını gösterir"><span class="legend-icon" aria-hidden="true">📈</span>İlerleme</span>
-      <span class="progress-legend-item" title="✅ Başarı oranını gösterir"><span class="legend-icon" aria-hidden="true">✅</span>Başarı</span>
-      <span class="progress-legend-item" title="🎯 Sınavda çıkması beklenen hedef soru sayısını gösterir"><span class="legend-icon" aria-hidden="true">🎯</span>Hedef soru</span>
+      <span class="progress-legend-item" title="İlerleme oranını gösterir"><span class="legend-icon ui-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 19h16"/><path d="M7 15l4-4 3 3 4-5"/><path d="M18 9h3v3"/></svg></span>İlerleme</span>
+      <span class="progress-legend-item" title="Başarı oranını gösterir"><span class="legend-icon ui-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20 7 10 17l-5-5"/></svg></span>Başarı</span>
+      <span class="progress-legend-item progress-legend-item-aim" title="Sınavda çıkması beklenen hedef soru sayısını gösterir"><span class="legend-icon ui-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/><path d="M12 4v2M12 18v2M4 12h2M18 12h2"/></svg></span>Hedef soru</span>
     </div>
 
     <!-- Konu Listesi -->
@@ -1147,7 +1199,7 @@
                                   <span title="${child.title}">${child.title}</span>
                                 </span>
                                 <span class="subtopic-meta">
-                                  <span class="subtopic-meta-badge" title="Sınavda Çıkacak Hedef Soru Sayısı">🎯 ${child.totalQuestionTarget || 0}</span>
+                                  <span class="subtopic-meta-badge" title="Sınavda Çıkacak Hedef Soru Sayısı"><span class="ui-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/><path d="M12 4v2M12 18v2M4 12h2M18 12h2"/></svg></span> ${child.totalQuestionTarget || 0}</span>
                                 </span>
                             </a>
                         `).join('')}
@@ -1161,11 +1213,11 @@
                             <div class="progress-fill" style="width: ${progress}%"></div>
                         </div>
                         <div class="topic-progress-line">
-                            <span class="progress-info-item progress-info-item-main" title="İlerleme: %${progress} (${solvedTotal}/${progressBase})" aria-label="İlerleme %${progress}"><span aria-hidden="true">📈</span> <strong>%${progress}</strong> <span style="opacity:0.7">(${solvedTotal}/${progressBase})</span></span>
-                            <span class="progress-info-item progress-info-item-success" title="Başarı: %${successRate}" aria-label="Başarı %${successRate}"><span aria-hidden="true">✅</span> <strong>%${successRate}</strong></span>
+                            <span class="progress-info-item progress-info-item-main" title="İlerleme: %${progress} (${solvedTotal}/${progressBase})" aria-label="İlerleme %${progress}"><span class="ui-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 19h16"/><path d="M7 15l4-4 3 3 4-5"/><path d="M18 9h3v3"/></svg></span> <strong>%${progress}</strong> <span style="opacity:0.7">(${solvedTotal}/${progressBase})</span></span>
+                            <span class="progress-info-item progress-info-item-success" title="Başarı: %${successRate}" aria-label="Başarı %${successRate}"><span class="ui-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20 7 10 17l-5-5"/></svg></span> <strong>%${successRate}</strong></span>
                         </div>
                       </div>
-                      ${t.totalQuestionTarget ? `<div class="topic-question-chip" title="Sınavda Çıkacak Hedef Soru Sayısı">🎯 ${t.totalQuestionTarget}</div>` : ''}
+                      ${t.totalQuestionTarget ? `<div class="topic-question-chip" title="Sınavda Çıkacak Hedef Soru Sayısı"><span class="ui-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/><path d="M12 4v2M12 18v2M4 12h2M18 12h2"/></svg></span> ${t.totalQuestionTarget}</div>` : ''}
                     </div>
         `;
 
