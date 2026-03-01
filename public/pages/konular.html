@@ -507,36 +507,63 @@
     .progress-container {
       margin-top: 0;
       width: 100%;
-      height: 9px;
+      height: 36px;
       background: var(--bg-input);
       border-radius: var(--radius-full);
       overflow: hidden;
       box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+      position: relative;
+      border: 1px solid rgba(191, 149, 63, 0.28);
+      display: flex;
+      align-items: center;
+      padding: 0 12px;
     }
 
     .progress-fill {
-      height: 100%;
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
       background: var(--gradient-primary);
       width: 0%;
       transition: width 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
       box-shadow: 0 0 10px rgba(191, 149, 63, 0.4);
     }
 
-    .topic-progress-line {
+    .progress-overlay {
+      position: relative;
+      z-index: 1;
       display: flex;
       align-items: center;
-      justify-content: flex-start;
-      flex-wrap: wrap;
-      gap: 8px;
-      font-size: 0.76rem;
-      margin-top: 6px;
-      color: var(--text-muted);
+      justify-content: space-between;
+      width: 100%;
+      gap: 12px;
+      font-size: 0.74rem;
+      color: var(--text-main);
+      font-weight: 600;
+      text-shadow: 0 1px 2px rgba(255, 255, 255, 0.7);
+    }
+
+    .progress-stat {
+      display: inline-flex;
+      align-items: baseline;
+      gap: 4px;
+      white-space: nowrap;
+      min-width: 0;
+    }
+
+    .progress-stat strong {
+      color: var(--text-main);
+      font-weight: 700;
+    }
+
+    .progress-detail {
+      opacity: 0.78;
       font-weight: 600;
     }
 
-    .topic-progress-line strong {
-      color: var(--text-main);
-      font-weight: 700;
+    .progress-stat-success {
+      justify-content: flex-end;
     }
 
     @media (max-width: 768px) {
@@ -628,17 +655,20 @@
         flex-shrink: 0;
       }
 
-      .topic-progress-line {
-        flex-direction: row;
-        align-items: center;
-        gap: 6px 12px;
-        font-size: 0.78rem;
-      }
-
       .topic-progress-hero {
         padding: 12px;
         margin-top: 12px;
         gap: 10px;
+      }
+
+      .progress-container {
+        height: 34px;
+        padding: 0 10px;
+      }
+
+      .progress-overlay {
+        font-size: 0.7rem;
+        gap: 8px;
       }
 
       .topic-question-chip {
@@ -697,11 +727,6 @@
         margin-bottom: 10px;
       }
 
-      .topic-progress-line {
-        font-size: 0.72rem;
-        gap: 4px 8px;
-      }
-
       .topic-question-chip {
         width: auto;
         padding: 5px 8px;
@@ -712,6 +737,16 @@
       .topic-progress-hero {
         padding: 10px;
         gap: 8px;
+      }
+
+      .progress-container {
+        height: 32px;
+        padding: 0 8px;
+      }
+
+      .progress-overlay {
+        font-size: 0.64rem;
+        gap: 6px;
       }
 
       .topic-health {
@@ -1047,10 +1082,10 @@
                       <div>
                         <div class="progress-container" role="progressbar" aria-label="${t.title} ilerleme" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${progress}">
                             <div class="progress-fill" style="width: ${progress}%"></div>
-                        </div>
-                        <div class="topic-progress-line">
-                            <span class="progress-info-item"><strong>%${progress}</strong> İlerleme <span style="opacity:0.7">(${solvedTotal}/${progressBase})</span></span>
-                            <span class="progress-info-item" style="display:flex; align-items:center; gap:4px;"><span style="opacity:0.5">•</span> <strong>%${successRate}</strong> Başarı</span>
+                            <div class="progress-overlay">
+                                <span class="progress-stat"><strong>%${progress}</strong> İlerleme <span class="progress-detail">(${solvedTotal}/${progressBase})</span></span>
+                                <span class="progress-stat progress-stat-success"><strong>%${successRate}</strong> Başarı</span>
+                            </div>
                         </div>
                       </div>
                       ${t.totalQuestionTarget ? `<div class="topic-question-chip" title="Sınavda Çıkacak Hedef Soru Sayısı">🎯 ${t.totalQuestionTarget}</div>` : ''}
