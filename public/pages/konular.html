@@ -792,13 +792,16 @@
       }
 
       .progress-legend {
-        margin: -8px 0 14px;
-        gap: 6px;
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+        margin: -8px 0 16px;
       }
 
       .progress-legend-item {
-        font-size: 0.68rem;
-        padding: 5px 8px;
+        justify-content: center;
+        font-size: 0.72rem;
+        padding: 6px 8px;
       }
 
       .topic-progress-hero {
@@ -878,9 +881,15 @@
         gap: 4px;
       }
 
+      .progress-legend {
+        gap: 6px;
+      }
+
       .progress-legend-item {
         font-size: 0.65rem;
-        padding: 4px 7px;
+        padding: 6px 4px;
+        white-space: normal;
+        text-align: center;
       }
 
       .topic-question-chip {
@@ -974,10 +983,29 @@
     </div>
 
     <div class="progress-legend" aria-label="İkon açıklamaları">
-      <span class="progress-legend-item" title="İlerleme oranını gösterir"><span class="legend-icon ui-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 19h16"/><path d="M7 15l4-4 3 3 4-5"/><path d="M18 9h3v3"/></svg></span>İlerleme</span>
-      <span class="progress-legend-item progress-legend-item-count" title="Çözülen / toplam soru sayısını gösterir"><span class="legend-icon ui-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="4" y="7" width="10" height="10" rx="2"/><path d="M10 7v-2h10a2 2 0 0 1 2 2v10h-2"/></svg></span>Çözülen / Toplam</span>
-      <span class="progress-legend-item" title="Başarı oranını gösterir"><span class="legend-icon ui-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20 7 10 17l-5-5"/></svg></span>Başarı</span>
-      <span class="progress-legend-item progress-legend-item-aim" title="Sınavda çıkması beklenen hedef soru sayısını gösterir"><span class="legend-icon ui-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/><path d="M12 4v2M12 18v2M4 12h2M18 12h2"/></svg></span>Hedef soru</span>
+      <span class="progress-legend-item" title="İlerleme oranını gösterir"><span class="legend-icon ui-icon"
+          aria-hidden="true"><svg viewBox="0 0 24 24">
+            <path d="M4 19h16" />
+            <path d="M7 15l4-4 3 3 4-5" />
+            <path d="M18 9h3v3" />
+          </svg></span>İlerleme</span>
+      <span class="progress-legend-item progress-legend-item-count"
+        title="Çözülen / toplam soru sayısını gösterir"><span class="legend-icon ui-icon" aria-hidden="true"><svg
+            viewBox="0 0 24 24">
+            <rect x="4" y="7" width="10" height="10" rx="2" />
+            <path d="M10 7v-2h10a2 2 0 0 1 2 2v10h-2" />
+          </svg></span>Çözülen / Toplam</span>
+      <span class="progress-legend-item" title="Başarı oranını gösterir"><span class="legend-icon ui-icon"
+          aria-hidden="true"><svg viewBox="0 0 24 24">
+            <path d="M20 7 10 17l-5-5" />
+          </svg></span>Başarı</span>
+      <span class="progress-legend-item progress-legend-item-aim"
+        title="Sınavda çıkması beklenen hedef soru sayısını gösterir"><span class="legend-icon ui-icon"
+          aria-hidden="true"><svg viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="8" />
+            <circle cx="12" cy="12" r="4" />
+            <path d="M12 4v2M12 18v2M4 12h2M18 12h2" />
+          </svg></span>Hedef soru</span>
     </div>
 
     <!-- Konu Listesi -->
