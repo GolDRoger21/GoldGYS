@@ -39,6 +39,8 @@
       font-size: 10rem;
       opacity: 0.08;
       transform: rotate(-15deg);
+      pointer-events: none;
+      user-select: none;
     }
 
     .mode-options {
@@ -48,11 +50,33 @@
       margin-top: 20px;
     }
 
+    @media (min-width: 992px) {
+      .study-mode-status {
+        max-width: 100%;
+      }
+
+      .study-mode-status-metrics,
+      .mode-options {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 12px;
+        align-items: stretch;
+      }
+
+      .study-mode-metric,
+      .mode-btn {
+        min-height: 70px;
+      }
+
+      .mode-options {
+        margin-top: 12px;
+      }
+    }
+
     .mode-btn {
       background: var(--bg-hover);
       border: 1px solid var(--border-color);
       color: var(--text-main);
-      padding: 15px;
+      padding: 10px 12px;
       border-radius: 12px;
       cursor: pointer;
       transition: all 0.2s;
@@ -60,8 +84,11 @@
       display: flex;
       flex-direction: column;
       align-items: center;
+      justify-content: center;
       gap: 8px;
       min-width: 0;
+      min-height: 70px;
+      box-sizing: border-box;
     }
 
     .mode-btn:hover {
@@ -96,6 +123,12 @@
 
     .mode-icon {
       font-size: 1.5rem;
+    }
+
+    .mode-btn span:last-child {
+      line-height: 1.25;
+      font-weight: 600;
+      text-wrap: balance;
     }
 
     .study-mode-header {
