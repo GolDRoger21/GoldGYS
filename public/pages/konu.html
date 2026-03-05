@@ -17,6 +17,7 @@
   <link rel="stylesheet" href="../css/layout.css">
   <link rel="stylesheet" href="../css/dashboard.css">
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     /* --- MEVCUT STİLLERİNİZ --- */
     .study-mode-card {
@@ -1225,13 +1226,15 @@
 
         <!-- Mobil Sekmeler (Sadece mobilde görünür) -->
         <div class="mobile-content-tabs" id="mobileContentTabs" style="display: none;">
-          <button class="mobile-tab-btn active" onclick="switchMobileTab('tests')">📝 Konu Testleri</button>
-          <button class="mobile-tab-btn" onclick="switchMobileTab('materials')">📚 Ders Notları</button>
+          <button class="mobile-tab-btn active" onclick="switchMobileTab('tests')"><i class="fas fa-tasks me-1"></i>
+            Konu Testleri</button>
+          <button class="mobile-tab-btn" onclick="switchMobileTab('materials')"><i class="fas fa-book-open me-1"></i>
+            Ders Notları</button>
         </div>
 
         <div class="tests-section-wrapper active" id="testsSectionWrapper">
           <div class="section-title-block">
-            <h3>📝 Konu Testleri</h3>
+            <h3><i class="fas fa-tasks me-2 text-primary"></i> Konu Testleri</h3>
             <p class="section-title-note">Sıralı veya tekrar odaklı çözüm ile konuyu pekiştir.</p>
           </div>
           <div id="testsList">Yükleniyor...</div>
@@ -1248,7 +1251,8 @@
     <div class="side-section materials-section-wrapper" id="materialsSectionWrapper" style="display:none;">
       <div id="topicMaterialsSection" style="display:block;">
         <div class="section-title-block">
-          <h3 style="border-left-color:var(--color-success);">📚 Ders Notları</h3>
+          <h3 style="border-left-color:var(--color-success);"><i class="fas fa-book-open me-2 text-warning"></i> Ders
+            Notları</h3>
           <p class="section-title-note">Kısa tekrarlar için not, video ve özet içerikleri tek alanda.</p>
         </div>
         <div id="materialsList"></div>
@@ -1426,9 +1430,9 @@
         if (subtopicSection) subtopicSection.style.display = 'block';
 
         // Başlıkları "Genel Konu" olarak güncelle (varsa)
-        if (testsTitle) testsTitle.innerHTML = '📝 Genel Konu Testleri';
+        if (testsTitle) testsTitle.innerHTML = '<i class="fas fa-tasks me-2 text-primary"></i> Genel Konu Testleri';
         const matTitle = materialsSection?.querySelector('h3');
-        if (matTitle) matTitle.innerHTML = '📚 Genel Ders Notları';
+        if (matTitle) matTitle.innerHTML = '<i class="fas fa-book-open me-2 text-warning"></i> Genel Ders Notları';
 
         // Genişliği tam ekran yapmayı iptal et, çünkü sağda materyaller olacak
         if (contentContainer) {
@@ -1441,9 +1445,9 @@
       } else {
         if (subtopicSection) subtopicSection.style.display = 'none';
 
-        if (testsTitle) testsTitle.innerHTML = '📝 Konu Testleri';
+        if (testsTitle) testsTitle.innerHTML = '<i class="fas fa-tasks me-2 text-primary"></i> Konu Testleri';
         const matTitle = materialsSection?.querySelector('h3');
-        if (matTitle) matTitle.innerHTML = '📚 Ders Notları';
+        if (matTitle) matTitle.innerHTML = '<i class="fas fa-book-open me-2 text-warning"></i> Ders Notları';
 
         if (contentContainer) {
           contentContainer.style.gridTemplateColumns = '';
@@ -1649,20 +1653,33 @@
             } else {
               // Empty category representation
               materialsContainer.innerHTML += `
-                    <div class="d-flex align-items-center mt-4 mb-2">
+                    <div class="d-flex align-items-center mt-4 mb-3">
                         <div style="width: 4px; height: 16px; background: var(--text-muted); border-radius: 4px; margin-right: 8px; opacity:0.5;"></div>
                         <h5 class="m-0 fw-bold" style="color: var(--text-muted); font-size: 1.1rem; letter-spacing: -0.3px;">${item.title}</h5>
                     </div>
-                    <div class="p-3 mb-3 text-center rounded-3" style="border: 1px dashed var(--border-color); background: rgba(0,0,0,0.01);">
-                        <div class="text-muted small"><i class="fas fa-info-circle me-1"></i> Bu başlık altında henüz not eklenmemiş.</div>
+                    <div class="p-4 mb-3 text-center rounded-3" style="border: 1px dashed var(--border-color); background: rgba(120,120,120,0.03);">
+                        <div style="font-size:1.8rem; opacity:0.15; margin-bottom:8px;"><i class="fas fa-folder-open"></i></div>
+                        <div class="text-muted small fw-medium">Bu başlık altında henüz not eklenmemiş.</div>
                     </div>
                 `;
             }
           }
         });
 
-        if (testCount === 0) testsContainer.innerHTML = '<div class="test-card text-muted">Açılabilir konu testi bulunmuyor.</div>';
-        if (materialCount === 0) materialsContainer.innerHTML = '<div class="test-card text-muted">Eklenmiş bir ders notu bulunmuyor.</div>';
+        if (testCount === 0) {
+          testsContainer.innerHTML = `
+                <div class="p-4 mt-3 text-center rounded-3" style="border: 1px dashed var(--border-color); background: rgba(120,120,120,0.03);">
+                    <div style="font-size:2rem; opacity:0.15; margin-bottom:8px;"><i class="fas fa-tasks"></i></div>
+                    <div class="text-muted small fw-medium">Bu konu için henüz eşleştirilmiş test bulunmuyor.</div>
+                </div>`;
+        }
+        if (materialCount === 0) {
+          materialsContainer.innerHTML = `
+                <div class="p-4 mt-3 text-center rounded-3" style="border: 1px dashed var(--border-color); background: rgba(120,120,120,0.03);">
+                    <div style="font-size:2rem; opacity:0.15; margin-bottom:8px;"><i class="fas fa-folder-open"></i></div>
+                    <div class="text-muted small fw-medium">Bu konu için henüz eklenmiş ders notu bulunmuyor.</div>
+                </div>`;
+        }
 
         const domMaterialCount = document.getElementById('companionMaterialCount');
         const domTestCount = document.getElementById('companionTestCount');
