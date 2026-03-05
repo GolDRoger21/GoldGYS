@@ -437,6 +437,8 @@ function createNewContent(type) {
 
     prepareEditorUI(contentType);
     document.getElementById('inpContentTitle').value = "";
+    const scopeInput = document.getElementById('inpContentScope');
+    if (scopeInput) scopeInput.value = 'section';
     document.getElementById('inpContentTitle').focus();
 
     // Sıra numarasını otomatik ver
@@ -477,6 +479,8 @@ function selectContentItem(id) {
     prepareEditorUI(state.activeLessonType);
     document.getElementById('inpContentTitle').value = item.title;
     document.getElementById('inpContentOrder').value = item.order;
+    const scopeInput = document.getElementById('inpContentScope');
+    if (scopeInput) scopeInput.value = item.scope || 'section';
 
     if (state.activeLessonType === 'lesson') {
         state.tempMaterials = item.materials || [];
@@ -500,16 +504,19 @@ function prepareEditorUI(type) {
     toggleMetaDrawer(false);
 
     const badge = document.getElementById('editorBadge');
+    const scopeInput = document.getElementById('inpContentScope');
     if (type === 'test') {
         badge.innerText = "TEST EDİTÖRÜ";
         badge.className = "badge bg-warning text-dark me-2";
         document.getElementById('wsLessonMode').style.display = 'none';
         document.getElementById('wsTestMode').style.display = 'flex';
+        if (scopeInput) scopeInput.style.display = 'none';
     } else {
         badge.innerText = "DERS EDİTÖRÜ";
         badge.className = "badge bg-primary me-2";
         document.getElementById('wsLessonMode').style.display = 'block';
         document.getElementById('wsTestMode').style.display = 'none';
+        if (scopeInput) scopeInput.style.display = '';
     }
 }
 
@@ -636,6 +643,7 @@ async function saveContent(silent = false) {
         data.qCount = state.tempQuestions.length;
         data.legislationCode = document.getElementById('wizLegislation').value;
     } else {
+        data.scope = document.getElementById('inpContentScope')?.value || 'section';
         data.materials = state.tempMaterials;
     }
 
@@ -743,6 +751,7 @@ async function promoteToSubtopic(id, ev) {
             lessonPayload.qCount = item.qCount || (item.questions ? item.questions.length : 0);
             lessonPayload.legislationCode = item.legislationCode || '';
         } else {
+            lessonPayload.scope = item.scope || 'section';
             lessonPayload.materials = item.materials || [];
         }
 
@@ -813,6 +822,7 @@ async function demoteToLesson(id, ev) {
             type: 'lesson',
             order: item.order || 1,
             isActive: true,
+            scope: 'section',
             materials: [],
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp()
