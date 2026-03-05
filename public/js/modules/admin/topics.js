@@ -467,10 +467,7 @@ function renderContentNav() {
     const sectionItems = items.filter(l => normalizeContentScope(l.scope) !== 'general');
     const withHeader = (title, icon, rows) => rows.length
         ? `
-        <div class="nav-group-title text-muted text-uppercase fw-bold mt-3 mb-2 px-3 d-flex align-items-center gap-2" style="font-size: 0.7rem; letter-spacing: 0.5px;">
-            <span style="font-size: 0.85rem;">${icon}</span> ${title}
-            <div class="flex-grow-1 border-top opacity-50 ms-2"></div>
-        </div>
+        <div class="nav-group-title">${icon} ${title}</div>
         ${rows.map(l => renderNavItem(l, false, state.activeLessonId, isSubtopic)).join('')}
     `
         : '';
@@ -478,10 +475,15 @@ function renderContentNav() {
     list.innerHTML = `${withHeader('Genel Konu İçeriği', '🌐', generalItems)}${withHeader('Not Başlığı İçerikleri', '📂', sectionItems)}`;
 }
 
-function getCurrentTabItems() {
+function getCurrentTabItems(scope = null) {
     const isTest = state.sidebarTab === 'test';
     return state.currentLessons
-        .filter(l => isTest ? l.type === 'test' : l.type !== 'test')
+        .filter(l => {
+            if (isTest) return l.type === 'test';
+            if (l.type === 'test') return false;
+            if (!scope) return true;
+            return normalizeContentScope(l.scope) === scope;
+        })
         .sort((a, b) => (a.order || 0) - (b.order || 0));
 }
 
@@ -520,7 +522,10 @@ async function navDrop(targetId, ev) {
         }
     }
 
-    const items = getCurrentTabItems();
+    const reorderScope = state.sidebarTab === 'lesson'
+        ? normalizeContentScope(draggedItem.scope)
+        : null;
+    const items = getCurrentTabItems(reorderScope);
     const fromIndex = items.findIndex(i => i.id === draggedId);
     const toIndex = items.findIndex(i => i.id === targetId);
     if (fromIndex < 0 || toIndex < 0) { navDragEnd(); return; }

@@ -2160,7 +2160,9 @@ tr.highlight {
 .studio-editor-actions {
     width: 100%;
     justify-content: space-between;
-    gap: 8px;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
 }
 
 .studio-save-indicator {
@@ -2175,12 +2177,18 @@ tr.highlight {
     display: flex;
     align-items: center;
     gap: 8px;
+    flex: 1;
+    min-width: 280px;
     flex-wrap: wrap;
 }
 
 .studio-editor-meta-row .form-select,
 .studio-editor-meta-row .input-group {
     max-width: 220px;
+}
+
+.studio-editor-action-buttons {
+    margin-left: auto;
 }
 
 .studio-order-input {
@@ -2271,9 +2279,17 @@ tr.highlight {
     }
 
     .studio-editor-actions {
-        justify-content: space-between;
+        justify-content: flex-start;
         width: 100%;
         flex-wrap: wrap;
+    }
+
+    .studio-editor-meta-row {
+        min-width: 100%;
+    }
+
+    .studio-editor-action-buttons {
+        margin-left: 0;
     }
 }
 
