@@ -94,17 +94,19 @@ export const UI_SHELL = `
 
                     <div id="contentEditor" style="display:none; flex-direction:column; height:100%; width:100%;">
 
-                    <div class="editor-toolbar studio-editor-toolbar">
+                    <div id="contentEditor" style="display:none; flex-direction:column; height:100%; width:100%;">
+
+                    <div class="editor-toolbar studio-editor-toolbar flex-wrap">
                         <!-- SOL: Başlık Alanı -->
-                        <div class="editor-title-group studio-editor-title-group">
+                        <div class="editor-title-group studio-editor-title-group flex-wrap">
                              <span class="badge bg-primary px-3 py-2" id="editorBadge">DERS</span>
-                             <input type="text" id="inpContentTitle" class="editor-title-input" placeholder="İçerik Başlığı Giriniz...">
+                             <input type="text" id="inpContentTitle" class="editor-title-input" placeholder="İçerik Başlığı Giriniz..." style="min-width: 250px;">
                         </div>
 
                         <!-- SAĞ: İşlemler ve Meta -->
                         <div class="editor-actions studio-editor-actions">
                             <!-- Kayıt Durumu -->
-                            <div class="save-indicator studio-save-indicator d-flex align-items-center">
+                            <div class="save-indicator studio-save-indicator d-flex align-items-center mb-1 mb-sm-0">
                                 <span id="saveIndicator" class="text-muted small fw-medium d-flex align-items-center">
                                     <i class="fas fa-check-circle me-1"></i> Kaydedildi
                                 </span>
@@ -127,7 +129,7 @@ export const UI_SHELL = `
                             </div>
 
                             <!-- Butonlar -->
-                            <div class="editor-action-buttons studio-editor-action-buttons d-flex align-items-center gap-2">
+                            <div class="editor-action-buttons studio-editor-action-buttons d-flex align-items-center gap-2 mt-2 mt-sm-0">
                                 <button class="btn btn-outline-danger btn-sm btn-icon shadow-sm" onclick="window.Studio.deleteContent()" title="İçeriği Sil" style="width: 32px; height: 32px;">
                                     🗑️
                                 </button>
@@ -136,6 +138,11 @@ export const UI_SHELL = `
                                 </button>
                             </div>
                         </div>
+                    </div>
+                    <!-- Helper Text for Scope removed from header and placed nicely to save vertical space -->
+                    <div id="contentScopeHintContainer" class="bg-light border-bottom px-3 py-1 text-center" style="display: none; font-size: 0.75rem;">
+                        <small id="contentScopeHint" class="text-muted m-0">
+                        </small>
                     </div>
 
                         <div class="editor-workspace">

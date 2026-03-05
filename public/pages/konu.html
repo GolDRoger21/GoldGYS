@@ -660,7 +660,130 @@
 
     .material-group-stack {
       display: grid;
-      gap: 10px;
+      gap: 8px;
+    }
+
+    /* Scrollable Materials List */
+    .materials-scroll-container {
+      max-height: 550px;
+      overflow-y: auto;
+      padding-right: 6px;
+    }
+
+    .materials-scroll-container::-webkit-scrollbar {
+      width: 5px;
+    }
+
+    .materials-scroll-container::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .materials-scroll-container::-webkit-scrollbar-thumb {
+      background: var(--border-color);
+      border-radius: 10px;
+    }
+
+    .materials-scroll-container::-webkit-scrollbar-thumb:hover {
+      background: rgba(150, 150, 150, 0.5);
+    }
+
+    @media (max-width: 1100px) {
+      .materials-scroll-container {
+        max-height: none;
+        padding-right: 0;
+      }
+    }
+
+    /* Compact Material Card Design */
+    .material-compact-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      margin-bottom: 2px;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+      position: relative;
+      display: flex;
+      align-items: center;
+      padding: 12px 14px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .material-compact-card:hover {
+      background: var(--bg-hover);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .material-compact-card:active {
+      transform: translateY(0);
+    }
+
+    .material-compact-icon {
+      width: 42px;
+      height: 42px;
+      min-width: 42px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.15rem;
+      margin-right: 14px;
+      box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.3);
+    }
+
+    .material-compact-content {
+      flex-grow: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .material-compact-title-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+
+    .material-compact-title {
+      margin: 0;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text-main);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .material-compact-desc-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .material-compact-badge {
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: color-mix(in srgb, var(--bg-hover) 50%, transparent);
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+      letter-spacing: 0.5px;
+      white-space: nowrap;
+    }
+
+    .material-compact-desc {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-weight: 500;
     }
 
     .topic-header-inner {
@@ -1325,7 +1448,7 @@
             Notları</h3>
           <p class="section-title-note">Kısa tekrarlar için not, video ve özet içerikleri tek alanda.</p>
         </div>
-        <div id="materialsList"></div>
+        <div id="materialsList" class="materials-scroll-container"></div>
       </div>
     </div>
 
@@ -1596,64 +1719,61 @@
         const renderMaterialCard = (mat, fallbackTitle, fallbackSummary = '') => {
           materialCount++;
           let icon = '<i class="fas fa-file-alt"></i>';
-          let iconColor = 'var(--color-primary, #0d6efd)';
-          let bgSubtle = 'rgba(13, 110, 253, 0.1)';
-          let btnClass = 'btn-primary';
-          let btnText = 'İncele';
+          let iconColor = 'var(--text-main)';
+          let bgSubtle = 'rgba(0, 0, 0, 0.04)';
           let badge = '';
           let typeText = 'DERS NOTU';
+          let borderStyle = '';
 
           if (mat.type === 'video') {
-            icon = '<i class="fas fa-play"></i>';
-            iconColor = '#dc3545';
-            bgSubtle = 'rgba(220, 53, 69, 0.1)';
-            btnClass = 'btn-danger';
-            btnText = 'İzle';
-            typeText = 'VİDEO DERS';
-            if (mat.duration) badge = `<span class="badge bg-dark text-white shadow-sm" style="font-size:0.7rem; border-radius:6px;"><i class="far fa-clock me-1"></i>${mat.duration}</span>`;
+            icon = '<i class="fas fa-play" style="margin-left: 2px;"></i>';
+            iconColor = '#ef4444';
+            bgSubtle = 'rgba(239, 68, 68, 0.12)';
+            typeText = 'VİDEO';
+            borderStyle = 'border-left: 3px solid #ef4444;';
+            if (mat.duration) badge = `<span style="font-size: 0.7rem; color: var(--text-muted); font-weight: 600;"><i class="far fa-clock me-1"></i>${mat.duration}</span>`;
           } else if (mat.type === 'podcast') {
             icon = '<i class="fas fa-headphones-alt"></i>';
-            iconColor = '#6f42c1';
-            bgSubtle = 'rgba(111, 66, 193, 0.1)';
-            btnClass = 'btn-dark';
-            btnText = 'Dinle';
-            typeText = 'SES / PODCAST';
-            if (mat.duration) badge = `<span class="badge shadow-sm text-white" style="background:#6f42c1; font-size:0.7rem; border-radius:6px;"><i class="far fa-clock me-1"></i>${mat.duration}</span>`;
+            iconColor = '#8b5cf6';
+            bgSubtle = 'rgba(139, 92, 246, 0.12)';
+            typeText = 'SES';
+            borderStyle = 'border-left: 3px solid #8b5cf6;';
+            if (mat.duration) badge = `<span style="font-size: 0.7rem; color: var(--text-muted); font-weight: 600;"><i class="far fa-clock me-1"></i>${mat.duration}</span>`;
           } else if (mat.type === 'pdf') {
             icon = '<i class="fas fa-file-pdf"></i>';
-            iconColor = '#fd7e14';
-            bgSubtle = 'rgba(253, 126, 20, 0.1)';
-            btnClass = 'btn-warning text-dark';
-            btnText = 'PDF Oku';
-            typeText = 'PDF DOSYASI';
+            iconColor = '#e11d48';
+            bgSubtle = 'linear-gradient(135deg, rgba(225, 29, 72, 0.15), rgba(225, 29, 72, 0.05))';
+            typeText = 'PDF';
+            borderStyle = 'border-left: 3px solid #e11d48;';
           } else if (mat.type === 'html') {
             icon = '<i class="fas fa-file-invoice"></i>';
-            iconColor = '#198754';
-            bgSubtle = 'rgba(25, 135, 84, 0.1)';
-            btnClass = 'btn-success';
-            btnText = 'Notu Oku';
-            typeText = 'ÖZET NOT';
+            iconColor = '#10b981';
+            bgSubtle = 'rgba(16, 185, 129, 0.12)';
+            typeText = 'ÖZET';
+            borderStyle = 'border-left: 3px solid #10b981;';
           }
 
           const btnAction = mat.url ? `window.open('${mat.url}', '_blank')` : `alert('Bağlantı bulunamadı.');`;
+          const contentTitle = mat.title || fallbackTitle || 'İçerik';
+          const contentDesc = mat.description || fallbackSummary || 'Açıklama bulunmuyor.';
 
           return `
-            <div class="material-card" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 14px; overflow: hidden; transition: transform 0.2s, box-shadow 0.2s;">
-              <div class="d-flex align-items-center p-3">
-                <div class="d-flex align-items-center justify-content-center rounded-circle" style="width: 50px; height: 50px; min-width: 50px; background: ${bgSubtle}; color: ${iconColor}; font-size: 1.3rem; margin-right: 14px;">
-                  ${icon}
+            <div class="material-compact-card" onclick="${btnAction}" style="${borderStyle}">
+              <div class="material-compact-icon" style="background: ${bgSubtle}; color: ${iconColor};">
+                ${icon}
+              </div>
+              <div class="material-compact-content">
+                <div class="material-compact-title-row">
+                  <h6 class="material-compact-title">${contentTitle}</h6>
+                  ${badge}
                 </div>
-                <div class="flex-grow-1" style="min-width: 0;">
-                  <div class="d-flex align-items-center flex-wrap gap-2 mb-1">
-                    <h6 class="m-0 fw-bold" style="color: var(--text-main); font-size: 1rem; line-height:1.3; word-break:break-word;">${mat.title || fallbackTitle || 'İçerik'}</h6>
-                    ${badge}
-                  </div>
-                  <p class="text-muted small m-0" style="opacity: 0.85; line-height:1.4; word-break:break-word;">${mat.description || fallbackSummary || 'Açıklama bulunmuyor.'}</p>
+                <div class="material-compact-desc-row">
+                  <span class="material-compact-badge">${typeText}</span>
+                  <span class="material-compact-desc">${contentDesc}</span>
                 </div>
               </div>
-              <div class="px-3 py-2 d-flex justify-content-between align-items-center" style="background: rgba(0,0,0,0.02); border-top: 1px solid var(--border-color);">
-                <span class="small fw-bold text-muted" style="font-size: 0.7rem; letter-spacing: 0.5px;"><i class="fas fa-tag me-1 text-black-50" style="opacity:0.5;"></i> ${typeText}</span>
-                <button class="btn btn-sm ${btnClass} fw-bold px-3 rounded-pill shadow-sm" onclick="${btnAction}">${btnText} <i class="fas fa-chevron-right ms-1" style="font-size:0.8em;"></i></button>
+              <div style="min-width: 24px; display: flex; justify-content: flex-end; color: var(--text-muted); opacity: 0.5;">
+                <i class="fas fa-chevron-right" style="font-size: 0.85rem;"></i>
               </div>
             </div>`;
         };
