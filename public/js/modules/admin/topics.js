@@ -31,6 +31,7 @@ let state = {
     _matDragIndex: null,
     _dragIndex: null,
     _isNormalizing: false,
+    _navDragId: null,
     topicTrashItems: [],
     contentTrashItems: []
 };
@@ -72,6 +73,13 @@ export function initTopicsPage() {
         },
 
         switchTab: switchTabHandler,
+        navDnD: {
+            start: navDragStart,
+            over: navDragOver,
+            leave: navDragLeave,
+            drop: navDrop,
+            end: navDragEnd
+        },
 
         // Test Sihirbazı (Soru İşlemleri)
         wizard: {
@@ -449,7 +457,102 @@ function renderContentNav() {
     }
     const activeTopic = state.allTopics.find(t => t.id === state.activeTopicId);
     const isSubtopic = activeTopic ? !!activeTopic.parentId : false;
-    list.innerHTML = items.map(l => renderNavItem(l, isTest, state.activeLessonId, isSubtopic)).join('');
+
+    if (isTest) {
+        list.innerHTML = items.map(l => renderNavItem(l, true, state.activeLessonId, isSubtopic)).join('');
+        return;
+    }
+
+    const generalItems = items.filter(l => normalizeContentScope(l.scope) === 'general');
+    const sectionItems = items.filter(l => normalizeContentScope(l.scope) !== 'general');
+    const withHeader = (title, icon, rows) => rows.length
+        ? `
+        <div class="nav-group-title">${icon} ${title}</div>
+        ${rows.map(l => renderNavItem(l, false, state.activeLessonId, isSubtopic)).join('')}
+    `
+        : '';
+
+    list.innerHTML = `${withHeader('Genel Konu İçeriği', '🌐', generalItems)}${withHeader('Not Başlığı İçerikleri', '📂', sectionItems)}`;
+}
+
+function getCurrentTabItems(scope = null) {
+    const isTest = state.sidebarTab === 'test';
+    return state.currentLessons
+        .filter(l => {
+            if (isTest) return l.type === 'test';
+            if (l.type === 'test') return false;
+            if (!scope) return true;
+            return normalizeContentScope(l.scope) === scope;
+        })
+        .sort((a, b) => (a.order || 0) - (b.order || 0));
+}
+
+function navDragStart(id, ev) {
+    state._navDragId = id;
+    ev.dataTransfer.effectAllowed = 'move';
+    const item = ev.currentTarget.closest('.nav-item');
+    item?.classList.add('nav-dragging');
+}
+
+function navDragOver(id, ev) {
+    ev.preventDefault();
+    if (id === state._navDragId) return;
+    const item = ev.currentTarget.closest('.nav-item') || ev.currentTarget;
+    item.classList.add('nav-drop-over');
+}
+
+function navDragLeave(ev) {
+    const item = ev.currentTarget.closest('.nav-item') || ev.currentTarget;
+    item.classList.remove('nav-drop-over');
+}
+
+async function navDrop(targetId, ev) {
+    ev.preventDefault();
+    const draggedId = state._navDragId;
+    if (!draggedId || draggedId === targetId) { navDragEnd(); return; }
+
+    const draggedItem = state.currentLessons.find(l => l.id === draggedId);
+    const targetItem = state.currentLessons.find(l => l.id === targetId);
+    if (!draggedItem || !targetItem) { navDragEnd(); return; }
+
+    if (state.sidebarTab === 'lesson') {
+        const draggedScope = normalizeContentScope(draggedItem.scope);
+        const targetScope = normalizeContentScope(targetItem.scope);
+        if (draggedScope !== targetScope) {
+            showToast('Genel konu ve not başlığı içerikleri kendi grubunda sıralanabilir.', 'info');
+            navDragEnd();
+            return;
+        }
+    }
+
+    const reorderScope = state.sidebarTab === 'lesson'
+        ? normalizeContentScope(draggedItem.scope)
+        : null;
+    const items = getCurrentTabItems(reorderScope);
+    const fromIndex = items.findIndex(i => i.id === draggedId);
+    const toIndex = items.findIndex(i => i.id === targetId);
+    if (fromIndex < 0 || toIndex < 0) { navDragEnd(); return; }
+
+    const [moved] = items.splice(fromIndex, 1);
+    items.splice(toIndex, 0, moved);
+
+    try {
+        await Promise.all(items.map((item, index) => updateDoc(doc(db, `topics/${state.activeTopicId}/lessons`, item.id), {
+            order: index + 1,
+            updatedAt: serverTimestamp()
+        })));
+        await loadLessons(state.activeTopicId);
+    } catch (e) {
+        console.error(e);
+        showToast('Sıralama güncellenemedi: ' + e.message, 'error');
+    } finally {
+        navDragEnd();
+    }
+}
+
+function navDragEnd() {
+    state._navDragId = null;
+    document.querySelectorAll('#contentListNav .nav-item').forEach(el => el.classList.remove('nav-dragging', 'nav-drop-over'));
 }
 
 // ============================================================
