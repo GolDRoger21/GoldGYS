@@ -611,6 +611,19 @@
       border-bottom: 1px dashed var(--border-color);
     }
 
+    .material-group-icon {
+      width: 28px;
+      height: 28px;
+      min-width: 28px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+      background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+      color: var(--text-main);
+    }
+
     .material-group-accent {
       width: 4px;
       height: 18px;
@@ -635,6 +648,14 @@
       background: color-mix(in srgb, var(--bg-hover) 84%, transparent);
       color: var(--text-muted);
       font-size: 0.86rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .material-empty-state i {
+      opacity: 0.6;
+      font-size: 1rem;
     }
 
     .material-group-stack {
@@ -1617,7 +1638,7 @@
           const btnAction = mat.url ? `window.open('${mat.url}', '_blank')` : `alert('Bağlantı bulunamadı.');`;
 
           return `
-            <div class="material-card mb-3" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 14px; overflow: hidden; transition: transform 0.2s, box-shadow 0.2s;">
+            <div class="material-card" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 14px; overflow: hidden; transition: transform 0.2s, box-shadow 0.2s;">
               <div class="d-flex align-items-center p-3">
                 <div class="d-flex align-items-center justify-content-center rounded-circle" style="width: 50px; height: 50px; min-width: 50px; background: ${bgSubtle}; color: ${iconColor}; font-size: 1.3rem; margin-right: 14px;">
                   ${icon}
@@ -1643,11 +1664,13 @@
           const accentColor = headingTone === 'warning'
             ? 'linear-gradient(180deg, #ffc107, #fd7e14)'
             : 'var(--color-primary)';
+          const groupIcon = headingTone === 'warning' ? 'fas fa-globe' : 'fas fa-book-open';
 
           materialsContainer.innerHTML += `
             <section class="material-group-card">
               <header class="material-group-header">
                 <span class="material-group-accent" style="background:${accentColor};"></span>
+                <span class="material-group-icon"><i class="${groupIcon}"></i></span>
                 <h5 class="material-group-title">${displayTitle}</h5>
               </header>
               <div class="material-group-stack">`;
@@ -1672,7 +1695,7 @@
             return;
           }
 
-          materialsContainer.innerHTML += `<div class="material-empty-state">Bu baslik altinda henuz not eklenmemis.</div>`;
+          materialsContainer.innerHTML += `<div class="material-empty-state"><i class="fas fa-circle-info"></i><span>Bu baslik altinda henuz not eklenmemis.</span></div>`;
           materialsContainer.innerHTML += '</div></section>';
         };
 
@@ -1728,6 +1751,7 @@
             materialsContainer.innerHTML += [
               '<div class="d-flex align-items-center mt-4 mb-2">',
               '  <div style="width: 4px; height: 20px; background: var(--color-primary); border-radius: 6px; margin-right: 10px;"></div>',
+              '  <i class="fas fa-book-open text-primary"></i>',
               '  <h4 class="m-0 fw-bold" style="color: var(--text-main); font-size: 1.08rem;">Not Basliklarina Gore</h4>',
               '</div>'
             ].join('');
