@@ -94,8 +94,6 @@ export const UI_SHELL = `
 
                     <div id="contentEditor" style="display:none; flex-direction:column; height:100%; width:100%;">
 
-                    <div id="contentEditor" style="display:none; flex-direction:column; height:100%; width:100%;">
-
                     <div class="editor-toolbar studio-editor-toolbar flex-wrap">
                         <!-- SOL: Başlık Alanı -->
                         <div class="editor-title-group studio-editor-title-group flex-wrap">
