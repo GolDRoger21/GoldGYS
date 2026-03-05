@@ -1424,51 +1424,50 @@
       if (hasSubtopics) {
         await renderSubtopics(subtopics);
         if (subtopicSection) subtopicSection.style.display = 'block';
-        if (testsTitle) testsTitle.style.display = 'none';
-        if (testsContainer) testsContainer.style.display = 'none';
 
-        // Yeni sarmalılar da gizlenmeli
-        const testsWrapper = document.getElementById('testsSectionWrapper');
-        const materialsWrapper = document.getElementById('materialsSectionWrapper');
-        if (testsWrapper) testsWrapper.style.display = 'none';
-        if (materialsWrapper) materialsWrapper.style.display = 'none';
+        // Başlıkları "Genel Konu" olarak güncelle (varsa)
+        if (testsTitle) testsTitle.innerHTML = '📝 Genel Konu Testleri';
+        const matTitle = materialsSection?.querySelector('h3');
+        if (matTitle) matTitle.innerHTML = '📚 Genel Ders Notları';
 
-        const mobileTabs = document.getElementById('mobileContentTabs');
-        if (mobileTabs) mobileTabs.style.display = 'none';
-
-        if (materialsSection) materialsSection.style.display = 'none';
-        if (learningCompanion) learningCompanion.style.display = 'none';
-
-        // Genişliği tam ekran yapmak için stili güncelle
-        if (contentContainer) {
-          contentContainer.style.gridTemplateColumns = '';
-          contentContainer.classList.add('full-width');
-        }
-      } else {
-        if (subtopicSection) subtopicSection.style.display = 'none';
-        if (testsTitle) testsTitle.style.display = 'block';
-        if (testsContainer) testsContainer.style.display = 'block';
-        if (materialsSection) materialsSection.style.display = 'block';
-        if (learningCompanion) learningCompanion.style.display = 'grid';
-
-        const materialsWrapper = document.getElementById('materialsSectionWrapper');
-        if (materialsWrapper) materialsWrapper.style.display = 'block';
-
-        const testsWrapper = document.getElementById('testsSectionWrapper');
-        if (testsWrapper) testsWrapper.style.display = 'block';
-
-        // Mobilde sekmeleri göster
-        const mobileTabs = document.getElementById('mobileContentTabs');
-        if (window.innerWidth <= 1100 && mobileTabs) {
-          mobileTabs.style.display = 'flex';
-          switchMobileTab('tests'); // always reset to tests on load
-        }
-
-        // Orijinal genişliğe döndür
+        // Genişliği tam ekran yapmayı iptal et, çünkü sağda materyaller olacak
         if (contentContainer) {
           contentContainer.style.gridTemplateColumns = '';
           contentContainer.classList.remove('full-width');
         }
+
+        if (learningCompanion) learningCompanion.style.display = 'none'; // Öğrenci rehberini alt konularda gizleyebilirsiniz veya isterseniz gösterebilirsiniz.
+
+      } else {
+        if (subtopicSection) subtopicSection.style.display = 'none';
+
+        if (testsTitle) testsTitle.innerHTML = '📝 Konu Testleri';
+        const matTitle = materialsSection?.querySelector('h3');
+        if (matTitle) matTitle.innerHTML = '📚 Ders Notları';
+
+        if (contentContainer) {
+          contentContainer.style.gridTemplateColumns = '';
+          contentContainer.classList.remove('full-width');
+        }
+
+        if (learningCompanion) learningCompanion.style.display = 'grid';
+      }
+
+      // Sarmalayıcılar ve Listeler Her Durumda Görünür Olmalı (İçeriği Varsa renderContent'te ayarlanır)
+      if (testsTitle) testsTitle.style.display = 'block';
+      if (testsContainer) testsContainer.style.display = 'block';
+      if (materialsSection) materialsSection.style.display = 'block';
+
+      const materialsWrapper = document.getElementById('materialsSectionWrapper');
+      if (materialsWrapper) materialsWrapper.style.display = 'block';
+
+      const testsWrapper = document.getElementById('testsSectionWrapper');
+      if (testsWrapper) testsWrapper.style.display = 'block';
+
+      const mobileTabs = document.getElementById('mobileContentTabs');
+      if (window.innerWidth <= 1100 && mobileTabs) {
+        mobileTabs.style.display = 'flex';
+        switchMobileTab('tests'); // her zaman testlerde başlasın 
       }
 
       // İÇERİKLERİ YÜKLE (Index hatası olsa bile burası çalışmalı)
@@ -1631,19 +1630,25 @@
 
       renderContent(contentLessons || []);
 
-      // --- BOŞ DURUM YÖNETİMİ (Kritik Kısım) ---
+      // --- GÖRÜNÜRLÜK VE BOŞ DURUM YÖNETİMİ ---
 
-      // Eğer test hiç yoksa:
-      if (testsContainer.innerHTML === '') {
-        // Eğer alt başlıklar varsa kullanıcıyı oraya yönlendirecek bir mesaj göster
+      // Wrapper'ları ve başlıkları bul
+      const testsWrapper = document.getElementById('testsSectionWrapper');
+      const materialsWrapper = document.getElementById('materialsSectionWrapper');
+      const mSection = document.getElementById('topicMaterialsSection');
+      const mobileTabs = document.getElementById('mobileContentTabs');
+
+      if (testCount === 0) {
         if (hasSubtopics) {
-          testsContainer.innerHTML = `
-              <div class="test-card">
-                <strong>Bu başlıkta test bulunamadı</strong>
-                <div class="text-muted small mt-1">Testler için yukarıdaki <b>Alt Başlıklar</b> bölümünden ilgili konuyu seçiniz.</div>
-              </div>
-            `;
+          // Alt konu var ama genel test yoksa, genel test bölümünü TAMAMEN GİZLE
+          if (testsWrapper) {
+            // Alt konu varsa Serbest Çalışma modunu ve genel test başlıklarını gizle
+            testsWrapper.style.display = 'none';
+            const studyModeCard = document.querySelector('.study-mode-card');
+            if (studyModeCard) studyModeCard.style.display = 'none';
+          }
         } else {
+          // Normal boş durum mesajı
           testsContainer.innerHTML = `
               <div class="test-card">
                 <strong>Henüz test eklenmemiş</strong>
@@ -1651,26 +1656,64 @@
               </div>
             `;
         }
+      } else {
+        // Genel test var, içeriğini renderContent zaten bastı. Öğeleri görünür et (Eğer gizlendiyse)
+        if (testsWrapper) testsWrapper.style.display = 'block';
+        const studyModeCard = document.querySelector('.study-mode-card');
+        if (studyModeCard) studyModeCard.style.display = 'block';
       }
 
-      // Eğer notlar boşsa, PLACEHOLDER'ları GÖSTER (İsteğiniz üzerine)
-      if (materialsContainer.innerHTML === '') {
-        const placeholders = [
-          { icon: '🎥', title: 'Videolu Dersler', message: 'Bu konuda henüz videolu anlatım bulunmuyor.' },
-          { icon: '📄', title: 'Ders Notları (PDF)', message: 'PDF notları sisteme yükleniyor.' },
-          { icon: '🎧', title: 'Podcast', message: 'Sesli anlatımlar çok yakında.' },
-          { icon: '📰', title: 'Özet Bilgiler', message: 'Konu özetleri hazırlanma aşamasında.' }
-        ];
+      if (materialCount === 0) {
+        if (hasSubtopics) {
+          // Genel not yok, sağ bölümü gizle but only if we are in desktop, or just hide the wrapper.
+          if (materialsWrapper) materialsWrapper.style.display = 'none';
+          if (mSection) mSection.style.display = 'none';
 
-        materialsContainer.innerHTML = placeholders.map((item) => `
-          <div class="test-card" style="opacity: 0.7; border-style: dashed;">
-            <div class="d-flex align-items-center" style="gap:10px;">
-              <span style="font-size:1.3rem;">${item.icon}</span>
-              <strong>${item.title}</strong>
+          // Izgarayı genişlet (sağ menü yoksa)
+          const contentContainer = document.querySelector('.content-container');
+          if (contentContainer) {
+            contentContainer.classList.add('full-width');
+          }
+        } else {
+          const placeholders = [
+            { icon: '🎥', title: 'Videolu Dersler', message: 'Bu konuda henüz videolu anlatım bulunmuyor.' },
+            { icon: '📄', title: 'Ders Notları (PDF)', message: 'PDF notları sisteme yükleniyor.' },
+            { icon: '🎧', title: 'Podcast', message: 'Sesli anlatımlar çok yakında.' },
+            { icon: '📰', title: 'Özet Bilgiler', message: 'Konu özetleri hazırlanma aşamasında.' }
+          ];
+
+          materialsContainer.innerHTML = placeholders.map((item) => `
+            <div class="test-card" style="opacity: 0.7; border-style: dashed;">
+              <div class="d-flex align-items-center" style="gap:10px;">
+                <span style="font-size:1.3rem;">${item.icon}</span>
+                <strong>${item.title}</strong>
+              </div>
+              <div class="text-muted small mt-2">${item.message}</div>
             </div>
-            <div class="text-muted small mt-2">${item.message}</div>
-          </div>
-        `).join('');
+          `).join('');
+        }
+      } else {
+        if (materialsWrapper) materialsWrapper.style.display = 'block';
+        if (mSection) mSection.style.display = 'block';
+        const contentContainer = document.querySelector('.content-container');
+        if (contentContainer) {
+          contentContainer.classList.remove('full-width');
+        }
+      }
+
+      // Mobil sekmeleri ayarlama (Eğer hem test hem materyal VEYA hem alt başlık hem materyal varsa vs)
+      if (window.innerWidth <= 1100 && mobileTabs) {
+        const hasTestsTab = (hasSubtopics || testCount > 0);
+        const hasMatsTab = materialCount > 0;
+
+        if (hasTestsTab && hasMatsTab) {
+          mobileTabs.style.display = 'flex';
+        } else {
+          mobileTabs.style.display = 'none';
+          // Sadece biri varsa aktif tab'ı göster
+          if (hasTestsTab) switchMobileTab('tests');
+          else if (hasMatsTab) switchMobileTab('materials');
+        }
       }
 
       return true;

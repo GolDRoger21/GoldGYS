@@ -1,0 +1,186 @@
+/* book.css - Print Ready Styles for Anayasa Kitabı */
+
+:root {
+    --primary-color: #2c3e50;
+    --accent-color: #d4af37; /* Gold accent matching 'GoldGYS' concept */
+    --text-color: #111111;
+    --gray-bg: #f9f9f9;
+    --border-color: #e0e0e0;
+}
+
+/* Base Setup */
+html, body {
+    margin: 0;
+    padding: 0;
+    font-family: "Georgia", "Times New Roman", serif; /* Serif is best for printed books */
+    color: var(--text-color);
+    background-color: white;
+    font-size: 11pt; /* Optimum print size */
+    line-height: 1.6;
+}
+
+/* 
+ * Paged.js Specific Print Setup 
+ * A4 Size, proper margins, and alternating spreads
+ */
+@page {
+    size: A4;
+    margin-top: 25mm;
+    margin-bottom: 25mm;
+    margin-inside: 30mm; /* Extra space for binding on the inside edge */
+    margin-outside: 20mm;
+
+    /* Watermark - GoldGYS Logo */
+    @background {
+        content: url("../logo.svg");
+        opacity: 0.04;
+        background-repeat: no-repeat;
+        background-position: center;
+        background-size: 50%;
+    }
+}
+
+/* Top Margin for the whole document usually defined here */
+@page :left {
+    @bottom-left {
+        content: counter(page);
+        font-family: "Helvetica", sans-serif;
+        font-size: 9pt;
+        color: #666;
+    }
+    @bottom-right {
+        content: "https://goldgys.web.app/";
+        font-family: "Helvetica", sans-serif;
+        font-size: 9pt;
+        color: #999;
+        font-style: italic;
+    }
+}
+
+@page :right {
+    @bottom-right {
+        content: counter(page);
+        font-family: "Helvetica", sans-serif;
+        font-size: 9pt;
+        color: #666;
+    }
+    @bottom-left {
+        content: "T.C. Anayasası - Premium Kaynak";
+        font-family: "Helvetica", sans-serif;
+        font-size: 9pt;
+        color: #999;
+        font-style: italic;
+    }
+}
+
+/* Don't show page numbers and watermarks on Cover */
+@page cover {
+    margin: 0;
+    @bottom-left { content: none; }
+    @bottom-right { content: none; }
+    @bottom-center { content: none; }
+    @background { content: none; }
+}
+
+/* Content Formatting */
+.content {
+    margin-top: 2rem;
+}
+
+h1.kisim-baslik {
+    font-size: 24pt;
+    text-align: center;
+    text-transform: uppercase;
+    color: var(--primary-color);
+    margin-top: 4rem;
+    margin-bottom: 2rem;
+    border-bottom: 3px solid var(--accent-color);
+    padding-bottom: 1rem;
+    break-before: right; /* Always start KISIM on a right page (odd page) */
+    break-after: avoid; /* Don't break right after a heading */
+}
+
+h2.bolum-baslik {
+    font-size: 18pt;
+    text-align: center;
+    color: #444;
+    margin-top: 3rem;
+    margin-bottom: 1.5rem;
+    font-weight: bold;
+    break-before: page; /* Always start BOLUM on a new page */
+    break-after: avoid;
+}
+
+h2.ana-baslik {
+    font-size: 16pt;
+    text-align: center;
+    color: #333;
+    margin-top: 2rem;
+    margin-bottom: 1.5rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    break-after: avoid;
+}
+
+h3.konu-baslik {
+    font-size: 14pt;
+    color: var(--primary-color);
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+    border-left: 4px solid var(--accent-color);
+    padding-left: 10px;
+    break-after: avoid;
+    break-inside: avoid;
+}
+
+/* Maddeler ve Paragraflar */
+.madde-kutu {
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+    break-inside: avoid; /* ÖNEMLİ: Maddenin veya paragrafın ortasından sayfanın bölünmesini engeller */
+}
+
+p {
+    margin-top: 0.5rem;
+    margin-bottom: 0.8rem;
+    text-align: justify;
+    text-justify: inter-word;
+    widows: 2; /* Sayfanın başına en az 2 satır düşsün */
+    orphans: 2; /* Sayfanın sonuna en az 2 satır düşsün */
+}
+
+/* Fıkralar ve mülga metinler için özel stiller */
+.madde-paragraf {
+    font-size: 11pt;
+}
+.madde-paragraf strong {
+    color: var(--primary-color);
+}
+.ek-paragraf {
+    margin-left: 1rem;
+    color: #333;
+}
+.mulga-paragraf {
+    margin-left: 1rem;
+    color: #777;
+    text-decoration: line-through;
+}
+.normal-paragraf {
+    margin-bottom: 1rem;
+}
+
+/* Lists and generic tables inside content if any */
+ul, ol {
+    margin-left: 1rem;
+    margin-bottom: 1rem;
+}
+li {
+    margin-bottom: 0.5rem;
+    text-align: justify;
+}
+
+/* Ensure images fit the page */
+img {
+    max-width: 100%;
+    break-inside: avoid;
+}

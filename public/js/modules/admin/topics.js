@@ -425,11 +425,10 @@ function createNewContent(type) {
         return;
     }
 
-    // Alt konusu olan konuya içerik eklemeyi engelle
+    // Alt konusu olan konuya içerik eklerken sadece bilgilendirme yap
     const hasSubtopics = state.allTopics.some(t => t.parentId === state.activeTopicId);
     if (hasSubtopics) {
-        showToast("Bu konu alt konular içerdiği için doğrudan materyal veya test eklenemez. Lütfen bir alt konu seçin.", "warning");
-        return;
+        showToast("Bu konu alt konular içeriyor. Eklediğiniz içerik 'Genel Konu Testi/Notu' olarak görünecektir.", "info");
     }
 
     const contentType = type || state.sidebarTab;
