@@ -123,6 +123,10 @@ export const UI_SHELL = `
                                 <option value="general">🌐 Genel Konu İçeriği</option>
                             </select>
 
+                            <small id="contentScopeHint" class="text-muted" style="max-width:320px; line-height:1.25;">
+                                Not basligi: bolum bazli icerik. Genel konu: tum konuyu kapsayan kaynak.
+                            </small>
+
                             <div class="vr opacity-25 d-none d-md-block" style="height: 24px;"></div>
 
                             <!-- Butonlar -->

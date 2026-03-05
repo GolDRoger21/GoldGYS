@@ -1490,6 +1490,11 @@
       let testCount = 0;
       let materialCount = 0;
 
+      const isGeneralScope = (scopeValue) => {
+        const normalized = (scopeValue || '').toString().trim().toLowerCase();
+        return ['general', 'topic', 'all', 'global', 'genel'].includes(normalized);
+      };
+
       // Tamamlanmış testler sorgusu
       const fetchCompletedTests = async () => {
         if (auth.currentUser) {
@@ -1646,8 +1651,8 @@
         });
 
         const lessonItems = contentLessons.filter(item => !(item.type === 'test' || (Array.isArray(item.questions) && item.questions.length > 0) || Number.isFinite(item.qCount)));
-        const generalLessons = lessonItems.filter(item => item.scope === 'general');
-        const sectionLessons = lessonItems.filter(item => item.scope !== 'general');
+        const generalLessons = lessonItems.filter(item => isGeneralScope(item.scope));
+        const sectionLessons = lessonItems.filter(item => !isGeneralScope(item.scope));
 
         if (generalLessons.length > 0) {
           materialsContainer.innerHTML += `
@@ -1658,7 +1663,17 @@
           generalLessons.forEach(item => renderLessonGroup(item, 'warning'));
         }
 
-        sectionLessons.forEach(item => renderLessonGroup(item, 'primary'));
+        if (sectionLessons.length > 0) {
+          if (generalLessons.length > 0) {
+            materialsContainer.innerHTML += [
+              '<div class="d-flex align-items-center mt-4 mb-2">',
+              '  <div style="width: 4px; height: 20px; background: var(--color-primary); border-radius: 6px; margin-right: 10px;"></div>',
+              '  <h4 class="m-0 fw-bold" style="color: var(--text-main); font-size: 1.08rem;">Not Basliklarina Gore</h4>',
+              '</div>'
+            ].join('');
+          }
+          sectionLessons.forEach(item => renderLessonGroup(item, 'primary'));
+        }
 
         if (testCount === 0) {
           testsContainer.innerHTML = `

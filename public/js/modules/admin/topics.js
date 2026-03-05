@@ -115,6 +115,9 @@ export function initTopicsPage() {
     };
 
     loadTopics();
+
+    const scopeInput = document.getElementById('inpContentScope');
+    scopeInput?.addEventListener('change', () => updateScopeHint());
 }
 
 function closeEditor() {
@@ -172,6 +175,34 @@ function getNextOrderForParent(parentId, excludeId = null) {
         .map(t => t.order || 0);
     const maxOrder = siblingOrders.length ? Math.max(...siblingOrders) : 0;
     return maxOrder + 1;
+}
+
+function normalizeContentScope(scopeValue) {
+    const normalized = (scopeValue || '').toString().trim().toLowerCase();
+    return ['general', 'topic', 'all', 'global', 'genel'].includes(normalized) ? 'general' : 'section';
+}
+
+function topicHasSubtopics(topicId) {
+    if (!topicId) return false;
+    return state.allTopics.some(t => t.parentId === topicId);
+}
+
+function updateScopeHint(scopeOverride = null) {
+    const scopeInput = document.getElementById('inpContentScope');
+    const hint = document.getElementById('contentScopeHint');
+    if (!scopeInput || !hint) return;
+
+    const scope = normalizeContentScope(scopeOverride ?? scopeInput.value);
+    const hasSubtopics = topicHasSubtopics(state.activeTopicId);
+
+    if (scope === 'general') {
+        hint.textContent = hasSubtopics
+            ? 'Bu icerik ust konu icin genel kaynak olarak gosterilir; alt konularla karismaz.'
+            : 'Bu icerik tum konuyu kapsayan genel kaynak olarak ustte gosterilir.';
+        return;
+    }
+
+    hint.textContent = 'Not basligi: bolum bazli icerik. Genel konu: tum konuyu kapsayan kaynak.';
 }
 
 function toggleMetaDrawer(open = true) {
@@ -403,7 +434,14 @@ function renderContentNav() {
     if (!list) return;
 
     const isTest = state.sidebarTab === 'test';
-    const items = state.currentLessons.filter(l => isTest ? l.type === 'test' : l.type !== 'test');
+    const items = state.currentLessons
+        .filter(l => isTest ? l.type === 'test' : l.type !== 'test')
+        .sort((a, b) => {
+            if (isTest) return (a.order || 0) - (b.order || 0);
+            const scopeDiff = (normalizeContentScope(a.scope) === 'general' ? -1 : 1) - (normalizeContentScope(b.scope) === 'general' ? -1 : 1);
+            if (scopeDiff !== 0) return scopeDiff;
+            return (a.order || 0) - (b.order || 0);
+        });
 
     if (items.length === 0) {
         list.innerHTML = `<div class="text-center p-5 text-muted small opacity-50">Bu kategoride içerik yok.</div>`;
@@ -426,7 +464,7 @@ function createNewContent(type) {
     }
 
     // Alt konusu olan konuya içerik eklerken sadece bilgilendirme yap
-    const hasSubtopics = state.allTopics.some(t => t.parentId === state.activeTopicId);
+    const hasSubtopics = topicHasSubtopics(state.activeTopicId);
     if (hasSubtopics) {
         showToast("Bu konu alt konular içeriyor. Eklediğiniz içerik 'Genel Konu Testi/Notu' olarak görünecektir.", "info");
     }
@@ -438,7 +476,10 @@ function createNewContent(type) {
     prepareEditorUI(contentType);
     document.getElementById('inpContentTitle').value = "";
     const scopeInput = document.getElementById('inpContentScope');
-    if (scopeInput) scopeInput.value = 'section';
+    if (scopeInput) scopeInput.value = contentType === 'lesson'
+        ? (hasSubtopics ? 'general' : 'section')
+        : 'section';
+    updateScopeHint();
     document.getElementById('inpContentTitle').focus();
 
     // Sıra numarasını otomatik ver
@@ -480,7 +521,8 @@ function selectContentItem(id) {
     document.getElementById('inpContentTitle').value = item.title;
     document.getElementById('inpContentOrder').value = item.order;
     const scopeInput = document.getElementById('inpContentScope');
-    if (scopeInput) scopeInput.value = item.scope || 'section';
+    if (scopeInput) scopeInput.value = normalizeContentScope(item.scope);
+    updateScopeHint();
 
     if (state.activeLessonType === 'lesson') {
         state.tempMaterials = item.materials || [];
@@ -511,12 +553,17 @@ function prepareEditorUI(type) {
         document.getElementById('wsLessonMode').style.display = 'none';
         document.getElementById('wsTestMode').style.display = 'flex';
         if (scopeInput) scopeInput.style.display = 'none';
+        const hint = document.getElementById('contentScopeHint');
+        if (hint) hint.style.display = 'none';
     } else {
         badge.innerText = "DERS EDİTÖRÜ";
         badge.className = "badge bg-primary me-2";
         document.getElementById('wsLessonMode').style.display = 'block';
         document.getElementById('wsTestMode').style.display = 'none';
         if (scopeInput) scopeInput.style.display = '';
+        const hint = document.getElementById('contentScopeHint');
+        if (hint) hint.style.display = '';
+        updateScopeHint();
     }
 }
 
@@ -643,7 +690,7 @@ async function saveContent(silent = false) {
         data.qCount = state.tempQuestions.length;
         data.legislationCode = document.getElementById('wizLegislation').value;
     } else {
-        data.scope = document.getElementById('inpContentScope')?.value || 'section';
+        data.scope = normalizeContentScope(document.getElementById('inpContentScope')?.value || 'section');
         data.materials = state.tempMaterials;
     }
 
