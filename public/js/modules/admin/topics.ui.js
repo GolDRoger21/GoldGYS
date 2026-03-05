@@ -118,6 +118,11 @@ export const UI_SHELL = `
                                 <input type="number" id="inpContentOrder" class="form-control border-start-0 text-center ps-0 fw-bold" style="max-width: 60px;">
                             </div>
 
+                            <select id="inpContentScope" class="form-select form-select-sm" title="İçerik kapsamı" style="min-width: 210px;">
+                                <option value="section">📂 Not Başlığı İçeriği</option>
+                                <option value="general">🌐 Genel Konu İçeriği</option>
+                            </select>
+
                             <div class="vr opacity-25 d-none d-md-block" style="height: 24px;"></div>
 
                             <!-- Butonlar -->
@@ -390,6 +395,7 @@ export const renderNavItem = (l, isTestTab, activeId, isSubtopic) => `
                 <div class="nav-title" title="${l.title}">${l.title}</div>
                 <div class="nav-meta">
                     <span>Sıra: ${l.order}</span>
+                    ${l.scope === 'general' ? '<span class="badge-mini">Genel</span>' : ''}
                     ${isTestTab ? `<span class="badge-mini">${l.qCount || 0} Soru</span>` : ''}
                     ${!isSubtopic ? `<button class="nav-action-btn" onclick="window.Studio.promoteToSubtopic('${l.id}', event)" title="Alt konu yap">↳</button>` : ''}
                     ${isSubtopic ? `<button class="nav-action-btn text-warning" onclick="window.Studio.demoteToLesson(null, event)" title="Ders notuna geri dönüştür">↰</button>` : ''}

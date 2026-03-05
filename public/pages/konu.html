@@ -1511,6 +1511,106 @@
         testCount = 0;
         materialCount = 0;
 
+        const renderMaterialCard = (mat, fallbackTitle, fallbackSummary = '') => {
+          materialCount++;
+          let icon = '<i class="fas fa-file-alt"></i>';
+          let iconColor = 'var(--color-primary, #0d6efd)';
+          let bgSubtle = 'rgba(13, 110, 253, 0.1)';
+          let btnClass = 'btn-primary';
+          let btnText = 'İncele';
+          let badge = '';
+          let typeText = 'DERS NOTU';
+
+          if (mat.type === 'video') {
+            icon = '<i class="fas fa-play"></i>';
+            iconColor = '#dc3545';
+            bgSubtle = 'rgba(220, 53, 69, 0.1)';
+            btnClass = 'btn-danger';
+            btnText = 'İzle';
+            typeText = 'VİDEO DERS';
+            if (mat.duration) badge = `<span class="badge bg-dark text-white shadow-sm" style="font-size:0.7rem; border-radius:6px;"><i class="far fa-clock me-1"></i>${mat.duration}</span>`;
+          } else if (mat.type === 'podcast') {
+            icon = '<i class="fas fa-headphones-alt"></i>';
+            iconColor = '#6f42c1';
+            bgSubtle = 'rgba(111, 66, 193, 0.1)';
+            btnClass = 'btn-dark';
+            btnText = 'Dinle';
+            typeText = 'SES / PODCAST';
+            if (mat.duration) badge = `<span class="badge shadow-sm text-white" style="background:#6f42c1; font-size:0.7rem; border-radius:6px;"><i class="far fa-clock me-1"></i>${mat.duration}</span>`;
+          } else if (mat.type === 'pdf') {
+            icon = '<i class="fas fa-file-pdf"></i>';
+            iconColor = '#fd7e14';
+            bgSubtle = 'rgba(253, 126, 20, 0.1)';
+            btnClass = 'btn-warning text-dark';
+            btnText = 'PDF Oku';
+            typeText = 'PDF DOSYASI';
+          } else if (mat.type === 'html') {
+            icon = '<i class="fas fa-file-invoice"></i>';
+            iconColor = '#198754';
+            bgSubtle = 'rgba(25, 135, 84, 0.1)';
+            btnClass = 'btn-success';
+            btnText = 'Notu Oku';
+            typeText = 'ÖZET NOT';
+          }
+
+          const btnAction = mat.url ? `window.open('${mat.url}', '_blank')` : `alert('Bağlantı bulunamadı.');`;
+
+          return `
+            <div class="material-card mb-3" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 14px; overflow: hidden; transition: transform 0.2s, box-shadow 0.2s;">
+              <div class="d-flex align-items-center p-3">
+                <div class="d-flex align-items-center justify-content-center rounded-circle" style="width: 50px; height: 50px; min-width: 50px; background: ${bgSubtle}; color: ${iconColor}; font-size: 1.3rem; margin-right: 14px;">
+                  ${icon}
+                </div>
+                <div class="flex-grow-1" style="min-width: 0;">
+                  <div class="d-flex align-items-center flex-wrap gap-2 mb-1">
+                    <h6 class="m-0 fw-bold text-truncate" style="color: var(--text-main); font-size: 1rem; max-width:100%;">${mat.title || fallbackTitle || 'İçerik'}</h6>
+                    ${badge}
+                  </div>
+                  <p class="text-muted small m-0 text-truncate" style="opacity: 0.85; max-width:100%;">${mat.description || fallbackSummary || 'Açıklama bulunmuyor.'}</p>
+                </div>
+              </div>
+              <div class="px-3 py-2 d-flex justify-content-between align-items-center" style="background: rgba(0,0,0,0.02); border-top: 1px solid var(--border-color);">
+                <span class="small fw-bold text-muted" style="font-size: 0.7rem; letter-spacing: 0.5px;"><i class="fas fa-tag me-1 text-black-50" style="opacity:0.5;"></i> ${typeText}</span>
+                <button class="btn btn-sm ${btnClass} fw-bold px-3 rounded-pill shadow-sm" onclick="${btnAction}">${btnText} <i class="fas fa-chevron-right ms-1" style="font-size:0.8em;"></i></button>
+              </div>
+            </div>`;
+        };
+
+        const renderLessonGroup = (item, headingTone = 'primary') => {
+          if (item.materials && item.materials.length > 0) {
+            materialsContainer.innerHTML += `
+              <div class="d-flex align-items-center mt-4 mb-3">
+                <div style="width: 4px; height: 16px; background: var(--color-${headingTone}); border-radius: 4px; margin-right: 8px;"></div>
+                <h5 class="m-0 fw-bold" style="color: var(--text-main); font-size: 1.1rem; letter-spacing: -0.3px;">${item.title}</h5>
+              </div>`;
+            item.materials.forEach((mat) => {
+              materialsContainer.innerHTML += renderMaterialCard(mat, item.title, item.summary || 'Genel içerik');
+            });
+            return;
+          }
+
+          if (item.content || item.url) {
+            const fallbackMaterial = {
+              type: item.type || 'html',
+              title: item.title,
+              description: item.summary,
+              url: item.url || item.content
+            };
+            materialsContainer.innerHTML += renderMaterialCard(fallbackMaterial, item.title, item.summary || 'Genel içerik');
+            return;
+          }
+
+          materialsContainer.innerHTML += `
+            <div class="d-flex align-items-center mt-4 mb-3">
+              <div style="width: 4px; height: 16px; background: var(--text-muted); border-radius: 4px; margin-right: 8px; opacity:0.5;"></div>
+              <h5 class="m-0 fw-bold" style="color: var(--text-muted); font-size: 1.1rem; letter-spacing: -0.3px;">${item.title}</h5>
+            </div>
+            <div class="p-4 mb-3 text-center rounded-3" style="border: 1px dashed var(--border-color); background: rgba(120,120,120,0.03);">
+              <div style="font-size:1.8rem; opacity:0.15; margin-bottom:8px;"><i class="fas fa-folder-open"></i></div>
+              <div class="text-muted small fw-medium">Bu başlık altında henüz not eklenmemiş.</div>
+            </div>`;
+        };
+
         contentLessons.forEach(item => {
           const isTest = item.type === 'test' || (Array.isArray(item.questions) && item.questions.length > 0) || Number.isFinite(item.qCount);
 
@@ -1528,143 +1628,37 @@
             }
 
             testsContainer.innerHTML += `
-                      <div class="test-card" style="${validCompletedIds.has(item.id) ? 'border-color:var(--color-success); background:rgba(25, 135, 84, 0.03);' : ''}">
-                          <div style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; align-items:center;">
-                              <div style="display:flex; flex-direction:column;">
-                                <strong style="font-size:1.05rem;">${item.title}</strong>
-                                <span class="badge bg-light text-dark" style="width:fit-content; margin-top:4px;">${qCount} Soru</span>
-                              </div>
-                              ${badgeHtml}
-                          </div>
-                          <div style="margin-top:10px;">
-                              <a href="${testUrl}" class="btn btn-sm ${validCompletedIds.has(item.id) ? 'btn-success' : 'btn-outline-primary'} w-100">
-                                ${validCompletedIds.has(item.id) ? 'Tekrar Çöz' : 'Testi Çöz'}
-                              </a>
-                          </div>
-                      </div>
-                  `;
-          } else {
-            if (item.materials && item.materials.length > 0) {
-              // Group items by the lesson's main title (e.g. "Genel Esaslar")
-              materialsContainer.innerHTML += `
-                <div class="d-flex align-items-center mt-4 mb-3">
-                    <div style="width: 4px; height: 16px; background: var(--color-primary); border-radius: 4px; margin-right: 8px;"></div>
-                    <h5 class="m-0 fw-bold" style="color: var(--text-main); font-size: 1.1rem; letter-spacing: -0.3px;">${item.title}</h5>
-                </div>`;
-
-              item.materials.forEach(mat => {
-                materialCount++;
-                let icon = '<i class="fas fa-file-alt"></i>';
-                let iconColor = 'var(--color-primary, #0d6efd)';
-                let bgSubtle = 'rgba(13, 110, 253, 0.1)';
-                let btnClass = 'btn-primary';
-                let btnText = 'İncele';
-                let badge = '';
-                let typeText = 'DERS NOTU';
-
-                if (mat.type === 'video') {
-                  icon = '<i class="fas fa-play"></i>';
-                  iconColor = '#dc3545';
-                  bgSubtle = 'rgba(220, 53, 69, 0.1)';
-                  btnClass = 'btn-danger';
-                  btnText = 'İzle';
-                  typeText = 'VİDEO DERS';
-                  if (mat.duration) badge = `<span class="badge bg-dark text-white shadow-sm" style="font-size:0.7rem; border-radius:6px;"><i class="far fa-clock me-1"></i>${mat.duration}</span>`;
-                }
-                else if (mat.type === 'podcast') {
-                  icon = '<i class="fas fa-headphones-alt"></i>';
-                  iconColor = '#6f42c1';
-                  bgSubtle = 'rgba(111, 66, 193, 0.1)';
-                  btnClass = 'btn-dark';
-                  btnText = 'Dinle';
-                  typeText = 'SES / PODCAST';
-                  if (mat.duration) badge = `<span class="badge shadow-sm text-white" style="background:#6f42c1; font-size:0.7rem; border-radius:6px;"><i class="far fa-clock me-1"></i>${mat.duration}</span>`;
-                }
-                else if (mat.type === 'pdf') {
-                  icon = '<i class="fas fa-file-pdf"></i>';
-                  iconColor = '#fd7e14';
-                  bgSubtle = 'rgba(253, 126, 20, 0.1)';
-                  btnClass = 'btn-warning text-dark';
-                  btnText = 'PDF Oku';
-                  typeText = 'PDF DOSYASI';
-                }
-                else if (mat.type === 'html') {
-                  icon = '<i class="fas fa-file-invoice"></i>';
-                  iconColor = '#198754';
-                  bgSubtle = 'rgba(25, 135, 84, 0.1)';
-                  btnClass = 'btn-success';
-                  btnText = 'Notu Oku';
-                  typeText = 'ÖZET NOT';
-                }
-
-                let btnAction = mat.url ? `window.open('${mat.url}', '_blank')` : `alert('Bağlantı bulunamadı.');`;
-
-                materialsContainer.innerHTML += `
-                    <div class="material-card mb-3" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 14px; overflow: hidden; transition: transform 0.2s, box-shadow 0.2s;">
-                        <div class="d-flex align-items-center p-3">
-                            <div class="d-flex align-items-center justify-content-center rounded-circle" style="width: 50px; height: 50px; min-width: 50px; background: ${bgSubtle}; color: ${iconColor}; font-size: 1.3rem; margin-right: 14px;">
-                                ${icon}
-                            </div>
-                            <div class="flex-grow-1" style="min-width: 0;">
-                                <div class="d-flex align-items-center flex-wrap gap-2 mb-1">
-                                    <h6 class="m-0 fw-bold text-truncate" style="color: var(--text-main); font-size: 1rem; max-width:100%;">${mat.title || 'İçerik'}</h6>
-                                    ${badge}
-                                </div>
-                                <p class="text-muted small m-0 text-truncate" style="opacity: 0.85; max-width:100%;">${mat.description || item.summary || 'Açıklama bulunmuyor.'}</p>
-                            </div>
-                        </div>
-                        <div class="px-3 py-2 d-flex justify-content-between align-items-center" style="background: rgba(0,0,0,0.02); border-top: 1px solid var(--border-color);">
-                            <span class="small fw-bold text-muted" style="font-size: 0.7rem; letter-spacing: 0.5px;"><i class="fas fa-tag me-1 text-black-50" style="opacity:0.5;"></i> ${typeText}</span>
-                            <button class="btn btn-sm ${btnClass} fw-bold px-3 rounded-pill shadow-sm" onclick="${btnAction}">${btnText} <i class="fas fa-chevron-right ms-1" style="font-size:0.8em;"></i></button>
-                        </div>
-                    </div>
-                `;
-              });
-            } else if (item.content || item.url) {
-              // Backwards compatibility for single materials
-              materialCount++;
-              let btnAction = item.url ? `window.open('${item.url}', '_blank')` : `alert('Bu formattaki içerik şu an desteklenmiyor.');`;
-              let icon = '<i class="fas fa-file-alt"></i>';
-              let iconColor = 'var(--text-muted)';
-              let bgSubtle = 'rgba(100,100,100,0.1)';
-              let typeText = 'GENEL İÇERİK';
-
-              if (item.type === 'video') {
-                icon = '<i class="fas fa-play"></i>'; iconColor = '#dc3545'; bgSubtle = 'rgba(220, 53, 69, 0.1)'; typeText = 'VİDEO DERS';
-              }
-
-              materialsContainer.innerHTML += `
-                    <div class="material-card mb-3" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 14px; overflow: hidden;">
-                        <div class="d-flex align-items-center p-3">
-                            <div class="d-flex align-items-center justify-content-center rounded-circle" style="width: 50px; height: 50px; min-width: 50px; background: ${bgSubtle}; color: ${iconColor}; font-size: 1.3rem; margin-right: 14px;">
-                                ${icon}
-                            </div>
-                            <div class="flex-grow-1" style="min-width: 0;">
-                                <h6 class="m-0 fw-bold text-truncate" style="color: var(--text-main); font-size: 1rem;">${item.title}</h6>
-                                <p class="text-muted small m-0 mt-1 text-truncate" style="opacity: 0.85;">${item.summary || 'Genel içerik'}</p>
-                            </div>
-                        </div>
-                        <div class="px-3 py-2 d-flex justify-content-between align-items-center" style="background: rgba(0,0,0,0.02); border-top: 1px solid var(--border-color);">
-                            <span class="small fw-bold text-muted" style="font-size: 0.7rem; letter-spacing: 0.5px;"><i class="fas fa-tag me-1 text-black-50" style="opacity:0.5;"></i> ${typeText}</span>
-                            <button class="btn btn-sm btn-dark fw-bold px-3 rounded-pill shadow-sm" onclick="${btnAction}">İncele <i class="fas fa-chevron-right ms-1" style="font-size:0.8em;"></i></button>
-                        </div>
-                    </div>
-                `;
-            } else {
-              // Empty category representation
-              materialsContainer.innerHTML += `
-                    <div class="d-flex align-items-center mt-4 mb-3">
-                        <div style="width: 4px; height: 16px; background: var(--text-muted); border-radius: 4px; margin-right: 8px; opacity:0.5;"></div>
-                        <h5 class="m-0 fw-bold" style="color: var(--text-muted); font-size: 1.1rem; letter-spacing: -0.3px;">${item.title}</h5>
-                    </div>
-                    <div class="p-4 mb-3 text-center rounded-3" style="border: 1px dashed var(--border-color); background: rgba(120,120,120,0.03);">
-                        <div style="font-size:1.8rem; opacity:0.15; margin-bottom:8px;"><i class="fas fa-folder-open"></i></div>
-                        <div class="text-muted small fw-medium">Bu başlık altında henüz not eklenmemiş.</div>
-                    </div>
-                `;
-            }
+              <div class="test-card" style="${validCompletedIds.has(item.id) ? 'border-color:var(--color-success); background:rgba(25, 135, 84, 0.03);' : ''}">
+                <div style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; align-items:center;">
+                  <div style="display:flex; flex-direction:column;">
+                    <strong style="font-size:1.05rem;">${item.title}</strong>
+                    <span class="badge bg-light text-dark" style="width:fit-content; margin-top:4px;">${qCount} Soru</span>
+                  </div>
+                  ${badgeHtml}
+                </div>
+                <div style="margin-top:10px;">
+                  <a href="${testUrl}" class="btn btn-sm ${validCompletedIds.has(item.id) ? 'btn-success' : 'btn-outline-primary'} w-100">
+                    ${validCompletedIds.has(item.id) ? 'Tekrar Çöz' : 'Testi Çöz'}
+                  </a>
+                </div>
+              </div>`;
           }
         });
+
+        const lessonItems = contentLessons.filter(item => !(item.type === 'test' || (Array.isArray(item.questions) && item.questions.length > 0) || Number.isFinite(item.qCount)));
+        const generalLessons = lessonItems.filter(item => item.scope === 'general');
+        const sectionLessons = lessonItems.filter(item => item.scope !== 'general');
+
+        if (generalLessons.length > 0) {
+          materialsContainer.innerHTML += `
+            <div class="d-flex align-items-center mt-2 mb-2">
+              <div style="width: 4px; height: 20px; background: linear-gradient(180deg, #ffc107, #fd7e14); border-radius: 6px; margin-right: 10px;"></div>
+              <h4 class="m-0 fw-bold" style="color: var(--text-main); font-size: 1.08rem;">Tüm Konuyu Kapsayan Kaynaklar</h4>
+            </div>`;
+          generalLessons.forEach(item => renderLessonGroup(item, 'warning'));
+        }
+
+        sectionLessons.forEach(item => renderLessonGroup(item, 'primary'));
 
         if (testCount === 0) {
           testsContainer.innerHTML = `
