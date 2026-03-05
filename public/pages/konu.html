@@ -593,52 +593,94 @@
       margin: 0;
     }
 
+    /* Accordion Details/Summary Design */
     .material-group-card {
       border: 1px solid var(--border-color);
       border-radius: 16px;
-      padding: 14px;
-      background: color-mix(in srgb, var(--bg-surface) 94%, transparent);
       margin-bottom: 14px;
-      box-shadow: var(--shadow-xs, 0 2px 8px rgba(0, 0, 0, 0.04));
+      background: var(--bg-surface);
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+      transition: box-shadow 0.2s, border-color 0.2s;
+    }
+
+    .material-group-card[open] {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      border-color: color-mix(in srgb, var(--color-primary) 50%, var(--border-color));
     }
 
     .material-group-header {
       display: flex;
       align-items: center;
-      gap: 10px;
-      margin-bottom: 10px;
-      padding-bottom: 10px;
-      border-bottom: 1px dashed var(--border-color);
+      gap: 12px;
+      padding: 16px;
+      cursor: pointer;
+      user-select: none;
+      list-style: none;
+      /* Hide default arrow */
+      background: color-mix(in srgb, var(--bg-surface) 96%, var(--bg-hover));
+      transition: background 0.2s;
+    }
+
+    .material-group-header:hover {
+      background: var(--bg-hover);
+    }
+
+    .material-group-header::-webkit-details-marker {
+      display: none;
+      /* Hide Safari arrow */
+    }
+
+    /* Custom Chevron for Accordion */
+    .material-group-header::after {
+      content: '\f107';
+      /* fa-angle-down */
+      font-family: 'Font Awesome 6 Free';
+      font-weight: 900;
+      margin-left: auto;
+      transition: transform 0.3s ease;
+      color: var(--text-muted);
+    }
+
+    .material-group-card[open] .material-group-header::after {
+      transform: rotate(180deg);
     }
 
     .material-group-icon {
-      width: 28px;
-      height: 28px;
-      min-width: 28px;
-      border-radius: 999px;
+      width: 32px;
+      height: 32px;
+      min-width: 32px;
+      border-radius: 8px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      font-size: 0.85rem;
+      font-size: 1rem;
       background: color-mix(in srgb, var(--color-primary) 12%, transparent);
       color: var(--text-main);
     }
 
     .material-group-accent {
       width: 4px;
-      height: 18px;
-      border-radius: 999px;
+      height: 24px;
+      border-radius: 4px;
       flex-shrink: 0;
       background: var(--color-primary);
     }
 
     .material-group-title {
       margin: 0;
-      font-size: 1rem;
+      font-size: 1.05rem;
       font-weight: 700;
       color: var(--text-main);
       line-height: 1.25;
       word-break: break-word;
+    }
+
+    .material-group-body {
+      padding: 0 16px 16px 16px;
+      border-top: 1px dashed var(--border-color);
+      margin-top: 4px;
+      padding-top: 16px;
     }
 
     .material-empty-state {
@@ -660,31 +702,12 @@
 
     .material-group-stack {
       display: grid;
-      gap: 8px;
+      gap: 10px;
     }
 
-    /* Scrollable Materials List */
+    /* Expanded material cards without scrollbars (Removed max-height and overflow) */
     .materials-scroll-container {
-      max-height: 550px;
-      overflow-y: auto;
-      padding-right: 6px;
-    }
-
-    .materials-scroll-container::-webkit-scrollbar {
-      width: 5px;
-    }
-
-    .materials-scroll-container::-webkit-scrollbar-track {
-      background: transparent;
-    }
-
-    .materials-scroll-container::-webkit-scrollbar-thumb {
-      background: var(--border-color);
-      border-radius: 10px;
-    }
-
-    .materials-scroll-container::-webkit-scrollbar-thumb:hover {
-      background: rgba(150, 150, 150, 0.5);
+      width: 100%;
     }
 
     @media (max-width: 1100px) {
@@ -1787,19 +1810,20 @@
           const groupIcon = headingTone === 'warning' ? 'fas fa-globe' : 'fas fa-book-open';
 
           materialsContainer.innerHTML += `
-            <section class="material-group-card">
-              <header class="material-group-header">
+            <details class="material-group-card" ${headingTone === 'warning' ? 'open' : ''}>
+              <summary class="material-group-header">
                 <span class="material-group-accent" style="background:${accentColor};"></span>
                 <span class="material-group-icon"><i class="${groupIcon}"></i></span>
                 <h5 class="material-group-title">${displayTitle}</h5>
-              </header>
-              <div class="material-group-stack">`;
+              </summary>
+              <div class="material-group-body">
+                <div class="material-group-stack">`;
 
           if (item.materials && item.materials.length > 0) {
             item.materials.forEach((mat) => {
               materialsContainer.innerHTML += renderMaterialCard(mat, displayTitle, item.summary || 'Genel icerik');
             });
-            materialsContainer.innerHTML += '</div></section>';
+            materialsContainer.innerHTML += '</div></div></details>';
             return;
           }
 
@@ -1811,12 +1835,12 @@
               url: item.url || item.content
             };
             materialsContainer.innerHTML += renderMaterialCard(fallbackMaterial, displayTitle, item.summary || 'Genel icerik');
-            materialsContainer.innerHTML += '</div></section>';
+            materialsContainer.innerHTML += '</div></div></details>';
             return;
           }
 
           materialsContainer.innerHTML += `<div class="material-empty-state"><i class="fas fa-circle-info"></i><span>Bu baslik altinda henuz not eklenmemis.</span></div>`;
-          materialsContainer.innerHTML += '</div></section>';
+          materialsContainer.innerHTML += '</div></div></details>';
         };
 
         contentLessons.forEach(item => {
