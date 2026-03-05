@@ -94,48 +94,50 @@ export const UI_SHELL = `
 
                     <div id="contentEditor" style="display:none; flex-direction:column; height:100%; width:100%;">
 
-                    <div class="editor-toolbar studio-editor-toolbar">
+                    <div class="editor-toolbar studio-editor-toolbar d-flex align-items-center justify-content-between p-2 border-bottom shadow-sm" style="background: var(--bg-surface); gap: 10px;">
                         <!-- SOL: Başlık Alanı -->
-                        <div class="editor-title-group studio-editor-title-group">
-                             <span class="badge bg-primary px-3 py-2" id="editorBadge">DERS</span>
-                             <input type="text" id="inpContentTitle" class="editor-title-input" placeholder="İçerik Başlığı Giriniz...">
+                        <div class="editor-title-group studio-editor-title-group d-flex align-items-center flex-grow-1" style="min-width: 0;">
+                             <span class="badge bg-primary px-2 py-1 me-2" id="editorBadge" style="font-size: 0.70rem;">DERS</span>
+                             <input type="text" id="inpContentTitle" class="editor-title-input form-control form-control-sm border-0 bg-transparent fw-bold" placeholder="İçerik Başlığı Giriniz..." style="font-size: 1rem; box-shadow: none; padding-left: 0; min-width: 0;">
                         </div>
 
                         <!-- SAĞ: İşlemler ve Meta -->
-                        <div class="editor-actions studio-editor-actions">
+                        <div class="editor-actions studio-editor-actions d-flex align-items-center gap-2 flex-shrink-0">
                             <!-- Kayıt Durumu -->
-                            <div class="save-indicator studio-save-indicator d-flex align-items-center">
-                                <span id="saveIndicator" class="text-muted small fw-medium d-flex align-items-center">
+                            <div class="save-indicator studio-save-indicator d-flex align-items-center me-1 d-none d-md-flex">
+                                <span id="saveIndicator" class="text-muted small fw-medium d-flex align-items-center" style="font-size: 0.75rem;">
                                     <i class="fas fa-check-circle me-1"></i> Kaydedildi
                                 </span>
                             </div>
 
-                            <div class="studio-editor-meta-row">
-                                <div class="input-group input-group-sm shadow-sm order-input studio-order-input d-flex align-items-center" title="Sıra Numarası" style="width: auto;">
-                                    <span class="input-group-text bg-white border-end-0 text-muted px-2">#</span>
-                                    <input type="number" id="inpContentOrder" class="form-control border-start-0 text-center ps-0 fw-bold" style="max-width: 60px;">
+                            <div class="studio-editor-meta-row d-flex align-items-center gap-1 bg-light rounded-pill p-1 border">
+                                <div class="input-group input-group-sm order-input studio-order-input d-flex align-items-center mb-0" title="Sıra Numarası" style="width: auto;">
+                                    <span class="input-group-text bg-transparent border-0 text-muted px-1" style="font-size: 0.8rem;">#</span>
+                                    <input type="number" id="inpContentOrder" class="form-control form-control-sm bg-transparent border-0 text-center ps-0 fw-bold p-0" style="width: 32px; font-size: 0.85rem;">
                                 </div>
-
-                                <select id="inpContentScope" class="form-select form-select-sm" title="İçerik kapsamı" style="min-width: 210px;">
-                                    <option value="section">📂 Not Başlığı İçeriği</option>
-                                    <option value="general">🌐 Genel Konu İçeriği</option>
+                                <div class="vr my-1 opacity-25"></div>
+                                <select id="inpContentScope" class="form-select form-select-sm border-0 bg-transparent fw-medium" title="İçerik kapsamı" style="width: 130px; font-size: 0.8rem; padding-top: 2px; padding-bottom: 2px; cursor: pointer; box-shadow: none;">
+                                    <option value="section">📂 Not Başlığı</option>
+                                    <option value="general">🌐 Genel Konu</option>
                                 </select>
-
-                                <small id="contentScopeHint" class="text-muted" style="max-width:320px; line-height:1.25;">
-                                    Not basligi: bolum bazli icerik. Genel konu: tum konuyu kapsayan kaynak.
-                                </small>
                             </div>
 
                             <!-- Butonlar -->
-                            <div class="editor-action-buttons studio-editor-action-buttons d-flex align-items-center gap-2">
-                                <button class="btn btn-outline-danger btn-sm btn-icon shadow-sm" onclick="window.Studio.deleteContent()" title="İçeriği Sil" style="width: 32px; height: 32px;">
-                                    🗑️
+                            <div class="editor-action-buttons studio-editor-action-buttons d-flex align-items-center gap-1 ms-1">
+                                <button class="btn btn-outline-danger btn-sm btn-icon rounded-circle d-flex align-items-center justify-content-center" onclick="window.Studio.deleteContent()" title="İçeriği Sil" style="width: 28px; height: 28px;">
+                                    <i class="fas fa-trash-alt" style="font-size: 0.8rem;"></i>
                                 </button>
-                                <button class="btn btn-success btn-sm px-3 fw-bold shadow-sm d-flex align-items-center justify-content-center gap-2" onclick="window.Studio.saveContent()" style="height: 32px;">
-                                    💾 <span class="d-none d-sm-inline">Kaydet</span>
+                                <button class="btn btn-success btn-sm px-3 fw-bold rounded-pill d-flex align-items-center justify-content-center gap-2 shadow-sm" onclick="window.Studio.saveContent()" style="height: 28px;">
+                                    <i class="fas fa-save" style="font-size: 0.85rem;"></i> <span class="d-none d-sm-inline mt-1" style="font-size: 0.8rem;">Kaydet</span>
                                 </button>
                             </div>
                         </div>
+                    </div>
+                    <!-- Helper Text for Scope removed from header and placed nicely to save vertical space -->
+                    <div id="contentScopeHintContainer" class="bg-light border-bottom px-3 py-1" style="display: none; font-size: 0.75rem;">
+                        <small id="contentScopeHint" class="text-muted m-0">
+                            <i class="fas fa-info-circle me-1"></i> Not basligi: bolum bazli icerik. Genel konu: tum konuyu kapsayan kaynak.
+                        </small>
                     </div>
 
                         <div class="editor-workspace">
@@ -396,19 +398,25 @@ export const renderNavItem = (l, isTestTab, activeId, isSubtopic) => `
         ondragleave="window.Studio.navDnD.leave(event)"
         ondrop="window.Studio.navDnD.drop('${l.id}', event)"
         ondragend="window.Studio.navDnD.end(event)">
-        <div class="nav-item-row">
-            <span class="nav-item-icon">${isTestTab ? '📝' : '📄'}</span>
+        
+        <div class="nav-item-row d-flex align-items-center gap-2">
+            <div class="nav-drag-handle text-muted" style="cursor: grab; display: flex; align-items: center; justify-content: center; width: 20px; font-size: 0.9rem; opacity: 0.4;" title="Sıralamak için sürükleyip bırakın">
+                <i class="fas fa-grip-vertical"></i>
+            </div>
+            <span class="nav-item-icon" style="font-size: 1.1rem; min-width: 24px;">${isTestTab ? '📝' : '📄'}</span>
             <div style="flex:1; overflow:hidden;">
-                <div class="nav-title" title="${l.title}">${l.title}</div>
-                <div class="nav-meta">
-                    <span>Sıra: ${l.order}</span>
-                    ${l.scope === 'general' ? '<span class="badge-mini badge-mini-general">Genel Konu</span>' : '<span class="badge-mini">Not Başlığı</span>'}
-                    ${isTestTab ? `<span class="badge-mini">${l.qCount || 0} Soru</span>` : ''}
-                    ${!isSubtopic ? `<button class="nav-action-btn" onclick="window.Studio.promoteToSubtopic('${l.id}', event)" title="Alt konu yap">↳</button>` : ''}
-                    ${isSubtopic ? `<button class="nav-action-btn text-warning" onclick="window.Studio.demoteToLesson(null, event)" title="Ders notuna geri dönüştür">↰</button>` : ''}
+                <div class="nav-title fw-bold text-truncate" title="${l.title}" style="font-size: 0.9rem; margin-bottom: 2px;">${l.title}</div>
+                <div class="nav-meta d-flex align-items-center gap-2 flex-wrap" style="font-size: 0.75rem;">
+                    <span class="text-muted"><span class="fw-bold">#</span>${l.order}</span>
+                    ${!isTestTab ? (l.scope === 'general' ? '<span class="badge bg-warning text-dark px-2 rounded-pill shadow-sm" style="font-size: 0.65rem;">🌐 Genel</span>' : '<span class="badge bg-light text-dark border px-2 rounded-pill" style="font-size: 0.65rem;">📂 Alt Not</span>') : ''}
+                    ${isTestTab ? `<span class="badge bg-primary rounded-pill shadow-sm" style="font-size: 0.65rem;">${l.qCount || 0} Soru</span>` : ''}
+                    
+                    <div class="ms-auto d-flex gap-1">
+                        ${!isSubtopic ? `<button class="btn btn-link btn-sm p-0 text-muted" onclick="window.Studio.promoteToSubtopic('${l.id}', event)" title="Alt konu yap"><i class="fas fa-level-down-alt fa-flip-horizontal"></i></button>` : ''}
+                        ${isSubtopic ? `<button class="btn btn-link btn-sm p-0 text-warning" onclick="window.Studio.demoteToLesson(null, event)" title="Ders notuna geri dönüştür"><i class="fas fa-level-up-alt"></i></button>` : ''}
+                    </div>
                 </div>
             </div>
-            <span class="drag-handle" title="Sıralamak için sürükleyin">⋮⋮</span>
         </div>
     </div>
 `;

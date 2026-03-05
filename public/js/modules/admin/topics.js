@@ -204,13 +204,13 @@ function updateScopeHint(scopeOverride = null) {
     const hasSubtopics = topicHasSubtopics(state.activeTopicId);
 
     if (scope === 'general') {
-        hint.textContent = hasSubtopics
-            ? 'Bu icerik ust konu icin genel kaynak olarak gosterilir; alt konularla karismaz.'
-            : 'Bu icerik tum konuyu kapsayan genel kaynak olarak ustte gosterilir.';
+        hint.innerHTML = hasSubtopics
+            ? '<i class="fas fa-info-circle me-1"></i> Bu icerik ust konu icin genel kaynak olarak gosterilir; alt konularla karismaz.'
+            : '<i class="fas fa-info-circle me-1"></i> Bu icerik tum konuyu kapsayan genel kaynak olarak ustte gosterilir.';
         return;
     }
 
-    hint.textContent = 'Not basligi: bolum bazli icerik. Genel konu: tum konuyu kapsayan kaynak.';
+    hint.innerHTML = '<i class="fas fa-info-circle me-1"></i> Not basligi: bolum bazli icerik. Genel konu: tum konuyu kapsayan kaynak.';
 }
 
 function toggleMetaDrawer(open = true) {
@@ -467,7 +467,10 @@ function renderContentNav() {
     const sectionItems = items.filter(l => normalizeContentScope(l.scope) !== 'general');
     const withHeader = (title, icon, rows) => rows.length
         ? `
-        <div class="nav-group-title">${icon} ${title}</div>
+        <div class="nav-group-title text-muted text-uppercase fw-bold mt-3 mb-2 px-3 d-flex align-items-center gap-2" style="font-size: 0.7rem; letter-spacing: 0.5px;">
+            <span style="font-size: 0.85rem;">${icon}</span> ${title}
+            <div class="flex-grow-1 border-top opacity-50 ms-2"></div>
+        </div>
         ${rows.map(l => renderNavItem(l, false, state.activeLessonId, isSubtopic)).join('')}
     `
         : '';
@@ -640,21 +643,21 @@ function prepareEditorUI(type) {
     const badge = document.getElementById('editorBadge');
     const scopeInput = document.getElementById('inpContentScope');
     if (type === 'test') {
-        badge.innerText = "TEST EDİTÖRÜ";
-        badge.className = "badge bg-warning text-dark me-2";
+        badge.innerText = "TEST";
+        badge.className = "badge bg-warning text-dark me-2 px-2 py-1";
         document.getElementById('wsLessonMode').style.display = 'none';
         document.getElementById('wsTestMode').style.display = 'flex';
-        if (scopeInput) scopeInput.style.display = 'none';
-        const hint = document.getElementById('contentScopeHint');
-        if (hint) hint.style.display = 'none';
+        if (scopeInput) scopeInput.parentElement.style.display = 'none';
+        const hintContainer = document.getElementById('contentScopeHintContainer');
+        if (hintContainer) hintContainer.style.display = 'none';
     } else {
-        badge.innerText = "DERS EDİTÖRÜ";
-        badge.className = "badge bg-primary me-2";
+        badge.innerText = "DERS";
+        badge.className = "badge bg-primary me-2 px-2 py-1";
         document.getElementById('wsLessonMode').style.display = 'block';
         document.getElementById('wsTestMode').style.display = 'none';
-        if (scopeInput) scopeInput.style.display = '';
-        const hint = document.getElementById('contentScopeHint');
-        if (hint) hint.style.display = '';
+        if (scopeInput) scopeInput.parentElement.style.display = 'flex';
+        const hintContainer = document.getElementById('contentScopeHintContainer');
+        if (hintContainer) hintContainer.style.display = 'block';
         updateScopeHint();
     }
 }
