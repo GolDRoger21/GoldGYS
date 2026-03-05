@@ -1938,6 +1938,20 @@ tr.highlight {
     transition: all 0.2s;
 }
 
+.nav-list-scroll .nav-group-title {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--text-muted);
+    margin: 8px 2px 8px;
+}
+
+.nav-list-scroll .nav-item-icon {
+    font-size: 1.1rem;
+    margin-top: 2px;
+}
+
 .nav-list-scroll .nav-item:hover {
     border-color: var(--border-color);
     background: var(--bg-hover);
@@ -1970,7 +1984,8 @@ tr.highlight {
 
 .nav-list-scroll .nav-meta {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-start;
+    flex-wrap: wrap;
     font-size: 0.75rem;
     color: var(--text-muted);
     margin-top: 2px;
@@ -1984,6 +1999,28 @@ tr.highlight {
     border-radius: 4px;
     font-size: 10px;
     font-weight: 600;
+}
+
+.nav-list-scroll .badge-mini-general {
+    background: rgba(59, 130, 246, 0.12);
+    color: #2563eb;
+}
+
+.nav-list-scroll .drag-handle {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    cursor: grab;
+    align-self: center;
+    opacity: 0.7;
+}
+
+.nav-list-scroll .nav-item.nav-dragging {
+    opacity: 0.55;
+}
+
+.nav-list-scroll .nav-item.nav-drop-over {
+    border-color: var(--color-primary);
+    box-shadow: inset 0 0 0 1px var(--color-primary);
 }
 
 .nav-list-scroll .nav-action-btn {
@@ -2109,9 +2146,11 @@ tr.highlight {
 
 .studio-editor-toolbar {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    align-items: center;
-    column-gap: 24px;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+    row-gap: 10px;
+    padding: 12px 18px;
+    min-height: auto;
 }
 
 .studio-editor-title-group {
@@ -2119,16 +2158,37 @@ tr.highlight {
 }
 
 .studio-editor-actions {
-    flex-wrap: nowrap;
-    gap: 14px;
+    width: 100%;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
 }
 
 .studio-save-indicator {
-    padding: 6px 10px;
+    padding: 4px 8px;
     border-radius: 10px;
     border: 1px solid var(--border-color);
     background: var(--bg-hover);
     font-weight: 600;
+}
+
+.studio-editor-meta-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    min-width: 280px;
+    flex-wrap: wrap;
+}
+
+.studio-editor-meta-row .form-select,
+.studio-editor-meta-row .input-group {
+    max-width: 220px;
+}
+
+.studio-editor-action-buttons {
+    margin-left: auto;
 }
 
 .studio-order-input {
@@ -2219,9 +2279,17 @@ tr.highlight {
     }
 
     .studio-editor-actions {
-        justify-content: space-between;
+        justify-content: flex-start;
         width: 100%;
         flex-wrap: wrap;
+    }
+
+    .studio-editor-meta-row {
+        min-width: 100%;
+    }
+
+    .studio-editor-action-buttons {
+        margin-left: 0;
     }
 }
 
