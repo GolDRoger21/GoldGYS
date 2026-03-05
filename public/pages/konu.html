@@ -1542,57 +1542,119 @@
           } else {
             if (item.materials && item.materials.length > 0) {
               // Group items by the lesson's main title (e.g. "Genel Esaslar")
-              materialsContainer.innerHTML += `<div class="mt-3 mb-2" style="font-weight:600; color:var(--color-primary);">${item.title}</div>`;
+              materialsContainer.innerHTML += `
+                <div class="d-flex align-items-center mt-4 mb-3">
+                    <div style="width: 4px; height: 16px; background: var(--color-primary); border-radius: 4px; margin-right: 8px;"></div>
+                    <h5 class="m-0 fw-bold" style="color: var(--text-main); font-size: 1.1rem; letter-spacing: -0.3px;">${item.title}</h5>
+                </div>`;
 
               item.materials.forEach(mat => {
                 materialCount++;
-                let icon = '📝'; let bgClass = 'bg-light'; let btnText = 'İncele';
-                let btnAction = `window.open('${mat.url}', '_blank')`;
+                let icon = '<i class="fas fa-file-alt"></i>';
+                let iconColor = 'var(--color-primary, #0d6efd)';
+                let bgSubtle = 'rgba(13, 110, 253, 0.1)';
+                let btnClass = 'btn-primary';
+                let btnText = 'İncele';
                 let badge = '';
+                let typeText = 'DERS NOTU';
 
-                if (mat.type === 'video') { icon = '▶️'; bgClass = 'bg-warning-subtle'; btnText = 'İzle'; badge = `<span class="badge bg-dark text-white ms-2">${mat.duration || ''}</span>`; }
-                else if (mat.type === 'podcast') { icon = '🎧'; bgClass = 'bg-purple-subtle'; btnText = 'Dinle'; badge = `<span class="badge bg-secondary text-white ms-2">${mat.duration || ''}</span>`; }
-                else if (mat.type === 'pdf') { icon = '📄'; bgClass = 'bg-danger-subtle'; btnText = 'İndir'; }
-                else if (mat.type === 'html') { icon = '📰'; bgClass = 'bg-success-subtle'; btnText = 'Oku'; }
+                if (mat.type === 'video') {
+                  icon = '<i class="fas fa-play"></i>';
+                  iconColor = '#dc3545';
+                  bgSubtle = 'rgba(220, 53, 69, 0.1)';
+                  btnClass = 'btn-danger';
+                  btnText = 'İzle';
+                  typeText = 'VİDEO DERS';
+                  if (mat.duration) badge = `<span class="badge bg-dark text-white shadow-sm" style="font-size:0.7rem; border-radius:6px;"><i class="far fa-clock me-1"></i>${mat.duration}</span>`;
+                }
+                else if (mat.type === 'podcast') {
+                  icon = '<i class="fas fa-headphones-alt"></i>';
+                  iconColor = '#6f42c1';
+                  bgSubtle = 'rgba(111, 66, 193, 0.1)';
+                  btnClass = 'btn-dark';
+                  btnText = 'Dinle';
+                  typeText = 'SES / PODCAST';
+                  if (mat.duration) badge = `<span class="badge shadow-sm text-white" style="background:#6f42c1; font-size:0.7rem; border-radius:6px;"><i class="far fa-clock me-1"></i>${mat.duration}</span>`;
+                }
+                else if (mat.type === 'pdf') {
+                  icon = '<i class="fas fa-file-pdf"></i>';
+                  iconColor = '#fd7e14';
+                  bgSubtle = 'rgba(253, 126, 20, 0.1)';
+                  btnClass = 'btn-warning text-dark';
+                  btnText = 'PDF Oku';
+                  typeText = 'PDF DOSYASI';
+                }
+                else if (mat.type === 'html') {
+                  icon = '<i class="fas fa-file-invoice"></i>';
+                  iconColor = '#198754';
+                  bgSubtle = 'rgba(25, 135, 84, 0.1)';
+                  btnClass = 'btn-success';
+                  btnText = 'Notu Oku';
+                  typeText = 'ÖZET NOT';
+                }
+
+                let btnAction = mat.url ? `window.open('${mat.url}', '_blank')` : `alert('Bağlantı bulunamadı.');`;
 
                 materialsContainer.innerHTML += `
-                        <div class="test-card ${bgClass}" style="border-left:4px solid var(--color-primary); margin-bottom: 8px;">
-                            <div class="d-flex justify-content-between align-items-start">
-                                <div>
-                                    <div class="d-flex align-items-center flex-wrap">
-                                        <span style="font-size:1.2rem; margin-right:8px;">${icon}</span>
-                                        <strong>${mat.title || 'Ders Notu'}</strong>
-                                        ${badge}
-                                    </div>
-                                    <small class="text-muted d-block mt-1">${mat.description || item.summary || ''}</small>
-                                </div>
+                    <div class="material-card mb-3" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 14px; overflow: hidden; transition: transform 0.2s, box-shadow 0.2s;">
+                        <div class="d-flex align-items-center p-3">
+                            <div class="d-flex align-items-center justify-content-center rounded-circle" style="width: 50px; height: 50px; min-width: 50px; background: ${bgSubtle}; color: ${iconColor}; font-size: 1.3rem; margin-right: 14px;">
+                                ${icon}
                             </div>
-                            <button class="btn btn-sm btn-dark w-100 mt-2" onclick="${btnAction}">${btnText}</button>
+                            <div class="flex-grow-1" style="min-width: 0;">
+                                <div class="d-flex align-items-center flex-wrap gap-2 mb-1">
+                                    <h6 class="m-0 fw-bold text-truncate" style="color: var(--text-main); font-size: 1rem; max-width:100%;">${mat.title || 'İçerik'}</h6>
+                                    ${badge}
+                                </div>
+                                <p class="text-muted small m-0 text-truncate" style="opacity: 0.85; max-width:100%;">${mat.description || item.summary || 'Açıklama bulunmuyor.'}</p>
+                            </div>
                         </div>
-                    `;
+                        <div class="px-3 py-2 d-flex justify-content-between align-items-center" style="background: rgba(0,0,0,0.02); border-top: 1px solid var(--border-color);">
+                            <span class="small fw-bold text-muted" style="font-size: 0.7rem; letter-spacing: 0.5px;"><i class="fas fa-tag me-1 text-black-50" style="opacity:0.5;"></i> ${typeText}</span>
+                            <button class="btn btn-sm ${btnClass} fw-bold px-3 rounded-pill shadow-sm" onclick="${btnAction}">${btnText} <i class="fas fa-chevron-right ms-1" style="font-size:0.8em;"></i></button>
+                        </div>
+                    </div>
+                `;
               });
-            } else if (item.content || item.url) { // Geriye dönük uyumluluk veya doğrudan materyal eklenemişse
+            } else if (item.content || item.url) {
+              // Backwards compatibility for single materials
               materialCount++;
-              let btnAction = item.url ? `window.open('${item.url}', '_blank')` : `alert('Bu içerik formatı şu an desteklenmiyor.');`;
-              let icon = '📄'; let bgClass = 'bg-light';
-              if (item.type === 'video') { icon = '▶️'; bgClass = 'bg-warning-subtle'; }
+              let btnAction = item.url ? `window.open('${item.url}', '_blank')` : `alert('Bu formattaki içerik şu an desteklenmiyor.');`;
+              let icon = '<i class="fas fa-file-alt"></i>';
+              let iconColor = 'var(--text-muted)';
+              let bgSubtle = 'rgba(100,100,100,0.1)';
+              let typeText = 'GENEL İÇERİK';
+
+              if (item.type === 'video') {
+                icon = '<i class="fas fa-play"></i>'; iconColor = '#dc3545'; bgSubtle = 'rgba(220, 53, 69, 0.1)'; typeText = 'VİDEO DERS';
+              }
 
               materialsContainer.innerHTML += `
-                    <div class="test-card ${bgClass}" style="border-left:4px solid var(--color-success); margin-bottom: 8px;">
-                        <div class="d-flex align-items-center mb-2">
-                           <span style="margin-right:8px; font-size:1.2rem;">${icon}</span>
-                           <strong>${item.title}</strong>
+                    <div class="material-card mb-3" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 14px; overflow: hidden;">
+                        <div class="d-flex align-items-center p-3">
+                            <div class="d-flex align-items-center justify-content-center rounded-circle" style="width: 50px; height: 50px; min-width: 50px; background: ${bgSubtle}; color: ${iconColor}; font-size: 1.3rem; margin-right: 14px;">
+                                ${icon}
+                            </div>
+                            <div class="flex-grow-1" style="min-width: 0;">
+                                <h6 class="m-0 fw-bold text-truncate" style="color: var(--text-main); font-size: 1rem;">${item.title}</h6>
+                                <p class="text-muted small m-0 mt-1 text-truncate" style="opacity: 0.85;">${item.summary || 'Genel içerik'}</p>
+                            </div>
                         </div>
-                        <div class="text-muted small mt-1">${item.summary || ''}</div>
-                        <button class="btn btn-sm btn-dark w-100 mt-2" onclick="${btnAction}">İncele</button>
+                        <div class="px-3 py-2 d-flex justify-content-between align-items-center" style="background: rgba(0,0,0,0.02); border-top: 1px solid var(--border-color);">
+                            <span class="small fw-bold text-muted" style="font-size: 0.7rem; letter-spacing: 0.5px;"><i class="fas fa-tag me-1 text-black-50" style="opacity:0.5;"></i> ${typeText}</span>
+                            <button class="btn btn-sm btn-dark fw-bold px-3 rounded-pill shadow-sm" onclick="${btnAction}">İncele <i class="fas fa-chevron-right ms-1" style="font-size:0.8em;"></i></button>
+                        </div>
                     </div>
                 `;
             } else {
-              // İçinde hiç materyal (materials dizisi) bulunmayan başlıklar için
+              // Empty category representation
               materialsContainer.innerHTML += `
-                    <div class="test-card" style="border-left:4px solid var(--color-success); opacity:0.6; margin-bottom: 8px;">
-                        <strong>${item.title}</strong>
-                        <div class="text-muted small mt-1">Bu başlık altında henüz not eklenmemiş.</div>
+                    <div class="d-flex align-items-center mt-4 mb-2">
+                        <div style="width: 4px; height: 16px; background: var(--text-muted); border-radius: 4px; margin-right: 8px; opacity:0.5;"></div>
+                        <h5 class="m-0 fw-bold" style="color: var(--text-muted); font-size: 1.1rem; letter-spacing: -0.3px;">${item.title}</h5>
+                    </div>
+                    <div class="p-3 mb-3 text-center rounded-3" style="border: 1px dashed var(--border-color); background: rgba(0,0,0,0.01);">
+                        <div class="text-muted small"><i class="fas fa-info-circle me-1"></i> Bu başlık altında henüz not eklenmemiş.</div>
                     </div>
                 `;
             }
@@ -1614,11 +1676,15 @@
           const cacheKey = `topic_lessons_${currentTopicId}`;
           const cachedData = await CacheManager.getData(cacheKey);
 
-          if (cachedData?.cached && cachedData.data) {
+          // Localhost'ta veya test ortamında her zaman en güncel veriyi çekmesi için küçük bir bypass
+          const isDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+
+          if (!isDev && cachedData?.cached && cachedData.data) {
             console.log(`[Cache Hit] Ders notları IndexedDB'den yüklendi (${cacheKey}) ve Firestore sorgusu atlandı.`);
             return cachedData.data;
           } else {
-            console.log(`[Cache Miss] Ders notları Firestore'dan çekiliyor... (${currentTopicId})`);
+            if (isDev) console.log(`[Dev Mode] Cache bypass edildi, güncel veri çekiliyor...`);
+            else console.log(`[Cache Miss] Ders notları Firestore'dan çekiliyor... (${currentTopicId})`);
 
             const lessonsQuery = query(collection(db, `topics/${currentTopicId}/lessons`), orderBy("order", "asc"));
             const lessonsFallback = collection(db, `topics/${currentTopicId}/lessons`);
@@ -1631,7 +1697,10 @@
               freshLessons.push(item);
             });
 
-            await CacheManager.saveData(cacheKey, freshLessons, 24 * 60 * 60 * 1000);
+            // Production için 5 dakikalık (300.000 ms) kısa cache süresi, değişikliklerin çabuk yansıması için
+            if (!isDev) {
+              await CacheManager.saveData(cacheKey, freshLessons, 5 * 60 * 1000);
+            }
             return freshLessons;
           }
 
