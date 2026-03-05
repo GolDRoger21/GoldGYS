@@ -1483,6 +1483,8 @@
       const materialsContainer = document.getElementById('materialsList');
 
       let validCompletedIds = new Set();
+      let testCount = 0;
+      let materialCount = 0;
 
       // Tamamlanmış testler sorgusu
       const fetchCompletedTests = async () => {
@@ -1502,8 +1504,8 @@
       const renderContent = (contentLessons) => {
         testsContainer.innerHTML = '';
         materialsContainer.innerHTML = '';
-        let testCount = 0;
-        let materialCount = 0;
+        testCount = 0;
+        materialCount = 0;
 
         contentLessons.forEach(item => {
           const isTest = item.type === 'test' || (Array.isArray(item.questions) && item.questions.length > 0) || Number.isFinite(item.qCount);
