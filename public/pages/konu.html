@@ -804,6 +804,7 @@
     .material-group-stack {
       display: grid;
       gap: 10px;
+      min-width: 0;
     }
 
     /* Expanded material cards without scrollbars (Removed max-height and overflow) */
@@ -833,6 +834,8 @@
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
       text-decoration: none;
       color: inherit;
+      width: 100%;
+      min-width: 0;
     }
 
     .material-compact-card:hover {
@@ -890,6 +893,7 @@
       display: flex;
       align-items: center;
       gap: 6px;
+      min-width: 0;
     }
 
     .material-compact-badge {
@@ -911,6 +915,7 @@
       overflow: hidden;
       text-overflow: ellipsis;
       font-weight: 500;
+      min-width: 0;
     }
 
     .topic-header-inner {
@@ -1325,6 +1330,8 @@
 
       .side-section {
         margin-top: 6px;
+        width: 100%;
+        min-width: 0;
       }
 
       .section-title-block {
@@ -1369,6 +1376,56 @@
 
       #topicMaterialsSection {
         margin-top: 0;
+        min-width: 0;
+      }
+
+      .category-main-accordion,
+      .category-main-body,
+      .material-group-card,
+      .material-group-body,
+      .material-group-stack {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+      }
+
+      .material-group-body {
+        overflow-x: clip;
+      }
+
+      .material-group-header {
+        align-items: flex-start;
+      }
+
+      .material-group-title,
+      .category-main-title,
+      .category-main-subtitle {
+        white-space: normal;
+      }
+
+      .material-compact-card {
+        align-items: flex-start;
+      }
+
+      .material-compact-title-row,
+      .material-compact-desc-row {
+        flex-wrap: wrap;
+      }
+
+      .material-compact-title,
+      .material-compact-desc {
+        white-space: normal;
+        overflow: visible;
+        text-overflow: initial;
+        word-break: break-word;
+      }
+
+      .material-compact-desc {
+        line-height: 1.35;
+      }
+
+      .material-compact-badge {
+        flex-shrink: 0;
       }
 
       .section-title-block h3 {
@@ -1452,9 +1509,21 @@
         /* İç içe paddingleri daralt */
       }
 
+      .category-main-title {
+        font-size: 1rem;
+      }
+
+      .category-main-subtitle {
+        font-size: 0.78rem;
+      }
+
       .material-group-header {
         padding: 12px;
         gap: 8px;
+      }
+
+      .material-group-title {
+        font-size: 0.94rem;
       }
 
       .material-group-body {
@@ -1464,6 +1533,14 @@
       .material-compact-card {
         padding: 10px;
         gap: 10px;
+      }
+
+      .material-compact-title {
+        font-size: 0.88rem;
+      }
+
+      .material-compact-desc {
+        font-size: 0.76rem;
       }
 
       .material-compact-icon {
