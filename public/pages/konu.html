@@ -660,6 +660,8 @@
     .category-main-title-wrap {
       display: flex;
       flex-direction: column;
+      flex: 1;
+      min-width: 0;
     }
 
     .category-main-title {
@@ -668,12 +670,20 @@
       font-weight: 800;
       color: var(--text-main);
       line-height: 1.2;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      word-break: break-word;
     }
 
     .category-main-subtitle {
       font-size: 0.85rem;
       color: var(--text-muted);
       margin-top: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      word-break: break-word;
     }
 
     .category-main-body {
@@ -763,6 +773,8 @@
       color: var(--text-main);
       line-height: 1.25;
       word-break: break-word;
+      flex: 1;
+      min-width: 0;
     }
 
     .material-group-body {
@@ -1427,6 +1439,38 @@
         width: 18px;
         font-size: 1.1rem;
         text-align: center;
+      }
+
+      /* MOBİL İçin Responsive Akordiyon ve Materyal Kartı Düzenlemeleri (Sağdan Taşmayı Önleme) */
+      .category-main-header {
+        padding: 12px 14px;
+        gap: 10px;
+      }
+
+      .category-main-body {
+        padding: 12px 10px;
+        /* İç içe paddingleri daralt */
+      }
+
+      .material-group-header {
+        padding: 12px;
+        gap: 8px;
+      }
+
+      .material-group-body {
+        padding: 0 10px 10px 10px;
+      }
+
+      .material-compact-card {
+        padding: 10px;
+        gap: 10px;
+      }
+
+      .material-compact-icon {
+        width: 36px;
+        height: 36px;
+        min-width: 36px;
+        margin-right: 8px;
       }
     }
 
