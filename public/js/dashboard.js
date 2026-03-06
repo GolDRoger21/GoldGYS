@@ -186,10 +186,12 @@ async function loadFocusTopics(uid, currentTopicId) {
                             <div class="panel-item-icon ${isPrimaryFocus ? 'teal' : 'gold'}" style="flex-shrink: 0;">${isPrimaryFocus ? '🌟' : '🎯'}</div>
                             <div style="flex: 1; min-width: 0;">
                                 <strong style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;">${topic.title}</strong>
-                                <div class="panel-meta" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${isPrimaryFocus ? 'Ana odak konun • Analiz ekranından seçildi' : 'Odakta • Devam etmeye hazır'}</div>
+                                <div class="panel-meta" style="display: flex; gap: 6px; align-items: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                    <span class="panel-pill ${isPrimaryFocus ? 'focus-badge' : ''}" style="padding: 2px 8px; font-size: 0.70rem;">${isPrimaryFocus ? 'Aktif Odak' : 'Odak'}</span>
+                                    <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${isPrimaryFocus ? 'Ana odak konun' : 'Odakta'}</span>
+                                </div>
                             </div>
                         </div>
-                        <span class="panel-pill ${isPrimaryFocus ? 'focus-badge' : ''}" style="flex-shrink: 0;">${isPrimaryFocus ? 'Aktif Odak' : 'Odak'}</span>
                     </a>
                 `;
             })
@@ -576,10 +578,12 @@ async function loadRecentActivities(uid) {
                         <div class="panel-item-icon blue" style="flex-shrink: 0;">${pickTopicIcon(act.title)}</div>
                         <div style="flex: 1; min-width: 0;">
                             <strong style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;">${act.title}</strong>
-                            <div class="panel-meta" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${act.solvedCount || 0} soru çözüldü</div>
+                            <div class="panel-meta" style="display: flex; gap: 6px; align-items: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                <span class="panel-pill" style="padding: 2px 8px; font-size: 0.70rem;">${actDate ? formatDate(actDate) : 'Yakın Zamanda'}</span>
+                                <span>${act.solvedCount || 0} soru çözüldü</span>
+                            </div>
                         </div>
                     </div>
-                    <span class="panel-pill" style="flex-shrink: 0;">${actDate ? formatDate(actDate) : 'Yakın Zamanda'}</span>
                 </a>
             `;
         }).join('');
