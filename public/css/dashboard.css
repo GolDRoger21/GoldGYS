@@ -1301,10 +1301,13 @@
     }
 
     .stat-card {
-        padding: 12px;
+        padding: 14px 12px;
         flex-direction: column;
-        align-items: flex-start;
-        gap: 6px;
+        align-items: center;
+        /* Kart içini ortalar */
+        text-align: center;
+        /* Metinleri ortalar */
+        gap: 8px;
         border-radius: 14px;
     }
 
@@ -1312,6 +1315,8 @@
         width: 36px;
         height: 36px;
         border-radius: 10px;
+        margin: 0 auto;
+        /* İkonu div'in ortasına hizalar */
     }
 
     .stat-icon svg {
@@ -1320,9 +1325,13 @@
     }
 
     .stat-info {
-        gap: 2px;
+        gap: 4px;
         width: 100%;
         overflow: hidden;
+        align-items: center;
+        /* Stat info içi esnek elementleri ortalar */
+        display: flex;
+        flex-direction: column;
     }
 
     .stat-info h3 {
@@ -1332,10 +1341,12 @@
         overflow: hidden;
         text-overflow: ellipsis;
         width: 100%;
+        text-align: center;
     }
 
     .stat-info .stat-value {
         font-size: 1.25rem;
+        text-align: center;
     }
 
     .panel-card,
