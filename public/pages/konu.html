@@ -1426,6 +1426,144 @@
         text-align: center;
       }
     }
+
+    /* Premium Media Modal */
+    .media-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .media-modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .media-modal-container {
+      background: var(--bg-surface);
+      width: 90%;
+      max-width: 800px;
+      max-height: 90vh;
+      /* Changed from 90vw to 90vh which is correct for height limit */
+      border-radius: 20px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+      border: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      transform: scale(0.95) translateY(20px);
+      transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+      overflow: hidden;
+    }
+
+    .media-modal-overlay.active .media-modal-container {
+      transform: scale(1) translateY(0);
+    }
+
+    .media-modal-header {
+      padding: 16px 24px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: color-mix(in srgb, var(--bg-surface) 95%, var(--bg-hover));
+    }
+
+    .media-modal-title {
+      margin: 0;
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--text-main);
+      display: -webkit-box;
+      -webkit-line-clamp: 1;
+      line-clamp: 1;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .media-modal-close {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1.5rem;
+      cursor: pointer;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      transition: background 0.2s, color 0.2s;
+    }
+
+    .media-modal-close:hover {
+      background: var(--bg-hover);
+      color: var(--color-danger);
+    }
+
+    .media-modal-body {
+      padding: 24px;
+      overflow-y: auto;
+      flex: 1;
+      color: var(--text-main);
+      line-height: 1.6;
+    }
+
+    /* Responsive Video/Iframe Container */
+    .media-responsive-iframe {
+      position: relative;
+      padding-bottom: 56.25%;
+      /* 16:9 */
+      height: 0;
+      border-radius: 12px;
+      overflow: hidden;
+      background: #000;
+    }
+
+    .media-responsive-iframe iframe {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border: 0;
+    }
+
+    /* HTML Content Typography */
+    .media-html-content h1,
+    .media-html-content h2,
+    .media-html-content h3 {
+      color: var(--text-main);
+      margin-top: 0;
+    }
+
+    .media-html-content p {
+      margin-bottom: 1em;
+    }
+
+    /* Podcast Container */
+    .media-podcast-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      background: color-mix(in srgb, var(--color-primary) 5%, var(--bg-surface));
+      border-radius: 16px;
+      border: 1px solid color-mix(in srgb, var(--color-primary) 20%, transparent);
+    }
+
+    .media-podcast-container audio {
+      width: 100%;
+      max-width: 500px;
+    }
   </style>
   <script src="/js/theme-init.js"></script>
 </head>
@@ -1828,6 +1966,8 @@
         testCount = 0;
         materialCount = 0;
 
+        let materialsHtml = '';
+
         const renderMaterialCard = (mat, fallbackTitle, fallbackSummary = '') => {
           materialCount++;
           let icon = '<i class="fas fa-file-alt"></i>';
@@ -1865,9 +2005,21 @@
             borderStyle = 'border-left: 3px solid #10b981;';
           }
 
-          const btnAction = mat.url ? `window.open('${mat.url}', '_blank')` : `alert('Bağlantı bulunamadı.');`;
           const contentTitle = mat.title || fallbackTitle || 'İçerik';
           const contentDesc = mat.description || fallbackSummary || 'Açıklama bulunmuyor.';
+
+          let btnAction = '';
+          if (mat.type === 'pdf') {
+            btnAction = mat.url ? `window.open('${mat.url}', '_blank')` : `alert('Bağlantı bulunamadı.');`;
+          } else {
+            const safeData = encodeURIComponent(JSON.stringify({
+              type: mat.type || 'html',
+              url: mat.url || '',
+              content: mat.content || '',
+              title: contentTitle
+            }));
+            btnAction = `openMaterialModal('${safeData}')`;
+          }
 
           return `
             <div class="material-compact-card" onclick="${btnAction}" style="${borderStyle}">
@@ -1898,7 +2050,7 @@
             : 'var(--color-primary)';
           const groupIcon = headingTone === 'warning' ? 'fas fa-globe' : 'fas fa-book-open';
 
-          materialsContainer.innerHTML += `
+          materialsHtml += `
             <details class="material-group-card" ${headingTone === 'warning' ? 'open' : ''}>
               <summary class="material-group-header">
                 <span class="material-group-accent" style="background:${accentColor};"></span>
@@ -1910,9 +2062,9 @@
 
           if (item.materials && item.materials.length > 0) {
             item.materials.forEach((mat) => {
-              materialsContainer.innerHTML += renderMaterialCard(mat, displayTitle, item.summary || 'Genel icerik');
+              materialsHtml += renderMaterialCard(mat, displayTitle, item.summary || 'Genel icerik');
             });
-            materialsContainer.innerHTML += '</div></div></details>';
+            materialsHtml += '</div></div></details>';
             return;
           }
 
@@ -1923,13 +2075,13 @@
               description: item.summary,
               url: item.url || item.content
             };
-            materialsContainer.innerHTML += renderMaterialCard(fallbackMaterial, displayTitle, item.summary || 'Genel icerik');
-            materialsContainer.innerHTML += '</div></div></details>';
+            materialsHtml += renderMaterialCard(fallbackMaterial, displayTitle, item.summary || 'Genel icerik');
+            materialsHtml += '</div></div></details>';
             return;
           }
 
-          materialsContainer.innerHTML += `<div class="material-empty-state"><i class="fas fa-circle-info"></i><span>Bu baslik altinda henuz not eklenmemis.</span></div>`;
-          materialsContainer.innerHTML += '</div></div></details>';
+          materialsHtml += `<div class="material-empty-state"><i class="fas fa-circle-info"></i><span>Bu baslik altinda henuz not eklenmemis.</span></div>`;
+          materialsHtml += '</div></div></details>';
         };
 
         contentLessons.forEach(item => {
@@ -1971,7 +2123,7 @@
         const sectionLessons = lessonItems.filter(item => !isGeneralScope(item.scope));
 
         if (generalLessons.length > 0) {
-          materialsContainer.innerHTML += `
+          materialsHtml += `
             <details class="category-main-accordion" open>
               <summary class="category-main-header">
                 <div class="category-main-icon" style="color: #fd7e14; background: rgba(253, 126, 20, 0.15);">
@@ -1984,25 +2136,25 @@
               </summary>
               <div class="category-main-body">
                 <div class="material-group-stack" style="gap: 8px;">`;
-          // Render material cards directly inside this main accordion, bypassing the sub-accordion wrapper for general lessons
+
           generalLessons.forEach(item => {
             if (item.materials && item.materials.length > 0) {
               item.materials.forEach((mat) => {
-                materialsContainer.innerHTML += renderMaterialCard(mat, item.title, item.summary || 'Genel içerik');
+                materialsHtml += renderMaterialCard(mat, item.title, item.summary || 'Genel içerik');
               });
             } else if (item.content || item.url) {
               const fallbackMaterial = { type: item.type || 'html', title: item.title, description: item.summary, url: item.url || item.content };
-              materialsContainer.innerHTML += renderMaterialCard(fallbackMaterial, item.title, item.summary || 'Genel içerik');
+              materialsHtml += renderMaterialCard(fallbackMaterial, item.title, item.summary || 'Genel içerik');
             }
           });
-          materialsContainer.innerHTML += `
+          materialsHtml += `
                 </div>
               </div>
             </details>`;
         }
 
         if (sectionLessons.length > 0) {
-          materialsContainer.innerHTML += `
+          materialsHtml += `
             <details class="category-main-accordion" ${generalLessons.length === 0 ? 'open' : ''}>
               <summary class="category-main-header">
                 <div class="category-main-icon" style="color: var(--color-primary); background: color-mix(in srgb, var(--color-primary) 15%, transparent);">
@@ -2018,11 +2170,13 @@
 
           sectionLessons.forEach(item => renderLessonGroup(item, 'primary'));
 
-          materialsContainer.innerHTML += `
+          materialsHtml += `
                 </div>
               </div>
             </details>`;
         }
+
+        materialsContainer.innerHTML = materialsHtml;
 
         if (testCount === 0) {
           testsContainer.innerHTML = `
@@ -2494,6 +2648,91 @@
       }
     });
 
+  </script>
+
+  <!-- Premium Media Modal -->
+  <div class="media-modal-overlay" id="mediaModalOverlay" onclick="closeMaterialModal(event)">
+    <div class="media-modal-container" onclick="event.stopPropagation()">
+      <div class="media-modal-header">
+        <h3 class="media-modal-title" id="mediaModalTitle">Materyal Yükleniyor...</h3>
+        <button class="media-modal-close" onclick="closeMaterialModal(event)" aria-label="Kapat">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="media-modal-body" id="mediaModalBody">
+        <!-- İçerik buraya yüklenecek -->
+      </div>
+    </div>
+  </div>
+
+  <script>
+    window.openMaterialModal = function (encodedData) {
+      try {
+        const mat = JSON.parse(decodeURIComponent(encodedData));
+        const overlay = document.getElementById('mediaModalOverlay');
+        const titleEl = document.getElementById('mediaModalTitle');
+        const bodyEl = document.getElementById('mediaModalBody');
+
+        titleEl.textContent = mat.title || 'Materyal';
+        bodyEl.innerHTML = '';
+
+        if (mat.type === 'video') {
+          let embedUrl = mat.url;
+          if (mat.url.includes('youtube.com/watch') || mat.url.includes('youtu.be/')) {
+            const videoId = mat.url.split('v=')[1]?.split('&')[0] || mat.url.split('youtu.be/')[1]?.split('?')[0];
+            if (videoId) embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1`;
+          } else if (mat.url.includes('vimeo.com/')) {
+            const videoId = mat.url.split('vimeo.com/')[1];
+            if (videoId) embedUrl = `https://player.vimeo.com/video/${videoId}?autoplay=1`;
+          }
+          bodyEl.innerHTML = `
+            <div class="media-responsive-iframe">
+              <iframe src="${embedUrl}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+            </div>
+          `;
+        } else if (mat.type === 'podcast') {
+          if (mat.url.includes('spotify.com')) {
+            bodyEl.innerHTML = `<iframe src="${mat.url.replace('/episode/', '/embed/episode/')}" width="100%" height="152" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>`;
+          } else {
+            bodyEl.innerHTML = `
+                <div class="media-podcast-container">
+                    <audio controls autoplay>
+                        <source src="${mat.url}" type="audio/mpeg">
+                        Tarayıcınız ses oynatıcısını desteklemiyor.
+                    </audio>
+                </div>`;
+          }
+        } else if (mat.type === 'html') {
+          // Wrap content in a styled container for neat typography
+          bodyEl.innerHTML = `<div class="media-html-content" style="padding-top:10px;">${mat.content || mat.url || 'İçerik yüklenemedi.'}</div>`;
+        } else {
+          bodyEl.innerHTML = `
+            <div class="p-4 text-center mt-3" style="border:1px dashed var(--border-color); border-radius:12px;">
+               <div style="font-size:2rem; margin-bottom:12px; opacity:0.3;"><i class="fas fa-file-alt"></i></div>
+               <div class="mb-3">Bu içerik doğrudan önizlenemiyor.</div>
+               <a href="${mat.url}" target="_blank" class="btn btn-primary" style="border-radius:20px; padding:8px 20px;">Yeni Sekmede Aç</a>
+            </div>`;
+        }
+
+        overlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      } catch (err) {
+        console.error("Modal acilamadi", err);
+        alert('Materyal görüntülenirken bir hata oluştu.');
+      }
+    };
+
+    window.closeMaterialModal = function (event) {
+      if (event) event.preventDefault();
+      const overlay = document.getElementById('mediaModalOverlay');
+      const bodyEl = document.getElementById('mediaModalBody');
+      overlay.classList.remove('active');
+      document.body.style.overflow = '';
+
+      setTimeout(() => {
+        bodyEl.innerHTML = '';
+      }, 300);
+    };
   </script>
 </body>
 
