@@ -181,15 +181,15 @@ async function loadFocusTopics(uid, currentTopicId) {
                 const topicUrl = buildTopicPath ? buildTopicPath({ id: topicId, slug: topic.slug }) : `/konu/${topic.slug || topicId}`;
                 const isPrimaryFocus = topicId === currentTopicId;
                 return `
-                    <a href="${topicUrl}" class="panel-item topic-link-item">
-                        <div class="panel-item-content">
-                            <div class="panel-item-icon ${isPrimaryFocus ? 'teal' : 'gold'}">${isPrimaryFocus ? '🌟' : '🎯'}</div>
-                            <div>
-                                <strong>${topic.title}</strong>
-                                <div class="panel-meta">${isPrimaryFocus ? 'Ana odak konun • Analiz ekranından seçildi' : 'Odakta • Devam etmeye hazır'}</div>
+                    <a href="${topicUrl}" class="panel-item topic-link-item" style="display:flex;">
+                        <div class="panel-item-content" style="flex: 1;">
+                            <div class="panel-item-icon ${isPrimaryFocus ? 'teal' : 'gold'}" style="flex-shrink: 0;">${isPrimaryFocus ? '🌟' : '🎯'}</div>
+                            <div style="flex: 1; min-width: 0;">
+                                <strong style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;">${topic.title}</strong>
+                                <div class="panel-meta" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${isPrimaryFocus ? 'Ana odak konun • Analiz ekranından seçildi' : 'Odakta • Devam etmeye hazır'}</div>
                             </div>
                         </div>
-                        <span class="panel-pill ${isPrimaryFocus ? 'focus-badge' : ''}">${isPrimaryFocus ? 'Aktif Odak' : 'Odak'}</span>
+                        <span class="panel-pill ${isPrimaryFocus ? 'focus-badge' : ''}" style="flex-shrink: 0;">${isPrimaryFocus ? 'Aktif Odak' : 'Odak'}</span>
                     </a>
                 `;
             })
@@ -362,34 +362,34 @@ async function loadExamAnnouncement() {
 
         ui.examPanelBody.innerHTML = `
             <div class="panel-item">
-                <div class="panel-item-content">
+                <div class="panel-item-content" style="flex: 1;">
                     <div class="panel-item-icon gold">🗓️</div>
-                    <div>
-                        <strong>${data.title || 'Sınav İlanı'}</strong>
-                        <div class="panel-meta">${data.description || 'Sınav detayları güncellendi.'}</div>
+                    <div style="flex: 1; min-width: 0;">
+                        <strong style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;">${data.title || 'Sınav İlanı'}</strong>
+                        <div class="panel-meta" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${data.description || 'Sınav detayları güncellendi.'}</div>
                     </div>
                 </div>
-                <span class="panel-pill">Aktif</span>
+                <span class="panel-pill" style="flex-shrink: 0;">Aktif</span>
             </div>
             <div class="panel-item">
-                <div class="panel-item-content">
+                <div class="panel-item-content" style="flex: 1;">
                     <div class="panel-item-icon purple">📅</div>
-                    <div>
-                        <strong>${examDate ? formatDate(examDate, true) : 'Tarih açıklanacak'}</strong>
+                    <div style="flex: 1; min-width: 0;">
+                        <strong style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;">${examDate ? formatDate(examDate, true) : 'Tarih açıklanacak'}</strong>
                         <div class="panel-meta">Sınav Tarihi</div>
                     </div>
                 </div>
-                <span class="panel-pill">${data.location || 'Konum belirlenecek'}</span>
+                <span class="panel-pill" style="flex-shrink: 0;">${data.location || 'Konum belirlenecek'}</span>
             </div>
             <div class="panel-item">
-                <div class="panel-item-content">
+                <div class="panel-item-content" style="flex: 1;">
                     <div class="panel-item-icon teal">📝</div>
-                    <div>
-                        <strong>${formatRange(applyStart, applyEnd)}</strong>
+                    <div style="flex: 1; min-width: 0;">
+                        <strong style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;">${formatRange(applyStart, applyEnd)}</strong>
                         <div class="panel-meta">Başvuru Takvimi</div>
                     </div>
                 </div>
-                ${data.applicationLink ? `<a class="btn btn-sm btn-outline-primary" href="${data.applicationLink}" target="_blank" rel="noopener">Başvur</a>` : ''}
+                ${data.applicationLink ? `<a class="btn btn-sm btn-outline-primary" style="flex-shrink: 0;" href="${data.applicationLink}" target="_blank" rel="noopener">Başvur</a>` : ''}
             </div>
         `;
 
@@ -479,15 +479,15 @@ async function loadAnnouncements() {
             const createdAt = parseDate(data.createdAt);
             return `
                 <div class="panel-item">
-                    <div class="panel-item-content">
-                        <div class="panel-item-icon gold">📣</div>
-                        <div>
-                            <strong>${data.title || 'Duyuru'}</strong>
-                            <div class="panel-meta">${data.body || ''}</div>
-                            <div class="panel-meta">${createdAt ? formatDate(createdAt) : ''}</div>
-                        </div>
+                    <div class="panel-item-content" style="flex: 1;">
+                    <div class="panel-item-icon gold">📣</div>
+                    <div style="flex: 1; min-width: 0;">
+                        <strong style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;">${data.title || 'Duyuru'}</strong>
+                        <div class="panel-meta" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-height: 1.5em;">${data.body || ''}</div>
+                        <div class="panel-meta">${createdAt ? formatDate(createdAt) : ''}</div>
                     </div>
-                    <span class="panel-pill">${data.level || 'Bilgi'}</span>
+                </div>
+                <span class="panel-pill" style="flex-shrink: 0;">${data.level || 'Bilgi'}</span>
                 </div>
             `;
         }).join('');
@@ -572,14 +572,14 @@ async function loadRecentActivities(uid) {
 
             return `
                 <a href="${topicUrl}" class="panel-item topic-link-item" style="display:flex;">
-                    <div class="panel-item-content">
-                        <div class="panel-item-icon blue">${pickTopicIcon(act.title)}</div>
-                        <div>
-                            <strong>${act.title}</strong>
-                            <div class="panel-meta">${act.solvedCount || 0} soru çözüldü</div>
+                    <div class="panel-item-content" style="flex: 1;">
+                        <div class="panel-item-icon blue" style="flex-shrink: 0;">${pickTopicIcon(act.title)}</div>
+                        <div style="flex: 1; min-width: 0;">
+                            <strong style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;">${act.title}</strong>
+                            <div class="panel-meta" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${act.solvedCount || 0} soru çözüldü</div>
                         </div>
                     </div>
-                    <span class="panel-pill">${actDate ? formatDate(actDate) : 'Yakın Zamanda'}</span>
+                    <span class="panel-pill" style="flex-shrink: 0;">${actDate ? formatDate(actDate) : 'Yakın Zamanda'}</span>
                 </a>
             `;
         }).join('');

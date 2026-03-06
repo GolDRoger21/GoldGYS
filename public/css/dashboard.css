@@ -333,14 +333,16 @@
 /* --- DASHBOARD PANELS --- */
 .dashboard-panels {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    /* Daha geniş desktop alanlarında daha iyi sığma */
     gap: 24px;
     margin-bottom: 32px;
 }
 
 .premium-highlight-grid {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    /* Eskiden sabit 2 kolondu, artık esnek */
     gap: 24px;
     margin-bottom: 32px;
 }
@@ -417,7 +419,8 @@
     background: var(--glass-surface);
     border: 1px solid var(--border-subtle);
     border-radius: 20px;
-    padding: 24px;
+    padding: 20px;
+    /* Azaltıldı (eski: 24px) */
     backdrop-filter: var(--glass-backdrop-filter);
 }
 
@@ -433,7 +436,8 @@
     align-items: flex-start;
     justify-content: space-between;
     gap: 16px;
-    margin-bottom: 16px;
+    margin-bottom: 12px;
+    /* Azaltıldı (eski: 16px) */
 }
 
 .panel-header .section-title {
@@ -489,18 +493,21 @@
 .panel-body {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
+    /* Azaltıldı (eski: 12px) */
 }
 
 .panel-item {
-    padding: 14px 16px;
-    border-radius: 14px;
+    padding: 12px 14px;
+    /* Azaltıldı (eski: 14px 16px) */
+    border-radius: 12px;
     background: rgba(255, 255, 255, 0.04);
     border: 1px solid rgba(255, 255, 255, 0.06);
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 16px;
+    gap: 12px;
+    /* Azaltıldı */
 }
 
 [data-theme="light"] .panel-item {
@@ -575,15 +582,17 @@
 
 .activity-list {
     display: grid;
-    gap: 12px;
+    gap: 10px;
+    /* Azaltıldı (eski: 12px) */
 }
 
 .activity-item {
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 12px 14px;
-    border-radius: 14px;
+    padding: 10px 14px;
+    /* Azaltıldı (eski: 12px 14px) */
+    border-radius: 12px;
     background: rgba(255, 255, 255, 0.04);
     border: 1px solid rgba(255, 255, 255, 0.06);
 }
@@ -1294,17 +1303,31 @@
 
     .panel-card,
     .recent-activity {
-        padding: 16px;
-        border-radius: 16px;
+        padding: 12px;
+        border-radius: 14px;
     }
 
     .panel-header {
-        margin-bottom: 12px;
+        margin-bottom: 8px;
+        gap: 8px;
+    }
+
+    .panel-header .text-muted {
+        display: none;
+        /* Mobilde açıklama metinleri çok yer kaplamaması için gizlendi */
     }
 
     .section-title {
-        font-size: 1.1rem;
-        margin-bottom: 4px;
+        font-size: 1.05rem;
+        margin-bottom: 0;
+        gap: 8px;
+    }
+
+    .section-icon {
+        width: 32px;
+        height: 32px;
+        font-size: 1rem;
+        border-radius: 10px;
     }
 
     .panel-item,
@@ -1356,16 +1379,16 @@
     }
 
     .premium-highlight-card .section-title {
-        font-size: 1.18rem;
-        line-height: 1.3;
-        margin-bottom: 8px;
+        font-size: 1.05rem;
+        line-height: 1.2;
+        margin-bottom: 0;
     }
 
     .premium-highlight-card .section-icon {
-        width: 42px;
-        height: 42px;
-        border-radius: 14px;
-        font-size: 1.2rem;
+        width: 34px;
+        height: 34px;
+        border-radius: 10px;
+        font-size: 1.05rem;
         box-shadow: inset 0 0 0 1px rgba(212, 175, 55, 0.25);
     }
 
