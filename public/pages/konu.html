@@ -1509,6 +1509,26 @@
       color: var(--color-danger);
     }
 
+    .media-modal-action-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1.2rem;
+      cursor: pointer;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      transition: background 0.2s, color 0.2s;
+    }
+
+    .media-modal-action-btn:hover {
+      background: var(--bg-hover);
+      color: var(--color-primary);
+    }
+
     .media-modal-body {
       padding: 24px;
       overflow-y: auto;
@@ -2650,9 +2670,15 @@
     <div class="media-modal-container" onclick="event.stopPropagation()">
       <div class="media-modal-header">
         <h3 class="media-modal-title" id="mediaModalTitle">Materyal Yükleniyor...</h3>
-        <button class="media-modal-close" onclick="closeMaterialModal(event)" aria-label="Kapat">
-          <i class="fas fa-times"></i>
-        </button>
+        <div style="display: flex; gap: 8px; align-items: center;">
+          <button class="media-modal-action-btn" id="mediaModalFullscreenBtn" onclick="toggleMaterialFullscreen(event)"
+            aria-label="Tam Ekran" style="display:none;" title="Tam Ekran Modu">
+            <i class="fas fa-expand"></i>
+          </button>
+          <button class="media-modal-close" onclick="closeMaterialModal(event)" aria-label="Kapat" title="Kapat">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
       </div>
       <div class="media-modal-body" id="mediaModalBody">
         <!-- İçerik buraya yüklenecek -->
@@ -2667,9 +2693,17 @@
         const overlay = document.getElementById('mediaModalOverlay');
         const titleEl = document.getElementById('mediaModalTitle');
         const bodyEl = document.getElementById('mediaModalBody');
+        const fullscreenBtn = document.getElementById('mediaModalFullscreenBtn');
 
         titleEl.textContent = mat.title || 'Materyal';
         bodyEl.innerHTML = '';
+
+        // Show fullscreen button only for iframe-capable media (video & Google Drive pdf)
+        if (mat.type === 'video' || (mat.type === 'pdf' && mat.url && mat.url.includes('drive.google.com/file/d/'))) {
+          fullscreenBtn.style.display = 'flex';
+        } else {
+          fullscreenBtn.style.display = 'none';
+        }
 
         if (mat.type === 'video') {
           let embedUrl = mat.url;
@@ -2734,6 +2768,32 @@
       } catch (err) {
         console.error("Modal acilamadi", err);
         alert('Materyal görüntülenirken bir hata oluştu.');
+      }
+    };
+
+    window.toggleMaterialFullscreen = function (event) {
+      if (event) event.preventDefault();
+      const bodyEl = document.getElementById('mediaModalBody');
+      const iframeEl = bodyEl.querySelector('iframe');
+      // Tam ekran yapılacak elementi seçelim. Iframe tercih edilir, yoksa tüm container
+      const targetEl = iframeEl || document.querySelector('.media-modal-container');
+
+      if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+        if (targetEl.requestFullscreen) {
+          targetEl.requestFullscreen().catch(err => console.log(err));
+        } else if (targetEl.webkitRequestFullscreen) {
+          targetEl.webkitRequestFullscreen();
+        } else if (targetEl.msRequestFullscreen) {
+          targetEl.msRequestFullscreen();
+        }
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) {
+          document.webkitExitFullscreen();
+        } else if (document.msExitFullscreen) {
+          document.msExitFullscreen();
+        }
       }
     };
 
