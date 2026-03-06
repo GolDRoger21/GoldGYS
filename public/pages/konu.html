@@ -859,6 +859,7 @@
       align-items: center;
       gap: 8px;
       margin-bottom: 4px;
+      min-width: 0;
     }
 
     .material-compact-title {
@@ -869,6 +870,8 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      flex: 1;
+      min-width: 0;
     }
 
     .material-compact-desc-row {
@@ -1441,6 +1444,8 @@
       opacity: 0;
       pointer-events: none;
       transition: opacity 0.3s ease;
+      touch-action: pan-x pan-y pinch-zoom;
+      -webkit-overflow-scrolling: touch;
     }
 
     .media-modal-overlay.active {
@@ -1475,6 +1480,8 @@
       justify-content: space-between;
       align-items: center;
       background: color-mix(in srgb, var(--bg-surface) 95%, var(--bg-hover));
+      gap: 12px;
+      min-width: 0;
     }
 
     .media-modal-title {
@@ -1487,6 +1494,9 @@
       line-clamp: 1;
       -webkit-box-orient: vertical;
       overflow: hidden;
+      flex: 1;
+      min-width: 0;
+      word-break: break-word;
     }
 
     .media-modal-close {
