@@ -89,7 +89,15 @@
 
         <section class="stats-grid">
             <div class="stat-card">
-                <div class="stat-icon gold">🎯</div>
+                <div class="stat-icon gold">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        class="lucide lucide-target">
+                        <circle cx="12" cy="12" r="10" />
+                        <circle cx="12" cy="12" r="6" />
+                        <circle cx="12" cy="12" r="2" />
+                    </svg>
+                </div>
                 <div class="stat-info">
                     <h3>Genel Başarı</h3>
                     <div class="progress-bar-container">
@@ -99,7 +107,17 @@
                 </div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon blue">📅</div>
+                <div class="stat-icon blue">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        class="lucide lucide-calendar-check">
+                        <path d="M8 2v4" />
+                        <path d="M16 2v4" />
+                        <rect width="18" height="18" x="3" y="4" rx="2" />
+                        <path d="M3 10h18" />
+                        <path d="m9 16 2 2 4-4" />
+                    </svg>
+                </div>
                 <div class="stat-info">
                     <h3>Bugün Çözülen</h3>
                     <span class="stat-value" id="solvedTodayCount">0</span>
@@ -107,7 +125,16 @@
             </div>
 
             <div class="stat-card">
-                <div class="stat-icon blue">🧮</div>
+                <div class="stat-icon blue">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        class="lucide lucide-layers">
+                        <path
+                            d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z" />
+                        <path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65" />
+                        <path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65" />
+                    </svg>
+                </div>
                 <div class="stat-info">
                     <h3>Toplam Çözülen</h3>
                     <span class="stat-value" id="solvedTotalCount">0</span>
@@ -115,7 +142,15 @@
             </div>
 
             <div class="stat-card">
-                <div class="stat-icon red">⚠️</div>
+                <div class="stat-icon red">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        class="lucide lucide-triangle-alert">
+                        <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3" />
+                        <path d="M12 9v4" />
+                        <path d="M12 17h.01" />
+                    </svg>
+                </div>
                 <div class="stat-info">
                     <h3>Bugünkü Yanlış</h3>
                     <span class="stat-value" id="wrongTodayCount">0</span>
