@@ -1557,6 +1557,28 @@
       border: 0;
     }
 
+    /* Modalların mobilde Touch (Pinch-Zoom / Scroll) yeteneği kazanması için */
+    .media-modal-body,
+    .media-responsive-iframe,
+    .media-modal-container {
+      touch-action: pan-x pan-y pinch-zoom;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* HTML İçeriğe doğrudan Gömülü İframe / Medyaların Telefondan Taşmasını Engelle (Responsive 16:9 Yap) */
+    .media-html-content iframe,
+    .media-html-content video,
+    .media-html-content img {
+      max-width: 100% !important;
+      height: auto !important;
+      border-radius: 8px;
+    }
+
+    /* HTML İçerisindeki Youtube ve Vimeo İframe'leri Orantılı 16:9 Olsun */
+    .media-html-content iframe {
+      aspect-ratio: 16 / 9;
+    }
+
     /* HTML Content Typography */
     .media-html-content h1,
     .media-html-content h2,
