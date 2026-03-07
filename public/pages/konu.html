@@ -1156,6 +1156,11 @@
         opacity: 0.95;
       }
 
+      .topic-progress-percent {
+        font-size: 0.7rem;
+        padding: 3px 8px;
+      }
+
       .topic-header-meta {
         margin-top: 8px;
         gap: 8px;
@@ -2758,6 +2763,7 @@
       const modeButtons = document.querySelectorAll('.mode-btn');
       const progressBar = document.getElementById('topicProgressBar');
       const progressText = document.getElementById('progressText');
+      const progressPercentText = document.getElementById('topicProgressPercent');
 
       const hasQuestions = totalCount > 0;
       const remaining = Math.max(0, totalCount - solvedCount);
@@ -2772,6 +2778,7 @@
         const percent = Math.min(100, Math.round((solvedCount / totalCount) * 100));
         progressBar.style.width = `${percent}%`;
         if (progressText) progressText.innerText = `%${percent} Tamamlandı (${solvedCount}/${totalCount})`;
+        if (progressPercentText) progressPercentText.innerText = `%${percent}`;
         const companionProgress = document.getElementById('companionProgress');
         if (companionProgress) companionProgress.textContent = `%${percent}`;
       } else {
