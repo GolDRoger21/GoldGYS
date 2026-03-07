@@ -30,12 +30,12 @@ if (!window.initCustomAudioPlayer) {
         });
 
         const updateProgress = () => {
-            const duration = audioEl.duration || 0;
+            const duration = (!Number.isFinite(audioEl.duration) || isNaN(audioEl.duration)) ? 0 : audioEl.duration;
             const current = audioEl.currentTime || 0;
             const percent = duration > 0 ? (current / duration) * 100 : 0;
-            fill.style.width = `${percent}%`;
+            fill.style.width = `${Math.min(100, Math.max(0, percent))}%`;
             if (currentTimeEl) currentTimeEl.innerText = window.formatMediaTime(current);
-            if (totalTimeEl) totalTimeEl.innerText = window.formatMediaTime(duration);
+            if (totalTimeEl && duration > 0) totalTimeEl.innerText = window.formatMediaTime(duration);
         };
 
         playBtn.onclick = function () {
@@ -125,17 +125,17 @@ window.openMaterialModal = function (encodedData) {
                     bodyEl.innerHTML = `
                         <style>
                         .custom-yt-audio-player { display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 15px; padding: 12px 20px; background: var(--bg-card); border-radius: 50px; border: 1px solid var(--border-color); box-shadow: 0 4px 15px rgba(0,0,0,0.08); margin-top: 15px; width: 100%; box-sizing: border-box; transition: background 0.3s, border-color 0.3s; }
-                        .yt-play-btn { width: 44px; height: 44px; min-width: 44px; border-radius: 50%; background: var(--primary-color); color: #fff; border: none; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; cursor: pointer; transition: transform 0.2s, background 0.2s, box-shadow 0.2s; box-shadow: 0 4px 12px rgba(224, 163, 82, 0.3); }
+                        .yt-play-btn { width: 44px; height: 44px; min-width: 44px; border-radius: 50%; background: var(--primary-color, #E0A352); color: #fff; border: none; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; cursor: pointer; transition: transform 0.2s, background 0.2s, box-shadow 0.2s; box-shadow: 0 4px 12px rgba(224, 163, 82, 0.3); }
                         .yt-play-btn:hover { transform: scale(1.08); box-shadow: 0 6px 16px rgba(224, 163, 82, 0.5); }
                         .yt-progress-container { flex: 1; display: flex; align-items: center; gap: 10px; width: 100%; overflow: hidden; }
                         .yt-time-display { font-size: 0.8rem; color: var(--text-color); font-variant-numeric: tabular-nums; min-width: 35px; text-align: center; font-weight: 500; opacity: 0.8; }
                         .yt-custom-progress-track { flex: 1; height: 6px; background-color: var(--border-color); border-radius: 4px; cursor: pointer; position: relative; transition: height 0.2s; }
                         .yt-custom-progress-track:hover { height: 8px; }
-                        .yt-custom-progress-fill { position: absolute; left: 0; top: 0; bottom: 0; background-color: var(--primary-color); border-radius: 4px; width: 0%; pointer-events: none; z-index: 1; }
-                        .yt-custom-progress-thumb { position: absolute; right: -7px; top: 50%; transform: translateY(-50%) scale(0); width: 14px; height: 14px; background-color: var(--primary-color); border-radius: 50%; box-shadow: 0 0 5px rgba(0,0,0,0.5); transition: transform 0.2s; pointer-events: none; z-index: 2; }
+                        .yt-custom-progress-fill { position: absolute; left: 0; top: 0; bottom: 0; height: 100%; background-color: var(--primary-color, #E0A352); border-radius: 4px; width: 0%; pointer-events: none; z-index: 1; }
+                        .yt-custom-progress-thumb { position: absolute; right: -7px; top: 50%; transform: translateY(-50%) scale(0); width: 14px; height: 14px; background-color: var(--primary-color, #E0A352); border-radius: 50%; box-shadow: 0 0 5px rgba(0,0,0,0.5); transition: transform 0.2s; pointer-events: none; z-index: 2; }
                         .yt-custom-progress-track:hover .yt-custom-progress-thumb { transform: translateY(-50%) scale(1); }
                         .yt-speed-btn { background: var(--bg-input); border: 1px solid var(--border-color); color: var(--text-color); padding: 5px 12px; border-radius: 15px; font-size: 0.8rem; cursor: pointer; font-weight: 600; transition: all 0.2s; white-space: nowrap; }
-                        .yt-speed-btn:hover { border-color: var(--primary-color); color: var(--primary-color); background: transparent; }
+                        .yt-speed-btn:hover { border-color: var(--primary-color, #E0A352); color: var(--primary-color, #E0A352); background: transparent; }
                         
                         @media (max-width: 420px) {
                             .custom-yt-audio-player { padding: 10px 15px; gap: 10px; }
@@ -296,13 +296,18 @@ window.openMaterialModal = function (encodedData) {
                 bodyEl.innerHTML = `
                 <div class="media-podcast-container" style="background: var(--bg-card); padding: 16px 18px; border-radius: 16px; border: 1px solid var(--border-color); box-shadow: 0 4px 15px rgba(0,0,0,0.08);">
                     <style>
-                        .custom-podcast-player { display: flex; align-items: center; gap: 12px; }
-                        .podcast-play-btn { width: 44px; height: 44px; min-width: 44px; border: none; border-radius: 50%; color: #fff; background: var(--primary-color); box-shadow: 0 4px 12px rgba(224, 163, 82, 0.3); }
-                        .podcast-timeline { flex: 1; display: flex; align-items: center; gap: 10px; min-width: 0; }
-                        .podcast-time { font-size: 0.8rem; min-width: 38px; text-align: center; color: var(--text-color); opacity: 0.8; }
-                        .podcast-progress-track { position: relative; flex: 1; height: 6px; border-radius: 999px; background: var(--border-color); cursor: pointer; }
-                        .podcast-progress-fill { position: absolute; inset: 0 auto 0 0; width: 0%; background: var(--primary-color); border-radius: inherit; }
-                        .podcast-speed-btn { background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 14px; padding: 5px 10px; font-size: 0.8rem; color: var(--text-color); white-space: nowrap; }
+                        .custom-podcast-player { display: flex; align-items: center; justify-content: space-between; gap: 15px; width: 100%; box-sizing: border-box; }
+                        .podcast-play-btn { width: 44px; height: 44px; min-width: 44px; border: none; border-radius: 50%; color: #fff; background: var(--primary-color, #E0A352); box-shadow: 0 4px 12px rgba(224, 163, 82, 0.3); cursor: pointer; transition: transform 0.2s; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
+                        .podcast-play-btn:hover { transform: scale(1.08); }
+                        .podcast-timeline { flex: 1; display: flex; align-items: center; gap: 10px; min-width: 0; overflow: hidden; }
+                        .podcast-time { font-size: 0.8rem; min-width: 35px; text-align: center; font-variant-numeric: tabular-nums; font-weight: 500; color: var(--text-color); opacity: 0.8; }
+                        .podcast-progress-track { position: relative; flex: 1; height: 6px; border-radius: 4px; background: var(--border-color); cursor: pointer; transition: height 0.2s; }
+                        .podcast-progress-track:hover { height: 8px; }
+                        .podcast-progress-fill { position: absolute; left: 0; top: 0; bottom: 0; height: 100%; width: 0%; background: var(--primary-color, #E0A352); border-radius: 4px; pointer-events: none; z-index: 1; }
+                        .podcast-progress-thumb { position: absolute; right: -7px; top: 50%; transform: translateY(-50%) scale(0); width: 14px; height: 14px; background: var(--primary-color, #E0A352); border-radius: 50%; box-shadow: 0 0 5px rgba(0,0,0,0.5); transition: transform 0.2s; pointer-events: none; z-index: 2; }
+                        .podcast-progress-track:hover .podcast-progress-thumb { transform: translateY(-50%) scale(1); }
+                        .podcast-speed-btn { background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 15px; padding: 5px 12px; font-weight: 600; font-size: 0.8rem; color: var(--text-color); white-space: nowrap; cursor: pointer; transition: all 0.2s; }
+                        .podcast-speed-btn:hover { border-color: var(--primary-color, #E0A352); color: var(--primary-color, #E0A352); background: transparent; }
                     </style>
                     <div class="custom-podcast-player">
                         <button class="podcast-play-btn" id="podcastPlayBtn" type="button" aria-label="Oynat/Duraklat">
@@ -311,7 +316,9 @@ window.openMaterialModal = function (encodedData) {
                         <div class="podcast-timeline">
                             <span class="podcast-time" id="podcastCurrentTime">0:00</span>
                             <div class="podcast-progress-track" id="podcastProgressTrack">
-                                <div class="podcast-progress-fill" id="podcastProgressFill"></div>
+                                <div class="podcast-progress-fill" id="podcastProgressFill">
+                                    <div class="podcast-progress-thumb"></div>
+                                </div>
                             </div>
                             <span class="podcast-time" id="podcastTotalTime">0:00</span>
                         </div>
