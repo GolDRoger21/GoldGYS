@@ -2184,39 +2184,33 @@
           let iconColor = 'var(--text-main)';
           let bgSubtle = 'rgba(0, 0, 0, 0.04)';
           let badge = '';
-          let typeText = 'DERS NOTU';
           let borderStyle = '';
 
           if (mat.type === 'video') {
             icon = '<i class="fas fa-play" style="margin-left: 2px;"></i>';
             iconColor = '#ef4444';
             bgSubtle = 'rgba(239, 68, 68, 0.12)';
-            typeText = 'VİDEO';
             borderStyle = 'border-left: 3px solid #ef4444;';
             if (mat.duration) badge = `<span style="font-size: 0.7rem; color: var(--text-muted); font-weight: 600;"><i class="far fa-clock me-1"></i>${mat.duration}</span>`;
           } else if (mat.type === 'podcast') {
             icon = '<i class="fas fa-headphones-alt"></i>';
             iconColor = '#8b5cf6';
             bgSubtle = 'rgba(139, 92, 246, 0.12)';
-            typeText = 'SES';
             borderStyle = 'border-left: 3px solid #8b5cf6;';
             if (mat.duration) badge = `<span style="font-size: 0.7rem; color: var(--text-muted); font-weight: 600;"><i class="far fa-clock me-1"></i>${mat.duration}</span>`;
           } else if (mat.type === 'pdf') {
             icon = '<i class="fas fa-file-pdf"></i>';
             iconColor = '#e11d48';
             bgSubtle = 'linear-gradient(135deg, rgba(225, 29, 72, 0.15), rgba(225, 29, 72, 0.05))';
-            typeText = 'PDF';
             borderStyle = 'border-left: 3px solid #e11d48;';
           } else if (mat.type === 'html') {
             icon = '<i class="fas fa-file-invoice"></i>';
             iconColor = '#10b981';
             bgSubtle = 'rgba(16, 185, 129, 0.12)';
-            typeText = 'ÖZET';
             borderStyle = 'border-left: 3px solid #10b981;';
           }
 
           const contentTitle = mat.title || fallbackTitle || 'İçerik';
-          const contentDesc = mat.description || fallbackSummary || 'Açıklama bulunmuyor.';
 
           const safeData = encodeURIComponent(JSON.stringify({
             type: mat.type || 'html',
@@ -2235,10 +2229,6 @@
                 <div class="material-compact-title-row">
                   <h6 class="material-compact-title">${contentTitle}</h6>
                   ${badge}
-                </div>
-                <div class="material-compact-desc-row">
-                  <span class="material-compact-badge">${typeText}</span>
-                  <span class="material-compact-desc">${contentDesc}</span>
                 </div>
               </div>
               <div style="min-width: 24px; display: flex; justify-content: flex-end; color: var(--text-muted); opacity: 0.5;">
