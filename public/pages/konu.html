@@ -216,6 +216,7 @@
 
     .topic-back-btn {
       display: inline-flex;
+      justify-self: start;
       align-items: center;
       justify-content: center;
       gap: 6px;
@@ -966,13 +967,14 @@
 
     .topic-header-top {
       display: grid;
-      gap: 8px;
+      gap: 10px;
     }
 
     .topic-title-row {
       display: flex;
-      align-items: flex-start;
-      gap: 12px;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
     }
 
     .topic-header-progress {
@@ -999,17 +1001,6 @@
       display: inline-block;
       font-size: 0.82rem;
       font-weight: 500;
-    }
-
-    .topic-progress-percent {
-      font-size: 0.75rem;
-      font-weight: 700;
-      color: var(--text-main);
-      border: 1px solid color-mix(in srgb, var(--color-primary) 32%, var(--border-color));
-      background: color-mix(in srgb, var(--color-primary) 14%, transparent);
-      border-radius: 999px;
-      padding: 4px 9px;
-      white-space: nowrap;
     }
 
     .topic-meta-item:active {
@@ -1107,8 +1098,8 @@
       }
 
       .topic-title-row {
+        justify-content: center;
         align-items: center;
-        gap: 10px;
       }
 
       .topic-back-btn {
@@ -1151,9 +1142,8 @@
         text-overflow: ellipsis;
         word-break: break-word;
         margin: 0;
-        padding-right: 5px;
-        flex: 1;
-        min-width: 0;
+        padding-right: 0;
+        max-width: min(100%, 720px);
       }
 
       .progress-wrapper {
@@ -1794,13 +1784,12 @@
   <header class="topic-header">
     <div class="topic-header-inner">
       <div class="topic-header-top">
+        <a href="/konular" class="btn btn-sm btn-outline-primary topic-back-btn" aria-label="Tüm konulara dön"
+          title="Tüm Konular">
+          <span class="material-icons">arrow_back</span> <span class="topic-back-text">Tüm Konular</span>
+        </a>
         <div class="topic-title-row">
-          <a href="/konular" class="btn btn-sm btn-outline-primary topic-back-btn" aria-label="Tüm konulara dön"
-            title="Tüm Konular">
-            <span class="material-icons">arrow_back</span> <span class="topic-back-text">Tüm Konular</span>
-          </a>
           <h1 id="topicTitle" class="topic-title">Yükleniyor...</h1>
-          <span id="topicProgressPercent" class="topic-progress-percent" aria-hidden="true">%0</span>
         </div>
       </div>
       <div class="topic-header-progress">
@@ -2795,7 +2784,6 @@
       } else {
         if (progressBar) progressBar.style.width = '0%';
         if (progressText) progressText.innerText = '%0 Tamamlandı';
-        if (progressPercentText) progressPercentText.innerText = '%0';
       }
 
       if (status) {
