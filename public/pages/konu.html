@@ -300,10 +300,10 @@
 
     .test-card:hover,
     .test-card:focus-within {
-      transform: translateY(-2px);
-      border-color: color-mix(in srgb, var(--color-primary) 44%, var(--border-color));
-      box-shadow: 0 8px 22px rgba(17, 24, 39, 0.08);
-      background: color-mix(in srgb, var(--bg-surface) 88%, var(--bg-hover));
+      transform: translateY(-3px) scale(1.005);
+      border-color: color-mix(in srgb, var(--color-primary) 62%, var(--border-color));
+      box-shadow: 0 14px 30px rgba(17, 24, 39, 0.14), 0 0 0 1px color-mix(in srgb, var(--color-primary) 24%, transparent);
+      background: color-mix(in srgb, var(--bg-surface) 82%, var(--bg-hover));
     }
 
     .test-main-meta {
@@ -2418,7 +2418,7 @@
                 <a href="${testUrl}" class="test-card-link" aria-label="${title} testini aç">
                   <div class="test-main-meta">
                     <span class="test-order-badge">${testOrder}</span>
-                    <div class="test-title-line">Test ${testOrder} - ${title}</div>
+                    <div class="test-title-line">${title}</div>
                   </div>
                   <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; justify-content:flex-end;">
                     <span class="test-count-pill">${qCount} Soru</span>
