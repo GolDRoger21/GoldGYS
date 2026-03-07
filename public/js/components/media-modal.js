@@ -47,10 +47,10 @@ window.openMaterialModal = function (encodedData) {
                         .yt-play-btn:hover { transform: scale(1.08); box-shadow: 0 6px 16px rgba(224, 163, 82, 0.5); }
                         .yt-progress-container { flex: 1; display: flex; align-items: center; gap: 10px; width: 100%; overflow: hidden; }
                         .yt-time-display { font-size: 0.8rem; color: var(--text-color); font-variant-numeric: tabular-nums; min-width: 35px; text-align: center; font-weight: 500; opacity: 0.8; }
-                        .yt-custom-progress-track { flex: 1; height: 6px; background-color: var(--border-color); border-radius: 4px; cursor: pointer; position: relative; display: flex; align-items: center; transition: height 0.2s; }
+                        .yt-custom-progress-track { flex: 1; height: 6px; background-color: var(--border-color); border-radius: 4px; cursor: pointer; position: relative; transition: height 0.2s; }
                         .yt-custom-progress-track:hover { height: 8px; }
-                        .yt-custom-progress-fill { height: 100%; background-color: var(--primary-color); border-radius: 4px; width: 0%; pointer-events: none; position: relative; }
-                        .yt-custom-progress-thumb { position: absolute; right: -7px; top: 50%; transform: translateY(-50%) scale(0); width: 14px; height: 14px; background-color: var(--primary-color); border-radius: 50%; box-shadow: 0 0 5px rgba(0,0,0,0.5); transition: transform 0.2s; pointer-events: none; }
+                        .yt-custom-progress-fill { position: absolute; left: 0; top: 0; bottom: 0; background-color: var(--primary-color); border-radius: 4px; width: 0%; pointer-events: none; z-index: 1; }
+                        .yt-custom-progress-thumb { position: absolute; right: -7px; top: 50%; transform: translateY(-50%) scale(0); width: 14px; height: 14px; background-color: var(--primary-color); border-radius: 50%; box-shadow: 0 0 5px rgba(0,0,0,0.5); transition: transform 0.2s; pointer-events: none; z-index: 2; }
                         .yt-custom-progress-track:hover .yt-custom-progress-thumb { transform: translateY(-50%) scale(1); }
                         .yt-speed-btn { background: var(--bg-input); border: 1px solid var(--border-color); color: var(--text-color); padding: 5px 12px; border-radius: 15px; font-size: 0.8rem; cursor: pointer; font-weight: 600; transition: all 0.2s; white-space: nowrap; }
                         .yt-speed-btn:hover { border-color: var(--primary-color); color: var(--primary-color); background: transparent; }
@@ -285,18 +285,26 @@ window.toggleMaterialFullscreen = function (event) {
 
 window.closeMaterialModal = function (event) {
     if (event) event.preventDefault();
-    const overlay = document.getElementById('mediaModalOverlay');
-    const bodyEl = document.getElementById('mediaModalBody');
-    overlay.classList.remove('active');
-    document.body.style.overflow = '';
-
-    if (window.ytProgressInterval) clearInterval(window.ytProgressInterval);
+    if (window.ytProgressInterval) {
+        clearInterval(window.ytProgressInterval);
+        window.ytProgressInterval = null;
+    }
     if (window.currentYtPlayer && typeof window.currentYtPlayer.destroy === 'function') {
         try { window.currentYtPlayer.destroy(); } catch (e) { }
         window.currentYtPlayer = null;
     }
+    const overlay = document.getElementById('mediaModalOverlay');
+    if (overlay) overlay.classList.remove('active');
+    document.body.style.overflow = '';
 
     setTimeout(() => {
-        bodyEl.innerHTML = '';
+        const bodyEl = document.getElementById('mediaModalBody');
+        if (bodyEl) bodyEl.innerHTML = '';
     }, 300);
 };
+
+document.getElementById('mediaModalOverlay')?.addEventListener('click', function (e) {
+    if (e.target === this) {
+        window.closeMaterialModal();
+    }
+});
