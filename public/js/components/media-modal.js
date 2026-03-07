@@ -47,8 +47,10 @@ window.openMaterialModal = function (encodedData) {
                         .yt-play-btn:hover { transform: scale(1.08); box-shadow: 0 6px 16px rgba(224, 163, 82, 0.5); }
                         .yt-progress-container { flex: 1; display: flex; align-items: center; gap: 10px; width: 100%; overflow: hidden; }
                         .yt-time-display { font-size: 0.8rem; color: var(--text-color); font-variant-numeric: tabular-nums; min-width: 35px; text-align: center; font-weight: 500; opacity: 0.8; }
-                        .yt-progress-bar { flex: 1; -webkit-appearance: none; appearance: none; height: 6px; background: var(--border-color); background-image: linear-gradient(var(--primary-color), var(--primary-color)); background-size: 0% 100%; background-repeat: no-repeat; border-radius: 4px; outline: none; cursor: pointer; }
-                        .yt-progress-bar::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 14px; height: 14px; border-radius: 50%; background: var(--primary-color); box-shadow: 0 0 5px rgba(0,0,0,0.3); }
+                        .yt-progress-bar { flex: 1; -webkit-appearance: none; appearance: none; height: 8px; background: var(--border-color); border-radius: 4px; outline: none; cursor: pointer; transition: background 0.1s; position: relative; z-index: 1;}
+                        .yt-progress-bar::before { content: ""; position: absolute; left: 0; top: 0; height: 100%; border-radius: 4px; background: var(--primary-color); width: var(--progress, 0%); z-index: -1; pointer-events: none;}
+                        .yt-progress-bar::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 14px; height: 14px; border-radius: 50%; background: var(--primary-color); box-shadow: 0 0 5px rgba(0,0,0,0.3); transition: transform 0.1s; }
+                        .yt-progress-bar::-webkit-slider-thumb:hover { transform: scale(1.2); }
                         .yt-speed-btn { background: var(--bg-input); border: 1px solid var(--border-color); color: var(--text-color); padding: 5px 12px; border-radius: 15px; font-size: 0.8rem; cursor: pointer; font-weight: 600; transition: all 0.2s; white-space: nowrap; }
                         .yt-speed-btn:hover { border-color: var(--primary-color); color: var(--primary-color); background: transparent; }
                         
@@ -92,7 +94,11 @@ window.openMaterialModal = function (encodedData) {
 
                                             document.getElementById('ytProgressBar').addEventListener('input', function () {
                                                 if (window.currentYtPlayer && typeof window.currentYtPlayer.seekTo === 'function') {
-                                                    window.currentYtPlayer.seekTo(parseFloat(this.value) || 0, true);
+                                                    let val = parseFloat(this.value) || 0;
+                                                    window.currentYtPlayer.seekTo(val, true);
+                                                    if (this.max > 0) {
+                                                        this.style.setProperty('--progress', `${(val / this.max) * 100}%`);
+                                                    }
                                                 }
                                             });
 
@@ -106,9 +112,9 @@ window.openMaterialModal = function (encodedData) {
 
                                                     let dur = window.currentYtPlayer.getDuration() || 0;
                                                     if (dur > 0 && elProg) {
-                                                        // Update visually filled part of the progress bar via background-size
+                                                        // Update visually filled part of the progress bar via CSS Variable for perfect cross-browser styling
                                                         let progressPercent = (current / dur) * 100;
-                                                        elProg.style.backgroundSize = `${progressPercent}% 100%`;
+                                                        elProg.style.setProperty('--progress', `${progressPercent}%`);
 
                                                         // Ensure max duration is always updated if it was 0 initially
                                                         if (elProg.max == 0 || elProg.max == "0" || elProg.max != dur) {
