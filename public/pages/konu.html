@@ -199,9 +199,9 @@
     }
 
     .topic-header {
-      background: var(--bg-surface);
-      padding: 30px 20px;
-      border-bottom: 1px solid var(--border-color);
+      background: color-mix(in srgb, var(--bg-surface) 94%, var(--bg-main));
+      padding: 16px 20px 14px;
+      border-bottom: 1px solid color-mix(in srgb, var(--border-color) 76%, transparent);
       position: relative;
       z-index: 5;
     }
@@ -209,8 +209,9 @@
     .topic-title {
       margin: 0;
       font-family: var(--font-family-serif);
-      font-size: clamp(1.6rem, 2vw + 1rem, 2.2rem);
-      line-height: 1.2;
+      font-size: clamp(1.2rem, 1.1vw + 0.9rem, 1.65rem);
+      line-height: 1.26;
+      letter-spacing: -0.01em;
     }
 
     .topic-back-btn {
@@ -218,11 +219,24 @@
       align-items: center;
       justify-content: center;
       gap: 6px;
-      margin-bottom: 14px;
       text-decoration: none;
-      min-height: 44px;
-      min-width: 44px;
-      border-radius: var(--radius-md);
+      min-height: 36px;
+      min-width: 36px;
+      border-radius: 999px;
+      padding: 7px 12px;
+      background: color-mix(in srgb, var(--bg-hover) 72%, transparent);
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      font-weight: 600;
+      transition: all 0.2s ease;
+    }
+
+    .topic-back-btn:hover {
+      color: var(--text-main);
+      background: color-mix(in srgb, var(--color-primary) 10%, var(--bg-hover));
+      border-color: color-mix(in srgb, var(--color-primary) 28%, var(--border-color));
+      transform: translateY(-1px);
     }
 
     .topic-back-btn:active {
@@ -922,6 +936,8 @@
     .topic-header-inner {
       max-width: 1200px;
       margin: 0 auto;
+      display: grid;
+      gap: 10px;
     }
 
     .topic-header-meta {
@@ -949,16 +965,24 @@
     }
 
     .topic-header-top {
+      display: grid;
+      gap: 8px;
+    }
+
+    .topic-title-row {
       display: flex;
-      flex-direction: column;
       align-items: flex-start;
-      gap: 14px;
+      gap: 12px;
+    }
+
+    .topic-header-progress {
+      display: grid;
+      gap: 6px;
     }
 
     .progress-wrapper {
-      margin-top: 20px;
       background: var(--bg-hover);
-      height: 6px;
+      height: 5px;
       border-radius: 10px;
       overflow: hidden;
     }
@@ -973,7 +997,19 @@
     .progress-text {
       color: var(--text-muted);
       display: inline-block;
-      margin-top: 6px;
+      font-size: 0.82rem;
+      font-weight: 500;
+    }
+
+    .topic-progress-percent {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--text-main);
+      border: 1px solid color-mix(in srgb, var(--color-primary) 32%, var(--border-color));
+      background: color-mix(in srgb, var(--color-primary) 14%, transparent);
+      border-radius: 999px;
+      padding: 4px 9px;
+      white-space: nowrap;
     }
 
     .topic-meta-item:active {
@@ -1067,16 +1103,19 @@
       }
 
       .topic-header-top {
-        flex-direction: row;
+        gap: 8px;
+      }
+
+      .topic-title-row {
         align-items: center;
-        gap: 12px;
+        gap: 10px;
       }
 
       .topic-back-btn {
         margin-bottom: 0 !important;
         padding: 0 !important;
-        width: 44px !important;
-        height: 44px !important;
+        width: 40px !important;
+        height: 40px !important;
         border-radius: 50% !important;
         display: flex !important;
         align-items: center;
@@ -1102,7 +1141,7 @@
       }
 
       .topic-title {
-        font-size: 1.1rem;
+        font-size: 1rem;
         font-weight: 700;
         display: -webkit-box;
         -webkit-box-orient: vertical;
@@ -1118,15 +1157,18 @@
       }
 
       .progress-wrapper {
-        margin-top: 10px;
-        height: 5px;
+        height: 4px;
         border-radius: 999px;
       }
 
       .progress-text {
-        font-size: 0.74rem;
-        margin-top: 7px;
+        font-size: 0.72rem;
         opacity: 0.95;
+      }
+
+      .topic-progress-percent {
+        font-size: 0.7rem;
+        padding: 3px 8px;
       }
 
       .topic-header-meta {
@@ -1752,16 +1794,21 @@
   <header class="topic-header">
     <div class="topic-header-inner">
       <div class="topic-header-top">
-        <a href="/konular" class="btn btn-sm btn-outline-primary topic-back-btn" aria-label="Tüm konulara dön"
-          title="Tüm Konular">
-          <span class="material-icons">arrow_back</span> <span class="topic-back-text">Tüm Konular</span>
-        </a>
-        <h1 id="topicTitle" class="topic-title">Yükleniyor...</h1>
+        <div class="topic-title-row">
+          <a href="/konular" class="btn btn-sm btn-outline-primary topic-back-btn" aria-label="Tüm konulara dön"
+            title="Tüm Konular">
+            <span class="material-icons">arrow_back</span> <span class="topic-back-text">Tüm Konular</span>
+          </a>
+          <h1 id="topicTitle" class="topic-title">Yükleniyor...</h1>
+          <span id="topicProgressPercent" class="topic-progress-percent" aria-hidden="true">%0</span>
+        </div>
       </div>
-      <div class="progress-wrapper">
-        <div class="progress-bar" id="topicProgressBar"></div>
+      <div class="topic-header-progress">
+        <div class="progress-wrapper" aria-hidden="true">
+          <div class="progress-bar" id="topicProgressBar"></div>
+        </div>
+        <small id="progressText" class="progress-text">%0 Tamamlandı</small>
       </div>
-      <small id="progressText" class="progress-text">%0 Tamamlandı</small>
     </div>
   </header>
 
@@ -2727,6 +2774,7 @@
       const modeButtons = document.querySelectorAll('.mode-btn');
       const progressBar = document.getElementById('topicProgressBar');
       const progressText = document.getElementById('progressText');
+      const progressPercentText = document.getElementById('topicProgressPercent');
 
       const hasQuestions = totalCount > 0;
       const remaining = Math.max(0, totalCount - solvedCount);
@@ -2741,8 +2789,13 @@
         const percent = Math.min(100, Math.round((solvedCount / totalCount) * 100));
         progressBar.style.width = `${percent}%`;
         if (progressText) progressText.innerText = `%${percent} Tamamlandı (${solvedCount}/${totalCount})`;
+        if (progressPercentText) progressPercentText.innerText = `%${percent}`;
         const companionProgress = document.getElementById('companionProgress');
         if (companionProgress) companionProgress.textContent = `%${percent}`;
+      } else {
+        if (progressBar) progressBar.style.width = '0%';
+        if (progressText) progressText.innerText = '%0 Tamamlandı';
+        if (progressPercentText) progressPercentText.innerText = '%0';
       }
 
       if (status) {
