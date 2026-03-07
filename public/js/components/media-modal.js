@@ -178,52 +178,52 @@ window.openMaterialModal = function (encodedData) {
                     setTimeout(() => window.initCustomYtPlayer(videoId), 50);
                 }
             } else if (mat.url.includes('drive.google.com/file/d/')) {
-                const fileIdMatch = mat.url.match(/file\\/d\\/([^/]+)/);
+                const fileIdMatch = mat.url.match(/file\/d\/([^/]+)/);
                 if (fileIdMatch && fileIdMatch[1]) {
-                    const audioUrl = \`https://drive.google.com/file/d/\${fileIdMatch[1]}/preview\`;
-                    bodyEl.innerHTML = \`
+                    const audioUrl = `https://drive.google.com/file/d/${fileIdMatch[1]}/preview`;
+                    bodyEl.innerHTML = `
                     <div class="media-responsive-iframe" style="padding-bottom: 0; min-height: 150px; height: 150px;">
-                        <iframe src="\${audioUrl}" allow="autoplay" allowfullscreen style="border-radius: 8px;"></iframe>
-                    </div>\`;
+                        <iframe src="${audioUrl}" allow="autoplay" allowfullscreen style="border-radius: 8px;"></iframe>
+                    </div>`;
                 }
             } else {
-                bodyEl.innerHTML = \`
+                bodyEl.innerHTML = `
                 <div class="media-podcast-container">
                     <audio controls autoplay>
-                        <source src="\${mat.url}" type="audio/mpeg">
+                        <source src="${mat.url}" type="audio/mpeg">
                         Tarayıcınız ses oynatıcısını desteklemiyor.
                     </audio>
-                </div>\`;
+                </div>`;
             }
         } else if (mat.type === 'html') {
-            bodyEl.innerHTML = \`<div class="media-html-content" style="padding-top:10px;">\${mat.content || mat.url || 'İçerik yüklenemedi.'}</div>\`;
+            bodyEl.innerHTML = `<div class="media-html-content" style="padding-top:10px;">${mat.content || mat.url || 'İçerik yüklenemedi.'}</div>`;
         } else if (mat.type === 'pdf') {
             if (mat.url && mat.url.includes('drive.google.com/file/d/')) {
                 let embedUrl = mat.url;
-                const fileIdMatch = mat.url.match(/file\\/d\\/([^/]+)/);
+                const fileIdMatch = mat.url.match(/file\/d\/([^/]+)/);
                 if (fileIdMatch && fileIdMatch[1]) {
-                    embedUrl = \`https://drive.google.com/file/d/\${fileIdMatch[1]}/preview\`;
+                    embedUrl = `https://drive.google.com/file/d/${fileIdMatch[1]}/preview`;
                 }
-                bodyEl.innerHTML = \`
+                bodyEl.innerHTML = `
                 <div class="media-responsive-iframe" style="padding-bottom: 0; min-height: 65vh; height: 100%;">
-                    <iframe src="\${embedUrl}" allow="autoplay" allowfullscreen style="border-radius: 8px;"></iframe>
+                    <iframe src="${embedUrl}" allow="autoplay" allowfullscreen style="border-radius: 8px;"></iframe>
                 </div>
-                \`;
+                `;
             } else {
-                bodyEl.innerHTML = \`
+                bodyEl.innerHTML = `
                 <div class="p-4 text-center mt-3" style="border:1px dashed var(--border-color); border-radius:12px;">
                     <div style="font-size:2rem; margin-bottom:12px; opacity:0.3;"><i class="fas fa-file-pdf"></i></div>
                     <div class="mb-3">Bu PDF belgesi doğrudan görüntülenemiyor, lütfen yeni sekmede açın.</div>
-                    <a href="\${mat.url}" target="_blank" class="btn btn-primary" style="border-radius:20px; padding:8px 20px;">PDF'i Aç</a>
-                </div>\`;
+                    <a href="${mat.url}" target="_blank" class="btn btn-primary" style="border-radius:20px; padding:8px 20px;">PDF'i Aç</a>
+                </div>`;
             }
         } else {
-            bodyEl.innerHTML = \`
+            bodyEl.innerHTML = `
             <div class="p-4 text-center mt-3" style="border:1px dashed var(--border-color); border-radius:12px;">
                 <div style="font-size:2rem; margin-bottom:12px; opacity:0.3;"><i class="fas fa-file-alt"></i></div>
                 <div class="mb-3">Bu içerik doğrudan önizlenemiyor.</div>
-                <a href="\${mat.url}" target="_blank" class="btn btn-primary" style="border-radius:20px; padding:8px 20px;">Yeni Sekmede Aç</a>
-            </div>\`;
+                <a href="${mat.url}" target="_blank" class="btn btn-primary" style="border-radius:20px; padding:8px 20px;">Yeni Sekmede Aç</a>
+            </div>`;
         }
 
         overlay.classList.add('active');
