@@ -96,7 +96,8 @@ window.openMaterialModal = function (encodedData) {
                                                     let val = parseFloat(this.value) || 0;
                                                     window.currentYtPlayer.seekTo(val, true);
                                                     if (this.max > 0) {
-                                                        this.style.setProperty('--progress', `${(val / this.max) * 100}%`);
+                                                        let progressPercent = (val / this.max) * 100;
+                                                        this.style.background = `linear-gradient(to right, var(--primary-color) ${progressPercent}%, var(--border-color) ${progressPercent}%)`;
                                                     }
                                                 }
                                             });
@@ -111,9 +112,9 @@ window.openMaterialModal = function (encodedData) {
 
                                                     let dur = window.currentYtPlayer.getDuration() || 0;
                                                     if (dur > 0 && elProg) {
-                                                        // Update visually filled part of the progress bar via CSS Variable for perfect cross-browser styling
+                                                        // Update visually filled part of the progress bar via inline absolute CSS declaration
                                                         let progressPercent = (current / dur) * 100;
-                                                        elProg.style.setProperty('--progress', `${progressPercent}%`);
+                                                        elProg.style.background = `linear-gradient(to right, var(--primary-color) ${progressPercent}%, var(--border-color) ${progressPercent}%)`;
 
                                                         // Ensure max duration is always updated if it was 0 initially
                                                         if (elProg.max == 0 || elProg.max == "0" || elProg.max != dur) {
