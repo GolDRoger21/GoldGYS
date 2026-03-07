@@ -447,7 +447,57 @@ window.openMaterialModal = function (encodedData) {
                 setTimeout(() => window.initCustomAudioPlayer(mat.url), 20);
             }
         } else if (mat.type === 'html') {
-            bodyEl.innerHTML = `<div class="media-html-content" style="padding-top:10px; color: var(--text-color);">${mat.content || mat.url || 'İçerik yüklenemedi.'}</div>`;
+            bodyEl.innerHTML = `
+            <style>
+                .prose-content {
+                    font-family: var(--font-family-body, system-ui, -apple-system, sans-serif);
+                    line-height: 1.8;
+                    color: var(--text-main);
+                    background: var(--bg-surface);
+                    padding: 30px 40px;
+                    border-radius: 16px;
+                    border: 1px solid var(--border-color);
+                    box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+                    font-size: 1.05rem;
+                    max-width: 100%;
+                    overflow-x: hidden;
+                    transition: background 0.3s, color 0.3s, border-color 0.3s;
+                }
+                .prose-content h1, .prose-content h2, .prose-content h3, .prose-content h4 {
+                    color: var(--gold-main, var(--color-primary, #C08A3E));
+                    margin-top: 1.5em;
+                    margin-bottom: 0.75em;
+                    font-weight: 700;
+                    letter-spacing: -0.02em;
+                }
+                .prose-content h1 { font-size: 2.2rem; margin-top: 0; line-height: 1.3; }
+                .prose-content h2 { font-size: 1.8rem; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; }
+                .prose-content p { margin-bottom: 1.2em; text-align: justify; }
+                .prose-content ul, .prose-content ol { margin-bottom: 1.2em; padding-left: 1.8em; }
+                .prose-content li { margin-bottom: 0.5em; }
+                .prose-content blockquote {
+                    border-left: 4px solid var(--gold-main, var(--color-primary, #C08A3E));
+                    background: var(--bg-hover);
+                    padding: 15px 20px;
+                    margin: 1.5em 0;
+                    border-radius: 0 8px 8px 0;
+                    font-style: italic;
+                    color: var(--text-muted);
+                }
+                .prose-content a { color: var(--gold-main, var(--color-primary, #C08A3E)); text-decoration: none; font-weight: 500; }
+                .prose-content a:hover { text-decoration: underline; }
+                .prose-content img { max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin: 1.5em auto; display: block; }
+                .prose-content code { background: var(--bg-input); padding: 3px 6px; border-radius: 4px; font-size: 0.9em; font-family: monospace; color: var(--color-danger); }
+                .prose-content pre { background: var(--bg-input); padding: 15px; border-radius: 8px; overflow-x: auto; border: 1px solid var(--border-color); }
+                .prose-content pre code { background: none; padding: 0; color: inherit; }
+                
+                @media (max-width: 768px) {
+                    .prose-content { padding: 20px 20px; font-size: 1rem; }
+                    .prose-content h1 { font-size: 1.8rem; }
+                    .prose-content h2 { font-size: 1.5rem; }
+                }
+            </style>
+            <div class="media-html-content prose-content">${mat.content || mat.url || '<p>İçerik yüklenemedi.</p>'}</div>`;
         } else if (mat.type === 'pdf') {
             if (mat.url && mat.url.includes('drive.google.com/file/d/')) {
                 let embedUrl = mat.url;
@@ -456,8 +506,37 @@ window.openMaterialModal = function (encodedData) {
                     embedUrl = `https://drive.google.com/file/d/${fileIdMatch[1]}/preview`;
                 }
                 bodyEl.innerHTML = `
-                <div class="media-responsive-iframe" style="padding-bottom: 0; min-height: 65vh; height: 100%; border-radius: 12px; overflow: hidden; border: 1px solid var(--border-color); box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
-                    <iframe src="${embedUrl}" allow="autoplay" allowfullscreen style="border-radius: 12px; border: none; background: var(--bg-card);"></iframe>
+                <div class="media-responsive-iframe pdf-premium-container">
+                    <style>
+                        .pdf-premium-container {
+                            position: relative;
+                            width: 100%;
+                            height: 75vh;
+                            min-height: 500px;
+                            border-radius: 16px;
+                            overflow: hidden;
+                            border: 1px solid var(--border-color);
+                            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+                            background: var(--bg-card);
+                            transition: border-color 0.3s, box-shadow 0.3s;
+                        }
+                        .pdf-premium-container iframe {
+                            width: 100%;
+                            height: 100%;
+                            border: none;
+                            display: block;
+                        }
+                        
+                        /* Aydınlık tema için pdf container gölgelendirmesi güçlendirildi */
+                        [data-theme="light"] .pdf-premium-container {
+                            box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+                        }
+                        
+                        @media (max-width: 768px) {
+                            .pdf-premium-container { height: 80vh; border-radius: 12px; }
+                        }
+                    </style>
+                    <iframe src="${embedUrl}" allow="autoplay" allowfullscreen></iframe>
                 </div>
                 `;
             } else {
