@@ -1,6 +1,88 @@
 // js/components/media-modal.js
 // Handles displaying media content in a modal for the application
 
+if (!window.formatMediaTime) {
+    window.formatMediaTime = function (time) {
+        if (!Number.isFinite(time) || time <= 0) return '0:00';
+        const minutes = Math.floor(time / 60);
+        const seconds = Math.floor(time % 60);
+        return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+    };
+}
+
+if (!window.initCustomAudioPlayer) {
+    window.initCustomAudioPlayer = function (audioUrl) {
+        const audioEl = document.getElementById('customPodcastAudio');
+        const playBtn = document.getElementById('podcastPlayBtn');
+        const playIcon = document.getElementById('podcastPlayIcon');
+        const speedBtn = document.getElementById('podcastSpeedBtn');
+        const track = document.getElementById('podcastProgressTrack');
+        const fill = document.getElementById('podcastProgressFill');
+        const currentTimeEl = document.getElementById('podcastCurrentTime');
+        const totalTimeEl = document.getElementById('podcastTotalTime');
+
+        if (!audioEl || !playBtn || !playIcon || !track || !fill) return;
+
+        audioEl.src = audioUrl;
+        audioEl.load();
+        audioEl.play().catch(() => {
+            playIcon.className = 'fas fa-play';
+        });
+
+        const updateProgress = () => {
+            const duration = audioEl.duration || 0;
+            const current = audioEl.currentTime || 0;
+            const percent = duration > 0 ? (current / duration) * 100 : 0;
+            fill.style.width = `${percent}%`;
+            if (currentTimeEl) currentTimeEl.innerText = window.formatMediaTime(current);
+            if (totalTimeEl) totalTimeEl.innerText = window.formatMediaTime(duration);
+        };
+
+        playBtn.onclick = function () {
+            if (audioEl.paused) {
+                audioEl.play().catch(() => { });
+            } else {
+                audioEl.pause();
+            }
+        };
+
+        track.onclick = function (event) {
+            const duration = audioEl.duration || 0;
+            if (duration <= 0) return;
+            const rect = track.getBoundingClientRect();
+            const ratio = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
+            audioEl.currentTime = ratio * duration;
+            updateProgress();
+        };
+
+        if (speedBtn) {
+            speedBtn.onclick = function () {
+                const speedSteps = [1, 1.25, 1.5, 2, 0.75];
+                const currentIndex = speedSteps.indexOf(audioEl.playbackRate);
+                const nextSpeed = speedSteps[(currentIndex + 1) % speedSteps.length] || 1;
+                audioEl.playbackRate = nextSpeed;
+                speedBtn.innerText = `${nextSpeed}x`;
+            };
+        }
+
+        audioEl.onplay = () => {
+            playIcon.className = 'fas fa-pause';
+        };
+        audioEl.onpause = () => {
+            playIcon.className = 'fas fa-play';
+        };
+        audioEl.onended = () => {
+            playIcon.className = 'fas fa-play';
+            fill.style.width = '100%';
+        };
+        audioEl.ontimeupdate = updateProgress;
+        audioEl.onloadedmetadata = updateProgress;
+        audioEl.onerror = () => {
+            playIcon.className = 'fas fa-exclamation-triangle';
+        };
+    };
+}
+
 window.openMaterialModal = function (encodedData) {
     try {
         const mat = JSON.parse(decodeURIComponent(encodedData));
@@ -212,12 +294,32 @@ window.openMaterialModal = function (encodedData) {
                 }
             } else {
                 bodyEl.innerHTML = `
-                <div class="media-podcast-container" style="background: var(--bg-card); padding: 20px; border-radius: 16px; border: 1px solid var(--border-color); box-shadow: 0 4px 15px rgba(0,0,0,0.08);">
-                    <audio controls autoplay style="width: 100%; outline: none;">
-                        <source src="${mat.url}" type="audio/mpeg">
-                        Tarayıcınız ses oynatıcısını desteklemiyor.
-                    </audio>
+                <div class="media-podcast-container" style="background: var(--bg-card); padding: 16px 18px; border-radius: 16px; border: 1px solid var(--border-color); box-shadow: 0 4px 15px rgba(0,0,0,0.08);">
+                    <style>
+                        .custom-podcast-player { display: flex; align-items: center; gap: 12px; }
+                        .podcast-play-btn { width: 44px; height: 44px; min-width: 44px; border: none; border-radius: 50%; color: #fff; background: var(--primary-color); box-shadow: 0 4px 12px rgba(224, 163, 82, 0.3); }
+                        .podcast-timeline { flex: 1; display: flex; align-items: center; gap: 10px; min-width: 0; }
+                        .podcast-time { font-size: 0.8rem; min-width: 38px; text-align: center; color: var(--text-color); opacity: 0.8; }
+                        .podcast-progress-track { position: relative; flex: 1; height: 6px; border-radius: 999px; background: var(--border-color); cursor: pointer; }
+                        .podcast-progress-fill { position: absolute; inset: 0 auto 0 0; width: 0%; background: var(--primary-color); border-radius: inherit; }
+                        .podcast-speed-btn { background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 14px; padding: 5px 10px; font-size: 0.8rem; color: var(--text-color); white-space: nowrap; }
+                    </style>
+                    <div class="custom-podcast-player">
+                        <button class="podcast-play-btn" id="podcastPlayBtn" type="button" aria-label="Oynat/Duraklat">
+                            <i class="fas fa-spinner fa-spin" id="podcastPlayIcon"></i>
+                        </button>
+                        <div class="podcast-timeline">
+                            <span class="podcast-time" id="podcastCurrentTime">0:00</span>
+                            <div class="podcast-progress-track" id="podcastProgressTrack">
+                                <div class="podcast-progress-fill" id="podcastProgressFill"></div>
+                            </div>
+                            <span class="podcast-time" id="podcastTotalTime">0:00</span>
+                        </div>
+                        <button class="podcast-speed-btn" id="podcastSpeedBtn" type="button" title="Oynatma Hızı">1x</button>
+                    </div>
+                    <audio id="customPodcastAudio" preload="metadata" style="display:none"></audio>
                 </div>`;
+                setTimeout(() => window.initCustomAudioPlayer(mat.url), 20);
             }
         } else if (mat.type === 'html') {
             bodyEl.innerHTML = `<div class="media-html-content" style="padding-top:10px; color: var(--text-color);">${mat.content || mat.url || 'İçerik yüklenemedi.'}</div>`;
@@ -292,6 +394,12 @@ window.closeMaterialModal = function (event) {
     if (window.currentYtPlayer && typeof window.currentYtPlayer.destroy === 'function') {
         try { window.currentYtPlayer.destroy(); } catch (e) { }
         window.currentYtPlayer = null;
+    }
+    const podcastAudioEl = document.getElementById('customPodcastAudio');
+    if (podcastAudioEl) {
+        podcastAudioEl.pause();
+        podcastAudioEl.removeAttribute('src');
+        podcastAudioEl.load();
     }
     const overlay = document.getElementById('mediaModalOverlay');
     if (overlay) overlay.classList.remove('active');
