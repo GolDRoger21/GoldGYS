@@ -2878,15 +2878,144 @@
           } else if (mat.url.includes('youtube.com') || mat.url.includes('youtu.be/')) {
             const videoId = mat.url.includes('v=') ? mat.url.split('v=')[1]?.split('&')[0] : mat.url.split('youtu.be/')[1]?.split('?')[0];
             if (videoId) {
-              const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1`;
-              // Mask the video itself and only show the YouTube control bar at the bottom 
-              // for a "podcast/audio" like experience
+              // Özel YouTube Podcast Oynatıcı (Premium UI)
               bodyEl.innerHTML = `
-                <div class="media-podcast-youtube-audio" style="position: relative; width: 100%; height: 42px; overflow: hidden; border-radius: 8px; background: #000; display:flex; align-items:flex-end;">
-                  <iframe src="${embedUrl}" style="position: absolute; top: -100px; left: 0; width: 100%; height: 142px; border: 0;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                <style>
+                .custom-yt-audio-player { display: flex; flex-direction: column; gap: 15px; padding: 24px; background: var(--bg-card, #2c2d33); border-radius: 16px; border: 1px solid var(--border-color, #444); box-shadow: 0 8px 24px rgba(0,0,0,0.15); margin-top: 20px; }
+                .yt-audio-header { display: flex; align-items: center; justify-content: space-between; }
+                .yt-audio-title { font-weight: 600; color: var(--text-color, #fff); font-size: 1.1rem; display: flex; align-items: center; gap: 10px; }
+                .yt-audio-controls { display: flex; align-items: center; justify-content: center; gap: 20px; margin-top: 10px; }
+                .yt-play-btn { width: 54px; height: 54px; border-radius: 50%; background: var(--primary-color, #e0a352); color: #fff; border: none; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; cursor: pointer; transition: transform 0.2s, background 0.2s; box-shadow: 0 4px 12px rgba(224, 163, 82, 0.4); }
+                .yt-play-btn:hover { transform: scale(1.08); }
+                .yt-progress-container { display: flex; align-items: center; gap: 12px; width: 100%; }
+                .yt-time-display { font-size: 0.85rem; color: var(--text-muted, #aaa); font-variant-numeric: tabular-nums; min-width: 45px; text-align: center; font-weight: 500;}
+                .yt-progress-bar { flex: 1; -webkit-appearance: none; height: 8px; background: rgba(255,255,255,0.1); border-radius: 6px; outline: none; cursor: pointer; overflow: hidden; }
+                .yt-progress-bar::-webkit-slider-thumb { -webkit-appearance: none; width: 0; height: 0; box-shadow: -100vw 0 0 100vw var(--primary-color, #e0a352); }
+                .yt-speed-btn { background: var(--bg-input, #1a1b1e); border: 1px solid var(--border-color, #444); color: var(--text-color, #fff); padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; cursor: pointer; font-weight: 600; transition: all 0.2s; }
+                .yt-speed-btn:hover { border-color: var(--primary-color, #e0a352); color: var(--primary-color, #e0a352); }
+                </style>
+                <div class="custom-yt-audio-player">
+                    <div class="yt-audio-header">
+                        <div class="yt-audio-title"><i class="fas fa-headphones-alt" style="color:var(--primary-color)"></i> Podcast Oynatıcı</div>
+                        <button class="yt-speed-btn" id="ytSpeedBtn" onclick="toggleYtSpeed()" title="Oynatma Hızı">1x</button>
+                    </div>
+                    <div class="yt-progress-container">
+                        <span class="yt-time-display" id="ytCurrentTime">0:00</span>
+                        <input type="range" class="yt-progress-bar" id="ytProgressBar" value="0" step="1" min="0" max="0">
+                        <span class="yt-time-display" id="ytTotalTime">0:00</span>
+                    </div>
+                    <div class="yt-audio-controls">
+                        <button class="yt-play-btn" id="ytPlayBtn" onclick="toggleYtPlay()">
+                            <i class="fas fa-spinner fa-spin" id="ytPlayIcon" style="font-size: 1.2rem;"></i>
+                        </button>
+                    </div>
                 </div>
-                <p style="text-align: center; color: var(--text-muted); font-size: 0.8rem; margin-top: 10px;">🎧 YouTube Ses Kaydı (Sadece Oynatıcı Çubuğu)</p>
+                <div id="ytHiddenPlayer" style="position:absolute; width:1px; height:1px; top:-9999px; left:-9999px; opacity:0; pointer-events:none;"></div>
               `;
+
+              if (!window.initCustomYtPlayer) {
+                window.initCustomYtPlayer = function (vid) {
+                  if (window.ytProgressInterval) clearInterval(window.ytProgressInterval);
+                  const loadPlayer = () => {
+                    window.currentYtPlayer = new YT.Player('ytHiddenPlayer', {
+                      height: '0', width: '0', videoId: vid,
+                      playerVars: { 'autoplay': 1, 'controls': 0, 'playsinline': 1 },
+                      events: {
+                        'onReady': (event) => {
+                          const playIcon = document.getElementById('ytPlayIcon');
+                          if (playIcon) playIcon.className = 'fas fa-pause';
+                          let duration = window.currentYtPlayer.getDuration() || 0;
+                          document.getElementById('ytTotalTime').innerText = window.formatYtTime(duration);
+                          document.getElementById('ytProgressBar').max = duration;
+
+                          document.getElementById('ytProgressBar').addEventListener('input', function () {
+                            window.currentYtPlayer.seekTo(this.value, true);
+                          });
+
+                          window.ytProgressInterval = setInterval(() => {
+                            if (window.currentYtPlayer && window.currentYtPlayer.getCurrentTime) {
+                              let current = window.currentYtPlayer.getCurrentTime();
+                              let elCur = document.getElementById('ytCurrentTime');
+                              let elProg = document.getElementById('ytProgressBar');
+                              if (elCur) elCur.innerText = window.formatYtTime(current);
+                              if (elProg) elProg.value = current;
+
+                              let dur = window.currentYtPlayer.getDuration();
+                              if (dur > 0 && elProg && elProg.max == 0) {
+                                document.getElementById('ytTotalTime').innerText = window.formatYtTime(dur);
+                                elProg.max = dur;
+                              }
+                            }
+                          }, 500);
+                        },
+                        'onStateChange': (event) => {
+                          const playIcon = document.getElementById('ytPlayIcon');
+                          if (!playIcon) return;
+                          if (event.data == YT.PlayerState.PLAYING) {
+                            playIcon.className = 'fas fa-pause';
+                          } else if (event.data == YT.PlayerState.PAUSED || event.data == YT.PlayerState.ENDED) {
+                            playIcon.className = 'fas fa-play';
+                          }
+                        }
+                      }
+                    });
+                  };
+
+                  if (!window.YT || !window.YT.Player) {
+                    const tag = document.createElement('script');
+                    tag.src = "https://www.youtube.com/iframe_api";
+                    const firstScriptTag = document.getElementsByTagName('script')[0];
+                    if (firstScriptTag && firstScriptTag.parentNode) {
+                      firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+                    } else {
+                      document.head.appendChild(tag);
+                    }
+
+                    let ytInterval = setInterval(() => {
+                      if (window.YT && window.YT.Player) {
+                        clearInterval(ytInterval);
+                        loadPlayer();
+                      }
+                    }, 300);
+                  } else {
+                    loadPlayer();
+                  }
+                };
+
+                window.toggleYtPlay = function () {
+                  if (window.currentYtPlayer && window.currentYtPlayer.getPlayerState) {
+                    let state = window.currentYtPlayer.getPlayerState();
+                    if (state == YT.PlayerState.PLAYING) {
+                      window.currentYtPlayer.pauseVideo();
+                    } else {
+                      window.currentYtPlayer.playVideo();
+                    }
+                  }
+                };
+
+                window.toggleYtSpeed = function () {
+                  if (window.currentYtPlayer && window.currentYtPlayer.setPlaybackRate) {
+                    let currentSpeed = window.currentYtPlayer.getPlaybackRate();
+                    let newSpeed = 1;
+                    if (currentSpeed === 1) newSpeed = 1.25;
+                    else if (currentSpeed === 1.25) newSpeed = 1.5;
+                    else if (currentSpeed === 1.5) newSpeed = 2;
+                    else if (currentSpeed === 2) newSpeed = 0.75;
+                    else if (currentSpeed === 0.75) newSpeed = 1;
+
+                    window.currentYtPlayer.setPlaybackRate(newSpeed);
+                    document.getElementById('ytSpeedBtn').innerText = newSpeed + 'x';
+                  }
+                };
+
+                window.formatYtTime = function (time) {
+                  if (!time) return "0:00";
+                  let minutes = Math.floor(time / 60);
+                  let seconds = Math.floor(time % 60);
+                  return minutes + ":" + (seconds < 10 ? '0' : '') + seconds;
+                };
+              }
+              setTimeout(() => window.initCustomYtPlayer(videoId), 50);
             }
           } else if (mat.url.includes('drive.google.com/file/d/')) {
             const fileIdMatch = mat.url.match(/file\/d\/([^/]+)/);
@@ -2978,6 +3107,12 @@
       const bodyEl = document.getElementById('mediaModalBody');
       overlay.classList.remove('active');
       document.body.style.overflow = '';
+
+      if (window.ytProgressInterval) clearInterval(window.ytProgressInterval);
+      if (window.currentYtPlayer && typeof window.currentYtPlayer.destroy === 'function') {
+        try { window.currentYtPlayer.destroy(); } catch (e) { }
+        window.currentYtPlayer = null;
+      }
 
       setTimeout(() => {
         bodyEl.innerHTML = '';
