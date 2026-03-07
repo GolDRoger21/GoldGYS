@@ -42,15 +42,15 @@ window.openMaterialModal = function (encodedData) {
                     // Kompakt Yatay Podcast Player Tasarımı
                     bodyEl.innerHTML = `
                         <style>
-                        .custom-yt-audio-player { display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 15px; padding: 12px 20px; background: var(--bg-card, #2c2d33); border-radius: 50px; border: 1px solid var(--border-color, #444); box-shadow: 0 4px 15px rgba(0,0,0,0.15); margin-top: 15px; width: 100%; box-sizing: border-box; }
-                        .yt-play-btn { width: 44px; height: 44px; min-width: 44px; border-radius: 50%; background: var(--primary-color, #e0a352); color: #fff; border: none; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; cursor: pointer; transition: transform 0.2s, background 0.2s; box-shadow: 0 4px 12px rgba(224, 163, 82, 0.4); }
-                        .yt-play-btn:hover { transform: scale(1.08); }
+                        .custom-yt-audio-player { display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 15px; padding: 12px 20px; background: var(--bg-card); border-radius: 50px; border: 1px solid var(--border-color); box-shadow: 0 4px 15px rgba(0,0,0,0.08); margin-top: 15px; width: 100%; box-sizing: border-box; transition: background 0.3s, border-color 0.3s; }
+                        .yt-play-btn { width: 44px; height: 44px; min-width: 44px; border-radius: 50%; background: var(--primary-color); color: #fff; border: none; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; cursor: pointer; transition: transform 0.2s, background 0.2s, box-shadow 0.2s; box-shadow: 0 4px 12px rgba(224, 163, 82, 0.3); }
+                        .yt-play-btn:hover { transform: scale(1.08); box-shadow: 0 6px 16px rgba(224, 163, 82, 0.5); }
                         .yt-progress-container { flex: 1; display: flex; align-items: center; gap: 10px; width: 100%; overflow: hidden; }
-                        .yt-time-display { font-size: 0.8rem; color: var(--text-color, #fff); font-variant-numeric: tabular-nums; min-width: 35px; text-align: center; font-weight: 500;}
-                        .yt-progress-bar { flex: 1; -webkit-appearance: none; height: 6px; background: rgba(255,255,255,0.1); border-radius: 4px; outline: none; cursor: pointer; }
-                        .yt-progress-bar::-webkit-slider-thumb { -webkit-appearance: none; width: 0; height: 0; box-shadow: -100vw 0 0 100vw var(--primary-color, #e0a352); }
-                        .yt-speed-btn { background: var(--bg-input, #1a1b1e); border: 1px solid var(--border-color, #444); color: var(--text-color, #fff); padding: 5px 12px; border-radius: 15px; font-size: 0.8rem; cursor: pointer; font-weight: 600; transition: all 0.2s; white-space: nowrap; }
-                        .yt-speed-btn:hover { border-color: var(--primary-color, #e0a352); color: var(--primary-color, #e0a352); }
+                        .yt-time-display { font-size: 0.8rem; color: var(--text-color); font-variant-numeric: tabular-nums; min-width: 35px; text-align: center; font-weight: 500; opacity: 0.8; }
+                        .yt-progress-bar { flex: 1; -webkit-appearance: none; height: 6px; background: var(--border-color); border-radius: 4px; outline: none; cursor: pointer; transition: background 0.3s;}
+                        .yt-progress-bar::-webkit-slider-thumb { -webkit-appearance: none; width: 0; height: 0; box-shadow: -100vw 0 0 100vw var(--primary-color); }
+                        .yt-speed-btn { background: var(--bg-input); border: 1px solid var(--border-color); color: var(--text-color); padding: 5px 12px; border-radius: 15px; font-size: 0.8rem; cursor: pointer; font-weight: 600; transition: all 0.2s; white-space: nowrap; }
+                        .yt-speed-btn:hover { border-color: var(--primary-color); color: var(--primary-color); background: transparent; }
                         
                         @media (max-width: 420px) {
                             .custom-yt-audio-player { padding: 10px 15px; gap: 10px; }
@@ -84,26 +84,31 @@ window.openMaterialModal = function (encodedData) {
                                         'onReady': (event) => {
                                             const playIcon = document.getElementById('ytPlayIcon');
                                             if (playIcon) playIcon.className = 'fas fa-pause';
-                                            let duration = window.currentYtPlayer.getDuration() || 0;
-                                            document.getElementById('ytTotalTime').innerText = window.formatYtTime(duration);
-                                            document.getElementById('ytProgressBar').max = duration;
+
+                                            // The video might not be fully loaded to provide duration yet
+                                            let initialDuration = window.currentYtPlayer.getDuration() || 0;
+                                            document.getElementById('ytTotalTime').innerText = window.formatYtTime(initialDuration);
+                                            document.getElementById('ytProgressBar').max = initialDuration;
 
                                             document.getElementById('ytProgressBar').addEventListener('input', function () {
                                                 window.currentYtPlayer.seekTo(this.value, true);
                                             });
 
                                             window.ytProgressInterval = setInterval(() => {
-                                                if (window.currentYtPlayer && window.currentYtPlayer.getCurrentTime) {
-                                                    let current = window.currentYtPlayer.getCurrentTime();
+                                                if (window.currentYtPlayer && window.currentYtPlayer.getCurrentTime && typeof window.currentYtPlayer.getDuration === 'function') {
+                                                    let current = window.currentYtPlayer.getCurrentTime() || 0;
                                                     let elCur = document.getElementById('ytCurrentTime');
                                                     let elProg = document.getElementById('ytProgressBar');
                                                     if (elCur) elCur.innerText = window.formatYtTime(current);
                                                     if (elProg) elProg.value = current;
 
-                                                    let dur = window.currentYtPlayer.getDuration();
-                                                    if (dur > 0 && elProg && elProg.max == 0) {
-                                                        document.getElementById('ytTotalTime').innerText = window.formatYtTime(dur);
-                                                        elProg.max = dur;
+                                                    let dur = window.currentYtPlayer.getDuration() || 0;
+                                                    if (dur > 0 && elProg) {
+                                                        // Ensure max duration is always updated if it was 0 initially
+                                                        if (elProg.max == 0 || elProg.max == "0" || elProg.max != dur) {
+                                                            document.getElementById('ytTotalTime').innerText = window.formatYtTime(dur);
+                                                            elProg.max = dur;
+                                                        }
                                                     }
                                                 }
                                             }, 500);
@@ -176,103 +181,102 @@ window.openMaterialModal = function (encodedData) {
                         };
                     }
                     setTimeout(() => window.initCustomYtPlayer(videoId), 50);
-                }
-            } else if (mat.url.includes('drive.google.com/file/d/')) {
-                const fileIdMatch = mat.url.match(/file\/d\/([^/]+)/);
-                if (fileIdMatch && fileIdMatch[1]) {
-                    const audioUrl = `https://drive.google.com/file/d/${fileIdMatch[1]}/preview`;
-                    bodyEl.innerHTML = `
-                    <div class="media-responsive-iframe" style="padding-bottom: 0; min-height: 150px; height: 150px;">
-                        <iframe src="${audioUrl}" allow="autoplay" allowfullscreen style="border-radius: 8px;"></iframe>
+                } else if (mat.url.includes('drive.google.com/file/d/')) {
+                    const fileIdMatch = mat.url.match(/file\/d\/([^/]+)/);
+                    if (fileIdMatch && fileIdMatch[1]) {
+                        const audioUrl = `https://drive.google.com/file/d/${fileIdMatch[1]}/preview`;
+                        bodyEl.innerHTML = `
+                    <div class="media-responsive-iframe" style="padding-bottom: 0; min-height: 150px; height: 150px; border-radius: 12px; overflow: hidden; border: 1px solid var(--border-color); box-shadow: 0 4px 15px rgba(0,0,0,0.08);">
+                        <iframe src="${audioUrl}" allow="autoplay" allowfullscreen style="border-radius: 12px; border: none; background: var(--bg-card);"></iframe>
                     </div>`;
-                }
-            } else {
-                bodyEl.innerHTML = `
-                <div class="media-podcast-container">
-                    <audio controls autoplay>
+                    }
+                } else {
+                    bodyEl.innerHTML = `
+                <div class="media-podcast-container" style="background: var(--bg-card); padding: 20px; border-radius: 16px; border: 1px solid var(--border-color); box-shadow: 0 4px 15px rgba(0,0,0,0.08);">
+                    <audio controls autoplay style="width: 100%; outline: none;">
                         <source src="${mat.url}" type="audio/mpeg">
                         Tarayıcınız ses oynatıcısını desteklemiyor.
                     </audio>
                 </div>`;
-            }
-        } else if (mat.type === 'html') {
-            bodyEl.innerHTML = `<div class="media-html-content" style="padding-top:10px;">${mat.content || mat.url || 'İçerik yüklenemedi.'}</div>`;
-        } else if (mat.type === 'pdf') {
-            if (mat.url && mat.url.includes('drive.google.com/file/d/')) {
-                let embedUrl = mat.url;
-                const fileIdMatch = mat.url.match(/file\/d\/([^/]+)/);
-                if (fileIdMatch && fileIdMatch[1]) {
-                    embedUrl = `https://drive.google.com/file/d/${fileIdMatch[1]}/preview`;
                 }
-                bodyEl.innerHTML = `
-                <div class="media-responsive-iframe" style="padding-bottom: 0; min-height: 65vh; height: 100%;">
-                    <iframe src="${embedUrl}" allow="autoplay" allowfullscreen style="border-radius: 8px;"></iframe>
+            } else if (mat.type === 'html') {
+                bodyEl.innerHTML = `<div class="media-html-content" style="padding-top:10px; color: var(--text-color);">${mat.content || mat.url || 'İçerik yüklenemedi.'}</div>`;
+            } else if (mat.type === 'pdf') {
+                if (mat.url && mat.url.includes('drive.google.com/file/d/')) {
+                    let embedUrl = mat.url;
+                    const fileIdMatch = mat.url.match(/file\/d\/([^/]+)/);
+                    if (fileIdMatch && fileIdMatch[1]) {
+                        embedUrl = `https://drive.google.com/file/d/${fileIdMatch[1]}/preview`;
+                    }
+                    bodyEl.innerHTML = `
+                <div class="media-responsive-iframe" style="padding-bottom: 0; min-height: 65vh; height: 100%; border-radius: 12px; overflow: hidden; border: 1px solid var(--border-color); box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
+                    <iframe src="${embedUrl}" allow="autoplay" allowfullscreen style="border-radius: 12px; border: none; background: var(--bg-card);"></iframe>
                 </div>
                 `;
+                } else {
+                    bodyEl.innerHTML = `
+                <div class="p-5 text-center mt-3" style="background: var(--bg-card); border: 1px dashed var(--border-color); border-radius:16px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                    <div style="font-size:3rem; margin-bottom:15px; color: var(--text-muted); opacity:0.5;"><i class="fas fa-file-pdf"></i></div>
+                    <div class="mb-4" style="color: var(--text-color); font-weight: 500;">Bu PDF belgesi doğrudan görüntülenemiyor, lütfen tarayıcıda yeni sekmede açın.</div>
+                    <a href="${mat.url}" target="_blank" class="btn btn-primary" style="border-radius:30px; padding:10px 24px; font-weight: 600; box-shadow: 0 4px 12px rgba(224, 163, 82, 0.3); transition: transform 0.2s;"><i class="fas fa-external-link-alt mr-2"></i> PDF'i Görüntüle</a>
+                </div>`;
+                }
             } else {
                 bodyEl.innerHTML = `
-                <div class="p-4 text-center mt-3" style="border:1px dashed var(--border-color); border-radius:12px;">
-                    <div style="font-size:2rem; margin-bottom:12px; opacity:0.3;"><i class="fas fa-file-pdf"></i></div>
-                    <div class="mb-3">Bu PDF belgesi doğrudan görüntülenemiyor, lütfen yeni sekmede açın.</div>
-                    <a href="${mat.url}" target="_blank" class="btn btn-primary" style="border-radius:20px; padding:8px 20px;">PDF'i Aç</a>
-                </div>`;
+            <div class="p-5 text-center mt-3" style="background: var(--bg-card); border: 1px dashed var(--border-color); border-radius:16px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                <div style="font-size:3rem; margin-bottom:15px; color: var(--text-muted); opacity:0.5;"><i class="fas fa-file-alt"></i></div>
+                <div class="mb-4" style="color: var(--text-color); font-weight: 500;">Bu içerik türü doğrudan önizlenemiyor.</div>
+                <a href="${mat.url}" target="_blank" class="btn btn-primary" style="border-radius:30px; padding:10px 24px; font-weight: 600; box-shadow: 0 4px 12px rgba(224, 163, 82, 0.3); transition: transform 0.2s;"><i class="fas fa-external-link-alt mr-2"></i> Yeni Sekmede Aç</a>
+            </div>`;
+            }
+
+            overlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        } catch (err) {
+            console.error("Modal acilamadi", err);
+            alert('Materyal görüntülenirken bir hata oluştu.');
+        }
+    };
+
+    window.toggleMaterialFullscreen = function (event) {
+        if (event) event.preventDefault();
+        const bodyEl = document.getElementById('mediaModalBody');
+        const iframeEl = bodyEl.querySelector('iframe');
+        const targetEl = iframeEl || document.querySelector('.media-modal-container');
+
+        if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+            if (targetEl.requestFullscreen) {
+                targetEl.requestFullscreen().catch(err => console.log(err));
+            } else if (targetEl.webkitRequestFullscreen) {
+                targetEl.webkitRequestFullscreen();
+            } else if (targetEl.msRequestFullscreen) {
+                targetEl.msRequestFullscreen();
             }
         } else {
-            bodyEl.innerHTML = `
-            <div class="p-4 text-center mt-3" style="border:1px dashed var(--border-color); border-radius:12px;">
-                <div style="font-size:2rem; margin-bottom:12px; opacity:0.3;"><i class="fas fa-file-alt"></i></div>
-                <div class="mb-3">Bu içerik doğrudan önizlenemiyor.</div>
-                <a href="${mat.url}" target="_blank" class="btn btn-primary" style="border-radius:20px; padding:8px 20px;">Yeni Sekmede Aç</a>
-            </div>`;
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            } else if (document.webkitExitFullscreen) {
+                document.webkitExitFullscreen();
+            } else if (document.msExitFullscreen) {
+                document.msExitFullscreen();
+            }
+        }
+    };
+
+    window.closeMaterialModal = function (event) {
+        if (event) event.preventDefault();
+        const overlay = document.getElementById('mediaModalOverlay');
+        const bodyEl = document.getElementById('mediaModalBody');
+        overlay.classList.remove('active');
+        document.body.style.overflow = '';
+
+        if (window.ytProgressInterval) clearInterval(window.ytProgressInterval);
+        if (window.currentYtPlayer && typeof window.currentYtPlayer.destroy === 'function') {
+            try { window.currentYtPlayer.destroy(); } catch (e) { }
+            window.currentYtPlayer = null;
         }
 
-        overlay.classList.add('active');
-        document.body.style.overflow = 'hidden';
-    } catch (err) {
-        console.error("Modal acilamadi", err);
-        alert('Materyal görüntülenirken bir hata oluştu.');
-    }
-};
-
-window.toggleMaterialFullscreen = function (event) {
-    if (event) event.preventDefault();
-    const bodyEl = document.getElementById('mediaModalBody');
-    const iframeEl = bodyEl.querySelector('iframe');
-    const targetEl = iframeEl || document.querySelector('.media-modal-container');
-
-    if (!document.fullscreenElement && !document.webkitFullscreenElement) {
-        if (targetEl.requestFullscreen) {
-            targetEl.requestFullscreen().catch(err => console.log(err));
-        } else if (targetEl.webkitRequestFullscreen) {
-            targetEl.webkitRequestFullscreen();
-        } else if (targetEl.msRequestFullscreen) {
-            targetEl.msRequestFullscreen();
-        }
-    } else {
-        if (document.exitFullscreen) {
-            document.exitFullscreen();
-        } else if (document.webkitExitFullscreen) {
-            document.webkitExitFullscreen();
-        } else if (document.msExitFullscreen) {
-            document.msExitFullscreen();
-        }
-    }
-};
-
-window.closeMaterialModal = function (event) {
-    if (event) event.preventDefault();
-    const overlay = document.getElementById('mediaModalOverlay');
-    const bodyEl = document.getElementById('mediaModalBody');
-    overlay.classList.remove('active');
-    document.body.style.overflow = '';
-
-    if (window.ytProgressInterval) clearInterval(window.ytProgressInterval);
-    if (window.currentYtPlayer && typeof window.currentYtPlayer.destroy === 'function') {
-        try { window.currentYtPlayer.destroy(); } catch (e) { }
-        window.currentYtPlayer = null;
-    }
-
-    setTimeout(() => {
-        bodyEl.innerHTML = '';
-    }, 300);
-};
+        setTimeout(() => {
+            bodyEl.innerHTML = '';
+        }, 300);
+    };
