@@ -272,15 +272,110 @@
       min-width: 0;
     }
 
+    #testsList {
+      display: grid;
+      gap: 12px;
+    }
+
     .test-card {
       background: var(--bg-surface);
-      border: 1px solid var(--border-color);
+      border: 1px solid color-mix(in srgb, var(--border-color) 78%, transparent);
       border-radius: 16px;
-      padding: 20px;
-      margin-bottom: 15px;
-      /* Mobil uyumluluk için */
       width: 100%;
       box-sizing: border-box;
+      overflow: hidden;
+      transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease, background .18s ease;
+    }
+
+    .test-card-link {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      width: 100%;
+      padding: 14px 16px;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .test-card:hover,
+    .test-card:focus-within {
+      transform: translateY(-3px) scale(1.005);
+      border-color: color-mix(in srgb, var(--color-primary) 62%, var(--border-color));
+      box-shadow: 0 14px 30px rgba(17, 24, 39, 0.14), 0 0 0 1px color-mix(in srgb, var(--color-primary) 24%, transparent);
+      background: color-mix(in srgb, var(--bg-surface) 82%, var(--bg-hover));
+    }
+
+    .test-main-meta {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+      flex: 1;
+    }
+
+    .test-order-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 38px;
+      height: 38px;
+      border-radius: 999px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--color-primary);
+      background: color-mix(in srgb, var(--color-primary) 14%, transparent);
+      border: 1px solid color-mix(in srgb, var(--color-primary) 32%, transparent);
+      flex-shrink: 0;
+    }
+
+    .test-title-line {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text-main);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .test-count-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 76px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      border: 1px solid var(--border-color);
+      background: color-mix(in srgb, var(--bg-input) 75%, transparent);
+      flex-shrink: 0;
+    }
+
+    .test-completed-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      font-size: 0.76rem;
+      font-weight: 700;
+      color: #0f5132;
+      border: 1px solid rgba(25, 135, 84, 0.35);
+      background: rgba(25, 135, 84, 0.15);
+      flex-shrink: 0;
+    }
+
+    .test-card.is-completed {
+      border-color: rgba(25, 135, 84, 0.55);
+      background: linear-gradient(140deg, rgba(25, 135, 84, 0.12), rgba(25, 135, 84, 0.03) 42%, var(--bg-surface));
+    }
+
+    [data-theme="dark"] .test-completed-chip {
+      color: #98f5be;
+      border-color: rgba(25, 135, 84, 0.55);
+      background: rgba(25, 135, 84, 0.28);
     }
 
     .topics-grid {
@@ -1172,13 +1267,37 @@
         white-space: nowrap;
       }
 
-      .test-card,
       .study-mode-card,
       .subtopic-section,
       .learning-companion {
         padding: 14px;
         border-radius: 20px;
         box-shadow: 0 5px 16px rgba(20, 20, 20, 0.06);
+      }
+
+      .test-card {
+        border-radius: 14px;
+      }
+
+      .test-card-link {
+        padding: 12px;
+        align-items: flex-start;
+      }
+
+      .test-title-line {
+        white-space: normal;
+        line-height: 1.3;
+      }
+
+      .test-order-badge {
+        min-width: 32px;
+        height: 32px;
+        font-size: 0.74rem;
+      }
+
+      .test-count-pill,
+      .test-completed-chip {
+        font-size: 0.72rem;
       }
 
       .study-mode-card {
@@ -2290,26 +2409,23 @@
             const testSlug = slugifyTopicTitle(item.title) || item.id;
             const testUrl = `/konu/${encodeURIComponent(topicSlug)}/test-coz/${encodeURIComponent(testSlug)}--${encodeURIComponent(item.id)}?mode=select`;
 
-            let badgeHtml = '';
-            if (validCompletedIds.has(item.id)) {
-              badgeHtml = '<span class="badge bg-success text-white" style="margin-left:auto;">✅ Tamamlandı</span>';
-            }
+            const isCompleted = validCompletedIds.has(item.id);
+            const title = item.title || 'İsimsiz Test';
+            const testOrder = testCount;
 
             testsContainer.innerHTML += `
-              <div class="test-card" style="${validCompletedIds.has(item.id) ? 'border-color:var(--color-success); background:rgba(25, 135, 84, 0.03);' : ''}">
-                <div style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; align-items:center;">
-                  <div style="display:flex; flex-direction:column;">
-                    <strong style="font-size:1.05rem;">${item.title}</strong>
-                    <span class="badge bg-light text-dark" style="width:fit-content; margin-top:4px;">${qCount} Soru</span>
+              <article class="test-card ${isCompleted ? 'is-completed' : ''}">
+                <a href="${testUrl}" class="test-card-link" aria-label="${title} testini aç">
+                  <div class="test-main-meta">
+                    <span class="test-order-badge">${testOrder}</span>
+                    <div class="test-title-line">${title}</div>
                   </div>
-                  ${badgeHtml}
-                </div>
-                <div style="margin-top:10px;">
-                  <a href="${testUrl}" class="btn btn-sm ${validCompletedIds.has(item.id) ? 'btn-success' : 'btn-outline-primary'} w-100">
-                    ${validCompletedIds.has(item.id) ? 'Tekrar Çöz' : 'Testi Çöz'}
-                  </a>
-                </div>
-              </div>`;
+                  <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; justify-content:flex-end;">
+                    <span class="test-count-pill">${qCount} Soru</span>
+                    ${isCompleted ? '<span class="test-completed-chip"><i class="fas fa-check-circle"></i> Çözüldü</span>' : ''}
+                  </div>
+                </a>
+              </article>`;
           }
         });
 
