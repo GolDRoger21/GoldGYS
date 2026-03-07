@@ -47,9 +47,11 @@ window.openMaterialModal = function (encodedData) {
                         .yt-play-btn:hover { transform: scale(1.08); box-shadow: 0 6px 16px rgba(224, 163, 82, 0.5); }
                         .yt-progress-container { flex: 1; display: flex; align-items: center; gap: 10px; width: 100%; overflow: hidden; }
                         .yt-time-display { font-size: 0.8rem; color: var(--text-color); font-variant-numeric: tabular-nums; min-width: 35px; text-align: center; font-weight: 500; opacity: 0.8; }
-                        .yt-progress-bar { flex: 1; -webkit-appearance: none; appearance: none; height: 6px; background-color: var(--border-color); background-image: linear-gradient(var(--primary-color), var(--primary-color)); background-size: var(--progress, 0%) 100%; background-repeat: no-repeat; border-radius: 4px; outline: none; cursor: pointer; transition: opacity 0.2s; }
-                        .yt-progress-bar::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 14px; height: 14px; border-radius: 50%; background: var(--primary-color); box-shadow: 0 0 5px rgba(0,0,0,0.3); transition: transform 0.1s; }
-                        .yt-progress-bar::-webkit-slider-thumb:hover { transform: scale(1.2); }
+                        .yt-custom-progress-track { flex: 1; height: 6px; background-color: var(--border-color); border-radius: 4px; cursor: pointer; position: relative; display: flex; align-items: center; transition: height 0.2s; }
+                        .yt-custom-progress-track:hover { height: 8px; }
+                        .yt-custom-progress-fill { height: 100%; background-color: var(--primary-color); border-radius: 4px; width: 0%; pointer-events: none; position: relative; }
+                        .yt-custom-progress-thumb { position: absolute; right: -7px; top: 50%; transform: translateY(-50%) scale(0); width: 14px; height: 14px; background-color: var(--primary-color); border-radius: 50%; box-shadow: 0 0 5px rgba(0,0,0,0.5); transition: transform 0.2s; pointer-events: none; }
+                        .yt-custom-progress-track:hover .yt-custom-progress-thumb { transform: translateY(-50%) scale(1); }
                         .yt-speed-btn { background: var(--bg-input); border: 1px solid var(--border-color); color: var(--text-color); padding: 5px 12px; border-radius: 15px; font-size: 0.8rem; cursor: pointer; font-weight: 600; transition: all 0.2s; white-space: nowrap; }
                         .yt-speed-btn:hover { border-color: var(--primary-color); color: var(--primary-color); background: transparent; }
                         
@@ -66,7 +68,11 @@ window.openMaterialModal = function (encodedData) {
                             </button>
                             <div class="yt-progress-container">
                                 <span class="yt-time-display" id="ytCurrentTime">0:00</span>
-                                <input type="range" class="yt-progress-bar" id="ytProgressBar" value="0" step="1" min="0" max="0">
+                                <div class="yt-custom-progress-track" id="ytProgressTrack">
+                                    <div class="yt-custom-progress-fill" id="ytProgressFill">
+                                        <div class="yt-custom-progress-thumb"></div>
+                                    </div>
+                                </div>
                                 <span class="yt-time-display" id="ytTotalTime">0:00</span>
                             </div>
                             <button class="yt-speed-btn" id="ytSpeedBtn" onclick="toggleYtSpeed()" title="Oynatma Hızı">1x</button>
@@ -86,18 +92,22 @@ window.openMaterialModal = function (encodedData) {
                                             const playIcon = document.getElementById('ytPlayIcon');
                                             if (playIcon) playIcon.className = 'fas fa-pause';
 
-                                            // The video might not be fully loaded to provide duration yet
                                             let initialDuration = window.currentYtPlayer.getDuration() || 0;
                                             document.getElementById('ytTotalTime').innerText = window.formatYtTime(initialDuration);
-                                            document.getElementById('ytProgressBar').max = initialDuration;
 
-                                            document.getElementById('ytProgressBar').addEventListener('input', function () {
+                                            const track = document.getElementById('ytProgressTrack');
+                                            const fill = document.getElementById('ytProgressFill');
+
+                                            // Custom click to seek logic
+                                            track.addEventListener('click', function (e) {
                                                 if (window.currentYtPlayer && typeof window.currentYtPlayer.seekTo === 'function') {
-                                                    let val = parseFloat(this.value) || 0;
-                                                    window.currentYtPlayer.seekTo(val, true);
-                                                    if (this.max > 0) {
-                                                        let progressPercent = (val / this.max) * 100;
-                                                        this.style.background = `linear-gradient(to right, var(--primary-color) ${progressPercent}%, var(--border-color) ${progressPercent}%)`;
+                                                    let duration = window.currentYtPlayer.getDuration() || 0;
+                                                    if (duration > 0) {
+                                                        const rect = track.getBoundingClientRect();
+                                                        const clickX = e.clientX - rect.left;
+                                                        const percent = Math.max(0, Math.min(1, clickX / rect.width));
+                                                        window.currentYtPlayer.seekTo(percent * duration, true);
+                                                        fill.style.width = `${percent * 100}%`;
                                                     }
                                                 }
                                             });
@@ -105,25 +115,22 @@ window.openMaterialModal = function (encodedData) {
                                             window.ytProgressInterval = setInterval(() => {
                                                 if (window.currentYtPlayer && window.currentYtPlayer.getCurrentTime && typeof window.currentYtPlayer.getDuration === 'function') {
                                                     let current = window.currentYtPlayer.getCurrentTime() || 0;
-                                                    let elCur = document.getElementById('ytCurrentTime');
-                                                    let elProg = document.getElementById('ytProgressBar');
-                                                    if (elCur) elCur.innerText = window.formatYtTime(current);
-                                                    if (elProg) elProg.value = current;
-
                                                     let dur = window.currentYtPlayer.getDuration() || 0;
-                                                    if (dur > 0 && elProg) {
-                                                        // Update visually filled part of the progress bar via inline absolute CSS declaration
-                                                        let progressPercent = (current / dur) * 100;
-                                                        elProg.style.background = `linear-gradient(to right, var(--primary-color) ${progressPercent}%, var(--border-color) ${progressPercent}%)`;
 
-                                                        // Ensure max duration is always updated if it was 0 initially
-                                                        if (elProg.max == 0 || elProg.max == "0" || elProg.max != dur) {
-                                                            document.getElementById('ytTotalTime').innerText = window.formatYtTime(dur);
-                                                            elProg.max = dur;
+                                                    let elCur = document.getElementById('ytCurrentTime');
+                                                    if (elCur) elCur.innerText = window.formatYtTime(current);
+
+                                                    if (dur > 0 && fill) {
+                                                        let progressPercent = (current / dur) * 100;
+                                                        fill.style.width = `${progressPercent}%`;
+
+                                                        const elTot = document.getElementById('ytTotalTime');
+                                                        if (elTot && elTot.innerText == "0:00") {
+                                                            elTot.innerText = window.formatYtTime(dur);
                                                         }
                                                     }
                                                 }
-                                            }, 500);
+                                            }, 100); // 100ms for much smoother visual updates
                                         },
                                         'onStateChange': (event) => {
                                             const playIcon = document.getElementById('ytPlayIcon');
