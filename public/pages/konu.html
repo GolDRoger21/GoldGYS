@@ -2875,18 +2875,20 @@
         } else if (mat.type === 'podcast') {
           if (mat.url.includes('spotify.com')) {
             bodyEl.innerHTML = `<iframe src="${mat.url.replace('/episode/', '/embed/episode/')}" width="100%" height="152" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>`;
-          } else {
-            let audioUrl = mat.url;
-            if (audioUrl.includes('drive.google.com/file/d/')) {
-              const fileIdMatch = audioUrl.match(/file\/d\/([^/]+)/);
-              if (fileIdMatch && fileIdMatch[1]) {
-                audioUrl = `https://drive.google.com/uc?export=download&id=${fileIdMatch[1]}`;
-              }
+          } else if (mat.url.includes('drive.google.com/file/d/')) {
+            const fileIdMatch = mat.url.match(/file\/d\/([^/]+)/);
+            if (fileIdMatch && fileIdMatch[1]) {
+              const audioUrl = `https://drive.google.com/file/d/${fileIdMatch[1]}/preview`;
+              bodyEl.innerHTML = `
+                <div class="media-responsive-iframe" style="padding-bottom: 0; min-height: 150px; height: 150px;">
+                  <iframe src="${audioUrl}" allow="autoplay" allowfullscreen style="border-radius: 8px;"></iframe>
+                </div>`;
             }
+          } else {
             bodyEl.innerHTML = `
                 <div class="media-podcast-container">
                     <audio controls autoplay>
-                        <source src="${audioUrl}" type="audio/mpeg">
+                        <source src="${mat.url}" type="audio/mpeg">
                         Tarayıcınız ses oynatıcısını desteklemiyor.
                     </audio>
                 </div>`;
