@@ -2875,6 +2875,19 @@
         } else if (mat.type === 'podcast') {
           if (mat.url.includes('spotify.com')) {
             bodyEl.innerHTML = `<iframe src="${mat.url.replace('/episode/', '/embed/episode/')}" width="100%" height="152" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>`;
+          } else if (mat.url.includes('youtube.com') || mat.url.includes('youtu.be/')) {
+            const videoId = mat.url.includes('v=') ? mat.url.split('v=')[1]?.split('&')[0] : mat.url.split('youtu.be/')[1]?.split('?')[0];
+            if (videoId) {
+              const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1`;
+              // Mask the video itself and only show the YouTube control bar at the bottom 
+              // for a "podcast/audio" like experience
+              bodyEl.innerHTML = `
+                <div class="media-podcast-youtube-audio" style="position: relative; width: 100%; height: 42px; overflow: hidden; border-radius: 8px; background: #000; display:flex; align-items:flex-end;">
+                  <iframe src="${embedUrl}" style="position: absolute; top: -100px; left: 0; width: 100%; height: 142px; border: 0;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                </div>
+                <p style="text-align: center; color: var(--text-muted); font-size: 0.8rem; margin-top: 10px;">🎧 YouTube Ses Kaydı (Sadece Oynatıcı Çubuğu)</p>
+              `;
+            }
           } else if (mat.url.includes('drive.google.com/file/d/')) {
             const fileIdMatch = mat.url.match(/file\/d\/([^/]+)/);
             if (fileIdMatch && fileIdMatch[1]) {
