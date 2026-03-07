@@ -23,7 +23,7 @@ window.openMaterialModal = function (encodedData) {
             let embedUrl = mat.url;
             if (mat.url.includes('youtube.com/watch') || mat.url.includes('youtu.be/')) {
                 const videoId = mat.url.split('v=')[1]?.split('&')[0] || mat.url.split('youtu.be/')[1]?.split('?')[0];
-                if (videoId) embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1`;
+                if (videoId) embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1&iv_load_policy=3&showinfo=0`;
             } else if (mat.url.includes('vimeo.com/')) {
                 const videoId = mat.url.split('vimeo.com/')[1];
                 if (videoId) embedUrl = `https://player.vimeo.com/video/${videoId}?autoplay=1`;
@@ -181,102 +181,103 @@ window.openMaterialModal = function (encodedData) {
                         };
                     }
                     setTimeout(() => window.initCustomYtPlayer(videoId), 50);
-                } else if (mat.url.includes('drive.google.com/file/d/')) {
-                    const fileIdMatch = mat.url.match(/file\/d\/([^/]+)/);
-                    if (fileIdMatch && fileIdMatch[1]) {
-                        const audioUrl = `https://drive.google.com/file/d/${fileIdMatch[1]}/preview`;
-                        bodyEl.innerHTML = `
+                }
+            } else if (mat.url.includes('drive.google.com/file/d/')) {
+                const fileIdMatch = mat.url.match(/file\/d\/([^/]+)/);
+                if (fileIdMatch && fileIdMatch[1]) {
+                    const audioUrl = `https://drive.google.com/file/d/${fileIdMatch[1]}/preview`;
+                    bodyEl.innerHTML = `
                     <div class="media-responsive-iframe" style="padding-bottom: 0; min-height: 150px; height: 150px; border-radius: 12px; overflow: hidden; border: 1px solid var(--border-color); box-shadow: 0 4px 15px rgba(0,0,0,0.08);">
                         <iframe src="${audioUrl}" allow="autoplay" allowfullscreen style="border-radius: 12px; border: none; background: var(--bg-card);"></iframe>
                     </div>`;
-                    }
-                } else {
-                    bodyEl.innerHTML = `
+                }
+            } else {
+                bodyEl.innerHTML = `
                 <div class="media-podcast-container" style="background: var(--bg-card); padding: 20px; border-radius: 16px; border: 1px solid var(--border-color); box-shadow: 0 4px 15px rgba(0,0,0,0.08);">
                     <audio controls autoplay style="width: 100%; outline: none;">
                         <source src="${mat.url}" type="audio/mpeg">
                         Tarayıcınız ses oynatıcısını desteklemiyor.
                     </audio>
                 </div>`;
+            }
+        } else if (mat.type === 'html') {
+            bodyEl.innerHTML = `<div class="media-html-content" style="padding-top:10px; color: var(--text-color);">${mat.content || mat.url || 'İçerik yüklenemedi.'}</div>`;
+        } else if (mat.type === 'pdf') {
+            if (mat.url && mat.url.includes('drive.google.com/file/d/')) {
+                let embedUrl = mat.url;
+                const fileIdMatch = mat.url.match(/file\/d\/([^/]+)/);
+                if (fileIdMatch && fileIdMatch[1]) {
+                    embedUrl = `https://drive.google.com/file/d/${fileIdMatch[1]}/preview`;
                 }
-            } else if (mat.type === 'html') {
-                bodyEl.innerHTML = `<div class="media-html-content" style="padding-top:10px; color: var(--text-color);">${mat.content || mat.url || 'İçerik yüklenemedi.'}</div>`;
-            } else if (mat.type === 'pdf') {
-                if (mat.url && mat.url.includes('drive.google.com/file/d/')) {
-                    let embedUrl = mat.url;
-                    const fileIdMatch = mat.url.match(/file\/d\/([^/]+)/);
-                    if (fileIdMatch && fileIdMatch[1]) {
-                        embedUrl = `https://drive.google.com/file/d/${fileIdMatch[1]}/preview`;
-                    }
-                    bodyEl.innerHTML = `
+                bodyEl.innerHTML = `
                 <div class="media-responsive-iframe" style="padding-bottom: 0; min-height: 65vh; height: 100%; border-radius: 12px; overflow: hidden; border: 1px solid var(--border-color); box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
                     <iframe src="${embedUrl}" allow="autoplay" allowfullscreen style="border-radius: 12px; border: none; background: var(--bg-card);"></iframe>
                 </div>
                 `;
-                } else {
-                    bodyEl.innerHTML = `
+            } else {
+                bodyEl.innerHTML = `
                 <div class="p-5 text-center mt-3" style="background: var(--bg-card); border: 1px dashed var(--border-color); border-radius:16px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); display: flex; flex-direction: column; align-items: center; justify-content: center;">
                     <div style="font-size:3rem; margin-bottom:15px; color: var(--text-muted); opacity:0.5;"><i class="fas fa-file-pdf"></i></div>
                     <div class="mb-4" style="color: var(--text-color); font-weight: 500;">Bu PDF belgesi doğrudan görüntülenemiyor, lütfen tarayıcıda yeni sekmede açın.</div>
                     <a href="${mat.url}" target="_blank" class="btn btn-primary" style="border-radius:30px; padding:10px 24px; font-weight: 600; box-shadow: 0 4px 12px rgba(224, 163, 82, 0.3); transition: transform 0.2s;"><i class="fas fa-external-link-alt mr-2"></i> PDF'i Görüntüle</a>
                 </div>`;
-                }
-            } else {
-                bodyEl.innerHTML = `
+            }
+        } else {
+            bodyEl.innerHTML = `
             <div class="p-5 text-center mt-3" style="background: var(--bg-card); border: 1px dashed var(--border-color); border-radius:16px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); display: flex; flex-direction: column; align-items: center; justify-content: center;">
                 <div style="font-size:3rem; margin-bottom:15px; color: var(--text-muted); opacity:0.5;"><i class="fas fa-file-alt"></i></div>
                 <div class="mb-4" style="color: var(--text-color); font-weight: 500;">Bu içerik türü doğrudan önizlenemiyor.</div>
                 <a href="${mat.url}" target="_blank" class="btn btn-primary" style="border-radius:30px; padding:10px 24px; font-weight: 600; box-shadow: 0 4px 12px rgba(224, 163, 82, 0.3); transition: transform 0.2s;"><i class="fas fa-external-link-alt mr-2"></i> Yeni Sekmede Aç</a>
             </div>`;
-            }
-
-            overlay.classList.add('active');
-            document.body.style.overflow = 'hidden';
-        } catch (err) {
-            console.error("Modal acilamadi", err);
-            alert('Materyal görüntülenirken bir hata oluştu.');
-        }
-    };
-
-    window.toggleMaterialFullscreen = function (event) {
-        if (event) event.preventDefault();
-        const bodyEl = document.getElementById('mediaModalBody');
-        const iframeEl = bodyEl.querySelector('iframe');
-        const targetEl = iframeEl || document.querySelector('.media-modal-container');
-
-        if (!document.fullscreenElement && !document.webkitFullscreenElement) {
-            if (targetEl.requestFullscreen) {
-                targetEl.requestFullscreen().catch(err => console.log(err));
-            } else if (targetEl.webkitRequestFullscreen) {
-                targetEl.webkitRequestFullscreen();
-            } else if (targetEl.msRequestFullscreen) {
-                targetEl.msRequestFullscreen();
-            }
-        } else {
-            if (document.exitFullscreen) {
-                document.exitFullscreen();
-            } else if (document.webkitExitFullscreen) {
-                document.webkitExitFullscreen();
-            } else if (document.msExitFullscreen) {
-                document.msExitFullscreen();
-            }
-        }
-    };
-
-    window.closeMaterialModal = function (event) {
-        if (event) event.preventDefault();
-        const overlay = document.getElementById('mediaModalOverlay');
-        const bodyEl = document.getElementById('mediaModalBody');
-        overlay.classList.remove('active');
-        document.body.style.overflow = '';
-
-        if (window.ytProgressInterval) clearInterval(window.ytProgressInterval);
-        if (window.currentYtPlayer && typeof window.currentYtPlayer.destroy === 'function') {
-            try { window.currentYtPlayer.destroy(); } catch (e) { }
-            window.currentYtPlayer = null;
         }
 
-        setTimeout(() => {
-            bodyEl.innerHTML = '';
-        }, 300);
-    };
+        overlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    } catch (err) {
+        console.error("Modal acilamadi", err);
+        alert('Materyal görüntülenirken bir hata oluştu.');
+    }
+};
+
+window.toggleMaterialFullscreen = function (event) {
+    if (event) event.preventDefault();
+    const bodyEl = document.getElementById('mediaModalBody');
+    const iframeEl = bodyEl.querySelector('iframe');
+    const targetEl = iframeEl || document.querySelector('.media-modal-container');
+
+    if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+        if (targetEl.requestFullscreen) {
+            targetEl.requestFullscreen().catch(err => console.log(err));
+        } else if (targetEl.webkitRequestFullscreen) {
+            targetEl.webkitRequestFullscreen();
+        } else if (targetEl.msRequestFullscreen) {
+            targetEl.msRequestFullscreen();
+        }
+    } else {
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) {
+            document.webkitExitFullscreen();
+        } else if (document.msExitFullscreen) {
+            document.msExitFullscreen();
+        }
+    }
+};
+
+window.closeMaterialModal = function (event) {
+    if (event) event.preventDefault();
+    const overlay = document.getElementById('mediaModalOverlay');
+    const bodyEl = document.getElementById('mediaModalBody');
+    overlay.classList.remove('active');
+    document.body.style.overflow = '';
+
+    if (window.ytProgressInterval) clearInterval(window.ytProgressInterval);
+    if (window.currentYtPlayer && typeof window.currentYtPlayer.destroy === 'function') {
+        try { window.currentYtPlayer.destroy(); } catch (e) { }
+        window.currentYtPlayer = null;
+    }
+
+    setTimeout(() => {
+        bodyEl.innerHTML = '';
+    }, 300);
+};
