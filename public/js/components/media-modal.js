@@ -65,6 +65,44 @@ if (!window.initCustomAudioPlayer) {
             };
         }
 
+        const volumeBtn = document.getElementById('podcastVolumeBtn');
+        const volumeIcon = document.getElementById('podcastVolumeIcon');
+        const volumeSlider = document.getElementById('podcastVolumeSlider');
+
+        if (volumeBtn && volumeIcon && volumeSlider) {
+            let lastVolume = 1;
+
+            const updateVolumeIcon = (vol) => {
+                if (vol === 0 || audioEl.muted) volumeIcon.className = 'fas fa-volume-mute';
+                else if (vol < 0.5) volumeIcon.className = 'fas fa-volume-down';
+                else volumeIcon.className = 'fas fa-volume-up';
+            };
+
+            volumeSlider.oninput = (e) => {
+                const vol = parseFloat(e.target.value);
+                audioEl.volume = vol;
+                if (vol > 0) audioEl.muted = false;
+                updateVolumeIcon(vol);
+            };
+
+            volumeBtn.onclick = () => {
+                if (audioEl.muted || audioEl.volume === 0) {
+                    audioEl.muted = false;
+                    audioEl.volume = lastVolume > 0 ? lastVolume : 1;
+                    volumeSlider.value = audioEl.volume;
+                } else {
+                    lastVolume = audioEl.volume;
+                    audioEl.muted = true;
+                    volumeSlider.value = 0;
+                }
+                updateVolumeIcon(audioEl.muted ? 0 : audioEl.volume);
+            };
+
+            // Initial setup
+            volumeSlider.value = audioEl.volume;
+            updateVolumeIcon(audioEl.volume);
+        }
+
         audioEl.onplay = () => {
             playIcon.className = 'fas fa-pause';
         };
@@ -136,12 +174,23 @@ window.openMaterialModal = function (encodedData) {
                         .yt-custom-progress-track:hover .yt-custom-progress-thumb { transform: translateY(-50%) scale(1); }
                         .yt-speed-btn { background: var(--bg-input); border: 1px solid var(--border-color); color: var(--text-color); padding: 5px 12px; border-radius: 15px; font-size: 0.8rem; cursor: pointer; font-weight: 600; transition: all 0.2s; white-space: nowrap; }
                         .yt-speed-btn:hover { border-color: var(--primary-color, #E0A352); color: var(--primary-color, #E0A352); background: transparent; }
+                        .yt-volume-container { display: flex; align-items: center; gap: 8px; margin-left: 5px; }
+                        .yt-volume-btn { background: none; border: none; color: var(--text-color); font-size: 1.1rem; cursor: pointer; opacity: 0.8; transition: opacity 0.2s, color 0.2s; display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; padding: 0; }
+                        .yt-volume-btn:hover { opacity: 1; color: var(--primary-color, #E0A352); }
+                        .yt-volume-slider { width: 60px; height: 4px; -webkit-appearance: none; appearance: none; background: var(--border-color); border-radius: 2px; outline: none; transition: background 0.2s; cursor: pointer; }
+                        .yt-volume-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 12px; height: 12px; border-radius: 50%; background: var(--primary-color, #E0A352); cursor: pointer; transition: transform 0.2s; }
+                        .yt-volume-slider::-webkit-slider-thumb:hover { transform: scale(1.2); }
                         
+                        @media (max-width: 500px) {
+                            .yt-volume-slider { width: 40px; }
+                        }
                         @media (max-width: 420px) {
-                            .custom-yt-audio-player { padding: 10px 15px; gap: 10px; }
+                            .custom-yt-audio-player { padding: 10px 15px; gap: 10px; flex-wrap: wrap; }
                             .yt-play-btn { width: 38px; height: 38px; min-width: 38px; font-size: 1rem; }
                             .yt-time-display { font-size: 0.75rem; min-width: 30px; }
                             .yt-speed-btn { padding: 4px 10px; font-size: 0.75rem; }
+                            .yt-progress-container { width: 100%; order: -1; margin-bottom: 5px; }
+                            .yt-volume-container { margin-left: auto; }
                         }
                         </style>
                         <div class="custom-yt-audio-player">
@@ -158,6 +207,12 @@ window.openMaterialModal = function (encodedData) {
                                 <span class="yt-time-display" id="ytTotalTime">0:00</span>
                             </div>
                             <button class="yt-speed-btn" id="ytSpeedBtn" onclick="toggleYtSpeed()" title="Oynatma Hızı">1x</button>
+                            <div class="yt-volume-container">
+                                <button class="yt-volume-btn" id="ytVolumeBtn" onclick="toggleYtMute()" title="Sesi Kapat/Aç">
+                                    <i class="fas fa-volume-up" id="ytVolumeIcon"></i>
+                                </button>
+                                <input type="range" class="yt-volume-slider" id="ytVolumeSlider" min="0" max="100" value="100" oninput="changeYtVolume(this.value)" title="Ses Seviyesi">
+                            </div>
                         </div>
                         <div id="ytHiddenPlayer" style="position:absolute; width:1px; height:1px; top:-9999px; left:-9999px; opacity:0; pointer-events:none;"></div>
                     `;
@@ -280,6 +335,46 @@ window.openMaterialModal = function (encodedData) {
                             let seconds = Math.floor(time % 60);
                             return minutes + ":" + (seconds < 10 ? '0' : '') + seconds;
                         };
+
+                        window.ytLastVolume = 100;
+                        window.updateYtVolumeIcon = function (vol, isMuted) {
+                            const icon = document.getElementById('ytVolumeIcon');
+                            if (!icon) return;
+                            if (isMuted || vol === 0) icon.className = 'fas fa-volume-mute';
+                            else if (vol < 50) icon.className = 'fas fa-volume-down';
+                            else icon.className = 'fas fa-volume-up';
+                        };
+
+                        window.changeYtVolume = function (val) {
+                            if (window.currentYtPlayer && window.currentYtPlayer.setVolume) {
+                                const vol = parseInt(val, 10);
+                                window.currentYtPlayer.setVolume(vol);
+                                if (vol > 0 && window.currentYtPlayer.isMuted()) {
+                                    window.currentYtPlayer.unMute();
+                                }
+                                window.updateYtVolumeIcon(vol, vol === 0);
+                            }
+                        };
+
+                        window.toggleYtMute = function () {
+                            if (window.currentYtPlayer && window.currentYtPlayer.isMuted) {
+                                const isMuted = window.currentYtPlayer.isMuted();
+                                const slider = document.getElementById('ytVolumeSlider');
+                                if (isMuted) {
+                                    window.currentYtPlayer.unMute();
+                                    const volToRestore = window.ytLastVolume > 0 ? window.ytLastVolume : 100;
+                                    window.currentYtPlayer.setVolume(volToRestore);
+                                    if (slider) slider.value = volToRestore;
+                                    window.updateYtVolumeIcon(volToRestore, false);
+                                } else {
+                                    let currentVol = window.currentYtPlayer.getVolume();
+                                    if (currentVol > 0) window.ytLastVolume = currentVol;
+                                    window.currentYtPlayer.mute();
+                                    if (slider) slider.value = 0;
+                                    window.updateYtVolumeIcon(0, true);
+                                }
+                            }
+                        };
                     }
                     setTimeout(() => window.initCustomYtPlayer(videoId), 50);
                 }
@@ -308,6 +403,23 @@ window.openMaterialModal = function (encodedData) {
                         .podcast-progress-track:hover .podcast-progress-thumb { transform: translateY(-50%) scale(1); }
                         .podcast-speed-btn { background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 15px; padding: 5px 12px; font-weight: 600; font-size: 0.8rem; color: var(--text-color); white-space: nowrap; cursor: pointer; transition: all 0.2s; }
                         .podcast-speed-btn:hover { border-color: var(--primary-color, #E0A352); color: var(--primary-color, #E0A352); background: transparent; }
+                        .podcast-volume-container { display: flex; align-items: center; gap: 8px; margin-left: 5px; }
+                        .podcast-volume-btn { background: none; border: none; color: var(--text-color); font-size: 1.1rem; cursor: pointer; opacity: 0.8; transition: opacity 0.2s, color 0.2s; display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; padding: 0; }
+                        .podcast-volume-btn:hover { opacity: 1; color: var(--primary-color, #E0A352); }
+                        .podcast-volume-slider { width: 60px; height: 4px; -webkit-appearance: none; appearance: none; background: var(--border-color); border-radius: 2px; outline: none; transition: background 0.2s; cursor: pointer; }
+                        .podcast-volume-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 12px; height: 12px; border-radius: 50%; background: var(--primary-color, #E0A352); cursor: pointer; transition: transform 0.2s; }
+                        .podcast-volume-slider::-webkit-slider-thumb:hover { transform: scale(1.2); }
+                        
+                        @media (max-width: 500px) {
+                            .podcast-volume-slider { width: 40px; }
+                        }
+                        @media (max-width: 420px) {
+                            .custom-podcast-player { flex-wrap: wrap; gap: 10px; }
+                            .podcast-timeline { width: 100%; order: -1; margin-bottom: 5px; }
+                            .podcast-volume-container { margin-left: auto; }
+                            .podcast-speed-btn { padding: 4px 10px; font-size: 0.75rem; }
+                            .podcast-play-btn { width: 38px; height: 38px; min-width: 38px; font-size: 1rem; }
+                        }
                     </style>
                     <div class="custom-podcast-player">
                         <button class="podcast-play-btn" id="podcastPlayBtn" type="button" aria-label="Oynat/Duraklat">
@@ -323,6 +435,12 @@ window.openMaterialModal = function (encodedData) {
                             <span class="podcast-time" id="podcastTotalTime">0:00</span>
                         </div>
                         <button class="podcast-speed-btn" id="podcastSpeedBtn" type="button" title="Oynatma Hızı">1x</button>
+                        <div class="podcast-volume-container">
+                            <button class="podcast-volume-btn" id="podcastVolumeBtn" type="button" title="Sesi Kapat/Aç">
+                                <i class="fas fa-volume-up" id="podcastVolumeIcon"></i>
+                            </button>
+                            <input type="range" class="podcast-volume-slider" id="podcastVolumeSlider" min="0" max="1" step="0.05" value="1" title="Ses Seviyesi">
+                        </div>
                     </div>
                     <audio id="customPodcastAudio" preload="metadata" style="display:none"></audio>
                 </div>`;
