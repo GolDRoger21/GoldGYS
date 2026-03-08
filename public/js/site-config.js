@@ -334,8 +334,9 @@ function applyAnnouncement(config) {
         bar.style.zIndex = "2000";
         bar.innerHTML = content;
         document.body.prepend(bar);
-        document.body.classList.add("has-announcement");
     }
+
+    document.body.classList.add("has-announcement");
 }
 
 function upsertMetaByName(name, content) {

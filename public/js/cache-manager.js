@@ -185,6 +185,7 @@ export const CacheManager = {
 
     async getData(key, maxAge = null) {
         try {
+            await syncCacheBusterFromServer();
             const record = await idb.get(STORES.METADATA, key);
             if (!record) return null;
             const effectiveTtl = Number.isFinite(maxAge) && maxAge > 0 ? Math.min(record.ttl || DEFAULT_TTL, maxAge) : (record.ttl || DEFAULT_TTL);
