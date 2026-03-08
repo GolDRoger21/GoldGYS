@@ -3,7 +3,7 @@
 import { initLayout } from './ui-loader.js';
 import { auth, db } from "./firebase-config.js";
 import { getUserProfile } from "./user-profile.js";
-import { collection, doc, getDoc, getDocs, limit, onSnapshot, orderBy, query, where, Timestamp } from "./firestore-metrics.js";
+import { collection, doc, getDoc, getDocs, limit, onSnapshot, orderBy, documentId, query, where, Timestamp } from "./firestore-metrics.js";
 import { buildTopicPath } from './topic-url.js';
 import { CacheManager } from './cache-manager.js';
 import { pickTopicIcon } from './topic-icon-map.js';
@@ -87,7 +87,7 @@ async function getTopicProgressDocs(uid) {
         }
 
         const progressSnap = await getDocs(
-            query(collection(db, `users/${uid}/topic_progress`), limit(500)),
+            query(collection(db, `users/${uid}/topic_progress`), orderBy(documentId()), limit(500)),
             "users.topic_progress"
         );
         const progressMapDocs = progressSnap.docs.map(d => ({ id: d.id, data: d.data() }));

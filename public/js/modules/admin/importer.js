@@ -1,6 +1,6 @@
 import { db } from "../../firebase-config.js";
 import { showConfirm, showToast } from "../../notifications.js";
-import { collection, writeBatch, doc, serverTimestamp, getDocs, query, orderBy, limit } from "../../firestore-metrics.js";
+import { collection, writeBatch, doc, serverTimestamp, getDocs, query, orderBy, documentId, limit } from "../../firestore-metrics.js";
 import * as XLSX from "https://cdn.sheetjs.com/xlsx-latest/package/xlsx.mjs";
 import { TOPIC_KEYWORDS } from './keyword-map.js';
 
@@ -226,7 +226,9 @@ function findNearDuplicate(normalizedText) {
 
 async function fetchExistingSignatures() {
     try {
-        const snapshot = await getDocs(query(collection(db, "questions"), limit(IMPORTER_SIGNATURE_SCAN_LIMIT)));
+        const snapshot = await getDocs(
+            query(collection(db, "questions"), orderBy(documentId()), limit(IMPORTER_SIGNATURE_SCAN_LIMIT))
+        );
         dbSignatureMap.clear();
         dbNormalizedSamples = [];
 

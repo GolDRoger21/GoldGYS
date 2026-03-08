@@ -1,7 +1,7 @@
 import { db } from "../../firebase-config.js";
 import { showConfirm, showToast } from "../../notifications.js";
 import { getConfigPublic } from "./utils.js";
-import { collection, getDocs, doc, addDoc, deleteDoc, serverTimestamp, query, orderBy, where, limit } from "../../firestore-metrics.js";
+import { collection, getDocs, doc, addDoc, deleteDoc, serverTimestamp, query, orderBy, documentId, where, limit } from "../../firestore-metrics.js";
 
 let generatedQuestionsCache = [];
 
@@ -156,7 +156,9 @@ async function generateQuestions() {
 
     try {
         // 1. Tüm Aktif Soruları Çek
-        const qSnapshot = await getDocs(query(collection(db, "questions"), where("isActive", "==", true), limit(EXAM_SOURCE_QUESTION_LIMIT)));
+    const qSnapshot = await getDocs(
+        query(collection(db, "questions"), where("isActive", "==", true), orderBy(documentId()), limit(EXAM_SOURCE_QUESTION_LIMIT))
+    );
         const allQuestions = qSnapshot.docs.map(d => ({ id: d.id, ...d.data() }));
 
         logArea.innerHTML += `📦 ${allQuestions.length} aktif soru tarandı.<br>----------------<br>`;

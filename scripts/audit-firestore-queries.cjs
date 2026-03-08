@@ -1,57 +1,101 @@
 #!/usr/bin/env node
-const fs = require('fs');
-const path = require('path');
+const fs = require("fs");
+const path = require("path");
 
-const ROOT = path.join(__dirname, '..', 'public', 'js');
-const TARGET_FILES = new Set([
-  'dashboard.js',
-  'analysis.js',
-  'site-config.js',
-  'ui-loader.js'
-]);
+const ROOT = path.join(__dirname, "..", "public", "js");
 const violations = [];
+const warnings = [];
 
-function walk(dir) {
+function walk(dir, out = []) {
   const entries = fs.readdirSync(dir, { withFileTypes: true });
   for (const entry of entries) {
     const full = path.join(dir, entry.name);
     if (entry.isDirectory()) {
-      walk(full);
+      walk(full, out);
       continue;
     }
-    if (!entry.name.endsWith('.js')) continue;
-    if (!TARGET_FILES.has(path.basename(full))) continue;
+    if (entry.isFile() && full.endsWith(".js")) out.push(full);
+  }
+  return out;
+}
 
-    const content = fs.readFileSync(full, 'utf8');
-    const lines = content.split(/\r?\n/);
+function lineOf(text, index) {
+  return text.slice(0, index).split(/\r?\n/).length;
+}
 
-    lines.forEach((line, idx) => {
-      const t = line.trim();
-      if (t.includes('getDocs(collection(')) {
-        violations.push(`${full}:${idx + 1} uses getDocs(collection(...)) without limit/query`);
-      }
-    });
-
-    let cursor = 0;
-    while (true) {
-      const start = content.indexOf('getDocs(query(', cursor);
-      if (start === -1) break;
-      const end = content.indexOf('));', start);
-      if (end === -1) break;
-      const chunk = content.slice(start, end);
-      if (!chunk.includes('limit(')) {
-        const line = content.slice(0, start).split(/\r?\n/).length;
-        violations.push(`${full}:${line} query without limit(...)`);
-      }
-      cursor = end + 3;
+function findQueryClose(text, queryStartIndex) {
+  let depth = 0;
+  for (let i = queryStartIndex; i < text.length; i += 1) {
+    const ch = text[i];
+    if (ch === "(") depth += 1;
+    if (ch === ")") {
+      depth -= 1;
+      if (depth === 0) return i;
     }
+  }
+  return -1;
+}
+
+function scanFile(filePath) {
+  const content = fs.readFileSync(filePath, "utf8");
+  const lines = content.split(/\r?\n/);
+
+  lines.forEach((line, idx) => {
+    const trimmed = line.trim();
+    if (trimmed.includes("getDocs(collection(")) {
+      violations.push(`${filePath}:${idx + 1} uses getDocs(collection(...)) without query/limit`);
+    }
+    if (trimmed.includes("offset(")) {
+      violations.push(`${filePath}:${idx + 1} uses offset(...), which is forbidden`);
+    }
+  });
+
+  const callPattern = /getDocs\s*\(\s*query\s*\(/g;
+  let match;
+  while ((match = callPattern.exec(content)) !== null) {
+    const getDocsIdx = match.index;
+
+    const queryStart = getDocsIdx + "getDocs(".length;
+    const queryEnd = findQueryClose(content, queryStart);
+    if (queryEnd === -1) {
+      violations.push(`${filePath}:${lineOf(content, getDocsIdx)} malformed getDocs(query(...)) call`);
+      break;
+    }
+
+    const queryChunk = content.slice(queryStart, queryEnd + 1);
+    const atLine = lineOf(content, getDocsIdx);
+
+    if (!queryChunk.includes("limit(")) {
+      violations.push(`${filePath}:${atLine} query without limit(...)`);
+    }
+    if (queryChunk.includes("offset(")) {
+      violations.push(`${filePath}:${atLine} query uses offset(...), which is forbidden`);
+    }
+    if (!queryChunk.includes("orderBy(")) {
+      warnings.push(`${filePath}:${atLine} query has no orderBy(...) (deterministic pagination standard)`);
+    }
+
+    callPattern.lastIndex = queryEnd + 1;
   }
 }
 
-walk(ROOT);
-if (violations.length) {
-  console.error('Firestore query audit failed:');
+if (!fs.existsSync(ROOT)) {
+  console.error(`Audit root not found: ${ROOT}`);
+  process.exit(1);
+}
+
+const files = walk(ROOT);
+files.forEach(scanFile);
+
+if (warnings.length > 0) {
+  console.warn("Firestore query audit warnings:");
+  warnings.forEach((w) => console.warn(` - ${w}`));
+}
+
+if (violations.length > 0) {
+  console.error("Firestore query audit failed:");
   violations.forEach((v) => console.error(` - ${v}`));
   process.exit(1);
 }
-console.log('Firestore query audit passed.');
+
+console.log("Firestore query audit passed.");

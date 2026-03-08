@@ -8,6 +8,7 @@ import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth
 import { getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { getFunctions } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-functions.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js";
+import { getPerformance } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-performance.js";
 import { initializeAppCheck, ReCaptchaEnterpriseProvider } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app-check.js";
 
 // Senin Proje Ayarların
@@ -47,4 +48,19 @@ export const db = initializeFirestore(app, {
 });
 
 export const functions = getFunctions(app);
-export const analytics = getAnalytics(app);
+export let analytics = null;
+export let appPerformance = null;
+
+if (typeof window !== "undefined") {
+  try {
+    analytics = getAnalytics(app);
+  } catch (error) {
+    console.warn("Analytics initialization skipped:", error);
+  }
+
+  try {
+    appPerformance = getPerformance(app);
+  } catch (error) {
+    console.warn("Performance Monitoring initialization skipped:", error);
+  }
+}

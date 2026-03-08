@@ -8,6 +8,7 @@ import {
     getDocs,
     limit,
     orderBy,
+    documentId,
     query,
     serverTimestamp,
     updateDoc,
@@ -191,7 +192,9 @@ async function handleExamSubmit(event) {
         const batch = writeBatch(db);
 
         if (isActive) {
-            const activeSnapshot = await getDocs(query(collectionRef, where("isActive", "==", true), limit(ACTIVE_EXAM_SCAN_LIMIT)));
+            const activeSnapshot = await getDocs(
+                query(collectionRef, where("isActive", "==", true), orderBy(documentId()), limit(ACTIVE_EXAM_SCAN_LIMIT))
+            );
             activeSnapshot.forEach(docSnap => {
                 batch.update(docSnap.ref, { isActive: false, updatedAt: serverTimestamp() });
             });
@@ -297,7 +300,9 @@ async function setActiveExamAnnouncement(id) {
     try {
         const collectionRef = collection(db, "examAnnouncements");
         const batch = writeBatch(db);
-        const activeSnapshot = await getDocs(query(collectionRef, where("isActive", "==", true), limit(ACTIVE_EXAM_SCAN_LIMIT)));
+        const activeSnapshot = await getDocs(
+            query(collectionRef, where("isActive", "==", true), orderBy(documentId()), limit(ACTIVE_EXAM_SCAN_LIMIT))
+        );
         activeSnapshot.forEach(docSnap => {
             batch.update(docSnap.ref, { isActive: false, updatedAt: serverTimestamp() });
         });

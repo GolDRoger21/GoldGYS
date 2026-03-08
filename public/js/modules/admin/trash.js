@@ -8,6 +8,8 @@ import {
     updateDoc,
     deleteDoc,
     query,
+    orderBy,
+    documentId,
     where,
     limit
 } from "../../firestore-metrics.js";
@@ -93,7 +95,9 @@ async function loadTrashItems() {
     if (tbody) tbody.innerHTML = '<tr><td colspan="5" class="p-3 text-center">Yükleniyor...</td></tr>';
 
     try {
-        const deletedTopicsSnap = await getDocs(query(collection(db, "topics"), where("status", "==", "deleted"), limit(TRASH_LIMITS.topics)));
+        const deletedTopicsSnap = await getDocs(
+            query(collection(db, "topics"), where("status", "==", "deleted"), orderBy(documentId()), limit(TRASH_LIMITS.topics))
+        );
         const deletedTopics = deletedTopicsSnap.docs.map(docSnap => ({
             id: docSnap.id,
             title: docSnap.data().title || '(başlıksız)',
@@ -102,7 +106,9 @@ async function loadTrashItems() {
             topicTitle: docSnap.data().title || '(başlıksız)'
         }));
 
-        const deletedLessonsSnap = await getDocs(query(collectionGroup(db, "lessons"), where("status", "==", "deleted"), limit(TRASH_LIMITS.lessons)));
+        const deletedLessonsSnap = await getDocs(
+            query(collectionGroup(db, "lessons"), where("status", "==", "deleted"), orderBy(documentId()), limit(TRASH_LIMITS.lessons))
+        );
         const deletedLessonDocs = deletedLessonsSnap.docs;
         const lessonTopicIds = new Set(
             deletedLessonDocs
@@ -127,7 +133,9 @@ async function loadTrashItems() {
             };
         });
 
-        const deletedQuestionsSnap = await getDocs(query(collection(db, "questions"), where("isDeleted", "==", true), limit(TRASH_LIMITS.questions)));
+        const deletedQuestionsSnap = await getDocs(
+            query(collection(db, "questions"), where("isDeleted", "==", true), orderBy(documentId()), limit(TRASH_LIMITS.questions))
+        );
         const deletedQuestions = deletedQuestionsSnap.docs.map(docSnap => {
             const data = docSnap.data();
             return {

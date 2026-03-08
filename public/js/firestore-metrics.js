@@ -10,6 +10,7 @@ export const collectionGroup = fsdk.collectionGroup;
 export const query = fsdk.query;
 export const where = fsdk.where;
 export const orderBy = fsdk.orderBy;
+export const documentId = fsdk.documentId;
 export const limit = fsdk.limit;
 export const startAfter = fsdk.startAfter;
 export const doc = fsdk.doc;

@@ -1,5 +1,5 @@
 import { db, auth } from "./firebase-config.js";
-import { collection, query, orderBy, limit, getDocs, doc, setDoc, getDoc, serverTimestamp } from "./firestore-metrics.js";
+import { collection, query, orderBy, documentId, limit, getDocs, doc, setDoc, getDoc, serverTimestamp } from "./firestore-metrics.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { showConfirm, showToast } from "./notifications.js";
 import { TopicService } from "./topic-service.js";
@@ -168,7 +168,10 @@ async function initAnalysis(userId) {
             if (cachedProgCol?.cached && cachedProgCol.data) {
                 return cachedProgCol.data;
             } else {
-                const progressSnap = await getDocs(query(collection(db, `users/${userId}/topic_progress`), limit(500)), "users.topic_progress");
+                const progressSnap = await getDocs(
+                    query(collection(db, `users/${userId}/topic_progress`), orderBy(documentId()), limit(500)),
+                    "users.topic_progress"
+                );
                 const progressMapDocs = progressSnap.docs.map(d => ({ id: d.id, data: d.data() }));
                 await CacheManager.saveData(progressColCacheKey, progressMapDocs, ANALYSIS_CACHE_TTL);
                 return progressMapDocs;
@@ -1030,7 +1033,11 @@ async function resetAllStats() {
     // Kullanıcının tüm progress objelerini arka planda tek seferde temizle ki sıfırlamadan sonra çözdüğünde tarihsel soru sayıları eklenmesin.
     try {
         const progressSnap = await getDocs(
-            query(collection(db, `users/${state.userId}/topic_progress`), limit(ANALYSIS_PROGRESS_RESET_FETCH_LIMIT)),
+            query(
+                collection(db, `users/${state.userId}/topic_progress`),
+                orderBy(documentId()),
+                limit(ANALYSIS_PROGRESS_RESET_FETCH_LIMIT)
+            ),
             "users.topic_progress"
         );
         const updateTasks = progressSnap.docs.map((d) => () => setDoc(d.ref, {
