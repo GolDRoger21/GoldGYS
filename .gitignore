@@ -31,3 +31,7 @@ build/
 # Optional: a dedicated folder for secrets
 firebase-keys/
 secrets/
+
+# Explicit key blocks
+serviceAccountKey.json
+functions/serviceAccountKey.json

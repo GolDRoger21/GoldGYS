@@ -3,6 +3,7 @@ import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/
 import { getUserProfile } from './user-profile.js';
 import { showConfirm } from './notifications.js';
 import { applySiteConfigToDocument } from './site-config.js';
+import { initObservability } from './observability.js';
 
 const PAGE_CONFIG = {
     '/dashboard': { id: 'dashboard', title: 'Genel Bakış' },
@@ -30,6 +31,7 @@ export async function initLayout() {
 
     layoutInitPromise = (async () => {
         const path = window.location.pathname;
+        initObservability();
         const isAdminPage = path.includes('/admin');
         const config = PAGE_CONFIG[path] || { id: 'unknown', title: 'Gold GYS' };
 

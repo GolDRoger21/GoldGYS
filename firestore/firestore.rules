@@ -1,113 +1,115 @@
-rules_version = '2';
+﻿rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    
-    // --- YARDIMCI FONKSİYONLAR ---
-    
-    // Kullanıcı giriş yapmış mı?
+
     function signedIn() {
       return request.auth != null;
     }
-    
-    // İşlem yapan kişi, dokümanın sahibi mi?
+
     function isSelf(uid) {
       return signedIn() && request.auth.uid == uid;
     }
 
-    // Admin mi? (Önce Token'a bakar - Maliyet: 0, Yoksa DB'ye bakar - Maliyet: 1)
+    function hasTokenBool(key) {
+      return signedIn() &&
+        request.auth.token.keys().hasAny([key]) &&
+        request.auth.token[key] == true;
+    }
+
+    function tokenRoleIs(role) {
+      return signedIn() &&
+        request.auth.token.keys().hasAny(['role']) &&
+        request.auth.token.role == role;
+    }
+
+    function profileRole() {
+      return signedIn()
+        ? get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role
+        : null;
+    }
+
     function isAdmin() {
       return signedIn() && (
-        (request.auth.token.keys().hasAny(['admin']) && request.auth.token.admin == true) || 
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
-      );
-    }
-    
-    // Editör veya Admin mi?
-    function isEditor() {
-      return isAdmin() || (
-        signedIn() && (
-          (request.auth.token.keys().hasAny(['editor']) && request.auth.token.editor == true) ||
-          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'editor'
-        )
+        hasTokenBool('admin') ||
+        tokenRoleIs('admin') ||
+        profileRole() == 'admin'
       );
     }
 
-    // --- İSTATİSTİKLER (stats) ---
+    function isEditor() {
+      return signedIn() && (
+        isAdmin() ||
+        hasTokenBool('editor') ||
+        tokenRoleIs('editor') ||
+        profileRole() == 'editor'
+      );
+    }
+
     match /stats/{docId} {
       allow read: if isAdmin();
-      allow write: if false; // Sadece Cloud Functions yazabilir
+      allow write: if false;
     }
 
-    // --- KULLANICILAR (users) ---
     match /users/{uid} {
-      // Okuma: Kişi kendisi veya Admin
       allow read: if isSelf(uid) || isAdmin();
-      
-      // Oluşturma (Kayıt): Rol 'user' ve statü 'pending' olmalı
-      allow create: if isSelf(uid) 
-                    && request.resource.data.role == 'user'
-                    && request.resource.data.status == 'pending';
-      
-      // Güncelleme: 
-      // Admin her şeyi güncelleyebilir.
-      // Kullanıcı sadece profil alanlarını güncelleyebilir (Rol veya Statü değiştiremez!)
-      allow update: if isAdmin() ||
-        (
-          isSelf(uid) && 
-          request.resource.data.diff(resource.data).affectedKeys()
-            .hasOnly(['displayName', 'photoURL', 'email', 'lastLoginAt', 'updatedAt', 'ad', 'soyad', 'phone', 'title', 'targetExam'])
-        );
-      
+
+      allow create: if isSelf(uid)
+        && request.resource.data.role == 'user'
+        && request.resource.data.status == 'pending';
+
+      allow update: if isAdmin() || (
+        isSelf(uid) &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'displayName',
+          'photoURL',
+          'email',
+          'lastLoginAt',
+          'updatedAt',
+          'ad',
+          'soyad',
+          'phone',
+          'title',
+          'targetExam'
+        ])
+      );
+
       allow delete: if isAdmin();
-      
-      // Kullanıcı Alt Koleksiyonları (progress, wrongs, favorites, exam_results)
+
       match /{subcollection=**} {
-         allow read, write: if isSelf(uid) || isAdmin();
+        allow read, write: if isSelf(uid) || isAdmin();
       }
     }
 
-    // --- İÇERİK YÖNETİMİ ---
-
-    // Sistem Ayarları
     match /system/{docId} {
       allow read: if signedIn();
       allow write: if isAdmin();
     }
 
-    // Konular (Topics) ve Altındaki Dersler (Lessons)
     match /topics/{topicId} {
       allow read: if true;
-      allow write: if true;
-      
-      // Dersler (topics/{id}/lessons/{lessonId})
+      allow create, update, delete: if isEditor();
+
       match /lessons/{lessonId} {
         allow read: if signedIn();
         allow write: if isEditor();
       }
     }
 
-    // Sınavlar (Exams)
     match /exams/{examId} {
       allow read: if signedIn();
       allow write: if isEditor();
     }
-    
-    // Sorular (Questions)
+
     match /questions/{questionId} {
       allow read: if signedIn();
       allow write: if isEditor();
     }
 
-    // Raporlar (Reports)
     match /reports/{reportId} {
-      // Rapor oluşturma sadece Cloud Functions ile yapılır
       allow create: if false;
-      // Sadece editörler okuyup güncelleyebilir
       allow read, update, delete: if isEditor();
     }
 
-    // --- GÜVENLİK AĞI (Catch-all) ---
-    // Yukarıdaki kurallara uymayan her şeyi sadece Admin yapabilir.
     match /{document=**} {
       allow read, write: if isAdmin();
     }

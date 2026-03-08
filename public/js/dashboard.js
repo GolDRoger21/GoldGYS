@@ -3,7 +3,7 @@
 import { initLayout } from './ui-loader.js';
 import { auth, db } from "./firebase-config.js";
 import { getUserProfile } from "./user-profile.js";
-import { collection, doc, getDoc, getDocs, limit, onSnapshot, orderBy, query, where, Timestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { collection, doc, getDoc, getDocs, limit, onSnapshot, orderBy, query, where, Timestamp } from "./firestore-metrics.js";
 import { buildTopicPath } from './topic-url.js';
 import { CacheManager } from './cache-manager.js';
 import { pickTopicIcon } from './topic-icon-map.js';
@@ -111,7 +111,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             // Sınav ilanını, duyuruları ve aktiviteleri yükle
             let userData = {};
             try {
-                const userSnap = await getDoc(doc(db, "users", user.uid));
+                const userSnap = await getDoc(doc(db, "users", user.uid), "users");
                 userData = userSnap.exists() ? userSnap.data() : {};
             } catch (userDocError) {
                 console.error("Kullanıcı dokümanı yüklenemedi:", userDocError);
@@ -165,7 +165,7 @@ async function loadFocusTopics(uid, currentTopicId) {
         if (cachedProgCol?.cached && cachedProgCol.data) {
             progressMapDocs = cachedProgCol.data;
         } else {
-            const progressSnap = await getDocs(collection(db, `users/${uid}/topic_progress`));
+            const progressSnap = await getDocs(query(collection(db, `users/${uid}/topic_progress`), limit(500)), "users.topic_progress");
             progressMapDocs = progressSnap.docs.map(d => ({ id: d.id, data: d.data() }));
             await CacheManager.saveData(cacheKey, progressMapDocs, DASHBOARD_DATA_CACHE_TTL);
         }
@@ -191,7 +191,7 @@ async function loadFocusTopics(uid, currentTopicId) {
         if (cachedTopics?.cached && cachedTopics.data) {
             allTopics = cachedTopics.data;
         } else {
-            const topicsSnap = await getDocs(query(collection(db, "topics"), orderBy("order", "asc")));
+            const topicsSnap = await getDocs(query(collection(db, "topics"), orderBy("order", "asc"), limit(500)), "topics");
             allTopics = topicsSnap.docs.map(d => ({ id: d.id, ...d.data() })).filter(t => t.isActive !== false && t.status !== 'deleted' && t.isDeleted !== true);
             await CacheManager.saveData('all_topics', allTopics, 24 * 60 * 60 * 1000);
         }
@@ -313,7 +313,7 @@ async function fetchExamStats(uid, options = {}) {
         }
     }
 
-    const q = constraints.length ? query(baseRef, ...constraints) : baseRef;
+    const q = query(baseRef, ...constraints, limit(300));
     const snapshot = await getDocs(q);
 
     return snapshot.docs.reduce((acc, docSnap) => {
@@ -565,7 +565,7 @@ async function loadRecentActivities(uid) {
         if (cachedProgCol?.cached && cachedProgCol.data) {
             progressMapDocs = cachedProgCol.data;
         } else {
-            const progressSnap = await getDocs(collection(db, `users/${uid}/topic_progress`));
+            const progressSnap = await getDocs(query(collection(db, `users/${uid}/topic_progress`), limit(500)), "users.topic_progress");
             progressMapDocs = progressSnap.docs.map(d => ({ id: d.id, data: d.data() }));
             await CacheManager.saveData(cacheKey, progressMapDocs, DASHBOARD_DATA_CACHE_TTL);
         }

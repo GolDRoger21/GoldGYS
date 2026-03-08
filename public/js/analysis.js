@@ -1,5 +1,5 @@
 import { db, auth } from "./firebase-config.js";
-import { collection, query, orderBy, limit, getDocs, doc, setDoc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { collection, query, orderBy, limit, getDocs, doc, setDoc, getDoc, serverTimestamp } from "./firestore-metrics.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { showConfirm, showToast } from "./notifications.js";
 import { TopicService } from "./topic-service.js";
@@ -137,7 +137,7 @@ async function initAnalysis(userId) {
                 console.log("[Cache] Konular IndexedDB'den yüklendi (/analiz)");
                 return cachedTopics.data;
             } else {
-                const topicsSnap = await getDocs(query(collection(db, "topics"), orderBy("order", "asc")));
+                const topicsSnap = await getDocs(query(collection(db, "topics"), orderBy("order", "asc"), limit(500)), "topics");
                 const allTopics = topicsSnap.docs.map(d => ({ id: d.id, ...d.data() })).filter(t => t.isActive !== false && t.status !== 'deleted' && t.isDeleted !== true);
                 await CacheManager.saveData('all_topics', allTopics, 24 * 60 * 60 * 1000);
                 console.log("[Network] Konular Firestore'dan çekildi ve önbelleğe alındı.");
@@ -165,7 +165,7 @@ async function initAnalysis(userId) {
             if (cachedProgCol?.cached && cachedProgCol.data) {
                 return cachedProgCol.data;
             } else {
-                const progressSnap = await getDocs(collection(db, `users/${userId}/topic_progress`));
+                const progressSnap = await getDocs(query(collection(db, `users/${userId}/topic_progress`), limit(500)), "users.topic_progress");
                 const progressMapDocs = progressSnap.docs.map(d => ({ id: d.id, data: d.data() }));
                 await CacheManager.saveData(progressColCacheKey, progressMapDocs, ANALYSIS_CACHE_TTL);
                 return progressMapDocs;
@@ -1000,7 +1000,7 @@ async function resetAllStats() {
 
     // Kullanıcının tüm progress objelerini arka planda tek seferde temizle ki sıfırlamadan sonra çözdüğünde tarihsel soru sayıları eklenmesin.
     try {
-        const progressSnap = await getDocs(collection(db, `users/${state.userId}/topic_progress`));
+        const progressSnap = await getDocs(query(collection(db, `users/${state.userId}/topic_progress`), limit(1000)), "users.topic_progress");
         const batchUpdates = progressSnap.docs.map(d =>
             setDoc(d.ref, {
                 status: 'pending',

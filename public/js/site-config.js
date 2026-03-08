@@ -1,5 +1,5 @@
 import { db } from "./firebase-config.js";
-import { doc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { doc, getDoc, onSnapshot } from "./firestore-metrics.js";
 import { DEFAULT_PUBLIC_CONFIG, mergeWithDefaultPublicConfig } from "./config-defaults.js";
 import { CacheManager } from "./cache-manager.js";
 
@@ -35,7 +35,7 @@ export async function loadSiteConfig(options = {}) {
     }
 
     try {
-        const snap = await getDoc(doc(db, "config", "public"));
+        const snap = await getDoc(doc(db, "config", "public"), "config.public");
         configCache = mergeWithDefaultPublicConfig(snap.exists() ? snap.data() : {});
         await CacheManager.saveData(PUBLIC_CONFIG_CACHE_KEY, configCache, PUBLIC_CONFIG_TTL);
         return configCache;
@@ -46,7 +46,7 @@ export async function loadSiteConfig(options = {}) {
 }
 
 
-export async function applySiteConfigToDocument(configOrPromise) {
+export async function applySiteConfigToDocument(configOrPromise, options = {}) {
     const config = await (configOrPromise instanceof Promise ? configOrPromise : loadSiteConfig());
 
     applyBranding(config);
@@ -56,7 +56,7 @@ export async function applySiteConfigToDocument(configOrPromise) {
     applySupportLinks(config);
     applySocialMedia(config);
     applyAnnouncement(config);
-    ensureRealtimeConfigSync();
+    if (options.realtime === true) ensureRealtimeConfigSync();
     return config;
 }
 

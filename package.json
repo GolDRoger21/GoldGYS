@@ -1,8 +1,11 @@
-{
+﻿{
   "name": "goldgys",
   "version": "1.0.0",
   "scripts": {
-    "build": "node scripts/analyze-assets.cjs"
+    "build": "node scripts/analyze-assets.cjs",
+    "check:assets": "node scripts/analyze-assets.cjs --analyze",
+    "audit:queries": "node scripts/audit-firestore-queries.cjs",
+    "ci:checks": "npm run build && npm run audit:queries"
   },
   "devDependencies": {
     "firebase-admin": "^13.6.0"
