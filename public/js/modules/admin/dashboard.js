@@ -9,6 +9,7 @@ import {
     where
 } from "../../firestore-metrics.js";
 import { getWeeklyObservabilityReport } from "../../observability.js";
+import { readSessionCache, writeSessionCache } from "../../session-cache.js";
 
 // Chart (Grafik) nesnelerini saklamak için global değişken
 let dashboardCharts = {
@@ -23,28 +24,15 @@ const DASHBOARD_SHARD_QUERY_LIMIT = 400;
 const OBSERVABILITY_TOP_COLLECTIONS = 5;
 
 function readDashboardCache() {
-    try {
-        const raw = sessionStorage.getItem(DASHBOARD_CACHE_KEY);
-        if (!raw) return null;
-        const parsed = JSON.parse(raw);
-        if (!parsed?.savedAt || (Date.now() - parsed.savedAt) > DASHBOARD_CACHE_TTL_MS) return null;
-        return parsed;
-    } catch (_) {
-        return null;
-    }
+    return readSessionCache(DASHBOARD_CACHE_KEY, DASHBOARD_CACHE_TTL_MS);
 }
 
 function writeDashboardCache(patch) {
-    try {
-        const current = readDashboardCache() || {};
-        sessionStorage.setItem(DASHBOARD_CACHE_KEY, JSON.stringify({
-            ...current,
-            ...patch,
-            savedAt: Date.now()
-        }));
-    } catch (_) {
-        // sessionStorage engellendiyse sessizce devam et
-    }
+    const current = readDashboardCache() || {};
+    writeSessionCache(DASHBOARD_CACHE_KEY, {
+        ...current,
+        ...patch
+    });
 }
 
 /**

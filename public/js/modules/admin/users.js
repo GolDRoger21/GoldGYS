@@ -1,6 +1,7 @@
 import { db } from "../../firebase-config.js";
 import { showConfirm, showToast } from "../../notifications.js";
 import { collection, query, where, getDocs, doc, updateDoc, orderBy, writeBatch, limit, startAfter } from "../../firestore-metrics.js";
+import { getSessionValue, setSessionValue, removeSessionValue } from "../../session-cache.js";
 
 let usersTableBody = null; // Global seçim yerine init içinde seçeceğiz
 let currentUsers = [];
@@ -341,17 +342,17 @@ async function updateUserStatus(uid, status, confirmMessage) {
 }
 
 function focusRequestedUser() {
-    const uid = sessionStorage.getItem('adminUserFocus');
+    const uid = getSessionValue('adminUserFocus');
     if (!uid) return;
-    const triedAll = sessionStorage.getItem('adminUserFocusAll') === '1';
+    const triedAll = getSessionValue('adminUserFocusAll') === '1';
     const row = document.querySelector(`[data-user-row="${uid}"]`);
     if (!row && !triedAll) {
-        sessionStorage.setItem('adminUserFocusAll', '1');
+        setSessionValue('adminUserFocusAll', '1');
         loadAllUsers();
         return;
     }
-    sessionStorage.removeItem('adminUserFocus');
-    sessionStorage.removeItem('adminUserFocusAll');
+    removeSessionValue('adminUserFocus');
+    removeSessionValue('adminUserFocusAll');
     if (!row) return;
     row.classList.add('highlight');
     row.scrollIntoView({ behavior: 'smooth', block: 'center' });

@@ -5,6 +5,7 @@ import { mergeWithDefaultPublicConfig } from "../../config-defaults.js";
 import { showToast, showConfirm } from "../../notifications.js";
 import { doc, getDoc, setDoc, serverTimestamp } from "../../firestore-metrics.js";
 import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+import { clearSessionByPrefix, removeSessionValue } from "../../session-cache.js";
 
 const storage = getStorage();
 
@@ -177,8 +178,14 @@ function bindClearCacheButton() {
                 console.error("Global cache invalidation yazılamadı:", error);
             }
 
-            localStorage.clear();
-            sessionStorage.clear();
+            ["theme","sidebarCollapsed","goldgys_cache_buster","goldgys_observability_v1"].forEach((key) => localStorage.removeItem(key));
+
+            removeSessionValue("admin_dashboard_cache_v1");
+            removeSessionValue("adminUserFocus");
+            removeSessionValue("adminUserFocusAll");
+            clearSessionByPrefix("user_profile_");
+            clearSessionByPrefix("user_last_activity_");
+            clearSessionByPrefix("user_recent_activities_");
 
             // Delete IndexedDB caching entirely
             try {

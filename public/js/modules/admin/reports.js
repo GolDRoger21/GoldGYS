@@ -13,6 +13,7 @@ import {
     limit,
     startAfter
 } from "../../firestore-metrics.js";
+import { setSessionValue } from "../../session-cache.js";
 
 let listContainer = null;
 const REPORTS_FETCH_LIMIT = 500;
@@ -647,7 +648,7 @@ export const AdminReports = {
     },
     viewUser: async (uid) => {
         if (!uid) return;
-        sessionStorage.setItem('adminUserFocus', uid);
+        setSessionValue('adminUserFocus', uid);
         window.location.hash = 'users';
     }
 };
