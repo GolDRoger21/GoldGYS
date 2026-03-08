@@ -1,6 +1,84 @@
 import { db } from "./firebase-config.js";
 import { doc, getDoc, setDoc, serverTimestamp, updateDoc, addDoc, collection, getDocs, limit, orderBy, query } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+const USER_PROFILE_CACHE_TTL_MS = 30 * 60 * 1000;
+const USER_ACTIVITY_CACHE_TTL_MS = 5 * 60 * 1000;
+
+function readCachedUserProfile(cacheKey) {
+    try {
+        const cachedRaw = sessionStorage.getItem(cacheKey);
+        if (!cachedRaw) return null;
+        const parsed = JSON.parse(cachedRaw);
+
+        // Backward compatibility: legacy cache might store the user object directly.
+        if (!parsed || typeof parsed !== "object" || !parsed._cachedAt || !parsed.data) {
+            return parsed;
+        }
+
+        if ((Date.now() - parsed._cachedAt) > USER_PROFILE_CACHE_TTL_MS) {
+            sessionStorage.removeItem(cacheKey);
+            return null;
+        }
+
+        return parsed.data;
+    } catch (e) {
+        console.warn("Cache read error:", e);
+        return null;
+    }
+}
+
+function writeCachedUserProfile(cacheKey, data) {
+    try {
+        sessionStorage.setItem(cacheKey, JSON.stringify({
+            _cachedAt: Date.now(),
+            data
+        }));
+    } catch (e) {
+        console.warn("Cache write error:", e);
+    }
+}
+
+function readTimedSessionCache(cacheKey, ttlMs) {
+    try {
+        const cachedRaw = sessionStorage.getItem(cacheKey);
+        if (!cachedRaw) return null;
+        const parsed = JSON.parse(cachedRaw);
+        if (!parsed || typeof parsed !== "object" || !parsed._cachedAt || !("data" in parsed)) {
+            return null;
+        }
+        if ((Date.now() - parsed._cachedAt) > ttlMs) {
+            sessionStorage.removeItem(cacheKey);
+            return null;
+        }
+        return parsed.data;
+    } catch {
+        return null;
+    }
+}
+
+function writeTimedSessionCache(cacheKey, data) {
+    try {
+        sessionStorage.setItem(cacheKey, JSON.stringify({
+            _cachedAt: Date.now(),
+            data
+        }));
+    } catch {
+        // no-op
+    }
+}
+
+function clearActivityCaches(uid) {
+    if (!uid) return;
+    sessionStorage.removeItem(`user_last_activity_${uid}`);
+    const recentPrefix = `user_recent_activities_${uid}_`;
+    for (let i = sessionStorage.length - 1; i >= 0; i--) {
+        const key = sessionStorage.key(i);
+        if (key && key.startsWith(recentPrefix)) {
+            sessionStorage.removeItem(key);
+        }
+    }
+}
+
 /**
  * Kullanıcı veritabanında var mı kontrol eder, yoksa oluşturur.
  * Varsa son giriş zamanını ve Google bilgilerini günceller.
@@ -51,19 +129,18 @@ export async function ensureUserDocument(user) {
  * Kullanıcı profilini getirir.
  * ÖNCE SessionStorage'a bakar (Maliyet: 0), yoksa Firestore'dan çeker (Maliyet: 1).
  */
-export async function getUserProfile(uid) {
+export async function getUserProfile(uid, options = {}) {
     if (!uid) return null;
 
     const CACHE_KEY = `user_profile_${uid}`;
+    const forceRefresh = Boolean(options?.forceRefresh || options?.force);
 
-    // 1. ADIM: Önbelleği Kontrol Et
-    try {
-        const cachedData = sessionStorage.getItem(CACHE_KEY);
+    // 1. ADIM: Cache control
+    if (!forceRefresh) {
+        const cachedData = readCachedUserProfile(CACHE_KEY);
         if (cachedData) {
-            return JSON.parse(cachedData);
+            return cachedData;
         }
-    } catch (e) {
-        console.warn("Önbellek okuma hatası:", e);
     }
 
     // 2. ADIM: Firestore'dan çek
@@ -81,7 +158,7 @@ export async function getUserProfile(uid) {
                 lastLoginAt: userData.lastLoginAt?.toDate ? userData.lastLoginAt.toDate().toISOString() : userData.lastLoginAt
             };
 
-            sessionStorage.setItem(CACHE_KEY, JSON.stringify(cacheableData));
+            writeCachedUserProfile(CACHE_KEY, cacheableData);
             return userData;
         } else {
             return null;
@@ -98,10 +175,9 @@ export async function getUserProfile(uid) {
 export function updateUserCache(uid, newData) {
     const CACHE_KEY = `user_profile_${uid}`;
     try {
-        const cachedRaw = sessionStorage.getItem(CACHE_KEY);
-        let currentData = cachedRaw ? JSON.parse(cachedRaw) : {};
+        const currentData = readCachedUserProfile(CACHE_KEY) || {};
         const updatedData = { ...currentData, ...newData };
-        sessionStorage.setItem(CACHE_KEY, JSON.stringify(updatedData));
+        writeCachedUserProfile(CACHE_KEY, updatedData);
     } catch (e) {
         console.warn("Cache update hatası:", e);
     }
@@ -137,6 +213,8 @@ export async function saveUserActivity(uid, activity) {
             timestamp: serverTimestamp()
         });
 
+        clearActivityCaches(uid);
+
     } catch (e) {
         console.warn("Aktivite kaydedilemedi:", e);
     }
@@ -146,10 +224,17 @@ export async function saveUserActivity(uid, activity) {
  * Kullanıcının son aktivitesini getirir.
  */
 export async function getLastActivity(uid) {
+    if (!uid) return null;
+    const cacheKey = `user_last_activity_${uid}`;
+    const cached = readTimedSessionCache(cacheKey, USER_ACTIVITY_CACHE_TTL_MS);
+    if (cached) return cached;
+
     try {
         const docRef = doc(db, `users/${uid}/activity/last_access`);
         const docSnap = await getDoc(docRef);
-        return docSnap.exists() ? docSnap.data() : null;
+        const data = docSnap.exists() ? docSnap.data() : null;
+        writeTimedSessionCache(cacheKey, data);
+        return data;
     } catch (e) {
         return null;
     }
@@ -160,11 +245,17 @@ export async function getLastActivity(uid) {
  */
 export async function getRecentActivities(uid, limitCount = 3) {
     if (!uid) return [];
+    const cacheKey = `user_recent_activities_${uid}_${limitCount}`;
+    const cached = readTimedSessionCache(cacheKey, USER_ACTIVITY_CACHE_TTL_MS);
+    if (cached) return cached;
+
     try {
         const activityRef = collection(db, `users/${uid}/activity_history`);
         const q = query(activityRef, orderBy("timestamp", "desc"), limit(limitCount));
         const snapshot = await getDocs(q);
-        return snapshot.docs.map(docSnap => docSnap.data());
+        const data = snapshot.docs.map(docSnap => docSnap.data());
+        writeTimedSessionCache(cacheKey, data);
+        return data;
     } catch (e) {
         return [];
     }

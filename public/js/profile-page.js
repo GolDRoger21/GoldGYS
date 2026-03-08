@@ -204,7 +204,8 @@ async function saveProfile(uid) {
 
         // UI güncelle
         const user = auth.currentUser;
-        const newData = await getUserProfile(user.uid, { force: true });
+        const currentProfile = await getUserProfile(user.uid);
+        const newData = { ...(currentProfile || {}), ...payload };
 
         // 1. Sayfa içi kartı güncelle
         updateInfoCard(newData, user);

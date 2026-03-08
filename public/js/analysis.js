@@ -9,6 +9,7 @@ import { CacheManager } from "./cache-manager.js";
 const ANALYSIS_CACHE_TTL = 30 * 60 * 1000; // 30 dakika
 const ANALYSIS_PROGRESS_RESET_FETCH_LIMIT = 1000;
 const ANALYSIS_PROGRESS_RESET_WRITE_CHUNK = 100;
+const ANALYSIS_TOPIC_META_FETCH_LIMIT = 8;
 
 const state = {
     userId: null,
@@ -252,6 +253,15 @@ async function runChunked(tasks, chunkSize) {
         await Promise.all(tasks.slice(i, i + chunkSize).map((task) => task()));
     }
 }
+async function syncCachedUserProfilePatch(userId, patch = {}) {
+    if (!userId || !patch || typeof patch !== 'object') return;
+    const userCacheKey = `user_profile_${userId}`;
+    const cachedUser = await CacheManager.getData(userCacheKey, ANALYSIS_CACHE_TTL);
+    const baseUser = (cachedUser?.cached && cachedUser?.data && typeof cachedUser.data === 'object')
+        ? cachedUser.data
+        : {};
+    await CacheManager.saveData(userCacheKey, { ...baseUser, ...patch }, ANALYSIS_CACHE_TTL);
+}
 
 async function hydrateTopicTotals(topics) {
     const unresolved = [];
@@ -272,8 +282,8 @@ async function hydrateTopicTotals(topics) {
         unresolved.push(topic);
     }
 
-    // Firestore kotasını korumak için sadece ilk 12 eksik konu için canlı metadata okuması.
-    await Promise.all(unresolved.slice(0, 12).map(async (topic) => {
+    // Firestore kotasını korumak için sadece sınırlı sayıda eksik konu için canlı metadata okuması.
+    await Promise.all(unresolved.slice(0, ANALYSIS_TOPIC_META_FETCH_LIMIT).map(async (topic) => {
         try {
             const meta = await TopicService.getTopicPackMeta(topic.id);
             const count = parseNum(meta?.questionCount || (Array.isArray(meta?.questionIds) ? meta.questionIds.length : 0));
@@ -943,6 +953,11 @@ window.setFocusTopic = async (topicId) => {
 
     const nowSeconds = Math.floor(Date.now() / 1000);
     state.currentTopicId = isCurrent ? null : topicId;
+    await syncCachedUserProfilePatch(state.userId, {
+        currentTopicId: state.currentTopicId,
+        currentTopicUpdatedAt: { seconds: nowSeconds },
+        updatedAt: { seconds: nowSeconds }
+    });
     if (!isCurrent) {
         const current = state.progressMap.get(topicId) || {};
         state.progressMap.set(topicId, { ...current, status: 'in_progress', updatedAt: { seconds: nowSeconds } });
@@ -980,6 +995,12 @@ window.resetTopicStats = async (topicId) => {
     const nowSeconds = Math.floor(Date.now() / 1000);
     state.topicResets[topicId] = nowSeconds;
     if (state.currentTopicId === topicId) state.currentTopicId = null;
+    await syncCachedUserProfilePatch(state.userId, {
+        topicResets: { ...(state.topicResets || {}) },
+        currentTopicId: state.currentTopicId,
+        currentTopicUpdatedAt: { seconds: nowSeconds },
+        updatedAt: { seconds: nowSeconds }
+    });
     const current = state.progressMap.get(topicId) || {};
     state.progressMap.set(topicId, {
         ...current,
@@ -1030,6 +1051,13 @@ async function resetAllStats() {
     state.statsResetAt = nowSeconds;
     state.topicResets = {};
     state.currentTopicId = null;
+    await syncCachedUserProfilePatch(state.userId, {
+        statsResetAt: { seconds: nowSeconds },
+        topicResets: {},
+        currentTopicId: null,
+        currentTopicUpdatedAt: { seconds: nowSeconds },
+        updatedAt: { seconds: nowSeconds }
+    });
     state.progressMap.forEach((data, key) => {
         state.progressMap.set(key, {
             ...data,
