@@ -532,6 +532,7 @@ export class TestEngine {
 
     async saveExamResult(stats) {
         if (!auth.currentUser) return;
+        const uid = auth.currentUser.uid;
 
         // Maliyet optimizasyonu: practice modunda her seansı kalıcı exam_result olarak yazmak yerine
         // varsayılan olarak sadece exam modunu yazıyoruz. İstenirse options.persistPracticeResults=true ile açılabilir.
@@ -557,7 +558,7 @@ export class TestEngine {
 
         try {
             // 1. Sınav Sonucunu Kaydet
-            await addDoc(collection(db, `users/${auth.currentUser.uid}/exam_results`), {
+            await addDoc(collection(db, `users/${uid}/exam_results`), {
                 examId: this.examId,
                 examTitle: this.examTitle,
                 topicId: this.topicId,
@@ -574,8 +575,8 @@ export class TestEngine {
             });
 
             // Sınav sonucu eklendiği için lokal analitik ve istatistik listesi (cache) düşürülür
-            await CacheManager.deleteData(TEST_ENGINE_CACHE_KEYS.examResultsCollection(auth.currentUser.uid));
-            await CacheManager.deleteData(TEST_ENGINE_CACHE_KEYS.dashboardStats(auth.currentUser.uid)); // Dashboard özetini de düşür
+            await CacheManager.deleteData(TEST_ENGINE_CACHE_KEYS.examResultsCollection(uid));
+            await CacheManager.deleteData(TEST_ENGINE_CACHE_KEYS.dashboardStats(uid)); // Dashboard özetini de düşür
 
 
             // 2. Yanlış Yapılanları 'wrong_summaries' koleksiyonuna işle (Sınav modunda toplu işlem)
@@ -601,7 +602,7 @@ export class TestEngine {
 
             // Cache'i güncelle (Firestore yazımından bağımsız, UI için)
             if (pendingList.length > 0) {
-                WrongSummaryService.updateCacheWithNewWrongs(auth.currentUser.uid, pendingList)
+                WrongSummaryService.updateCacheWithNewWrongs(uid, pendingList)
                     .catch(err => console.error("Cache update silent fail:", err));
             }
 
@@ -651,8 +652,9 @@ export class TestEngine {
 
     async flushWrongAnswers() {
         if (!auth.currentUser || this.pendingWrongAnswers.size === 0) return;
+        const uid = auth.currentUser.uid;
         const dateKey = new Date().toISOString().slice(0, 10);
-        const ref = doc(db, `users/${auth.currentUser.uid}/wrong_summaries/${dateKey}`);
+        const ref = doc(db, `users/${uid}/wrong_summaries/${dateKey}`);
         const updates = {
             updatedAt: serverTimestamp()
         };
@@ -701,10 +703,11 @@ export class TestEngine {
 
     async flushFavoriteChanges() {
         if (!auth.currentUser || this.pendingFavoriteChanges.size === 0) return;
+        const uid = auth.currentUser.uid;
 
         const operations = [];
         this.pendingFavoriteChanges.forEach((isFavorite, qId) => {
-            const ref = doc(db, `users/${auth.currentUser.uid}/favorites/${qId}`);
+            const ref = doc(db, `users/${uid}/favorites/${qId}`);
             if (!isFavorite) {
                 operations.push(deleteDoc(ref));
                 return;
@@ -722,7 +725,7 @@ export class TestEngine {
         try {
             await Promise.all(operations);
             this.pendingFavoriteChanges.clear();
-            await CacheManager.deleteData(TEST_ENGINE_CACHE_KEYS.userFavorites(auth.currentUser.uid));
+            await CacheManager.deleteData(TEST_ENGINE_CACHE_KEYS.userFavorites(uid));
         } catch (error) {
             console.error("Favori değişikliklerini toplu kaydetme hatası:", error);
         }

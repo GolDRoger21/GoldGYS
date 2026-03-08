@@ -39,10 +39,18 @@ const DASHBOARD_ENABLE_LIVE_LISTEN = false; // Kota koruma: varsayilan one-shot 
 const DASHBOARD_DATA_CACHE_TTL = 30 * 60 * 1000; // 30 dakika
 const ALL_TOPICS_CACHE_KEY = 'all_topics';
 const ALL_TOPICS_CACHE_TTL = 24 * 60 * 60 * 1000;
+const DASHBOARD_CACHE_KEYS = Object.freeze({
+    userProfile: (uid) => `user_profile_${uid}`,
+    topicProgressCollection: (uid) => `topic_progress_col_${uid}`,
+    examResultsCollection: (uid) => `exam_results_col_${uid}`
+});
+
+const DASHBOARD_EXAM_ANNOUNCEMENT_CACHE_KEY = "dashboard_exam_announcement_v1";
+const DASHBOARD_ANNOUNCEMENTS_CACHE_KEY = "dashboard_announcements_v1";
 
 
 async function getCachedUserDoc(uid) {
-    const cacheKey = `user_profile_${uid}`;
+    const cacheKey = DASHBOARD_CACHE_KEYS.userProfile(uid);
     const cachedUser = await CacheManager.getData(cacheKey, DASHBOARD_DATA_CACHE_TTL);
     if (cachedUser?.cached && cachedUser.data) {
         return { exists: () => true, data: () => cachedUser.data };
@@ -56,7 +64,7 @@ async function getCachedUserDoc(uid) {
 }
 
 async function getTopicProgressDocs(uid) {
-    const cacheKey = `topic_progress_col_${uid}`;
+    const cacheKey = DASHBOARD_CACHE_KEYS.topicProgressCollection(uid);
     const cachedProgCol = await CacheManager.getData(cacheKey, DASHBOARD_DATA_CACHE_TTL);
     if (cachedProgCol?.cached && cachedProgCol.data) {
         return cachedProgCol.data;
@@ -252,7 +260,7 @@ async function loadDashboardStats(uid) {
     const statsResetAtSeconds = normalizeResetTimestamp(userData.statsResetAt);
 
     // Bütün analizleri bellek üzerinden (cached) hesaplayacağız DB masrafı olmasın:
-    const resultsCacheKey = `exam_results_col_${uid}`;
+    const resultsCacheKey = DASHBOARD_CACHE_KEYS.examResultsCollection(uid);
     let rawResults = [];
     const cachedResults = await CacheManager.getData(resultsCacheKey, DASHBOARD_DATA_CACHE_TTL);
     if (cachedResults?.cached && cachedResults.data) {
@@ -357,7 +365,7 @@ function getTodayRange() {
 async function loadExamAnnouncement() {
     if (!ui.examPanelBody) return;
 
-    const cacheKey = "dashboard_exam_announcement_v1";
+    const cacheKey = DASHBOARD_EXAM_ANNOUNCEMENT_CACHE_KEY;
     const cached = await CacheManager.getData(cacheKey);
     if (cached?.cached && cached.data?.html) {
         ui.examPanelBody.innerHTML = cached.data.html;
@@ -499,7 +507,7 @@ function setCountdownState(examDate) {
 async function loadAnnouncements() {
     if (!ui.announcementList) return;
 
-    const cacheKey = "dashboard_announcements_v1";
+    const cacheKey = DASHBOARD_ANNOUNCEMENTS_CACHE_KEY;
     const cached = await CacheManager.getData(cacheKey);
     if (cached?.cached && cached.data?.html) {
         ui.announcementList.innerHTML = cached.data.html;
