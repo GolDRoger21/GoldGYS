@@ -4,8 +4,10 @@
   "scripts": {
     "build": "node scripts/analyze-assets.cjs",
     "check:assets": "node scripts/analyze-assets.cjs --analyze",
+    "check:syntax": "node scripts/check-js-syntax.cjs",
     "audit:queries": "node scripts/audit-firestore-queries.cjs",
-    "ci:checks": "npm run build && npm run audit:queries"
+    "ci:checks": "npm run check:syntax && npm run build && npm run audit:queries",
+    "ci:quick": "npm run check:syntax && npm run audit:queries"
   },
   "devDependencies": {
     "firebase-admin": "^13.6.0"
