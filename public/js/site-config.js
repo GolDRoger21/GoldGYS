@@ -332,18 +332,14 @@ function applyAnnouncement(config) {
 
     const content = `
         <div class="container site-announcement-inner">
+            <div class="site-announcement-badge" aria-hidden="true">
+                <i class="fas fa-bullhorn"></i>
+                <span class="site-announcement-label">Duyuru</span>
+            </div>
             <div class="site-announcement-marquee" aria-label="Site duyurusu">
                 <div class="site-announcement-track">
-                    <span class="site-announcement-item">
-                        <i class="fas fa-bullhorn" aria-hidden="true"></i>
-                        <span class="site-announcement-label">Duyuru</span>
-                        <span>${escapeHtml(announcement.text)}</span>
-                    </span>
-                    <span class="site-announcement-item" aria-hidden="true">
-                        <i class="fas fa-bullhorn"></i>
-                        <span class="site-announcement-label">Duyuru</span>
-                        <span>${escapeHtml(announcement.text)}</span>
-                    </span>
+                    <span class="site-announcement-item">${escapeHtml(announcement.text)}</span>
+                    <span class="site-announcement-item" aria-hidden="true">${escapeHtml(announcement.text)}</span>
                 </div>
             </div>
             ${detailLink}
