@@ -131,6 +131,7 @@ window.openMaterialModal = function (encodedData) {
 
         titleEl.textContent = mat.title || 'Materyal';
         bodyEl.innerHTML = '';
+        window.currentModalMedia = mat;
 
         // Show fullscreen button only for iframe-capable media
         if (mat.type === 'video' || (mat.type === 'pdf' && mat.url && mat.url.includes('drive.google.com/file/d/'))) {
@@ -558,6 +559,7 @@ window.openMaterialModal = function (encodedData) {
 
         overlay.classList.add('active');
         document.body.style.overflow = 'hidden';
+        setTimeout(() => window.handleMobileVideoOrientation(), 120);
     } catch (err) {
         console.error("Modal acilamadi", err);
         alert('Materyal görüntülenirken bir hata oluştu.');
@@ -589,6 +591,41 @@ window.toggleMaterialFullscreen = function (event) {
     }
 };
 
+window.handleMobileVideoOrientation = function () {
+    const overlay = document.getElementById('mediaModalOverlay');
+    if (!overlay || !overlay.classList.contains('active')) return;
+
+    const currentMedia = window.currentModalMedia || {};
+    const isVideo = currentMedia.type === 'video';
+    const isYoutube = typeof currentMedia.url === 'string' && (currentMedia.url.includes('youtube.com') || currentMedia.url.includes('youtu.be/'));
+    if (!isVideo || !isYoutube) return;
+
+    const isLikelyMobile = window.matchMedia('(max-width: 900px)').matches || navigator.maxTouchPoints > 0;
+    if (!isLikelyMobile) return;
+
+    const isLandscape = window.matchMedia('(orientation: landscape)').matches;
+    const isFullscreen = Boolean(document.fullscreenElement || document.webkitFullscreenElement);
+
+    if (isLandscape && !isFullscreen) {
+        window.toggleMaterialFullscreen();
+        return;
+    }
+
+    if (!isLandscape && isFullscreen) {
+        window.toggleMaterialFullscreen();
+    }
+};
+
+if (!window.__mobileVideoOrientationListenerAttached) {
+    window.__mobileVideoOrientationListenerAttached = true;
+    window.addEventListener('orientationchange', () => {
+        setTimeout(() => window.handleMobileVideoOrientation(), 250);
+    });
+    window.addEventListener('resize', () => {
+        window.handleMobileVideoOrientation();
+    });
+}
+
 window.closeMaterialModal = function (event) {
     if (event) event.preventDefault();
     if (window.ytProgressInterval) {
@@ -608,6 +645,7 @@ window.closeMaterialModal = function (event) {
     const overlay = document.getElementById('mediaModalOverlay');
     if (overlay) overlay.classList.remove('active');
     document.body.style.overflow = '';
+    window.currentModalMedia = null;
 
     setTimeout(() => {
         const bodyEl = document.getElementById('mediaModalBody');
