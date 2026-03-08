@@ -180,6 +180,11 @@ function applyCachedHtml(element, cachedData) {
     return true;
 }
 
+function renderMutedMessage(element, message) {
+    if (!element) return;
+    element.innerHTML = `<p class="text-muted">${message}</p>`;
+}
+
 function buildTopicLookup(allTopics = []) {
     return new Map(allTopics.map((topic) => [topic.id, topic]));
 }
@@ -299,7 +304,7 @@ async function loadFocusTopics(uid, currentTopicId) {
 
         const selectedIds = focusIds.slice(0, 5);
         if (!selectedIds.length) {
-            ui.focusTopicsList.innerHTML = `<p class="text-muted">Henüz odak konu seçmedin. Analiz sayfasından bir konu seçerek burada sabitleyebilirsin.</p>`;
+            renderMutedMessage(ui.focusTopicsList, "Henüz odak konu seçmedin. Analiz sayfasından bir konu seçerek burada sabitleyebilirsin.");
             return;
         }
 
@@ -333,7 +338,7 @@ async function loadFocusTopics(uid, currentTopicId) {
         ui.focusTopicsList.innerHTML = topicItems.join('');
     } catch (error) {
         console.error("Odak konuları yüklenemedi:", error);
-        ui.focusTopicsList.innerHTML = `<p class="text-muted">Odaklanan konular getirilemedi.</p>`;
+        renderMutedMessage(ui.focusTopicsList, "Odaklanan konular getirilemedi.");
     }
 }
 
@@ -455,6 +460,12 @@ function applyNoExamState(statusText) {
     setExamStatusBadge(statusText);
 }
 
+function setCountdownDisplay(valueText, labelText) {
+    if (!ui.countdown) return;
+    ui.countdown.textContent = valueText;
+    if (ui.countdownLabel) ui.countdownLabel.textContent = labelText;
+}
+
 async function loadExamAnnouncement() {
     if (!ui.examPanelBody) return;
 
@@ -549,7 +560,7 @@ async function loadExamAnnouncement() {
         await applyExamSnapshot(snapshot);
     } catch (error) {
         console.error("Sınav ilanı yüklenemedi:", error);
-        ui.examPanelBody.innerHTML = `<p class="text-muted">Sınav bilgileri yüklenemedi.</p>`;
+        renderMutedMessage(ui.examPanelBody, "Sınav bilgileri yüklenemedi.");
         applyNoExamState(EXAM_STATUS.check);
     }
 
@@ -573,8 +584,7 @@ function setCountdownState(examDate) {
     }
 
     if (!examDate || Number.isNaN(examDate.getTime())) {
-        ui.countdown.textContent = "--";
-        if (ui.countdownLabel) ui.countdownLabel.textContent = "Sınav Yok";
+        setCountdownDisplay("--", "Sınav Yok");
         return;
     }
 
@@ -582,13 +592,11 @@ function setCountdownState(examDate) {
         const now = new Date();
         const distance = examDate.getTime() - now.getTime();
         if (distance <= 0) {
-            ui.countdown.textContent = "0";
-            if (ui.countdownLabel) ui.countdownLabel.textContent = "Gün Kaldı";
+            setCountdownDisplay("0", "Gün Kaldı");
             return;
         }
         const days = Math.ceil(distance / (1000 * 60 * 60 * 24));
-        ui.countdown.textContent = days.toString();
-        if (ui.countdownLabel) ui.countdownLabel.textContent = "Gün Kaldı";
+        setCountdownDisplay(days.toString(), "Gün Kaldı");
     };
 
     updateTimer();
@@ -658,7 +666,7 @@ async function loadAnnouncements() {
         await renderAnnouncements(snapshot);
     } catch (error) {
         console.error("Duyurular yüklenemedi:", error);
-        ui.announcementList.innerHTML = `<p class="text-muted">Duyurular yüklenemedi.</p>`;
+        renderMutedMessage(ui.announcementList, "Duyurular yüklenemedi.");
     }
 
     if (DASHBOARD_ENABLE_LIVE_LISTEN && !dashboardAnnouncementsUnsubscribe) {
@@ -748,7 +756,7 @@ async function loadRecentActivities(uid) {
         }).join('');
     } catch (error) {
         console.error("Aktiviteler yüklenemedi:", error);
-        ui.recentActivityList.innerHTML = `<p class="text-muted">Aktivite geçmişi alınamadı.</p>`;
+        renderMutedMessage(ui.recentActivityList, "Aktivite geçmişi alınamadı.");
     }
 }
 
