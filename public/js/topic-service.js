@@ -4,6 +4,7 @@ import {
     serverTimestamp, deleteDoc, writeBatch, limit
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { CacheManager } from "./cache-manager.js";
+import { USER_CACHE_KEYS } from "./cache-keys.js";
 
 const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 Saat
 const PACK_CACHE_DURATION = 24 * 60 * 60 * 1000;
@@ -317,7 +318,7 @@ export const TopicService = {
             await CacheManager.deleteData(cacheKey);
 
             // Ayrıca analiz ve anasayfa listeleme collection cache'i de düşürülür (Gerçek zamanlı UI tepkisi)
-            await CacheManager.deleteData(`topic_progress_col_${userId}`);
+            await CacheManager.deleteData(USER_CACHE_KEYS.topicProgressCollection(userId));
 
         } catch (error) {
             console.error("İlerleme senkronizasyonu başarısız:", error);
@@ -339,7 +340,7 @@ export const TopicService = {
             await CacheManager.deleteData(cacheKey);
 
             // Collection listeleme önbelleği temizlenir (Anında dashboard güncellemesi için)
-            await CacheManager.deleteData(`topic_progress_col_${userId}`);
+            await CacheManager.deleteData(USER_CACHE_KEYS.topicProgressCollection(userId));
 
             console.log("İlerleme sıfırlandı.");
             return true;

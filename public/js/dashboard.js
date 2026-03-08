@@ -367,7 +367,7 @@ async function loadDashboardStats(uid) {
         rawResults = cachedData;
     } else {
         const resultsQuery = query(collection(db, `users/${uid}/exam_results`), orderBy('completedAt', 'desc'), limit(100));
-        const resultSnap = await getDocs(resultsQuery);
+        const resultSnap = await getDocs(resultsQuery, "users.exam_results");
         rawResults = resultSnap.docs.map(d => d.data());
         await saveDashboardDataCache(resultsCacheKey, rawResults);
     }
@@ -539,7 +539,7 @@ async function loadExamAnnouncement() {
     };
 
     try {
-        const snapshot = await getDocs(examQuery);
+        const snapshot = await getDocs(examQuery, "examAnnouncements");
         await applyExamSnapshot(snapshot);
     } catch (error) {
         reportLoadFailure("Sınav ilanı yüklenemedi:", error, ui.examPanelBody, "Sınav bilgileri yüklenemedi.");
@@ -643,7 +643,7 @@ async function loadAnnouncements() {
     };
 
     try {
-        const snapshot = await getDocs(announcementQuery);
+        const snapshot = await getDocs(announcementQuery, "announcements");
         await renderAnnouncements(snapshot);
     } catch (error) {
         reportLoadFailure("Duyurular yüklenemedi:", error, ui.announcementList, "Duyurular yüklenemedi.");

@@ -60,3 +60,20 @@ Faz 4 tamamlama:
 1. Performans butcelerini kodda tek configte tanimla.
 2. Build raporunu butce karsilastirmasi ile fail/warn uretecek hale getir.
 3. CWV olcum raporunu release checklistine bagla.
+
+## Ilerleme Notu (2026-03-09)
+
+- Faz 3 (sadelestirme):
+  - User cache key standardi tek modulde toplandi: `public/js/cache-keys.js`.
+  - `dashboard.js`, `test-engine.js`, `analysis.js`, `profile-page.js`, `topic-service.js`, `user-profile.js`
+    ortak key standardina gecirildi.
+  - `dashboard.js` icindeki kullanilmayan `fetchExamStats` akisi temizlendi.
+  - `test-engine.js` icinde cache invalidation cagrilari `scope` tabanli helper'a tasindi.
+
+- Faz 6 (guardrail):
+  - Firestore Rules emulator testi eklendi: `scripts/test-firestore-rules.cjs`.
+  - Local ortamda net hata mesaji icin Java 21 on-kontrol wrapper'i eklendi: `scripts/run-rules-tests.cjs`.
+  - CI tarafinda rules testi adimi Java 21 ile calisacak sekilde ayarlandi.
+
+- Faz 1 (gozlemlenebilirlik):
+  - `dashboard.js` ve `analysis.js` icinde eksik kalan `getDocs` metrik etiketleri tamamlandi.

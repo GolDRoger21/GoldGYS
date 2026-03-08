@@ -4,6 +4,7 @@ import { doc, updateDoc, collection, getDocs, query, orderBy, limit } from "http
 import { getUserProfile, updateUserCache } from "./user-profile.js";
 import { CacheManager } from "./cache-manager.js";
 import { showConfirm, showToast } from "./notifications.js";
+import { USER_CACHE_KEYS } from "./cache-keys.js";
 
 // DOM Elemanlarını dinamik olarak alacağız
 const getDom = () => ({
@@ -156,7 +157,7 @@ async function calculateUserStats(uid) {
     if (!dom.statCompleted && !dom.statScore) return;
 
     try {
-        const resultsCacheKey = `exam_results_col_${uid}`;
+        const resultsCacheKey = USER_CACHE_KEYS.examResultsCollection(uid);
         let rawResults = [];
         const cachedResults = await CacheManager.getData(resultsCacheKey, 5 * 60 * 1000); // 5 dakika
 

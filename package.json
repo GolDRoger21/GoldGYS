@@ -7,7 +7,7 @@
     "check:budgets": "node scripts/analyze-assets.cjs --check-budgets",
     "check:syntax": "node scripts/check-js-syntax.cjs",
     "audit:queries": "node scripts/audit-firestore-queries.cjs",
-    "test:rules": "firebase emulators:exec --only firestore \"node scripts/test-firestore-rules.cjs\"",
+    "test:rules": "node scripts/run-rules-tests.cjs",
     "ci:checks": "npm run check:syntax && npm run check:budgets && npm run audit:queries",
     "ci:full": "npm run ci:checks && npm run test:rules",
     "ci:quick": "npm run check:syntax && npm run audit:queries"

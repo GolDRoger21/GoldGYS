@@ -1,6 +1,7 @@
 import { db } from "./firebase-config.js";
 import { doc, getDoc, setDoc, serverTimestamp, updateDoc, addDoc, collection, getDocs, limit, orderBy, query } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { readSessionCache, writeSessionCache, clearSessionByPrefix } from "./session-cache.js";
+import { USER_CACHE_KEYS } from "./cache-keys.js";
 
 const USER_PROFILE_CACHE_TTL_MS = 30 * 60 * 1000;
 const USER_ACTIVITY_CACHE_TTL_MS = 5 * 60 * 1000;
@@ -79,7 +80,7 @@ export async function ensureUserDocument(user) {
 export async function getUserProfile(uid, options = {}) {
     if (!uid) return null;
 
-    const CACHE_KEY = `user_profile_${uid}`;
+    const CACHE_KEY = USER_CACHE_KEYS.userProfile(uid);
     const forceRefresh = Boolean(options?.forceRefresh || options?.force);
 
     // 1. ADIM: Cache control
@@ -120,7 +121,7 @@ export async function getUserProfile(uid, options = {}) {
  * Profil güncellendiğinde önbelleği de günceller.
  */
 export function updateUserCache(uid, newData) {
-    const CACHE_KEY = `user_profile_${uid}`;
+    const CACHE_KEY = USER_CACHE_KEYS.userProfile(uid);
     try {
         const currentData = readCachedUserProfile(CACHE_KEY) || {};
         const updatedData = { ...currentData, ...newData };
@@ -134,7 +135,7 @@ export function updateUserCache(uid, newData) {
  * Çıkış yaparken önbelleği temizler.
  */
 export function clearUserCache(uid) {
-    if (uid) sessionStorage.removeItem(`user_profile_${uid}`);
+    if (uid) sessionStorage.removeItem(USER_CACHE_KEYS.userProfile(uid));
     sessionStorage.clear();
 }
 

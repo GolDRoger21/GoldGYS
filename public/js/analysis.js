@@ -5,6 +5,7 @@ import { showConfirm, showToast } from "./notifications.js";
 import { TopicService } from "./topic-service.js";
 import { buildTopicPath } from "./topic-url.js";
 import { CacheManager } from "./cache-manager.js";
+import { USER_CACHE_KEYS } from "./cache-keys.js";
 
 const ANALYSIS_CACHE_TTL = 30 * 60 * 1000; // 30 dakika
 const ANALYSIS_PROGRESS_RESET_FETCH_LIMIT = 1000;
@@ -149,13 +150,13 @@ async function initAnalysis(userId) {
         };
 
         const fetchResults = async () => {
-            const resultsCacheKey = `exam_results_col_${userId}`;
+            const resultsCacheKey = USER_CACHE_KEYS.examResultsCollection(userId);
             const cachedResults = await CacheManager.getData(resultsCacheKey, ANALYSIS_CACHE_TTL);
             if (cachedResults?.cached && cachedResults.data) {
                 return cachedResults.data;
             } else {
                 const resultsQuery = query(collection(db, `users/${userId}/exam_results`), orderBy('completedAt', 'desc'), limit(100));
-                const resultSnap = await getDocs(resultsQuery);
+                const resultSnap = await getDocs(resultsQuery, "users.exam_results");
                 const rawResults = resultSnap.docs.map(d => d.data());
                 await CacheManager.saveData(resultsCacheKey, rawResults, ANALYSIS_CACHE_TTL);
                 return rawResults;
@@ -163,7 +164,7 @@ async function initAnalysis(userId) {
         };
 
         const fetchProgress = async () => {
-            const progressColCacheKey = `topic_progress_col_${userId}`;
+            const progressColCacheKey = USER_CACHE_KEYS.topicProgressCollection(userId);
             const cachedProgCol = await CacheManager.getData(progressColCacheKey, ANALYSIS_CACHE_TTL);
             if (cachedProgCol?.cached && cachedProgCol.data) {
                 return cachedProgCol.data;
@@ -179,7 +180,7 @@ async function initAnalysis(userId) {
         };
 
         const fetchUser = async () => {
-            const userCacheKey = `user_profile_${userId}`;
+            const userCacheKey = USER_CACHE_KEYS.userProfile(userId);
             const cachedUser = await CacheManager.getData(userCacheKey, ANALYSIS_CACHE_TTL);
             if (cachedUser?.cached && cachedUser.data) {
                 return { exists: () => true, data: () => cachedUser.data };
@@ -258,7 +259,7 @@ async function runChunked(tasks, chunkSize) {
 }
 async function syncCachedUserProfilePatch(userId, patch = {}) {
     if (!userId || !patch || typeof patch !== 'object') return;
-    const userCacheKey = `user_profile_${userId}`;
+    const userCacheKey = USER_CACHE_KEYS.userProfile(userId);
     const cachedUser = await CacheManager.getData(userCacheKey, ANALYSIS_CACHE_TTL);
     const baseUser = (cachedUser?.cached && cachedUser?.data && typeof cachedUser.data === 'object')
         ? cachedUser.data
@@ -939,7 +940,7 @@ window.toggleTopicStatus = async (topicId, newStatus) => {
     const nowSeconds = Math.floor(Date.now() / 1000);
     const current = state.progressMap.get(topicId) || {};
     state.progressMap.set(topicId, { ...current, status: newStatus, manualCompleted: true, updatedAt: { seconds: nowSeconds } });
-    await CacheManager.saveData(`topic_progress_col_${state.userId}`, [...state.progressMap.entries()].map(([id, data]) => ({ id, data })), ANALYSIS_CACHE_TTL);
+    await CacheManager.saveData(USER_CACHE_KEYS.topicProgressCollection(state.userId), [...state.progressMap.entries()].map(([id, data]) => ({ id, data })), ANALYSIS_CACHE_TTL);
     renderAnalysisState();
 };
 
@@ -965,7 +966,7 @@ window.setFocusTopic = async (topicId) => {
         const current = state.progressMap.get(topicId) || {};
         state.progressMap.set(topicId, { ...current, status: 'in_progress', updatedAt: { seconds: nowSeconds } });
     }
-    await CacheManager.saveData(`topic_progress_col_${state.userId}`, [...state.progressMap.entries()].map(([id, data]) => ({ id, data })), ANALYSIS_CACHE_TTL);
+    await CacheManager.saveData(USER_CACHE_KEYS.topicProgressCollection(state.userId), [...state.progressMap.entries()].map(([id, data]) => ({ id, data })), ANALYSIS_CACHE_TTL);
     renderAnalysisState();
 };
 
@@ -1015,7 +1016,7 @@ window.resetTopicStats = async (topicId) => {
         solvedIds: [],
         answers: {}
     });
-    await CacheManager.saveData(`topic_progress_col_${state.userId}`, [...state.progressMap.entries()].map(([id, data]) => ({ id, data })), ANALYSIS_CACHE_TTL);
+    await CacheManager.saveData(USER_CACHE_KEYS.topicProgressCollection(state.userId), [...state.progressMap.entries()].map(([id, data]) => ({ id, data })), ANALYSIS_CACHE_TTL);
     renderAnalysisState();
 };
 
@@ -1077,6 +1078,6 @@ async function resetAllStats() {
             answers: {}
         });
     });
-    await CacheManager.saveData(`topic_progress_col_${state.userId}`, [...state.progressMap.entries()].map(([id, data]) => ({ id, data })), ANALYSIS_CACHE_TTL);
+    await CacheManager.saveData(USER_CACHE_KEYS.topicProgressCollection(state.userId), [...state.progressMap.entries()].map(([id, data]) => ({ id, data })), ANALYSIS_CACHE_TTL);
     renderAnalysisState();
 }
