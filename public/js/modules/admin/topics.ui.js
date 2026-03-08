@@ -395,12 +395,9 @@ export const UI_SHELL = `
 // Liste Elemanı Render Fonksiyonu (Helper)
 export const renderNavItem = (l, isTestTab, activeId, isSubtopic) => `
     <div class="nav-item ${activeId === l.id ? 'active' : ''}" onclick="window.Studio.selectContent('${l.id}')"
-        draggable="true"
-        ondragstart="window.Studio.navDnD.start('${l.id}', event)"
         ondragover="window.Studio.navDnD.over('${l.id}', event)"
         ondragleave="window.Studio.navDnD.leave(event)"
-        ondrop="window.Studio.navDnD.drop('${l.id}', event)"
-        ondragend="window.Studio.navDnD.end(event)">
+        ondrop="window.Studio.navDnD.drop('${l.id}', event)">
         <div class="nav-item-row">
             <span class="nav-item-icon">${isTestTab ? '📝' : '📄'}</span>
             <div style="flex:1; overflow:hidden;">
@@ -413,7 +410,10 @@ export const renderNavItem = (l, isTestTab, activeId, isSubtopic) => `
                     ${isSubtopic ? `<button class="nav-action-btn text-warning" onclick="window.Studio.demoteToLesson(null, event)" title="Ders notuna geri dönüştür">↰</button>` : ''}
                 </div>
             </div>
-            <span class="drag-handle" title="Sıralamak için sürükleyin">⋮⋮</span>
+            <span class="drag-handle" title="Sıralamak için sürükleyin" draggable="true"
+                ondragstart="window.Studio.navDnD.start('${l.id}', event)"
+                ondragend="window.Studio.navDnD.end(event)"
+                onclick="event.stopPropagation()">⋮⋮</span>
         </div>
     </div>
 `;
