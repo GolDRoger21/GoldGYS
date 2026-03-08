@@ -15,12 +15,10 @@ const STORES = {
 class IndexedDBCache {
     constructor() {
         this.db = null;
-        this.initPromise = this.init();
+        this.initPromise = this._open();
     }
 
-    async init() {
-        if (this.db) return this.db;
-
+    _open() {
         return new Promise((resolve, reject) => {
             const request = indexedDB.open(DB_NAME, DB_VERSION);
 
@@ -53,10 +51,19 @@ class IndexedDBCache {
         });
     }
 
+    // FIX (Hata 3): init başarısız olsa bile null db üzerinde crash olmasın
+    async _ensureDb() {
+        if (this.db) return this.db;
+        // initPromise daha önce reject olmuşsa tekrar dene
+        this.db = null;
+        this.initPromise = this._open();
+        return this.initPromise;
+    }
+
     async put(storeName, data, key = null) {
-        await this.initPromise;
+        const db = await this._ensureDb();
         return new Promise((resolve, reject) => {
-            const transaction = this.db.transaction([storeName], 'readwrite');
+            const transaction = db.transaction([storeName], 'readwrite');
             const store = transaction.objectStore(storeName);
             const request = key ? store.put(data, key) : store.put(data);
 
@@ -66,9 +73,9 @@ class IndexedDBCache {
     }
 
     async get(storeName, key) {
-        await this.initPromise;
+        const db = await this._ensureDb();
         return new Promise((resolve, reject) => {
-            const transaction = this.db.transaction([storeName], 'readonly');
+            const transaction = db.transaction([storeName], 'readonly');
             const store = transaction.objectStore(storeName);
             const request = store.get(key);
 
@@ -78,9 +85,9 @@ class IndexedDBCache {
     }
 
     async delete(storeName, key) {
-        await this.initPromise;
+        const db = await this._ensureDb();
         return new Promise((resolve, reject) => {
-            const transaction = this.db.transaction([storeName], 'readwrite');
+            const transaction = db.transaction([storeName], 'readwrite');
             const store = transaction.objectStore(storeName);
             const request = store.delete(key);
 
@@ -109,21 +116,37 @@ function persistLocalCacheBuster(value) {
     localStorage.setItem(CACHE_BUSTER_STORAGE_KEY, String(normalized));
 }
 
+// FIX (Hata 1 + 6): Önce DB'yi sil, silemedikten SONRA init'i yenile.
+// Önceki kodda idb.init() hemen çağrılıyordu ve onblocked'ı tetikleyerek
+// silme işlemini engelliyordu (race condition).
 async function clearGoldGysLocalCaches() {
     try {
+        // Mevcut bağlantıyı kapat ve referansı sıfırla
         if (idb.db) {
             idb.db.close();
             idb.db = null;
-            idb.initPromise = idb.init();
         }
+
+        // DB tamamen silinene kadar bekle
         await new Promise((resolve) => {
             const request = indexedDB.deleteDatabase(DB_NAME);
             request.onsuccess = () => resolve(true);
             request.onerror = () => resolve(false);
-            request.onblocked = () => resolve(false);
+            request.onblocked = () => {
+                // Mevcut bağlantı zaten kapatıldı; kısa bekleyip tekrar dene
+                setTimeout(() => {
+                    indexedDB.deleteDatabase(DB_NAME);
+                    resolve(false);
+                }, 200);
+            };
         });
+
+        // Silme tamamlandıktan sonra yeni bağlantı aç
+        idb.initPromise = idb._open();
     } catch (error) {
         console.warn('GoldGYSCache temizlenemedi:', error);
+        // Hata olsa da DB'yi yeniden açmayı dene
+        idb.initPromise = idb._open();
     }
 }
 
@@ -164,8 +187,10 @@ export const CacheManager = {
         await syncCacheBusterFromServer(force);
     },
 
+    // FIX (Hata 2): saveData artık her çağrıda Firestore'u okumaz.
+    // syncCacheBusterFromServer çağrısı kaldırıldı; cache buster kontrolü
+    // zaten getData() okuma öncesinde yapılıyor.
     async saveData(key, data, ttl = DEFAULT_TTL) {
-        await syncCacheBusterFromServer();
         const payload = {
             key,
             data,
@@ -179,8 +204,8 @@ export const CacheManager = {
         }
     },
 
+    // FIX (Hata 2): deleteData artık her çağrıda Firestore'u okumaz.
     async deleteData(key) {
-        await syncCacheBusterFromServer();
         try {
             await idb.delete(STORES.METADATA, key);
         } catch (e) {
@@ -190,6 +215,7 @@ export const CacheManager = {
 
     async getData(key, maxAge = null) {
         try {
+            // Okuma öncesi cache buster senkronizasyonu — bu yeterli.
             await syncCacheBusterFromServer();
             const record = await idb.get(STORES.METADATA, key);
             if (!record) return null;
@@ -207,7 +233,6 @@ export const CacheManager = {
 
     // --- PACKS (Topic Packs) ---
     async savePack(key, data) {
-        await syncCacheBusterFromServer();
         const payload = {
             key,
             data,
@@ -236,7 +261,6 @@ export const CacheManager = {
 
     // --- QUESTIONS (Individual Cache) ---
     async saveQuestion(question) {
-        await syncCacheBusterFromServer();
         if (!question?.id) return;
         const payload = {
             id: question.id,
@@ -260,8 +284,6 @@ export const CacheManager = {
     async getQuestions(ids) {
         const results = new Map();
         try {
-            // Batch get optimization could be done here with cursor, 
-            // but for simplicity we do parallel gets
             await Promise.all(ids.map(async (id) => {
                 const q = await this.getQuestion(id);
                 if (q) results.set(id, q);
@@ -271,8 +293,8 @@ export const CacheManager = {
     },
 
     // --- DRAFTS ---
+    // FIX (Hata 2): clearDraftAnswers artık her çağrıda Firestore'u okumaz.
     async saveDraftAnswer(scopeKey, questionId, answerPayload) {
-        await syncCacheBusterFromServer();
         const key = `draft_${scopeKey}`;
         try {
             let record = await idb.get(STORES.DRAFTS, key);
@@ -298,20 +320,22 @@ export const CacheManager = {
     },
 
     async clearDraftAnswers(scopeKey) {
-        await syncCacheBusterFromServer();
+        // FIX (Hata 2): syncCacheBusterFromServer kaldırıldı
         const key = `draft_${scopeKey}`;
         try {
             await idb.delete(STORES.DRAFTS, key);
         } catch (e) { }
     },
 
-    // --- LEGACY ADAPTERS (For existing calls) ---
-    saveTopicPackIndexes(topicId, indexes) {
-        this.saveData(`indexes_${topicId}`, indexes);
+    // --- LEGACY ADAPTERS ---
+    // FIX (Hata 4): saveTopicPackIndexes artık async — saveData'yı await ediyor
+    async saveTopicPackIndexes(topicId, indexes) {
+        await this.saveData(`indexes_${topicId}`, indexes);
     },
 
+    // FIX (Hata 5): maxAge artık getData'ya iletiliyor
     async getTopicPackIndexes(topicId, maxAge) {
-        const res = await this.getData(`indexes_${topicId}`);
+        const res = await this.getData(`indexes_${topicId}`, maxAge);
         return res?.data || null;
     }
 };
