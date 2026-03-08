@@ -51,14 +51,23 @@ class IndexedDBCache {
         });
     }
 
-    // FIX (Hata 3): init başarısız olsa bile null db üzerinde crash olmasın
+    // FIX (Hata 3 + Race Condition): db null ise mevcut initPromise'i bekle.
+    // Yeni bir _open() BAŞLATMIYORUz çünkü clearGoldGysLocalCaches zaten bir
+    // initPromise başlattı. İkinci bir _open() onu ezer ve senkronizasyon bozulur.
     async _ensureDb() {
         if (this.db) return this.db;
-        // initPromise daha önce reject olmuşsa tekrar dene
-        this.db = null;
-        this.initPromise = this._open();
-        return this.initPromise;
+        // initPromise zaten devam ediyor olabilir — onu await et.
+        // Reject olmuşsa catch ile yakalayıp yeniden dene.
+        try {
+            await this.initPromise;
+        } catch (_) {
+            // Önceki açılış başarısız olduysa yeniden dene
+            this.initPromise = this._open();
+            await this.initPromise;
+        }
+        return this.db;
     }
+
 
     async put(storeName, data, key = null) {
         const db = await this._ensureDb();
@@ -116,9 +125,9 @@ function persistLocalCacheBuster(value) {
     localStorage.setItem(CACHE_BUSTER_STORAGE_KEY, String(normalized));
 }
 
-// FIX (Hata 1 + 6): Önce DB'yi sil, silemedikten SONRA init'i yenile.
-// Önceki kodda idb.init() hemen çağrılıyordu ve onblocked'ı tetikleyerek
-// silme işlemini engelliyordu (race condition).
+// FIX (Race Condition): clearGoldGysLocalCaches şimdi _open()'ı await ediyor.
+// Bu sayede bu fonksiyon tamamlandığında idb.db geçerli bir DB'ye işaret ediyor
+// ve ardından çalışan saveData/getData operasyonları hazır bir DB bulabiliyor.
 async function clearGoldGysLocalCaches() {
     try {
         // Mevcut bağlantıyı kapat ve referansı sıfırla
@@ -141,12 +150,15 @@ async function clearGoldGysLocalCaches() {
             };
         });
 
-        // Silme tamamlandıktan sonra yeni bağlantı aç
+        // Silme tamamlandıktan sonra yeni bağlantı aç VE bitmesini bekle
+        // (await ile: diğer operasyonlar DB hazır olmadan başlamaz)
         idb.initPromise = idb._open();
+        await idb.initPromise;
     } catch (error) {
         console.warn('GoldGYSCache temizlenemedi:', error);
         // Hata olsa da DB'yi yeniden açmayı dene
         idb.initPromise = idb._open();
+        await idb.initPromise;
     }
 }
 
