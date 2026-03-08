@@ -535,8 +535,8 @@ export class TestEngine {
     }
 
     async saveExamResult(stats) {
-        if (!auth.currentUser) return;
-        const uid = auth.currentUser.uid;
+        const uid = this.getCurrentUid();
+        if (!uid) return;
 
         // Maliyet optimizasyonu: practice modunda her seansı kalıcı exam_result olarak yazmak yerine
         // varsayılan olarak sadece exam modunu yazıyoruz. İstenirse options.persistPracticeResults=true ile açılabilir.
@@ -628,7 +628,7 @@ export class TestEngine {
 
     // Yanlış yapılan soruyu havuza atar veya sayacını artırır
     async saveWrongAnswer(qId, qData) {
-        if (!auth.currentUser) return;
+        if (!this.getCurrentUid()) return;
         const safeText = qData?.text ? qData.text.substring(0, 150) + "..." : "";
         const category = qData?.category || 'Genel';
         const existing = this.pendingWrongAnswers.get(qId);
@@ -699,7 +699,7 @@ export class TestEngine {
     }
 
     async loadUserFavorites() {
-        if (!auth.currentUser) return;
+        if (!this.getCurrentUid()) return;
         // Bilinçli olarak Firestore okuması yapılmıyor.
         // Favoriler buton üzerinden doküman bazlı (toggle) yönetiliyor; test açılışında gereksiz
         // bir `_index` okuması maliyet üretiyordu ve UI'ye katkı sağlamıyordu.

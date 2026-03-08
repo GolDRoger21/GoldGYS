@@ -44,6 +44,11 @@ const DASHBOARD_CACHE_KEYS = Object.freeze({
     topicProgressCollection: (uid) => `topic_progress_col_${uid}`,
     examResultsCollection: (uid) => `exam_results_col_${uid}`
 });
+const EXAM_STATUS = Object.freeze({
+    active: "Aktif",
+    noAnnouncement: "İlan Yok",
+    check: "Kontrol Edin"
+});
 
 const DASHBOARD_EXAM_ANNOUNCEMENT_CACHE_KEY = "dashboard_exam_announcement_v1";
 const DASHBOARD_ANNOUNCEMENTS_CACHE_KEY = "dashboard_announcements_v1";
@@ -393,14 +398,17 @@ function getTodayRange() {
     return { start, end };
 }
 
+function setExamStatusBadge(text) {
+    if (ui.examStatusBadge) ui.examStatusBadge.textContent = text;
+}
+
 async function loadExamAnnouncement() {
     if (!ui.examPanelBody) return;
 
-    const cacheKey = DASHBOARD_EXAM_ANNOUNCEMENT_CACHE_KEY;
-    const cachedData = await getDashboardFeedCache(cacheKey);
+    const cachedData = await getDashboardFeedCache(DASHBOARD_EXAM_ANNOUNCEMENT_CACHE_KEY);
     if (applyCachedHtml(ui.examPanelBody, cachedData)) {
         setCountdownState(cachedData.examDate ? new Date(cachedData.examDate) : null);
-        if (ui.examStatusBadge) ui.examStatusBadge.textContent = cachedData.statusBadge || "Aktif";
+        setExamStatusBadge(cachedData.statusBadge || EXAM_STATUS.active);
     }
 
     const examQuery = query(
@@ -425,11 +433,11 @@ async function loadExamAnnouncement() {
                 </div>
             `;
             setCountdownState(null);
-            if (ui.examStatusBadge) ui.examStatusBadge.textContent = "İlan Yok";
-            await saveDashboardFeedCache(cacheKey, {
+            setExamStatusBadge(EXAM_STATUS.noAnnouncement);
+            await saveDashboardFeedCache(DASHBOARD_EXAM_ANNOUNCEMENT_CACHE_KEY, {
                 html: ui.examPanelBody.innerHTML,
                 examDate: null,
-                statusBadge: "İlan Yok"
+                statusBadge: EXAM_STATUS.noAnnouncement
             });
             return;
         }
@@ -473,12 +481,12 @@ async function loadExamAnnouncement() {
             </div>
         `;
 
-        if (ui.examStatusBadge) ui.examStatusBadge.textContent = "Aktif";
+        setExamStatusBadge(EXAM_STATUS.active);
         setCountdownState(examDate);
-        await saveDashboardFeedCache(cacheKey, {
+        await saveDashboardFeedCache(DASHBOARD_EXAM_ANNOUNCEMENT_CACHE_KEY, {
             html: ui.examPanelBody.innerHTML,
             examDate: examDate ? examDate.toISOString() : null,
-            statusBadge: "Aktif"
+            statusBadge: EXAM_STATUS.active
         });
     };
 
@@ -489,7 +497,7 @@ async function loadExamAnnouncement() {
         console.error("Sınav ilanı yüklenemedi:", error);
         ui.examPanelBody.innerHTML = `<p class="text-muted">Sınav bilgileri yüklenemedi.</p>`;
         setCountdownState(null);
-        if (ui.examStatusBadge) ui.examStatusBadge.textContent = "Kontrol Edin";
+        setExamStatusBadge(EXAM_STATUS.check);
     }
 
     if (DASHBOARD_ENABLE_LIVE_LISTEN && !examAnnouncementUnsubscribe) {
@@ -537,8 +545,7 @@ function setCountdownState(examDate) {
 async function loadAnnouncements() {
     if (!ui.announcementList) return;
 
-    const cacheKey = DASHBOARD_ANNOUNCEMENTS_CACHE_KEY;
-    const cachedData = await getDashboardFeedCache(cacheKey);
+    const cachedData = await getDashboardFeedCache(DASHBOARD_ANNOUNCEMENTS_CACHE_KEY);
     applyCachedHtml(ui.announcementList, cachedData);
 
     const announcementQuery = query(
@@ -561,7 +568,7 @@ async function loadAnnouncements() {
                     </div>
                 </div>
             `;
-            await saveDashboardFeedCache(cacheKey, { html: ui.announcementList.innerHTML });
+            await saveDashboardFeedCache(DASHBOARD_ANNOUNCEMENTS_CACHE_KEY, { html: ui.announcementList.innerHTML });
             return;
         }
 
@@ -587,7 +594,7 @@ async function loadAnnouncements() {
                 </div>
             `;
         }).join('');
-        await saveDashboardFeedCache(cacheKey, { html: ui.announcementList.innerHTML });
+        await saveDashboardFeedCache(DASHBOARD_ANNOUNCEMENTS_CACHE_KEY, { html: ui.announcementList.innerHTML });
     };
 
     try {
