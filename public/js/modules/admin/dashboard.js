@@ -17,9 +17,9 @@ let dashboardCharts = {
 };
 
 const DASHBOARD_CACHE_KEY = "admin_dashboard_cache_v1";
-const DASHBOARD_CACHE_TTL_MS = 60 * 1000;
+const DASHBOARD_CACHE_TTL_MS = 5 * 60 * 1000;
 let dashboardBootstrapped = false;
-const DASHBOARD_SHARD_QUERY_LIMIT = 1000;
+const DASHBOARD_SHARD_QUERY_LIMIT = 400;
 const OBSERVABILITY_TOP_COLLECTIONS = 5;
 
 function readDashboardCache() {

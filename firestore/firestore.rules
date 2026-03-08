@@ -1,4 +1,4 @@
-﻿rules_version = '2';
+rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
@@ -22,6 +22,11 @@ service cloud.firestore {
         request.auth.token.role == role;
     }
 
+    function tokenRoleIn(roles) {
+      return signedIn() &&
+        request.auth.token.keys().hasAny(['role']) &&
+        roles.hasAny([request.auth.token.role]);
+    }
     function profileRole() {
       return signedIn()
         ? get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role
@@ -38,9 +43,10 @@ service cloud.firestore {
 
     function isEditor() {
       return signedIn() && (
-        isAdmin() ||
+        hasTokenBool('admin') ||
         hasTokenBool('editor') ||
-        tokenRoleIs('editor') ||
+        tokenRoleIn(['admin', 'editor']) ||
+        profileRole() == 'admin' ||
         profileRole() == 'editor'
       );
     }

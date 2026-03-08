@@ -3,7 +3,7 @@
 import { db } from "../../firebase-config.js";
 import { showConfirm, showToast } from "../../notifications.js";
 import {
-    collection, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, serverTimestamp, query, orderBy, limit, writeBatch
+    collection, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, serverTimestamp, query, orderBy, limit, where, writeBatch
 } from "../../firestore-metrics.js";
 
 let isEditorInitialized = false;
@@ -18,12 +18,31 @@ const QUESTIONS_PER_PAGE = 25;
 const QUESTIONS_FETCH_LIMIT = 800;
 const QUESTION_TRASH_FETCH_LIMIT = 300;
 const CATEGORY_TOPIC_FETCH_LIMIT = 500;
+const QUESTIONS_CACHE_TTL_MS = 60 * 1000;
+
+const questionsSnapshotCache = {
+    fetchedAt: 0,
+    docs: []
+};
 
 const DUPLICATE_SETTINGS = {
     exactMinLength: 25,
     nearSimilarityThreshold: 0.86,
     longTextTokenBonusThreshold: 18
 };
+
+async function getCachedQuestionDocs(forceRefresh = false) {
+    const now = Date.now();
+    if (!forceRefresh && questionsSnapshotCache.docs.length > 0 && (now - questionsSnapshotCache.fetchedAt) < QUESTIONS_CACHE_TTL_MS) {
+        return questionsSnapshotCache.docs;
+    }
+
+    const q = query(collection(db, "questions"), orderBy("createdAt", "desc"), limit(QUESTIONS_FETCH_LIMIT));
+    const snap = await getDocs(q);
+    questionsSnapshotCache.docs = snap.docs.map((questionDoc) => ({ id: questionDoc.id, data: questionDoc.data() }));
+    questionsSnapshotCache.fetchedAt = now;
+    return questionsSnapshotCache.docs;
+}
 
 // ============================================================
 // --- INIT ---
@@ -33,7 +52,7 @@ export function initContentPage() {
     // Modal HTML'ini sayfaya ekle
     ensureQuestionEditorReady();
     loadDynamicCategories();
-    loadQuestions(); // Varsayılan: Aktif sorular
+    loadQuestions(true); // Varsayılan: Aktif sorular
 }
 
 // ============================================================
@@ -610,7 +629,7 @@ function bindPageEvents() {
         el.addEventListener('keydown', (event) => {
             if (event.key === 'Enter') {
                 event.preventDefault();
-                loadQuestions();
+                loadQuestions(true);
             }
         });
     });
@@ -642,12 +661,12 @@ function resetQuestionFilters() {
         if (el) el.value = value;
     });
 
-    loadQuestions();
+    loadQuestions(true);
 }
 
 // --- VERİ YÖNETİMİ ---
 
-async function loadQuestions() {
+async function loadQuestions(forceRefresh = false) {
     const tbody = document.getElementById('questionsTableBody');
     if (!tbody) return; // Tablo yoksa (belki stüdyo sayfasındayız) çık
 
@@ -664,24 +683,20 @@ async function loadQuestions() {
     const difficulty = document.getElementById('filterDifficulty')?.value || 'all';
     const sortMode = document.getElementById('filterSort')?.value || 'createdDesc';
 
-    // Temel Sorgu
-    let q = query(collection(db, "questions"), orderBy("createdAt", "desc"), limit(QUESTIONS_FETCH_LIMIT));
-
     try {
-        const snap = await getDocs(q);
+        const docs = await getCachedQuestionDocs(forceRefresh);
         lastVisibleQuestionIds = [];
         filteredQuestions = [];
         currentPage = 1;
 
         const candidates = [];
-        snap.forEach(doc => {
-            const d = doc.data();
+        docs.forEach((questionDoc) => {
+            const d = questionDoc.data;
             const legRef = d.legislationRef || {};
             const legCodeValue = (legRef.code || '').toString();
             const legArticleValue = (legRef.article || '').toString();
             const hasLegislation = Boolean(legCodeValue || legArticleValue);
 
-            // Client-side Filtreleme
             if (d.isDeleted === true) return;
             if (status === 'flagged' && !d.isFlaggedForReview) return;
             if (status === 'active' && d.isActive === false) return;
@@ -694,7 +709,7 @@ async function loadQuestions() {
             if (questionType !== 'all' && (d.type || 'standard') !== questionType) return;
             if (difficulty !== 'all' && String(d.difficulty ?? '') !== difficulty) return;
 
-            candidates.push({ id: doc.id, ...d });
+            candidates.push({ id: questionDoc.id, ...d });
         });
 
         duplicateInsightsById = buildDuplicateInsights(candidates);
@@ -703,7 +718,6 @@ async function loadQuestions() {
             const legRef = d.legislationRef || {};
             const legCodeValue = (legRef.code || '').toString();
             const legArticleValue = (legRef.article || '').toString();
-            const hasLegislation = Boolean(legCodeValue || legArticleValue);
             const info = duplicateInsightsById.get(d.id) || buildEmptyDuplicateInsight();
 
             if (duplicateMode === 'exact' && !info.isExactDuplicate) return;
@@ -711,7 +725,6 @@ async function loadQuestions() {
             if (duplicateMode === 'any' && !info.hasDuplicateRisk) return;
             if (duplicateMode === 'clean' && info.hasDuplicateRisk) return;
 
-            // Arama check
             if (search) {
                 const textMatch = (d.text || '').toLowerCase().includes(search);
                 const idMatch = d.id.toLowerCase().includes(search);
@@ -1000,7 +1013,7 @@ async function handleSaveQuestion(e) {
         }
 
         // Eğer Soru Bankası sayfasındaysak listeyi yenile
-        if (document.getElementById('questionsTableBody')) loadQuestions();
+        if (document.getElementById('questionsTableBody')) loadQuestions(true);
 
         showToast("Soru başarıyla kaydedildi.", "success");
     } catch (e) {
@@ -1221,7 +1234,7 @@ async function runBulkUpdate(updatePayload, toastMessage) {
             await batch.commit();
         }
         selectedQuestionIds.clear();
-        loadQuestions();
+        loadQuestions(true);
         showToast(toastMessage, "success");
     } catch (e) {
         showToast(`Toplu işlem sırasında hata oluştu: ${e.message}`, "error");
@@ -1259,7 +1272,7 @@ async function bulkSoftDelete() {
             await batch.commit();
         }
         selectedQuestionIds.clear();
-        loadQuestions();
+        loadQuestions(true);
         showToast("Seçili sorular çöp kutusuna taşındı.", "success");
     } catch (e) {
         showToast(`Toplu işlem sırasında hata oluştu: ${e.message}`, "error");
@@ -1358,7 +1371,7 @@ async function toggleQuestionActive(id, isActivate) {
             isActive: isActivate,
             updatedAt: serverTimestamp()
         });
-        loadQuestions();
+        loadQuestions(true);
         showToast(isActivate ? "Soru aktifleştirildi." : "Soru pasife alındı.", "success");
     } catch (e) {
         showToast(`İşlem sırasında hata oluştu: ${e.message}`, "error");
@@ -1381,7 +1394,7 @@ async function softDeleteQuestion(id) {
             deletedAt: serverTimestamp(),
             isActive: false
         });
-        loadQuestions();
+        loadQuestions(true);
         showToast("Soru çöp kutusuna taşındı.", "success");
     } catch (e) {
         showToast(`İşlem sırasında hata oluştu: ${e.message}`, "error");
@@ -1425,7 +1438,7 @@ async function openTrashModal() {
 async function restoreQuestion(id) {
     await updateDoc(doc(db, "questions", id), { isDeleted: false, isActive: true, deletedAt: null });
     openTrashModal();
-    loadQuestions();
+    loadQuestions(true);
 }
 
 async function permanentDeleteQuestion(id) {
