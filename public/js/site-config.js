@@ -314,8 +314,9 @@ function applyAnnouncement(config) {
 
     if (!announcement?.active || !announcement?.text) {
         if (existingBar) existingBar.remove();
+        if (announcementHeightObserver) announcementHeightObserver.disconnect();
         document.documentElement.style.setProperty("--announcement-offset", "0px");
-        document.body.classList.remove("has-announcement");
+        if (document.body) document.body.classList.remove("has-announcement");
         return;
     }
 
@@ -359,11 +360,42 @@ function applyAnnouncement(config) {
         bar.id = "site-announcement-bar";
         bar.className = `site-announcement-bar ${style.className}`;
         bar.innerHTML = content;
-        document.body.prepend(bar);
-        syncAnnouncementOffset(bar);
+        if (document.body) {
+            document.body.prepend(bar);
+            syncAnnouncementOffset(bar);
+        }
     }
 
-    document.body.classList.add("has-announcement");
+    if (document.body) document.body.classList.add("has-announcement");
+}
+
+let announcementResizeBound = false;
+let announcementHeightObserver = null;
+
+function syncAnnouncementOffset(bar) {
+    if (!bar || !document?.documentElement) return;
+
+    const applyOffset = () => {
+        document.documentElement.style.setProperty("--announcement-offset", `${bar.offsetHeight || 0}px`);
+    };
+
+    applyOffset();
+    window.requestAnimationFrame(applyOffset);
+
+    if (!announcementResizeBound) {
+        window.addEventListener("resize", () => {
+            const liveBar = document.getElementById("site-announcement-bar");
+            if (!liveBar || !document?.documentElement) return;
+            document.documentElement.style.setProperty("--announcement-offset", `${liveBar.offsetHeight || 0}px`);
+        });
+        announcementResizeBound = true;
+    }
+
+    if (typeof ResizeObserver === "function") {
+        if (announcementHeightObserver) announcementHeightObserver.disconnect();
+        announcementHeightObserver = new ResizeObserver(() => applyOffset());
+        announcementHeightObserver.observe(bar);
+    }
 }
 
 let announcementResizeBound = false;
