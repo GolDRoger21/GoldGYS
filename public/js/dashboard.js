@@ -3,10 +3,11 @@
 import { initLayout } from './ui-loader.js';
 import { auth, db } from "./firebase-config.js";
 import { getUserProfile } from "./user-profile.js";
-import { collection, doc, getDoc, getDocs, limit, onSnapshot, orderBy, documentId, query, where, Timestamp } from "./firestore-metrics.js";
+import { collection, doc, getDoc, getDocs, limit, onSnapshot, orderBy, documentId, query, where } from "./firestore-metrics.js";
 import { buildTopicPath } from './topic-url.js';
 import { CacheManager } from './cache-manager.js';
 import { pickTopicIcon } from './topic-icon-map.js';
+import { USER_CACHE_KEYS } from './cache-keys.js';
 
 // UI Elementleri
 const ui = {
@@ -33,17 +34,11 @@ let examAnnouncementUnsubscribe = null;
 let dashboardAnnouncementsUnsubscribe = null;
 
 
-const DASHBOARD_STATS_TTL = 2 * 60 * 1000; // 2 dakika
 const DASHBOARD_FEED_TTL = 6 * 60 * 60 * 1000; // 6 saat
 const DASHBOARD_ENABLE_LIVE_LISTEN = false; // Kota koruma: varsayilan one-shot fetch
 const DASHBOARD_DATA_CACHE_TTL = 30 * 60 * 1000; // 30 dakika
 const ALL_TOPICS_CACHE_KEY = 'all_topics';
 const ALL_TOPICS_CACHE_TTL = 24 * 60 * 60 * 1000;
-const DASHBOARD_CACHE_KEYS = Object.freeze({
-    userProfile: (uid) => `user_profile_${uid}`,
-    topicProgressCollection: (uid) => `topic_progress_col_${uid}`,
-    examResultsCollection: (uid) => `exam_results_col_${uid}`
-});
 const EXAM_STATUS = Object.freeze({
     active: "Aktif",
     noAnnouncement: "İlan Yok",
@@ -60,7 +55,7 @@ const DASHBOARD_INFLIGHT = {
 
 
 async function getCachedUserDoc(uid) {
-    const cacheKey = DASHBOARD_CACHE_KEYS.userProfile(uid);
+    const cacheKey = USER_CACHE_KEYS.userProfile(uid);
     const cachedUser = await getDashboardDataCache(cacheKey);
     const cachedData = getCachedPayload(cachedUser);
     if (cachedData) {
@@ -79,7 +74,7 @@ async function getTopicProgressDocs(uid) {
     if (inflight) return inflight;
 
     const loadPromise = (async () => {
-        const cacheKey = DASHBOARD_CACHE_KEYS.topicProgressCollection(uid);
+        const cacheKey = USER_CACHE_KEYS.topicProgressCollection(uid);
         const cachedProgCol = await getDashboardDataCache(cacheKey);
         const cachedData = getCachedPayload(cachedProgCol);
         if (cachedData) {
@@ -364,7 +359,7 @@ async function loadDashboardStats(uid) {
     const statsResetAtSeconds = normalizeResetTimestamp(userData.statsResetAt);
 
     // Bütün analizleri bellek üzerinden (cached) hesaplayacağız DB masrafı olmasın:
-    const resultsCacheKey = DASHBOARD_CACHE_KEYS.examResultsCollection(uid);
+    const resultsCacheKey = USER_CACHE_KEYS.examResultsCollection(uid);
     let rawResults = [];
     const cachedResults = await getDashboardDataCache(resultsCacheKey);
     const cachedData = getCachedPayload(cachedResults);
@@ -415,48 +410,6 @@ function normalizeResetTimestamp(timestamp) {
     if (typeof timestamp.seconds === 'number') return timestamp.seconds;
     if (typeof timestamp.toDate === 'function') return Math.floor(timestamp.toDate().getTime() / 1000);
     return null;
-}
-
-async function fetchExamStats(uid, options = {}) {
-    if (!uid) return { total: 0, correct: 0, wrong: 0 };
-
-    const baseRef = collection(db, `users/${uid}/exam_results`);
-    const constraints = [];
-    const range = options.range || null;
-    const resetAtSeconds = typeof options.resetAtSeconds === 'number' ? options.resetAtSeconds : null;
-
-    if (range || resetAtSeconds) {
-        let startDate = range ? range.start : null;
-        if (resetAtSeconds) {
-            const resetDate = new Date(resetAtSeconds * 1000);
-            if (!startDate || resetDate > startDate) {
-                startDate = resetDate;
-            }
-        }
-
-        if (startDate && range && startDate >= range.end) {
-            return { total: 0, correct: 0, wrong: 0 };
-        }
-
-        if (startDate) {
-            constraints.push(where("completedAt", ">=", Timestamp.fromDate(startDate)));
-        }
-        if (range) {
-            constraints.push(where("completedAt", "<", Timestamp.fromDate(range.end)));
-        }
-    }
-
-    const q = query(baseRef, ...constraints, limit(300));
-    const snapshot = await getDocs(q);
-
-    return snapshot.docs.reduce((acc, docSnap) => {
-        const data = docSnap.data();
-        const total = data.total || ((data.correct || 0) + (data.wrong || 0) + (data.empty || 0));
-        acc.total += total;
-        acc.correct += data.correct || 0;
-        acc.wrong += data.wrong || 0;
-        return acc;
-    }, { total: 0, correct: 0, wrong: 0 });
 }
 
 function getTodayRange() {

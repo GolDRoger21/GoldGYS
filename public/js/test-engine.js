@@ -6,20 +6,15 @@ import {
 import { httpsCallable } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-functions.js";
 import { WrongSummaryService } from "./wrong-summary-service.js";
 import { CacheManager } from "./cache-manager.js";
-
-const TEST_ENGINE_CACHE_KEYS = Object.freeze({
-    examResultsCollection: (uid) => `exam_results_col_${uid}`,
-    dashboardStats: (uid) => `dashboard_stats_${uid}`,
-    userFavorites: (uid) => `user_favorites_${uid}`
-});
+import { USER_CACHE_KEYS } from "./cache-keys.js";
 
 const TEST_ENGINE_CACHE_INVALIDATION = Object.freeze({
     examCompletion: (uid) => [
-        TEST_ENGINE_CACHE_KEYS.examResultsCollection(uid),
-        TEST_ENGINE_CACHE_KEYS.dashboardStats(uid)
+        USER_CACHE_KEYS.examResultsCollection(uid),
+        USER_CACHE_KEYS.dashboardStats(uid)
     ],
     favorites: (uid) => [
-        TEST_ENGINE_CACHE_KEYS.userFavorites(uid)
+        USER_CACHE_KEYS.userFavorites(uid)
     ]
 });
 
@@ -73,7 +68,6 @@ export class TestEngine {
     }
 
     async init() {
-        await this.loadUserFavorites();
         this.renderAllQuestions();
         this.updateCounters();
         this.setupLifecycleHandlers();
@@ -559,6 +553,16 @@ export class TestEngine {
         await Promise.all(cacheKeys.map((cacheKey) => CacheManager.deleteData(cacheKey)));
     }
 
+    getUserCacheInvalidationKeys(scope, uid = this.getCurrentUid()) {
+        if (!uid) return [];
+        const resolver = TEST_ENGINE_CACHE_INVALIDATION[scope];
+        return typeof resolver === 'function' ? resolver(uid) : [];
+    }
+
+    async invalidateUserCaches(scope) {
+        await this.invalidateCaches(this.getUserCacheInvalidationKeys(scope));
+    }
+
     async saveExamResult(stats) {
         const uid = this.getCurrentUid();
         if (!uid) return;
@@ -604,7 +608,7 @@ export class TestEngine {
             });
 
             // Sınav sonucu eklendiği için lokal analitik ve istatistik listesi (cache) düşürülür
-            await this.invalidateCaches(TEST_ENGINE_CACHE_INVALIDATION.examCompletion(uid)); // Dashboard özetini de düşür
+            await this.invalidateUserCaches('examCompletion'); // Dashboard özetini de düşür
 
 
             // 2. Yanlış Yapılanları 'wrong_summaries' koleksiyonuna işle (Sınav modunda toplu işlem)
@@ -733,13 +737,6 @@ export class TestEngine {
         if (this.ui.remainVal) this.ui.remainVal.innerText = this.questions.length - answered;
     }
 
-    async loadUserFavorites() {
-        if (!this.getCurrentUid()) return;
-        // Bilinçli olarak Firestore okuması yapılmıyor.
-        // Favoriler buton üzerinden doküman bazlı (toggle) yönetiliyor; test açılışında gereksiz
-        // bir `_index` okuması maliyet üretiyordu ve UI'ye katkı sağlamıyordu.
-    }
-
     async flushFavoriteChanges() {
         if (this.flushFavoriteChangesPromise) return this.flushFavoriteChangesPromise;
 
@@ -775,7 +772,7 @@ export class TestEngine {
         try {
             await Promise.all(operations);
             this.pendingFavoriteChanges.clear();
-            await this.invalidateCaches(TEST_ENGINE_CACHE_INVALIDATION.favorites(uid));
+            await this.invalidateUserCaches('favorites');
         } catch (error) {
             console.error("Favori değişikliklerini toplu kaydetme hatası:", error);
         }
