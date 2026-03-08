@@ -1,5 +1,5 @@
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { doc, getDoc } from "../../firestore-metrics.js";
+import { doc, getDoc, query, limit, startAfter } from "../../firestore-metrics.js";
 import { db } from "../../firebase-config.js";
 import { mergeWithDefaultPublicConfig } from "../../config-defaults.js";
 
@@ -86,4 +86,30 @@ export async function getConfigPublic() {
     console.error("Config fetch error:", error);
     return mergeWithDefaultPublicConfig();
   }
+}
+
+export function createCursorState(pageSize = 50) {
+  return {
+    pageSize,
+    lastVisible: null,
+    hasMore: false,
+    loading: false,
+  };
+}
+
+export function buildCursorQuery(collectionRef, constraints = [], cursorState) {
+  const queryConstraints = [...constraints];
+  if (cursorState?.lastVisible) {
+    queryConstraints.push(startAfter(cursorState.lastVisible));
+  }
+  queryConstraints.push(limit(cursorState?.pageSize || 50));
+  return query(collectionRef, ...queryConstraints);
+}
+
+export function updateCursorFromSnapshot(cursorState, snapshot) {
+  if (!cursorState || !snapshot) return cursorState;
+  cursorState.lastVisible = snapshot.docs[snapshot.docs.length - 1] || cursorState.lastVisible;
+  cursorState.hasMore = snapshot.size === (cursorState.pageSize || 50);
+  cursorState.loading = false;
+  return cursorState;
 }

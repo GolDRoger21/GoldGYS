@@ -1,6 +1,6 @@
 import { db } from "../../firebase-config.js";
 import { showConfirm, showToast } from "../../notifications.js";
-import { collection, query, where, getDocs, doc, updateDoc, orderBy, writeBatch, limit } from "../../firestore-metrics.js";
+import { collection, query, where, getDocs, doc, updateDoc, orderBy, writeBatch, limit, startAfter } from "../../firestore-metrics.js";
 
 let usersTableBody = null; // Global seçim yerine init içinde seçeceğiz
 let currentUsers = [];
@@ -8,6 +8,11 @@ let currentView = "pending";
 let filteredUsers = [];
 const selectedUserIds = new Set();
 const ADMIN_USERS_FETCH_LIMIT = 500;
+const userPaging = {
+    lastVisible: null,
+    hasMore: false,
+    loadingMore: false
+};
 
 const filters = {
     search: "",
@@ -110,32 +115,48 @@ async function loadPendingUsers() {
     if(!usersTableBody) return;
     currentView = "pending";
     usersTableBody.innerHTML = '<tr><td colspan="7">Yükleniyor...</td></tr>';
-    
-    // Sadece 'pending' olanları getir
-    const q = query(
-        collection(db, "users"), 
-        where("status", "==", "pending"),
-        orderBy("createdAt", "desc"),
-        limit(ADMIN_USERS_FETCH_LIMIT)
-    );
-    renderUsersList(q);
+    userPaging.lastVisible = null;
+    userPaging.hasMore = false;
+    userPaging.loadingMore = false;
+    await renderUsersList({ append: false });
 }
 
 async function loadAllUsers() {
     if(!usersTableBody) return;
     currentView = "all";
     usersTableBody.innerHTML = '<tr><td colspan="7">Yükleniyor...</td></tr>';
-    
-    // Tüm kullanıcıları getir
-    const q = query(collection(db, "users"), orderBy("createdAt", "desc"),
-        limit(ADMIN_USERS_FETCH_LIMIT));
-    renderUsersList(q);
+    userPaging.lastVisible = null;
+    userPaging.hasMore = false;
+    userPaging.loadingMore = false;
+    await renderUsersList({ append: false });
 }
 
-async function renderUsersList(queryRef) {
+function buildUsersQuery() {
+    const constraints = [];
+    if (currentView === "pending") {
+        constraints.push(where("status", "==", "pending"));
+    }
+    constraints.push(orderBy("createdAt", "desc"));
+    if (userPaging.lastVisible) {
+        constraints.push(startAfter(userPaging.lastVisible));
+    }
+    constraints.push(limit(ADMIN_USERS_FETCH_LIMIT));
+    return query(collection(db, "users"), ...constraints);
+}
+
+function updateLoadMoreButton() {
+    const btn = document.getElementById('btnLoadMoreUsers');
+    if (!btn) return;
+    btn.style.display = userPaging.hasMore ? 'inline-flex' : 'none';
+    btn.disabled = userPaging.loadingMore;
+    btn.textContent = userPaging.loadingMore ? 'Yükleniyor...' : 'Daha Fazla Yükle';
+}
+
+async function renderUsersList({ append = false } = {}) {
     try {
+        const queryRef = buildUsersQuery();
         const snapshot = await getDocs(queryRef);
-        currentUsers = snapshot.docs.map((docSnap) => {
+        const incomingUsers = snapshot.docs.map((docSnap) => {
             const data = docSnap.data();
             return {
                 id: docSnap.id,
@@ -143,13 +164,28 @@ async function renderUsersList(queryRef) {
                 ...data
             };
         });
-        applyFilters();
 
+        if (append) {
+            const existing = new Map(currentUsers.map((user) => [user.uid, user]));
+            incomingUsers.forEach((user) => existing.set(user.uid, user));
+            currentUsers = Array.from(existing.values());
+        } else {
+            currentUsers = incomingUsers;
+        }
+
+        userPaging.lastVisible = snapshot.docs[snapshot.docs.length - 1] || userPaging.lastVisible;
+        userPaging.hasMore = snapshot.size === ADMIN_USERS_FETCH_LIMIT;
+        userPaging.loadingMore = false;
+        updateLoadMoreButton();
+
+        applyFilters();
         focusRequestedUser();
         updateFilterStateForView();
     } catch (error) {
         console.error("Üye listesi hatası:", error);
         usersTableBody.innerHTML = `<tr><td colspan="7" class="error">Hata: ${error.message}</td></tr>`;
+        userPaging.loadingMore = false;
+        updateLoadMoreButton();
     }
 }
 
@@ -323,6 +359,14 @@ function focusRequestedUser() {
 }
 
 function wireInterfaceControls() {
+    const container = document.querySelector('#section-users .card');
+    if (container && !document.getElementById('btnLoadMoreUsers')) {
+        const loadMoreWrap = document.createElement('div');
+        loadMoreWrap.className = 'd-flex justify-content-center mt-3';
+        loadMoreWrap.innerHTML = '<button id="btnLoadMoreUsers" class="btn btn-sm btn-outline-secondary" style="display:none;">Daha Fazla Yükle</button>';
+        container.appendChild(loadMoreWrap);
+    }
+
     const searchInput = document.getElementById('usersSearchInput');
     const roleFilter = document.getElementById('usersRoleFilter');
     const statusFilter = document.getElementById('usersStatusFilter');
@@ -332,6 +376,7 @@ function wireInterfaceControls() {
     const bulkSuspend = document.getElementById('btnBulkSuspend');
     const clearSelection = document.getElementById('btnClearSelection');
     const refreshBtn = document.getElementById('btnRefreshUsers');
+    const loadMoreBtn = document.getElementById('btnLoadMoreUsers');
 
     if (searchInput) {
         searchInput.addEventListener('input', (event) => {
@@ -361,6 +406,7 @@ function wireInterfaceControls() {
             applyFilters();
         });
     }
+
     if (bulkApprove) bulkApprove.addEventListener('click', () => runBulkStatusUpdate('active'));
     if (bulkReject) bulkReject.addEventListener('click', () => runBulkStatusUpdate('rejected'));
     if (bulkSuspend) bulkSuspend.addEventListener('click', () => runBulkStatusUpdate('suspended'));
@@ -371,6 +417,14 @@ function wireInterfaceControls() {
         });
     }
     if (refreshBtn) refreshBtn.addEventListener('click', refreshCurrentView);
+    if (loadMoreBtn) {
+        loadMoreBtn.addEventListener('click', async () => {
+            if (!userPaging.hasMore || userPaging.loadingMore) return;
+            userPaging.loadingMore = true;
+            updateLoadMoreButton();
+            await renderUsersList({ append: true });
+        });
+    }
 }
 
 function updateFilterStateForView() {
