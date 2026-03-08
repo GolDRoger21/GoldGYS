@@ -10,11 +10,17 @@ import {
     updateDoc,
     deleteDoc,
     writeBatch,
-    limit
+    limit,
+    startAfter
 } from "../../firestore-metrics.js";
 
 let listContainer = null;
 const REPORTS_FETCH_LIMIT = 500;
+const reportsPaging = {
+    lastVisible: null,
+    hasMore: false,
+    loadingMore: false
+};
 
 let reportsState = {
     reports: [],
@@ -31,20 +37,48 @@ export async function initReportsPage() {
     if (!listContainer) return;
 
     listContainer.innerHTML = '<p>Yükleniyor...</p>';
+    reportsState.selectedGroups = new Set();
+    reportsPaging.lastVisible = null;
+    reportsPaging.hasMore = false;
+    reportsPaging.loadingMore = false;
 
+    await loadReportsPage({ append: false });
+}
+
+async function loadReportsPage({ append = false } = {}) {
     try {
-        const q = query(collection(db, "reports"), orderBy("createdAt", "desc"), limit(REPORTS_FETCH_LIMIT));
+        const constraints = [orderBy("createdAt", "desc")];
+        if (reportsPaging.lastVisible) {
+            constraints.push(startAfter(reportsPaging.lastVisible));
+        }
+        constraints.push(limit(REPORTS_FETCH_LIMIT));
+
+        const q = query(collection(db, "reports"), ...constraints);
         const snapshot = await getDocs(q);
 
-        if (snapshot.empty) {
+        if (!append && snapshot.empty) {
             listContainer.innerHTML = '<div class="alert alert-info">Henüz bekleyen bildirim yok.</div>';
             return;
         }
 
-        reportsState.reports = snapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() }));
-        reportsState.selectedGroups = new Set();
+        const incoming = snapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() }));
+        if (append) {
+            const existing = new Map(reportsState.reports.map((report) => [report.id, report]));
+            incoming.forEach((report) => existing.set(report.id, report));
+            reportsState.reports = Array.from(existing.values());
+        } else {
+            reportsState.reports = incoming;
+        }
+
+        reportsPaging.lastVisible = snapshot.docs[snapshot.docs.length - 1] || reportsPaging.lastVisible;
+        reportsPaging.hasMore = snapshot.size === REPORTS_FETCH_LIMIT;
+        reportsPaging.loadingMore = false;
+
         await renderReports();
+        updateReportsLoadMoreButton();
     } catch (error) {
+        reportsPaging.loadingMore = false;
+        updateReportsLoadMoreButton();
         console.error("Rapor hatası:", error);
         listContainer.innerHTML = `<p class="error">Hata: ${error.message}</p>`;
     }
@@ -121,6 +155,9 @@ async function renderReports() {
             </div>
         </div>
         <div id="reportsGroups" class="reports-grid"></div>
+        <div class="d-flex justify-content-center mt-3">
+            <button id="reportsLoadMoreBtn" class="btn btn-sm btn-outline-secondary" style="display:none;">Daha Fazla Yükle</button>
+        </div>
     `;
 
     const sortSelect = document.getElementById('reportsSort');
@@ -155,7 +192,18 @@ async function renderReports() {
     if (bulkArchive) bulkArchive.addEventListener('click', () => applyBulkAction('archived'));
     if (bulkDelete) bulkDelete.addEventListener('click', () => applyBulkAction('delete'));
 
+    const loadMoreBtn = document.getElementById('reportsLoadMoreBtn');
+    if (loadMoreBtn) {
+        loadMoreBtn.addEventListener('click', async () => {
+            if (reportsPaging.loadingMore || !reportsPaging.hasMore) return;
+            reportsPaging.loadingMore = true;
+            updateReportsLoadMoreButton();
+            await loadReportsPage({ append: true });
+        });
+    }
+
     renderReportGroups();
+    updateReportsLoadMoreButton();
 }
 
 function renderReportGroups() {
@@ -611,4 +659,12 @@ async function updateReportStatus(id, status) {
     } catch (e) {
         showToast("İşlem başarısız oldu. Lütfen tekrar deneyin.", "error");
     }
+}
+
+function updateReportsLoadMoreButton() {
+    const btn = document.getElementById('reportsLoadMoreBtn');
+    if (!btn) return;
+    btn.style.display = reportsPaging.hasMore ? 'inline-flex' : 'none';
+    btn.disabled = reportsPaging.loadingMore;
+    btn.textContent = reportsPaging.loadingMore ? 'Yükleniyor...' : 'Daha Fazla Yükle';
 }

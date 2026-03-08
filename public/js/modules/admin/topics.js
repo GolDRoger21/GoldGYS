@@ -40,6 +40,24 @@ const ADMIN_TOPICS_FETCH_LIMIT = 500;
 const ADMIN_LESSONS_FETCH_LIMIT = 800;
 const ADMIN_QUESTION_POOL_LIMIT = 1200;
 const ADMIN_TRASH_FETCH_LIMIT = 300;
+const ADMIN_DELETE_LESSON_BATCH_LIMIT = 200;
+
+async function deleteLessonsForTopic(topicId) {
+    let hasMore = true;
+    while (hasMore) {
+        const lessonsQuery = query(
+            collection(db, `topics/${topicId}/lessons`),
+            limit(ADMIN_DELETE_LESSON_BATCH_LIMIT)
+        );
+        const lessonsSnap = await getDocs(lessonsQuery);
+        if (lessonsSnap.empty) {
+            hasMore = false;
+            continue;
+        }
+        await Promise.all(lessonsSnap.docs.map((lessonDoc) => deleteDoc(lessonDoc.ref)));
+        hasMore = lessonsSnap.size === ADMIN_DELETE_LESSON_BATCH_LIMIT;
+    }
+}
 
 // ============================================================
 // --- INIT & SETUP ---
@@ -1463,10 +1481,8 @@ async function purgeSelectedTopics(idsParam = null) {
     if (!shouldDelete) return;
 
     await Promise.all(ids.map(async (id) => {
-        // Alt dersleri temizle
-        const lessonsSnap = await getDocs(collection(db, `topics/${id}/lessons`));
-        const deletePromises = lessonsSnap.docs.map(d => deleteDoc(d.ref));
-        await Promise.all(deletePromises);
+        // Alt dersleri limitli paketlerle temizle.
+        await deleteLessonsForTopic(id);
 
         // Konuyu sil
         return deleteDoc(doc(db, "topics", id));

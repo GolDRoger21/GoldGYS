@@ -23,8 +23,26 @@ const TRASH_LIMITS = {
     topics: 200,
     lessons: 300,
     questions: 300,
-    topicLookup: 300
+    topicLookup: 300,
+    lessonDeleteBatch: 200
 };
+
+async function deleteLessonsForTopic(topicId) {
+    let hasMore = true;
+    while (hasMore) {
+        const lessonsQuery = query(
+            collection(db, `topics/${topicId}/lessons`),
+            limit(TRASH_LIMITS.lessonDeleteBatch)
+        );
+        const lessonsSnap = await getDocs(lessonsQuery);
+        if (lessonsSnap.empty) {
+            hasMore = false;
+            continue;
+        }
+        await Promise.all(lessonsSnap.docs.map((lessonDoc) => deleteDoc(lessonDoc.ref)));
+        hasMore = lessonsSnap.size === TRASH_LIMITS.lessonDeleteBatch;
+    }
+}
 
 export function initTrashPage() {
     const searchInput = document.getElementById('trashCenterSearch');
@@ -246,9 +264,7 @@ async function purgeOne(id, type, topicId) {
     if (type === 'topic') {
         // Önce alt içerikleri sil
         try {
-            const lessonsSnap = await getDocs(collection(db, `topics/${id}/lessons`));
-            const deletePromises = lessonsSnap.docs.map(d => deleteDoc(d.ref));
-            await Promise.all(deletePromises);
+            await deleteLessonsForTopic(id);
             await deleteDoc(doc(db, "topics", id));
         } catch (e) {
             console.error("Konu silinirken hata:", e);
@@ -308,10 +324,8 @@ async function purgeSelectedItems() {
 
     await Promise.all(items.map(async (item) => {
         if (item.type === 'topic') {
-            // Konu silinirken alt dersleri de sil
-            const lessonsSnap = await getDocs(collection(db, `topics/${item.id}/lessons`));
-            const deletePromises = lessonsSnap.docs.map(d => deleteDoc(d.ref));
-            await Promise.all(deletePromises);
+            // Konu silinirken alt dersleri de limitli paketlerle sil.
+            await deleteLessonsForTopic(item.id);
             return deleteDoc(doc(db, "topics", item.id));
         }
         if (item.type === 'question') {
