@@ -10,6 +10,7 @@ import {
 } from "../../firestore-metrics.js";
 import { getWeeklyObservabilityReport } from "../../observability.js";
 import { readSessionCache, writeSessionCache } from "../../session-cache.js";
+import { ADMIN_SESSION_KEYS } from "./constants.js";
 
 // Chart (Grafik) nesnelerini saklamak için global değişken
 let dashboardCharts = {
@@ -17,7 +18,7 @@ let dashboardCharts = {
     questions: null
 };
 
-const DASHBOARD_CACHE_KEY = "admin_dashboard_cache_v1";
+const DASHBOARD_CACHE_KEY = ADMIN_SESSION_KEYS.dashboardCache;
 const DASHBOARD_CACHE_TTL_MS = 5 * 60 * 1000;
 let dashboardBootstrapped = false;
 const DASHBOARD_SHARD_QUERY_LIMIT = 400;

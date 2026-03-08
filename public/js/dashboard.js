@@ -37,6 +37,8 @@ const DASHBOARD_STATS_TTL = 2 * 60 * 1000; // 2 dakika
 const DASHBOARD_FEED_TTL = 6 * 60 * 60 * 1000; // 6 saat
 const DASHBOARD_ENABLE_LIVE_LISTEN = false; // Kota koruma: varsayilan one-shot fetch
 const DASHBOARD_DATA_CACHE_TTL = 30 * 60 * 1000; // 30 dakika
+const ALL_TOPICS_CACHE_KEY = 'all_topics';
+const ALL_TOPICS_CACHE_TTL = 24 * 60 * 60 * 1000;
 
 
 async function getCachedUserDoc(uid) {
@@ -52,6 +54,41 @@ async function getCachedUserDoc(uid) {
     }
     return userSnap;
 }
+
+async function getTopicProgressDocs(uid) {
+    const cacheKey = `topic_progress_col_${uid}`;
+    const cachedProgCol = await CacheManager.getData(cacheKey, DASHBOARD_DATA_CACHE_TTL);
+    if (cachedProgCol?.cached && cachedProgCol.data) {
+        return cachedProgCol.data;
+    }
+
+    const progressSnap = await getDocs(
+        query(collection(db, `users/${uid}/topic_progress`), limit(500)),
+        "users.topic_progress"
+    );
+    const progressMapDocs = progressSnap.docs.map(d => ({ id: d.id, data: d.data() }));
+    await CacheManager.saveData(cacheKey, progressMapDocs, DASHBOARD_DATA_CACHE_TTL);
+    return progressMapDocs;
+}
+
+async function getCachedAllTopics({ fetchIfMissing = true } = {}) {
+    const cachedTopics = await CacheManager.getData(ALL_TOPICS_CACHE_KEY, ALL_TOPICS_CACHE_TTL);
+    if (cachedTopics?.cached && cachedTopics.data) {
+        return cachedTopics.data;
+    }
+
+    if (!fetchIfMissing) {
+        return [];
+    }
+
+    const topicsSnap = await getDocs(query(collection(db, "topics"), orderBy("order", "asc"), limit(500)), "topics");
+    const allTopics = topicsSnap.docs
+        .map(d => ({ id: d.id, ...d.data() }))
+        .filter(t => t.isActive !== false && t.status !== 'deleted' && t.isDeleted !== true);
+    await CacheManager.saveData(ALL_TOPICS_CACHE_KEY, allTopics, ALL_TOPICS_CACHE_TTL);
+    return allTopics;
+}
+
 
 function getDashboardDateKey() {
     return new Date().toISOString().slice(0, 10);
@@ -112,7 +149,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             // Sınav ilanını, duyuruları ve aktiviteleri yükle
             let userData = {};
             try {
-                const userSnap = await getDoc(doc(db, "users", user.uid), "users");
+                const userSnap = await getCachedUserDoc(user.uid);
                 userData = userSnap.exists() ? userSnap.data() : {};
             } catch (userDocError) {
                 console.error("Kullanıcı dokümanı yüklenemedi:", userDocError);
@@ -159,17 +196,7 @@ async function loadFocusTopics(uid, currentTopicId) {
 
     try {
         // --- CACHE DESTEKLİ ÇEKİM ---
-        const cacheKey = `topic_progress_col_${uid}`;
-        let progressMapDocs = [];
-        const cachedProgCol = await CacheManager.getData(cacheKey, DASHBOARD_DATA_CACHE_TTL); // 5 dakika
-
-        if (cachedProgCol?.cached && cachedProgCol.data) {
-            progressMapDocs = cachedProgCol.data;
-        } else {
-            const progressSnap = await getDocs(query(collection(db, `users/${uid}/topic_progress`), limit(500)), "users.topic_progress");
-            progressMapDocs = progressSnap.docs.map(d => ({ id: d.id, data: d.data() }));
-            await CacheManager.saveData(cacheKey, progressMapDocs, DASHBOARD_DATA_CACHE_TTL);
-        }
+        const progressMapDocs = await getTopicProgressDocs(uid);
 
         const inProgressIds = progressMapDocs
             .filter(d => d.data.status === 'in_progress')
@@ -187,15 +214,7 @@ async function loadFocusTopics(uid, currentTopicId) {
         }
 
         // Tüm konuları önbellekten al (Dashboard hızlı yüklenmesi için)
-        let allTopics = [];
-        const cachedTopics = await CacheManager.getData('all_topics', 24 * 60 * 60 * 1000);
-        if (cachedTopics?.cached && cachedTopics.data) {
-            allTopics = cachedTopics.data;
-        } else {
-            const topicsSnap = await getDocs(query(collection(db, "topics"), orderBy("order", "asc"), limit(500)), "topics");
-            allTopics = topicsSnap.docs.map(d => ({ id: d.id, ...d.data() })).filter(t => t.isActive !== false && t.status !== 'deleted' && t.isDeleted !== true);
-            await CacheManager.saveData('all_topics', allTopics, 24 * 60 * 60 * 1000);
-        }
+        const allTopics = await getCachedAllTopics();
 
         const topicItems = selectedIds
             .map((topicId) => {
@@ -559,24 +578,10 @@ async function loadRecentActivities(uid) {
 
     try {
         // --- CACHE DESTEKLİ PROGRESS ÇEKİMİ ---
-        const cacheKey = `topic_progress_col_${uid}`;
-        let progressMapDocs = [];
-        const cachedProgCol = await CacheManager.getData(cacheKey, DASHBOARD_DATA_CACHE_TTL);
-
-        if (cachedProgCol?.cached && cachedProgCol.data) {
-            progressMapDocs = cachedProgCol.data;
-        } else {
-            const progressSnap = await getDocs(query(collection(db, `users/${uid}/topic_progress`), limit(500)), "users.topic_progress");
-            progressMapDocs = progressSnap.docs.map(d => ({ id: d.id, data: d.data() }));
-            await CacheManager.saveData(cacheKey, progressMapDocs, DASHBOARD_DATA_CACHE_TTL);
-        }
+        const progressMapDocs = await getTopicProgressDocs(uid);
 
         // Tüm konuları önbellekten çek (Hızlı adlandırma için)
-        let allTopics = [];
-        const cachedTopics = await CacheManager.getData('all_topics', 24 * 60 * 60 * 1000);
-        if (cachedTopics?.cached && cachedTopics.data) {
-            allTopics = cachedTopics.data;
-        }
+        const allTopics = await getCachedAllTopics({ fetchIfMissing: false });
 
         const activitiesRaw = progressMapDocs.map(docSnap => {
             const pData = docSnap.data;

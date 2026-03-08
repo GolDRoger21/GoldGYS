@@ -2,6 +2,7 @@ import { db } from "../../firebase-config.js";
 import { showConfirm, showToast } from "../../notifications.js";
 import { collection, query, where, getDocs, doc, updateDoc, orderBy, writeBatch, limit, startAfter } from "../../firestore-metrics.js";
 import { getSessionValue, setSessionValue, removeSessionValue } from "../../session-cache.js";
+import { ADMIN_SESSION_KEYS } from "./constants.js";
 
 let usersTableBody = null; // Global seçim yerine init içinde seçeceğiz
 let currentUsers = [];
@@ -342,17 +343,17 @@ async function updateUserStatus(uid, status, confirmMessage) {
 }
 
 function focusRequestedUser() {
-    const uid = getSessionValue('adminUserFocus');
+    const uid = getSessionValue(ADMIN_SESSION_KEYS.userFocus);
     if (!uid) return;
-    const triedAll = getSessionValue('adminUserFocusAll') === '1';
+    const triedAll = getSessionValue(ADMIN_SESSION_KEYS.userFocusAll) === '1';
     const row = document.querySelector(`[data-user-row="${uid}"]`);
     if (!row && !triedAll) {
-        setSessionValue('adminUserFocusAll', '1');
+        setSessionValue(ADMIN_SESSION_KEYS.userFocusAll, '1');
         loadAllUsers();
         return;
     }
-    removeSessionValue('adminUserFocus');
-    removeSessionValue('adminUserFocusAll');
+    removeSessionValue(ADMIN_SESSION_KEYS.userFocus);
+    removeSessionValue(ADMIN_SESSION_KEYS.userFocusAll);
     if (!row) return;
     row.classList.add('highlight');
     row.scrollIntoView({ behavior: 'smooth', block: 'center' });

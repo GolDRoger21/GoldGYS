@@ -6,6 +6,7 @@ import { showToast, showConfirm } from "../../notifications.js";
 import { doc, getDoc, setDoc, serverTimestamp } from "../../firestore-metrics.js";
 import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 import { clearSessionByPrefix, removeSessionValue } from "../../session-cache.js";
+import { ADMIN_LOCAL_CACHE_KEYS, ADMIN_SESSION_CACHE_PREFIXES, ADMIN_SESSION_KEYS } from "./constants.js";
 
 const storage = getStorage();
 
@@ -159,7 +160,7 @@ function bindClearCacheButton() {
 
     btn.addEventListener("click", async () => {
         const confirmed = await showConfirm(
-            "Tüm yerel veriler (localStorage, sessionStorage ve Veritabanı Önbelleği) temizlenecek ve sayfa yenilenecek. Devam edilsin mi?",
+            "Uygulama onbellekleri (bilinen local/session anahtarlari ve veritabani onbellekleri) temizlenecek ve sayfa yenilenecek. Devam edilsin mi?",
             { title: "Önbelleği Temizle", confirmText: "Evet, Temizle", tone: "warning" }
         );
 
@@ -178,14 +179,10 @@ function bindClearCacheButton() {
                 console.error("Global cache invalidation yazılamadı:", error);
             }
 
-            ["theme","sidebarCollapsed","goldgys_cache_buster","goldgys_observability_v1"].forEach((key) => localStorage.removeItem(key));
+            Object.values(ADMIN_LOCAL_CACHE_KEYS).forEach((key) => localStorage.removeItem(key));
 
-            removeSessionValue("admin_dashboard_cache_v1");
-            removeSessionValue("adminUserFocus");
-            removeSessionValue("adminUserFocusAll");
-            clearSessionByPrefix("user_profile_");
-            clearSessionByPrefix("user_last_activity_");
-            clearSessionByPrefix("user_recent_activities_");
+            Object.values(ADMIN_SESSION_KEYS).forEach((key) => removeSessionValue(key));
+            Object.values(ADMIN_SESSION_CACHE_PREFIXES).forEach((prefix) => clearSessionByPrefix(prefix));
 
             // Delete IndexedDB caching entirely
             try {

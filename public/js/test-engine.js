@@ -7,6 +7,12 @@ import { httpsCallable } from "https://www.gstatic.com/firebasejs/10.7.1/firebas
 import { WrongSummaryService } from "./wrong-summary-service.js";
 import { CacheManager } from "./cache-manager.js";
 
+const TEST_ENGINE_CACHE_KEYS = Object.freeze({
+    examResultsCollection: (uid) => `exam_results_col_${uid}`,
+    dashboardStats: (uid) => `dashboard_stats_${uid}`,
+    userFavorites: (uid) => `user_favorites_${uid}`
+});
+
 export class TestEngine {
     constructor(containerId, questionsData, options = {}) {
         this.container = document.getElementById(containerId);
@@ -568,8 +574,8 @@ export class TestEngine {
             });
 
             // Sınav sonucu eklendiği için lokal analitik ve istatistik listesi (cache) düşürülür
-            await CacheManager.deleteData(`exam_results_col_${auth.currentUser.uid}`);
-            await CacheManager.deleteData(`dashboard_stats_${auth.currentUser.uid}`); // Dashboard özetini de düşür
+            await CacheManager.deleteData(TEST_ENGINE_CACHE_KEYS.examResultsCollection(auth.currentUser.uid));
+            await CacheManager.deleteData(TEST_ENGINE_CACHE_KEYS.dashboardStats(auth.currentUser.uid)); // Dashboard özetini de düşür
 
 
             // 2. Yanlış Yapılanları 'wrong_summaries' koleksiyonuna işle (Sınav modunda toplu işlem)
@@ -716,7 +722,7 @@ export class TestEngine {
         try {
             await Promise.all(operations);
             this.pendingFavoriteChanges.clear();
-            await CacheManager.deleteData(`user_favorites_${auth.currentUser.uid}`);
+            await CacheManager.deleteData(TEST_ENGINE_CACHE_KEYS.userFavorites(auth.currentUser.uid));
         } catch (error) {
             console.error("Favori değişikliklerini toplu kaydetme hatası:", error);
         }
