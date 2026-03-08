@@ -13,10 +13,21 @@ const TEST_ENGINE_CACHE_KEYS = Object.freeze({
     userFavorites: (uid) => `user_favorites_${uid}`
 });
 
+const TEST_ENGINE_CACHE_INVALIDATION = Object.freeze({
+    examCompletion: (uid) => [
+        TEST_ENGINE_CACHE_KEYS.examResultsCollection(uid),
+        TEST_ENGINE_CACHE_KEYS.dashboardStats(uid)
+    ],
+    favorites: (uid) => [
+        TEST_ENGINE_CACHE_KEYS.userFavorites(uid)
+    ]
+});
+
 export class TestEngine {
     constructor(containerId, questionsData, options = {}) {
         this.container = document.getElementById(containerId);
         this.questions = questionsData;
+        this.questionLookup = new Map(this.questions.map((question) => [question.id, question]));
         this.options = options;
 
         // Ayarlar
@@ -41,6 +52,8 @@ export class TestEngine {
         this.startTime = Date.now();
         this.pendingWrongAnswers = new Map();
         this.pendingFavoriteChanges = new Map();
+        this.flushWrongAnswersPromise = null;
+        this.flushFavoriteChangesPromise = null;
 
         // UI Elementleri (HTML'de bu ID'lerin olduğundan emin olacağız)
         this.ui = {
@@ -93,6 +106,10 @@ export class TestEngine {
 
         window.addEventListener('pagehide', tryFlush);
         window.addEventListener('beforeunload', tryFlush);
+    }
+
+    getQuestionById(questionId) {
+        return this.questionLookup.get(questionId) || null;
     }
 
     // --- SAYAÇ YÖNETİMİ ---
@@ -266,7 +283,8 @@ export class TestEngine {
 
     // --- CEVAPLAMA MANTIĞI ---
     handleAnswer(questionId, selectedOptionId) {
-        const question = this.questions.find(q => q.id === questionId);
+        const question = this.getQuestionById(questionId);
+        if (!question) return;
         const isCorrect = (selectedOptionId === question.correctOption);
 
         if (this.mode === 'exam') {
@@ -301,12 +319,13 @@ export class TestEngine {
         this.showFeedback(questionId, selectedOptionId, isCorrect, question.correctOption);
 
         if (!this.deferWrongWrites) {
+            const uid = this.getCurrentUid();
             // Yanlışsa hemen DB'ye işle (Kullanıcı bekletilmez, arka planda çalışır)
-            if (!isCorrect && auth.currentUser) {
+            if (!isCorrect && uid) {
                 this.saveWrongAnswer(questionId, question);
             }
 
-            if (isCorrect && auth.currentUser) {
+            if (isCorrect && uid) {
                 this.clearWrongAnswer(questionId);
             }
 
@@ -399,7 +418,8 @@ export class TestEngine {
 
     restoreAnswerState(qId) {
         const ans = this.answers[qId];
-        const q = this.questions.find(item => item.id === qId);
+        const q = this.getQuestionById(qId);
+        if (!q) return;
 
         if (this.mode !== 'exam') {
             this.showFeedback(qId, ans.selected, ans.isCorrect, q.correctOption);
@@ -534,6 +554,11 @@ export class TestEngine {
         return auth.currentUser?.uid || null;
     }
 
+    async invalidateCaches(cacheKeys = []) {
+        if (!Array.isArray(cacheKeys) || cacheKeys.length === 0) return;
+        await Promise.all(cacheKeys.map((cacheKey) => CacheManager.deleteData(cacheKey)));
+    }
+
     async saveExamResult(stats) {
         const uid = this.getCurrentUid();
         if (!uid) return;
@@ -579,8 +604,7 @@ export class TestEngine {
             });
 
             // Sınav sonucu eklendiği için lokal analitik ve istatistik listesi (cache) düşürülür
-            await CacheManager.deleteData(TEST_ENGINE_CACHE_KEYS.examResultsCollection(uid));
-            await CacheManager.deleteData(TEST_ENGINE_CACHE_KEYS.dashboardStats(uid)); // Dashboard özetini de düşür
+            await this.invalidateCaches(TEST_ENGINE_CACHE_INVALIDATION.examCompletion(uid)); // Dashboard özetini de düşür
 
 
             // 2. Yanlış Yapılanları 'wrong_summaries' koleksiyonuna işle (Sınav modunda toplu işlem)
@@ -595,7 +619,7 @@ export class TestEngine {
 
             const wrongAnswers = Object.keys(this.answers).filter(qId => !this.answers[qId].isCorrect && !this.answers[qId].synced);
             wrongAnswers.forEach(qId => {
-                const q = this.questions.find(i => i.id === qId);
+                const q = this.getQuestionById(qId);
                 this.saveWrongAnswer(qId, q);
             });
 
@@ -655,6 +679,17 @@ export class TestEngine {
     }
 
     async flushWrongAnswers() {
+        if (this.flushWrongAnswersPromise) return this.flushWrongAnswersPromise;
+
+        this.flushWrongAnswersPromise = this._flushWrongAnswersInternal();
+        try {
+            return await this.flushWrongAnswersPromise;
+        } finally {
+            this.flushWrongAnswersPromise = null;
+        }
+    }
+
+    async _flushWrongAnswersInternal() {
         const uid = this.getCurrentUid();
         if (!uid || this.pendingWrongAnswers.size === 0) return;
         const dateKey = new Date().toISOString().slice(0, 10);
@@ -706,6 +741,17 @@ export class TestEngine {
     }
 
     async flushFavoriteChanges() {
+        if (this.flushFavoriteChangesPromise) return this.flushFavoriteChangesPromise;
+
+        this.flushFavoriteChangesPromise = this._flushFavoriteChangesInternal();
+        try {
+            return await this.flushFavoriteChangesPromise;
+        } finally {
+            this.flushFavoriteChangesPromise = null;
+        }
+    }
+
+    async _flushFavoriteChangesInternal() {
         const uid = this.getCurrentUid();
         if (!uid || this.pendingFavoriteChanges.size === 0) return;
 
@@ -717,7 +763,7 @@ export class TestEngine {
                 return;
             }
 
-            const q = this.questions.find(i => i.id === qId);
+            const q = this.getQuestionById(qId);
             operations.push(setDoc(ref, {
                 questionId: q?.id || qId,
                 text: q?.text || '',
@@ -729,14 +775,14 @@ export class TestEngine {
         try {
             await Promise.all(operations);
             this.pendingFavoriteChanges.clear();
-            await CacheManager.deleteData(TEST_ENGINE_CACHE_KEYS.userFavorites(uid));
+            await this.invalidateCaches(TEST_ENGINE_CACHE_INVALIDATION.favorites(uid));
         } catch (error) {
             console.error("Favori değişikliklerini toplu kaydetme hatası:", error);
         }
     }
 
     async toggleFavorite(qId) {
-        if (!auth.currentUser) {
+        if (!this.getCurrentUid()) {
             showToast("Bu işlem için giriş yapmalısınız.", "error");
             return;
         }
@@ -763,7 +809,7 @@ export class TestEngine {
 
     openReportModal(qId) {
         const desc = prompt("Bu soruda ne gibi bir hata var? (Örn: Cevap yanlış, Yazım hatası)");
-        if (desc && auth.currentUser) {
+        if (desc && this.getCurrentUid()) {
             const submitReport = httpsCallable(functions, "submitReport");
             submitReport({
                 questionId: qId,

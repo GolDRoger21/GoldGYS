@@ -52,6 +52,11 @@ const EXAM_STATUS = Object.freeze({
 
 const DASHBOARD_EXAM_ANNOUNCEMENT_CACHE_KEY = "dashboard_exam_announcement_v1";
 const DASHBOARD_ANNOUNCEMENTS_CACHE_KEY = "dashboard_announcements_v1";
+const DASHBOARD_INFLIGHT = {
+    topicProgressByUid: new Map(),
+    allTopicsCacheOnly: null,
+    allTopicsWithFetch: null
+};
 
 
 async function getCachedUserDoc(uid) {
@@ -70,39 +75,77 @@ async function getCachedUserDoc(uid) {
 }
 
 async function getTopicProgressDocs(uid) {
-    const cacheKey = DASHBOARD_CACHE_KEYS.topicProgressCollection(uid);
-    const cachedProgCol = await getDashboardDataCache(cacheKey);
-    const cachedData = getCachedPayload(cachedProgCol);
-    if (cachedData) {
-        return cachedData;
-    }
+    const inflight = DASHBOARD_INFLIGHT.topicProgressByUid.get(uid);
+    if (inflight) return inflight;
 
-    const progressSnap = await getDocs(
-        query(collection(db, `users/${uid}/topic_progress`), limit(500)),
-        "users.topic_progress"
-    );
-    const progressMapDocs = progressSnap.docs.map(d => ({ id: d.id, data: d.data() }));
-    await saveDashboardDataCache(cacheKey, progressMapDocs);
-    return progressMapDocs;
+    const loadPromise = (async () => {
+        const cacheKey = DASHBOARD_CACHE_KEYS.topicProgressCollection(uid);
+        const cachedProgCol = await getDashboardDataCache(cacheKey);
+        const cachedData = getCachedPayload(cachedProgCol);
+        if (cachedData) {
+            return cachedData;
+        }
+
+        const progressSnap = await getDocs(
+            query(collection(db, `users/${uid}/topic_progress`), limit(500)),
+            "users.topic_progress"
+        );
+        const progressMapDocs = progressSnap.docs.map(d => ({ id: d.id, data: d.data() }));
+        await saveDashboardDataCache(cacheKey, progressMapDocs);
+        return progressMapDocs;
+    })();
+
+    DASHBOARD_INFLIGHT.topicProgressByUid.set(uid, loadPromise);
+    try {
+        return await loadPromise;
+    } finally {
+        DASHBOARD_INFLIGHT.topicProgressByUid.delete(uid);
+    }
 }
 
 async function getCachedAllTopics({ fetchIfMissing = true } = {}) {
-    const cachedTopics = await CacheManager.getData(ALL_TOPICS_CACHE_KEY, ALL_TOPICS_CACHE_TTL);
-    const cachedData = getCachedPayload(cachedTopics);
-    if (cachedData) {
-        return cachedData;
+    if (fetchIfMissing && DASHBOARD_INFLIGHT.allTopicsWithFetch) {
+        return DASHBOARD_INFLIGHT.allTopicsWithFetch;
     }
-
     if (!fetchIfMissing) {
-        return [];
+        if (DASHBOARD_INFLIGHT.allTopicsWithFetch) return DASHBOARD_INFLIGHT.allTopicsWithFetch;
+        if (DASHBOARD_INFLIGHT.allTopicsCacheOnly) return DASHBOARD_INFLIGHT.allTopicsCacheOnly;
     }
 
-    const topicsSnap = await getDocs(query(collection(db, "topics"), orderBy("order", "asc"), limit(500)), "topics");
-    const allTopics = topicsSnap.docs
-        .map(d => ({ id: d.id, ...d.data() }))
-        .filter(t => t.isActive !== false && t.status !== 'deleted' && t.isDeleted !== true);
-    await CacheManager.saveData(ALL_TOPICS_CACHE_KEY, allTopics, ALL_TOPICS_CACHE_TTL);
-    return allTopics;
+    const loadPromise = (async () => {
+        const cachedTopics = await CacheManager.getData(ALL_TOPICS_CACHE_KEY, ALL_TOPICS_CACHE_TTL);
+        const cachedData = getCachedPayload(cachedTopics);
+        if (cachedData) {
+            return cachedData;
+        }
+
+        if (!fetchIfMissing) {
+            return [];
+        }
+
+        const topicsSnap = await getDocs(query(collection(db, "topics"), orderBy("order", "asc"), limit(500)), "topics");
+        const allTopics = topicsSnap.docs
+            .map(d => ({ id: d.id, ...d.data() }))
+            .filter(t => t.isActive !== false && t.status !== 'deleted' && t.isDeleted !== true);
+        await CacheManager.saveData(ALL_TOPICS_CACHE_KEY, allTopics, ALL_TOPICS_CACHE_TTL);
+        return allTopics;
+    })();
+
+    if (fetchIfMissing) {
+        DASHBOARD_INFLIGHT.allTopicsWithFetch = loadPromise;
+    } else {
+        DASHBOARD_INFLIGHT.allTopicsCacheOnly = loadPromise;
+    }
+
+    try {
+        return await loadPromise;
+    } finally {
+        if (fetchIfMissing) {
+            DASHBOARD_INFLIGHT.allTopicsWithFetch = null;
+        } else {
+            DASHBOARD_INFLIGHT.allTopicsCacheOnly = null;
+        }
+    }
 }
 
 
@@ -135,6 +178,10 @@ function applyCachedHtml(element, cachedData) {
     if (!element || !cachedData?.html) return false;
     element.innerHTML = cachedData.html;
     return true;
+}
+
+function buildTopicLookup(allTopics = []) {
+    return new Map(allTopics.map((topic) => [topic.id, topic]));
 }
 
 function applyStatsToUI(totalStats, todayStats) {
@@ -258,10 +305,11 @@ async function loadFocusTopics(uid, currentTopicId) {
 
         // Tüm konuları önbellekten al (Dashboard hızlı yüklenmesi için)
         const allTopics = await getCachedAllTopics();
+        const topicLookup = buildTopicLookup(allTopics);
 
         const topicItems = selectedIds
             .map((topicId) => {
-                const topic = allTopics.find(t => t.id === topicId);
+                const topic = topicLookup.get(topicId);
                 if (!topic) return null;
                 const topicUrl = buildTopicPath ? buildTopicPath({ id: topicId, slug: topic.slug }) : `/konu/${topic.slug || topicId}`;
                 const isPrimaryFocus = topicId === currentTopicId;
@@ -402,6 +450,11 @@ function setExamStatusBadge(text) {
     if (ui.examStatusBadge) ui.examStatusBadge.textContent = text;
 }
 
+function applyNoExamState(statusText) {
+    setCountdownState(null);
+    setExamStatusBadge(statusText);
+}
+
 async function loadExamAnnouncement() {
     if (!ui.examPanelBody) return;
 
@@ -417,6 +470,13 @@ async function loadExamAnnouncement() {
         orderBy("examDate", "asc"),
         limit(1)
     );
+    const cacheExamPanelHtml = async ({ examDate, statusBadge }) => {
+        await saveDashboardFeedCache(DASHBOARD_EXAM_ANNOUNCEMENT_CACHE_KEY, {
+            html: ui.examPanelBody.innerHTML,
+            examDate,
+            statusBadge
+        });
+    };
 
     const applyExamSnapshot = async (snapshot) => {
         if (snapshot.empty) {
@@ -432,13 +492,8 @@ async function loadExamAnnouncement() {
                     <span class="panel-pill">Takipte</span>
                 </div>
             `;
-            setCountdownState(null);
-            setExamStatusBadge(EXAM_STATUS.noAnnouncement);
-            await saveDashboardFeedCache(DASHBOARD_EXAM_ANNOUNCEMENT_CACHE_KEY, {
-                html: ui.examPanelBody.innerHTML,
-                examDate: null,
-                statusBadge: EXAM_STATUS.noAnnouncement
-            });
+            applyNoExamState(EXAM_STATUS.noAnnouncement);
+            await cacheExamPanelHtml({ examDate: null, statusBadge: EXAM_STATUS.noAnnouncement });
             return;
         }
 
@@ -483,8 +538,7 @@ async function loadExamAnnouncement() {
 
         setExamStatusBadge(EXAM_STATUS.active);
         setCountdownState(examDate);
-        await saveDashboardFeedCache(DASHBOARD_EXAM_ANNOUNCEMENT_CACHE_KEY, {
-            html: ui.examPanelBody.innerHTML,
+        await cacheExamPanelHtml({
             examDate: examDate ? examDate.toISOString() : null,
             statusBadge: EXAM_STATUS.active
         });
@@ -496,8 +550,7 @@ async function loadExamAnnouncement() {
     } catch (error) {
         console.error("Sınav ilanı yüklenemedi:", error);
         ui.examPanelBody.innerHTML = `<p class="text-muted">Sınav bilgileri yüklenemedi.</p>`;
-        setCountdownState(null);
-        setExamStatusBadge(EXAM_STATUS.check);
+        applyNoExamState(EXAM_STATUS.check);
     }
 
     if (DASHBOARD_ENABLE_LIVE_LISTEN && !examAnnouncementUnsubscribe) {
@@ -547,6 +600,9 @@ async function loadAnnouncements() {
 
     const cachedData = await getDashboardFeedCache(DASHBOARD_ANNOUNCEMENTS_CACHE_KEY);
     applyCachedHtml(ui.announcementList, cachedData);
+    const cacheAnnouncementListHtml = async () => {
+        await saveDashboardFeedCache(DASHBOARD_ANNOUNCEMENTS_CACHE_KEY, { html: ui.announcementList.innerHTML });
+    };
 
     const announcementQuery = query(
         collection(db, "announcements"),
@@ -568,7 +624,7 @@ async function loadAnnouncements() {
                     </div>
                 </div>
             `;
-            await saveDashboardFeedCache(DASHBOARD_ANNOUNCEMENTS_CACHE_KEY, { html: ui.announcementList.innerHTML });
+            await cacheAnnouncementListHtml();
             return;
         }
 
@@ -594,7 +650,7 @@ async function loadAnnouncements() {
                 </div>
             `;
         }).join('');
-        await saveDashboardFeedCache(DASHBOARD_ANNOUNCEMENTS_CACHE_KEY, { html: ui.announcementList.innerHTML });
+        await cacheAnnouncementListHtml();
     };
 
     try {
@@ -625,6 +681,7 @@ async function loadRecentActivities(uid) {
 
         // Tüm konuları önbellekten çek (Hızlı adlandırma için)
         const allTopics = await getCachedAllTopics({ fetchIfMissing: false });
+        const topicLookup = buildTopicLookup(allTopics);
 
         const activitiesRaw = progressMapDocs.map(docSnap => {
             const pData = docSnap.data;
@@ -638,7 +695,7 @@ async function loadRecentActivities(uid) {
                 return null;
             }
 
-            const tData = allTopics.find(t => t.id === topicId) || { title: "Bilinmeyen Konu", slug: topicId };
+            const tData = topicLookup.get(topicId) || { title: "Bilinmeyen Konu", slug: topicId };
             const lastActivityDate = parseDate(pData.lastSyncedAt) || parseDate(pData.updatedAt);
 
             return {
