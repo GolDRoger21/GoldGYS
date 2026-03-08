@@ -1,9 +1,10 @@
 import { db } from "./firebase-config.js";
-import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { doc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { DEFAULT_PUBLIC_CONFIG, mergeWithDefaultPublicConfig } from "./config-defaults.js";
 import { CacheManager } from "./cache-manager.js";
 
 let configCache = null;
+let configRealtimeUnsubscribe = null;
 const PUBLIC_CONFIG_CACHE_KEY = "site_config_public_v1";
 const PUBLIC_CONFIG_TTL = 60 * 60 * 1000; // 1 saat
 
@@ -55,7 +56,36 @@ export async function applySiteConfigToDocument(configOrPromise) {
     applySupportLinks(config);
     applySocialMedia(config);
     applyAnnouncement(config);
+    ensureRealtimeConfigSync();
     return config;
+}
+
+function ensureRealtimeConfigSync() {
+    if (configRealtimeUnsubscribe || typeof window === "undefined") return;
+
+    const configRef = doc(db, "config", "public");
+    configRealtimeUnsubscribe = onSnapshot(configRef, async (snapshot) => {
+        const nextConfig = mergeWithDefaultPublicConfig(snapshot.exists() ? snapshot.data() : {});
+        configCache = nextConfig;
+        await CacheManager.saveData(PUBLIC_CONFIG_CACHE_KEY, nextConfig, PUBLIC_CONFIG_TTL);
+
+        applyBranding(nextConfig);
+        applySeo(nextConfig);
+        applyFooter(nextConfig);
+        applyLegalLinks(nextConfig);
+        applySupportLinks(nextConfig);
+        applySocialMedia(nextConfig);
+        applyAnnouncement(nextConfig);
+    }, (error) => {
+        console.warn("Site config canlı dinleme başlatılamadı:", error);
+    });
+
+    window.addEventListener("beforeunload", () => {
+        if (configRealtimeUnsubscribe) {
+            configRealtimeUnsubscribe();
+            configRealtimeUnsubscribe = null;
+        }
+    }, { once: true });
 }
 
 export function applyTicketCategoriesToSelect(selectEl, categories) {

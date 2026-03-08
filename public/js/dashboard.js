@@ -3,7 +3,7 @@
 import { initLayout } from './ui-loader.js';
 import { auth, db } from "./firebase-config.js";
 import { getUserProfile } from "./user-profile.js";
-import { collection, doc, getDoc, getDocs, limit, orderBy, query, where, Timestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { collection, doc, getDoc, getDocs, limit, onSnapshot, orderBy, query, where, Timestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { buildTopicPath } from './topic-url.js';
 import { CacheManager } from './cache-manager.js';
 import { pickTopicIcon } from './topic-icon-map.js';
@@ -29,6 +29,8 @@ const ui = {
 };
 
 let examCountdownInterval = null;
+let examAnnouncementUnsubscribe = null;
+let dashboardAnnouncementsUnsubscribe = null;
 
 
 const DASHBOARD_STATS_TTL = 2 * 60 * 1000; // 2 dakika
@@ -73,6 +75,17 @@ document.addEventListener("DOMContentLoaded", async () => {
         // 1. Merkezi Layout Yükleyicisini Bekle
         // (Header, Sidebar, Auth Kontrolü, Admin Rolü, Mobil Menü - hepsi burada halledilir)
         await initLayout();
+
+        window.addEventListener("beforeunload", () => {
+            if (examAnnouncementUnsubscribe) {
+                examAnnouncementUnsubscribe();
+                examAnnouncementUnsubscribe = null;
+            }
+            if (dashboardAnnouncementsUnsubscribe) {
+                dashboardAnnouncementsUnsubscribe();
+                dashboardAnnouncementsUnsubscribe = null;
+            }
+        }, { once: true });
 
         // 2. Dashboard'a Özel İçeriği Hazırla
         const user = auth.currentUser;
@@ -330,18 +343,16 @@ async function loadExamAnnouncement() {
         ui.examPanelBody.innerHTML = cached.data.html;
         setCountdownState(cached.data.examDate ? new Date(cached.data.examDate) : null);
         if (ui.examStatusBadge) ui.examStatusBadge.textContent = cached.data.statusBadge || "Aktif";
-        return;
     }
 
-    try {
-        const examQuery = query(
-            collection(db, "examAnnouncements"),
-            where("isActive", "==", true),
-            orderBy("examDate", "asc"),
-            limit(1)
-        );
-        const snapshot = await getDocs(examQuery);
+    const examQuery = query(
+        collection(db, "examAnnouncements"),
+        where("isActive", "==", true),
+        orderBy("examDate", "asc"),
+        limit(1)
+    );
 
+    const applyExamSnapshot = async (snapshot) => {
         if (snapshot.empty) {
             ui.examPanelBody.innerHTML = `
                 <div class="panel-item">
@@ -411,11 +422,26 @@ async function loadExamAnnouncement() {
             examDate: examDate ? examDate.toISOString() : null,
             statusBadge: "Aktif"
         }, DASHBOARD_FEED_TTL);
+    };
+
+    try {
+        const snapshot = await getDocs(examQuery);
+        await applyExamSnapshot(snapshot);
     } catch (error) {
         console.error("Sınav ilanı yüklenemedi:", error);
         ui.examPanelBody.innerHTML = `<p class="text-muted">Sınav bilgileri yüklenemedi.</p>`;
         setCountdownState(null);
         if (ui.examStatusBadge) ui.examStatusBadge.textContent = "Kontrol Edin";
+    }
+
+    if (!examAnnouncementUnsubscribe) {
+        examAnnouncementUnsubscribe = onSnapshot(examQuery, (snapshot) => {
+            applyExamSnapshot(snapshot).catch((error) => {
+                console.error("Sınav ilanı canlı güncelleme hatası:", error);
+            });
+        }, (error) => {
+            console.warn("Sınav ilanı canlı dinleme başlatılamadı:", error);
+        });
     }
 }
 
@@ -457,18 +483,16 @@ async function loadAnnouncements() {
     const cached = await CacheManager.getData(cacheKey);
     if (cached?.cached && cached.data?.html) {
         ui.announcementList.innerHTML = cached.data.html;
-        return;
     }
 
-    try {
-        const announcementQuery = query(
-            collection(db, "announcements"),
-            where("isActive", "==", true),
-            orderBy("createdAt", "desc"),
-            limit(5)
-        );
-        const snapshot = await getDocs(announcementQuery);
+    const announcementQuery = query(
+        collection(db, "announcements"),
+        where("isActive", "==", true),
+        orderBy("createdAt", "desc"),
+        limit(5)
+    );
 
+    const renderAnnouncements = async (snapshot) => {
         if (snapshot.empty) {
             ui.announcementList.innerHTML = `
                 <div class="panel-item">
@@ -508,9 +532,24 @@ async function loadAnnouncements() {
             `;
         }).join('');
         await CacheManager.saveData(cacheKey, { html: ui.announcementList.innerHTML }, DASHBOARD_FEED_TTL);
+    };
+
+    try {
+        const snapshot = await getDocs(announcementQuery);
+        await renderAnnouncements(snapshot);
     } catch (error) {
         console.error("Duyurular yüklenemedi:", error);
         ui.announcementList.innerHTML = `<p class="text-muted">Duyurular yüklenemedi.</p>`;
+    }
+
+    if (!dashboardAnnouncementsUnsubscribe) {
+        dashboardAnnouncementsUnsubscribe = onSnapshot(announcementQuery, (snapshot) => {
+            renderAnnouncements(snapshot).catch((error) => {
+                console.error("Duyurular canlı güncelleme hatası:", error);
+            });
+        }, (error) => {
+            console.warn("Duyurular canlı dinleme başlatılamadı:", error);
+        });
     }
 }
 
