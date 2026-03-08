@@ -11,13 +11,30 @@ import {
     serverTimestamp,
     updateDoc,
     where,
-    writeBatch
+    writeBatch,
+    setDoc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 export function initAnnouncementsPage() {
     renderInterface();
     loadExamAnnouncements();
     loadAnnouncements();
+}
+
+
+async function bumpPublicCacheBuster() {
+    try {
+        await setDoc(doc(db, "config", "public"), {
+            system: {
+                cacheBuster: Date.now()
+            },
+            meta: {
+                updatedAt: serverTimestamp()
+            }
+        }, { merge: true });
+    } catch (error) {
+        console.warn("cacheBuster güncellenemedi:", error);
+    }
 }
 
 function renderInterface() {
@@ -190,6 +207,7 @@ async function handleExamSubmit(event) {
         });
 
         await batch.commit();
+        await bumpPublicCacheBuster();
         showToast("Sınav ilanı kaydedildi.", "success");
         event.target.reset();
         document.getElementById('examIsActive').checked = true;
@@ -251,6 +269,7 @@ async function handleExamAction(action, id) {
         });
         if (!confirmDelete) return;
         await deleteDoc(docRef);
+        await bumpPublicCacheBuster();
         showToast("Sınav ilanı silindi.", "success");
         loadExamAnnouncements();
         return;
@@ -263,6 +282,7 @@ async function handleExamAction(action, id) {
 
     if (action === 'deactivate') {
         await updateDoc(docRef, { isActive: false, updatedAt: serverTimestamp() });
+        await bumpPublicCacheBuster();
         showToast("Sınav ilanı pasife alındı.", "success");
         loadExamAnnouncements();
     }
@@ -278,6 +298,7 @@ async function setActiveExamAnnouncement(id) {
         });
         batch.update(doc(collectionRef, id), { isActive: true, updatedAt: serverTimestamp() });
         await batch.commit();
+        await bumpPublicCacheBuster();
         showToast("Sınav ilanı aktif edildi.", "success");
         loadExamAnnouncements();
     } catch (error) {
@@ -307,6 +328,7 @@ async function handleAnnouncementSubmit(event) {
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp()
         });
+        await bumpPublicCacheBuster();
         showToast("Duyuru yayınlandı.", "success");
         event.target.reset();
         document.getElementById('announcementIsActive').checked = true;
@@ -369,6 +391,7 @@ async function handleAnnouncementAction(action, id) {
         });
         if (!confirmDelete) return;
         await deleteDoc(docRef);
+        await bumpPublicCacheBuster();
         showToast("Duyuru silindi.", "success");
         loadAnnouncements();
         return;
@@ -376,6 +399,7 @@ async function handleAnnouncementAction(action, id) {
 
     if (action === 'activate') {
         await updateDoc(docRef, { isActive: true, updatedAt: serverTimestamp() });
+        await bumpPublicCacheBuster();
         showToast("Duyuru yayınlandı.", "success");
         loadAnnouncements();
         return;
@@ -383,6 +407,7 @@ async function handleAnnouncementAction(action, id) {
 
     if (action === 'deactivate') {
         await updateDoc(docRef, { isActive: false, updatedAt: serverTimestamp() });
+        await bumpPublicCacheBuster();
         showToast("Duyuru pasife alındı.", "success");
         loadAnnouncements();
     }
