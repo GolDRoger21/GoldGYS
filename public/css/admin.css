@@ -3296,3 +3296,30 @@ tr.highlight {
     transform: translateY(-1px);
     filter: brightness(1.03);
 }
+
+.observability-card .observability-kpis {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    margin: 8px 0 14px;
+}
+
+.observability-card .observability-kpis > div {
+    border: 1px solid var(--border-color, #e5e7eb);
+    border-radius: 10px;
+    padding: 8px 10px;
+    background: var(--bg-secondary, #f8fafc);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.observability-card .observability-kpis span {
+    font-size: 12px;
+    color: var(--text-muted, #64748b);
+}
+
+.observability-card .observability-kpis strong {
+    font-size: 18px;
+    color: var(--text-primary, #0f172a);
+}

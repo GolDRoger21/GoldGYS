@@ -164,6 +164,33 @@
                                 </div>
                             </div>
 
+                            <div class="card observability-card">
+                                <div class="card-header">
+                                    <div>
+                                        <h3>Haftalik Kota Ozeti</h3>
+                                        <p class="text-muted" id="observabilityWeekLabel">Yerel olcum verisi</p>
+                                    </div>
+                                    <span class="badge badge-secondary">Local</span>
+                                </div>
+                                <div class="observability-kpis">
+                                    <div><span>Read</span><strong id="obsReadCount">0</strong></div>
+                                    <div><span>Write</span><strong id="obsWriteCount">0</strong></div>
+                                    <div><span>Listen</span><strong id="obsListenCount">0</strong></div>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="admin-table compact-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Koleksiyon</th>
+                                                <th>Read</th>
+                                                <th>Write</th>
+                                                <th>Listen</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="observabilityCollectionsTbody"></tbody>
+                                    </table>
+                                </div>
+                            </div>
                             <div class="card system-health">
                                 <h3>🟢 Sistem Özeti</h3>
                                 <ul class="status-list">

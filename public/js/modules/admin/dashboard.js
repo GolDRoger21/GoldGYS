@@ -8,6 +8,7 @@ import {
     getDocs,
     where
 } from "../../firestore-metrics.js";
+import { getWeeklyObservabilityReport } from "../../observability.js";
 
 // Chart (Grafik) nesnelerini saklamak için global değişken
 let dashboardCharts = {
@@ -19,6 +20,7 @@ const DASHBOARD_CACHE_KEY = "admin_dashboard_cache_v1";
 const DASHBOARD_CACHE_TTL_MS = 60 * 1000;
 let dashboardBootstrapped = false;
 const DASHBOARD_SHARD_QUERY_LIMIT = 1000;
+const OBSERVABILITY_TOP_COLLECTIONS = 5;
 
 function readDashboardCache() {
     try {
@@ -62,6 +64,7 @@ export async function initDashboard() {
     loadStatsSafe();
     initChartsSafe();
     loadTablesSafe();
+    renderObservabilitySummary();
 
     dashboardBootstrapped = true;
 }
@@ -384,4 +387,72 @@ function renderRecentReports(reports) {
             <td><span style="width: 10px; height: 10px; background: ${report.statusColor}; display: inline-block; border-radius: 50%;"></span></td>
         </tr>
     `).join('');
+}
+
+function formatWeekRange(weekStartTs) {
+    if (!weekStartTs) return 'Hafta bilgisi yok';
+    const start = new Date(weekStartTs);
+    const end = new Date(weekStartTs);
+    end.setDate(end.getDate() + 6);
+    return `${start.toLocaleDateString('tr-TR')} - ${end.toLocaleDateString('tr-TR')}`;
+}
+
+function buildObservabilitySummary(report) {
+    const firestore = report?.firestore || {};
+    const collections = report?.collections || {};
+
+    const topCollections = Object.entries(collections)
+        .map(([name, counts]) => ({
+            name,
+            read: Number(counts?.read || 0),
+            write: Number(counts?.write || 0),
+            listenEvents: Number(counts?.listenEvents || 0)
+        }))
+        .sort((a, b) => (b.read + b.write * 2 + b.listenEvents * 3) - (a.read + a.write * 2 + a.listenEvents * 3))
+        .slice(0, OBSERVABILITY_TOP_COLLECTIONS);
+
+    return {
+        weekStart: report?.weekStart || null,
+        read: Number(firestore.read || 0),
+        write: Number(firestore.write || 0),
+        listenEvents: Number(firestore.listenEvents || 0),
+        topCollections
+    };
+}
+
+function renderObservabilityCard(summary) {
+    const readEl = document.getElementById('obsReadCount');
+    const writeEl = document.getElementById('obsWriteCount');
+    const listenEl = document.getElementById('obsListenCount');
+    const weekEl = document.getElementById('observabilityWeekLabel');
+    const tbody = document.getElementById('observabilityCollectionsTbody');
+
+    if (!readEl || !writeEl || !listenEl || !weekEl || !tbody) return;
+
+    readEl.textContent = String(summary?.read || 0);
+    writeEl.textContent = String(summary?.write || 0);
+    listenEl.textContent = String(summary?.listenEvents || 0);
+    weekEl.textContent = formatWeekRange(summary?.weekStart);
+
+    const rows = (summary?.topCollections || []).map((item) => `
+        <tr>
+            <td>${item.name}</td>
+            <td>${item.read}</td>
+            <td>${item.write}</td>
+            <td>${item.listenEvents}</td>
+        </tr>
+    `).join('');
+
+    tbody.innerHTML = rows || '<tr><td colspan="4" class="text-center text-muted">Koleksiyon verisi yok.</td></tr>';
+}
+
+function renderObservabilitySummary() {
+    try {
+        const report = getWeeklyObservabilityReport();
+        const summary = buildObservabilitySummary(report);
+        renderObservabilityCard(summary);
+        writeDashboardCache({ observability: summary });
+    } catch (error) {
+        console.warn('Observability ozeti render edilemedi:', error);
+    }
 }
