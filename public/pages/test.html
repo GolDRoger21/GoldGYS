@@ -754,7 +754,7 @@
 
                     const user = auth.currentUser;
                     draftScopeKey = `topic_${topicId}`;
-                    draftAnswers = CacheManager.getDraftAnswers(draftScopeKey);
+                    draftAnswers = await CacheManager.getDraftAnswers(draftScopeKey);
 
                     if (filter === 'favorites' || filter === 'wrongs') {
                         // --- Favoriler ve Yanlışlar ---

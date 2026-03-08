@@ -2108,27 +2108,55 @@
     async function resolveTopicId(segment) {
       if (!segment) return null;
 
+      // Session bazlı cache — aynı oturumda tekrar çözümlemeye gerek yok
+      const cacheKey = `resolve_topic_${segment}`;
+      const cached = sessionStorage.getItem(cacheKey);
+      if (cached) return cached;
+
       // 1. Direct ID match
       const directSnap = await getDoc(doc(db, "topics", segment));
-      if (directSnap.exists()) return segment;
+      if (directSnap.exists()) {
+        sessionStorage.setItem(cacheKey, segment);
+        return segment;
+      }
 
       const normalizedSegment = slugifyTopicTitle(segment);
 
-      // 2. Exact Title Match (Güncel Başlık Üzerinden)
+      // 2. Slug field üzerinden tek sorgu dene (daha verimli)
+      try {
+        const slugQuery = query(collection(db, "topics"), where("slug", "==", segment), limit(1));
+        const slugSnap = await getDocs(slugQuery);
+        if (!slugSnap.empty) {
+          const topicId = slugSnap.docs[0].id;
+          sessionStorage.setItem(cacheKey, topicId);
+          return topicId;
+        }
+      } catch (slugErr) {
+        console.warn("Slug sorgusu başarısız, başlık bazlı fallback uygulanıyor:", slugErr);
+      }
+
+      // 3. Fallback: Tüm topics çekimi (en maliyetli, sadece bulunamazsa)
       // Firestore'daki 'slug' field'ları eski/stale kalmış olabilir. Bu yüzden en güncel title
-      // üzerinden slugify yaparak eşleşme arıyoruz. Aksi halde ana konu, alt konuyu ezer.
+      // üzerinden slugify yaparak eşleşme arıyoruz.
       const allTopicsSnap = await getDocs(collection(db, "topics"));
       const allTopics = allTopicsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
 
       const titleMatch = allTopics.find(t => slugifyTopicTitle(t.title || '') === normalizedSegment);
-      if (titleMatch) return titleMatch.id;
+      if (titleMatch) {
+        sessionStorage.setItem(cacheKey, titleMatch.id);
+        return titleMatch.id;
+      }
 
-      // 3. Fallback: Veritabanındaki slug field'ı
+      // 4. Veritabanındaki slug field'ı
       const dbSlugMatch = allTopics.find(t => t.slug === segment);
-      if (dbSlugMatch) return dbSlugMatch.id;
+      if (dbSlugMatch) {
+        sessionStorage.setItem(cacheKey, dbSlugMatch.id);
+        return dbSlugMatch.id;
+      }
 
       return null;
     }
+
 
     async function safeGetDocs(primaryQuery, fallbackQuery, contextLabel) {
       try {
