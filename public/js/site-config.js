@@ -12,7 +12,16 @@ export async function loadSiteConfig(options = {}) {
 
     if (!force && configCache) return configCache;
 
-    await CacheManager.syncCacheBuster();
+    // `syncCacheBuster` can require a remote Firestore read.
+    // Do not let it block page rendering indefinitely on flaky networks.
+    try {
+        await Promise.race([
+            CacheManager.syncCacheBuster(),
+            new Promise((resolve) => setTimeout(resolve, 1200))
+        ]);
+    } catch (error) {
+        console.warn("Cache buster senkronizasyonu atlandı:", error);
+    }
 
     if (!force) {
         const cached = await CacheManager.getData(PUBLIC_CONFIG_CACHE_KEY);
