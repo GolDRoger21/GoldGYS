@@ -267,17 +267,79 @@
       color: var(--text-muted);
     }
 
+    @media (max-width: 992px) {
+      .favorites-stats {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .favorite-stat-card {
+        padding: 14px;
+      }
+
+      .favorite-stat-card strong {
+        font-size: 1.35rem;
+      }
+
+      .favorites-filters {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
     @media (max-width: 768px) {
       .favorites-hero {
         padding: 16px;
+        gap: 12px;
+      }
+
+      .favorites-hero p {
+        font-size: 0.9rem;
+        line-height: 1.4;
+      }
+
+      .favorites-hero-actions {
+        width: 100%;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      .favorites-hero-actions .btn {
+        width: 100%;
+        min-width: 0;
+        font-size: 0.82rem;
+        padding: 10px 8px;
+        line-height: 1.2;
       }
 
       .favorites-stats {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      .favorite-stat-card {
+        padding: 12px 10px;
+      }
+
+      .favorite-stat-card .text-muted,
+      .favorite-stat-card small {
+        display: block;
+        font-size: 0.72rem;
+        line-height: 1.3;
+      }
+
+      .favorite-stat-card strong {
+        font-size: 1.15rem;
+        margin-top: 2px;
       }
 
       .favorites-filters {
         grid-template-columns: 1fr;
+        padding: 14px;
+        gap: 10px;
+      }
+
+      .filter-group label {
+        font-size: 0.8rem;
       }
 
       .filter-actions {
@@ -290,12 +352,37 @@
         width: 100%;
       }
 
+      .category-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+
+      .category-card,
       .fav-card {
         padding: 14px;
       }
 
       .fav-content {
         padding-right: 28px;
+      }
+    }
+
+    @media (max-width: 420px) {
+      .favorites-hero-actions .btn {
+        font-size: 0.78rem;
+      }
+
+      .favorite-stat-card {
+        padding: 10px 8px;
+      }
+
+      .favorite-stat-card .text-muted,
+      .favorite-stat-card small {
+        font-size: 0.68rem;
+      }
+
+      .favorite-stat-card strong {
+        font-size: 1.05rem;
       }
     }
   </style>

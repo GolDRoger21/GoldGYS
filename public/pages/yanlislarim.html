@@ -197,6 +197,122 @@
       border: 1px dashed var(--border-color);
       color: var(--text-muted);
     }
+
+    @media (max-width: 992px) {
+      .mistakes-stats {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .mistake-stat-card {
+        padding: 14px;
+      }
+
+      .mistake-stat-card strong {
+        font-size: 1.35rem;
+      }
+
+      .mistakes-filters {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 768px) {
+      .mistakes-hero {
+        padding: 16px;
+        gap: 12px;
+      }
+
+      .mistakes-hero p {
+        font-size: 0.9rem;
+        line-height: 1.4;
+      }
+
+      .mistakes-hero-actions {
+        width: 100%;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      .mistakes-hero-actions .btn {
+        width: 100%;
+        min-width: 0;
+        font-size: 0.82rem;
+        padding: 10px 8px;
+        line-height: 1.2;
+      }
+
+      .mistakes-stats {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      .mistake-stat-card {
+        padding: 12px 10px;
+      }
+
+      .mistake-stat-card .text-muted,
+      .mistake-stat-card small {
+        display: block;
+        font-size: 0.72rem;
+        line-height: 1.3;
+      }
+
+      .mistake-stat-card strong {
+        font-size: 1.15rem;
+        margin-top: 2px;
+      }
+
+      .mistakes-filters {
+        grid-template-columns: 1fr;
+        padding: 14px;
+        gap: 10px;
+      }
+
+      .filter-group label {
+        font-size: 0.8rem;
+      }
+
+      .filter-actions {
+        align-items: stretch;
+      }
+
+      .filter-actions .btn,
+      .category-actions .btn,
+      .mistake-card-footer .btn {
+        width: 100%;
+      }
+
+      .category-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+
+      .category-card,
+      .mistake-card {
+        padding: 14px;
+      }
+    }
+
+    @media (max-width: 420px) {
+      .mistakes-hero-actions .btn {
+        font-size: 0.78rem;
+      }
+
+      .mistake-stat-card {
+        padding: 10px 8px;
+      }
+
+      .mistake-stat-card .text-muted,
+      .mistake-stat-card small {
+        font-size: 0.68rem;
+      }
+
+      .mistake-stat-card strong {
+        font-size: 1.05rem;
+      }
+    }
+
   </style>
   <link rel="icon" type="image/png" href="/icons/favicon.png">
   <link rel="manifest" href="/manifest.json">
