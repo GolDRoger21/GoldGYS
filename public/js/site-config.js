@@ -10,8 +10,6 @@ const PUBLIC_CONFIG_TTL = 60 * 60 * 1000; // 1 saat
 export async function loadSiteConfig(options = {}) {
     const { force = false } = options;
 
-    if (!force && configCache) return configCache;
-
     // `syncCacheBuster` can require a remote Firestore read.
     // Do not let it block page rendering indefinitely on flaky networks.
     try {
@@ -27,6 +25,10 @@ export async function loadSiteConfig(options = {}) {
         const cached = await CacheManager.getData(PUBLIC_CONFIG_CACHE_KEY);
         if (cached?.cached && cached.data) {
             configCache = mergeWithDefaultPublicConfig(cached.data);
+            return configCache;
+        }
+
+        if (configCache) {
             return configCache;
         }
     }
@@ -317,30 +319,44 @@ function applyAnnouncement(config) {
     }
 
     const typeMap = {
-        info: { bg: "bg-primary", text: "text-white", icon: "fas fa-info-circle" },
-        warning: { bg: "bg-warning", text: "text-dark", icon: "fas fa-exclamation-triangle" },
-        danger: { bg: "bg-danger", text: "text-white", icon: "fas fa-exclamation-circle" },
-        success: { bg: "bg-success", text: "text-white", icon: "fas fa-check-circle" }
+        info: { className: "announcement-info" },
+        warning: { className: "announcement-warning" },
+        danger: { className: "announcement-danger" },
+        success: { className: "announcement-success" }
     };
 
     const style = typeMap[announcement.type] || typeMap.info;
+    const detailLink = announcement.link
+        ? `<a href="${escapeHtml(announcement.link)}" class="site-announcement-link">Detaylar <i class="fas fa-arrow-right ms-1"></i></a>`
+        : "";
+
     const content = `
-        <div class="container d-flex justify-content-between align-items-center">
-            <div class="d-flex align-items-center gap-2">
-                <i class="${style.icon}"></i>
-                <span class="fw-medium">${escapeHtml(announcement.text)}</span>
+        <div class="container site-announcement-inner">
+            <div class="site-announcement-marquee" aria-label="Site duyurusu">
+                <div class="site-announcement-track">
+                    <span class="site-announcement-item">
+                        <i class="fas fa-bullhorn" aria-hidden="true"></i>
+                        <span class="site-announcement-label">Duyuru</span>
+                        <span>${escapeHtml(announcement.text)}</span>
+                    </span>
+                    <span class="site-announcement-item" aria-hidden="true">
+                        <i class="fas fa-bullhorn"></i>
+                        <span class="site-announcement-label">Duyuru</span>
+                        <span>${escapeHtml(announcement.text)}</span>
+                    </span>
+                </div>
             </div>
-            ${announcement.link ? `<a href="${escapeHtml(announcement.link)}" class="btn btn-sm btn-light border-0 fw-bold shadow-sm" style="opacity: 0.9; transform: scale(0.9);">Detaylar <i class="fas fa-arrow-right ms-1"></i></a>` : ''}
+            ${detailLink}
         </div>
     `;
 
     if (existingBar) {
-        existingBar.className = `w-100 py-2 ${style.bg} ${style.text}`;
+        existingBar.className = `site-announcement-bar ${style.className}`;
         existingBar.innerHTML = content;
     } else {
         const bar = document.createElement("div");
         bar.id = "site-announcement-bar";
-        bar.className = `w-100 py-2 ${style.bg} ${style.text}`;
+        bar.className = `site-announcement-bar ${style.className}`;
         bar.style.position = "relative";
         bar.style.zIndex = "2000";
         bar.innerHTML = content;
