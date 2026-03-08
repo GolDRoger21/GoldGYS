@@ -398,23 +398,6 @@ function syncAnnouncementOffset(bar) {
     }
 }
 
-let announcementResizeBound = false;
-
-function syncAnnouncementOffset(bar) {
-    if (!bar) return;
-
-    document.documentElement.style.setProperty("--announcement-offset", `${bar.offsetHeight}px`);
-
-    if (!announcementResizeBound) {
-        window.addEventListener("resize", () => {
-            const liveBar = document.getElementById("site-announcement-bar");
-            if (!liveBar) return;
-            document.documentElement.style.setProperty("--announcement-offset", `${liveBar.offsetHeight}px`);
-        });
-        announcementResizeBound = true;
-    }
-}
-
 function upsertMetaByName(name, content) {
     let meta = document.querySelector(`meta[name='${name}']`);
     if (!meta) {
