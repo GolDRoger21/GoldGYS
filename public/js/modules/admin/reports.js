@@ -9,10 +9,13 @@ import {
     getDoc,
     updateDoc,
     deleteDoc,
-    writeBatch
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    writeBatch,
+    limit
+} from "../../firestore-metrics.js";
 
 let listContainer = null;
+const REPORTS_FETCH_LIMIT = 500;
+
 let reportsState = {
     reports: [],
     groups: [],
@@ -30,7 +33,7 @@ export async function initReportsPage() {
     listContainer.innerHTML = '<p>Yükleniyor...</p>';
 
     try {
-        const q = query(collection(db, "reports"), orderBy("createdAt", "desc"));
+        const q = query(collection(db, "reports"), orderBy("createdAt", "desc"), limit(REPORTS_FETCH_LIMIT));
         const snapshot = await getDocs(q);
 
         if (snapshot.empty) {

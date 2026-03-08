@@ -1,12 +1,14 @@
 import { db } from "../../firebase-config.js";
 import { showConfirm, showToast } from "../../notifications.js";
-import { collection, query, where, getDocs, doc, updateDoc, orderBy, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { collection, query, where, getDocs, doc, updateDoc, orderBy, writeBatch, limit } from "../../firestore-metrics.js";
 
 let usersTableBody = null; // Global seçim yerine init içinde seçeceğiz
 let currentUsers = [];
 let currentView = "pending";
 let filteredUsers = [];
 const selectedUserIds = new Set();
+const ADMIN_USERS_FETCH_LIMIT = 500;
+
 const filters = {
     search: "",
     status: "",
@@ -113,7 +115,8 @@ async function loadPendingUsers() {
     const q = query(
         collection(db, "users"), 
         where("status", "==", "pending"),
-        orderBy("createdAt", "desc")
+        orderBy("createdAt", "desc"),
+        limit(ADMIN_USERS_FETCH_LIMIT)
     );
     renderUsersList(q);
 }
@@ -124,7 +127,8 @@ async function loadAllUsers() {
     usersTableBody.innerHTML = '<tr><td colspan="7">Yükleniyor...</td></tr>';
     
     // Tüm kullanıcıları getir
-    const q = query(collection(db, "users"), orderBy("createdAt", "desc"));
+    const q = query(collection(db, "users"), orderBy("createdAt", "desc"),
+        limit(ADMIN_USERS_FETCH_LIMIT));
     renderUsersList(q);
 }
 

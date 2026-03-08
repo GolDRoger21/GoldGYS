@@ -14,7 +14,7 @@ import {
     where,
     writeBatch,
     setDoc
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+} from "../../firestore-metrics.js";
 
 const EXAM_LIST_LIMIT = 50;
 const ANNOUNCEMENT_LIST_LIMIT = 50;

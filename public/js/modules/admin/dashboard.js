@@ -7,7 +7,7 @@ import {
     limit, 
     getDocs,
     where
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+} from "../../firestore-metrics.js";
 
 // Chart (Grafik) nesnelerini saklamak için global değişken
 let dashboardCharts = {
@@ -18,6 +18,7 @@ let dashboardCharts = {
 const DASHBOARD_CACHE_KEY = "admin_dashboard_cache_v1";
 const DASHBOARD_CACHE_TTL_MS = 60 * 1000;
 let dashboardBootstrapped = false;
+const DASHBOARD_SHARD_QUERY_LIMIT = 1000;
 
 function readDashboardCache() {
     try {
@@ -174,7 +175,8 @@ async function initChartsSafe() {
             const statsQuery = query(
                 collection(db, "stats", "daily_users_shards", "shards"),
                 where("date", ">=", startKey),
-                where("date", "<=", endKey)
+                where("date", "<=", endKey),
+                limit(DASHBOARD_SHARD_QUERY_LIMIT)
             );
             const statsSnap = await getDocs(statsQuery);
 

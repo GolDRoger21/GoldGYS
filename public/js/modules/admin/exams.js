@@ -1,9 +1,12 @@
 import { db } from "../../firebase-config.js";
 import { showConfirm, showToast } from "../../notifications.js";
 import { getConfigPublic } from "./utils.js";
-import { collection, getDocs, doc, addDoc, deleteDoc, serverTimestamp, query, orderBy, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { collection, getDocs, doc, addDoc, deleteDoc, serverTimestamp, query, orderBy, where, limit } from "../../firestore-metrics.js";
 
 let generatedQuestionsCache = [];
+
+const EXAM_SOURCE_QUESTION_LIMIT = 3000;
+const EXAM_LIST_LIMIT = 100;
 
 // SINAV ŞABLONU (PDF'e Göre Kanun Kodları ve Soru Sayıları)
 const EXAM_BLUEPRINT = [
@@ -153,7 +156,7 @@ async function generateQuestions() {
 
     try {
         // 1. Tüm Aktif Soruları Çek
-        const qSnapshot = await getDocs(query(collection(db, "questions"), where("isActive", "==", true)));
+        const qSnapshot = await getDocs(query(collection(db, "questions"), where("isActive", "==", true), limit(EXAM_SOURCE_QUESTION_LIMIT)));
         const allQuestions = qSnapshot.docs.map(d => ({ id: d.id, ...d.data() }));
 
         logArea.innerHTML += `📦 ${allQuestions.length} aktif soru tarandı.<br>----------------<br>`;
@@ -238,7 +241,7 @@ async function saveExam() {
 
 async function loadExams() {
     const list = document.getElementById('examsList');
-    const snap = await getDocs(query(collection(db, "exams"), orderBy("createdAt", "desc")));
+    const snap = await getDocs(query(collection(db, "exams"), orderBy("createdAt", "desc"), limit(EXAM_LIST_LIMIT)));
 
     list.innerHTML = '';
     if (snap.empty) {

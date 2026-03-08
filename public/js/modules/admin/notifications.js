@@ -1,7 +1,15 @@
 import { db } from "../../firebase-config.js";
-import { collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { collection, query, where, onSnapshot, limit } from "../../firestore-metrics.js";
+
+const NOTIFICATION_LIVE_LIMIT = 50;
+let notificationsInitialized = false;
+let unsubscribeUsers = null;
+let unsubscribeReports = null;
 
 export function initNotifications() {
+    if (notificationsInitialized) return;
+    notificationsInitialized = true;
+
     const badge = document.getElementById('notificationBadge');
     const list = document.getElementById('notificationList');
     const btn = document.getElementById('notificationBtn');
@@ -9,48 +17,47 @@ export function initNotifications() {
 
     if (!btn || !dropdown || !badge || !list) return;
 
-    // Dropdown Toggle
     btn.addEventListener('click', (e) => {
         e.stopPropagation();
         dropdown.classList.toggle('active');
-        // Diğer dropdownları kapat
         document.getElementById('profileDropdown')?.classList.remove('active');
     });
 
-    // Dışarı tıklama
     document.addEventListener('click', (e) => {
         if (!dropdown.contains(e.target) && !btn.contains(e.target)) {
             dropdown.classList.remove('active');
         }
     });
 
-    // --- CANLI DİNLEME (REAL-TIME) ---
+    const qUsers = query(
+        collection(db, "users"),
+        where("status", "==", "pending"),
+        limit(NOTIFICATION_LIVE_LIMIT)
+    );
 
-    // 1. Onay Bekleyen Üyeler
-    const qUsers = query(collection(db, "users"), where("status", "==", "pending"));
-
-    // 2. Okunmamış Raporlar/Mesajlar
-    const qReports = query(collection(db, "reports"), where("status", "==", "pending"));
+    const qReports = query(
+        collection(db, "reports"),
+        where("status", "==", "pending"),
+        limit(NOTIFICATION_LIVE_LIMIT)
+    );
 
     let pendingUsers = [];
     let pendingReports = [];
 
-    // Kullanıcıları Dinle
-    onSnapshot(qUsers, (snapshot) => {
-        pendingUsers = snapshot.docs.map(doc => ({
-            id: doc.id,
+    unsubscribeUsers = onSnapshot(qUsers, (snapshot) => {
+        pendingUsers = snapshot.docs.map((docSnap) => ({
+            id: docSnap.id,
             type: 'user',
-            title: 'Yeni Üyelik Talebi',
-            desc: `${doc.data().displayName || doc.data().email} onay bekliyor.`,
-            time: doc.data().createdAt,
+            title: 'Yeni Uyelik Talebi',
+            desc: `${docSnap.data().displayName || docSnap.data().email} onay bekliyor.`,
+            time: docSnap.data().createdAt,
             link: { tab: 'users' }
         }));
         updateUI();
     });
 
-    // Raporları Dinle
-    onSnapshot(qReports, (snapshot) => {
-        const reports = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    unsubscribeReports = onSnapshot(qReports, (snapshot) => {
+        const reports = snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }));
         const grouped = new Map();
 
         reports.forEach((report) => {
@@ -73,7 +80,7 @@ export function initNotifications() {
             }
         });
 
-        pendingReports = [...grouped.values()].map(group => ({
+        pendingReports = [...grouped.values()].map((group) => ({
             id: group.id,
             type: group.type,
             title: group.questionId ? 'Soru Bildirimi' : 'Yeni Destek Talebi',
@@ -83,39 +90,43 @@ export function initNotifications() {
                 ? { tab: 'reports', questionId: group.questionId }
                 : { tab: 'reports', reportId: group.reportIds[0] }
         }));
+
         updateUI();
     });
+
+    window.addEventListener('beforeunload', () => {
+        if (typeof unsubscribeUsers === 'function') unsubscribeUsers();
+        if (typeof unsubscribeReports === 'function') unsubscribeReports();
+    }, { once: true });
 
     function updateUI() {
         const allNotifs = [...pendingUsers, ...pendingReports];
 
-        // Tarihe göre sırala (Yeniden eskiye)
         allNotifs.sort((a, b) => {
             const t1 = a.time?.seconds || 0;
             const t2 = b.time?.seconds || 0;
             return t2 - t1;
         });
 
-        // Badge Güncelle
         const count = allNotifs.length;
         if (count > 0) {
             badge.style.display = 'flex';
-            badge.innerText = count > 9 ? '9+' : count;
+            badge.innerText = count > 9 ? '9+' : String(count);
         } else {
             badge.style.display = 'none';
         }
 
-        // Listeyi Güncelle
         if (count === 0) {
             list.innerHTML = '<div style="padding:20px; text-align:center; color:var(--text-muted);">Yeni bildirim yok.</div>';
             return;
         }
 
         list.innerHTML = '';
-        // Sadece ilk 5 bildirimi göster
-        allNotifs.slice(0, 5).forEach(item => {
-            const icon = item.type === 'user' ? '👤' : item.type === 'support' ? '📩' : '🚩';
-            const timeStr = item.time ? new Date(item.time.seconds * 1000).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }) : '';
+        allNotifs.slice(0, 5).forEach((item) => {
+            const icon = item.type === 'user' ? 'U' : item.type === 'support' ? 'D' : 'R';
+            const timeStr = item.time
+                ? new Date(item.time.seconds * 1000).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })
+                : '';
 
             const div = document.createElement('div');
             div.className = 'notification-item';

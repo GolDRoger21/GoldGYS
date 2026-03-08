@@ -3,7 +3,7 @@ import { requireAdminOrEditor } from "../../role-guard.js";
 import { getConfigPublic } from "./utils.js";
 import { mergeWithDefaultPublicConfig } from "../../config-defaults.js";
 import { showToast, showConfirm } from "../../notifications.js";
-import { doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { doc, getDoc, setDoc, serverTimestamp } from "../../firestore-metrics.js";
 import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
 const storage = getStorage();

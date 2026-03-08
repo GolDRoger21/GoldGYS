@@ -4,7 +4,7 @@ import { db } from "../../firebase-config.js";
 import { showConfirm, showToast } from "../../notifications.js";
 import {
     collection, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, serverTimestamp, query, orderBy, limit, writeBatch
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+} from "../../firestore-metrics.js";
 
 let isEditorInitialized = false;
 let currentOnculler = [];

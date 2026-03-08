@@ -1,10 +1,11 @@
 import { db } from "../../firebase-config.js";
 import { showConfirm, showToast } from "../../notifications.js";
 import {
-    collection, query, where, getDocs, writeBatch, doc, getCountFromServer, orderBy
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    collection, query, where, getDocs, writeBatch, doc, getCountFromServer, orderBy, limit
+} from "../../firestore-metrics.js";
 
 let currentAffectedQuestions = [];
+const LEGISLATION_RESULTS_LIMIT = 1000;
 
 export async function initLegislationPage() {
     renderInterface();
@@ -102,7 +103,7 @@ function renderInterface() {
 async function updateDashboardStats() {
     try {
         // İncelenmesi gereken (flagged) soru sayısını çek
-        const q = query(collection(db, "questions"), where("isFlaggedForReview", "==", true));
+        const q = query(collection(db, "questions"), where("isFlaggedForReview", "==", true), limit(LEGISLATION_RESULTS_LIMIT));
         const snapshot = await getCountFromServer(q);
         document.getElementById('flaggedCount').innerText = snapshot.data().count;
     } catch (e) { console.warn("İstatistik hatası:", e); }
@@ -132,7 +133,7 @@ async function findAffectedQuestions() {
             constraints.push(where("legislationRef.article", "==", article));
         }
 
-        const q = query(collection(db, "questions"), ...constraints);
+        const q = query(collection(db, "questions"), ...constraints, limit(LEGISLATION_RESULTS_LIMIT));
         const snapshot = await getDocs(q);
 
         currentAffectedQuestions = [];
@@ -183,7 +184,7 @@ async function loadFlaggedQuestions() {
     resultsArea.style.display = 'block';
     tbody.innerHTML = '<tr><td colspan="6" class="text-center">Yükleniyor...</td></tr>';
 
-    const q = query(collection(db, "questions"), where("isFlaggedForReview", "==", true));
+    const q = query(collection(db, "questions"), where("isFlaggedForReview", "==", true), limit(LEGISLATION_RESULTS_LIMIT));
     const snapshot = await getDocs(q);
 
     currentAffectedQuestions = [];

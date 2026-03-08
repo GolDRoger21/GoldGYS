@@ -10,7 +10,7 @@ import {
     query,
     where,
     limit
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+} from "../../firestore-metrics.js";
 import { showConfirm, showToast } from "../../notifications.js";
 
 const state = {

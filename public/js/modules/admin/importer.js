@@ -1,6 +1,6 @@
 import { db } from "../../firebase-config.js";
 import { showConfirm, showToast } from "../../notifications.js";
-import { collection, writeBatch, doc, serverTimestamp, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { collection, writeBatch, doc, serverTimestamp, getDocs, query, orderBy, limit } from "../../firestore-metrics.js";
 import * as XLSX from "https://cdn.sheetjs.com/xlsx-latest/package/xlsx.mjs";
 import { TOPIC_KEYWORDS } from './keyword-map.js';
 
@@ -169,6 +169,9 @@ let currentFilter = 'all';
 let currentSearch = '';
 let qualityStats = { total: 0, critical: 0, warning: 0, duplicates: 0, dbDuplicates: 0, importable: 0 };
 
+const IMPORTER_TOPICS_LIMIT = 1000;
+const IMPORTER_SIGNATURE_SCAN_LIMIT = 5000;
+
 function normalizeQuestionText(value = '') {
     const turkishMap = { 'ı': 'i', 'İ': 'i', 'ğ': 'g', 'Ğ': 'g', 'ü': 'u', 'Ü': 'u', 'ş': 's', 'Ş': 's', 'ö': 'o', 'Ö': 'o', 'ç': 'c', 'Ç': 'c' };
     const ascii = String(value)
@@ -223,7 +226,7 @@ function findNearDuplicate(normalizedText) {
 
 async function fetchExistingSignatures() {
     try {
-        const snapshot = await getDocs(collection(db, "questions"));
+        const snapshot = await getDocs(query(collection(db, "questions"), limit(IMPORTER_SIGNATURE_SCAN_LIMIT)));
         dbSignatureMap.clear();
         dbNormalizedSamples = [];
 
@@ -255,7 +258,7 @@ async function fetchExistingSignatures() {
 
 async function fetchTopics() {
     try {
-        const snapshot = await getDocs(query(collection(db, "topics"), orderBy("title", "asc")));
+        const snapshot = await getDocs(query(collection(db, "topics"), orderBy("title", "asc"), limit(IMPORTER_TOPICS_LIMIT)));
         allTopics = [];
         snapshot.forEach(doc => {
             const d = doc.data();

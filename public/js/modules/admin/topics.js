@@ -2,8 +2,8 @@
 
 import { db } from "../../firebase-config.js";
 import {
-    collection, getDocs, doc, addDoc, updateDoc, deleteDoc, serverTimestamp, query, orderBy, where
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    collection, getDocs, doc, addDoc, updateDoc, deleteDoc, serverTimestamp, query, orderBy, where, limit
+} from "../../firestore-metrics.js";
 import { showConfirm, showToast } from "../../notifications.js";
 import { openQuestionEditor } from './content.js';
 import { UI_SHELL, renderNavItem } from './topics.ui.js';
@@ -35,6 +35,11 @@ let state = {
     topicTrashItems: [],
     contentTrashItems: []
 };
+
+const ADMIN_TOPICS_FETCH_LIMIT = 500;
+const ADMIN_LESSONS_FETCH_LIMIT = 800;
+const ADMIN_QUESTION_POOL_LIMIT = 1200;
+const ADMIN_TRASH_FETCH_LIMIT = 300;
 
 // ============================================================
 // --- INIT & SETUP ---
@@ -247,7 +252,7 @@ async function loadTopics() {
     if (tbody) tbody.innerHTML = '<tr><td colspan="7" class="text-center p-3">Yükleniyor...</td></tr>';
 
     try {
-        const q = query(collection(db, "topics"), orderBy("order", "asc"));
+        const q = query(collection(db, "topics"), orderBy("order", "asc"), limit(ADMIN_TOPICS_FETCH_LIMIT));
         const snap = await getDocs(q);
         state.allTopics = [];
         snap.forEach(doc => {
@@ -399,7 +404,7 @@ async function loadLessons(topicId) {
     const listNav = document.getElementById('contentListNav');
     if (listNav) listNav.innerHTML = '<div class="text-center p-2 small text-muted">Yükleniyor...</div>';
 
-    const q = query(collection(db, `topics/${topicId}/lessons`), orderBy("order", "asc"));
+    const q = query(collection(db, `topics/${topicId}/lessons`), orderBy("order", "asc"), limit(ADMIN_LESSONS_FETCH_LIMIT));
     const snap = await getDocs(q);
     state.currentLessons = [];
     snap.forEach(d => {
@@ -1161,11 +1166,11 @@ async function searchQuestions() {
     if (poolList) poolList.innerHTML = '<div class="text-center p-4"><div class="spinner-border text-primary" role="status"></div><br>Sorular Taranıyor...</div>';
 
     try {
-        let q = query(collection(db, "questions"));
+        let q = query(collection(db, "questions"), limit(ADMIN_QUESTION_POOL_LIMIT));
         if (topicTitle) {
-            q = query(collection(db, "questions"), where("category", "==", topicTitle));
+            q = query(collection(db, "questions"), where("category", "==", topicTitle), limit(ADMIN_QUESTION_POOL_LIMIT));
         } else if (code) {
-            q = query(collection(db, "questions"), where("legislationRef.code", "==", code));
+            q = query(collection(db, "questions"), where("legislationRef.code", "==", code), limit(ADMIN_QUESTION_POOL_LIMIT));
         }
         const snap = await getDocs(q);
 
@@ -1391,7 +1396,7 @@ async function openTrash() {
     modal.style.display = 'flex';
     if (tbody) tbody.innerHTML = '<tr><td>Yükleniyor...</td></tr>';
 
-    const q = query(collection(db, "topics"), where("status", "==", "deleted"));
+    const q = query(collection(db, "topics"), where("status", "==", "deleted"), limit(ADMIN_TRASH_FETCH_LIMIT));
     const snap = await getDocs(q);
 
     state.topicTrashItems = snap.docs.map(d => ({ id: d.id, ...d.data() }));

@@ -1,4 +1,4 @@
-﻿import * as fsdk from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import * as fsdk from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { trackFirestoreOp } from "./observability.js";
 
 function mark(op, tag = 'unknown') {
@@ -17,6 +17,7 @@ export const serverTimestamp = fsdk.serverTimestamp;
 export const Timestamp = fsdk.Timestamp;
 export const increment = fsdk.increment;
 export const runTransaction = fsdk.runTransaction;
+export const getCountFromServer = fsdk.getCountFromServer;
 export const writeBatch = fsdk.writeBatch;
 
 export async function getDoc(ref, tag = 'unknown') {
