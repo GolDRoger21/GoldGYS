@@ -15,6 +15,11 @@ body {
     -webkit-font-smoothing: antialiased;
 }
 
+
+:root {
+    --announcement-offset: 0px;
+}
+
 img,
 video,
 canvas {
@@ -49,7 +54,7 @@ body.sidebar-collapsed .app-layout {
 .app-header {
     grid-area: header;
     position: sticky;
-    top: 0;
+    top: var(--announcement-offset);
     z-index: calc(var(--z-sidebar) + 2);
     background-color: var(--bg-header);
     border-bottom: 1px solid var(--border-color);
@@ -118,7 +123,7 @@ body.sidebar-collapsed .app-layout {
 .app-sidebar {
     grid-area: sidebar;
     position: fixed;
-    top: var(--header-height);
+    top: calc(var(--header-height) + var(--announcement-offset));
     left: 0;
     bottom: 0;
     width: var(--sidebar-width);
@@ -129,6 +134,7 @@ body.sidebar-collapsed .app-layout {
     z-index: var(--z-sidebar);
     transition: width var(--transition-medium), background-color var(--transition-medium), transform var(--transition-medium);
     padding: 12px;
+    min-height: calc(100vh - var(--header-height) - var(--announcement-offset));
 }
 
 body.sidebar-collapsed .app-sidebar {
@@ -963,6 +969,9 @@ body:not(.admin-body) .app-sidebar .nav-label {
 }
 
 .site-announcement-bar {
+    position: sticky;
+    top: 0;
+    z-index: calc(var(--z-sidebar) + 3);
     width: 100%;
     padding: 10px 0;
     border-bottom: 1px solid var(--border-subtle);
@@ -1008,6 +1017,13 @@ body:not(.admin-body) .app-sidebar .nav-label {
 .site-announcement-badge i {
     color: var(--announcement-accent, var(--color-primary));
     font-size: 0.95rem;
+}
+
+.site-announcement-icon {
+    width: 0.95rem;
+    height: 0.95rem;
+    color: var(--announcement-accent, var(--color-primary));
+    flex-shrink: 0;
 }
 
 .site-announcement-label {
