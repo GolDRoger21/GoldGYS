@@ -102,6 +102,10 @@ function getDashboardDateKey() {
     return new Date().toISOString().slice(0, 10);
 }
 
+async function saveDashboardFeedCache(cacheKey, data) {
+    await CacheManager.saveData(cacheKey, data, DASHBOARD_FEED_TTL);
+}
+
 function applyStatsToUI(totalStats, todayStats) {
     const successRate = totalStats.total > 0
         ? Math.round((totalStats.correct / totalStats.total) * 100)
@@ -396,11 +400,11 @@ async function loadExamAnnouncement() {
             `;
             setCountdownState(null);
             if (ui.examStatusBadge) ui.examStatusBadge.textContent = "İlan Yok";
-            await CacheManager.saveData(cacheKey, {
+            await saveDashboardFeedCache(cacheKey, {
                 html: ui.examPanelBody.innerHTML,
                 examDate: null,
                 statusBadge: "İlan Yok"
-            }, DASHBOARD_FEED_TTL);
+            });
             return;
         }
 
@@ -445,11 +449,11 @@ async function loadExamAnnouncement() {
 
         if (ui.examStatusBadge) ui.examStatusBadge.textContent = "Aktif";
         setCountdownState(examDate);
-        await CacheManager.saveData(cacheKey, {
+        await saveDashboardFeedCache(cacheKey, {
             html: ui.examPanelBody.innerHTML,
             examDate: examDate ? examDate.toISOString() : null,
             statusBadge: "Aktif"
-        }, DASHBOARD_FEED_TTL);
+        });
     };
 
     try {
@@ -533,7 +537,7 @@ async function loadAnnouncements() {
                     </div>
                 </div>
             `;
-            await CacheManager.saveData(cacheKey, { html: ui.announcementList.innerHTML }, DASHBOARD_FEED_TTL);
+            await saveDashboardFeedCache(cacheKey, { html: ui.announcementList.innerHTML });
             return;
         }
 
@@ -559,7 +563,7 @@ async function loadAnnouncements() {
                 </div>
             `;
         }).join('');
-        await CacheManager.saveData(cacheKey, { html: ui.announcementList.innerHTML }, DASHBOARD_FEED_TTL);
+        await saveDashboardFeedCache(cacheKey, { html: ui.announcementList.innerHTML });
     };
 
     try {
