@@ -35,6 +35,7 @@ let dashboardAnnouncementsUnsubscribe = null;
 
 const DASHBOARD_STATS_TTL = 2 * 60 * 1000; // 2 dakika
 const DASHBOARD_FEED_TTL = 6 * 60 * 60 * 1000; // 6 saat
+const DASHBOARD_ENABLE_LIVE_LISTEN = false; // Kota koruma: varsayilan one-shot fetch
 const DASHBOARD_DATA_CACHE_TTL = 30 * 60 * 1000; // 30 dakika
 
 
@@ -434,7 +435,7 @@ async function loadExamAnnouncement() {
         if (ui.examStatusBadge) ui.examStatusBadge.textContent = "Kontrol Edin";
     }
 
-    if (!examAnnouncementUnsubscribe) {
+    if (DASHBOARD_ENABLE_LIVE_LISTEN && !examAnnouncementUnsubscribe) {
         examAnnouncementUnsubscribe = onSnapshot(examQuery, (snapshot) => {
             applyExamSnapshot(snapshot).catch((error) => {
                 console.error("Sınav ilanı canlı güncelleme hatası:", error);
@@ -542,7 +543,7 @@ async function loadAnnouncements() {
         ui.announcementList.innerHTML = `<p class="text-muted">Duyurular yüklenemedi.</p>`;
     }
 
-    if (!dashboardAnnouncementsUnsubscribe) {
+    if (DASHBOARD_ENABLE_LIVE_LISTEN && !dashboardAnnouncementsUnsubscribe) {
         dashboardAnnouncementsUnsubscribe = onSnapshot(announcementQuery, (snapshot) => {
             renderAnnouncements(snapshot).catch((error) => {
                 console.error("Duyurular canlı güncelleme hatası:", error);

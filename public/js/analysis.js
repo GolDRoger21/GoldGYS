@@ -7,6 +7,8 @@ import { buildTopicPath } from "./topic-url.js";
 import { CacheManager } from "./cache-manager.js";
 
 const ANALYSIS_CACHE_TTL = 30 * 60 * 1000; // 30 dakika
+const ANALYSIS_PROGRESS_RESET_FETCH_LIMIT = 1000;
+const ANALYSIS_PROGRESS_RESET_WRITE_CHUNK = 100;
 
 const state = {
     userId: null,
@@ -243,6 +245,12 @@ function renderAnalysisState(categoryTotals = null) {
     renderLevelSystem();
     renderScientificInsights(totals);
     setLastUpdateState();
+}
+
+async function runChunked(tasks, chunkSize) {
+    for (let i = 0; i < tasks.length; i += chunkSize) {
+        await Promise.all(tasks.slice(i, i + chunkSize).map((task) => task()));
+    }
 }
 
 async function hydrateTopicTotals(topics) {
@@ -1000,19 +1008,20 @@ async function resetAllStats() {
 
     // Kullanıcının tüm progress objelerini arka planda tek seferde temizle ki sıfırlamadan sonra çözdüğünde tarihsel soru sayıları eklenmesin.
     try {
-        const progressSnap = await getDocs(query(collection(db, `users/${state.userId}/topic_progress`), limit(1000)), "users.topic_progress");
-        const batchUpdates = progressSnap.docs.map(d =>
-            setDoc(d.ref, {
-                status: 'pending',
-                manualCompleted: false,
-                updatedAt: serverTimestamp(),
-                lastSyncedAt: serverTimestamp(),
-                solvedCount: 0,
-                solvedIds: [],
-                answers: {}
-            }, { merge: true })
+        const progressSnap = await getDocs(
+            query(collection(db, `users/${state.userId}/topic_progress`), limit(ANALYSIS_PROGRESS_RESET_FETCH_LIMIT)),
+            "users.topic_progress"
         );
-        await Promise.all(batchUpdates);
+        const updateTasks = progressSnap.docs.map((d) => () => setDoc(d.ref, {
+            status: 'pending',
+            manualCompleted: false,
+            updatedAt: serverTimestamp(),
+            lastSyncedAt: serverTimestamp(),
+            solvedCount: 0,
+            solvedIds: [],
+            answers: {}
+        }, { merge: true }));
+        await runChunked(updateTasks, ANALYSIS_PROGRESS_RESET_WRITE_CHUNK);
     } catch (err) {
         console.warn("Toplu progress sıfırlama uyarısı:", err);
     }
