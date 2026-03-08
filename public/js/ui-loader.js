@@ -200,7 +200,9 @@ async function loadRequiredHTML(isAdminPage) {
 function isDistractionFreePage(pathname) {
     if (!pathname) return false;
 
-    return pathname === '/pages/test.html'
+    return pathname === '/test'
+        || pathname === '/deneme'
+        || pathname === '/pages/test.html'
         || pathname === '/pages/deneme.html'
         || pathname.startsWith('/test/')
         || pathname.startsWith('/deneme/')
