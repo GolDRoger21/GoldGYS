@@ -68,6 +68,10 @@
         "destination": "/pages/pending-approval.html"
       },
       {
+        "source": "/test",
+        "destination": "/pages/test.html"
+      },
+      {
         "source": "/report",
         "destination": "/pages/report.html"
       }
