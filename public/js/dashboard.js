@@ -51,23 +51,25 @@ const DASHBOARD_ANNOUNCEMENTS_CACHE_KEY = "dashboard_announcements_v1";
 
 async function getCachedUserDoc(uid) {
     const cacheKey = DASHBOARD_CACHE_KEYS.userProfile(uid);
-    const cachedUser = await CacheManager.getData(cacheKey, DASHBOARD_DATA_CACHE_TTL);
-    if (cachedUser?.cached && cachedUser.data) {
-        return { exists: () => true, data: () => cachedUser.data };
+    const cachedUser = await getDashboardDataCache(cacheKey);
+    const cachedData = getCachedPayload(cachedUser);
+    if (cachedData) {
+        return { exists: () => true, data: () => cachedData };
     }
 
     const userSnap = await getDoc(doc(db, "users", uid));
     if (userSnap.exists()) {
-        await CacheManager.saveData(cacheKey, userSnap.data(), DASHBOARD_DATA_CACHE_TTL);
+        await saveDashboardDataCache(cacheKey, userSnap.data());
     }
     return userSnap;
 }
 
 async function getTopicProgressDocs(uid) {
     const cacheKey = DASHBOARD_CACHE_KEYS.topicProgressCollection(uid);
-    const cachedProgCol = await CacheManager.getData(cacheKey, DASHBOARD_DATA_CACHE_TTL);
-    if (cachedProgCol?.cached && cachedProgCol.data) {
-        return cachedProgCol.data;
+    const cachedProgCol = await getDashboardDataCache(cacheKey);
+    const cachedData = getCachedPayload(cachedProgCol);
+    if (cachedData) {
+        return cachedData;
     }
 
     const progressSnap = await getDocs(
@@ -75,14 +77,15 @@ async function getTopicProgressDocs(uid) {
         "users.topic_progress"
     );
     const progressMapDocs = progressSnap.docs.map(d => ({ id: d.id, data: d.data() }));
-    await CacheManager.saveData(cacheKey, progressMapDocs, DASHBOARD_DATA_CACHE_TTL);
+    await saveDashboardDataCache(cacheKey, progressMapDocs);
     return progressMapDocs;
 }
 
 async function getCachedAllTopics({ fetchIfMissing = true } = {}) {
     const cachedTopics = await CacheManager.getData(ALL_TOPICS_CACHE_KEY, ALL_TOPICS_CACHE_TTL);
-    if (cachedTopics?.cached && cachedTopics.data) {
-        return cachedTopics.data;
+    const cachedData = getCachedPayload(cachedTopics);
+    if (cachedData) {
+        return cachedData;
     }
 
     if (!fetchIfMissing) {
@@ -104,6 +107,29 @@ function getDashboardDateKey() {
 
 async function saveDashboardFeedCache(cacheKey, data) {
     await CacheManager.saveData(cacheKey, data, DASHBOARD_FEED_TTL);
+}
+
+async function getDashboardFeedCache(cacheKey) {
+    const cached = await CacheManager.getData(cacheKey);
+    return getCachedPayload(cached);
+}
+
+async function getDashboardDataCache(cacheKey) {
+    return CacheManager.getData(cacheKey, DASHBOARD_DATA_CACHE_TTL);
+}
+
+async function saveDashboardDataCache(cacheKey, data) {
+    await CacheManager.saveData(cacheKey, data, DASHBOARD_DATA_CACHE_TTL);
+}
+
+function getCachedPayload(cachedEntry) {
+    return cachedEntry?.cached && cachedEntry.data ? cachedEntry.data : null;
+}
+
+function applyCachedHtml(element, cachedData) {
+    if (!element || !cachedData?.html) return false;
+    element.innerHTML = cachedData.html;
+    return true;
 }
 
 function applyStatsToUI(totalStats, todayStats) {
@@ -266,14 +292,15 @@ async function loadDashboardStats(uid) {
     // Bütün analizleri bellek üzerinden (cached) hesaplayacağız DB masrafı olmasın:
     const resultsCacheKey = DASHBOARD_CACHE_KEYS.examResultsCollection(uid);
     let rawResults = [];
-    const cachedResults = await CacheManager.getData(resultsCacheKey, DASHBOARD_DATA_CACHE_TTL);
-    if (cachedResults?.cached && cachedResults.data) {
-        rawResults = cachedResults.data;
+    const cachedResults = await getDashboardDataCache(resultsCacheKey);
+    const cachedData = getCachedPayload(cachedResults);
+    if (cachedData) {
+        rawResults = cachedData;
     } else {
         const resultsQuery = query(collection(db, `users/${uid}/exam_results`), orderBy('completedAt', 'desc'), limit(100));
         const resultSnap = await getDocs(resultsQuery);
         rawResults = resultSnap.docs.map(d => d.data());
-        await CacheManager.saveData(resultsCacheKey, rawResults, DASHBOARD_DATA_CACHE_TTL);
+        await saveDashboardDataCache(resultsCacheKey, rawResults);
     }
 
     const { start: todayStart, end: todayEnd } = getTodayRange();
@@ -370,11 +397,10 @@ async function loadExamAnnouncement() {
     if (!ui.examPanelBody) return;
 
     const cacheKey = DASHBOARD_EXAM_ANNOUNCEMENT_CACHE_KEY;
-    const cached = await CacheManager.getData(cacheKey);
-    if (cached?.cached && cached.data?.html) {
-        ui.examPanelBody.innerHTML = cached.data.html;
-        setCountdownState(cached.data.examDate ? new Date(cached.data.examDate) : null);
-        if (ui.examStatusBadge) ui.examStatusBadge.textContent = cached.data.statusBadge || "Aktif";
+    const cachedData = await getDashboardFeedCache(cacheKey);
+    if (applyCachedHtml(ui.examPanelBody, cachedData)) {
+        setCountdownState(cachedData.examDate ? new Date(cachedData.examDate) : null);
+        if (ui.examStatusBadge) ui.examStatusBadge.textContent = cachedData.statusBadge || "Aktif";
     }
 
     const examQuery = query(
@@ -512,10 +538,8 @@ async function loadAnnouncements() {
     if (!ui.announcementList) return;
 
     const cacheKey = DASHBOARD_ANNOUNCEMENTS_CACHE_KEY;
-    const cached = await CacheManager.getData(cacheKey);
-    if (cached?.cached && cached.data?.html) {
-        ui.announcementList.innerHTML = cached.data.html;
-    }
+    const cachedData = await getDashboardFeedCache(cacheKey);
+    applyCachedHtml(ui.announcementList, cachedData);
 
     const announcementQuery = query(
         collection(db, "announcements"),

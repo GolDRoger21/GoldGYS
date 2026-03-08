@@ -530,6 +530,10 @@ export class TestEngine {
         modal.addEventListener('click', handleOverlayClick);
     }
 
+    getCurrentUid() {
+        return auth.currentUser?.uid || null;
+    }
+
     async saveExamResult(stats) {
         if (!auth.currentUser) return;
         const uid = auth.currentUser.uid;
@@ -651,8 +655,8 @@ export class TestEngine {
     }
 
     async flushWrongAnswers() {
-        if (!auth.currentUser || this.pendingWrongAnswers.size === 0) return;
-        const uid = auth.currentUser.uid;
+        const uid = this.getCurrentUid();
+        if (!uid || this.pendingWrongAnswers.size === 0) return;
         const dateKey = new Date().toISOString().slice(0, 10);
         const ref = doc(db, `users/${uid}/wrong_summaries/${dateKey}`);
         const updates = {
@@ -702,8 +706,8 @@ export class TestEngine {
     }
 
     async flushFavoriteChanges() {
-        if (!auth.currentUser || this.pendingFavoriteChanges.size === 0) return;
-        const uid = auth.currentUser.uid;
+        const uid = this.getCurrentUid();
+        if (!uid || this.pendingFavoriteChanges.size === 0) return;
 
         const operations = [];
         this.pendingFavoriteChanges.forEach((isFavorite, qId) => {
