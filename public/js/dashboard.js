@@ -157,6 +157,11 @@ async function saveDashboardFeedCache(cacheKey, data) {
     await CacheManager.saveData(cacheKey, data, DASHBOARD_FEED_TTL);
 }
 
+async function cacheElementHtml(cacheKey, element, extra = {}) {
+    if (!element) return;
+    await saveDashboardFeedCache(cacheKey, { html: element.innerHTML, ...extra });
+}
+
 async function getDashboardFeedCache(cacheKey) {
     const cached = await CacheManager.getData(cacheKey);
     return getCachedPayload(cached);
@@ -185,8 +190,23 @@ function renderMutedMessage(element, message) {
     element.innerHTML = `<p class="text-muted">${message}</p>`;
 }
 
+function reportLoadFailure(errorLogMessage, error, targetElement, uiMessage) {
+    console.error(errorLogMessage, error);
+    renderMutedMessage(targetElement, uiMessage);
+}
+
+function safeUnsubscribe(unsubscribeFn) {
+    if (typeof unsubscribeFn === "function") {
+        unsubscribeFn();
+    }
+}
+
 function buildTopicLookup(allTopics = []) {
     return new Map(allTopics.map((topic) => [topic.id, topic]));
+}
+
+function getTopicUrl(topicId, slug) {
+    return buildTopicPath ? buildTopicPath({ id: topicId, slug }) : `/konu/${slug || topicId}`;
 }
 
 function applyStatsToUI(totalStats, todayStats) {
@@ -210,14 +230,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         await initLayout();
 
         window.addEventListener("beforeunload", () => {
-            if (examAnnouncementUnsubscribe) {
-                examAnnouncementUnsubscribe();
-                examAnnouncementUnsubscribe = null;
-            }
-            if (dashboardAnnouncementsUnsubscribe) {
-                dashboardAnnouncementsUnsubscribe();
-                dashboardAnnouncementsUnsubscribe = null;
-            }
+            safeUnsubscribe(examAnnouncementUnsubscribe);
+            examAnnouncementUnsubscribe = null;
+            safeUnsubscribe(dashboardAnnouncementsUnsubscribe);
+            dashboardAnnouncementsUnsubscribe = null;
         }, { once: true });
 
         // 2. Dashboard'a Özel İçeriği Hazırla
@@ -316,7 +332,7 @@ async function loadFocusTopics(uid, currentTopicId) {
             .map((topicId) => {
                 const topic = topicLookup.get(topicId);
                 if (!topic) return null;
-                const topicUrl = buildTopicPath ? buildTopicPath({ id: topicId, slug: topic.slug }) : `/konu/${topic.slug || topicId}`;
+                const topicUrl = getTopicUrl(topicId, topic.slug);
                 const isPrimaryFocus = topicId === currentTopicId;
                 return `
                     <a href="${topicUrl}" class="panel-item topic-link-item" style="display:flex;">
@@ -466,6 +482,24 @@ function setCountdownDisplay(valueText, labelText) {
     if (ui.countdownLabel) ui.countdownLabel.textContent = labelText;
 }
 
+function ensureLiveListener({
+    enabled,
+    currentUnsubscribe,
+    queryRef,
+    onData,
+    onDataErrorMessage,
+    onStartErrorMessage
+}) {
+    if (!enabled || currentUnsubscribe) return currentUnsubscribe;
+    return onSnapshot(queryRef, (snapshot) => {
+        Promise.resolve(onData(snapshot)).catch((error) => {
+            console.error(onDataErrorMessage, error);
+        });
+    }, (error) => {
+        console.warn(onStartErrorMessage, error);
+    });
+}
+
 async function loadExamAnnouncement() {
     if (!ui.examPanelBody) return;
 
@@ -482,11 +516,7 @@ async function loadExamAnnouncement() {
         limit(1)
     );
     const cacheExamPanelHtml = async ({ examDate, statusBadge }) => {
-        await saveDashboardFeedCache(DASHBOARD_EXAM_ANNOUNCEMENT_CACHE_KEY, {
-            html: ui.examPanelBody.innerHTML,
-            examDate,
-            statusBadge
-        });
+        await cacheElementHtml(DASHBOARD_EXAM_ANNOUNCEMENT_CACHE_KEY, ui.examPanelBody, { examDate, statusBadge });
     };
 
     const applyExamSnapshot = async (snapshot) => {
@@ -559,20 +589,18 @@ async function loadExamAnnouncement() {
         const snapshot = await getDocs(examQuery);
         await applyExamSnapshot(snapshot);
     } catch (error) {
-        console.error("Sınav ilanı yüklenemedi:", error);
-        renderMutedMessage(ui.examPanelBody, "Sınav bilgileri yüklenemedi.");
+        reportLoadFailure("Sınav ilanı yüklenemedi:", error, ui.examPanelBody, "Sınav bilgileri yüklenemedi.");
         applyNoExamState(EXAM_STATUS.check);
     }
 
-    if (DASHBOARD_ENABLE_LIVE_LISTEN && !examAnnouncementUnsubscribe) {
-        examAnnouncementUnsubscribe = onSnapshot(examQuery, (snapshot) => {
-            applyExamSnapshot(snapshot).catch((error) => {
-                console.error("Sınav ilanı canlı güncelleme hatası:", error);
-            });
-        }, (error) => {
-            console.warn("Sınav ilanı canlı dinleme başlatılamadı:", error);
-        });
-    }
+    examAnnouncementUnsubscribe = ensureLiveListener({
+        enabled: DASHBOARD_ENABLE_LIVE_LISTEN,
+        currentUnsubscribe: examAnnouncementUnsubscribe,
+        queryRef: examQuery,
+        onData: applyExamSnapshot,
+        onDataErrorMessage: "Sınav ilanı canlı güncelleme hatası:",
+        onStartErrorMessage: "Sınav ilanı canlı dinleme başlatılamadı:"
+    });
 }
 
 function setCountdownState(examDate) {
@@ -609,7 +637,7 @@ async function loadAnnouncements() {
     const cachedData = await getDashboardFeedCache(DASHBOARD_ANNOUNCEMENTS_CACHE_KEY);
     applyCachedHtml(ui.announcementList, cachedData);
     const cacheAnnouncementListHtml = async () => {
-        await saveDashboardFeedCache(DASHBOARD_ANNOUNCEMENTS_CACHE_KEY, { html: ui.announcementList.innerHTML });
+        await cacheElementHtml(DASHBOARD_ANNOUNCEMENTS_CACHE_KEY, ui.announcementList);
     };
 
     const announcementQuery = query(
@@ -665,19 +693,17 @@ async function loadAnnouncements() {
         const snapshot = await getDocs(announcementQuery);
         await renderAnnouncements(snapshot);
     } catch (error) {
-        console.error("Duyurular yüklenemedi:", error);
-        renderMutedMessage(ui.announcementList, "Duyurular yüklenemedi.");
+        reportLoadFailure("Duyurular yüklenemedi:", error, ui.announcementList, "Duyurular yüklenemedi.");
     }
 
-    if (DASHBOARD_ENABLE_LIVE_LISTEN && !dashboardAnnouncementsUnsubscribe) {
-        dashboardAnnouncementsUnsubscribe = onSnapshot(announcementQuery, (snapshot) => {
-            renderAnnouncements(snapshot).catch((error) => {
-                console.error("Duyurular canlı güncelleme hatası:", error);
-            });
-        }, (error) => {
-            console.warn("Duyurular canlı dinleme başlatılamadı:", error);
-        });
-    }
+    dashboardAnnouncementsUnsubscribe = ensureLiveListener({
+        enabled: DASHBOARD_ENABLE_LIVE_LISTEN,
+        currentUnsubscribe: dashboardAnnouncementsUnsubscribe,
+        queryRef: announcementQuery,
+        onData: renderAnnouncements,
+        onDataErrorMessage: "Duyurular canlı güncelleme hatası:",
+        onStartErrorMessage: "Duyurular canlı dinleme başlatılamadı:"
+    });
 }
 
 async function loadRecentActivities(uid) {
@@ -737,7 +763,7 @@ async function loadRecentActivities(uid) {
 
         ui.recentActivityList.innerHTML = activities.map(act => {
             const actDate = act.lastActivityDate;
-            const topicUrl = buildTopicPath ? buildTopicPath({ id: act.topicId, slug: act.slug }) : `/konu/${act.slug || act.topicId}`;
+            const topicUrl = getTopicUrl(act.topicId, act.slug);
 
             return `
                 <a href="${topicUrl}" class="panel-item topic-link-item" style="display:flex;">
@@ -755,8 +781,7 @@ async function loadRecentActivities(uid) {
             `;
         }).join('');
     } catch (error) {
-        console.error("Aktiviteler yüklenemedi:", error);
-        renderMutedMessage(ui.recentActivityList, "Aktivite geçmişi alınamadı.");
+        reportLoadFailure("Aktiviteler yüklenemedi:", error, ui.recentActivityList, "Aktivite geçmişi alınamadı.");
     }
 }
 
