@@ -361,7 +361,14 @@ function applyAnnouncement(config) {
         bar.className = `site-announcement-bar ${style.className}`;
         bar.innerHTML = content;
         if (document.body) {
-            document.body.prepend(bar);
+            // .app-layout varsa onun önüne ekle (ui-loader.js DOM yapısıyla çakışmayı önler)
+            // yoksa body'nin en başına ekle
+            const appLayout = document.querySelector(".app-layout");
+            if (appLayout && appLayout.parentElement === document.body) {
+                document.body.insertBefore(bar, appLayout);
+            } else {
+                document.body.prepend(bar);
+            }
             syncAnnouncementOffset(bar);
         }
     }
