@@ -313,6 +313,9 @@ function bindAssetUpload({ fileInputId, uploadButtonId, fileNameId, previewImage
 
             await setDoc(doc(db, "config", "public"), {
                 ...updateData(downloadUrl),
+                system: {
+                    cacheBuster: Date.now()
+                },
                 meta: {
                     updatedAt: serverTimestamp(),
                     updatedBy: auth.currentUser?.uid || null
@@ -648,6 +651,10 @@ async function savePublicConfigFromForm() {
                 targetQuestionCount: targetCount,
                 wrongImpact: wrongImpact,
                 showResultImmediately: getFieldValue("examRuleShowResult")
+            },
+
+            system: {
+                cacheBuster: Date.now()
             },
 
             meta: {

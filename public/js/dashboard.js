@@ -89,13 +89,22 @@ document.addEventListener("DOMContentLoaded", async () => {
                 ui.welcomeMsg.textContent = `Hoş geldin, ${displayName}!`;
             }
 
-            await loadDashboardStats(user.uid);
+            try {
+                await loadDashboardStats(user.uid);
+            } catch (statsError) {
+                console.error("Dashboard istatistikleri yüklenemedi:", statsError);
+            }
 
             // Sınav ilanını, duyuruları ve aktiviteleri yükle
-            const userSnap = await getDoc(doc(db, "users", user.uid));
-            const userData = userSnap.exists() ? userSnap.data() : {};
+            let userData = {};
+            try {
+                const userSnap = await getDoc(doc(db, "users", user.uid));
+                userData = userSnap.exists() ? userSnap.data() : {};
+            } catch (userDocError) {
+                console.error("Kullanıcı dokümanı yüklenemedi:", userDocError);
+            }
 
-            await Promise.all([
+            await Promise.allSettled([
                 loadExamAnnouncement(),
                 loadAnnouncements(),
                 loadFocusTopics(user.uid, userData.currentTopicId),
