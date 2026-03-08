@@ -314,6 +314,7 @@ function applyAnnouncement(config) {
 
     if (!announcement?.active || !announcement?.text) {
         if (existingBar) existingBar.remove();
+        document.documentElement.style.setProperty("--announcement-offset", "0px");
         document.body.classList.remove("has-announcement");
         return;
     }
@@ -333,7 +334,10 @@ function applyAnnouncement(config) {
     const content = `
         <div class="container site-announcement-inner">
             <div class="site-announcement-badge" aria-hidden="true">
-                <i class="fas fa-bullhorn"></i>
+                <svg class="site-announcement-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M3 11.5V12.5C3 13.3284 3.67157 14 4.5 14H6L8.2 18.4C8.53873 19.0775 9.23112 19.5 9.98861 19.5H11V14.5L17.7465 16.9166C18.4016 17.1513 19.1054 16.6656 19.1054 15.9697V8.03034C19.1054 7.33439 18.4016 6.84868 17.7465 7.0834L11 9.5V4.5H9.98861C9.23112 4.5 8.53873 4.92251 8.2 5.6L6 10H4.5C3.67157 10 3 10.6716 3 11.5Z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M21 9.5C21.596 10.2107 22 11.252 22 12.5C22 13.748 21.596 14.7893 21 15.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+                </svg>
                 <span class="site-announcement-label">Duyuru</span>
             </div>
             <div class="site-announcement-marquee" aria-label="Site duyurusu">
@@ -349,17 +353,34 @@ function applyAnnouncement(config) {
     if (existingBar) {
         existingBar.className = `site-announcement-bar ${style.className}`;
         existingBar.innerHTML = content;
+        syncAnnouncementOffset(existingBar);
     } else {
         const bar = document.createElement("div");
         bar.id = "site-announcement-bar";
         bar.className = `site-announcement-bar ${style.className}`;
-        bar.style.position = "relative";
-        bar.style.zIndex = "2000";
         bar.innerHTML = content;
         document.body.prepend(bar);
+        syncAnnouncementOffset(bar);
     }
 
     document.body.classList.add("has-announcement");
+}
+
+let announcementResizeBound = false;
+
+function syncAnnouncementOffset(bar) {
+    if (!bar) return;
+
+    document.documentElement.style.setProperty("--announcement-offset", `${bar.offsetHeight}px`);
+
+    if (!announcementResizeBound) {
+        window.addEventListener("resize", () => {
+            const liveBar = document.getElementById("site-announcement-bar");
+            if (!liveBar) return;
+            document.documentElement.style.setProperty("--announcement-offset", `${liveBar.offsetHeight}px`);
+        });
+        announcementResizeBound = true;
+    }
 }
 
 function upsertMetaByName(name, content) {

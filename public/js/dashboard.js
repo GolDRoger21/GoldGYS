@@ -491,7 +491,12 @@ async function loadAnnouncements() {
             return `
                 <div class="panel-item">
                     <div class="panel-item-content" style="flex: 1;">
-                    <div class="panel-item-icon gold">📣</div>
+                    <div class="panel-item-icon gold" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:16px;height:16px;display:block;">
+                            <path d="M3 11.5V12.5C3 13.3284 3.67157 14 4.5 14H6L8.2 18.4C8.53873 19.0775 9.23112 19.5 9.98861 19.5H11V14.5L17.7465 16.9166C18.4016 17.1513 19.1054 16.6656 19.1054 15.9697V8.03034C19.1054 7.33439 18.4016 6.84868 17.7465 7.0834L11 9.5V4.5H9.98861C9.23112 4.5 8.53873 4.92251 8.2 5.6L6 10H4.5C3.67157 10 3 10.6716 3 11.5Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M21 9.5C21.596 10.2107 22 11.252 22 12.5C22 13.748 21.596 14.7893 21 15.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                        </svg>
+                    </div>
                     <div style="flex: 1; min-width: 0;">
                         <strong style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;">${data.title || 'Duyuru'}</strong>
                         <div class="panel-meta" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-height: 1.5em;">${data.body || ''}</div>
