@@ -6,6 +6,7 @@ import {
     deleteDoc,
     doc,
     getDocs,
+    limit,
     orderBy,
     query,
     serverTimestamp,
@@ -14,6 +15,10 @@ import {
     writeBatch,
     setDoc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const EXAM_LIST_LIMIT = 50;
+const ANNOUNCEMENT_LIST_LIMIT = 50;
+const ACTIVE_EXAM_SCAN_LIMIT = 10;
 
 export function initAnnouncementsPage() {
     renderInterface();
@@ -186,7 +191,7 @@ async function handleExamSubmit(event) {
         const batch = writeBatch(db);
 
         if (isActive) {
-            const activeSnapshot = await getDocs(query(collectionRef, where("isActive", "==", true)));
+            const activeSnapshot = await getDocs(query(collectionRef, where("isActive", "==", true), limit(ACTIVE_EXAM_SCAN_LIMIT)));
             activeSnapshot.forEach(docSnap => {
                 batch.update(docSnap.ref, { isActive: false, updatedAt: serverTimestamp() });
             });
@@ -223,7 +228,7 @@ async function loadExamAnnouncements() {
     if (!list) return;
 
     try {
-        const snapshot = await getDocs(query(collection(db, "examAnnouncements"), orderBy("createdAt", "desc")));
+        const snapshot = await getDocs(query(collection(db, "examAnnouncements"), orderBy("createdAt", "desc"), limit(EXAM_LIST_LIMIT)));
         if (snapshot.empty) {
             list.innerHTML = `<p class="text-muted">Henüz sınav ilanı yok.</p>`;
             return;
@@ -292,7 +297,7 @@ async function setActiveExamAnnouncement(id) {
     try {
         const collectionRef = collection(db, "examAnnouncements");
         const batch = writeBatch(db);
-        const activeSnapshot = await getDocs(query(collectionRef, where("isActive", "==", true)));
+        const activeSnapshot = await getDocs(query(collectionRef, where("isActive", "==", true), limit(ACTIVE_EXAM_SCAN_LIMIT)));
         activeSnapshot.forEach(docSnap => {
             batch.update(docSnap.ref, { isActive: false, updatedAt: serverTimestamp() });
         });
@@ -344,7 +349,7 @@ async function loadAnnouncements() {
     if (!list) return;
 
     try {
-        const snapshot = await getDocs(query(collection(db, "announcements"), orderBy("createdAt", "desc")));
+        const snapshot = await getDocs(query(collection(db, "announcements"), orderBy("createdAt", "desc"), limit(ANNOUNCEMENT_LIST_LIMIT)));
         if (snapshot.empty) {
             list.innerHTML = `<p class="text-muted">Henüz duyuru yok.</p>`;
             return;

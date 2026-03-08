@@ -15,6 +15,9 @@ let duplicateInsightsById = new Map();
 let currentPage = 1;
 
 const QUESTIONS_PER_PAGE = 25;
+const QUESTIONS_FETCH_LIMIT = 800;
+const QUESTION_TRASH_FETCH_LIMIT = 300;
+const CATEGORY_TOPIC_FETCH_LIMIT = 500;
 
 const DUPLICATE_SETTINGS = {
     exactMinLength: 25,
@@ -662,7 +665,7 @@ async function loadQuestions() {
     const sortMode = document.getElementById('filterSort')?.value || 'createdDesc';
 
     // Temel Sorgu
-    let q = query(collection(db, "questions"), orderBy("createdAt", "desc"));
+    let q = query(collection(db, "questions"), orderBy("createdAt", "desc"), limit(QUESTIONS_FETCH_LIMIT));
 
     try {
         const snap = await getDocs(q);
@@ -1271,7 +1274,7 @@ async function loadDynamicCategories() {
 
     try {
         const [topicSnapshot, questionsSnapshot] = await Promise.all([
-            getDocs(query(collection(db, "topics"), orderBy("title", "asc"))),
+            getDocs(query(collection(db, "topics"), orderBy("title", "asc"), limit(CATEGORY_TOPIC_FETCH_LIMIT))),
             getDocs(query(collection(db, "questions"), orderBy("createdAt", "desc"), limit(1500)))
         ]);
 
@@ -1392,7 +1395,7 @@ async function openTrashModal() {
     modal.style.display = 'flex';
     if (tbody) tbody.innerHTML = '<tr><td colspan="3">Yükleniyor...</td></tr>';
 
-    const q = query(collection(db, "questions"), where("isDeleted", "==", true), orderBy("deletedAt", "desc"));
+    const q = query(collection(db, "questions"), where("isDeleted", "==", true), orderBy("deletedAt", "desc"), limit(QUESTION_TRASH_FETCH_LIMIT));
     const snap = await getDocs(q);
 
     if (tbody) {

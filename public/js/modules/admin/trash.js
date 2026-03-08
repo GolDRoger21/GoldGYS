@@ -3,11 +3,13 @@ import {
     collection,
     collectionGroup,
     getDocs,
+    getDoc,
     doc,
     updateDoc,
     deleteDoc,
     query,
-    where
+    where,
+    limit
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { showConfirm, showToast } from "../../notifications.js";
 
@@ -15,6 +17,13 @@ const state = {
     isInitialized: false,
     items: [],
     topicMap: new Map()
+};
+
+const TRASH_LIMITS = {
+    topics: 200,
+    lessons: 300,
+    questions: 300,
+    topicLookup: 300
 };
 
 export function initTrashPage() {
@@ -38,21 +47,35 @@ export function initTrashPage() {
     loadTrashItems();
 }
 
+async function hydrateTopicMap(topicIds, deletedTopics) {
+    state.topicMap = new Map();
+
+    deletedTopics.forEach((item) => {
+        state.topicMap.set(item.id, item.title || '(başlıksız)');
+    });
+
+    const unresolvedIds = Array.from(topicIds)
+        .filter((id) => id && !state.topicMap.has(id))
+        .slice(0, TRASH_LIMITS.topicLookup);
+
+    await Promise.all(unresolvedIds.map(async (topicId) => {
+        try {
+            const snapshot = await getDoc(doc(db, "topics", topicId));
+            if (snapshot.exists()) {
+                state.topicMap.set(topicId, snapshot.data()?.title || '(başlıksız)');
+            }
+        } catch (error) {
+            console.warn("Konu başlığı alınamadı:", topicId, error);
+        }
+    }));
+}
+
 async function loadTrashItems() {
     const tbody = document.getElementById('trashCenterTableBody');
     if (tbody) tbody.innerHTML = '<tr><td colspan="5" class="p-3 text-center">Yükleniyor...</td></tr>';
 
     try {
-        const topicsSnap = await getDocs(collection(db, "topics"));
-        state.topicMap = new Map();
-        topicsSnap.forEach(docSnap => {
-            // Sadece aktif ve silinmemiş (veya silinmiş ama henüz purge edilmemiş) konuları haritaya ekle
-            // Ancak topicsSnap tüm topics koleksiyonunu çekiyor.
-            // Biz sadece "var olan" (database'den silinmemiş) konuları bilmek istiyoruz.
-            state.topicMap.set(docSnap.id, docSnap.data().title || '(başlıksız)');
-        });
-
-        const deletedTopicsSnap = await getDocs(query(collection(db, "topics"), where("status", "==", "deleted")));
+        const deletedTopicsSnap = await getDocs(query(collection(db, "topics"), where("status", "==", "deleted"), limit(TRASH_LIMITS.topics)));
         const deletedTopics = deletedTopicsSnap.docs.map(docSnap => ({
             id: docSnap.id,
             title: docSnap.data().title || '(başlıksız)',
@@ -61,8 +84,17 @@ async function loadTrashItems() {
             topicTitle: docSnap.data().title || '(başlıksız)'
         }));
 
-        const deletedLessonsSnap = await getDocs(query(collectionGroup(db, "lessons"), where("status", "==", "deleted")));
-        const deletedLessons = deletedLessonsSnap.docs.map(docSnap => {
+        const deletedLessonsSnap = await getDocs(query(collectionGroup(db, "lessons"), where("status", "==", "deleted"), limit(TRASH_LIMITS.lessons)));
+        const deletedLessonDocs = deletedLessonsSnap.docs;
+        const lessonTopicIds = new Set(
+            deletedLessonDocs
+                .map((docSnap) => docSnap.ref.parent.parent?.id || '')
+                .filter(Boolean)
+        );
+
+        await hydrateTopicMap(lessonTopicIds, deletedTopics);
+
+        const deletedLessons = deletedLessonDocs.map(docSnap => {
             const data = docSnap.data();
             const topicId = docSnap.ref.parent.parent?.id || '';
             const parentTitle = state.topicMap.get(topicId);
@@ -73,11 +105,11 @@ async function loadTrashItems() {
                 type: data.type || 'lesson',
                 topicId,
                 topicTitle: parentTitle || '(Silinmiş Konu)',
-                isOrphan: !parentTitle // Ebeveyn konu yoksa yetimdir
+                isOrphan: !parentTitle
             };
         });
 
-        const deletedQuestionsSnap = await getDocs(query(collection(db, "questions"), where("isDeleted", "==", true)));
+        const deletedQuestionsSnap = await getDocs(query(collection(db, "questions"), where("isDeleted", "==", true), limit(TRASH_LIMITS.questions)));
         const deletedQuestions = deletedQuestionsSnap.docs.map(docSnap => {
             const data = docSnap.data();
             return {
@@ -97,7 +129,6 @@ async function loadTrashItems() {
         if (tbody) tbody.innerHTML = `<tr><td colspan="5" class="p-3 text-center text-danger">Hata: ${error.message}</td></tr>`;
     }
 }
-
 function renderTrashTable() {
     const tbody = document.getElementById('trashCenterTableBody');
     const search = document.getElementById('trashCenterSearch')?.value.toLowerCase() || '';
