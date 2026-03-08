@@ -1,7 +1,7 @@
 import { db, auth } from "./firebase-config.js";
 import {
     doc, getDoc, setDoc, collection, query, where, getDocs,
-    serverTimestamp, deleteDoc, writeBatch
+    serverTimestamp, deleteDoc, writeBatch, limit
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { CacheManager } from "./cache-manager.js";
 
@@ -9,6 +9,7 @@ const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 Saat
 const PACK_CACHE_DURATION = 24 * 60 * 60 * 1000;
 const PACK_INDEX_CACHE_DURATION = 24 * 60 * 60 * 1000;
 const PACK_META_CACHE_DURATION = 24 * 60 * 60 * 1000;
+const TOPIC_PACK_FALLBACK_QUERY_LIMIT = 200;
 
 const topicPackMetaMemoryCache = new Map();
 
@@ -116,7 +117,8 @@ export const TopicService = {
         try {
             const fallbackQuery = query(
                 collection(db, "topic_packs"),
-                where("topicId", "==", topicId)
+                where("topicId", "==", topicId),
+                limit(TOPIC_PACK_FALLBACK_QUERY_LIMIT)
             );
             const fallbackSnap = await getDocs(fallbackQuery);
             const indexes = fallbackSnap.docs
@@ -172,8 +174,9 @@ export const TopicService = {
             if (!packSnap.exists()) {
                 const fallbackQuery = query(
                     collection(db, "topic_packs"),
-                    where("topicId", "==", topicId)
-                );
+                where("topicId", "==", topicId),
+                limit(TOPIC_PACK_FALLBACK_QUERY_LIMIT)
+            );
                 const fallbackSnap = await getDocs(fallbackQuery);
                 if (fallbackSnap.empty) {
                     return null;

@@ -38,8 +38,6 @@ export async function ensureUserDocument(user) {
                 lastLoginAt: serverTimestamp(),
                 updatedAt: serverTimestamp()
             };
-
-            await setDoc(userRef, newUserData);
             await setDoc(userRef, newUserData);
             return { ...newUserData, _isNew: true };
         }

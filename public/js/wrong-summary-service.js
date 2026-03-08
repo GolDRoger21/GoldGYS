@@ -1,8 +1,9 @@
 import { db } from "./firebase-config.js";
 import { CacheManager } from "./cache-manager.js";
-import { collection, getDocs, orderBy, query } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { collection, getDocs, orderBy, query, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const SUMMARY_CACHE_TTL = 6 * 60 * 60 * 1000; // 6 saat
+const WRONG_SUMMARY_FETCH_LIMIT = 200;
 
 function normalizeTimestamp(value) {
     if (!value) return null;
@@ -73,7 +74,8 @@ export const WrongSummaryService = {
         try {
             const summariesQuery = query(
                 collection(db, `users/${uid}/wrong_summaries`),
-                orderBy("updatedAt", "desc")
+                orderBy("updatedAt", "desc"),
+                limit(WRONG_SUMMARY_FETCH_LIMIT)
             );
             const snapshot = await getDocs(summariesQuery);
             const summary = aggregateWrongSummaries(snapshot.docs);
