@@ -159,6 +159,11 @@ async function syncCacheBusterFromServer(force = false) {
 
 export const CacheManager = {
     // --- GENERIC ---
+
+    async syncCacheBuster(force = false) {
+        await syncCacheBusterFromServer(force);
+    },
+
     async saveData(key, data, ttl = DEFAULT_TTL) {
         await syncCacheBusterFromServer();
         const payload = {

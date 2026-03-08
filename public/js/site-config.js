@@ -12,6 +12,8 @@ export async function loadSiteConfig(options = {}) {
 
     if (!force && configCache) return configCache;
 
+    await CacheManager.syncCacheBuster();
+
     if (!force) {
         const cached = await CacheManager.getData(PUBLIC_CONFIG_CACHE_KEY);
         if (cached?.cached && cached.data) {
