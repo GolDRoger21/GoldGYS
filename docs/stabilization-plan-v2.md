@@ -193,9 +193,11 @@ Faz 7 mini kapanis (icerik buyumesi hazir kabul):
     - `npm run release:checklist:phase-gates` -> Faz 3->4 / 4->5 / 6->7 gecis durumunu checklistten otomatik hesaplar
     - `npm run release:checklist:decision` -> checklist sonuclarina gore GO/NO-GO karar satirini gunceller
     - `npm run release:status:export` -> checklistten makine-okunur `docs/releases/release-status-YYYY-MM-DD.json` uretir
+    - `npm run release:history:update` -> tum `release-status` dosyalarindan `docs/releases/release-history.json` trend ozetini gunceller
+    - `npm run release:headroom:check` -> global budget headroom metrikleri icin minimum kB gate uygular
     - `npm run release:checklist:refresh` -> checklist + budget + guardrail alanlarini tek komutta gunceller
     - `npm run release:checklist:refresh:full` -> checklist + budget + guardrail + quality alanlarini rules/e2e dahil gunceller
-    - GitHub Actions `Release Readiness` workflow'u ile manuel tetiklemede checklist artifact'i uretimi standardize edildi (`full_checks` + opsiyonel `cwv_snapshot_b64` secenegiyle)
+    - GitHub Actions `Release Readiness` workflow'u ile manuel tetiklemede checklist artifact'i uretimi standardize edildi (`full_checks`, opsiyonel `cwv_snapshot_b64`, varsayilan `enforce_decision=true`)
 
 - Faz 5 (tema/mobil sertlestirme):
   - Tema state/toggle akisi `public/js/theme-manager.js` uzerinde merkezilestirildi.

@@ -8,6 +8,16 @@ on:
         required: true
         default: false
         type: boolean
+      min_global_headroom_kb:
+        description: "Minimum global headroom (kB) threshold"
+        required: true
+        default: "1"
+        type: string
+      enforce_decision:
+        description: "Fail workflow when decision is NO-GO"
+        required: true
+        default: true
+        type: boolean
       cwv_snapshot_b64:
         description: "Optional base64 JSON for scripts/cwv-snapshot.json"
         required: false
@@ -82,6 +92,38 @@ jobs:
         run: |
           node -e "const fs=require('fs'); const p='${{ steps.checklist_path.outputs.file }}'; const t=fs.readFileSync(p,'utf8'); const m=t.match(/- Karar:\s*`([^`]+)`/); process.stdout.write(`decision=${(m&&m[1]?m[1]:'UNKNOWN').trim().toUpperCase()}`)" >> "$GITHUB_OUTPUT"
 
+      - name: Resolve Status Summary
+        id: release_status
+        shell: bash
+        run: |
+          node - <<'NODE' >> "$GITHUB_OUTPUT"
+          const fs = require("fs");
+          const path = "${{ steps.checklist_path.outputs.status_file }}";
+          if (!fs.existsSync(path)) {
+            console.log("budget_total=unknown");
+            console.log("budget_js=unknown");
+            console.log("budget_css=unknown");
+            console.log("budget_html=unknown");
+            console.log("risk_1=unknown");
+            console.log("risk_2=unknown");
+            console.log("risk_3=unknown");
+            process.exit(0);
+          }
+          const data = JSON.parse(fs.readFileSync(path, "utf8"));
+          const b = data.budget || {};
+          const fmt = (m) => (m && Number.isFinite(m.usedKb) && Number.isFinite(m.limitKb))
+            ? `${m.usedKb.toFixed(2)}/${m.limitKb.toFixed(2)} kB (headroom ${m.headroomKb.toFixed(2)} kB)`
+            : "unknown";
+          const risks = Array.isArray(b.riskTop3) ? b.riskTop3 : [];
+          console.log(`budget_total=${fmt(b.globalTotal)}`);
+          console.log(`budget_js=${fmt(b.globalJs)}`);
+          console.log(`budget_css=${fmt(b.globalCss)}`);
+          console.log(`budget_html=${fmt(b.globalHtml)}`);
+          console.log(`risk_1=${risks[0] || "unknown"}`);
+          console.log(`risk_2=${risks[1] || "unknown"}`);
+          console.log(`risk_3=${risks[2] || "unknown"}`);
+          NODE
+
       - name: Upload Checklist Artifact
         uses: actions/upload-artifact@v4
         with:
@@ -98,6 +140,36 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
 
+      - name: Upload Release History Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-history
+          path: docs/releases/release-history.json
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Upload Release Dashboard Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-dashboard
+          path: docs/releases/release-dashboard.md
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Enforce GO Decision
+        if: inputs.enforce_decision == true
+        shell: bash
+        run: |
+          if [ "${{ steps.release_decision.outputs.decision }}" != "GO" ]; then
+            echo "Release decision is NO-GO."
+            exit 1
+          fi
+
+      - name: Enforce Budget Headroom
+        shell: bash
+        run: |
+          node scripts/check-release-headroom.cjs --min-kb=${{ inputs.min_global_headroom_kb }}
+
       - name: Publish Release Readiness Summary
         if: always()
         run: |
@@ -105,6 +177,8 @@ jobs:
             echo "## Release Readiness Summary"
             echo ""
             echo "- Full checks: \`${{ inputs.full_checks }}\`"
+            echo "- Enforce decision: \`${{ inputs.enforce_decision }}\`"
+            echo "- Min global headroom gate: \`${{ inputs.min_global_headroom_kb }} kB\`"
             if [ "${{ inputs.cwv_snapshot_b64 }}" != "" ]; then
               echo "- CWV snapshot: provided (workflow input)"
             else
@@ -114,7 +188,16 @@ jobs:
             echo "- Full checklist step: ${{ steps.checklist_full.outcome }}"
             echo "- Checklist artifact: \`${{ steps.checklist_path.outputs.file }}\`"
             echo "- Status artifact: \`${{ steps.checklist_path.outputs.status_file }}\`"
+            echo "- History artifact: \`docs/releases/release-history.json\`"
+            echo "- Dashboard artifact: \`docs/releases/release-dashboard.md\`"
             echo "- Decision: \`${{ steps.release_decision.outputs.decision }}\`"
+            echo "- Budget total: ${{ steps.release_status.outputs.budget_total }}"
+            echo "- Budget JS: ${{ steps.release_status.outputs.budget_js }}"
+            echo "- Budget CSS: ${{ steps.release_status.outputs.budget_css }}"
+            echo "- Budget HTML: ${{ steps.release_status.outputs.budget_html }}"
+            echo "- Risk #1: ${{ steps.release_status.outputs.risk_1 }}"
+            echo "- Risk #2: ${{ steps.release_status.outputs.risk_2 }}"
+            echo "- Risk #3: ${{ steps.release_status.outputs.risk_3 }}"
             echo ""
             echo "Final job result: **${{ job.status }}**"
           } >> "$GITHUB_STEP_SUMMARY"

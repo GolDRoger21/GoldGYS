@@ -7,24 +7,24 @@
   },
   "user": {
     "index": {
-      "lcp": "1.86s",
+      "lcp": "1.81s",
       "inp": "N/A (lab interaction yok)",
       "cls": "0.033"
     },
     "konular": {
-      "lcp": "1.49s",
+      "lcp": "1.48s",
       "inp": "N/A (lab interaction yok)",
       "cls": "0.071"
     },
     "konu": {
-      "lcp": "2.04s",
+      "lcp": "1.63s",
       "inp": "N/A (lab interaction yok)",
       "cls": "0.071"
     }
   },
   "admin": {
     "index": {
-      "lcp": "2.31s",
+      "lcp": "1.99s",
       "inp": "N/A (lab interaction yok)",
       "cls": "0.070"
     }

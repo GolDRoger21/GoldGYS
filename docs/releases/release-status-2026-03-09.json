@@ -1,7 +1,7 @@
 {
   "date": "2026-03-09",
   "checklistPath": "docs/releases/release-checklist-2026-03-09.md",
-  "commit": "4b5a854",
+  "commit": "e3c891f",
   "version": "v1.0.0",
   "decision": "GO",
   "guardrails": {
@@ -16,10 +16,37 @@
     "phase4to5": "PASS",
     "phase6to7": "PASS"
   },
+  "budget": {
+    "globalTotal": {
+      "usedKb": 378.42,
+      "limitKb": 400,
+      "headroomKb": 21.58
+    },
+    "globalJs": {
+      "usedKb": 181.76,
+      "limitKb": 190,
+      "headroomKb": 8.24
+    },
+    "globalCss": {
+      "usedKb": 47.11,
+      "limitKb": 52,
+      "headroomKb": 4.89
+    },
+    "globalHtml": {
+      "usedKb": 146.46,
+      "limitKb": 155,
+      "headroomKb": 8.54
+    },
+    "riskTop3": [
+      "userHome:maxSingleAssetGzipKb (0.88 kB headroom)",
+      "userHome:cssGzipKb (1.11 kB headroom)",
+      "userHome:jsGzipKb (1.32 kB headroom)"
+    ]
+  },
   "cwv": {
-    "userIndexLcp": "1.86s",
-    "userKonularLcp": "1.49s",
-    "userKonuLcp": "2.04s",
-    "adminIndexLcp": "2.31s"
+    "userIndexLcp": "1.81s",
+    "userKonularLcp": "1.48s",
+    "userKonuLcp": "1.63s",
+    "adminIndexLcp": "1.99s"
   }
 }

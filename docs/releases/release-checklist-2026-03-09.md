@@ -5,7 +5,7 @@ Bu dokuman, her kucuk surum oncesinde ayni kalite kapilarini standart sekilde ka
 ## 1) Build ve Guardrail Sonuclari
 
 - Tarih: 2026-03-09
-- Commit: 4b5a854
+- Commit: e3c891f
 - Surum etiketi: v1.0.0
 
 - `npm run ci:checks`:
@@ -44,22 +44,22 @@ Olcum ortami:
 ### User Akislari
 
 - `/index.html`
-  - LCP: 1.86s
+  - LCP: 1.81s
   - INP: N/A (lab interaction yok)
   - CLS: 0.033
 - `/konular`
-  - LCP: 1.49s
+  - LCP: 1.48s
   - INP: N/A (lab interaction yok)
   - CLS: 0.071
 - `/konu`
-  - LCP: 2.04s
+  - LCP: 1.63s
   - INP: N/A (lab interaction yok)
   - CLS: 0.071
 
 ### Admin Akisi
 
 - `/admin/index.html`
-  - LCP: 2.31s
+  - LCP: 1.99s
   - INP: N/A (lab interaction yok)
   - CLS: 0.070
 

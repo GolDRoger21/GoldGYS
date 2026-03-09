@@ -37,17 +37,20 @@ function readDecision() {
 }
 
 function main() {
-  console.log("[release-ready-local] Step 1/4: ci:quick");
+  console.log("[release-ready-local] Step 1/5: ci:quick");
   run("npm run ci:quick");
 
-  console.log("[release-ready-local] Step 2/4: test:rules");
+  console.log("[release-ready-local] Step 2/5: test:rules");
   run("npm run test:rules");
 
-  console.log("[release-ready-local] Step 3/4: measure:cwv");
+  console.log("[release-ready-local] Step 3/5: measure:cwv");
   run("npm run measure:cwv");
 
-  console.log("[release-ready-local] Step 4/4: release:checklist:refresh:full");
+  console.log("[release-ready-local] Step 4/5: release:checklist:refresh:full");
   run("npm run release:checklist:refresh:full");
+
+  console.log("[release-ready-local] Step 5/5: release:headroom:check");
+  run("npm run release:headroom:check");
 
   const { decision, checklist, statusFile } = readDecision();
   console.log(`[release-ready-local] Decision: ${decision}`);

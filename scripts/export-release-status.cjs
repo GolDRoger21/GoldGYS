@@ -33,6 +33,30 @@ function extractGateStatus(content, gate) {
   return extractCommandStatus(content, gate);
 }
 
+function parseUsedLimit(text) {
+  const m = String(text || "").match(/([0-9]+(?:\.[0-9]+)?)\s*\/\s*([0-9]+(?:\.[0-9]+)?)\s*kB/i);
+  if (!m) return null;
+  const used = Number(m[1]);
+  const limit = Number(m[2]);
+  const round2 = (n) => Math.round(n * 100) / 100;
+  return {
+    usedKb: round2(used),
+    limitKb: round2(limit),
+    headroomKb: round2(limit - used)
+  };
+}
+
+function extractBudgetMetric(content, label) {
+  const safe = label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const value = extractLineValue(content, new RegExp(`- ${safe}:\\s*([^\\n\\r]+)`), "");
+  const parsed = parseUsedLimit(value);
+  return parsed || { usedKb: null, limitKb: null, headroomKb: null };
+}
+
+function extractRiskLine(content, index) {
+  return extractLineValue(content, new RegExp(`- ${index}\\.\\s*([^\\n\\r]+)`), "");
+}
+
 const stamp = getTodayStamp();
 const checklistPath = path.join(RELEASE_DIR, `release-checklist-${stamp}.md`);
 if (!fs.existsSync(checklistPath)) {
@@ -59,6 +83,13 @@ const payload = {
     phase3to4: extractGateStatus(content, "Faz 3 -> Faz 4"),
     phase4to5: extractGateStatus(content, "Faz 4 -> Faz 5"),
     phase6to7: extractGateStatus(content, "Faz 6 -> Faz 7")
+  },
+  budget: {
+    globalTotal: extractBudgetMetric(content, "Global toplam gzip"),
+    globalJs: extractBudgetMetric(content, "Global JS gzip"),
+    globalCss: extractBudgetMetric(content, "Global CSS gzip"),
+    globalHtml: extractBudgetMetric(content, "Global HTML gzip"),
+    riskTop3: [extractRiskLine(content, 1), extractRiskLine(content, 2), extractRiskLine(content, 3)].filter(Boolean)
   },
   cwv: {
     userIndexLcp: extractLineValue(content, /- `\/index\.html`[\s\S]*?- LCP:\s*([^\n\r]+)/),

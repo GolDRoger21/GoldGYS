@@ -1,0 +1,41 @@
+{
+  "generatedAt": "2026-03-09T20:28:48.100Z",
+  "count": 1,
+  "summary": {
+    "totals": {
+      "total": 1,
+      "go": 1,
+      "noGo": 0
+    },
+    "last": {
+      "date": "2026-03-09",
+      "decision": "GO",
+      "commit": "e3c891f",
+      "version": "v1.0.0",
+      "lcpUserIndex": "1.81s",
+      "lcpAdminIndex": "1.99s",
+      "budgetHeadroomKb": {
+        "total": 21.58,
+        "js": 8.24,
+        "css": 4.89,
+        "html": 8.54
+      }
+    }
+  },
+  "entries": [
+    {
+      "date": "2026-03-09",
+      "decision": "GO",
+      "commit": "e3c891f",
+      "version": "v1.0.0",
+      "lcpUserIndex": "1.81s",
+      "lcpAdminIndex": "1.99s",
+      "budgetHeadroomKb": {
+        "total": 21.58,
+        "js": 8.24,
+        "css": 4.89,
+        "html": 8.54
+      }
+    }
+  ]
+}
