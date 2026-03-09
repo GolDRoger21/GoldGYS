@@ -16,6 +16,7 @@ import {
     writeBatch,
     setDoc
 } from "../../firestore-metrics.js";
+import { applyConfigPublicModelDefaults, validateConfigPublicPayload } from "../../content-model.js";
 
 const EXAM_LIST_LIMIT = 50;
 const ANNOUNCEMENT_LIST_LIMIT = 50;
@@ -30,14 +31,19 @@ export function initAnnouncementsPage() {
 
 async function bumpPublicCacheBuster() {
     try {
-        await setDoc(doc(db, "config", "public"), {
+        const configPayload = applyConfigPublicModelDefaults({
             system: {
                 cacheBuster: Date.now()
             },
             meta: {
                 updatedAt: serverTimestamp()
             }
-        }, { merge: true });
+        });
+        const validation = validateConfigPublicPayload(configPayload);
+        if (!validation.isValid) {
+            console.warn("[content-model] config.public.bump payload warnings:", validation.warnings);
+        }
+        await setDoc(doc(db, "config", "public"), configPayload, { merge: true });
     } catch (error) {
         console.warn("cacheBuster güncellenemedi:", error);
     }

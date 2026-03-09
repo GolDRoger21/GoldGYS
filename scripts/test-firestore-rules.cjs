@@ -19,12 +19,20 @@ function logStep(name) {
   process.stdout.write(`\n[rules-test] ${name}\n`);
 }
 
+const stepStats = {
+  total: 0,
+  passed: 0,
+};
+
 async function runStep(name, operation) {
+  stepStats.total += 1;
   logStep(name);
   try {
     await operation();
+    stepStats.passed += 1;
     process.stdout.write(`[rules-test] PASS: ${name}\n`);
   } catch (error) {
+    process.stdout.write(`[rules-test] FAIL: ${name}\n`);
     error.message = `[${name}] ${error.message}`;
     throw error;
   }
@@ -153,13 +161,19 @@ async function run() {
       await assertFails(getDoc(doc(userDb, 'stats', 'overview')));
     });
 
-    process.stdout.write('\n[rules-test] All checks passed.\n');
+    process.stdout.write(
+      `\n[rules-test] Summary: ${stepStats.passed}/${stepStats.total} steps passed.\n`,
+    );
+    process.stdout.write('[rules-test] All checks passed.\n');
   } finally {
     await testEnv.cleanup();
   }
 }
 
 run().catch((error) => {
+  process.stdout.write(
+    `\n[rules-test] Summary: ${stepStats.passed}/${stepStats.total} steps passed.\n`,
+  );
   console.error('\n[rules-test] Failed:', error);
   process.exitCode = 1;
 });

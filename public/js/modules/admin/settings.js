@@ -7,8 +7,22 @@ import { doc, getDoc, setDoc, serverTimestamp } from "../../firestore-metrics.js
 import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 import { clearSessionByPrefix, removeSessionValue } from "../../session-cache.js";
 import { ADMIN_LOCAL_CACHE_KEYS, ADMIN_SESSION_CACHE_PREFIXES, ADMIN_SESSION_KEYS } from "./constants.js";
+import {
+    applyConfigPublicModelDefaults,
+    applyLegalPageModelDefaults,
+    validateConfigPublicPayload,
+    validateLegalPagePayload
+} from "../../content-model.js";
 
 const storage = getStorage();
+
+function logModelWarnings(scope, validation) {
+    if (validation.isValid) return;
+    console.warn(`[content-model] ${scope} payload warnings:`, validation.warnings);
+    if (validation.warnings[0]) {
+        showToast(`Sema uyarisi: ${validation.warnings[0]}`, "warning");
+    }
+}
 
 export async function init() {
     await requireAdminOrEditor();
@@ -166,7 +180,7 @@ function bindClearCacheButton() {
 
         if (confirmed) {
             try {
-                await setDoc(doc(db, "config", "public"), {
+                const configPayload = applyConfigPublicModelDefaults({
                     system: {
                         cacheBuster: Date.now()
                     },
@@ -174,7 +188,9 @@ function bindClearCacheButton() {
                         cacheClearedAt: serverTimestamp(),
                         cacheClearedBy: auth.currentUser?.uid || null
                     }
-                }, { merge: true });
+                });
+                logModelWarnings("config.public.cache-clear", validateConfigPublicPayload(configPayload));
+                await setDoc(doc(db, "config", "public"), configPayload, { merge: true });
             } catch (error) {
                 console.error("Global cache invalidation yazılamadı:", error);
             }
@@ -315,7 +331,7 @@ function bindAssetUpload({ fileInputId, uploadButtonId, fileNameId, previewImage
             await uploadBytes(assetRef, file, { contentType: file.type || undefined });
             const downloadUrl = await getDownloadURL(assetRef);
 
-            await setDoc(doc(db, "config", "public"), {
+            const configPayload = applyConfigPublicModelDefaults({
                 ...updateData(downloadUrl),
                 system: {
                     cacheBuster: Date.now()
@@ -324,7 +340,9 @@ function bindAssetUpload({ fileInputId, uploadButtonId, fileNameId, previewImage
                     updatedAt: serverTimestamp(),
                     updatedBy: auth.currentUser?.uid || null
                 }
-            }, { merge: true });
+            });
+            logModelWarnings("config.public.asset-upload", validateConfigPublicPayload(configPayload));
+            await setDoc(doc(db, "config", "public"), configPayload, { merge: true });
 
             await loadPublicConfigIntoForm();
             fileInput.value = "";
@@ -672,7 +690,9 @@ async function savePublicConfigFromForm() {
         // Note: Field deletion via FieldValue.delete() is not implemented here, 
         // we assume empty string is a valid value for "clearing".
 
-        await setDoc(doc(db, "config", "public"), payload, { merge: true });
+        const configPayload = applyConfigPublicModelDefaults(payload);
+        logModelWarnings("config.public.settings-save", validateConfigPublicPayload(configPayload));
+        await setDoc(doc(db, "config", "public"), configPayload, { merge: true });
 
         showToast("Ayarlar başarıyla kaydedildi.", "success");
         await loadPublicConfigIntoForm(); // Reload to ensure UI is in sync
@@ -1225,12 +1245,14 @@ async function saveLegalContent() {
             ? quillEditor.root.innerHTML
             : htmlEditorInput.value;
 
-        await setDoc(doc(db, "legal_pages", currentLegalSlug), {
+        const legalPayload = applyLegalPageModelDefaults({
             content: html,
             updatedAt: serverTimestamp(),
             updatedBy: auth.currentUser?.uid || "admin",
             title: document.getElementById("legalEditorTitle").textContent.replace(" Düzenle", "")
-        }, { merge: true });
+        });
+        logModelWarnings("legal-pages.save", validateLegalPagePayload(legalPayload));
+        await setDoc(doc(db, "legal_pages", currentLegalSlug), legalPayload, { merge: true });
 
         showToast("İçerik başarıyla güncellendi.", "success");
 

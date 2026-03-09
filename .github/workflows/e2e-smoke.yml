@@ -29,16 +29,21 @@ jobs:
       - name: Install Dependencies
         run: npm ci
       - name: Install Playwright Chromium
+        id: install_playwright
         run: npx playwright install --with-deps chromium
       - name: Run Core Smoke Suite
+        id: core_smoke
         run: npm run test:e2e:smoke:core
       - name: Prepare Optional Auth State
+        id: auth_prepare
         if: github.event_name == 'workflow_dispatch'
         run: npm run test:e2e:auth:prepare
       - name: Run Authenticated Smoke Extension
+        id: auth_smoke
         if: github.event_name == 'workflow_dispatch'
         run: npm run test:e2e:smoke:auth
       - name: Upload Playwright HTML Report
+        id: upload_html_report
         uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -47,6 +52,7 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
       - name: Upload Playwright Test Results
+        id: upload_test_results
         uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -54,3 +60,23 @@ jobs:
           path: test-results
           if-no-files-found: warn
           retention-days: 14
+      - name: Publish E2E Summary
+        if: always()
+        run: |
+          {
+            echo "## E2E Smoke Summary"
+            echo ""
+            echo "- Event: \`${{ github.event_name }}\`"
+            echo "- Install Playwright: ${{ steps.install_playwright.outcome }}"
+            echo "- Core smoke: ${{ steps.core_smoke.outcome }}"
+            if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+              echo "- Auth state prepare: ${{ steps.auth_prepare.outcome }}"
+              echo "- Auth smoke extension: ${{ steps.auth_smoke.outcome }}"
+            else
+              echo "- Auth smoke extension: skipped (manual run only)"
+            fi
+            echo "- Upload HTML report: ${{ steps.upload_html_report.outcome }}"
+            echo "- Upload test results: ${{ steps.upload_test_results.outcome }}"
+            echo ""
+            echo "Final job result: **${{ job.status }}**"
+          } >> "$GITHUB_STEP_SUMMARY"

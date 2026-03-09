@@ -1,6 +1,7 @@
 import { db } from "../../firebase-config.js";
 import { showConfirm, showToast } from "../../notifications.js";
 import { collection, writeBatch, doc, serverTimestamp, getDocs, query, orderBy, documentId, limit } from "../../firestore-metrics.js";
+import { applyQuestionModelDefaults, validateQuestionPayload } from "../../content-model.js";
 import * as XLSX from "https://cdn.sheetjs.com/xlsx-latest/package/xlsx.mjs";
 import { TOPIC_KEYWORDS } from './keyword-map.js';
 
@@ -1234,7 +1235,7 @@ async function startBatchImport() {
 
             chunk.forEach(q => {
                 const docRef = doc(collection(db, "questions"));
-                batch.set(docRef, {
+                const draftQuestion = {
                     text: q.text,
                     options: q.options || [], // Excel conv fonk. burayı doldurmalı
                     correctOption: q.correctOption,
@@ -1246,7 +1247,13 @@ async function startBatchImport() {
                     // Diğer alanlar...
                     solution: q.solution || {},
                     type: q.type || 'standard'
-                });
+                };
+                const questionData = applyQuestionModelDefaults(draftQuestion);
+                const validation = validateQuestionPayload(questionData);
+                if (!validation.isValid) {
+                    console.warn('[content-model] importer payload warnings:', validation.warnings);
+                }
+                batch.set(docRef, questionData);
             });
 
             await batch.commit();

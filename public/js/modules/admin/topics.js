@@ -5,6 +5,12 @@ import {
     collection, getDocs, doc, addDoc, updateDoc, deleteDoc, serverTimestamp, query, orderBy, where, limit
 } from "../../firestore-metrics.js";
 import { showConfirm, showToast } from "../../notifications.js";
+import {
+    applyLessonModelDefaults,
+    applyTopicModelDefaults,
+    validateLessonPayload,
+    validateTopicPayload
+} from "../../content-model.js";
 import { openQuestionEditor } from './content.js';
 import { UI_SHELL, renderNavItem } from './topics.ui.js';
 import { TOPIC_KEYWORDS } from './keyword-map.js';
@@ -41,6 +47,14 @@ const ADMIN_LESSONS_FETCH_LIMIT = 800;
 const ADMIN_QUESTION_POOL_LIMIT = 1200;
 const ADMIN_TRASH_FETCH_LIMIT = 300;
 const ADMIN_DELETE_LESSON_BATCH_LIMIT = 200;
+
+function logModelWarnings(scope, validation) {
+    if (validation.isValid) return;
+    console.warn(`[content-model] ${scope} payload warnings:`, validation.warnings);
+    if (validation.warnings[0]) {
+        showToast(`Sema uyarisi: ${validation.warnings[0]}`, "warning");
+    }
+}
 
 async function deleteLessonsForTopic(topicId) {
     let hasMore = true;
@@ -737,7 +751,9 @@ async function saveTopicMeta() {
         if (id) await updateDoc(doc(db, "topics", id), data);
         else {
             data.createdAt = serverTimestamp(); data.status = 'active'; data.lessonCount = 0;
-            const ref = await addDoc(collection(db, "topics"), data);
+            const topicData = applyTopicModelDefaults(data);
+            logModelWarnings('topics.create', validateTopicPayload(topicData));
+            const ref = await addDoc(collection(db, "topics"), topicData);
             state.activeTopicId = ref.id;
             document.getElementById('editTopicId').value = ref.id;
         }
@@ -822,7 +838,9 @@ async function saveContent(silent = false) {
             await updateDoc(doc(db, `topics/${state.activeTopicId}/lessons`, state.activeLessonId), data);
         } else {
             data.createdAt = serverTimestamp();
-            const ref = await addDoc(collection(db, `topics/${state.activeTopicId}/lessons`), data);
+            const lessonData = applyLessonModelDefaults(data);
+            logModelWarnings('lessons.create', validateLessonPayload(lessonData));
+            const ref = await addDoc(collection(db, `topics/${state.activeTopicId}/lessons`), lessonData);
             state.activeLessonId = ref.id;
         }
 
@@ -905,7 +923,9 @@ async function promoteToSubtopic(id, ev) {
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp()
         };
-        const topicRef = await addDoc(collection(db, "topics"), topicPayload);
+        const nextTopicPayload = applyTopicModelDefaults(topicPayload);
+        logModelWarnings('topics.promote', validateTopicPayload(nextTopicPayload));
+        const topicRef = await addDoc(collection(db, "topics"), nextTopicPayload);
 
         const lessonPayload = {
             title: item.title,
@@ -925,7 +945,9 @@ async function promoteToSubtopic(id, ev) {
             lessonPayload.materials = item.materials || [];
         }
 
-        await addDoc(collection(db, `topics/${topicRef.id}/lessons`), lessonPayload);
+        const promotedLessonPayload = applyLessonModelDefaults(lessonPayload);
+        logModelWarnings('lessons.promote', validateLessonPayload(promotedLessonPayload));
+        await addDoc(collection(db, `topics/${topicRef.id}/lessons`), promotedLessonPayload);
         await deleteDoc(doc(db, `topics/${state.activeTopicId}/lessons`, id));
 
         showToast("Alt konu oluşturuldu ve içerik taşındı.", "success");
@@ -997,7 +1019,9 @@ async function demoteToLesson(id, ev) {
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp()
         };
-        await addDoc(collection(db, `topics/${item.parentId}/lessons`), lessonPayload);
+        const demotedLessonPayload = applyLessonModelDefaults(lessonPayload);
+        logModelWarnings('lessons.demote', validateLessonPayload(demotedLessonPayload));
+        await addDoc(collection(db, `topics/${item.parentId}/lessons`), demotedLessonPayload);
         await updateDoc(doc(db, "topics", topicId), {
             status: 'deleted',
             isDeleted: true,

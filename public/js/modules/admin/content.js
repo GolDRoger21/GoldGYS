@@ -5,6 +5,7 @@ import { showConfirm, showToast } from "../../notifications.js";
 import {
     collection, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, serverTimestamp, query, orderBy, limit, where, writeBatch
 } from "../../firestore-metrics.js";
+import { applyQuestionModelDefaults, validateQuestionPayload } from "../../content-model.js";
 
 let isEditorInitialized = false;
 let currentOnculler = [];
@@ -956,7 +957,7 @@ async function handleSaveQuestion(e) {
     e.preventDefault();
     const id = document.getElementById('editQuestionId').value;
 
-    const data = {
+    const draftData = {
         category: document.getElementById('inpCategory').value.trim(),
         difficulty: parseInt(document.getElementById('inpDifficulty').value),
         type: document.getElementById('inpType').value,
@@ -979,9 +980,16 @@ async function handleSaveQuestion(e) {
         updatedAt: serverTimestamp()
     };
 
-    if (data.type === 'oncullu') {
-        data.onculler = currentOnculler;
-        data.questionRoot = document.getElementById('inpQuestionRoot').value.trim();
+    if (draftData.type === 'oncullu') {
+        draftData.onculler = currentOnculler;
+        draftData.questionRoot = document.getElementById('inpQuestionRoot').value.trim();
+    }
+
+    const data = applyQuestionModelDefaults(draftData);
+    const validation = validateQuestionPayload(data);
+    if (!validation.isValid) {
+        console.warn('[content-model] question payload warnings:', validation.warnings);
+        showToast(`Sema uyarisi: ${validation.warnings[0]}`, "warning");
     }
 
     try {

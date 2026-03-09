@@ -2,6 +2,7 @@ import { db } from "../../firebase-config.js";
 import { showConfirm, showToast } from "../../notifications.js";
 import { getConfigPublic } from "./utils.js";
 import { collection, getDocs, doc, addDoc, deleteDoc, serverTimestamp, query, orderBy, documentId, where, limit } from "../../firestore-metrics.js";
+import { applyExamModelDefaults, validateExamPayload } from "../../content-model.js";
 
 let generatedQuestionsCache = [];
 
@@ -224,7 +225,7 @@ async function saveExam() {
     }
 
     try {
-        await addDoc(collection(db, "exams"), {
+        const examDraft = {
             title,
             duration: parseInt(duration),
             totalQuestions: generatedQuestionsCache.length,
@@ -232,7 +233,15 @@ async function saveExam() {
             createdAt: serverTimestamp(),
             isActive: true,
             role: "Yazı İşleri Müdürü"
-        });
+        };
+        const examData = applyExamModelDefaults(examDraft);
+        const validation = validateExamPayload(examData);
+        if (!validation.isValid) {
+            console.warn('[content-model] exams payload warnings:', validation.warnings);
+            showToast(`Sema uyarisi: ${validation.warnings[0]}`, "warning");
+        }
+
+        await addDoc(collection(db, "exams"), examData);
         showToast("Deneme başarıyla yayınlandı.", "success");
         document.getElementById('examWizard').style.display = 'none';
         loadExams();

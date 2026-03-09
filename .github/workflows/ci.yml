@@ -29,6 +29,37 @@ jobs:
       - name: Install Dependencies
         run: npm ci
       - name: Run Static Guardrails
+        id: static_guardrails
         run: npm run ci:checks
+      - name: Run Content Model Audit (Strict)
+        id: content_model_audit
+        run: npm run audit:content-model:strict
+      - name: Run Content Model Contract Test
+        id: content_model_contract
+        run: npm run test:content-model:contract
+      - name: Run Core E2E Smoke (PR Only)
+        id: core_smoke
+        if: github.event_name == 'pull_request'
+        run: npm run test:e2e:smoke:core
       - name: Run Firestore Rules Tests
+        id: rules_tests
         run: npm run test:rules
+      - name: Publish Quality Gate Summary
+        if: always()
+        run: |
+          {
+            echo "## CI Quality Gate Summary"
+            echo ""
+            echo "- Event: \`${{ github.event_name }}\`"
+            echo "- Static guardrails: ${{ steps.static_guardrails.outcome }}"
+            echo "- Content model audit (strict): ${{ steps.content_model_audit.outcome }}"
+            echo "- Content model contract: ${{ steps.content_model_contract.outcome }}"
+            if [ "${{ github.event_name }}" = "pull_request" ]; then
+              echo "- Core E2E smoke: ${{ steps.core_smoke.outcome }} (required on PR)"
+            else
+              echo "- Core E2E smoke: skipped (non-PR run)"
+            fi
+            echo "- Firestore rules tests: ${{ steps.rules_tests.outcome }}"
+            echo ""
+            echo "Final job result: **${{ job.status }}**"
+          } >> "$GITHUB_STEP_SUMMARY"

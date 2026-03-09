@@ -39,6 +39,7 @@ Bu dokuman, mevcut faz planinin web/Firebase gercekleriyle uyumlu revize halidir
 - Faz 0-2: buyuk olcude islenmis durumda.
 - Faz 3: mini kapanis seviyesinde.
 - Faz 4/Faz 6: aktif ve olculebilir guardrail seviyesinde.
+- Faz 7: basladi (content model standardizasyonu ve alan disiplini).
 
 ## Uygulanan Teknik Guardrail'ler
 
@@ -54,6 +55,10 @@ Bu dokuman, mevcut faz planinin web/Firebase gercekleriyle uyumlu revize halidir
   - `ci:checks`
   - `.github/workflows/ci.yml` -> `npm run ci:checks`
   - `check:budgets` -> genel + route-bazli JS/CSS budget kontrolu
+  - `audit:content-model` -> Faz 7 model standard drift guardrail'i
+  - `audit:content-model:strict` -> ana CI'da ayri gate olarak calisir
+  - `test:content-model:contract` -> model export/default sozlesmesi regression guardrail'i
+  - CI summary panelinde `content-model strict` ve `content-model contract` outcome'lari ayri satirda raporlanir
 
 - `scripts/analyze-assets.cjs`:
   - global asset budget check (total/js/css/html + max single js)
@@ -62,6 +67,15 @@ Bu dokuman, mevcut faz planinin web/Firebase gercekleriyle uyumlu revize halidir
     - `userHome` (`/index.html`)
     - `adminDashboard` (`/admin/index.html`)
   - route bazinda toplam/js/css/max-single-asset esikleri
+
+- `scripts/audit-content-model.cjs`:
+  - question/topic/lesson/exam/config/legal_pages yazma noktalarinda model default helper kullanimi taranir
+  - varsayilan: warning modu (non-breaking)
+  - `--strict`: ihlallerde fail
+
+- `scripts/test-content-model-contract.cjs`:
+  - `content-model.js` icindeki export/default contract'ini fail-fast denetler
+  - zorunlu apply/validate fonksiyonlari ve default alanlarini (version/status/visibility) korur
 
 ## Sonraki Operasyonel Adim
 
@@ -82,6 +96,7 @@ Faz 4 tamamlama:
   - Firestore Rules emulator testi eklendi: `scripts/test-firestore-rules.cjs`.
   - Local ortamda net hata mesaji icin Java 21 on-kontrol wrapper'i eklendi: `scripts/run-rules-tests.cjs`.
   - Rules test adimlari PASS/FAIL etiketli hale getirildi; fail durumunda adim adi hata mesajina ekleniyor.
+  - Rules test ciktilarina adim sayisi ozeti eklendi (`passed/total`), fail triage hizi artirildi.
   - Rules wrapper cikis kodu/sinyal durumunu acik loglar; CI hata okuma hizi artirildi.
   - `.github/workflows/ci.yml` adimlari isimlendirildi; CI ekraninda kirilan kapilar daha hizli tespit edilir.
   - `.github/workflows/e2e-smoke.yml` adimlari isimlendirildi; Playwright artifact toplama
@@ -89,8 +104,12 @@ Faz 4 tamamlama:
   - `playwright.config.js` reporter standardi `line + html` olarak sabitlendi
     (CI artifact'i icin `playwright-report` uretimi garantilendi).
   - E2E smoke iki seviyeye ayrildi:
-    - `test:e2e:smoke:core` (`--grep-invert optional`) -> PR/push hizli kapisi
-    - `test:e2e:smoke:auth` (`--grep optional`) -> workflow_dispatch icin auth extension
+    - `test:e2e:smoke:core` (`--grep-invert @optional`) -> PR/push hizli kapisi
+    - `test:e2e:smoke:auth` (`--grep @optional`) -> workflow_dispatch icin auth extension
+  - Ana CI (`.github/workflows/ci.yml`) icine PR-ozel `core smoke` kapisi eklendi.
+  - Ana CI icine `Quality Gate Summary` adimi eklendi; PR/push kosusunda hangi kapilarin calistigi
+    ve final job sonucu tek ozet panelde gorunur hale geldi.
+  - CI summary adimi outcome-aware hale getirildi (`success/failure/skipped`), static guardrails/core smoke/rules test sonucu net gorunur.
   - CI tarafinda rules testi adimi Java 21 ile calisacak sekilde ayarlandi.
   - Playwright tabanli smoke E2E iskeleti eklendi:
     - `tests/e2e/smoke.spec.js`
@@ -156,3 +175,19 @@ Faz 4 tamamlama:
   - `public/pages/konular.html` icindeki inline sorgularda eksik limitler eklendi:
     - `users/{uid}/topic_progress`: `orderBy(documentId()) + limit(500)`
     - `topics`: `orderBy("order", "asc") + limit(500)`
+
+- Faz 7 (icerik buyumesi hazirligi):
+  - Ortak content model helper eklendi: `public/js/content-model.js`
+    - question default alanlari merkezilestirildi: `version`, `status`, `visibility`
+    - topic, lesson, exam, config/public ve legal_pages default alanlari da ayni standartta merkezilestirildi
+    - non-blocking payload validasyonu eklendi (uyari/log seviyesi)
+    - buyuk payload icin soft limit warning (750KB) eklendi
+  - Admin yazma akislari entegrasyonu:
+    - `public/js/modules/admin/content.js`
+    - `public/js/modules/admin/importer.js`
+    - `public/js/modules/admin/topics.js` (topic/lesson create, promote, demote akislari)
+    - `public/js/modules/admin/exams.js`
+    - `public/js/modules/admin/settings.js` (`config/public`, `legal_pages`)
+    - `public/js/modules/admin/announcements.js` (`config/public` cache buster)
+  - Veri modeli standard dokumani eklendi:
+    - `docs/content-model-standard.md`

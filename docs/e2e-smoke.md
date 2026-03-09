@@ -89,3 +89,7 @@ Komut ciktisini ilgili GitHub secret degerine oldugu gibi yapistirin.
 - Workflow calisma modeli:
   - `pull_request` ve `push` icin sadece `core smoke` kosulur.
   - `workflow_dispatch` icin `core smoke` + `authenticated smoke extension` kosulur.
+- Workflow sonunda `E2E Smoke Summary` paneli olusur; core/auth/artifact adimlarinin
+  `success/failure/skipped` durumlari tek ekranda gorulur.
+- Not:
+  - `core/auth` ayrimi test adlarindaki `@optional` etiketi uzerinden filtrelenir.
