@@ -1,0 +1,25 @@
+{
+  "global": {
+    "totalGzipKb": 410,
+    "jsGzipKb": 200,
+    "cssGzipKb": 55,
+    "htmlGzipKb": 160,
+    "maxSingleJsGzipKb": 30
+  },
+  "routes": {
+    "userHome": {
+      "entryHtml": "/index.html",
+      "totalGzipKb": 15,
+      "jsGzipKb": 2,
+      "cssGzipKb": 11,
+      "maxSingleAssetGzipKb": 8
+    },
+    "adminDashboard": {
+      "entryHtml": "/admin/index.html",
+      "totalGzipKb": 40,
+      "jsGzipKb": 8,
+      "cssGzipKb": 26,
+      "maxSingleAssetGzipKb": 16
+    }
+  }
+}

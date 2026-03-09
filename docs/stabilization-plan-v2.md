@@ -57,6 +57,7 @@ Bu dokuman, mevcut faz planinin web/Firebase gercekleriyle uyumlu revize halidir
 
 - `scripts/analyze-assets.cjs`:
   - global asset budget check (total/js/css/html + max single js)
+  - budget kaynagi: `scripts/asset-budgets.json`
   - route budget check:
     - `userHome` (`/index.html`)
     - `adminDashboard` (`/admin/index.html`)

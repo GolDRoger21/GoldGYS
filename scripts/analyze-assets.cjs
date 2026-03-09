@@ -4,6 +4,7 @@ const path = require("path");
 const zlib = require("zlib");
 
 const PUBLIC_DIR = path.join(__dirname, "..", "public");
+const BUDGETS_FILE = path.join(__dirname, "asset-budgets.json");
 const INCLUDE_EXT = new Set([".js", ".css", ".html", ".svg"]);
 
 const DEFAULT_BUDGETS = Object.freeze({
@@ -29,6 +30,28 @@ const DEFAULT_ROUTE_BUDGETS = Object.freeze({
     maxSingleAssetGzipKb: 100
   }
 });
+
+function loadBudgetConfig() {
+  if (!fs.existsSync(BUDGETS_FILE)) {
+    return { global: DEFAULT_BUDGETS, routes: DEFAULT_ROUTE_BUDGETS, source: "default" };
+  }
+
+  try {
+    const raw = fs.readFileSync(BUDGETS_FILE, "utf8");
+    const parsed = JSON.parse(raw);
+    const global = parsed?.global && typeof parsed.global === "object"
+      ? { ...DEFAULT_BUDGETS, ...parsed.global }
+      : DEFAULT_BUDGETS;
+    const routes = parsed?.routes && typeof parsed.routes === "object"
+      ? { ...DEFAULT_ROUTE_BUDGETS, ...parsed.routes }
+      : DEFAULT_ROUTE_BUDGETS;
+
+    return { global, routes, source: path.relative(process.cwd(), BUDGETS_FILE) };
+  } catch (error) {
+    console.warn(`[WARN] Budget config parse failed (${BUDGETS_FILE}): ${error.message}`);
+    return { global: DEFAULT_BUDGETS, routes: DEFAULT_ROUTE_BUDGETS, source: "default" };
+  }
+}
 
 function readFiles(dir) {
   const entries = fs.readdirSync(dir, { withFileTypes: true });
@@ -254,6 +277,7 @@ const files = readFiles(PUBLIC_DIR);
 const summary = getSummary(files);
 const shouldAnalyze = process.argv.includes("--analyze");
 const shouldCheckBudgets = process.argv.includes("--check-budgets");
+const budgetConfig = loadBudgetConfig();
 
 printSummary(summary);
 
@@ -262,8 +286,9 @@ if (shouldAnalyze) {
 }
 
 if (shouldCheckBudgets) {
-  const failures = validateBudgets(summary, DEFAULT_BUDGETS);
-  const routeFailures = validateRouteBudgets(files, DEFAULT_ROUTE_BUDGETS);
+  console.log(`\nBudget source: ${budgetConfig.source}`);
+  const failures = validateBudgets(summary, budgetConfig.global);
+  const routeFailures = validateRouteBudgets(files, budgetConfig.routes);
   if (failures.length > 0 || routeFailures.length > 0) {
     console.error("\nAsset budget check failed.");
     process.exit(1);
