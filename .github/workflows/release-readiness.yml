@@ -146,8 +146,11 @@ jobs:
           }
           process.stdout.write(result.stdout);
           NODE
+          echo "requested_global=$(node -e \"const j=require('/tmp/headroom.json'); process.stdout.write(String(j.requested.global));\")" >> "$GITHUB_OUTPUT"
+          echo "requested_risk=$(node -e \"const j=require('/tmp/headroom.json'); process.stdout.write(String(j.requested.risk));\")" >> "$GITHUB_OUTPUT"
           echo "global=$(node -e \"const j=require('/tmp/headroom.json'); process.stdout.write(String(j.resolved.global));\")" >> "$GITHUB_OUTPUT"
           echo "risk=$(node -e \"const j=require('/tmp/headroom.json'); process.stdout.write(String(j.resolved.risk));\")" >> "$GITHUB_OUTPUT"
+          echo "threshold_diff=$(node -e \"const j=require('/tmp/headroom.json'); const g='global '+j.requested.global+' -> '+j.resolved.global+' kB'; const r='risk '+j.requested.risk+' -> '+j.resolved.risk+' kB'; process.stdout.write(g+' | '+r);\")" >> "$GITHUB_OUTPUT"
         env:
           IN_GLOBAL: ${{ inputs.min_global_headroom_kb }}
           IN_RISK: ${{ inputs.min_risk_headroom_kb }}
@@ -218,6 +221,7 @@ jobs:
             echo "- Min top-risk headroom gate: \`${{ inputs.min_risk_headroom_kb }} kB\`"
             echo "- Resolved global gate: \`${{ steps.resolved_headroom.outputs.global }} kB\`"
             echo "- Resolved risk gate: \`${{ steps.resolved_headroom.outputs.risk }} kB\`"
+            echo "- Threshold diff: \`${{ steps.resolved_headroom.outputs.threshold_diff }}\`"
             if [ "${{ inputs.cwv_snapshot_b64 }}" != "" ]; then
               echo "- CWV snapshot: provided (workflow input)"
             else

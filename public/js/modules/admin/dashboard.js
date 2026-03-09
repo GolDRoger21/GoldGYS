@@ -474,9 +474,11 @@ function renderReleaseHealthCard(summary) {
     const failingGateEl = document.getElementById("releaseHealthFailingGates");
     const headroomEl = document.getElementById("releaseHealthHeadroom");
     const gateListEl = document.getElementById("releaseHealthGateList");
+    const phaseListEl = document.getElementById("releaseHealthPhaseList");
+    const actionsListEl = document.getElementById("releaseHealthActionsList");
     const actionEl = document.getElementById("releaseHealthAction");
 
-    if (!dateEl || !decisionEl || !failingGateEl || !headroomEl || !gateListEl || !actionEl) return;
+    if (!dateEl || !decisionEl || !failingGateEl || !headroomEl || !gateListEl || !phaseListEl || !actionsListEl || !actionEl) return;
 
     dateEl.textContent = formatDateLabel(summary?.lastDate);
     decisionEl.textContent = String(summary?.decision || "UNKNOWN").toUpperCase();
@@ -491,6 +493,19 @@ function renderReleaseHealthCard(summary) {
     }).join("");
 
     gateListEl.innerHTML = rows || '<li><span class="status-dot status-info"></span>Gate verisi yok</li>';
+
+    const phaseEntries = Object.entries(summary?.phases || {});
+    const phaseRows = phaseEntries.map(([phaseName, phaseStatus]) => {
+        const normalized = String(phaseStatus || "").toUpperCase();
+        const dotClass = normalized === "COMPLETED" ? "status-success" : "status-warning";
+        return `<li><span class="status-dot ${dotClass}"></span>${phaseName.toUpperCase()}: ${phaseStatus}</li>`;
+    }).join("");
+
+    phaseListEl.innerHTML = phaseRows || '<li><span class="status-dot status-info"></span>Faz verisi yok</li>';
+
+    const actions = Array.isArray(summary?.recommendedActions) ? summary.recommendedActions : [];
+    const actionRows = actions.map((item) => `<li><span class="status-dot status-info"></span>${item}</li>`).join("");
+    actionsListEl.innerHTML = actionRows || '<li><span class="status-dot status-info"></span>Aksiyon onerisi yok</li>';
 }
 
 async function renderReleaseHealthSummary() {

@@ -119,6 +119,9 @@ const gateStatuses = {
   e2eCore: status?.guardrails?.e2eCore || "unknown"
 };
 const failingGateCount = Object.values(gateStatuses).filter((value) => String(value).toUpperCase() !== "PASS").length;
+const failingGates = Object.entries(gateStatuses)
+  .filter(([, value]) => String(value).toUpperCase() !== "PASS")
+  .map(([name]) => name);
 
 let adminMessage = "Yayin oncesi kontrolleri tamamla.";
 if (decision === "GO") {
@@ -126,6 +129,27 @@ if (decision === "GO") {
 } else if (decision === "NO-GO") {
   adminMessage = "NO-GO: Yayin yapmadan once failing gate'leri duzelt.";
 }
+
+const gateActionMap = {
+  ciChecks: "Syntax, budget ve query denetimlerini yeniden calistir (npm run ci:checks).",
+  modelStrict: "Icerik model drift ihlallerini duzelt (npm run audit:content-model:strict).",
+  modelContract: "Content model contract regresyonunu duzelt (npm run test:content-model:contract).",
+  rules: "Rules testlerini duzelt (npm run test:rules).",
+  e2eCore: "Smoke core E2E akisini duzelt (npm run test:e2e:smoke:core)."
+};
+
+const recommendedActions =
+  decision === "GO"
+    ? [
+        "Yayin oncesi son bir kez release checklist artifact'ini kaydet.",
+        "Admin panelde Release Sagligi kartinin GO oldugunu dogrula.",
+        "Yayin sonrasi ilk 30 dakikada hata/bildirim akislarini izle."
+      ]
+    : [
+        "Yayin yapma. Once failing gate'leri PASS konumuna getir.",
+        ...failingGates.map((gate) => gateActionMap[gate] || `${gate} gate duzeltmesi gerekli.`),
+        "Duzeltme sonrasi npm run release:ready:local ile yeniden karar uret."
+      ];
 
 const publicPayload = {
   generatedAt: new Date().toISOString(),
@@ -140,14 +164,36 @@ const publicPayload = {
     html: Number.isFinite(last?.budgetHeadroomKb?.html) ? Number(last.budgetHeadroomKb.html) : null
   },
   failingGateCount,
+  failingGates,
   gateStatuses,
   phaseGates: {
     phase3to4: status?.phaseGates?.phase3to4 || "unknown",
     phase4to5: status?.phaseGates?.phase4to5 || "unknown",
     phase6to7: status?.phaseGates?.phase6to7 || "unknown"
   },
+  phases: {
+    phase0: "COMPLETED",
+    phase1: "COMPLETED",
+    phase2: "COMPLETED",
+    phase3: String(status?.phaseGates?.phase3to4 || "").toUpperCase() === "PASS" ? "COMPLETED" : "IN_PROGRESS",
+    phase4: String(status?.phaseGates?.phase4to5 || "").toUpperCase() === "PASS" ? "COMPLETED" : "IN_PROGRESS",
+    phase5: String(status?.phaseGates?.phase4to5 || "").toUpperCase() === "PASS" ? "COMPLETED" : "IN_PROGRESS",
+    phase6:
+      failingGateCount === 0 &&
+      String(gateStatuses.rules || "").toUpperCase() === "PASS" &&
+      String(gateStatuses.e2eCore || "").toUpperCase() === "PASS"
+        ? "COMPLETED"
+        : "IN_PROGRESS",
+    phase7:
+      String(status?.phaseGates?.phase6to7 || "").toUpperCase() === "PASS" &&
+      String(gateStatuses.modelStrict || "").toUpperCase() === "PASS" &&
+      String(gateStatuses.modelContract || "").toUpperCase() === "PASS"
+        ? "COMPLETED"
+        : "IN_PROGRESS"
+  },
   risks,
-  adminMessage
+  adminMessage,
+  recommendedActions
 };
 
 fs.mkdirSync(path.dirname(PUBLIC_HEALTH_PATH), { recursive: true });

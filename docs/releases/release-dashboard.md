@@ -1,6 +1,6 @@
 # Release Dashboard
 
-Generated: 2026-03-09T20:51:20.844Z
+Generated: 2026-03-09T21:02:37.294Z
 
 ## Summary
 
@@ -9,22 +9,22 @@ Generated: 2026-03-09T20:51:20.844Z
 - NO-GO: 0
 - Last date: 2026-03-09
 - Last decision: GO
-- Last commit: e3c891f
+- Last commit: 3d1174a
 - Last version: v1.0.0
 
 ## Budget Headroom (Last Run)
 
-- Total: 21.58 kB
-- JS: 8.24 kB
+- Total: 20.53 kB
+- JS: 7.36 kB
 - CSS: 4.89 kB
-- HTML: 8.54 kB
+- HTML: 8.37 kB
 
 ## CWV LCP (Last Run)
 
-- User /index.html: 1.81s
-- User /konular: 1.48s
-- User /konu: 1.63s
-- Admin /admin/index.html: 1.99s
+- User /index.html: 1.53s
+- User /konular: 1.46s
+- User /konu: 1.89s
+- Admin /admin/index.html: 1.96s
 
 ## Top Risks (Last Run)
 

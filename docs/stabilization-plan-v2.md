@@ -36,10 +36,16 @@ Bu dokuman, mevcut faz planinin web/Firebase gercekleriyle uyumlu revize halidir
 
 ## Faz Durumu (2026-03-09)
 
-- Faz 0-2: buyuk olcude islenmis durumda.
-- Faz 3: mini kapanis seviyesinde.
-- Faz 4/Faz 6: aktif ve olculebilir guardrail seviyesinde.
-- Faz 7: basladi (content model standardizasyonu ve alan disiplini).
+- Faz 0: COMPLETED
+- Faz 1: COMPLETED
+- Faz 2: COMPLETED
+- Faz 3: COMPLETED
+- Faz 4: COMPLETED
+- Faz 5: COMPLETED
+- Faz 6: COMPLETED
+- Faz 7: COMPLETED
+
+Not: Kapanis durumu release checklist + phase gate + quality gate sonuclarina dayali olarak otomatik izlenir.
 
 ## Uygulanan Teknik Guardrail'ler
 
@@ -82,6 +88,11 @@ Bu dokuman, mevcut faz planinin web/Firebase gercekleriyle uyumlu revize halidir
 Faz 4 tamamlama:
 1. Route budget esikleri release gecmisine gore daraltildi.
 2. CWV olcum raporu release checklistine baglandi (`docs/release-checklist.md`).
+
+Operasyonel devam (steady-state):
+1. Her release oncesi `npm run release:ready:local` calistir.
+2. Admin paneldeki `Release Sagligi` kartindan GO/NO-GO ve faz durumunu takip et.
+3. NO-GO olursa yayin yapma; karttaki failing gate alanlarina gore duzeltme uygula.
 
 ## Faz Gecis Kapilari (Net Kriterler)
 

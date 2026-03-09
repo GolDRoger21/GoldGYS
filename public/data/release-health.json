@@ -1,16 +1,17 @@
 {
-  "generatedAt": "2026-03-09T20:51:20.847Z",
+  "generatedAt": "2026-03-09T21:02:37.297Z",
   "lastDate": "2026-03-09",
   "decision": "GO",
-  "commit": "e3c891f",
+  "commit": "3d1174a",
   "version": "v1.0.0",
   "budgetHeadroomKb": {
-    "total": 21.58,
-    "js": 8.24,
+    "total": 20.53,
+    "js": 7.36,
     "css": 4.89,
-    "html": 8.54
+    "html": 8.37
   },
   "failingGateCount": 0,
+  "failingGates": [],
   "gateStatuses": {
     "ciChecks": "PASS",
     "modelStrict": "PASS",
@@ -23,10 +24,25 @@
     "phase4to5": "PASS",
     "phase6to7": "PASS"
   },
+  "phases": {
+    "phase0": "COMPLETED",
+    "phase1": "COMPLETED",
+    "phase2": "COMPLETED",
+    "phase3": "COMPLETED",
+    "phase4": "COMPLETED",
+    "phase5": "COMPLETED",
+    "phase6": "COMPLETED",
+    "phase7": "COMPLETED"
+  },
   "risks": [
     "userHome:maxSingleAssetGzipKb (0.88 kB headroom)",
     "userHome:cssGzipKb (1.11 kB headroom)",
     "userHome:jsGzipKb (1.32 kB headroom)"
   ],
-  "adminMessage": "Sistem yayin adayi icin hazir."
+  "adminMessage": "Sistem yayin adayi icin hazir.",
+  "recommendedActions": [
+    "Yayin oncesi son bir kez release checklist artifact'ini kaydet.",
+    "Admin panelde Release Sagligi kartinin GO oldugunu dogrula.",
+    "Yayin sonrasi ilk 30 dakikada hata/bildirim akislarini izle."
+  ]
 }

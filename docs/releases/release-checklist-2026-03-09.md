@@ -5,7 +5,7 @@ Bu dokuman, her kucuk surum oncesinde ayni kalite kapilarini standart sekilde ka
 ## 1) Build ve Guardrail Sonuclari
 
 - Tarih: 2026-03-09
-- Commit: e3c891f
+- Commit: 3d1174a
 - Surum etiketi: v1.0.0
 
 - `npm run ci:checks`:
@@ -24,10 +24,10 @@ Bu dokuman, her kucuk surum oncesinde ayni kalite kapilarini standart sekilde ka
 ## 2) Asset Budget Ozet
 
 - `npm run check:budgets` raporundan:
-  - Global toplam gzip: 378.42/400.00 kB
-  - Global JS gzip: 181.76/190.00 kB
+  - Global toplam gzip: 379.47/400.00 kB
+  - Global JS gzip: 182.64/190.00 kB
   - Global CSS gzip: 47.11/52.00 kB
-  - Global HTML gzip: 146.46/155.00 kB
+  - Global HTML gzip: 146.63/155.00 kB
   - En riskli 3 metrik (risk ranking):
     - 1. userHome:maxSingleAssetGzipKb (0.88 kB headroom)
     - 2. userHome:cssGzipKb (1.11 kB headroom)
@@ -44,22 +44,22 @@ Olcum ortami:
 ### User Akislari
 
 - `/index.html`
-  - LCP: 1.81s
+  - LCP: 1.53s
   - INP: N/A (lab interaction yok)
   - CLS: 0.033
 - `/konular`
-  - LCP: 1.48s
+  - LCP: 1.46s
   - INP: N/A (lab interaction yok)
   - CLS: 0.071
 - `/konu`
-  - LCP: 1.63s
+  - LCP: 1.89s
   - INP: N/A (lab interaction yok)
   - CLS: 0.071
 
 ### Admin Akisi
 
 - `/admin/index.html`
-  - LCP: 1.99s
+  - LCP: 1.96s
   - INP: N/A (lab interaction yok)
   - CLS: 0.070
 
