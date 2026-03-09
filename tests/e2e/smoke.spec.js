@@ -23,7 +23,19 @@ function resolveStorageStatePath(envVarValue, defaultRelativePath) {
 
   for (const candidate of candidates) {
     const absPath = path.resolve(process.cwd(), candidate);
-    if (fs.existsSync(absPath)) return absPath;
+    if (!fs.existsSync(absPath)) continue;
+
+    try {
+      const raw = fs.readFileSync(absPath, "utf8").replace(/^\uFEFF/, "");
+      const parsed = JSON.parse(raw);
+      const hasCookies = Array.isArray(parsed?.cookies);
+      const hasOrigins = Array.isArray(parsed?.origins);
+      if (hasCookies && hasOrigins) {
+        return absPath;
+      }
+    } catch (_) {
+      // invalid file -> try next candidate
+    }
   }
   return null;
 }

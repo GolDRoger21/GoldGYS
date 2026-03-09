@@ -989,7 +989,7 @@
   <script type="module">
     import { db, auth } from '../js/firebase-config.js';
     import { buildTopicPath } from '../js/topic-url.js';
-    import { collection, getDocs, query, orderBy, where, documentId } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { collection, getDocs, query, orderBy, where, documentId, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
     import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
     import { TopicService } from '../js/topic-service.js';
     import { CacheManager } from '../js/cache-manager.js';
@@ -1010,7 +1010,9 @@
 
     async function loadUserStats(uid) {
       try {
-        const progressSnap = await getDocs(collection(db, `users/${uid}/topic_progress`));
+        const progressSnap = await getDocs(
+          query(collection(db, `users/${uid}/topic_progress`), orderBy(documentId()), limit(500))
+        );
         const stats = {};
         progressSnap.forEach((progressDoc) => {
           const data = progressDoc.data() || {};
@@ -1046,7 +1048,7 @@
 
         console.log("[Cache Miss] Konular IndexedDB'de bulunamadı veya süresi doldu. Firestore'dan çekiliyor...");
         // 2. Arka plan Firestore kontrolü
-        const q = query(collection(db, "topics"), orderBy("order", "asc"));
+        const q = query(collection(db, "topics"), orderBy("order", "asc"), limit(500));
         const snapshot = await getDocs(q);
 
         const freshTopics = [];

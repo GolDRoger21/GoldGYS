@@ -93,6 +93,12 @@ Faz 4 tamamlama:
   - Storage state uretimi icin lokal capture komutlari eklendi:
     - `npm run test:e2e:auth:capture:user`
     - `npm run test:e2e:auth:capture:admin`
+  - CI workflow'u opsiyonel base64 secret'tan auth state hazirlayacak sekilde guncellendi
+    (`E2E_AUTH_STORAGE_STATE_B64`, `E2E_ADMIN_AUTH_STORAGE_STATE_B64`).
+  - Auth state base64 uretimi icin encode komutlari eklendi:
+    - `npm run test:e2e:auth:encode:user`
+    - `npm run test:e2e:auth:encode:admin`
+  - Smoke test auth-state cozumlemesi Playwright format dogrulamasi (cookies/origins) ile sertlestirildi.
 
 - Faz 4 (performans):
   - `scripts/analyze-assets.cjs` route-bazli ilk yukleme budget kontrolu eklendi.
@@ -101,3 +107,8 @@ Faz 4 tamamlama:
 
 - Faz 1 (gozlemlenebilirlik):
   - `dashboard.js` ve `analysis.js` icinde eksik kalan `getDocs` metrik etiketleri tamamlandi.
+
+- Faz 2 (query contract):
+  - `public/pages/konular.html` icindeki inline sorgularda eksik limitler eklendi:
+    - `users/{uid}/topic_progress`: `orderBy(documentId()) + limit(500)`
+    - `topics`: `orderBy("order", "asc") + limit(500)`

@@ -56,6 +56,24 @@ Not: Komutlar Hosting emulatoru acip Playwright testlerini onun icinde calistiri
 Komutlar hosting emulatoru acar, tarayiciyi headed modda baslatir.
 Giris tamamlanip hedef sayfa acildiginda terminalde Enter'a basilir ve dosya kaydedilir.
 
+### CI Icin Opsiyonel Secret Tabanli Hazirlik
+
+- GitHub Actions secret'lari opsiyonel olarak tanimlanabilir:
+  - `E2E_AUTH_STORAGE_STATE_B64`
+  - `E2E_ADMIN_AUTH_STORAGE_STATE_B64`
+- Bu secret'lar verildiginde workflow `npm run test:e2e:auth:prepare` ile
+  `tests/e2e/.auth/user.json` ve `tests/e2e/.auth/admin.json` dosyalarini olusturur.
+- Secret yoksa hazirlik adimi no-op olur; authenticated testler skip calismaya devam eder.
+
+#### Secret Icin Base64 Uretimi (Lokal)
+
+- User:
+  - `npm run test:e2e:auth:encode:user`
+- Admin:
+  - `npm run test:e2e:auth:encode:admin`
+
+Komut ciktisini ilgili GitHub secret degerine oldugu gibi yapistirin.
+
 ## CI
 
 - Manuel workflow:

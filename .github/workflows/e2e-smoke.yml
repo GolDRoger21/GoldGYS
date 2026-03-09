@@ -15,6 +15,9 @@ jobs:
   smoke:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    env:
+      E2E_AUTH_STORAGE_STATE_B64: ${{ secrets.E2E_AUTH_STORAGE_STATE_B64 }}
+      E2E_ADMIN_AUTH_STORAGE_STATE_B64: ${{ secrets.E2E_ADMIN_AUTH_STORAGE_STATE_B64 }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -23,6 +26,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e:auth:prepare
       - run: npm run test:e2e:smoke
       - uses: actions/upload-artifact@v4
         if: always()
