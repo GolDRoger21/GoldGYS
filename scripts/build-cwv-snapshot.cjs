@@ -39,7 +39,7 @@ function formatSeconds(value) {
 }
 
 function formatMs(value) {
-  if (!Number.isFinite(value)) return "PENDING";
+  if (!Number.isFinite(value)) return "N/A (lab interaction yok)";
   return `${Math.round(value)}ms`;
 }
 

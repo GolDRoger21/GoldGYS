@@ -7,25 +7,25 @@
   },
   "user": {
     "index": {
-      "lcp": "1.81s",
-      "inp": "PENDING",
+      "lcp": "1.86s",
+      "inp": "N/A (lab interaction yok)",
       "cls": "0.033"
     },
     "konular": {
-      "lcp": "1.83s",
-      "inp": "PENDING",
+      "lcp": "1.49s",
+      "inp": "N/A (lab interaction yok)",
       "cls": "0.071"
     },
     "konu": {
-      "lcp": "1.86s",
-      "inp": "PENDING",
+      "lcp": "2.04s",
+      "inp": "N/A (lab interaction yok)",
       "cls": "0.071"
     }
   },
   "admin": {
     "index": {
-      "lcp": "1.99s",
-      "inp": "PENDING",
+      "lcp": "2.31s",
+      "inp": "N/A (lab interaction yok)",
       "cls": "0.070"
     }
   }

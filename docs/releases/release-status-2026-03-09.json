@@ -1,0 +1,25 @@
+{
+  "date": "2026-03-09",
+  "checklistPath": "docs/releases/release-checklist-2026-03-09.md",
+  "commit": "4b5a854",
+  "version": "v1.0.0",
+  "decision": "GO",
+  "guardrails": {
+    "ciChecks": "PASS",
+    "modelStrict": "PASS",
+    "modelContract": "PASS",
+    "rules": "PASS",
+    "e2eCore": "PASS"
+  },
+  "phaseGates": {
+    "phase3to4": "PASS",
+    "phase4to5": "PASS",
+    "phase6to7": "PASS"
+  },
+  "cwv": {
+    "userIndexLcp": "1.86s",
+    "userKonularLcp": "1.49s",
+    "userKonuLcp": "2.04s",
+    "adminIndexLcp": "2.31s"
+  }
+}

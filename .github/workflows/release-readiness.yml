@@ -68,11 +68,19 @@ jobs:
         run: |
           stamp="$(date +%F)"
           file="docs/releases/release-checklist-${stamp}.md"
+          status_file="docs/releases/release-status-${stamp}.json"
           if [ ! -f "$file" ]; then
             echo "Checklist not found: $file"
             exit 1
           fi
           echo "file=$file" >> "$GITHUB_OUTPUT"
+          echo "status_file=$status_file" >> "$GITHUB_OUTPUT"
+
+      - name: Resolve Decision
+        id: release_decision
+        shell: bash
+        run: |
+          node -e "const fs=require('fs'); const p='${{ steps.checklist_path.outputs.file }}'; const t=fs.readFileSync(p,'utf8'); const m=t.match(/- Karar:\s*`([^`]+)`/); process.stdout.write(`decision=${(m&&m[1]?m[1]:'UNKNOWN').trim().toUpperCase()}`)" >> "$GITHUB_OUTPUT"
 
       - name: Upload Checklist Artifact
         uses: actions/upload-artifact@v4
@@ -80,6 +88,14 @@ jobs:
           name: release-checklist
           path: ${{ steps.checklist_path.outputs.file }}
           if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload Release Status Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-status
+          path: ${{ steps.checklist_path.outputs.status_file }}
+          if-no-files-found: warn
           retention-days: 14
 
       - name: Publish Release Readiness Summary
@@ -97,6 +113,8 @@ jobs:
             echo "- Standard checklist step: ${{ steps.checklist_standard.outcome }}"
             echo "- Full checklist step: ${{ steps.checklist_full.outcome }}"
             echo "- Checklist artifact: \`${{ steps.checklist_path.outputs.file }}\`"
+            echo "- Status artifact: \`${{ steps.checklist_path.outputs.status_file }}\`"
+            echo "- Decision: \`${{ steps.release_decision.outputs.decision }}\`"
             echo ""
             echo "Final job result: **${{ job.status }}**"
           } >> "$GITHUB_STEP_SUMMARY"

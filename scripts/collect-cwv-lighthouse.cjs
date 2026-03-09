@@ -4,7 +4,7 @@ const path = require("path");
 const { spawnSync } = require("child_process");
 
 const ROOT = path.join(__dirname, "..");
-const OUT_DIR = path.join(ROOT, "reports", "lighthouse");
+const OUT_DIR = path.join(ROOT, ".tmp", "lighthouse-reports");
 const TMP_DIR = path.join(ROOT, ".tmp", "lighthouse");
 
 function fail(message) {

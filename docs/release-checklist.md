@@ -3,6 +3,7 @@
 Bu dokuman, her kucuk surum oncesinde ayni kalite kapilarini standart sekilde kayda almak icin kullanilir.
 
 Kullanim:
+- Tum lokal release kapilarini tek komutta calistir: `npm run release:ready:local`
 - Yeni checklist olustur: `npm run release:checklist`
 - Lighthouse tabanli CWV olcumu al + snapshot uret: `npm run measure:cwv`
 - Budget ozetini otomatik doldur: `npm run release:checklist:budget`
@@ -16,6 +17,7 @@ Kullanim:
 - E2E core dahil kalite alanlarini doldur: `npm run release:checklist:quality:e2e`
 - Faz gecis durumunu otomatik doldur: `npm run release:checklist:phase-gates`
 - GO/NO-GO kararini otomatik guncelle: `npm run release:checklist:decision`
+- Makine-okunur durum json'u uret: `npm run release:status:export`
 - Tumunu tek komutta yenile: `npm run release:checklist:refresh`
 - Tumunu rules+e2e dahil tek komutta yenile: `npm run release:checklist:refresh:full`
 - CI manuel akisi: GitHub Actions -> `Release Readiness` workflow'u (`full_checks=false|true`, opsiyonel `cwv_snapshot_b64`)
@@ -83,6 +85,9 @@ Olcum ortami:
   - LCP:
   - INP:
   - CLS:
+
+Not:
+- Lighthouse lab olcumunde kullanici etkilesimi yoksa INP alani `N/A (lab interaction yok)` olarak yazilabilir.
 
 ## 4) E2E / Kritik Akis Kontrolu
 

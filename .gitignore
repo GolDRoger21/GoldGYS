@@ -23,6 +23,7 @@ build/
 playwright-report/
 test-results/
 tests/e2e/.auth/
+.tmp/
 
 # Firebase Admin / Service Account keys (NEVER COMMIT)
 **/*adminsdk*.json
