@@ -119,6 +119,11 @@ Faz 4 tamamlama:
       (sidebar acilirken dropdown kapanisi, dropdown acilirken sidebar kapanisi, resize temizleme).
     - `public/css/layout.css`: mobilde `mobile-sidebar-active` durumunda body scroll kilidi
       ve dropdown max-height icin `dvh` yedegi eklendi.
+    - `public/js/ui-loader.js`: `Escape` tusu ile acik gecici katmanlar (sidebar/dropdown) kapatilir.
+    - `public/css/layout.css`: dropdown listelerinde dokunmatik kaydirma davranisi (`overscroll-behavior`, `-webkit-overflow-scrolling`) guclendirildi.
+    - Header erisilebilirlik/hit-area sertlestirme:
+      - `public/css/layout.css`: mobilde header action butonlari icin minimum dokunma alani (`44x44`) ve `touch-action` iyilestirmesi.
+      - `public/pages/test.html` + `public/pages/deneme.html`: test/deneme action butonlarinda `focus-visible` gorunurlugu ve mobil hit-area iyilestirmesi.
 
 - Faz 1 (gozlemlenebilirlik):
   - `dashboard.js` ve `analysis.js` icinde eksik kalan `getDocs` metrik etiketleri tamamlandi.

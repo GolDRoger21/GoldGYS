@@ -77,6 +77,7 @@
             align-items: center;
             justify-content: center;
             cursor: pointer;
+            touch-action: manipulation;
         }
 
         .btn-icon.active {
@@ -96,6 +97,9 @@
             gap: 6px;
             font-weight: 600;
             white-space: nowrap;
+            min-width: 40px;
+            min-height: 40px;
+            touch-action: manipulation;
         }
 
         .mode-toggle-icon,
@@ -378,6 +382,14 @@
             align-items: center;
             justify-content: center;
             cursor: pointer;
+            touch-action: manipulation;
+        }
+
+        .btn-icon:focus-visible,
+        .mode-toggle-btn:focus-visible,
+        .theme-toggle-btn:focus-visible {
+            outline: none;
+            box-shadow: var(--focus-ring);
         }
 
         .modal-shell {
@@ -502,8 +514,8 @@
             }
 
             .mode-toggle-btn {
-                width: 36px;
-                height: 36px;
+                width: 40px;
+                height: 40px;
                 padding: 0;
                 border-radius: 50%;
                 /* Circular button */
@@ -543,8 +555,8 @@
             }
 
             .mode-toggle-btn {
-                width: 32px;
-                height: 32px;
+                width: 36px;
+                height: 36px;
             }
         }
 

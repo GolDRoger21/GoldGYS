@@ -84,6 +84,13 @@
             align-items: center;
             justify-content: center;
             cursor: pointer;
+            touch-action: manipulation;
+        }
+
+        .theme-toggle-btn:focus-visible,
+        #btnFinishExam:focus-visible {
+            outline: none;
+            box-shadow: var(--focus-ring);
         }
 
         /* Soru Kartı Stilleri (test-engine.js ile uyumlu) */

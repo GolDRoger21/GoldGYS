@@ -85,6 +85,9 @@ body.sidebar-collapsed .app-layout {
     align-items: center;
     justify-content: center;
     transition: background-color var(--transition-fast);
+    min-width: 40px;
+    min-height: 40px;
+    touch-action: manipulation;
 }
 
 .menu-toggle-btn:hover {
@@ -265,6 +268,9 @@ body:not(.admin-body) .app-sidebar .nav-label {
     padding: 2px;
     border-radius: 50%;
     transition: transform var(--transition-fast);
+    min-width: 40px;
+    min-height: 40px;
+    touch-action: manipulation;
 }
 
 .user-avatar-btn:active {
@@ -352,6 +358,8 @@ body:not(.admin-body) .app-sidebar .nav-label {
 
 .dropdown-menu-items {
     padding: 8px 0;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
 }
 
 .notification-item {
@@ -866,6 +874,12 @@ body:not(.admin-body) .app-sidebar .nav-label {
     .header-left,
     .header-right {
         gap: 10px;
+    }
+
+    .menu-toggle-btn,
+    .user-avatar-btn {
+        min-width: 44px;
+        min-height: 44px;
     }
 
     .brand-logo {

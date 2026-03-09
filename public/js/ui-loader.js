@@ -365,6 +365,12 @@ function setupEventListeners() {
             closeMobileSidebar();
         }
     });
+
+    document.addEventListener('keydown', (event) => {
+        if (event.key !== 'Escape') return;
+        closeHeaderDropdowns();
+        closeMobileSidebar();
+    });
 }
 async function checkUserAuthState() {
     return new Promise((resolve) => {
