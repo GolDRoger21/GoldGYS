@@ -13,6 +13,11 @@ on:
         required: true
         default: "1"
         type: string
+      min_risk_headroom_kb:
+        description: "Minimum top-risk headroom (kB) threshold"
+        required: true
+        default: "0.75"
+        type: string
       enforce_decision:
         description: "Fail workflow when decision is NO-GO"
         required: true
@@ -156,6 +161,14 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
 
+      - name: Upload Headroom Suggestion Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-headroom-suggestion
+          path: docs/releases/release-headroom-suggestion.json
+          if-no-files-found: warn
+          retention-days: 14
+
       - name: Enforce GO Decision
         if: inputs.enforce_decision == true
         shell: bash
@@ -168,7 +181,7 @@ jobs:
       - name: Enforce Budget Headroom
         shell: bash
         run: |
-          node scripts/check-release-headroom.cjs --min-kb=${{ inputs.min_global_headroom_kb }}
+          node scripts/check-release-headroom.cjs --min-kb=${{ inputs.min_global_headroom_kb }} --min-risk-kb=${{ inputs.min_risk_headroom_kb }}
 
       - name: Publish Release Readiness Summary
         if: always()
@@ -179,6 +192,7 @@ jobs:
             echo "- Full checks: \`${{ inputs.full_checks }}\`"
             echo "- Enforce decision: \`${{ inputs.enforce_decision }}\`"
             echo "- Min global headroom gate: \`${{ inputs.min_global_headroom_kb }} kB\`"
+            echo "- Min top-risk headroom gate: \`${{ inputs.min_risk_headroom_kb }} kB\`"
             if [ "${{ inputs.cwv_snapshot_b64 }}" != "" ]; then
               echo "- CWV snapshot: provided (workflow input)"
             else
@@ -190,6 +204,7 @@ jobs:
             echo "- Status artifact: \`${{ steps.checklist_path.outputs.status_file }}\`"
             echo "- History artifact: \`docs/releases/release-history.json\`"
             echo "- Dashboard artifact: \`docs/releases/release-dashboard.md\`"
+            echo "- Headroom suggestion artifact: \`docs/releases/release-headroom-suggestion.json\`"
             echo "- Decision: \`${{ steps.release_decision.outputs.decision }}\`"
             echo "- Budget total: ${{ steps.release_status.outputs.budget_total }}"
             echo "- Budget JS: ${{ steps.release_status.outputs.budget_js }}"

@@ -5,6 +5,7 @@ const path = require("path");
 const ROOT = path.join(__dirname, "..");
 const RELEASE_DIR = path.join(ROOT, "docs", "releases");
 const HISTORY_PATH = path.join(RELEASE_DIR, "release-history.json");
+const SUGGESTION_PATH = path.join(RELEASE_DIR, "release-headroom-suggestion.json");
 const DASHBOARD_PATH = path.join(RELEASE_DIR, "release-dashboard.md");
 
 function fail(message) {
@@ -49,6 +50,7 @@ const totals = history?.summary?.totals || { total: 0, go: 0, noGo: 0 };
 const last = history?.summary?.last || null;
 const lastDate = normalizeDate(last?.date);
 const status = loadLatestStatus(lastDate);
+const suggestion = readJson(SUGGESTION_PATH);
 const risks = Array.isArray(status?.budget?.riskTop3) ? status.budget.riskTop3 : [];
 
 const lines = [
@@ -85,6 +87,12 @@ const lines = [
   `1. ${risks[0] || "unknown"}`,
   `2. ${risks[1] || "unknown"}`,
   `3. ${risks[2] || "unknown"}`,
+  "",
+  "## Suggested Gates",
+  "",
+  `- Suggested min_global_headroom_kb: ${Number.isFinite(Number(suggestion?.suggested?.minGlobalHeadroomKb)) ? Number(suggestion.suggested.minGlobalHeadroomKb).toFixed(2) : "unknown"}`,
+  `- Suggested min_risk_headroom_kb: ${Number.isFinite(Number(suggestion?.suggested?.minRiskHeadroomKb)) ? Number(suggestion.suggested.minRiskHeadroomKb).toFixed(2) : "unknown"}`,
+  `- Sample window: ${suggestion?.sampleWindow || 0}`,
   "",
   "## Gate Snapshot (Last Run)",
   "",

@@ -1,0 +1,16 @@
+{
+  "generatedAt": "2026-03-09T20:34:40.513Z",
+  "sampleWindow": 1,
+  "samples": {
+    "globalCount": 1,
+    "riskCount": 1
+  },
+  "observed": {
+    "minGlobalHeadroomKb": 4.89,
+    "minTopRiskHeadroomKb": 0.88
+  },
+  "suggested": {
+    "minGlobalHeadroomKb": 3.91,
+    "minRiskHeadroomKb": 0.7
+  }
+}

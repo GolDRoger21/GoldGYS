@@ -28,7 +28,25 @@ function parseThreshold() {
   return n;
 }
 
+function parseRiskThreshold() {
+  const arg = process.argv.find((item) => item.startsWith("--min-risk-kb="));
+  const raw = arg ? arg.slice("--min-risk-kb=".length).trim() : "0.75";
+  const n = Number(raw);
+  if (!Number.isFinite(n) || n < 0) {
+    fail(`Invalid --min-risk-kb value: ${raw}`);
+  }
+  return n;
+}
+
+function parseRiskHeadroom(line) {
+  const m = String(line || "").match(/\(([0-9]+(?:\.[0-9]+)?)\s*kB headroom\)/i);
+  if (!m) return null;
+  const n = Number(m[1]);
+  return Number.isFinite(n) ? n : null;
+}
+
 const minKb = parseThreshold();
+const minRiskKb = parseRiskThreshold();
 const statusPath = path.join(RELEASE_DIR, `release-status-${getTodayStamp()}.json`);
 if (!fs.existsSync(statusPath)) {
   fail(`Status file not found: ${path.relative(ROOT, statusPath)} (run release:status:export first)`);
@@ -52,8 +70,17 @@ if (low.length > 0) {
   fail(`Headroom below ${minKb.toFixed(2)} kB: ${low.map((m) => `${m.name}=${m.value.toFixed(2)}kB`).join(", ")}`);
 }
 
+const topRisk = Array.isArray(status?.budget?.riskTop3) ? status.budget.riskTop3[0] : null;
+const topRiskHeadroom = parseRiskHeadroom(topRisk);
+if (!Number.isFinite(topRiskHeadroom)) {
+  fail("Top risk headroom could not be parsed from release-status budget.riskTop3[0].");
+}
+if (topRiskHeadroom < minRiskKb) {
+  fail(`Top risk headroom below ${minRiskKb.toFixed(2)} kB: ${topRiskHeadroom.toFixed(2)} kB (${topRisk})`);
+}
+
 console.log(
-  `[release-headroom] PASS (threshold ${minKb.toFixed(2)} kB): ${metrics
+  `[release-headroom] PASS (global ${minKb.toFixed(2)} kB, top-risk ${minRiskKb.toFixed(2)} kB): ${metrics
     .map((m) => `${m.name}=${m.value.toFixed(2)}kB`)
-    .join(", ")}`
+    .join(", ")} | topRisk=${topRiskHeadroom.toFixed(2)}kB`
 );

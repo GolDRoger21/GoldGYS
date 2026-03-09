@@ -1,6 +1,6 @@
 # Release Dashboard
 
-Generated: 2026-03-09T20:28:48.400Z
+Generated: 2026-03-09T20:35:00.646Z
 
 ## Summary
 
@@ -31,6 +31,12 @@ Generated: 2026-03-09T20:28:48.400Z
 1. userHome:maxSingleAssetGzipKb (0.88 kB headroom)
 2. userHome:cssGzipKb (1.11 kB headroom)
 3. userHome:jsGzipKb (1.32 kB headroom)
+
+## Suggested Gates
+
+- Suggested min_global_headroom_kb: 3.91
+- Suggested min_risk_headroom_kb: 0.70
+- Sample window: 1
 
 ## Gate Snapshot (Last Run)
 

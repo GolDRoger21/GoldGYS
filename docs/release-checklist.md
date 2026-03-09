@@ -19,10 +19,11 @@ Kullanim:
 - GO/NO-GO kararini otomatik guncelle: `npm run release:checklist:decision`
 - Makine-okunur durum json'u uret: `npm run release:status:export`
 - Release gecmis trend json'u guncelle: `npm run release:history:update`
+- Adaptif headroom esitigi onerisi uret: `npm run release:headroom:suggest`
 - Global budget headroom gate kontrolu: `npm run release:headroom:check`
 - Tumunu tek komutta yenile: `npm run release:checklist:refresh`
 - Tumunu rules+e2e dahil tek komutta yenile: `npm run release:checklist:refresh:full`
-- CI manuel akisi: GitHub Actions -> `Release Readiness` workflow'u (`full_checks=false|true`, opsiyonel `cwv_snapshot_b64`, `min_global_headroom_kb`)
+- CI manuel akisi: GitHub Actions -> `Release Readiness` workflow'u (`full_checks=false|true`, opsiyonel `cwv_snapshot_b64`, `min_global_headroom_kb`, `min_risk_headroom_kb`)
 - CI manuel akisi varsayilan olarak `enforce_decision=true` ile calisir; `NO-GO` kararda job fail olur.
 - Cikti yolu: `docs/releases/release-checklist-YYYY-MM-DD.md`
 - Ayni gun dosyasini yeniden uretmek icin: `node scripts/create-release-checklist.cjs --force`
