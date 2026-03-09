@@ -657,6 +657,7 @@
         import { CacheManager } from "/js/cache-manager.js";
         import { buildTopicPath, slugifyTopicTitle } from "/js/topic-url.js";
         import { WrongSummaryService } from "/js/wrong-summary-service.js";
+        import { resolveTheme, applyTheme, toggleTheme, syncThemeToggleIcon } from "/js/theme-manager.js";
         import { auth, db } from "/js/firebase-config.js";
         import { showConfirm, showToast } from "/js/notifications.js";
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
@@ -1252,32 +1253,15 @@
 
         function initThemeToggle() {
             const themeToggle = document.getElementById('themeToggle');
-            const savedTheme = localStorage.getItem('theme') || 'dark';
-            document.documentElement.setAttribute('data-theme', savedTheme);
-            updateThemeIcon(savedTheme);
+            const savedTheme = applyTheme(resolveTheme());
+            syncThemeToggleIcon(savedTheme, themeToggle);
 
             if (themeToggle) {
                 themeToggle.addEventListener('click', (event) => {
                     event.stopPropagation();
-                    const current = document.documentElement.getAttribute('data-theme') || 'light';
-                    const next = current === 'dark' ? 'light' : 'dark';
-                    document.documentElement.setAttribute('data-theme', next);
-                    localStorage.setItem('theme', next);
-                    updateThemeIcon(next);
+                    const next = toggleTheme();
+                    syncThemeToggleIcon(next, themeToggle);
                 });
-            }
-        }
-
-        function updateThemeIcon(theme) {
-            const sunIcon = document.querySelector('#themeToggle .icon-sun');
-            const moonIcon = document.querySelector('#themeToggle .icon-moon');
-            if (!sunIcon || !moonIcon) return;
-            if (theme === 'dark') {
-                sunIcon.style.display = 'block';
-                moonIcon.style.display = 'none';
-            } else {
-                sunIcon.style.display = 'none';
-                moonIcon.style.display = 'block';
             }
         }
 

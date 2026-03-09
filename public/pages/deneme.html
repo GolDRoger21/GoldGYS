@@ -290,6 +290,7 @@
         import { TestEngine } from '/js/test-engine.js';
         import { db, auth } from '/js/firebase-config.js';
         import { showConfirm, showToast } from '/js/notifications.js';
+        import { resolveTheme, applyTheme, toggleTheme, syncThemeToggleIcon } from '/js/theme-manager.js';
         import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         protectPage();
@@ -363,26 +364,13 @@
             const themeToggle = document.getElementById('themeToggle');
             if (!themeToggle) return;
 
-            const savedTheme = localStorage.getItem('theme') || document.documentElement.getAttribute('data-theme') || 'light';
-            document.documentElement.setAttribute('data-theme', savedTheme);
-            updateThemeIcon(savedTheme);
+            const savedTheme = applyTheme(resolveTheme());
+            syncThemeToggleIcon(savedTheme, themeToggle);
 
             themeToggle.addEventListener('click', () => {
-                const current = document.documentElement.getAttribute('data-theme') || 'light';
-                const next = current === 'dark' ? 'light' : 'dark';
-                document.documentElement.setAttribute('data-theme', next);
-                localStorage.setItem('theme', next);
-                updateThemeIcon(next);
+                const next = toggleTheme();
+                syncThemeToggleIcon(next, themeToggle);
             });
-        }
-
-        function updateThemeIcon(theme) {
-            const sunIcon = document.querySelector('#themeToggle .icon-sun');
-            const moonIcon = document.querySelector('#themeToggle .icon-moon');
-            if (!sunIcon || !moonIcon) return;
-
-            sunIcon.style.display = theme === 'dark' ? 'block' : 'none';
-            moonIcon.style.display = theme === 'dark' ? 'none' : 'block';
         }
     </script>
 </body>

@@ -22,3 +22,20 @@ export function toggleTheme() {
   applyTheme(next);
   return next;
 }
+
+export function syncThemeToggleIcon(theme, toggleElement = document.getElementById('themeToggle')) {
+  if (!toggleElement) return;
+
+  const sunIcon = toggleElement.querySelector('.icon-sun');
+  const moonIcon = toggleElement.querySelector('.icon-moon');
+  if (!sunIcon || !moonIcon) return;
+
+  if (theme === 'dark') {
+    sunIcon.style.display = 'block';
+    moonIcon.style.display = 'none';
+    return;
+  }
+
+  sunIcon.style.display = 'none';
+  moonIcon.style.display = 'block';
+}

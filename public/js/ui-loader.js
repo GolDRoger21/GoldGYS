@@ -4,6 +4,7 @@ import { getUserProfile } from './user-profile.js';
 import { showConfirm } from './notifications.js';
 import { applySiteConfigToDocument } from './site-config.js';
 import { initObservability } from './observability.js';
+import { resolveTheme, applyTheme, toggleTheme, syncThemeToggleIcon } from './theme-manager.js';
 
 const PAGE_CONFIG = {
     '/dashboard': { id: 'dashboard', title: 'Genel Bakış' },
@@ -238,28 +239,13 @@ async function loadHTML(url, element) {
 
 function initThemeAndSidebar() {
     // Tema Kontrolü
-    const savedTheme = localStorage.getItem('theme') || 'dark'; // Varsayılan Dark
-    document.documentElement.setAttribute('data-theme', savedTheme);
-    updateThemeIcon(savedTheme);
+    const theme = applyTheme(resolveTheme());
+    syncThemeToggleIcon(theme);
 
     // Sidebar Kontrolü (Desktop için collapsed durumu)
     const isCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
     if (isCollapsed) {
         document.body.classList.add('sidebar-collapsed');
-    }
-}
-
-function updateThemeIcon(theme) {
-    const sunIcon = document.querySelector('.icon-sun');
-    const moonIcon = document.querySelector('.icon-moon');
-    if (sunIcon && moonIcon) {
-        if (theme === 'dark') {
-            sunIcon.style.display = 'block';
-            moonIcon.style.display = 'none';
-        } else {
-            sunIcon.style.display = 'none';
-            moonIcon.style.display = 'block';
-        }
     }
 }
 
@@ -295,11 +281,8 @@ function setupEventListeners() {
         // 3. Tema Toggle
         const themeBtn = target.closest('#themeToggle');
         if (themeBtn) {
-            const current = document.documentElement.getAttribute('data-theme');
-            const next = current === 'dark' ? 'light' : 'dark';
-            document.documentElement.setAttribute('data-theme', next);
-            localStorage.setItem('theme', next);
-            updateThemeIcon(next);
+            const next = toggleTheme();
+            syncThemeToggleIcon(next, themeBtn);
             return;
         }
 

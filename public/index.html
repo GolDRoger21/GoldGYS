@@ -354,39 +354,19 @@
     <script type="module">
         import { auth } from "./js/firebase-config.js";
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { resolveTheme, applyTheme, toggleTheme, syncThemeToggleIcon } from "./js/theme-manager.js";
 
         // Theme Toggle Logic
         const themeToggle = document.getElementById('themeToggle');
-        const htmlElement = document.documentElement;
 
-        // Check saved theme
-        const savedTheme = localStorage.getItem('theme') || 'dark';
-        htmlElement.setAttribute('data-theme', savedTheme);
-        updateThemeIcon(savedTheme);
+        const initialTheme = applyTheme(resolveTheme());
+        syncThemeToggleIcon(initialTheme, themeToggle);
 
         if (themeToggle) {
             themeToggle.addEventListener('click', () => {
-                const currentTheme = htmlElement.getAttribute('data-theme');
-                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-
-                htmlElement.setAttribute('data-theme', newTheme);
-                localStorage.setItem('theme', newTheme);
-                updateThemeIcon(newTheme);
+                const nextTheme = toggleTheme();
+                syncThemeToggleIcon(nextTheme, themeToggle);
             });
-        }
-
-        function updateThemeIcon(theme) {
-            const sunIcon = document.querySelector('.icon-sun');
-            const moonIcon = document.querySelector('.icon-moon');
-            if (sunIcon && moonIcon) {
-                if (theme === 'dark') {
-                    sunIcon.style.display = 'block';
-                    moonIcon.style.display = 'none';
-                } else {
-                    sunIcon.style.display = 'none';
-                    moonIcon.style.display = 'block';
-                }
-            }
         }
 
         const nav = document.querySelector('.landing-nav');

@@ -106,6 +106,12 @@ Faz 4 tamamlama:
   - User (`/index.html`) ve admin (`/admin/index.html`) akislari icin JS/CSS/total budget guardrail'i aktif.
   - `npm run check:budgets` ile CI seviyesinde fail/warn davranisi uygulanir.
 
+- Faz 5 (tema/mobil sertlestirme):
+  - Tema state/toggle akisi `public/js/theme-manager.js` uzerinde merkezilestirildi.
+  - `public/js/ui-loader.js` ve `public/js/legal-page-shell.js` icindeki tekrar eden
+    `localStorage + data-theme + icon` yonetimi kaldirildi.
+  - Tema icon senkronu icin ortak helper eklendi: `syncThemeToggleIcon(...)`.
+
 - Faz 1 (gozlemlenebilirlik):
   - `dashboard.js` ve `analysis.js` icinde eksik kalan `getDocs` metrik etiketleri tamamlandi.
 

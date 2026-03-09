@@ -1,4 +1,5 @@
 import { applySiteConfigToDocument } from "./site-config.js";
+import { resolveTheme, applyTheme, toggleTheme, syncThemeToggleIcon } from "./theme-manager.js";
 
 function getThemeToggleMarkup() {
     return `
@@ -62,33 +63,12 @@ function bindThemeToggle() {
     const themeToggle = document.getElementById("themeToggle");
     if (!themeToggle) return;
 
-    const htmlElement = document.documentElement;
-
-    const updateThemeIcon = (theme) => {
-        const sunIcon = document.querySelector("#themeToggle .icon-sun");
-        const moonIcon = document.querySelector("#themeToggle .icon-moon");
-        if (!sunIcon || !moonIcon) return;
-
-        if (theme === "dark") {
-            sunIcon.style.display = "block";
-            moonIcon.style.display = "none";
-            return;
-        }
-
-        sunIcon.style.display = "none";
-        moonIcon.style.display = "block";
-    };
-
-    const initialTheme = htmlElement.getAttribute("data-theme") || localStorage.getItem("theme") || "light";
-    htmlElement.setAttribute("data-theme", initialTheme);
-    updateThemeIcon(initialTheme);
+    const initialTheme = applyTheme(resolveTheme());
+    syncThemeToggleIcon(initialTheme, themeToggle);
 
     themeToggle.addEventListener("click", () => {
-        const currentTheme = htmlElement.getAttribute("data-theme");
-        const nextTheme = currentTheme === "dark" ? "light" : "dark";
-        htmlElement.setAttribute("data-theme", nextTheme);
-        localStorage.setItem("theme", nextTheme);
-        updateThemeIcon(nextTheme);
+        const nextTheme = toggleTheme();
+        syncThemeToggleIcon(nextTheme, themeToggle);
     });
 }
 
