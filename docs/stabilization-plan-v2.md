@@ -74,6 +74,11 @@ Faz 4 tamamlama:
   - Firestore Rules emulator testi eklendi: `scripts/test-firestore-rules.cjs`.
   - Local ortamda net hata mesaji icin Java 21 on-kontrol wrapper'i eklendi: `scripts/run-rules-tests.cjs`.
   - CI tarafinda rules testi adimi Java 21 ile calisacak sekilde ayarlandi.
+  - Playwright tabanli smoke E2E iskeleti eklendi:
+    - `tests/e2e/smoke.spec.js`
+    - `playwright.config.js`
+    - manuel CI workflow: `.github/workflows/e2e-smoke.yml`
+    - calistirma notu: `docs/e2e-smoke.md`
 
 - Faz 1 (gozlemlenebilirlik):
   - `dashboard.js` ve `analysis.js` icinde eksik kalan `getDocs` metrik etiketleri tamamlandi.

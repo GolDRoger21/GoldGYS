@@ -20,6 +20,8 @@ public/js/env.js
 # Build artifacts
 dist/
 build/
+playwright-report/
+test-results/
 
 # Firebase Admin / Service Account keys (NEVER COMMIT)
 **/*adminsdk*.json
