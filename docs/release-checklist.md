@@ -4,11 +4,14 @@ Bu dokuman, her kucuk surum oncesinde ayni kalite kapilarini standart sekilde ka
 
 Kullanim:
 - Yeni checklist olustur: `npm run release:checklist`
+- Lighthouse tabanli CWV olcumu al + snapshot uret: `npm run measure:cwv`
 - Budget ozetini otomatik doldur: `npm run release:checklist:budget`
 - CWV alanlarini `scripts/cwv-snapshot.json` dosyasindan doldur: `npm run release:checklist:cwv`
+- Lighthouse JSON raporlarindan snapshot uret: `npm run release:checklist:cwv:build -- --user-index=... --user-konular=... --user-konu=... --admin-index=...`
 - CWV snapshot base64 uret: `npm run release:checklist:cwv:encode > cwv_snapshot.b64`
 - Guardrail sonuc alanlarini otomatik doldur: `npm run release:checklist:guardrails`
 - Guardrail sonuc alanlarini rules dahil doldur: `npm run release:checklist:guardrails:full`
+- Not: `test:rules` adimi Java 21 onkosulu eksiginde checklist'e `SKIP (env missing JDK21)` olarak yazilir.
 - E2E + query/model kalite alanlarini otomatik doldur: `npm run release:checklist:quality`
 - E2E core dahil kalite alanlarini doldur: `npm run release:checklist:quality:e2e`
 - Faz gecis durumunu otomatik doldur: `npm run release:checklist:phase-gates`

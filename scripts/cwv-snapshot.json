@@ -1,0 +1,32 @@
+{
+  "environment": {
+    "device": "desktop",
+    "browser": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36",
+    "network": "simulate",
+    "tool": "Lighthouse JSON"
+  },
+  "user": {
+    "index": {
+      "lcp": "1.81s",
+      "inp": "PENDING",
+      "cls": "0.033"
+    },
+    "konular": {
+      "lcp": "1.83s",
+      "inp": "PENDING",
+      "cls": "0.071"
+    },
+    "konu": {
+      "lcp": "1.86s",
+      "inp": "PENDING",
+      "cls": "0.071"
+    }
+  },
+  "admin": {
+    "index": {
+      "lcp": "1.99s",
+      "inp": "PENDING",
+      "cls": "0.070"
+    }
+  }
+}

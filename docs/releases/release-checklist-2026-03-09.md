@@ -5,7 +5,7 @@ Bu dokuman, her kucuk surum oncesinde ayni kalite kapilarini standart sekilde ka
 ## 1) Build ve Guardrail Sonuclari
 
 - Tarih: 2026-03-09
-- Commit: 963089d
+- Commit: d17a8db
 - Surum etiketi: v1.0.0
 
 - `npm run ci:checks`:
@@ -18,8 +18,8 @@ Bu dokuman, her kucuk surum oncesinde ayni kalite kapilarini standart sekilde ka
   - Sonuc: `PASS`
   - Not: auto-fill (ok)
 - `npm run test:rules`:
-  - Sonuc: `FAIL`
-  - Not: auto-fill (exit 1, [rules-test] Java 8 tespit edildi. Firestore Emulator için JDK 21+ gerekli.)
+  - Sonuc: `PASS`
+  - Not: auto-fill (ok)
 
 ## 2) Asset Budget Ozet
 
@@ -36,32 +36,32 @@ Bu dokuman, her kucuk surum oncesinde ayni kalite kapilarini standart sekilde ka
 ## 3) Core Web Vitals (CWV) Kaydi
 
 Olcum ortami:
-- Cihaz profili: PENDING
-- Tarayici: PENDING
-- Ag profili: PENDING
-- Olcum araci: PENDING
+- Cihaz profili: desktop
+- Tarayici: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36
+- Ag profili: simulate
+- Olcum araci: Lighthouse JSON
 
 ### User Akislari
 
 - `/index.html`
-  - LCP: PENDING
+  - LCP: 1.81s
   - INP: PENDING
-  - CLS: PENDING
+  - CLS: 0.033
 - `/konular`
-  - LCP: PENDING
+  - LCP: 1.83s
   - INP: PENDING
-  - CLS: PENDING
+  - CLS: 0.071
 - `/konu`
-  - LCP: PENDING
+  - LCP: 1.86s
   - INP: PENDING
-  - CLS: PENDING
+  - CLS: 0.071
 
 ### Admin Akisi
 
 - `/admin/index.html`
-  - LCP: PENDING
+  - LCP: 1.99s
   - INP: PENDING
-  - CLS: PENDING
+  - CLS: 0.070
 
 ## 4) E2E / Kritik Akis Kontrolu
 
@@ -85,8 +85,8 @@ Olcum ortami:
 
 ## 6) Release Karari
 
-- Karar: `NO-GO`
-- Rollback notu: Guardrail fail nedeniyle mevcut surume geri don.
+- Karar: `GO`
+- Rollback notu: Yayin sonrasi izleme normal.
 - Sorumlu:
 
 ## 7) Faz Gecis Durumu
@@ -95,8 +95,8 @@ Olcum ortami:
   - Sonuc: `PASS`
   - Not: auto-fill (ci + strict model pass)
 - `Faz 4 -> Faz 5`:
-  - Sonuc: `PENDING`
-  - Not: auto-fill (budget pass, cwv pending)
+  - Sonuc: `PASS`
+  - Not: auto-fill (budget pass + cwv mevcut)
 - `Faz 6 -> Faz 7`:
-  - Sonuc: `FAIL`
-  - Not: auto-fill (ci/model/quality gate fail)
+  - Sonuc: `PASS`
+  - Not: auto-fill (ci + model + rules + quality pass)

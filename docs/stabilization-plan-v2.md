@@ -120,6 +120,11 @@ Faz 7 mini kapanis (icerik buyumesi hazir kabul):
   - `test-engine.js` icinde cache invalidation cagrilari `scope` tabanli helper'a tasindi.
 
 - Faz 6 (guardrail):
+  - Rules kritik guvenlik duzeltmesi:
+    - `users/{uid}` altinda recursive subcollection match deseni daraltildi (`/{subcollection}/{docPath=**}`),
+      boylece kok user dokumani create/update kurallari bypass edilemez hale getirildi.
+    - Admin/editor kontrolu claims-first olarak sadeletirildi; profil-role fallback kaldirildi.
+  - Local rules test wrapper'i JDK21 auto-discovery ile sertlestirildi (Temurin 21 algilama + PATH prepend).
   - Firestore Rules emulator testi eklendi: `scripts/test-firestore-rules.cjs`.
   - Local ortamda net hata mesaji icin Java 21 on-kontrol wrapper'i eklendi: `scripts/run-rules-tests.cjs`.
   - Rules test adimlari PASS/FAIL etiketli hale getirildi; fail durumunda adim adi hata mesajina ekleniyor.
@@ -175,12 +180,14 @@ Faz 7 mini kapanis (icerik buyumesi hazir kabul):
     - userHome: total 15 -> 13, js 2 -> 1.5, css 11 -> 10, maxSingleAsset 8 -> 7.5
     - adminDashboard: total 40 -> 35, js 8 -> 6, css 26 -> 24, maxSingleAsset 16 -> 14
   - Release checklist otomasyonu eklendi:
+    - `npm run measure:cwv` -> Hosting emulator + Lighthouse ile 4 rota olcumu alip `scripts/cwv-snapshot.json` uretir
     - `npm run release:checklist` -> `docs/releases/release-checklist-YYYY-MM-DD.md`
     - `npm run release:checklist:budget` -> budget ozeti + risk top-3 alanlarini otomatik doldurur
     - `npm run release:checklist:cwv` -> CWV alanlarini snapshot dosyasindan (veya PENDING) doldurur
+    - `npm run release:checklist:cwv:build` -> Lighthouse JSON raporlarindan `scripts/cwv-snapshot.json` uretir
     - `npm run release:checklist:cwv:encode` -> CWV snapshot dosyasini CI workflow input'u icin base64 uretir
     - `npm run release:checklist:guardrails` -> build/guardrail sonuc alanlarini otomatik doldurur
-    - `npm run release:checklist:guardrails:full` -> build/guardrail sonuc alanlarini rules dahil doldurur
+    - `npm run release:checklist:guardrails:full` -> build/guardrail sonuc alanlarini rules dahil doldurur (Java21 yoksa rules sonucu `SKIP` olur)
     - `npm run release:checklist:quality` -> e2e/query/model kalite alanlarini otomatik doldurur
     - `npm run release:checklist:quality:e2e` -> e2e core dahil kalite alanlarini doldurur
     - `npm run release:checklist:phase-gates` -> Faz 3->4 / 4->5 / 6->7 gecis durumunu checklistten otomatik hesaplar

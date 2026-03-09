@@ -36,6 +36,12 @@ function runCommand(command) {
     return { status: "FAIL", note: result.error.message, output };
   }
   if (result.status !== 0) {
+    if (
+      command === "npm run test:rules" &&
+      /\bJava 8 tespit edildi\b|\bJDK 21\+\s+gerekli\b/i.test(output)
+    ) {
+      return { status: "SKIP", note: "env missing JDK21", output };
+    }
     const detail = firstOutputLine ? `, ${firstOutputLine.slice(0, 140)}` : "";
     return { status: "FAIL", note: `exit ${result.status}${detail}`, output };
   }

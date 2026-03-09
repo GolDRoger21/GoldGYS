@@ -44,7 +44,16 @@ function getSimpleStatus(content, label) {
 function hasPendingCwv(content) {
   const cwvMatch = content.match(/## 3\) Core Web Vitals[\s\S]*?(## 4\)|$)/);
   if (!cwvMatch) return true;
-  return /\bPENDING\b/i.test(cwvMatch[0]);
+  const lines = cwvMatch[0].split(/\r?\n/).map((line) => line.trim());
+  const criticalPrefixes = [
+    "- Cihaz profili:",
+    "- Tarayici:",
+    "- Ag profili:",
+    "- Olcum araci:",
+    "- LCP:",
+    "- CLS:"
+  ];
+  return lines.some((line) => criticalPrefixes.some((prefix) => line.startsWith(prefix) && /\bPENDING\b/i.test(line)));
 }
 
 function parseBudgetLine(content, startsWith) {

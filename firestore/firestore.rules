@@ -27,17 +27,10 @@ service cloud.firestore {
         request.auth.token.keys().hasAny(['role']) &&
         roles.hasAny([request.auth.token.role]);
     }
-    function profileRole() {
-      return signedIn()
-        ? get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role
-        : null;
-    }
-
     function isAdmin() {
       return signedIn() && (
         hasTokenBool('admin') ||
-        tokenRoleIs('admin') ||
-        profileRole() == 'admin'
+        tokenRoleIs('admin')
       );
     }
 
@@ -45,9 +38,7 @@ service cloud.firestore {
       return signedIn() && (
         hasTokenBool('admin') ||
         hasTokenBool('editor') ||
-        tokenRoleIn(['admin', 'editor']) ||
-        profileRole() == 'admin' ||
-        profileRole() == 'editor'
+        tokenRoleIn(['admin', 'editor'])
       );
     }
 
@@ -81,7 +72,7 @@ service cloud.firestore {
 
       allow delete: if isAdmin();
 
-      match /{subcollection=**} {
+      match /{subcollection}/{docPath=**} {
         allow read, write: if isSelf(uid) || isAdmin();
       }
     }

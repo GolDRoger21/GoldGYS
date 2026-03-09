@@ -17,6 +17,8 @@
     "release:checklist:guardrails:full": "node scripts/fill-release-checklist-guardrails.cjs --with-rules",
     "release:checklist:cwv": "node scripts/fill-release-checklist-cwv.cjs",
     "release:checklist:cwv:encode": "node scripts/encode-cwv-snapshot.cjs",
+    "release:checklist:cwv:build": "node scripts/build-cwv-snapshot.cjs",
+    "measure:cwv": "firebase emulators:exec --only hosting \"node scripts/collect-cwv-lighthouse.cjs\"",
     "release:checklist:quality": "node scripts/fill-release-checklist-quality.cjs",
     "release:checklist:quality:e2e": "node scripts/fill-release-checklist-quality.cjs --with-e2e",
     "release:checklist:phase-gates": "node scripts/fill-release-checklist-phase-gates.cjs",
