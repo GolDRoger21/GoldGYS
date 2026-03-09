@@ -250,16 +250,46 @@ function initThemeAndSidebar() {
 }
 
 function setupEventListeners() {
-    const closeHeaderDropdowns = () => {
-        document.getElementById('profileDropdown')?.classList.remove('active');
-        if (!document.body.classList.contains('admin-body')) {
-            document.getElementById('notificationDropdown')?.classList.remove('active');
+    const setExpanded = (elementId, isExpanded) => {
+        const element = document.getElementById(elementId);
+        if (element) {
+            element.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
         }
+    };
+
+    const setDropdownState = (dropdownId, toggleId, isOpen) => {
+        const dropdown = document.getElementById(dropdownId);
+        if (dropdown) {
+            dropdown.classList.toggle('active', isOpen);
+            dropdown.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
+        }
+        if (toggleId) {
+            setExpanded(toggleId, isOpen);
+        }
+    };
+
+    const closeProfileDropdown = () => {
+        setDropdownState('profileDropdown', 'userMenuToggle', false);
+    };
+
+    const closeNotificationDropdown = () => {
+        if (document.body.classList.contains('admin-body')) return;
+        setDropdownState('notificationDropdown', 'notificationBtn', false);
+    };
+
+    const closeHeaderDropdowns = () => {
+        closeProfileDropdown();
+        closeNotificationDropdown();
     };
 
     const closeMobileSidebar = () => {
         document.body.classList.remove('mobile-sidebar-active');
     };
+
+    setExpanded('userMenuToggle', false);
+    setExpanded('notificationBtn', false);
+    setDropdownState('profileDropdown', null, false);
+    setDropdownState('notificationDropdown', null, false);
 
     // Event Delegation: Dinamik yuklenen elementler icin body'ye listener ekliyoruz
     document.body.addEventListener('click', async (e) => {
@@ -286,8 +316,9 @@ function setupEventListeners() {
             closeMobileSidebar();
             const dropdown = document.getElementById('profileDropdown');
             if (dropdown) {
-                document.getElementById('notificationDropdown')?.classList.remove('active');
-                dropdown.classList.toggle('active');
+                closeNotificationDropdown();
+                const nextIsActive = !dropdown.classList.contains('active');
+                setDropdownState('profileDropdown', 'userMenuToggle', nextIsActive);
             }
             return;
         }
@@ -307,8 +338,9 @@ function setupEventListeners() {
             closeMobileSidebar();
             const notificationDropdown = document.getElementById('notificationDropdown');
             if (notificationDropdown) {
-                notificationDropdown.classList.toggle('active');
-                document.getElementById('profileDropdown')?.classList.remove('active');
+                closeProfileDropdown();
+                const nextIsActive = !notificationDropdown.classList.contains('active');
+                setDropdownState('notificationDropdown', 'notificationBtn', nextIsActive);
 
                 // Eger icerik "Yukleniyor..." ise ve admin degilse bos durumu goster
                 const list = document.getElementById('notificationList');
@@ -340,13 +372,13 @@ function setupEventListeners() {
         // 5. Disari Tiklama (Menuleri Kapat)
         const dropdown = document.getElementById('profileDropdown');
         if (dropdown && dropdown.classList.contains('active') && !target.closest('#profileDropdown')) {
-            dropdown.classList.remove('active');
+            closeProfileDropdown();
         }
 
         if (!document.body.classList.contains('admin-body')) {
             const notificationDropdown = document.getElementById('notificationDropdown');
             if (notificationDropdown && notificationDropdown.classList.contains('active') && !target.closest('#notificationDropdown')) {
-                notificationDropdown.classList.remove('active');
+                closeNotificationDropdown();
             }
         }
 

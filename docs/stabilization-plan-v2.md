@@ -121,9 +121,15 @@ Faz 4 tamamlama:
       ve dropdown max-height icin `dvh` yedegi eklendi.
     - `public/js/ui-loader.js`: `Escape` tusu ile acik gecici katmanlar (sidebar/dropdown) kapatilir.
     - `public/css/layout.css`: dropdown listelerinde dokunmatik kaydirma davranisi (`overscroll-behavior`, `-webkit-overflow-scrolling`) guclendirildi.
+    - `public/js/ui-loader.js`: `userMenuToggle` ve `notificationBtn` icin `aria-expanded` state'i
+      toggle/dis click/Escape kapanis senaryolarinda senkronize edildi.
+    - `public/partials/header.html`, `public/partials/admin-header.html`, `public/partials/app-header.html`:
+      dropdown tetikleyicilere `aria-haspopup + aria-controls + aria-expanded=false` taban semantigi eklendi.
     - Header erisilebilirlik/hit-area sertlestirme:
       - `public/css/layout.css`: mobilde header action butonlari icin minimum dokunma alani (`44x44`) ve `touch-action` iyilestirmesi.
       - `public/pages/test.html` + `public/pages/deneme.html`: test/deneme action butonlarinda `focus-visible` gorunurlugu ve mobil hit-area iyilestirmesi.
+      - `public/css/landing.css`: legal/public header action butonlarinda (tema, mobil auth ikonlari, hamburger)
+        hit-area + `focus-visible` tutarliligi saglandi.
 
 - Faz 1 (gozlemlenebilirlik):
   - `dashboard.js` ve `analysis.js` icinde eksik kalan `getDocs` metrik etiketleri tamamlandi.

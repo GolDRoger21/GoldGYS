@@ -230,6 +230,9 @@ main {
     align-items: center;
     justify-content: center;
     transition: color 0.3s;
+    min-width: 40px;
+    min-height: 40px;
+    touch-action: manipulation;
 }
 
 .btn-icon-mobile:hover {
@@ -267,6 +270,16 @@ main {
     transition: all 0.3s ease;
     width: 36px;
     height: 36px;
+    min-width: 40px;
+    min-height: 40px;
+    touch-action: manipulation;
+}
+
+.btn-theme-toggle:focus-visible,
+.btn-icon-mobile:focus-visible,
+.mobile-nav-toggle:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
 }
 
 @media (max-width: 768px) {
@@ -302,12 +315,14 @@ main {
     }
 
     .btn-theme-toggle {
-        width: 32px;
-        height: 32px;
+        width: 40px;
+        height: 40px;
         padding: 0.4rem;
     }
 
     .btn-icon-mobile {
+        min-width: 44px;
+        min-height: 44px;
         padding: 6px;
     }
 }
@@ -1174,6 +1189,9 @@ main {
     padding: 8px;
     z-index: 101;
     color: var(--text-main);
+    min-width: 40px;
+    min-height: 40px;
+    touch-action: manipulation;
 }
 
 .mobile-nav-toggle .icon-bar {
