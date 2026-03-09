@@ -877,6 +877,7 @@ body:not(.admin-body) .app-sidebar .nav-label {
         left: auto !important;
         width: min(92vw, 360px);
         max-height: calc(100vh - var(--header-height) - 24px);
+        max-height: calc(100dvh - var(--header-height) - 24px);
     }
 
     #notificationDropdown {
@@ -889,6 +890,7 @@ body:not(.admin-body) .app-sidebar .nav-label {
 
     .dropdown-menu-items {
         max-height: calc(100vh - var(--header-height) - 140px);
+        max-height: calc(100dvh - var(--header-height) - 140px);
         overflow-y: auto;
     }
 
@@ -929,6 +931,10 @@ body:not(.admin-body) .app-sidebar .nav-label {
     body.mobile-sidebar-active .sidebar-overlay {
         display: block;
         opacity: 1;
+    }
+
+    body.mobile-sidebar-active {
+        overflow: hidden;
     }
 
     body.sidebar-collapsed .nav-item {

@@ -115,6 +115,10 @@ Faz 4 tamamlama:
     - `public/pages/test.html`: dar ekranda score satiri icin yatay tasma korumasi ve 390px altinda ek sikistirma.
     - `public/pages/deneme.html`: mobil header alani sadeletildi (theme butonu gizleme, timer/istatistik sikistirma).
     - `public/css/landing.css`: mobil menu yuksekligi `dvh` ile stabil hale getirildi.
+    - `public/js/ui-loader.js`: mobilde sidebar ve header dropdown cakismasi azaltildi
+      (sidebar acilirken dropdown kapanisi, dropdown acilirken sidebar kapanisi, resize temizleme).
+    - `public/css/layout.css`: mobilde `mobile-sidebar-active` durumunda body scroll kilidi
+      ve dropdown max-height icin `dvh` yedegi eklendi.
 
 - Faz 1 (gozlemlenebilirlik):
   - `dashboard.js` ve `analysis.js` icinde eksik kalan `getDocs` metrik etiketleri tamamlandi.

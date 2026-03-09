@@ -250,7 +250,18 @@ function initThemeAndSidebar() {
 }
 
 function setupEventListeners() {
-    // Event Delegation: Dinamik yüklenen elementler için body'ye listener ekliyoruz
+    const closeHeaderDropdowns = () => {
+        document.getElementById('profileDropdown')?.classList.remove('active');
+        if (!document.body.classList.contains('admin-body')) {
+            document.getElementById('notificationDropdown')?.classList.remove('active');
+        }
+    };
+
+    const closeMobileSidebar = () => {
+        document.body.classList.remove('mobile-sidebar-active');
+    };
+
+    // Event Delegation: Dinamik yuklenen elementler icin body'ye listener ekliyoruz
     document.body.addEventListener('click', async (e) => {
         const target = e.target;
 
@@ -259,6 +270,7 @@ function setupEventListeners() {
         if (toggleBtn) {
             e.stopPropagation();
             if (window.innerWidth <= 768) {
+                closeHeaderDropdowns();
                 document.body.classList.toggle('mobile-sidebar-active');
             } else {
                 document.body.classList.toggle('sidebar-collapsed');
@@ -267,12 +279,14 @@ function setupEventListeners() {
             return;
         }
 
-        // 2. Profil Menüsü Toggle
+        // 2. Profil Menusu Toggle
         const userMenuToggle = target.closest('#userMenuToggle');
         if (userMenuToggle) {
             e.stopPropagation();
+            closeMobileSidebar();
             const dropdown = document.getElementById('profileDropdown');
             if (dropdown) {
+                document.getElementById('notificationDropdown')?.classList.remove('active');
                 dropdown.classList.toggle('active');
             }
             return;
@@ -286,18 +300,19 @@ function setupEventListeners() {
             return;
         }
 
-        // Bildirim Dropdown Toggle (Admin dışında basit toggle)
+        // Bildirim Dropdown Toggle (Admin disinda basit toggle)
         const notificationBtn = target.closest('#notificationBtn');
         if (notificationBtn && !document.body.classList.contains('admin-body')) {
             e.stopPropagation();
+            closeMobileSidebar();
             const notificationDropdown = document.getElementById('notificationDropdown');
             if (notificationDropdown) {
                 notificationDropdown.classList.toggle('active');
                 document.getElementById('profileDropdown')?.classList.remove('active');
 
-                // Eğer içerik "Yükleniyor..." ise ve admin değilse boş durumu göster
+                // Eger icerik "Yukleniyor..." ise ve admin degilse bos durumu goster
                 const list = document.getElementById('notificationList');
-                if (list && list.innerText.includes("Yükleniyor...")) {
+                if (list && (list.innerText.includes('Yukleniyor...') || list.innerText.includes('Yükleniyor...'))) {
                     list.innerHTML = '<div style="padding:20px; text-align:center; color:var(--text-muted);">Henüz yeni bildirim yok.</div>';
                     const badge = document.getElementById('notificationBadge');
                     if (badge) {
@@ -308,13 +323,13 @@ function setupEventListeners() {
             return;
         }
 
-        // 4. Çıkış Butonu
+        // 4. Cikis Butonu
         const logoutBtn = target.closest('#logoutButton');
         if (logoutBtn) {
-            const shouldLogout = await showConfirm("Oturumunuzu kapatmak istediğinize emin misiniz?", {
-                title: "Çıkış Onayı",
-                confirmText: "Çıkış Yap",
-                cancelText: "Vazgeç"
+            const shouldLogout = await showConfirm('Oturumunuzu kapatmak istediginize emin misiniz?', {
+                title: 'Cikis Onayi',
+                confirmText: 'Cikis Yap',
+                cancelText: 'Vazgec'
             });
             if (shouldLogout) {
                 signOut(auth).then(() => window.location.href = '/login.html');
@@ -322,7 +337,7 @@ function setupEventListeners() {
             return;
         }
 
-        // 5. Dışarı Tıklama (Menüleri Kapat)
+        // 5. Disari Tiklama (Menuleri Kapat)
         const dropdown = document.getElementById('profileDropdown');
         if (dropdown && dropdown.classList.contains('active') && !target.closest('#profileDropdown')) {
             dropdown.classList.remove('active');
@@ -335,17 +350,22 @@ function setupEventListeners() {
             }
         }
 
-        // Mobil Sidebar Overlay Tıklama
+        // Mobil Sidebar Overlay Tiklama
         if (target.id === 'sidebarOverlay') {
-            document.body.classList.remove('mobile-sidebar-active');
+            closeMobileSidebar();
         }
 
         if (window.innerWidth <= 768 && target.closest('.app-sidebar a')) {
-            document.body.classList.remove('mobile-sidebar-active');
+            closeMobileSidebar();
+        }
+    });
+
+    window.addEventListener('resize', () => {
+        if (window.innerWidth > 768) {
+            closeMobileSidebar();
         }
     });
 }
-
 async function checkUserAuthState() {
     return new Promise((resolve) => {
         onAuthStateChanged(auth, async (user) => {
