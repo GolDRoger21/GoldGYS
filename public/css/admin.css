@@ -3308,7 +3308,7 @@ tr.highlight {
     border: 1px solid var(--border-color, #e5e7eb);
     border-radius: 10px;
     padding: 8px 10px;
-    background: var(--bg-secondary, #f8fafc);
+    background: var(--bg-surface-elevated, var(--bg-surface, #f8fafc));
     display: flex;
     flex-direction: column;
     gap: 4px;
@@ -3321,5 +3321,92 @@ tr.highlight {
 
 .observability-card .observability-kpis strong {
     font-size: 18px;
-    color: var(--text-primary, #0f172a);
+    color: var(--text-main, #0f172a);
+}
+
+.release-details {
+    margin-top: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    background: var(--bg-surface-elevated, var(--bg-surface));
+    overflow: hidden;
+}
+
+.release-details summary {
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--text-main);
+    padding: 10px 12px;
+    list-style: none;
+    border-bottom: 1px solid transparent;
+}
+
+.release-details[open] summary {
+    border-bottom-color: var(--border-color);
+}
+
+.release-chip-wrap {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 10px 12px;
+}
+
+.release-chip {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    padding: 5px 10px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    border: 1px solid var(--border-color);
+}
+
+.release-chip--ok {
+    color: var(--color-success);
+    border-color: color-mix(in srgb, var(--color-success) 45%, transparent);
+    background: color-mix(in srgb, var(--color-success) 12%, transparent);
+}
+
+.release-chip--warn {
+    color: var(--color-warning);
+    border-color: color-mix(in srgb, var(--color-warning) 45%, transparent);
+    background: color-mix(in srgb, var(--color-warning) 12%, transparent);
+}
+
+.release-chip--info {
+    color: var(--color-info);
+    border-color: color-mix(in srgb, var(--color-info) 45%, transparent);
+    background: color-mix(in srgb, var(--color-info) 12%, transparent);
+}
+
+.release-action-list {
+    display: grid;
+    gap: 8px;
+    padding: 10px 12px;
+}
+
+.release-action-item {
+    border-left: 3px solid var(--color-primary);
+    padding: 8px 10px;
+    border-radius: 8px;
+    background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+    color: var(--text-main);
+    font-size: 0.88rem;
+}
+
+.release-summary-note {
+    margin-top: 10px;
+}
+
+.release-decision-ok {
+    color: var(--color-success);
+}
+
+.release-decision-warn {
+    color: var(--color-warning);
+}
+
+.release-decision-info {
+    color: var(--color-info);
 }

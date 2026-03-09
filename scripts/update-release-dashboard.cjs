@@ -123,32 +123,32 @@ const failingGates = Object.entries(gateStatuses)
   .filter(([, value]) => String(value).toUpperCase() !== "PASS")
   .map(([name]) => name);
 
-let adminMessage = "Yayin oncesi kontrolleri tamamla.";
+let adminMessage = "Yayin oncesi kontroller tamamlanmadi.";
 if (decision === "GO") {
-  adminMessage = "Sistem yayin adayi icin hazir.";
+  adminMessage = "Sistem su an yayin icin uygun.";
 } else if (decision === "NO-GO") {
-  adminMessage = "NO-GO: Yayin yapmadan once failing gate'leri duzelt.";
+  adminMessage = "Yayin durduruldu: sorunlu kontroller duzeltilmeden yayin yapmayin.";
 }
 
 const gateActionMap = {
-  ciChecks: "Syntax, budget ve query denetimlerini yeniden calistir (npm run ci:checks).",
-  modelStrict: "Icerik model drift ihlallerini duzelt (npm run audit:content-model:strict).",
-  modelContract: "Content model contract regresyonunu duzelt (npm run test:content-model:contract).",
-  rules: "Rules testlerini duzelt (npm run test:rules).",
-  e2eCore: "Smoke core E2E akisini duzelt (npm run test:e2e:smoke:core)."
+  ciChecks: "Temel kalite kontrolleri basarisiz. Teknik ekipten kontrol sonucu isteyin.",
+  modelStrict: "Icerik veri duzeni kurala uymuyor. Icerik kayitlarini kontrol ettirin.",
+  modelContract: "Icerik sistemi beklenen yapiyla uyusmuyor. Teknik ekip duzeltmesi gerekiyor.",
+  rules: "Guvenlik kurallari testinde sorun var. Yayin guvenligi icin teknik duzeltme gerekli.",
+  e2eCore: "Kritik kullanici akislari testinde sorun var. Yayin oncesi test duzeltilmeli."
 };
 
 const recommendedActions =
   decision === "GO"
     ? [
-        "Yayin oncesi son bir kez release checklist artifact'ini kaydet.",
-        "Admin panelde Release Sagligi kartinin GO oldugunu dogrula.",
-        "Yayin sonrasi ilk 30 dakikada hata/bildirim akislarini izle."
+        "Yayin oncesi son kontrol raporunu kayit altina alin.",
+        "Admin panelde Yayin Sagligi kartinin 'Yayin Uygun' oldugunu dogrulayin.",
+        "Yayin sonrasi ilk 30 dakikada hata ve bildirimleri takip edin."
       ]
     : [
-        "Yayin yapma. Once failing gate'leri PASS konumuna getir.",
+        "Yayin yapmayin. Once sorunlu kontrollerin tamamini duzeltin.",
         ...failingGates.map((gate) => gateActionMap[gate] || `${gate} gate duzeltmesi gerekli.`),
-        "Duzeltme sonrasi npm run release:ready:local ile yeniden karar uret."
+        "Duzeltme sonrasi yayin karari tekrar alin."
       ];
 
 const publicPayload = {

@@ -427,7 +427,7 @@ function renderObservabilityCard(summary) {
 
     const rows = (summary?.topCollections || []).map((item) => `
         <tr>
-            <td>${item.name}</td>
+            <td>${formatCollectionLabel(item.name)}</td>
             <td>${item.read}</td>
             <td>${item.write}</td>
             <td>${item.listenEvents}</td>
@@ -435,6 +435,19 @@ function renderObservabilityCard(summary) {
     `).join('');
 
     tbody.innerHTML = rows || '<tr><td colspan="4" class="text-center text-muted">Koleksiyon verisi yok.</td></tr>';
+}
+
+function formatCollectionLabel(name) {
+    const raw = String(name || "").trim();
+    if (!raw || raw === "unknown") return "Bilinmeyen (etiketsiz)";
+    const map = {
+        examAnnouncements: "Sinav duyurulari",
+        announcements: "Duyurular",
+        "config.public": "Site genel ayarlari",
+        "users.exam_results": "Kullanici sinav sonuclari"
+    };
+    if (map[raw]) return map[raw];
+    return raw.replace(/\./g, " / ");
 }
 
 function renderObservabilitySummary() {
@@ -480,32 +493,86 @@ function renderReleaseHealthCard(summary) {
 
     if (!dateEl || !decisionEl || !failingGateEl || !headroomEl || !gateListEl || !phaseListEl || !actionsListEl || !actionEl) return;
 
+    const decision = String(summary?.decision || "UNKNOWN").toUpperCase();
     dateEl.textContent = formatDateLabel(summary?.lastDate);
-    decisionEl.textContent = String(summary?.decision || "UNKNOWN").toUpperCase();
+    decisionEl.textContent = formatDecisionLabel(decision);
+    decisionEl.classList.remove("release-decision-ok", "release-decision-warn", "release-decision-info");
+    decisionEl.classList.add(getDecisionClass(decision));
     failingGateEl.textContent = String(Number(summary?.failingGateCount || 0));
     headroomEl.textContent = formatHeadroomValue(summary?.budgetHeadroomKb?.total);
     actionEl.textContent = String(summary?.adminMessage || "Release verisi bekleniyor.");
 
     const gateEntries = Object.entries(summary?.gateStatuses || {});
     const rows = gateEntries.map(([name, status]) => {
-        const dotClass = getStatusDotClass(status);
-        return `<li><span class="status-dot ${dotClass}"></span>${name}: ${status}</li>`;
+        const chipClass = getChipClass(status);
+        return `<span class="release-chip ${chipClass}">${formatGateLabel(name)}: ${formatGateStatus(status)}</span>`;
     }).join("");
 
-    gateListEl.innerHTML = rows || '<li><span class="status-dot status-info"></span>Gate verisi yok</li>';
+    gateListEl.innerHTML = rows || '<span class="release-chip release-chip--info">Kontrol verisi yok</span>';
 
     const phaseEntries = Object.entries(summary?.phases || {});
     const phaseRows = phaseEntries.map(([phaseName, phaseStatus]) => {
         const normalized = String(phaseStatus || "").toUpperCase();
-        const dotClass = normalized === "COMPLETED" ? "status-success" : "status-warning";
-        return `<li><span class="status-dot ${dotClass}"></span>${phaseName.toUpperCase()}: ${phaseStatus}</li>`;
+        const chipClass = normalized === "COMPLETED" ? "release-chip--ok" : "release-chip--warn";
+        return `<span class="release-chip ${chipClass}">${formatPhaseLabel(phaseName)}: ${formatPhaseStatus(phaseStatus)}</span>`;
     }).join("");
 
-    phaseListEl.innerHTML = phaseRows || '<li><span class="status-dot status-info"></span>Faz verisi yok</li>';
+    phaseListEl.innerHTML = phaseRows || '<span class="release-chip release-chip--info">Faz verisi yok</span>';
 
     const actions = Array.isArray(summary?.recommendedActions) ? summary.recommendedActions : [];
-    const actionRows = actions.map((item) => `<li><span class="status-dot status-info"></span>${item}</li>`).join("");
-    actionsListEl.innerHTML = actionRows || '<li><span class="status-dot status-info"></span>Aksiyon onerisi yok</li>';
+    const actionRows = actions.map((item) => `<div class="release-action-item">${item}</div>`).join("");
+    actionsListEl.innerHTML = actionRows || '<div class="release-action-item">Aksiyon onerisi yok</div>';
+}
+
+function formatGateLabel(name) {
+    const map = {
+        ciChecks: "Temel kalite kontrolleri",
+        modelStrict: "Icerik model denetimi (siki)",
+        modelContract: "Icerik model sozlesmesi",
+        rules: "Guvenlik kurallari testi",
+        e2eCore: "Kritik kullanici akislari testi"
+    };
+    return map[name] || name;
+}
+
+function formatGateStatus(status) {
+    const normalized = String(status || "").toUpperCase();
+    if (normalized === "PASS") return "Basarili";
+    if (normalized === "FAIL") return "Basarisiz";
+    if (normalized === "SKIP") return "Atlandi";
+    return "Bilinmiyor";
+}
+
+function formatPhaseLabel(name) {
+    const m = String(name || "").match(/^phase(\d+)$/i);
+    if (!m) return name;
+    return `Faz ${m[1]}`;
+}
+
+function formatPhaseStatus(status) {
+    const normalized = String(status || "").toUpperCase();
+    if (normalized === "COMPLETED") return "Tamamlandi";
+    if (normalized === "IN_PROGRESS") return "Devam ediyor";
+    return "Bilinmiyor";
+}
+
+function getChipClass(status) {
+    const normalized = String(status || "").toUpperCase();
+    if (normalized === "PASS" || normalized === "GO" || normalized === "COMPLETED") return "release-chip--ok";
+    if (normalized === "FAIL" || normalized === "NO-GO" || normalized === "IN_PROGRESS") return "release-chip--warn";
+    return "release-chip--info";
+}
+
+function formatDecisionLabel(decision) {
+    if (decision === "GO") return "Yayin Uygun";
+    if (decision === "NO-GO") return "Yayin Uygun Degil";
+    return "Belirsiz";
+}
+
+function getDecisionClass(decision) {
+    if (decision === "GO") return "release-decision-ok";
+    if (decision === "NO-GO") return "release-decision-warn";
+    return "release-decision-info";
 }
 
 async function renderReleaseHealthSummary() {
@@ -532,7 +599,7 @@ async function renderReleaseHealthSummary() {
                 failingGateCount: 0,
                 budgetHeadroomKb: { total: null },
                 gateStatuses: {},
-                adminMessage: "Release verisi henuz uretilmedi. Yerelde 'npm run release:ready:local' calistir."
+                adminMessage: "Yayin sagligi verisi henuz olusmadi. Teknik ekibin son kontrolu calistirmasi gerekiyor."
             });
         }
     }

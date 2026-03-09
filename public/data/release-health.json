@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-03-09T21:02:37.297Z",
+  "generatedAt": "2026-03-09T21:10:07.296Z",
   "lastDate": "2026-03-09",
   "decision": "GO",
   "commit": "3d1174a",
@@ -39,10 +39,10 @@
     "userHome:cssGzipKb (1.11 kB headroom)",
     "userHome:jsGzipKb (1.32 kB headroom)"
   ],
-  "adminMessage": "Sistem yayin adayi icin hazir.",
+  "adminMessage": "Sistem su an yayin icin uygun.",
   "recommendedActions": [
-    "Yayin oncesi son bir kez release checklist artifact'ini kaydet.",
-    "Admin panelde Release Sagligi kartinin GO oldugunu dogrula.",
-    "Yayin sonrasi ilk 30 dakikada hata/bildirim akislarini izle."
+    "Yayin oncesi son kontrol raporunu kayit altina alin.",
+    "Admin panelde Yayin Sagligi kartinin 'Yayin Uygun' oldugunu dogrulayin.",
+    "Yayin sonrasi ilk 30 dakikada hata ve bildirimleri takip edin."
   ]
 }

@@ -170,21 +170,21 @@
                                         <h3>Haftalik Kota Ozeti</h3>
                                         <p class="text-muted" id="observabilityWeekLabel">Yerel olcum verisi</p>
                                     </div>
-                                    <span class="badge badge-secondary">Local</span>
+                                    <span class="badge badge-secondary">Yerel</span>
                                 </div>
                                 <div class="observability-kpis">
-                                    <div><span>Read</span><strong id="obsReadCount">0</strong></div>
-                                    <div><span>Write</span><strong id="obsWriteCount">0</strong></div>
-                                    <div><span>Listen</span><strong id="obsListenCount">0</strong></div>
+                                    <div><span>Okuma</span><strong id="obsReadCount">0</strong></div>
+                                    <div><span>Yazma</span><strong id="obsWriteCount">0</strong></div>
+                                    <div><span>Canli Dinleme</span><strong id="obsListenCount">0</strong></div>
                                 </div>
                                 <div class="table-responsive">
                                     <table class="admin-table compact-table">
                                         <thead>
                                             <tr>
-                                                <th>Koleksiyon</th>
-                                                <th>Read</th>
-                                                <th>Write</th>
-                                                <th>Listen</th>
+                                                <th>Veri Grubu</th>
+                                                <th>Okuma</th>
+                                                <th>Yazma</th>
+                                                <th>Canli Dinleme</th>
                                             </tr>
                                         </thead>
                                         <tbody id="observabilityCollectionsTbody"></tbody>
@@ -192,23 +192,32 @@
                                 </div>
                             </div>
                             <div class="card system-health">
-                                <h3>Release Sagligi</h3>
+                                <h3>Yayin Sagligi</h3>
                                 <p class="text-muted" id="releaseHealthDate">Son kontrol: -</p>
                                 <div class="observability-kpis">
-                                    <div><span>Karar</span><strong id="releaseHealthDecision">UNKNOWN</strong></div>
-                                    <div><span>Failing Gate</span><strong id="releaseHealthFailingGates">-</strong></div>
-                                    <div><span>Toplam Bosluk</span><strong id="releaseHealthHeadroom">-</strong></div>
+                                    <div><span>Yayin Karari</span><strong id="releaseHealthDecision">BELIRSIZ</strong></div>
+                                    <div><span>Sorunlu Kontrol</span><strong id="releaseHealthFailingGates">-</strong></div>
+                                    <div><span>Kalan Performans Payi</span><strong id="releaseHealthHeadroom">-</strong></div>
                                 </div>
-                                <ul class="status-list" id="releaseHealthGateList">
-                                    <li><span class="status-dot status-info"></span>Release verisi bekleniyor</li>
-                                </ul>
-                                <ul class="status-list" id="releaseHealthPhaseList">
-                                    <li><span class="status-dot status-info"></span>Faz durumu bekleniyor</li>
-                                </ul>
-                                <ul class="status-list" id="releaseHealthActionsList">
-                                    <li><span class="status-dot status-info"></span>Aksiyon onerisi bekleniyor</li>
-                                </ul>
-                                <p class="text-muted" id="releaseHealthAction">Yonlendirme bekleniyor...</p>
+                                <details class="release-details">
+                                    <summary>Kontrol Sonuclari</summary>
+                                    <div class="release-chip-wrap" id="releaseHealthGateList">
+                                        <span class="release-chip release-chip--info">Veri bekleniyor</span>
+                                    </div>
+                                </details>
+                                <details class="release-details">
+                                    <summary>Faz Durumu</summary>
+                                    <div class="release-chip-wrap" id="releaseHealthPhaseList">
+                                        <span class="release-chip release-chip--info">Veri bekleniyor</span>
+                                    </div>
+                                </details>
+                                <details class="release-details" open>
+                                    <summary>Ne Yapmaliyim?</summary>
+                                    <div class="release-action-list" id="releaseHealthActionsList">
+                                        <div class="release-action-item">Aksiyon onerisi bekleniyor</div>
+                                    </div>
+                                </details>
+                                <p class="text-muted release-summary-note" id="releaseHealthAction">Yonlendirme bekleniyor...</p>
                             </div>
 
                             <div class="card system-health">
