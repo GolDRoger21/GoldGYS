@@ -125,6 +125,8 @@ Faz 4 tamamlama:
       toggle/dis click/Escape kapanis senaryolarinda senkronize edildi.
     - `public/partials/header.html`, `public/partials/admin-header.html`, `public/partials/app-header.html`:
       dropdown tetikleyicilere `aria-haspopup + aria-controls + aria-expanded=false` taban semantigi eklendi.
+    - `public/js/ui-loader.js` + ilgili header partial'lari:
+      dropdown panellerinde `aria-hidden` state'i `active` sinifi ile senkron hale getirildi.
     - Header erisilebilirlik/hit-area sertlestirme:
       - `public/css/layout.css`: mobilde header action butonlari icin minimum dokunma alani (`44x44`) ve `touch-action` iyilestirmesi.
       - `public/pages/test.html` + `public/pages/deneme.html`: test/deneme action butonlarinda `focus-visible` gorunurlugu ve mobil hit-area iyilestirmesi.
