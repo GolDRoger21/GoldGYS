@@ -88,6 +88,11 @@ Faz 4 tamamlama:
     - calistirma notu: `docs/e2e-smoke.md`
   - Deterministic authenticated smoke icin `E2E_AUTH_STORAGE_STATE` destekli opsiyonel akis eklendi
     (`dashboard -> konular -> konu -> test-coz`).
+  - Deterministic admin smoke icin `E2E_ADMIN_AUTH_STORAGE_STATE` destekli opsiyonel akis eklendi
+    (`/admin -> /admin/importer`).
+  - Storage state uretimi icin lokal capture komutlari eklendi:
+    - `npm run test:e2e:auth:capture:user`
+    - `npm run test:e2e:auth:capture:admin`
 
 - Faz 4 (performans):
   - `scripts/analyze-assets.cjs` route-bazli ilk yukleme budget kontrolu eklendi.

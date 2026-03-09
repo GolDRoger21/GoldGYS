@@ -16,6 +16,18 @@ const PROTECTED_ROUTES = [
   '/admin/importer.html',
 ];
 
+function resolveStorageStatePath(envVarValue, defaultRelativePath) {
+  const candidates = [];
+  if (envVarValue) candidates.push(envVarValue);
+  if (defaultRelativePath) candidates.push(defaultRelativePath);
+
+  for (const candidate of candidates) {
+    const absPath = path.resolve(process.cwd(), candidate);
+    if (fs.existsSync(absPath)) return absPath;
+  }
+  return null;
+}
+
 test.describe('Gold GYS smoke', () => {
   test('public routes respond and render', async ({ page, request }) => {
     for (const route of PUBLIC_ROUTES) {
@@ -49,17 +61,14 @@ test.describe('Gold GYS smoke', () => {
 });
 
 test.describe('Gold GYS authenticated smoke (optional)', () => {
-  test.skip(
-    !process.env.E2E_AUTH_STORAGE_STATE,
-    'Set E2E_AUTH_STORAGE_STATE to enable authenticated smoke coverage.'
-  );
-
   test('authenticated user can traverse dashboard -> konular -> konu -> test', async ({ browser, baseURL }) => {
-    const rawStorageStatePath = process.env.E2E_AUTH_STORAGE_STATE;
-    const storageStatePath = path.resolve(process.cwd(), rawStorageStatePath);
+    const storageStatePath = resolveStorageStatePath(
+      process.env.E2E_AUTH_STORAGE_STATE,
+      'tests/e2e/.auth/user.json'
+    );
     test.skip(
-      !fs.existsSync(storageStatePath),
-      `E2E auth storage state file not found: ${storageStatePath}`
+      !storageStatePath,
+      'Provide E2E_AUTH_STORAGE_STATE or create tests/e2e/.auth/user.json to enable authenticated smoke coverage.'
     );
 
     const context = await browser.newContext({
@@ -85,6 +94,36 @@ test.describe('Gold GYS authenticated smoke (optional)', () => {
 
     await expect(page).toHaveURL(/\/test-coz\//i);
     await expect(page.locator('#quizContainer')).toBeVisible();
+
+    await context.close();
+  });
+});
+
+test.describe('Gold GYS admin authenticated smoke (optional)', () => {
+  test('authenticated admin can access admin dashboard and importer', async ({ browser, baseURL }) => {
+    const storageStatePath = resolveStorageStatePath(
+      process.env.E2E_ADMIN_AUTH_STORAGE_STATE,
+      'tests/e2e/.auth/admin.json'
+    );
+    test.skip(
+      !storageStatePath,
+      'Provide E2E_ADMIN_AUTH_STORAGE_STATE or create tests/e2e/.auth/admin.json to enable admin authenticated smoke coverage.'
+    );
+
+    const context = await browser.newContext({
+      baseURL,
+      storageState: storageStatePath,
+    });
+    const page = await context.newPage();
+
+    await page.goto('/admin');
+    await expect(page).not.toHaveURL(/login(\.html)?/i);
+    await expect(page.locator('#section-dashboard')).toBeVisible();
+    await expect(page.locator('#statsGrid')).toBeVisible();
+
+    await page.goto('/admin/importer');
+    await expect(page).not.toHaveURL(/login(\.html)?/i);
+    await expect(page.locator('#section-importer')).toBeVisible();
 
     await context.close();
   });
