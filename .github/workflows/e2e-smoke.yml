@@ -19,18 +19,38 @@ jobs:
       E2E_AUTH_STORAGE_STATE_B64: ${{ secrets.E2E_AUTH_STORAGE_STATE_B64 }}
       E2E_ADMIN_AUTH_STORAGE_STATE_B64: ${{ secrets.E2E_ADMIN_AUTH_STORAGE_STATE_B64 }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
-      - run: npm ci
-      - run: npx playwright install --with-deps chromium
-      - run: npm run test:e2e:auth:prepare
-      - run: npm run test:e2e:smoke
-      - uses: actions/upload-artifact@v4
+      - name: Install Dependencies
+        run: npm ci
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Run Core Smoke Suite
+        run: npm run test:e2e:smoke:core
+      - name: Prepare Optional Auth State
+        if: github.event_name == 'workflow_dispatch'
+        run: npm run test:e2e:auth:prepare
+      - name: Run Authenticated Smoke Extension
+        if: github.event_name == 'workflow_dispatch'
+        run: npm run test:e2e:smoke:auth
+      - name: Upload Playwright HTML Report
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: playwright-report
           path: playwright-report
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Upload Playwright Test Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-test-results
+          path: test-results
+          if-no-files-found: warn
           retention-days: 14

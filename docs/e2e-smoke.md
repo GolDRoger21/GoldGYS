@@ -21,17 +21,22 @@ Bu dokuman, Gold GYS icin minimum smoke E2E kapsamini ve calistirma komutlarini 
   - `E2E_AUTH_STORAGE_STATE` verilirse aktif edilir
   - Env verilmezse varsayilan dosya: `tests/e2e/.auth/user.json`
   - Akis: `/dashboard` -> `/konular` -> ilk konu -> ilk mod butonu -> `test-coz` sayfasi
+    -> bir sik isaretleme -> `Testi Bitir` modal onayi -> sonuc modal gorunurlugu
   - Playwright `storageState` dosyasi ile calistigi icin Google popup akisina bagimli degildir
 - Opsiyonel admin authenticated smoke (deterministic):
   - `E2E_ADMIN_AUTH_STORAGE_STATE` verilirse aktif edilir
   - Env verilmezse varsayilan dosya: `tests/e2e/.auth/admin.json`
-  - Akis: `/admin` -> `/admin/importer`
+  - Akis: `/admin` -> `/admin/importer` -> sidebar `users` tab gecisi
   - Admin yetkisi olmayan storage state ile test login/guard yonlendirmesi nedeniyle basarisiz olur
 
 ## Komutlar
 
 - Lokal smoke:
   - `npm run test:e2e:smoke`
+- Lokal core smoke (opsiyonel auth testleri disinda):
+  - `npm run test:e2e:smoke:core`
+- Lokal authenticated smoke extension (sadece opsiyonel auth testleri):
+  - `npm run test:e2e:smoke:auth`
 - Lokal headed:
   - `npm run test:e2e:smoke:headed`
 
@@ -79,3 +84,8 @@ Komut ciktisini ilgili GitHub secret degerine oldugu gibi yapistirin.
 - Manuel workflow:
   - `.github/workflows/e2e-smoke.yml`
 - Workflow Playwright Chromium kurar ve smoke testini calistirir.
+- Playwright reporter:
+  - `line + html` aktif; CI artifact olarak `playwright-report` ve `test-results` yuklenir.
+- Workflow calisma modeli:
+  - `pull_request` ve `push` icin sadece `core smoke` kosulur.
+  - `workflow_dispatch` icin `core smoke` + `authenticated smoke extension` kosulur.

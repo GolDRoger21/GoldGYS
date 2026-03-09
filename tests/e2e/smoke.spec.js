@@ -72,8 +72,8 @@ test.describe('Gold GYS smoke', () => {
   });
 });
 
-test.describe('Gold GYS authenticated smoke (optional)', () => {
-  test('authenticated user can traverse dashboard -> konular -> konu -> test', async ({ browser, baseURL }) => {
+test.describe('Gold GYS authenticated smoke (@optional)', () => {
+  test('authenticated user can traverse dashboard -> konular -> konu -> test and finish flow', async ({ browser, baseURL }) => {
     const storageStatePath = resolveStorageStatePath(
       process.env.E2E_AUTH_STORAGE_STATE,
       'tests/e2e/.auth/user.json'
@@ -106,13 +106,27 @@ test.describe('Gold GYS authenticated smoke (optional)', () => {
 
     await expect(page).toHaveURL(/\/test-coz\//i);
     await expect(page.locator('#quizContainer')).toBeVisible();
+    const firstOption = page.locator('.sik-btn').first();
+    await expect(firstOption).toBeVisible();
+    await firstOption.click();
+
+    const finishButton = page.locator('#btnFinish');
+    await expect(finishButton).toBeVisible();
+    await finishButton.click();
+
+    const finishConfirmButton = page.locator('#finishConfirmBtn');
+    await expect(finishConfirmButton).toBeVisible();
+    await finishConfirmButton.click();
+
+    await expect(page.locator('#resultModal')).toBeVisible();
+    await expect(page.locator('#resultText')).toBeVisible();
 
     await context.close();
   });
 });
 
-test.describe('Gold GYS admin authenticated smoke (optional)', () => {
-  test('authenticated admin can access admin dashboard and importer', async ({ browser, baseURL }) => {
+test.describe('Gold GYS admin authenticated smoke (@optional)', () => {
+  test('authenticated admin can access dashboard, importer and users tab', async ({ browser, baseURL }) => {
     const storageStatePath = resolveStorageStatePath(
       process.env.E2E_ADMIN_AUTH_STORAGE_STATE,
       'tests/e2e/.auth/admin.json'
@@ -136,6 +150,11 @@ test.describe('Gold GYS admin authenticated smoke (optional)', () => {
     await page.goto('/admin/importer');
     await expect(page).not.toHaveURL(/login(\.html)?/i);
     await expect(page.locator('#section-importer')).toBeVisible();
+
+    const usersTab = page.locator('.sidebar-nav .nav-item[data-tab="users"]').first();
+    await expect(usersTab).toBeVisible();
+    await usersTab.click();
+    await expect(page.locator('#section-users')).toBeVisible();
 
     await context.close();
   });

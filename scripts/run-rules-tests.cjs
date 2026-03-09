@@ -32,8 +32,17 @@ function run() {
     console.error('[rules-test] Emulator komutu çalıştırılamadı:', result.error.message);
     process.exit(1);
   }
+  if (typeof result.status === 'number' && result.status !== 0) {
+    console.error(`[rules-test] Firestore rules testi basarisiz (exit code: ${result.status}).`);
+    console.error('[rules-test] Yukaridaki ilk FAIL adimini kontrol edin; adimlar PASS/FAIL etiketlidir.');
+  }
+
+  if (result.signal) {
+    console.error(`[rules-test] Test islemi sinyal ile sonlandi: ${result.signal}`);
+  }
 
   process.exit(result.status || 0);
 }
 
 run();
+

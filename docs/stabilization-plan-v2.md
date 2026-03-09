@@ -81,12 +81,28 @@ Faz 4 tamamlama:
 - Faz 6 (guardrail):
   - Firestore Rules emulator testi eklendi: `scripts/test-firestore-rules.cjs`.
   - Local ortamda net hata mesaji icin Java 21 on-kontrol wrapper'i eklendi: `scripts/run-rules-tests.cjs`.
+  - Rules test adimlari PASS/FAIL etiketli hale getirildi; fail durumunda adim adi hata mesajina ekleniyor.
+  - Rules wrapper cikis kodu/sinyal durumunu acik loglar; CI hata okuma hizi artirildi.
+  - `.github/workflows/ci.yml` adimlari isimlendirildi; CI ekraninda kirilan kapilar daha hizli tespit edilir.
+  - `.github/workflows/e2e-smoke.yml` adimlari isimlendirildi; Playwright artifact toplama
+    `playwright-report` + `test-results` olarak netlestirildi (`if-no-files-found: warn`).
+  - `playwright.config.js` reporter standardi `line + html` olarak sabitlendi
+    (CI artifact'i icin `playwright-report` uretimi garantilendi).
+  - E2E smoke iki seviyeye ayrildi:
+    - `test:e2e:smoke:core` (`--grep-invert optional`) -> PR/push hizli kapisi
+    - `test:e2e:smoke:auth` (`--grep optional`) -> workflow_dispatch icin auth extension
   - CI tarafinda rules testi adimi Java 21 ile calisacak sekilde ayarlandi.
   - Playwright tabanli smoke E2E iskeleti eklendi:
     - `tests/e2e/smoke.spec.js`
     - `playwright.config.js`
     - manuel CI workflow: `.github/workflows/e2e-smoke.yml`
     - calistirma notu: `docs/e2e-smoke.md`
+  - Opsiyonel authenticated user smoke akisi sertlestirildi:
+    - `/dashboard -> /konular -> /konu -> /test-coz` sonrasinda
+      bir sik isaretleme + `Testi Bitir` onay modal'i + sonuc modal gorunurlugu dogrulaniyor.
+  - Opsiyonel authenticated admin smoke akisi sertlestirildi:
+    - `/admin -> /admin/importer` sonrasinda sidebar `users` tab gecisi
+      ve `section-users` gorunurlugu dogrulaniyor.
   - Deterministic authenticated smoke icin `E2E_AUTH_STORAGE_STATE` destekli opsiyonel akis eklendi
     (`dashboard -> konular -> konu -> test-coz`).
   - Deterministic admin smoke icin `E2E_ADMIN_AUTH_STORAGE_STATE` destekli opsiyonel akis eklendi
