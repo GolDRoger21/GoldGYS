@@ -50,7 +50,7 @@ function main() {
   run("npm run release:checklist:refresh:full");
 
   console.log("[release-ready-local] Step 5/5: release:headroom:check");
-  run("npm run release:headroom:check");
+  run("npm run release:headroom:check:auto");
 
   const { decision, checklist, statusFile } = readDecision();
   console.log(`[release-ready-local] Decision: ${decision}`);

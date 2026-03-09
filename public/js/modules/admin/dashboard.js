@@ -23,6 +23,7 @@ const DASHBOARD_CACHE_TTL_MS = 5 * 60 * 1000;
 let dashboardBootstrapped = false;
 const DASHBOARD_SHARD_QUERY_LIMIT = 400;
 const OBSERVABILITY_TOP_COLLECTIONS = 5;
+const RELEASE_HEALTH_URL = "/data/release-health.json";
 
 function readDashboardCache() {
     return readSessionCache(DASHBOARD_CACHE_KEY, DASHBOARD_CACHE_TTL_MS);
@@ -54,6 +55,7 @@ export async function initDashboard() {
     initChartsSafe();
     loadTablesSafe();
     renderObservabilitySummary();
+    renderReleaseHealthSummary();
 
     dashboardBootstrapped = true;
 }
@@ -443,5 +445,80 @@ function renderObservabilitySummary() {
         writeDashboardCache({ observability: summary });
     } catch (error) {
         console.warn('Observability ozeti render edilemedi:', error);
+    }
+}
+
+function getStatusDotClass(status) {
+    const normalized = String(status || "").toUpperCase();
+    if (normalized === "PASS" || normalized === "GO") return "status-success";
+    if (normalized === "FAIL" || normalized === "NO-GO") return "status-warning";
+    return "status-info";
+}
+
+function formatDateLabel(dateText) {
+    if (!dateText || dateText === "unknown") return "Son kontrol: bilinmiyor";
+    const parsed = new Date(dateText);
+    if (Number.isNaN(parsed.getTime())) return `Son kontrol: ${dateText}`;
+    return `Son kontrol: ${parsed.toLocaleDateString("tr-TR")}`;
+}
+
+function formatHeadroomValue(value) {
+    const num = Number(value);
+    if (!Number.isFinite(num)) return "-";
+    return `${num.toFixed(2)} kB`;
+}
+
+function renderReleaseHealthCard(summary) {
+    const dateEl = document.getElementById("releaseHealthDate");
+    const decisionEl = document.getElementById("releaseHealthDecision");
+    const failingGateEl = document.getElementById("releaseHealthFailingGates");
+    const headroomEl = document.getElementById("releaseHealthHeadroom");
+    const gateListEl = document.getElementById("releaseHealthGateList");
+    const actionEl = document.getElementById("releaseHealthAction");
+
+    if (!dateEl || !decisionEl || !failingGateEl || !headroomEl || !gateListEl || !actionEl) return;
+
+    dateEl.textContent = formatDateLabel(summary?.lastDate);
+    decisionEl.textContent = String(summary?.decision || "UNKNOWN").toUpperCase();
+    failingGateEl.textContent = String(Number(summary?.failingGateCount || 0));
+    headroomEl.textContent = formatHeadroomValue(summary?.budgetHeadroomKb?.total);
+    actionEl.textContent = String(summary?.adminMessage || "Release verisi bekleniyor.");
+
+    const gateEntries = Object.entries(summary?.gateStatuses || {});
+    const rows = gateEntries.map(([name, status]) => {
+        const dotClass = getStatusDotClass(status);
+        return `<li><span class="status-dot ${dotClass}"></span>${name}: ${status}</li>`;
+    }).join("");
+
+    gateListEl.innerHTML = rows || '<li><span class="status-dot status-info"></span>Gate verisi yok</li>';
+}
+
+async function renderReleaseHealthSummary() {
+    try {
+        const cached = readDashboardCache();
+        if (cached?.releaseHealth) {
+            renderReleaseHealthCard(cached.releaseHealth);
+        }
+
+        const response = await fetch(RELEASE_HEALTH_URL, { cache: "no-store" });
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+
+        const payload = await response.json();
+        renderReleaseHealthCard(payload);
+        writeDashboardCache({ releaseHealth: payload });
+    } catch (error) {
+        console.warn("Release sagligi verisi alinamadi:", error);
+        if (!readDashboardCache()?.releaseHealth) {
+            renderReleaseHealthCard({
+                decision: "UNKNOWN",
+                lastDate: "unknown",
+                failingGateCount: 0,
+                budgetHeadroomKb: { total: null },
+                gateStatuses: {},
+                adminMessage: "Release verisi henuz uretilmedi. Yerelde 'npm run release:ready:local' calistir."
+            });
+        }
     }
 }

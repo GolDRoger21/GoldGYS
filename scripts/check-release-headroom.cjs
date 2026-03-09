@@ -4,6 +4,7 @@ const path = require("path");
 
 const ROOT = path.join(__dirname, "..");
 const RELEASE_DIR = path.join(ROOT, "docs", "releases");
+const SUGGESTION_PATH = path.join(RELEASE_DIR, "release-headroom-suggestion.json");
 
 function fail(message) {
   console.error(`[release-headroom] ${message}`);
@@ -18,24 +19,31 @@ function getTodayStamp() {
   return `${y}-${m}-${d}`;
 }
 
-function parseThreshold() {
-  const arg = process.argv.find((item) => item.startsWith("--min-kb="));
-  const raw = arg ? arg.slice("--min-kb=".length).trim() : "1";
-  const n = Number(raw);
-  if (!Number.isFinite(n) || n < 0) {
-    fail(`Invalid --min-kb value: ${raw}`);
+function readSuggestion() {
+  if (!fs.existsSync(SUGGESTION_PATH)) return null;
+  try {
+    return JSON.parse(fs.readFileSync(SUGGESTION_PATH, "utf8"));
+  } catch {
+    return null;
   }
-  return n;
 }
 
-function parseRiskThreshold() {
-  const arg = process.argv.find((item) => item.startsWith("--min-risk-kb="));
-  const raw = arg ? arg.slice("--min-risk-kb=".length).trim() : "0.75";
+function parseThreshold(raw, fallback) {
   const n = Number(raw);
   if (!Number.isFinite(n) || n < 0) {
-    fail(`Invalid --min-risk-kb value: ${raw}`);
+    fail(`Invalid threshold value: ${raw}`);
   }
-  return n;
+  return Number.isFinite(n) ? n : fallback;
+}
+
+function parseRawGlobalThreshold() {
+  const arg = process.argv.find((item) => item.startsWith("--min-kb="));
+  return arg ? arg.slice("--min-kb=".length).trim() : "1";
+}
+
+function parseRawRiskThreshold() {
+  const arg = process.argv.find((item) => item.startsWith("--min-risk-kb="));
+  return arg ? arg.slice("--min-risk-kb=".length).trim() : "0.75";
 }
 
 function parseRiskHeadroom(line) {
@@ -45,8 +53,18 @@ function parseRiskHeadroom(line) {
   return Number.isFinite(n) ? n : null;
 }
 
-const minKb = parseThreshold();
-const minRiskKb = parseRiskThreshold();
+const suggestion = readSuggestion();
+const suggestedGlobal = Number(suggestion?.suggested?.minGlobalHeadroomKb);
+const suggestedRisk = Number(suggestion?.suggested?.minRiskHeadroomKb);
+const rawMinKb = parseRawGlobalThreshold();
+const rawMinRiskKb = parseRawRiskThreshold();
+
+const minKb = rawMinKb.toLowerCase() === "auto"
+  ? parseThreshold(String(Number.isFinite(suggestedGlobal) ? suggestedGlobal : 1), 1)
+  : parseThreshold(rawMinKb, 1);
+const minRiskKb = rawMinRiskKb.toLowerCase() === "auto"
+  ? parseThreshold(String(Number.isFinite(suggestedRisk) ? suggestedRisk : 0.75), 0.75)
+  : parseThreshold(rawMinRiskKb, 0.75);
 const statusPath = path.join(RELEASE_DIR, `release-status-${getTodayStamp()}.json`);
 if (!fs.existsSync(statusPath)) {
   fail(`Status file not found: ${path.relative(ROOT, statusPath)} (run release:status:export first)`);

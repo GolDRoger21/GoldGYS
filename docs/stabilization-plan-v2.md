@@ -195,7 +195,9 @@ Faz 7 mini kapanis (icerik buyumesi hazir kabul):
     - `npm run release:status:export` -> checklistten makine-okunur `docs/releases/release-status-YYYY-MM-DD.json` uretir
     - `npm run release:history:update` -> tum `release-status` dosyalarindan `docs/releases/release-history.json` trend ozetini gunceller
     - `npm run release:headroom:suggest` -> release gecmisinden adaptif headroom esitigi onerisi uretir (`docs/releases/release-headroom-suggestion.json`)
+    - `npm run release:headroom:resolve` -> manuel/auto esik girislerini son gate degerine cozumler
     - `npm run release:headroom:check` -> global budget headroom metrikleri icin minimum kB gate uygular
+    - `npm run release:headroom:check:auto` -> `release-headroom-suggestion.json` degerlerini gate icin dogrudan uygular
     - `npm run release:checklist:refresh` -> checklist + budget + guardrail alanlarini tek komutta gunceller
     - `npm run release:checklist:refresh:full` -> checklist + budget + guardrail + quality alanlarini rules/e2e dahil gunceller
     - GitHub Actions `Release Readiness` workflow'u ile manuel tetiklemede checklist artifact'i uretimi standardize edildi (`full_checks`, opsiyonel `cwv_snapshot_b64`, varsayilan `enforce_decision=true`, budget gate: `min_global_headroom_kb` + `min_risk_headroom_kb`)

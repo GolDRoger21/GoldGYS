@@ -129,6 +129,29 @@ jobs:
           console.log(`risk_3=${risks[2] || "unknown"}`);
           NODE
 
+      - name: Resolve Headroom Thresholds
+        id: resolved_headroom
+        shell: bash
+        run: |
+          node - <<'NODE' > /tmp/headroom.json
+          const { spawnSync } = require("child_process");
+          const result = spawnSync("node", [
+            "scripts/resolve-headroom-thresholds.cjs",
+            `--global=${process.env.IN_GLOBAL}`,
+            `--risk=${process.env.IN_RISK}`
+          ], { encoding: "utf8", shell: false });
+          if (result.status !== 0 || result.error) {
+            console.error(result.stderr || result.error?.message || "resolve failed");
+            process.exit(1);
+          }
+          process.stdout.write(result.stdout);
+          NODE
+          echo "global=$(node -e \"const j=require('/tmp/headroom.json'); process.stdout.write(String(j.resolved.global));\")" >> "$GITHUB_OUTPUT"
+          echo "risk=$(node -e \"const j=require('/tmp/headroom.json'); process.stdout.write(String(j.resolved.risk));\")" >> "$GITHUB_OUTPUT"
+        env:
+          IN_GLOBAL: ${{ inputs.min_global_headroom_kb }}
+          IN_RISK: ${{ inputs.min_risk_headroom_kb }}
+
       - name: Upload Checklist Artifact
         uses: actions/upload-artifact@v4
         with:
@@ -181,7 +204,7 @@ jobs:
       - name: Enforce Budget Headroom
         shell: bash
         run: |
-          node scripts/check-release-headroom.cjs --min-kb=${{ inputs.min_global_headroom_kb }} --min-risk-kb=${{ inputs.min_risk_headroom_kb }}
+          node scripts/check-release-headroom.cjs --min-kb=${{ steps.resolved_headroom.outputs.global }} --min-risk-kb=${{ steps.resolved_headroom.outputs.risk }}
 
       - name: Publish Release Readiness Summary
         if: always()
@@ -193,6 +216,8 @@ jobs:
             echo "- Enforce decision: \`${{ inputs.enforce_decision }}\`"
             echo "- Min global headroom gate: \`${{ inputs.min_global_headroom_kb }} kB\`"
             echo "- Min top-risk headroom gate: \`${{ inputs.min_risk_headroom_kb }} kB\`"
+            echo "- Resolved global gate: \`${{ steps.resolved_headroom.outputs.global }} kB\`"
+            echo "- Resolved risk gate: \`${{ steps.resolved_headroom.outputs.risk }} kB\`"
             if [ "${{ inputs.cwv_snapshot_b64 }}" != "" ]; then
               echo "- CWV snapshot: provided (workflow input)"
             else

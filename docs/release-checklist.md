@@ -3,6 +3,7 @@
 Bu dokuman, her kucuk surum oncesinde ayni kalite kapilarini standart sekilde kayda almak icin kullanilir.
 
 Kullanim:
+- Kodsuz yonetici ozeti: `docs/release-ops-admin-guide.md`
 - Tum lokal release kapilarini tek komutta calistir: `npm run release:ready:local`
 - Yeni checklist olustur: `npm run release:checklist`
 - Lighthouse tabanli CWV olcumu al + snapshot uret: `npm run measure:cwv`
@@ -20,10 +21,13 @@ Kullanim:
 - Makine-okunur durum json'u uret: `npm run release:status:export`
 - Release gecmis trend json'u guncelle: `npm run release:history:update`
 - Adaptif headroom esitigi onerisi uret: `npm run release:headroom:suggest`
+- Adaptif/eslesmis headroom esiklerini cozumle: `npm run release:headroom:resolve`
 - Global budget headroom gate kontrolu: `npm run release:headroom:check`
+- Adaptif oneriyi dogrudan uygula: `npm run release:headroom:check:auto`
 - Tumunu tek komutta yenile: `npm run release:checklist:refresh`
 - Tumunu rules+e2e dahil tek komutta yenile: `npm run release:checklist:refresh:full`
 - CI manuel akisi: GitHub Actions -> `Release Readiness` workflow'u (`full_checks=false|true`, opsiyonel `cwv_snapshot_b64`, `min_global_headroom_kb`, `min_risk_headroom_kb`)
+- `min_global_headroom_kb` ve `min_risk_headroom_kb` alanlarina `auto` verilirse, `release-headroom-suggestion.json` degerleri kullanilir.
 - CI manuel akisi varsayilan olarak `enforce_decision=true` ile calisir; `NO-GO` kararda job fail olur.
 - Cikti yolu: `docs/releases/release-checklist-YYYY-MM-DD.md`
 - Ayni gun dosyasini yeniden uretmek icin: `node scripts/create-release-checklist.cjs --force`

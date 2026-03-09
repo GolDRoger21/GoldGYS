@@ -7,6 +7,7 @@ const RELEASE_DIR = path.join(ROOT, "docs", "releases");
 const HISTORY_PATH = path.join(RELEASE_DIR, "release-history.json");
 const SUGGESTION_PATH = path.join(RELEASE_DIR, "release-headroom-suggestion.json");
 const DASHBOARD_PATH = path.join(RELEASE_DIR, "release-dashboard.md");
+const PUBLIC_HEALTH_PATH = path.join(ROOT, "public", "data", "release-health.json");
 
 function fail(message) {
   console.error(`[release-dashboard] ${message}`);
@@ -108,3 +109,47 @@ const lines = [
 
 fs.writeFileSync(DASHBOARD_PATH, `${lines.join("\n")}\n`, "utf8");
 console.log(`[release-dashboard] Updated: ${path.relative(ROOT, DASHBOARD_PATH)}`);
+
+const decision = String(last?.decision || "UNKNOWN").toUpperCase();
+const gateStatuses = {
+  ciChecks: status?.guardrails?.ciChecks || "unknown",
+  modelStrict: status?.guardrails?.modelStrict || "unknown",
+  modelContract: status?.guardrails?.modelContract || "unknown",
+  rules: status?.guardrails?.rules || "unknown",
+  e2eCore: status?.guardrails?.e2eCore || "unknown"
+};
+const failingGateCount = Object.values(gateStatuses).filter((value) => String(value).toUpperCase() !== "PASS").length;
+
+let adminMessage = "Yayin oncesi kontrolleri tamamla.";
+if (decision === "GO") {
+  adminMessage = "Sistem yayin adayi icin hazir.";
+} else if (decision === "NO-GO") {
+  adminMessage = "NO-GO: Yayin yapmadan once failing gate'leri duzelt.";
+}
+
+const publicPayload = {
+  generatedAt: new Date().toISOString(),
+  lastDate: lastDate || "unknown",
+  decision,
+  commit: last?.commit || "unknown",
+  version: last?.version || "unknown",
+  budgetHeadroomKb: {
+    total: Number.isFinite(last?.budgetHeadroomKb?.total) ? Number(last.budgetHeadroomKb.total) : null,
+    js: Number.isFinite(last?.budgetHeadroomKb?.js) ? Number(last.budgetHeadroomKb.js) : null,
+    css: Number.isFinite(last?.budgetHeadroomKb?.css) ? Number(last.budgetHeadroomKb.css) : null,
+    html: Number.isFinite(last?.budgetHeadroomKb?.html) ? Number(last.budgetHeadroomKb.html) : null
+  },
+  failingGateCount,
+  gateStatuses,
+  phaseGates: {
+    phase3to4: status?.phaseGates?.phase3to4 || "unknown",
+    phase4to5: status?.phaseGates?.phase4to5 || "unknown",
+    phase6to7: status?.phaseGates?.phase6to7 || "unknown"
+  },
+  risks,
+  adminMessage
+};
+
+fs.mkdirSync(path.dirname(PUBLIC_HEALTH_PATH), { recursive: true });
+fs.writeFileSync(PUBLIC_HEALTH_PATH, `${JSON.stringify(publicPayload, null, 2)}\n`, "utf8");
+console.log(`[release-dashboard] Updated: ${path.relative(ROOT, PUBLIC_HEALTH_PATH)}`);
