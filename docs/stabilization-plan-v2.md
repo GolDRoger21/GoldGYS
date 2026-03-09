@@ -34,11 +34,11 @@ Bu dokuman, mevcut faz planinin web/Firebase gercekleriyle uyumlu revize halidir
 - Query field ve display-only field ayrimi.
 - `version`, `createdAt`, `updatedAt`, `status`, `visibility`, `order` alan standardi.
 
-## Faz Durumu (2026-03-08)
+## Faz Durumu (2026-03-09)
 
 - Faz 0-2: buyuk olcude islenmis durumda.
 - Faz 3: mini kapanis seviyesinde.
-- Faz 4/Faz 6: temel CI ve guardrail altyapisi basladi.
+- Faz 4/Faz 6: aktif ve olculebilir guardrail seviyesinde.
 
 ## Uygulanan Teknik Guardrail'ler
 
@@ -53,13 +53,20 @@ Bu dokuman, mevcut faz planinin web/Firebase gercekleriyle uyumlu revize halidir
   - `ci:quick`
   - `ci:checks`
   - `.github/workflows/ci.yml` -> `npm run ci:checks`
+  - `check:budgets` -> genel + route-bazli JS/CSS budget kontrolu
+
+- `scripts/analyze-assets.cjs`:
+  - global asset budget check (total/js/css/html + max single js)
+  - route budget check:
+    - `userHome` (`/index.html`)
+    - `adminDashboard` (`/admin/index.html`)
+  - route bazinda toplam/js/css/max-single-asset esikleri
 
 ## Sonraki Operasyonel Adim
 
 Faz 4 tamamlama:
-1. Performans butcelerini kodda tek configte tanimla.
-2. Build raporunu butce karsilastirmasi ile fail/warn uretecek hale getir.
-3. CWV olcum raporunu release checklistine bagla.
+1. Route budget esiklerini release gecmisine gore daralt.
+2. CWV olcum raporunu release checklistine bagla.
 
 ## Ilerleme Notu (2026-03-09)
 
@@ -79,6 +86,13 @@ Faz 4 tamamlama:
     - `playwright.config.js`
     - manuel CI workflow: `.github/workflows/e2e-smoke.yml`
     - calistirma notu: `docs/e2e-smoke.md`
+  - Deterministic authenticated smoke icin `E2E_AUTH_STORAGE_STATE` destekli opsiyonel akis eklendi
+    (`dashboard -> konular -> konu -> test-coz`).
+
+- Faz 4 (performans):
+  - `scripts/analyze-assets.cjs` route-bazli ilk yukleme budget kontrolu eklendi.
+  - User (`/index.html`) ve admin (`/admin/index.html`) akislari icin JS/CSS/total budget guardrail'i aktif.
+  - `npm run check:budgets` ile CI seviyesinde fail/warn davranisi uygulanir.
 
 - Faz 1 (gozlemlenebilirlik):
   - `dashboard.js` ve `analysis.js` icinde eksik kalan `getDocs` metrik etiketleri tamamlandi.

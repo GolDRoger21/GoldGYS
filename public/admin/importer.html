@@ -56,17 +56,16 @@
 
     <script type="module">
         import { initImporterPage } from '../js/modules/admin/importer.js';
-        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { auth } from '../js/firebase-config.js';
+        import { requireAdminOrEditor } from '../js/role-guard.js';
 
         document.addEventListener('DOMContentLoaded', () => {
-            onAuthStateChanged(auth, user => {
-                if (user) {
+            requireAdminOrEditor()
+                .then(() => {
                     initImporterPage();
-                } else {
-                    document.getElementById('section-importer').innerHTML = '<div class="card p-5 text-center"><h3>Erişim Reddedildi</h3><p>Lütfen admin girişi yapınız.</p><a href="/admin/login.html">Giriş Yap</a></div>';
-                }
-            });
+                })
+                .catch(() => {
+                    // Redirects are handled in requireAdminOrEditor
+                });
         });
     </script>
 </body>

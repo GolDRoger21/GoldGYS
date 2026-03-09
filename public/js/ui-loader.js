@@ -26,6 +26,21 @@ const PAGE_CONFIG = {
 
 let layoutInitPromise = null;
 
+function isPublicPath(pathname = window.location.pathname) {
+    if (!pathname) return false;
+    const normalizedPath = pathname !== '/' && pathname.endsWith('/')
+        ? pathname.slice(0, -1)
+        : pathname;
+
+    if (normalizedPath === '/' || normalizedPath === '/login' || normalizedPath === '/login.html') return true;
+    if (normalizedPath === '/404' || normalizedPath === '/404.html' || normalizedPath === '/pages/404.html') return true;
+    if (normalizedPath === '/yardim' || normalizedPath === '/pages/yardim' || normalizedPath === '/pages/yardim.html') return true;
+    if (normalizedPath === '/yasal' || normalizedPath === '/pages/yasal' || normalizedPath === '/pages/yasal.html') return true;
+    if (normalizedPath.startsWith('/pages/legal/')) return true;
+
+    return false;
+}
+
 export async function initLayout() {
     if (layoutInitPromise) return layoutInitPromise;
 
@@ -69,8 +84,7 @@ export async function initLayout() {
                 }
 
                 const isExemptPage = window.location.pathname.includes('/admin') ||
-                    window.location.pathname.includes('/login.html') ||
-                    window.location.pathname === '/login';
+                    isPublicPath(window.location.pathname);
 
                 if (!isAdmin && !isExemptPage) {
                     document.body.innerHTML = `
@@ -363,8 +377,9 @@ async function checkUserAuthState() {
                 } catch (e) { console.error(e); }
             } else {
                 // Public sayfalarda değilsek login'e at
-                const isPublic = ['/login.html', '/', '/404.html', '/pages/yardim.html', '/pages/yardim'].includes(window.location.pathname);
-                if (!isPublic) window.location.href = '/login.html';
+                if (!isPublicPath(window.location.pathname)) {
+                    window.location.href = '/login.html';
+                }
             }
             resolve();
         });
