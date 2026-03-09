@@ -1229,6 +1229,7 @@ main {
         left: 0;
         width: 100%;
         height: calc(100vh - var(--landing-header-height));
+        height: calc(100dvh - var(--landing-header-height));
         background: var(--landing-mobile-nav-bg);
         backdrop-filter: blur(16px);
         flex-direction: column;

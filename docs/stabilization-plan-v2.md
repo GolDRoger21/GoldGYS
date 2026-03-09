@@ -111,6 +111,10 @@ Faz 4 tamamlama:
   - `public/js/ui-loader.js` ve `public/js/legal-page-shell.js` icindeki tekrar eden
     `localStorage + data-theme + icon` yonetimi kaldirildi.
   - Tema icon senkronu icin ortak helper eklendi: `syncThemeToggleIcon(...)`.
+  - Mobil kirilim sertlestirme:
+    - `public/pages/test.html`: dar ekranda score satiri icin yatay tasma korumasi ve 390px altinda ek sikistirma.
+    - `public/pages/deneme.html`: mobil header alani sadeletildi (theme butonu gizleme, timer/istatistik sikistirma).
+    - `public/css/landing.css`: mobil menu yuksekligi `dvh` ile stabil hale getirildi.
 
 - Faz 1 (gozlemlenebilirlik):
   - `dashboard.js` ve `analysis.js` icinde eksik kalan `getDocs` metrik etiketleri tamamlandi.

@@ -193,6 +193,7 @@
                 flex-direction: column;
                 gap: 10px;
                 align-items: flex-start;
+                padding: 10px 12px;
             }
 
             .exam-header-right {
@@ -205,6 +206,32 @@
             .stats-badge {
                 width: 100%;
                 justify-content: space-between;
+                gap: 8px;
+                font-size: 0.86rem;
+            }
+
+            .timer-badge {
+                font-size: 1rem;
+                padding: 4px 10px;
+            }
+
+            .theme-toggle-btn {
+                display: none;
+            }
+        }
+
+        @media (max-width: 390px) {
+            .exam-header-left h2 {
+                font-size: 1.05rem;
+                line-height: 1.25;
+            }
+
+            .exam-header-left small {
+                font-size: 0.78rem;
+            }
+
+            .stats-badge {
+                font-size: 0.8rem;
             }
         }
     </style>

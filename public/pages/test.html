@@ -352,6 +352,7 @@
             display: flex;
             align-items: center;
             gap: 12px;
+            min-width: 0;
         }
 
         .score-item {
@@ -467,6 +468,7 @@
                 width: 100%;
                 justify-content: space-between;
                 gap: 8px;
+                min-width: 0;
             }
 
             /* Counters */
@@ -474,6 +476,15 @@
                 flex: 1;
                 gap: 4px;
                 justify-content: flex-start;
+                min-width: 0;
+                flex-wrap: nowrap;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: none;
+            }
+
+            .score-board::-webkit-scrollbar {
+                display: none;
             }
 
             .score-item {
@@ -482,6 +493,7 @@
                 background: transparent;
                 border: none;
                 font-weight: 700;
+                flex: 0 0 auto;
             }
 
             /* Hide less important actions */
@@ -517,6 +529,22 @@
             .sik-btn {
                 padding: 14px;
                 min-height: 50px;
+            }
+        }
+
+        @media (max-width: 390px) {
+            .test-header {
+                padding: 4px 8px;
+            }
+
+            .score-item {
+                font-size: 0.7rem;
+                padding: 2px 4px;
+            }
+
+            .mode-toggle-btn {
+                width: 32px;
+                height: 32px;
             }
         }
 
