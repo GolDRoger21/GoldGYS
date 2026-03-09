@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-03-09T21:10:07.296Z",
+  "generatedAt": "2026-03-09T21:20:50.787Z",
   "lastDate": "2026-03-09",
   "decision": "GO",
   "commit": "3d1174a",
@@ -39,10 +39,10 @@
     "userHome:cssGzipKb (1.11 kB headroom)",
     "userHome:jsGzipKb (1.32 kB headroom)"
   ],
-  "adminMessage": "Sistem su an yayin icin uygun.",
+  "adminMessage": "Sistem şu an yayın için uygun.",
   "recommendedActions": [
-    "Yayin oncesi son kontrol raporunu kayit altina alin.",
-    "Admin panelde Yayin Sagligi kartinin 'Yayin Uygun' oldugunu dogrulayin.",
-    "Yayin sonrasi ilk 30 dakikada hata ve bildirimleri takip edin."
+    "Yayın öncesi son kontrol raporunu kayıt altına alın.",
+    "Admin panelde Yayın Sağlığı kartının 'Yayın Uygun' olduğunu doğrulayın.",
+    "Yayın sonrası ilk 30 dakikada hata ve bildirimleri takip edin."
   ]
 }

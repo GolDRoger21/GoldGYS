@@ -117,20 +117,75 @@ body.sidebar-collapsed.admin-body .app-sidebar .nav-label {
 
 .dashboard-overview-grid {
     display: grid;
-    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+    grid-template-columns: repeat(12, minmax(0, 1fr));
     gap: 20px;
-}
-
-@media (max-width: 1024px) {
-    .dashboard-overview-grid {
-        grid-template-columns: 1fr;
-    }
 }
 
 .overview-main,
 .overview-side {
-    display: grid;
-    gap: 20px;
+    display: contents;
+}
+
+.dashboard-block {
+    margin-bottom: 0;
+}
+
+.block-trend {
+    grid-column: 1 / span 8;
+}
+
+.block-observability {
+    grid-column: 9 / span 4;
+}
+
+.block-users {
+    grid-column: 1 / span 6;
+}
+
+.block-reports {
+    grid-column: 7 / span 6;
+}
+
+.block-release {
+    grid-column: 1 / span 8;
+}
+
+.block-actions {
+    grid-column: 9 / span 4;
+}
+
+.block-system {
+    grid-column: 1 / span 12;
+}
+
+@media (max-width: 1200px) {
+    .dashboard-overview-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .block-trend,
+    .block-observability,
+    .block-users,
+    .block-reports,
+    .block-release,
+    .block-actions,
+    .block-system {
+        grid-column: auto;
+    }
+
+    .block-system {
+        grid-column: 1 / -1;
+    }
+}
+
+@media (max-width: 768px) {
+    .dashboard-overview-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .block-system {
+        grid-column: auto;
+    }
 }
 
 .card-header {
@@ -3397,6 +3452,10 @@ tr.highlight {
 
 .release-summary-note {
     margin-top: 10px;
+}
+
+[data-theme="dark"] .release-action-item {
+    background: color-mix(in srgb, var(--color-primary) 18%, transparent);
 }
 
 .release-decision-ok {

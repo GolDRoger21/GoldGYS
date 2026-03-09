@@ -123,32 +123,32 @@ const failingGates = Object.entries(gateStatuses)
   .filter(([, value]) => String(value).toUpperCase() !== "PASS")
   .map(([name]) => name);
 
-let adminMessage = "Yayin oncesi kontroller tamamlanmadi.";
+let adminMessage = "Yay\u0131n \u00f6ncesi kontroller tamamlanmad\u0131.";
 if (decision === "GO") {
-  adminMessage = "Sistem su an yayin icin uygun.";
+  adminMessage = "Sistem \u015fu an yay\u0131n i\u00e7in uygun.";
 } else if (decision === "NO-GO") {
-  adminMessage = "Yayin durduruldu: sorunlu kontroller duzeltilmeden yayin yapmayin.";
+  adminMessage = "Yay\u0131n durduruldu: sorunlu kontroller d\u00fczeltilmeden yay\u0131n yapmay\u0131n.";
 }
 
 const gateActionMap = {
-  ciChecks: "Temel kalite kontrolleri basarisiz. Teknik ekipten kontrol sonucu isteyin.",
-  modelStrict: "Icerik veri duzeni kurala uymuyor. Icerik kayitlarini kontrol ettirin.",
-  modelContract: "Icerik sistemi beklenen yapiyla uyusmuyor. Teknik ekip duzeltmesi gerekiyor.",
-  rules: "Guvenlik kurallari testinde sorun var. Yayin guvenligi icin teknik duzeltme gerekli.",
-  e2eCore: "Kritik kullanici akislari testinde sorun var. Yayin oncesi test duzeltilmeli."
+  ciChecks: "Temel kalite kontrolleri ba\u015far\u0131s\u0131z. Teknik ekipten kontrol sonucu isteyin.",
+  modelStrict: "\u0130\u00e7erik veri d\u00fczeni kurala uymuyor. \u0130\u00e7erik kay\u0131tlar\u0131n\u0131 kontrol ettirin.",
+  modelContract: "\u0130\u00e7erik sistemi beklenen yap\u0131yla uyu\u015fmuyor. Teknik ekip d\u00fczeltmesi gerekiyor.",
+  rules: "G\u00fcvenlik kurallar\u0131 testinde sorun var. Yay\u0131n g\u00fcvenli\u011fi i\u00e7in teknik d\u00fczeltme gerekli.",
+  e2eCore: "Kritik kullan\u0131c\u0131 ak\u0131\u015flar\u0131 testinde sorun var. Yay\u0131n \u00f6ncesi test d\u00fczeltilmeli."
 };
 
 const recommendedActions =
   decision === "GO"
     ? [
-        "Yayin oncesi son kontrol raporunu kayit altina alin.",
-        "Admin panelde Yayin Sagligi kartinin 'Yayin Uygun' oldugunu dogrulayin.",
-        "Yayin sonrasi ilk 30 dakikada hata ve bildirimleri takip edin."
+        "Yay\u0131n \u00f6ncesi son kontrol raporunu kay\u0131t alt\u0131na al\u0131n.",
+        "Admin panelde Yay\u0131n Sa\u011fl\u0131\u011f\u0131 kart\u0131n\u0131n 'Yay\u0131n Uygun' oldu\u011funu do\u011frulay\u0131n.",
+        "Yay\u0131n sonras\u0131 ilk 30 dakikada hata ve bildirimleri takip edin."
       ]
     : [
-        "Yayin yapmayin. Once sorunlu kontrollerin tamamini duzeltin.",
-        ...failingGates.map((gate) => gateActionMap[gate] || `${gate} gate duzeltmesi gerekli.`),
-        "Duzeltme sonrasi yayin karari tekrar alin."
+        "Yay\u0131n yapmay\u0131n. \u00d6nce sorunlu kontrollerin tamam\u0131n\u0131 d\u00fczeltin.",
+        ...failingGates.map((gate) => gateActionMap[gate] || `${gate} gate d\u00fczeltmesi gerekli.`),
+        "D\u00fczeltme sonras\u0131 yay\u0131n karar\u0131 tekrar al\u0131n."
       ];
 
 const publicPayload = {

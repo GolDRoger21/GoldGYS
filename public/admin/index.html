@@ -92,7 +92,7 @@
 
                     <div class="dashboard-overview-grid">
                         <div class="overview-main">
-                            <div class="card chart-card">
+                            <div class="card chart-card dashboard-block block-trend">
                                 <div class="card-header">
                                     <div>
                                         <h3>📈 Son 7 Gün Üye Katılımı</h3>
@@ -103,7 +103,7 @@
                                 <div class="chart-wrapper"><canvas id="usersChart"></canvas></div>
                             </div>
 
-                            <div class="card">
+                            <div class="card dashboard-block block-users">
                                 <div class="card-header">
                                     <div>
                                         <h3>🧑‍💻 Son Üyeler</h3>
@@ -128,7 +128,7 @@
                         </div>
 
                         <div class="overview-side">
-                            <div class="card overview-quick-actions">
+                            <div class="card overview-quick-actions dashboard-block block-actions">
                                 <h3>⚡ Hızlı İşlemler</h3>
                                 <p class="text-muted">Sık kullanılan yönetim aksiyonlarına tek tıkla erişin.</p>
                                 <div class="action-buttons">
@@ -141,7 +141,7 @@
                                 </div>
                             </div>
 
-                            <div class="card">
+                            <div class="card dashboard-block block-reports">
                                 <div class="card-header">
                                     <div>
                                         <h3>🚩 Son Bildirimler</h3>
@@ -164,18 +164,18 @@
                                 </div>
                             </div>
 
-                            <div class="card observability-card">
+                            <div class="card observability-card dashboard-block block-observability">
                                 <div class="card-header">
                                     <div>
-                                        <h3>Haftalik Kota Ozeti</h3>
-                                        <p class="text-muted" id="observabilityWeekLabel">Yerel olcum verisi</p>
+                                        <h3>Haftalık Kota Özeti</h3>
+                                        <p class="text-muted" id="observabilityWeekLabel">Yerel ölçüm verisi</p>
                                     </div>
                                     <span class="badge badge-secondary">Yerel</span>
                                 </div>
                                 <div class="observability-kpis">
                                     <div><span>Okuma</span><strong id="obsReadCount">0</strong></div>
                                     <div><span>Yazma</span><strong id="obsWriteCount">0</strong></div>
-                                    <div><span>Canli Dinleme</span><strong id="obsListenCount">0</strong></div>
+                                    <div><span>Canlı Dinleme</span><strong id="obsListenCount">0</strong></div>
                                 </div>
                                 <div class="table-responsive">
                                     <table class="admin-table compact-table">
@@ -184,23 +184,23 @@
                                                 <th>Veri Grubu</th>
                                                 <th>Okuma</th>
                                                 <th>Yazma</th>
-                                                <th>Canli Dinleme</th>
+                                                <th>Canlı Dinleme</th>
                                             </tr>
                                         </thead>
                                         <tbody id="observabilityCollectionsTbody"></tbody>
                                     </table>
                                 </div>
                             </div>
-                            <div class="card system-health">
-                                <h3>Yayin Sagligi</h3>
+                            <div class="card system-health dashboard-block block-release">
+                                <h3>Yayın Sağlığı</h3>
                                 <p class="text-muted" id="releaseHealthDate">Son kontrol: -</p>
                                 <div class="observability-kpis">
-                                    <div><span>Yayin Karari</span><strong id="releaseHealthDecision">BELIRSIZ</strong></div>
+                                    <div><span>Yayın Kararı</span><strong id="releaseHealthDecision">BELİRSİZ</strong></div>
                                     <div><span>Sorunlu Kontrol</span><strong id="releaseHealthFailingGates">-</strong></div>
-                                    <div><span>Kalan Performans Payi</span><strong id="releaseHealthHeadroom">-</strong></div>
+                                    <div><span>Kalan Performans Payı</span><strong id="releaseHealthHeadroom">-</strong></div>
                                 </div>
                                 <details class="release-details">
-                                    <summary>Kontrol Sonuclari</summary>
+                                    <summary>Kontrol Sonuçları</summary>
                                     <div class="release-chip-wrap" id="releaseHealthGateList">
                                         <span class="release-chip release-chip--info">Veri bekleniyor</span>
                                     </div>
@@ -212,15 +212,15 @@
                                     </div>
                                 </details>
                                 <details class="release-details" open>
-                                    <summary>Ne Yapmaliyim?</summary>
+                                    <summary>Ne Yapmalıyım?</summary>
                                     <div class="release-action-list" id="releaseHealthActionsList">
-                                        <div class="release-action-item">Aksiyon onerisi bekleniyor</div>
+                                        <div class="release-action-item">Aksiyon önerisi bekleniyor</div>
                                     </div>
                                 </details>
-                                <p class="text-muted release-summary-note" id="releaseHealthAction">Yonlendirme bekleniyor...</p>
+                                <p class="text-muted release-summary-note" id="releaseHealthAction">Yönlendirme bekleniyor...</p>
                             </div>
 
-                            <div class="card system-health">
+                            <div class="card system-health dashboard-block block-system">
                                 <h3>🟢 Sistem Özeti</h3>
                                 <ul class="status-list">
                                     <li><span class="status-dot status-success"></span>Sunucu ve hizmetler aktif</li>

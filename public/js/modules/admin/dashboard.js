@@ -441,10 +441,10 @@ function formatCollectionLabel(name) {
     const raw = String(name || "").trim();
     if (!raw || raw === "unknown") return "Bilinmeyen (etiketsiz)";
     const map = {
-        examAnnouncements: "Sinav duyurulari",
+        examAnnouncements: "Sınav duyuruları",
         announcements: "Duyurular",
-        "config.public": "Site genel ayarlari",
-        "users.exam_results": "Kullanici sinav sonuclari"
+        "config.public": "Site genel ayarları",
+        "users.exam_results": "Kullanıcı sınav sonuçları"
     };
     if (map[raw]) return map[raw];
     return raw.replace(/\./g, " / ");
@@ -457,7 +457,7 @@ function renderObservabilitySummary() {
         renderObservabilityCard(summary);
         writeDashboardCache({ observability: summary });
     } catch (error) {
-        console.warn('Observability ozeti render edilemedi:', error);
+        console.warn('Gözlemlenebilirlik özeti gösterilemedi:', error);
     }
 }
 
@@ -500,7 +500,7 @@ function renderReleaseHealthCard(summary) {
     decisionEl.classList.add(getDecisionClass(decision));
     failingGateEl.textContent = String(Number(summary?.failingGateCount || 0));
     headroomEl.textContent = formatHeadroomValue(summary?.budgetHeadroomKb?.total);
-    actionEl.textContent = String(summary?.adminMessage || "Release verisi bekleniyor.");
+    actionEl.textContent = String(summary?.adminMessage || "Yayın verisi bekleniyor.");
 
     const gateEntries = Object.entries(summary?.gateStatuses || {});
     const rows = gateEntries.map(([name, status]) => {
@@ -521,25 +521,25 @@ function renderReleaseHealthCard(summary) {
 
     const actions = Array.isArray(summary?.recommendedActions) ? summary.recommendedActions : [];
     const actionRows = actions.map((item) => `<div class="release-action-item">${item}</div>`).join("");
-    actionsListEl.innerHTML = actionRows || '<div class="release-action-item">Aksiyon onerisi yok</div>';
+    actionsListEl.innerHTML = actionRows || '<div class="release-action-item">Aksiyon önerisi yok</div>';
 }
 
 function formatGateLabel(name) {
     const map = {
         ciChecks: "Temel kalite kontrolleri",
-        modelStrict: "Icerik model denetimi (siki)",
-        modelContract: "Icerik model sozlesmesi",
-        rules: "Guvenlik kurallari testi",
-        e2eCore: "Kritik kullanici akislari testi"
+        modelStrict: "İçerik model denetimi (sıkı)",
+        modelContract: "İçerik model sözleşmesi",
+        rules: "Güvenlik kuralları testi",
+        e2eCore: "Kritik kullanıcı akışları testi"
     };
     return map[name] || name;
 }
 
 function formatGateStatus(status) {
     const normalized = String(status || "").toUpperCase();
-    if (normalized === "PASS") return "Basarili";
-    if (normalized === "FAIL") return "Basarisiz";
-    if (normalized === "SKIP") return "Atlandi";
+    if (normalized === "PASS") return "Başarılı";
+    if (normalized === "FAIL") return "Başarısız";
+    if (normalized === "SKIP") return "Atlandı";
     return "Bilinmiyor";
 }
 
@@ -551,7 +551,7 @@ function formatPhaseLabel(name) {
 
 function formatPhaseStatus(status) {
     const normalized = String(status || "").toUpperCase();
-    if (normalized === "COMPLETED") return "Tamamlandi";
+    if (normalized === "COMPLETED") return "Tamamlandı";
     if (normalized === "IN_PROGRESS") return "Devam ediyor";
     return "Bilinmiyor";
 }
@@ -564,8 +564,8 @@ function getChipClass(status) {
 }
 
 function formatDecisionLabel(decision) {
-    if (decision === "GO") return "Yayin Uygun";
-    if (decision === "NO-GO") return "Yayin Uygun Degil";
+    if (decision === "GO") return "Yayın Uygun";
+    if (decision === "NO-GO") return "Yayın Uygun Değil";
     return "Belirsiz";
 }
 
@@ -591,7 +591,7 @@ async function renderReleaseHealthSummary() {
         renderReleaseHealthCard(payload);
         writeDashboardCache({ releaseHealth: payload });
     } catch (error) {
-        console.warn("Release sagligi verisi alinamadi:", error);
+        console.warn("Yayın sağlığı verisi alınamadı:", error);
         if (!readDashboardCache()?.releaseHealth) {
             renderReleaseHealthCard({
                 decision: "UNKNOWN",
@@ -599,7 +599,7 @@ async function renderReleaseHealthSummary() {
                 failingGateCount: 0,
                 budgetHeadroomKb: { total: null },
                 gateStatuses: {},
-                adminMessage: "Yayin sagligi verisi henuz olusmadi. Teknik ekibin son kontrolu calistirmasi gerekiyor."
+                adminMessage: "Yayın sağlığı verisi henüz oluşmadı. Teknik ekibin son kontrolü çalıştırması gerekiyor."
             });
         }
     }
