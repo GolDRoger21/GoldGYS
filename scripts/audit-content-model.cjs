@@ -58,6 +58,10 @@ function scanFile(filePath) {
     /setDoc\s*\(\s*doc\s*\(\s*db\s*,\s*["']config["']\s*,\s*["']public["']\s*\)\s*,/g;
   const legalPageSetDocPattern =
     /setDoc\s*\(\s*doc\s*\(\s*db\s*,\s*["']legal_pages["']\s*,/g;
+  const announcementAddDocPattern =
+    /addDoc\s*\(\s*collection\s*\(\s*db\s*,\s*["']announcements["']\s*\)\s*,/g;
+  const examAnnouncementBatchSetPattern =
+    /batch\.set\s*\(\s*newDocRef\s*,/g;
 
   checkPattern(
     filePath,
@@ -107,6 +111,20 @@ function scanFile(filePath) {
     legalPageSetDocPattern,
     /applyLegalPageModelDefaults\s*\(/g,
     "legal_pages write appears without applyLegalPageModelDefaults(...) nearby."
+  );
+  checkPattern(
+    filePath,
+    content,
+    announcementAddDocPattern,
+    /applyAnnouncementModelDefaults\s*\(/g,
+    "announcements write appears without applyAnnouncementModelDefaults(...) nearby."
+  );
+  checkPattern(
+    filePath,
+    content,
+    examAnnouncementBatchSetPattern,
+    /applyExamAnnouncementModelDefaults\s*\(/g,
+    "examAnnouncements batch write appears without applyExamAnnouncementModelDefaults(...) nearby."
   );
 }
 

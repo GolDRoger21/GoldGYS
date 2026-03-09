@@ -1,0 +1,16 @@
+{
+  "environment": {
+    "device": "Moto G4 emulation",
+    "browser": "Chrome 123",
+    "network": "Fast 3G",
+    "tool": "Lighthouse CLI"
+  },
+  "user": {
+    "index": { "lcp": "2.1s", "inp": "120ms", "cls": "0.03" },
+    "konular": { "lcp": "2.4s", "inp": "140ms", "cls": "0.04" },
+    "konu": { "lcp": "2.6s", "inp": "160ms", "cls": "0.05" }
+  },
+  "admin": {
+    "index": { "lcp": "2.9s", "inp": "170ms", "cls": "0.06" }
+  }
+}

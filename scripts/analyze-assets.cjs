@@ -6,6 +6,7 @@ const zlib = require("zlib");
 const PUBLIC_DIR = path.join(__dirname, "..", "public");
 const BUDGETS_FILE = path.join(__dirname, "asset-budgets.json");
 const INCLUDE_EXT = new Set([".js", ".css", ".html", ".svg"]);
+const BUDGET_WARN_RATIO = 0.9;
 
 const DEFAULT_BUDGETS = Object.freeze({
   totalGzipKb: 450,
@@ -211,6 +212,8 @@ function getRouteEntrySummary(files, routeBudget) {
 function validateRouteBudgets(files, routeBudgets) {
   console.log("\nRoute budget check:");
   const failures = [];
+  const warnings = [];
+  const metrics = [];
 
   Object.entries(routeBudgets).forEach(([routeKey, config]) => {
     const summary = getRouteEntrySummary(files, config);
@@ -233,12 +236,23 @@ function validateRouteBudgets(files, routeBudgets) {
     checks.forEach((item) => {
       const isOk = item.actual <= item.limit;
       const status = isOk ? "OK" : "FAIL";
-      console.log(`    [${status}] ${item.label}: ${item.actual.toFixed(2)} / ${item.limit.toFixed(2)} kB`);
+      const headroom = item.limit - item.actual;
+      console.log(`    [${status}] ${item.label}: ${item.actual.toFixed(2)} / ${item.limit.toFixed(2)} kB | headroom: ${headroom.toFixed(2)} kB`);
       if (!isOk) failures.push(`${routeKey}:${item.label}`);
+      if (isOk && item.actual >= item.limit * BUDGET_WARN_RATIO) {
+        warnings.push(`${routeKey}:${item.label} (${item.actual.toFixed(2)}/${item.limit.toFixed(2)} kB)`);
+      }
+      metrics.push({
+        scope: routeKey,
+        label: item.label,
+        actual: item.actual,
+        limit: item.limit,
+        headroom
+      });
     });
   });
 
-  return failures;
+  return { failures, warnings, metrics };
 }
 
 function validateBudgets(summary, budgets) {
@@ -254,10 +268,21 @@ function validateBudgets(summary, budgets) {
   ];
 
   const failures = checks.filter((item) => item.actual > item.limit);
+  const warnings = checks.filter(
+    (item) => item.actual <= item.limit && item.actual >= item.limit * BUDGET_WARN_RATIO
+  );
+  const metrics = checks.map((item) => ({
+    scope: "global",
+    label: item.label,
+    actual: item.actual,
+    limit: item.limit,
+    headroom: item.limit - item.actual
+  }));
   console.log("\nAsset budget check:");
   checks.forEach((item) => {
     const status = item.actual <= item.limit ? "OK" : "FAIL";
-    console.log(`  [${status}] ${item.label}: ${item.actual.toFixed(2)} / ${item.limit.toFixed(2)} kB`);
+    const headroom = item.limit - item.actual;
+    console.log(`  [${status}] ${item.label}: ${item.actual.toFixed(2)} / ${item.limit.toFixed(2)} kB | headroom: ${headroom.toFixed(2)} kB`);
   });
 
   if (failures.length > 0 && summary.largestJs?.path) {
@@ -265,7 +290,11 @@ function validateBudgets(summary, budgets) {
     console.log(`  Largest JS file: ${relative} (${formatKb(summary.largestJs.gzip)} gzip)`);
   }
 
-  return failures;
+  return {
+    failures,
+    warnings: warnings.map((item) => `${item.label} (${item.actual.toFixed(2)}/${item.limit.toFixed(2)} kB)`),
+    metrics
+  };
 }
 
 if (!fs.existsSync(PUBLIC_DIR)) {
@@ -287,9 +316,25 @@ if (shouldAnalyze) {
 
 if (shouldCheckBudgets) {
   console.log(`\nBudget source: ${budgetConfig.source}`);
-  const failures = validateBudgets(summary, budgetConfig.global);
-  const routeFailures = validateRouteBudgets(files, budgetConfig.routes);
-  if (failures.length > 0 || routeFailures.length > 0) {
+  const globalResult = validateBudgets(summary, budgetConfig.global);
+  const routeResult = validateRouteBudgets(files, budgetConfig.routes);
+  const riskRanking = [...globalResult.metrics, ...routeResult.metrics]
+    .sort((a, b) => a.headroom - b.headroom)
+    .slice(0, 8);
+  if (riskRanking.length > 0) {
+    console.log("\nBudget risk ranking (lowest headroom first):");
+    riskRanking.forEach((item, index) => {
+      console.log(
+        `  ${index + 1}. ${item.scope}:${item.label} -> ${item.headroom.toFixed(2)} kB headroom`
+      );
+    });
+  }
+  if (globalResult.warnings.length > 0 || routeResult.warnings.length > 0) {
+    console.log("\nBudget near-limit warnings:");
+    globalResult.warnings.forEach((warning) => console.log(`  [WARN] global:${warning}`));
+    routeResult.warnings.forEach((warning) => console.log(`  [WARN] ${warning}`));
+  }
+  if (globalResult.failures.length > 0 || routeResult.failures.length > 0) {
     console.error("\nAsset budget check failed.");
     process.exit(1);
   }

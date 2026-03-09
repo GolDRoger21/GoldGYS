@@ -16,7 +16,14 @@ import {
     writeBatch,
     setDoc
 } from "../../firestore-metrics.js";
-import { applyConfigPublicModelDefaults, validateConfigPublicPayload } from "../../content-model.js";
+import {
+    applyAnnouncementModelDefaults,
+    applyConfigPublicModelDefaults,
+    applyExamAnnouncementModelDefaults,
+    validateAnnouncementPayload,
+    validateConfigPublicPayload,
+    validateExamAnnouncementPayload
+} from "../../content-model.js";
 
 const EXAM_LIST_LIMIT = 50;
 const ANNOUNCEMENT_LIST_LIMIT = 50;
@@ -207,7 +214,7 @@ async function handleExamSubmit(event) {
         }
 
         const newDocRef = doc(collectionRef);
-        batch.set(newDocRef, {
+        const examAnnouncementPayload = applyExamAnnouncementModelDefaults({
             title,
             description,
             examDate,
@@ -219,6 +226,12 @@ async function handleExamSubmit(event) {
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp()
         });
+        const examValidation = validateExamAnnouncementPayload(examAnnouncementPayload);
+        if (!examValidation.isValid) {
+            console.warn("[content-model] examAnnouncements payload warnings:", examValidation.warnings);
+            showToast(`Sema uyarisi: ${examValidation.warnings[0]}`, "warning");
+        }
+        batch.set(newDocRef, examAnnouncementPayload);
 
         await batch.commit();
         await bumpPublicCacheBuster();
@@ -336,7 +349,7 @@ async function handleAnnouncementSubmit(event) {
     }
 
     try {
-        await addDoc(collection(db, "announcements"), {
+        const announcementPayload = applyAnnouncementModelDefaults({
             title,
             body,
             level,
@@ -344,6 +357,12 @@ async function handleAnnouncementSubmit(event) {
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp()
         });
+        const validation = validateAnnouncementPayload(announcementPayload);
+        if (!validation.isValid) {
+            console.warn("[content-model] announcements payload warnings:", validation.warnings);
+            showToast(`Sema uyarisi: ${validation.warnings[0]}`, "warning");
+        }
+        await addDoc(collection(db, "announcements"), announcementPayload);
         await bumpPublicCacheBuster();
         showToast("Duyuru yayınlandı.", "success");
         event.target.reset();

@@ -69,7 +69,7 @@ Bu dokuman, mevcut faz planinin web/Firebase gercekleriyle uyumlu revize halidir
   - route bazinda toplam/js/css/max-single-asset esikleri
 
 - `scripts/audit-content-model.cjs`:
-  - question/topic/lesson/exam/config/legal_pages yazma noktalarinda model default helper kullanimi taranir
+  - question/topic/lesson/exam/config/legal_pages/announcements/examAnnouncements yazma noktalarinda model default helper kullanimi taranir
   - varsayilan: warning modu (non-breaking)
   - `--strict`: ihlallerde fail
 
@@ -80,8 +80,35 @@ Bu dokuman, mevcut faz planinin web/Firebase gercekleriyle uyumlu revize halidir
 ## Sonraki Operasyonel Adim
 
 Faz 4 tamamlama:
-1. Route budget esiklerini release gecmisine gore daralt.
-2. CWV olcum raporunu release checklistine bagla.
+1. Route budget esikleri release gecmisine gore daraltildi.
+2. CWV olcum raporu release checklistine baglandi (`docs/release-checklist.md`).
+
+## Faz Gecis Kapilari (Net Kriterler)
+
+Faz 3 -> Faz 4 gecis (sadelestirme tamam kabul):
+- `npm run ci:quick` PASS
+- `npm run audit:content-model:strict` PASS
+- Admin/user kritik akislarda tekrarli cache/query pattern'i icin acik P1 refactor maddesi kalmamis olmali
+
+Faz 4 -> Faz 5 gecis (performans guardrail aktif kabul):
+- `npm run check:budgets` PASS (global + route budget)
+- Release checklistte risk top-3 metriklerinin hicbiri negatif headroom olmamali
+- CWV kaydi en az bir olcum dongusunde checklist'e islenmis olmali (PENDING disi)
+
+Faz 5 -> Faz 6 gecis (tema/mobil sertlestirme tamam kabul):
+- Mobil kritik sayfalar (dashboard, konu, test, admin) icin blocker UI bug acik kalmamis olmali
+- Tema toggle ve state persistence regresyonu olmamali
+- Header/sidebar/dropdown erisilebilirlik semantik kontrolu (aria-expanded/aria-hidden) PASS
+
+Faz 6 -> Faz 7 gecis (test/guardrail tabani yeterli kabul):
+- Ana CI kapilari PASS (`ci:checks`, model strict, model contract)
+- Rules testi CI veya lokal full run'da PASS
+- Smoke core E2E PR kapisinda stabil (tekrarlayan flaky trend yok)
+
+Faz 7 mini kapanis (icerik buyumesi hazir kabul):
+- Model drift audit strict PASS
+- Dokuman boyutu soft-limit warning'leri izleme altinda (kritik akislarda buyuk payload yok)
+- Admin icerik yazma akislari standard helper kullaniminda hizalanmis
 
 ## Ilerleme Notu (2026-03-09)
 
@@ -140,6 +167,27 @@ Faz 4 tamamlama:
   - `scripts/analyze-assets.cjs` route-bazli ilk yukleme budget kontrolu eklendi.
   - User (`/index.html`) ve admin (`/admin/index.html`) akislari icin JS/CSS/total budget guardrail'i aktif.
   - `npm run check:budgets` ile CI seviyesinde fail/warn davranisi uygulanir.
+  - Budget warning eÅŸigi eklendi (limitin %90+ kullaniminda `near-limit` WARN raporu).
+  - Budget raporuna metrik bazli `headroom` (kalan pay, kB) ciktilari eklendi.
+  - Budget raporuna `risk ranking` eklendi (en dusuk headroom metrikleri ilk sirada).
+  - `scripts/asset-budgets.json` esikleri release bazina gore daraltildi:
+    - Global: total 410 -> 400, js 200 -> 190, css 55 -> 52, html 160 -> 155, maxSingleJs 30 -> 25
+    - userHome: total 15 -> 13, js 2 -> 1.5, css 11 -> 10, maxSingleAsset 8 -> 7.5
+    - adminDashboard: total 40 -> 35, js 8 -> 6, css 26 -> 24, maxSingleAsset 16 -> 14
+  - Release checklist otomasyonu eklendi:
+    - `npm run release:checklist` -> `docs/releases/release-checklist-YYYY-MM-DD.md`
+    - `npm run release:checklist:budget` -> budget ozeti + risk top-3 alanlarini otomatik doldurur
+    - `npm run release:checklist:cwv` -> CWV alanlarini snapshot dosyasindan (veya PENDING) doldurur
+    - `npm run release:checklist:cwv:encode` -> CWV snapshot dosyasini CI workflow input'u icin base64 uretir
+    - `npm run release:checklist:guardrails` -> build/guardrail sonuc alanlarini otomatik doldurur
+    - `npm run release:checklist:guardrails:full` -> build/guardrail sonuc alanlarini rules dahil doldurur
+    - `npm run release:checklist:quality` -> e2e/query/model kalite alanlarini otomatik doldurur
+    - `npm run release:checklist:quality:e2e` -> e2e core dahil kalite alanlarini doldurur
+    - `npm run release:checklist:phase-gates` -> Faz 3->4 / 4->5 / 6->7 gecis durumunu checklistten otomatik hesaplar
+    - `npm run release:checklist:decision` -> checklist sonuclarina gore GO/NO-GO karar satirini gunceller
+    - `npm run release:checklist:refresh` -> checklist + budget + guardrail alanlarini tek komutta gunceller
+    - `npm run release:checklist:refresh:full` -> checklist + budget + guardrail + quality alanlarini rules/e2e dahil gunceller
+    - GitHub Actions `Release Readiness` workflow'u ile manuel tetiklemede checklist artifact'i uretimi standardize edildi (`full_checks` + opsiyonel `cwv_snapshot_b64` secenegiyle)
 
 - Faz 5 (tema/mobil sertlestirme):
   - Tema state/toggle akisi `public/js/theme-manager.js` uzerinde merkezilestirildi.
@@ -179,7 +227,7 @@ Faz 4 tamamlama:
 - Faz 7 (icerik buyumesi hazirligi):
   - Ortak content model helper eklendi: `public/js/content-model.js`
     - question default alanlari merkezilestirildi: `version`, `status`, `visibility`
-    - topic, lesson, exam, config/public ve legal_pages default alanlari da ayni standartta merkezilestirildi
+    - topic, lesson, exam, config/public, legal_pages, announcements ve examAnnouncements default alanlari da ayni standartta merkezilestirildi
     - non-blocking payload validasyonu eklendi (uyari/log seviyesi)
     - buyuk payload icin soft limit warning (750KB) eklendi
   - Admin yazma akislari entegrasyonu:
@@ -189,5 +237,6 @@ Faz 4 tamamlama:
     - `public/js/modules/admin/exams.js`
     - `public/js/modules/admin/settings.js` (`config/public`, `legal_pages`)
     - `public/js/modules/admin/announcements.js` (`config/public` cache buster)
+    - `public/js/modules/admin/announcements.js` (`announcements`, `examAnnouncements`)
   - Veri modeli standard dokumani eklendi:
     - `docs/content-model-standard.md`

@@ -1,0 +1,102 @@
+name: Release Readiness
+
+on:
+  workflow_dispatch:
+    inputs:
+      full_checks:
+        description: "Run rules + core e2e checks"
+        required: true
+        default: false
+        type: boolean
+      cwv_snapshot_b64:
+        description: "Optional base64 JSON for scripts/cwv-snapshot.json"
+        required: false
+        type: string
+
+concurrency:
+  group: release-readiness-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  checklist:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Apply Optional CWV Snapshot
+        if: inputs.cwv_snapshot_b64 != ''
+        shell: bash
+        run: |
+          mkdir -p scripts
+          echo '${{ inputs.cwv_snapshot_b64 }}' | base64 --decode > scripts/cwv-snapshot.json
+
+      - name: Setup Java 21
+        if: inputs.full_checks == true
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Install Playwright Chromium
+        if: inputs.full_checks == true
+        run: npx playwright install --with-deps chromium
+
+      - name: Generate Release Checklist (Standard)
+        id: checklist_standard
+        if: inputs.full_checks != true
+        run: npm run release:checklist:refresh
+
+      - name: Generate Release Checklist (Full)
+        id: checklist_full
+        if: inputs.full_checks == true
+        run: npm run release:checklist:refresh:full
+
+      - name: Resolve Checklist Path
+        id: checklist_path
+        shell: bash
+        run: |
+          stamp="$(date +%F)"
+          file="docs/releases/release-checklist-${stamp}.md"
+          if [ ! -f "$file" ]; then
+            echo "Checklist not found: $file"
+            exit 1
+          fi
+          echo "file=$file" >> "$GITHUB_OUTPUT"
+
+      - name: Upload Checklist Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-checklist
+          path: ${{ steps.checklist_path.outputs.file }}
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Publish Release Readiness Summary
+        if: always()
+        run: |
+          {
+            echo "## Release Readiness Summary"
+            echo ""
+            echo "- Full checks: \`${{ inputs.full_checks }}\`"
+            if [ "${{ inputs.cwv_snapshot_b64 }}" != "" ]; then
+              echo "- CWV snapshot: provided (workflow input)"
+            else
+              echo "- CWV snapshot: not provided (PENDING values expected)"
+            fi
+            echo "- Standard checklist step: ${{ steps.checklist_standard.outcome }}"
+            echo "- Full checklist step: ${{ steps.checklist_full.outcome }}"
+            echo "- Checklist artifact: \`${{ steps.checklist_path.outputs.file }}\`"
+            echo ""
+            echo "Final job result: **${{ job.status }}**"
+          } >> "$GITHUB_STEP_SUMMARY"

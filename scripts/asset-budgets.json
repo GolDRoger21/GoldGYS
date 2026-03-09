@@ -1,25 +1,25 @@
 {
   "global": {
-    "totalGzipKb": 410,
-    "jsGzipKb": 200,
-    "cssGzipKb": 55,
-    "htmlGzipKb": 160,
-    "maxSingleJsGzipKb": 30
+    "totalGzipKb": 400,
+    "jsGzipKb": 190,
+    "cssGzipKb": 52,
+    "htmlGzipKb": 155,
+    "maxSingleJsGzipKb": 25
   },
   "routes": {
     "userHome": {
       "entryHtml": "/index.html",
-      "totalGzipKb": 15,
-      "jsGzipKb": 2,
-      "cssGzipKb": 11,
-      "maxSingleAssetGzipKb": 8
+      "totalGzipKb": 13,
+      "jsGzipKb": 1.5,
+      "cssGzipKb": 10,
+      "maxSingleAssetGzipKb": 7.5
     },
     "adminDashboard": {
       "entryHtml": "/admin/index.html",
-      "totalGzipKb": 40,
-      "jsGzipKb": 8,
-      "cssGzipKb": 26,
-      "maxSingleAssetGzipKb": 16
+      "totalGzipKb": 35,
+      "jsGzipKb": 6,
+      "cssGzipKb": 24,
+      "maxSingleAssetGzipKb": 14
     }
   }
 }

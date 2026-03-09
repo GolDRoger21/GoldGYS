@@ -36,6 +36,18 @@ export const LEGAL_PAGE_MODEL_DEFAULTS = Object.freeze({
   visibility: "public",
 });
 
+export const ANNOUNCEMENT_MODEL_DEFAULTS = Object.freeze({
+  version: CONTENT_SCHEMA_VERSION,
+  status: "active",
+  visibility: "public",
+});
+
+export const EXAM_ANNOUNCEMENT_MODEL_DEFAULTS = Object.freeze({
+  version: CONTENT_SCHEMA_VERSION,
+  status: "active",
+  visibility: "public",
+});
+
 const MAX_DOC_BYTES_SOFT_LIMIT = 750000;
 
 function estimatePayloadBytes(payload) {
@@ -86,6 +98,20 @@ export function applyLegalPageModelDefaults(payload = {}) {
   return {
     ...payload,
     ...LEGAL_PAGE_MODEL_DEFAULTS,
+  };
+}
+
+export function applyAnnouncementModelDefaults(payload = {}) {
+  return {
+    ...payload,
+    ...ANNOUNCEMENT_MODEL_DEFAULTS,
+  };
+}
+
+export function applyExamAnnouncementModelDefaults(payload = {}) {
+  return {
+    ...payload,
+    ...EXAM_ANNOUNCEMENT_MODEL_DEFAULTS,
   };
 }
 
@@ -214,6 +240,45 @@ export function validateLegalPagePayload(payload = {}) {
   }
   if (!String(payload.content || "").trim()) {
     warnings.push("content is empty.");
+  }
+
+  const sizeBytes = estimatePayloadBytes(payload);
+  if (sizeBytes > MAX_DOC_BYTES_SOFT_LIMIT) {
+    warnings.push(`payload size is high (${sizeBytes} bytes).`);
+  }
+
+  return {
+    isValid: warnings.length === 0,
+    warnings,
+    sizeBytes,
+  };
+}
+
+export function validateAnnouncementPayload(payload = {}) {
+  const warnings = [];
+  if (!String(payload.title || "").trim()) {
+    warnings.push("title is empty.");
+  }
+
+  const sizeBytes = estimatePayloadBytes(payload);
+  if (sizeBytes > MAX_DOC_BYTES_SOFT_LIMIT) {
+    warnings.push(`payload size is high (${sizeBytes} bytes).`);
+  }
+
+  return {
+    isValid: warnings.length === 0,
+    warnings,
+    sizeBytes,
+  };
+}
+
+export function validateExamAnnouncementPayload(payload = {}) {
+  const warnings = [];
+  if (!String(payload.title || "").trim()) {
+    warnings.push("title is empty.");
+  }
+  if (!payload.examDate) {
+    warnings.push("examDate is empty.");
   }
 
   const sizeBytes = estimatePayloadBytes(payload);

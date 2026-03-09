@@ -22,6 +22,8 @@ const requiredDefaults = [
   "EXAM_MODEL_DEFAULTS",
   "CONFIG_PUBLIC_MODEL_DEFAULTS",
   "LEGAL_PAGE_MODEL_DEFAULTS",
+  "ANNOUNCEMENT_MODEL_DEFAULTS",
+  "EXAM_ANNOUNCEMENT_MODEL_DEFAULTS",
 ];
 
 const requiredApplyFns = [
@@ -31,6 +33,8 @@ const requiredApplyFns = [
   "applyExamModelDefaults",
   "applyConfigPublicModelDefaults",
   "applyLegalPageModelDefaults",
+  "applyAnnouncementModelDefaults",
+  "applyExamAnnouncementModelDefaults",
 ];
 
 const requiredValidateFns = [
@@ -40,6 +44,8 @@ const requiredValidateFns = [
   "validateExamPayload",
   "validateConfigPublicPayload",
   "validateLegalPagePayload",
+  "validateAnnouncementPayload",
+  "validateExamAnnouncementPayload",
 ];
 
 for (const symbol of requiredDefaults) {

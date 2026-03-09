@@ -1,6 +1,6 @@
 # Gold GYS Content Model Standard (Faz 7 Baslangic)
 
-Bu dokuman, icerik buyume fazinda (topic/lesson/question/exam/config/legal_pages) alan standardini ve sorgu disiplini kurallarini tanimlar.
+Bu dokuman, icerik buyume fazinda (topic/lesson/question/exam/config/legal_pages/announcements/examAnnouncements) alan standardini ve sorgu disiplini kurallarini tanimlar.
 
 ## Ortak Zorunlu Alanlar
 
@@ -44,6 +44,23 @@ Bu dokuman, icerik buyume fazinda (topic/lesson/question/exam/config/legal_pages
 - `updatedBy`
 - ortak zorunlu alanlar
 
+## Announcement Model (Minimum)
+
+- `title`
+- `body`
+- `level`
+- `isActive`
+- ortak zorunlu alanlar
+
+## Exam Announcement Model (Minimum)
+
+- `title`
+- `examDate`
+- `isActive`
+- `applicationStart`
+- `applicationEnd`
+- ortak zorunlu alanlar
+
 ## Query ve Display Alan Ayrimi
 
 - Query field: filtre/siralama/sayfalama icin kullanilan alanlar
@@ -61,7 +78,7 @@ Bu dokuman, icerik buyume fazinda (topic/lesson/question/exam/config/legal_pages
 
 - `public/js/content-model.js` modulu:
   - question default alanlarini merkezilestirir
-  - topic, lesson, exam, config/public ve legal_pages default alanlarini merkezilestirir
+  - topic, lesson, exam, config/public, legal_pages, announcements ve examAnnouncements default alanlarini merkezilestirir
   - non-blocking payload validasyon warning'i uretir
   - davranis bozmayacak sekilde admin yazma akislarina entegre edilir
 - `scripts/audit-content-model.cjs`:
