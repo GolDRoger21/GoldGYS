@@ -1,5 +1,5 @@
 import { disposeDenemelerPage, initDenemelerPage } from "../../denemeler-page.js";
-import { injectScopedStyle } from "./shell-style-scope.js";
+import { injectScopedStyle, removeScopedStyle } from "./shell-style-scope.js";
 
 const DENEMELER_INLINE_STYLE_ID = "user-shell-denemeler-inline-style";
 const DENEMELER_SCOPE_SELECTOR = '.user-shell-view[data-route-key="denemeler"]';
@@ -69,6 +69,7 @@ export function createDenemelerShellModule({ viewEl }) {
         },
         async dispose() {
             disposeDenemelerPage();
+            removeScopedStyle(DENEMELER_INLINE_STYLE_ID);
         }
     };
 }

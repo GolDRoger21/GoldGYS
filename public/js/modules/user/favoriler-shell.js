@@ -1,5 +1,5 @@
 import { initFavorilerPage, disposeFavorilerPage } from "../../favoriler-page.js";
-import { injectScopedStyle } from "./shell-style-scope.js";
+import { injectScopedStyle, removeScopedStyle } from "./shell-style-scope.js";
 
 const FAVORILER_INLINE_STYLE_ID = "user-shell-favoriler-inline-style";
 const FAVORILER_SCOPE_SELECTOR = '.user-shell-view[data-route-key="favoriler"]';
@@ -68,6 +68,7 @@ export function createFavorilerShellModule({ viewEl }) {
         },
         async dispose() {
             disposeFavorilerPage();
+            removeScopedStyle(FAVORILER_INLINE_STYLE_ID);
         }
     };
 }

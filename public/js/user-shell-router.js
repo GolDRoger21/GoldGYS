@@ -569,6 +569,32 @@ function createShellViews() {
     return { shellMain, dashboardContainer, focusAnchor, liveRegion };
 }
 
+function getRouteViewElement(views, routeKey) {
+    if (!views) return null;
+    if (routeKey === "dashboard") return views.dashboardContainer;
+    return views.shellMain.querySelector(`.user-shell-view[data-route-key="${routeKey}"]`);
+}
+
+function setExclusiveRouteVisibility(views, activeRouteKey) {
+    const activeKey = ROUTES[activeRouteKey] ? activeRouteKey : "dashboard";
+    const dashboardView = views?.dashboardContainer;
+    if (dashboardView) {
+        dashboardView.hidden = activeKey !== "dashboard";
+    }
+
+    views?.shellMain?.querySelectorAll(".user-shell-view[data-route-key]").forEach((view) => {
+        const key = view.dataset.routeKey;
+        view.hidden = key !== activeKey;
+    });
+}
+
+function isRouteViewVisible(viewEl) {
+    if (!viewEl) return false;
+    if (viewEl.hidden) return false;
+    const style = window.getComputedStyle(viewEl);
+    return style.display !== "none" && style.visibility !== "hidden";
+}
+
 function setupNavInterception(navigateToRoute) {
     const clickHandler = (event) => {
         const link = event.target.closest("a");
@@ -787,6 +813,11 @@ export function initUserShellRouter(siteConfig) {
                     fallbackToLegacyPage(route, activationError);
                     return;
                 }
+                setExclusiveRouteVisibility(views, route.key);
+                const activeView = getRouteViewElement(views, route.key);
+                if (!isRouteViewVisible(activeView)) {
+                    throw new Error(`Route görünür değil: ${route.key}`);
+                }
                 currentRouteKey = route.key;
                 document.title = route.title;
                 markActiveNav(route.key);
@@ -827,6 +858,9 @@ export function initUserShellRouter(siteConfig) {
             } finally {
                 progress.stop();
             }
+        }).catch((error) => {
+            const route = ROUTES[nextRouteKey] || ROUTES.dashboard;
+            fallbackToLegacyPage(route, error);
         });
         return transitionPromise;
     };
@@ -867,6 +901,7 @@ export function initUserShellRouter(siteConfig) {
     });
 
     const initialRoute = getRouteFromHash();
+    setExclusiveRouteVisibility(views, initialRoute);
     setHashForRoute(initialRoute, { replace: !window.location.hash });
     void navigateToRoute(initialRoute, { preserveScroll: true });
     scheduleIdlePrefetch(modulesByKey);

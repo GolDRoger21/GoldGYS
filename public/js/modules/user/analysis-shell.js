@@ -78,6 +78,8 @@ export function createAnalysisShellModule({ viewEl }) {
         },
         async dispose() {
             disposeAnalysisPage();
+            const analysisStyle = document.getElementById(ANALYSIS_STYLE_ID);
+            if (analysisStyle) analysisStyle.remove();
         }
     };
 }

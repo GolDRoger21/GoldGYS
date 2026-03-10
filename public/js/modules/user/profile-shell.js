@@ -129,6 +129,8 @@ export function createProfileShellModule({ viewEl }) {
         async dispose() {
             clearSubscriptions();
             disposeProfilePage();
+            const profileStyle = document.getElementById(PROFILE_STYLE_ID);
+            if (profileStyle) profileStyle.remove();
         }
     };
 }

@@ -6,6 +6,19 @@
     width: 100%;
 }
 
+.dashboard-container[data-route-key="dashboard"] .welcome-section {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.dashboard-container[data-route-key="dashboard"] .welcome-text,
+.dashboard-container[data-route-key="dashboard"] .exam-countdown,
+.dashboard-container[data-route-key="dashboard"] .stat-card,
+.dashboard-container[data-route-key="dashboard"] .stat-info {
+    min-width: 0;
+}
+
 .section-header {
     display: flex;
     justify-content: space-between;

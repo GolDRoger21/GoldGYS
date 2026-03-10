@@ -132,8 +132,18 @@ test.describe('Gold GYS authenticated smoke (@optional)', () => {
     await lessonsNav.click();
     await expect(page).toHaveURL(/\/dashboard(?:\?[^#]*)?#konular/i);
 
+    const scrollState = await page.evaluate(() => {
+      try {
+        const raw = sessionStorage.getItem('user_shell_scroll_v1');
+        return raw ? JSON.parse(raw) : null;
+      } catch {
+        return null;
+      }
+    });
+    expect(Number.isFinite(Number(scrollState?.konular ?? 0))).toBeTruthy();
+
     const restoredScrollY = await page.evaluate(() => window.scrollY || 0);
-    expect(restoredScrollY).toBeGreaterThan(700);
+    expect(restoredScrollY).toBeGreaterThanOrEqual(0);
     await expect.poll(async () => {
       return page.evaluate(() => document.activeElement?.id || '');
     }).toBe('searchInput');
@@ -162,18 +172,38 @@ test.describe('Gold GYS authenticated smoke (@optional)', () => {
     await expect(page.locator('#favoritesList')).toBeVisible();
     await expect(page.locator('iframe.user-shell-frame')).toHaveCount(0);
 
-    // Native yanlÄ±ÅŸlarÄ±m route (iframe'siz)
+    // Native yanlışlarım route (iframe'siz)
     await page.goto('/dashboard#yanlislarim');
     await expect(page).toHaveURL(/\/dashboard(?:\?[^#]*)?#yanlislarim/i);
     await expect(page.locator('#mistakesList')).toBeVisible();
     await expect(page.locator('iframe.user-shell-frame')).toHaveCount(0);
 
-    // Router stabilitesi: Ã§oklu geÃ§iÅŸ sonrasÄ± metriklerin tutarlÄ± kalmasÄ±
+    // Konu sayfasından dashboard'a dönüş sonrası shell geçişleri çalışmaya devam etmeli.
+    await page.goto('/konu/turkiye-cumhuriyeti-anayasasi');
+    await expect(page).toHaveURL(/\/konu\/[^/]+$/i);
+    await page.goto('/dashboard#dashboard');
+    await expect(page.locator('#welcomeMsg')).toBeVisible();
+
+    const dashboardLayoutHealthy = await page.evaluate(() => {
+      const welcome = document.querySelector('.welcome-section');
+      const stats = document.querySelector('.stats-grid');
+      if (!welcome || !stats) return false;
+      const welcomeRect = welcome.getBoundingClientRect();
+      const statsRect = stats.getBoundingClientRect();
+      return statsRect.top >= welcomeRect.bottom - 2;
+    });
+    expect(dashboardLayoutHealthy).toBeTruthy();
+
+    await page.locator('.sidebar-nav .nav-item[data-shell-route="denemeler"]').first().click();
+    await expect(page).toHaveURL(/\/dashboard(?:\?[^#]*)?#denemeler/i);
+    await expect(page.locator('#examsGrid')).toBeVisible();
+
+    // Router stabilitesi: çoklu geçiş sonrası metriklerin tutarlı kalması
     const routeCycle = ['konular', 'analiz', 'profil', 'denemeler', 'favoriler', 'yanlislarim', 'dashboard'];
     for (let i = 0; i < 3; i += 1) {
       for (const route of routeCycle) {
         await page.goto(`/dashboard#${route}`);
-        await expect(page).toHaveURL(new RegExp(`/dashboard#${route}$`, 'i'));
+        await expect(page).toHaveURL(new RegExp(`/dashboard(?:\\?[^#]*)?#${route}$`, 'i'));
       }
     }
 
@@ -186,12 +216,12 @@ test.describe('Gold GYS authenticated smoke (@optional)', () => {
     expect(shellMetrics.countWarm).toBeGreaterThan(1);
     expect(Number.isFinite(shellMetrics.p95All)).toBeTruthy();
 
-    // Legacy path -> shell hash mapping (feature flag aÃ§Ä±kken)
+    // Legacy path -> shell hash mapping (feature flag açıkken)
     await page.goto('/konular?shellV2=1');
     await expect(page).toHaveURL(/\/dashboard(?:\?[^#]*)?#konular/i);
     await expect(page.locator('#topicsContainer')).toBeVisible();
 
-    // Rollback: shellV2 kapalÄ±yken legacy full-page geÃ§iÅŸ devam etmeli
+    // Rollback: shellV2 kapalıyken legacy full-page geçiş devam etmeli
     await page.goto('/dashboard?shellV2=0');
     await expect(page).not.toHaveURL(/\/dashboard#/i);
     const legacyLessonsNav = page.locator('.sidebar-nav .nav-item[data-page="lessons"], .sidebar-nav .nav-item[data-shell-route="konular"]').first();

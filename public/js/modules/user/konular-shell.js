@@ -1,5 +1,5 @@
 ﻿import { initKonularPage, disposeKonularPage } from "../../konular-page.js";
-import { injectScopedStyle } from "./shell-style-scope.js";
+import { injectScopedStyle, removeScopedStyle } from "./shell-style-scope.js";
 
 const KONULAR_INLINE_STYLE_ID = "user-shell-konular-inline-style";
 const KONULAR_SCOPE_SELECTOR = '.user-shell-view[data-route-key="konular"]';
@@ -68,6 +68,7 @@ export function createKonularShellModule({ viewEl }) {
         },
         async dispose() {
             disposeKonularPage();
+            removeScopedStyle(KONULAR_INLINE_STYLE_ID);
         }
     };
 }

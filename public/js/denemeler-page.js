@@ -1,4 +1,4 @@
-import { initLayout } from "./ui-loader.js";
+﻿import { initLayout } from "./ui-loader.js";
 import { db } from "./firebase-config.js";
 import { CacheManager } from "./cache-manager.js";
 import { collection, getDocs, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -22,7 +22,7 @@ const formatDate = (timestamp) => {
     });
 };
 
-const formatNumber = (value) => new Intl.NumberFormat("tr-TR").format(value);
+const formaTümür = (value) => new Intl.NumberFormat("tr-TR").format(value);
 
 const renderStats = (exams) => {
     const totalExams = exams.length;
@@ -36,7 +36,7 @@ const renderStats = (exams) => {
     const statLastUpdate = document.getElementById("statLastUpdate");
 
     if (statExamCount) statExamCount.textContent = totalExams;
-    if (statQuestionCount) statQuestionCount.textContent = formatNumber(totalQuestions || 0);
+    if (statQuestionCount) statQuestionCount.textContent = formaTümür(totalQuestions || 0);
     if (statAvgDuration) statAvgDuration.textContent = avgDuration ? `${avgDuration} dk` : "-";
     if (statLastUpdate) statLastUpdate.textContent = latestExam ? formatDate(latestExam.createdAt) : "-";
 };
@@ -221,3 +221,4 @@ export async function initDenemelerPage(options = {}) {
 document.addEventListener("DOMContentLoaded", () => {
     void initDenemelerPage();
 });
+

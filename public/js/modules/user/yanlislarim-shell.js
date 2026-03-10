@@ -1,5 +1,5 @@
 ﻿import { initYanlislarimPage, disposeYanlislarimPage } from "../../yanlislarim-page.js";
-import { injectScopedStyle } from "./shell-style-scope.js";
+import { injectScopedStyle, removeScopedStyle } from "./shell-style-scope.js";
 
 const YANLISLARIM_INLINE_STYLE_ID = "user-shell-yanlislarim-inline-style";
 const YANLISLARIM_SCOPE_SELECTOR = '.user-shell-view[data-route-key="yanlislarim"]';
@@ -68,6 +68,7 @@ export function createYanlislarimShellModule({ viewEl }) {
         },
         async dispose() {
             disposeYanlislarimPage();
+            removeScopedStyle(YANLISLARIM_INLINE_STYLE_ID);
         }
     };
 }

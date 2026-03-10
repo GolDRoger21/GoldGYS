@@ -696,6 +696,7 @@
         import { TopicService } from "/js/topic-service.js"; // Added Import
         import { CacheManager } from "/js/cache-manager.js";
         import { buildTopicPath, slugifyTopicTitle } from "/js/topic-url.js";
+        import { getSafeReturnUrl, normalizeReturnUrlForShell } from "/js/return-url.js";
         import { WrongSummaryService } from "/js/wrong-summary-service.js";
         import { resolveTheme, applyTheme, toggleTheme, syncThemeToggleIcon } from "/js/theme-manager.js";
         import { auth, db } from "/js/firebase-config.js";
@@ -1302,52 +1303,6 @@
                     const next = toggleTheme();
                     syncThemeToggleIcon(next, themeToggle);
                 });
-            }
-        }
-
-        function getSafeReturnUrl(rawValue, fallback) {
-            if (!rawValue) return fallback;
-            try {
-                const resolved = new URL(rawValue, window.location.origin);
-                if (resolved.origin === window.location.origin) {
-                    return `${resolved.pathname}${resolved.search}${resolved.hash}`;
-                }
-            } catch (e) {
-                return fallback;
-            }
-            return fallback;
-        }
-
-        function normalizeReturnUrlForShell(rawReturnUrl) {
-            if (!rawReturnUrl) return "/dashboard#dashboard";
-
-            const shellEnabled = localStorage.getItem("userShellV2") === "1";
-            if (!shellEnabled) return rawReturnUrl;
-
-            try {
-                const resolved = new URL(rawReturnUrl, window.location.origin);
-                const legacyToHash = {
-                    "/dashboard": "/dashboard#dashboard",
-                    "/konular": "/dashboard#konular",
-                    "/denemeler": "/dashboard#denemeler",
-                    "/yanlislarim": "/dashboard#yanlislarim",
-                    "/favoriler": "/dashboard#favoriler",
-                    "/analiz": "/dashboard#analiz",
-                    "/profil": "/dashboard#profil"
-                };
-
-                if (resolved.pathname === "/dashboard") {
-                    if (!resolved.hash) return "/dashboard#dashboard";
-                    return `${resolved.pathname}${resolved.search}${resolved.hash}`;
-                }
-
-                if (legacyToHash[resolved.pathname]) {
-                    return legacyToHash[resolved.pathname];
-                }
-
-                return `${resolved.pathname}${resolved.search}${resolved.hash}`;
-            } catch (_) {
-                return rawReturnUrl;
             }
         }
 

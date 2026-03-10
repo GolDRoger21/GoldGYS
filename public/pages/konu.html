@@ -2049,6 +2049,7 @@
     import { TopicService } from '../js/topic-service.js';
     import { showConfirm, showToast } from '../js/notifications.js';
     import { buildTopicPath, slugifyTopicTitle } from '../js/topic-url.js';
+    import { normalizeReturnUrlForShell } from '../js/return-url.js';
     import { doc, getDoc, collection, getDocs, query, orderBy, where, getCountFromServer, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
     import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
     import { CacheManager } from '../js/cache-manager.js';
@@ -2072,7 +2073,10 @@
         currentTopicId = await resolveTopicId(currentTopicSlug);
       }
 
-      if (!currentTopicId) return window.location.href = '/konular';
+      if (!currentTopicId) {
+        window.location.href = normalizeReturnUrlForShell('/konular', '/konular');
+        return;
+      }
 
       if (!window.location.pathname.startsWith('/konu/')) {
         window.history.replaceState({}, '', buildTopicPath(currentTopicId));
