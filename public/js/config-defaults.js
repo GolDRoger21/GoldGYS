@@ -49,7 +49,7 @@ export const DEFAULT_PUBLIC_CONFIG = {
   features: {
     maintenanceMode: false,
     allowRegistration: true,
-    userShellV2: false
+    userShellV2: true
   },
   examRules: {
     defaultDuration: 120,

@@ -113,6 +113,11 @@ test.describe('Gold GYS authenticated smoke (@optional)', () => {
     await analysisNav.click();
     await expect(page).toHaveURL(/\/dashboard#analiz/i);
 
+    await page.goBack();
+    await expect(page).toHaveURL(/\/dashboard#konular/i);
+    await page.goForward();
+    await expect(page).toHaveURL(/\/dashboard#analiz/i);
+
     await lessonsNav.click();
     await expect(page).toHaveURL(/\/dashboard#konular/i);
 
@@ -151,6 +156,24 @@ test.describe('Gold GYS authenticated smoke (@optional)', () => {
     await expect(page).toHaveURL(/\/dashboard#yanlislarim/i);
     await expect(page.locator('#mistakesList')).toBeVisible();
     await expect(page.locator('iframe.user-shell-frame')).toHaveCount(0);
+
+    // Router stabilitesi: çoklu geçiş sonrası metriklerin tutarlı kalması
+    const routeCycle = ['konular', 'analiz', 'profil', 'denemeler', 'favoriler', 'yanlislarim', 'dashboard'];
+    for (let i = 0; i < 3; i += 1) {
+      for (const route of routeCycle) {
+        await page.goto(`/dashboard#${route}`);
+        await expect(page).toHaveURL(new RegExp(`/dashboard#${route}$`, 'i'));
+      }
+    }
+
+    const shellMetrics = await page.evaluate(() => {
+      const read = window.__userShellMetrics?.getTransitionMetrics;
+      return typeof read === 'function' ? read() : null;
+    });
+    expect(shellMetrics).toBeTruthy();
+    expect(shellMetrics.countAll).toBeGreaterThan(15);
+    expect(shellMetrics.countWarm).toBeGreaterThan(1);
+    expect(Number.isFinite(shellMetrics.p95All)).toBeTruthy();
 
     // Rollback: shellV2 kapalıyken legacy full-page geçiş devam etmeli
     await page.goto('/dashboard?shellV2=0');

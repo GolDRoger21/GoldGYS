@@ -503,6 +503,7 @@ async function loadPublicConfigIntoForm() {
         // Features
         setFieldValue("settingsMaintenanceMode", config?.features?.maintenanceMode || false);
         setFieldValue("settingsAllowRegistration", config?.features?.allowRegistration !== false); // Default true if undefined
+        setFieldValue("settingsUserShellV2", config?.features?.userShellV2 !== false); // Default true if undefined
 
         // Exam Rules
         setFieldValue("examRuleDefaultDuration", config?.examRules?.defaultDuration || 120);
@@ -665,7 +666,8 @@ async function savePublicConfigFromForm() {
 
             features: {
                 maintenanceMode: getFieldValue("settingsMaintenanceMode"),
-                allowRegistration: getFieldValue("settingsAllowRegistration")
+                allowRegistration: getFieldValue("settingsAllowRegistration"),
+                userShellV2: getFieldValue("settingsUserShellV2")
             },
 
             examRules: {
