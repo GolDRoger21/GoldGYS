@@ -1,9 +1,10 @@
-import { analytics } from "./firebase-config.js";
+﻿import { analytics } from "./firebase-config.js";
 import { logEvent } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js";
 
 const SHELL_ROOT_PATH = "/dashboard";
 const SCROLL_STORAGE_KEY = "user_shell_scroll_v1";
 const PROGRESS_STYLE_ID = "user-shell-progress-style";
+const TRANSITION_METRICS_KEY = "user_shell_transition_metrics_v1";
 
 const ROUTES = {
     dashboard: {
@@ -24,8 +25,9 @@ const ROUTES = {
         legacyPath: "/konular",
         title: "Dersler | GOLD GYS",
         focusLabel: "Dersler",
+        focusTarget: "#searchInput",
         pageId: "lessons",
-        moduleKind: "iframe",
+        moduleKind: "native",
         prefetchPriority: "high",
         scrollPolicy: "restore"
     },
@@ -47,8 +49,9 @@ const ROUTES = {
         legacyPath: "/yanlislarim",
         title: "Yanlışlarım | GOLD GYS",
         focusLabel: "Yanlışlarım",
+        focusTarget: "#filteredCount",
         pageId: "mistakes",
-        moduleKind: "iframe",
+        moduleKind: "native",
         prefetchPriority: "low",
         scrollPolicy: "restore"
     },
@@ -58,8 +61,9 @@ const ROUTES = {
         legacyPath: "/favoriler",
         title: "Favoriler | GOLD GYS",
         focusLabel: "Favoriler",
+        focusTarget: "#filteredCount",
         pageId: "favorites",
-        moduleKind: "iframe",
+        moduleKind: "native",
         prefetchPriority: "low",
         scrollPolicy: "restore"
     },
@@ -173,6 +177,58 @@ function trackPageView(route) {
     } catch (error) {
         console.warn("User shell analytics gönderimi atlandı:", error);
     }
+}
+
+function readTransitionMetrics() {
+    try {
+        const raw = sessionStorage.getItem(TRANSITION_METRICS_KEY);
+        if (!raw) return { all: [], warm: [], cold: [] };
+        const parsed = JSON.parse(raw);
+        if (!parsed || typeof parsed !== "object") return { all: [], warm: [], cold: [] };
+        return {
+            all: Array.isArray(parsed.all) ? parsed.all : [],
+            warm: Array.isArray(parsed.warm) ? parsed.warm : [],
+            cold: Array.isArray(parsed.cold) ? parsed.cold : []
+        };
+    } catch {
+        return { all: [], warm: [], cold: [] };
+    }
+}
+
+function writeTransitionMetrics(metrics) {
+    try {
+        sessionStorage.setItem(TRANSITION_METRICS_KEY, JSON.stringify(metrics));
+    } catch {
+        // noop
+    }
+}
+
+function calculateP95(values) {
+    if (!Array.isArray(values) || values.length === 0) return 0;
+    const sorted = [...values].sort((a, b) => a - b);
+    const idx = Math.max(0, Math.min(sorted.length - 1, Math.ceil(sorted.length * 0.95) - 1));
+    return sorted[idx];
+}
+
+function updateTransitionMetrics(transitionMs, transitionType) {
+    const cap = 100;
+    const metrics = readTransitionMetrics();
+    metrics.all.push(transitionMs);
+    if (transitionType === "warm") metrics.warm.push(transitionMs);
+    if (transitionType === "cold") metrics.cold.push(transitionMs);
+    metrics.all = metrics.all.slice(-cap);
+    metrics.warm = metrics.warm.slice(-cap);
+    metrics.cold = metrics.cold.slice(-cap);
+    writeTransitionMetrics(metrics);
+
+    return {
+        p95All: calculateP95(metrics.all),
+        p95Warm: calculateP95(metrics.warm),
+        p95Cold: calculateP95(metrics.cold),
+        countAll: metrics.all.length,
+        countWarm: metrics.warm.length,
+        countCold: metrics.cold.length
+    };
 }
 
 function ensureProgressStyle() {
@@ -612,8 +668,14 @@ export function initUserShellRouter(siteConfig) {
         switch (routeKey) {
             case "analiz":
                 return import("./modules/user/analysis-shell.js").then((mod) => mod.createAnalysisShellModule);
+            case "konular":
+                return import("./modules/user/konular-shell.js").then((mod) => mod.createKonularShellModule);
             case "denemeler":
                 return import("./modules/user/denemeler-shell.js").then((mod) => mod.createDenemelerShellModule);
+            case "favoriler":
+                return import("./modules/user/favoriler-shell.js").then((mod) => mod.createFavorilerShellModule);
+            case "yanlislarim":
+                return import("./modules/user/yanlislarim-shell.js").then((mod) => mod.createYanlislarimShellModule);
             case "profil":
                 return import("./modules/user/profile-shell.js").then((mod) => mod.createProfileShellModule);
             default:
@@ -692,6 +754,7 @@ export function initUserShellRouter(siteConfig) {
             const previousModule = previousRouteKey ? modulesByKey.get(previousRouteKey) : null;
             const nextModule = modulesByKey.get(route.key);
             if (!nextModule) return;
+            const transitionType = nextModule.initialized ? "warm" : "cold";
 
             if (previousRouteKey && ROUTES[previousRouteKey]?.scrollPolicy === "restore") {
                 saveScroll(previousRouteKey);
@@ -715,11 +778,16 @@ export function initUserShellRouter(siteConfig) {
                 announceRouteForA11y(route);
                 trackPageView(route);
                 const transitionMs = Math.round(performance.now() - transitionStartedAt);
+                const transitionStats = updateTransitionMetrics(transitionMs, transitionType);
                 if (analytics) {
                     try {
                         logEvent(analytics, "user_shell_transition", {
                             route_key: route.key,
-                            transition_ms: transitionMs
+                            transition_ms: transitionMs,
+                            transition_type: transitionType,
+                            p95_ms_all: transitionStats.p95All,
+                            p95_ms_warm: transitionStats.p95Warm,
+                            p95_ms_cold: transitionStats.p95Cold
                         });
                     } catch {
                         // noop
@@ -791,3 +859,6 @@ export function initUserShellRouter(siteConfig) {
         }
     };
 }
+
+
+

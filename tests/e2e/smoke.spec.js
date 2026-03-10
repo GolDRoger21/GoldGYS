@@ -73,7 +73,7 @@ test.describe('Gold GYS smoke', () => {
 });
 
 test.describe('Gold GYS authenticated smoke (@optional)', () => {
-  test('authenticated user can traverse dashboard -> konular -> konu -> test and finish flow', async ({ browser, baseURL }) => {
+  test('authenticated user can traverse native dashboard shell routes', async ({ browser, baseURL }) => {
     const storageStatePath = resolveStorageStatePath(
       process.env.E2E_AUTH_STORAGE_STATE,
       'tests/e2e/.auth/user.json'
@@ -97,34 +97,30 @@ test.describe('Gold GYS authenticated smoke (@optional)', () => {
     await expect(lessonsNav).toBeVisible();
     await lessonsNav.click();
     await expect(page).toHaveURL(/\/dashboard#konular/i);
+    await expect(page.locator('#topicsContainer')).toBeVisible();
+    await expect(page.locator('iframe.user-shell-frame[title=\"Dersler\"]')).toHaveCount(0);
+    await expect(page).toHaveTitle(/Dersler \| GOLD GYS/i);
 
-    const topicFrame = page.frameLocator('iframe.user-shell-frame[title="Dersler"]');
-    const topicLink = topicFrame.locator('.topic-main-link').first();
-    await expect(topicLink).toBeVisible();
-    await topicLink.click();
+    // Scroll restore + focus transfer (native shell behavior)
+    await page.evaluate(() => {
+      document.documentElement.style.minHeight = '3200px';
+      document.body.style.minHeight = '3200px';
+      window.scrollTo({ top: 900, behavior: 'auto' });
+    });
 
+    const analysisNav = page.locator('.sidebar-nav .nav-item[data-shell-route="analiz"]').first();
+    await expect(analysisNav).toBeVisible();
+    await analysisNav.click();
+    await expect(page).toHaveURL(/\/dashboard#analiz/i);
+
+    await lessonsNav.click();
     await expect(page).toHaveURL(/\/dashboard#konular/i);
-    const topicDetailFrame = page.frameLocator('iframe.user-shell-frame[title="Dersler"]');
-    const modeButton = topicDetailFrame.locator('.mode-btn').first();
-    await expect(modeButton).toBeVisible();
-    await modeButton.click();
 
-    await expect(page).toHaveURL(/\/dashboard#konular/i);
-    await expect(topicDetailFrame.locator('#quizContainer')).toBeVisible();
-    const firstOption = topicDetailFrame.locator('.sik-btn').first();
-    await expect(firstOption).toBeVisible();
-    await firstOption.click();
-
-    const finishButton = topicDetailFrame.locator('#btnFinish');
-    await expect(finishButton).toBeVisible();
-    await finishButton.click();
-
-    const finishConfirmButton = topicDetailFrame.locator('#finishConfirmBtn');
-    await expect(finishConfirmButton).toBeVisible();
-    await finishConfirmButton.click();
-
-    await expect(topicDetailFrame.locator('#resultModal')).toBeVisible();
-    await expect(topicDetailFrame.locator('#resultText')).toBeVisible();
+    const restoredScrollY = await page.evaluate(() => window.scrollY || 0);
+    expect(restoredScrollY).toBeGreaterThan(700);
+    await expect.poll(async () => {
+      return page.evaluate(() => document.activeElement?.id || '');
+    }).toBe('searchInput');
 
     // Native profile route (iframe'siz)
     await page.goto('/dashboard#profil');
@@ -143,6 +139,18 @@ test.describe('Gold GYS authenticated smoke (@optional)', () => {
     await expect(page).toHaveURL(/\/dashboard#denemeler/i);
     await expect(page.locator('#examsGrid')).toBeVisible();
     await expect(page.locator('iframe.user-shell-frame[title=\"Denemeler\"]')).toHaveCount(0);
+
+    // Native favoriler route (iframe'siz)
+    await page.goto('/dashboard#favoriler');
+    await expect(page).toHaveURL(/\/dashboard#favoriler/i);
+    await expect(page.locator('#favoritesList')).toBeVisible();
+    await expect(page.locator('iframe.user-shell-frame[title=\"Favoriler\"]')).toHaveCount(0);
+
+    // Native yanlışlarım route (iframe'siz)
+    await page.goto('/dashboard#yanlislarim');
+    await expect(page).toHaveURL(/\/dashboard#yanlislarim/i);
+    await expect(page.locator('#mistakesList')).toBeVisible();
+    await expect(page.locator('iframe.user-shell-frame[title=\"Yanlışlarım\"]')).toHaveCount(0);
 
     await context.close();
   });
