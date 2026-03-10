@@ -263,7 +263,7 @@ function ensureProgressStyle() {
       }
       .user-shell-main {
         position: relative;
-        min-height: 60vh;
+        min-height: 0;
       }
       .user-shell-view {
         width: 100%;
@@ -938,6 +938,5 @@ export function initUserShellRouter(siteConfig) {
         }
     };
 }
-
 
 

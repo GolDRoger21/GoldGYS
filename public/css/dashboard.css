@@ -1571,3 +1571,113 @@
     -webkit-text-fill-color: initial;
     color: var(--text-main);
 }
+
+/* Shell V2 visual harmonization across user routes */
+.dashboard-container .tabs {
+    border-radius: 999px;
+    padding: 6px;
+    border: 1px solid var(--glass-border);
+    background: var(--glass-surface);
+    box-shadow: var(--shadow-sm);
+}
+
+.dashboard-container .tab-btn {
+    border-radius: 999px;
+    color: var(--text-muted);
+    font-weight: 700;
+}
+
+.dashboard-container .tab-btn:hover {
+    color: var(--text-main);
+    background: var(--bg-hover);
+}
+
+.dashboard-container .tab-btn.active {
+    color: var(--text-on-gold);
+    box-shadow: 0 8px 18px rgba(179, 135, 40, 0.24);
+}
+
+.dashboard-container .search-box input {
+    border-radius: 999px;
+    border: 1px solid var(--glass-border);
+    color: var(--text-main);
+}
+
+.dashboard-container .search-box input::placeholder {
+    color: var(--text-muted);
+}
+
+[data-theme="light"] .dashboard-container .search-box input {
+    background: rgba(255, 255, 255, 0.92);
+    color: #1f2937;
+    border-color: rgba(148, 163, 184, 0.45);
+}
+
+[data-theme="light"] .dashboard-container .search-box input::placeholder {
+    color: #64748b;
+}
+
+.dashboard-container .topic-card,
+.dashboard-container .subtopic-link,
+.dashboard-container .info-section,
+.dashboard-container .info-card,
+.dashboard-container .exam-card,
+.dashboard-container .favorite-stat-card,
+.dashboard-container .mistake-stat-card,
+.dashboard-container .favorites-filters,
+.dashboard-container .mistakes-filters,
+.dashboard-container .category-card,
+.dashboard-container .fav-card,
+.dashboard-container .mistake-card,
+.dashboard-container .favorites-hero,
+.dashboard-container .mistakes-hero,
+.dashboard-container .analysis-page .glass-card {
+    border-radius: 20px;
+    border: 1px solid var(--glass-border);
+    background: var(--glass-surface);
+    backdrop-filter: var(--glass-backdrop-filter);
+    -webkit-backdrop-filter: var(--glass-backdrop-filter);
+}
+
+.dashboard-container .subtopic-link {
+    border-radius: 14px;
+}
+
+.dashboard-container .topic-card:hover,
+.dashboard-container .subtopic-link:hover,
+.dashboard-container .exam-card:hover,
+.dashboard-container .category-card:hover,
+.dashboard-container .fav-card:hover,
+.dashboard-container .mistake-card:hover {
+    border-color: rgba(191, 149, 63, 0.45);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.22);
+}
+
+.dashboard-container .exam-card h3,
+.dashboard-container .category-card h4,
+.dashboard-container .mistake-card p,
+.dashboard-container .fav-detail-content p,
+.dashboard-container .topic-title,
+.dashboard-container .subtopic-title-wrap > span:last-child {
+    color: var(--text-main);
+}
+
+[data-theme="light"] .dashboard-container .topic-card,
+[data-theme="light"] .dashboard-container .subtopic-link,
+[data-theme="light"] .dashboard-container .info-section,
+[data-theme="light"] .dashboard-container .info-card,
+[data-theme="light"] .dashboard-container .exam-card,
+[data-theme="light"] .dashboard-container .favorite-stat-card,
+[data-theme="light"] .dashboard-container .mistake-stat-card,
+[data-theme="light"] .dashboard-container .favorites-filters,
+[data-theme="light"] .dashboard-container .mistakes-filters,
+[data-theme="light"] .dashboard-container .category-card,
+[data-theme="light"] .dashboard-container .fav-card,
+[data-theme="light"] .dashboard-container .mistake-card,
+[data-theme="light"] .dashboard-container .favorites-hero,
+[data-theme="light"] .dashboard-container .mistakes-hero,
+[data-theme="light"] .dashboard-container .analysis-page .glass-card {
+    background: rgba(255, 255, 255, 0.86);
+    border-color: rgba(15, 23, 42, 0.08);
+    box-shadow: var(--shadow-sm);
+}

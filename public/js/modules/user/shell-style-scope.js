@@ -13,6 +13,7 @@ const BLOCKED_DECLARATIONS = new Set([
 
 const GLOBAL_SELECTOR_RE = /^(:root|html|body)$/i;
 const GLOBAL_SELECTOR_PREFIX_RE = /^(html|body|:root)\b/i;
+const THEME_SELECTOR_PREFIX_RE = /^((?:html|body)?\s*\[data-theme[^\]]*\])/i;
 
 export function injectScopedStyle({ styleId, cssText, scopeSelector }) {
     if (!styleId || !cssText || !scopeSelector) return;
@@ -116,6 +117,10 @@ function sanitizeDeclarations(styleDecl, dropBlocked) {
 function scopeSelectorPart(selector, scopeSelector) {
     if (!selector) return null;
     if (selector.startsWith(scopeSelector)) return selector;
+    // Keep html/body data-theme root selectors valid after scoping.
+    if (THEME_SELECTOR_PREFIX_RE.test(selector)) {
+        return selector.replace(THEME_SELECTOR_PREFIX_RE, `$1 ${scopeSelector}`);
+    }
     if (GLOBAL_SELECTOR_RE.test(selector)) return scopeSelector;
     if (GLOBAL_SELECTOR_PREFIX_RE.test(selector)) {
         return selector.replace(GLOBAL_SELECTOR_PREFIX_RE, scopeSelector);
