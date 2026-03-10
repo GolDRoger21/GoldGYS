@@ -27,7 +27,11 @@ const state = {
     charts: { progress: null, topic: null }
 };
 
-document.addEventListener('DOMContentLoaded', () => {
+let analysisPageInitialized = false;
+
+export function initAnalysisPage() {
+    if (analysisPageInitialized) return;
+    analysisPageInitialized = true;
     onAuthStateChanged(auth, async (user) => {
         if (!user) {
             window.location.href = '/login.html';
@@ -37,6 +41,10 @@ document.addEventListener('DOMContentLoaded', () => {
         bindUIEvents();
         await initAnalysis(user.uid);
     });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    initAnalysisPage();
 });
 
 

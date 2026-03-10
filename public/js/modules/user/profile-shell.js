@@ -22,7 +22,7 @@ function renderProfileTemplate(viewEl) {
               <div class="avatar-placeholder" id="profileAvatarPlaceholder">?</div>
             </div>
 
-            <h2 id="profileNameMain" class="p-name">Yukleniyor...</h2>
+            <h2 id="profileNameMain" class="p-name">Yükleniyor...</h2>
             <p id="profileRoleMain" class="p-role">...</p>
 
             <div class="p-stats-row">
@@ -46,8 +46,8 @@ function renderProfileTemplate(viewEl) {
         <div class="profile-content-col">
           <div class="settings-card">
             <div class="tabs-header">
-              <button class="tab-link active" data-tab="personal">Kisisel Bilgiler</button>
-              <button class="tab-link" data-tab="security">Guvenlik</button>
+              <button class="tab-link active" data-tab="personal">Kişisel Bilgiler</button>
+              <button class="tab-link" data-tab="security">Güvenlik</button>
             </div>
 
             <div id="tab-personal" class="tab-body active">
@@ -59,18 +59,18 @@ function renderProfileTemplate(viewEl) {
                   <div class="form-group"><label>Telefon</label><input type="tel" id="inpPhone"></div>
                   <div class="form-group"><label>Unvan</label><input type="text" id="inpTitle"></div>
                   <div class="form-group">
-                    <label>Hedef Sinav</label>
+                    <label>Hedef Sınav</label>
                     <select id="inpExam">
-                      <option value="">Seciniz</option>
-                      <option value="Yazi Isleri Mudurlugu">Yazi Isleri Mudurlugu</option>
-                      <option value="Icra Mudurlugu">Icra Mudurlugu</option>
-                      <option value="Gorevde Yukselme">Gorevde Yukselme</option>
-                      <option value="Unvan Degisikligi">Unvan Degisikligi</option>
+                      <option value="">Seçiniz</option>
+                      <option value="Yazı İşleri Müdürlüğü">Yazı İşleri Müdürlüğü</option>
+                      <option value="İcra Müdürlüğü">İcra Müdürlüğü</option>
+                      <option value="Görevde Yükselme">Görevde Yükselme</option>
+                      <option value="Unvan Değişikliği">Unvan Değişikliği</option>
                     </select>
                   </div>
                 </div>
                 <div class="form-footer">
-                  <button type="submit" class="btn-primary">Degisiklikleri Kaydet</button>
+                  <button type="submit" class="btn-primary">Değişiklikleri Kaydet</button>
                   <span id="saveMessage" class="status-msg"></span>
                 </div>
               </form>
@@ -80,9 +80,9 @@ function renderProfileTemplate(viewEl) {
               <div class="security-alert-box">
                 <div class="security-icon" aria-hidden="true">&#128274;</div>
                 <div class="security-content">
-                  <h4>Sifre Yenileme</h4>
-                  <p>Guvenliginiz icin sifrenizi periyodik olarak degistirin.</p>
-                  <button id="btnResetPassword" class="btn-primary">Sifre Sifirlama E-postasi Gonder</button>
+                  <h4>Şifre Yenileme</h4>
+                  <p>Güvenliğiniz için şifrenizi periyodik olarak değiştirin.</p>
+                  <button id="btnResetPassword" class="btn-primary">Şifre Sıfırlama E-postası Gönder</button>
                 </div>
               </div>
             </div>

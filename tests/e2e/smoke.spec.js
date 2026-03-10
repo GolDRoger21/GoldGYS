@@ -132,6 +132,18 @@ test.describe('Gold GYS authenticated smoke (@optional)', () => {
     await expect(page.locator('#profileForm')).toBeVisible();
     await expect(page.locator('iframe.user-shell-frame[title=\"Profilim\"]')).toHaveCount(0);
 
+    // Native analysis route (iframe'siz)
+    await page.goto('/dashboard#analiz');
+    await expect(page).toHaveURL(/\/dashboard#analiz/i);
+    await expect(page.locator('#lastUpdate')).toBeVisible();
+    await expect(page.locator('iframe.user-shell-frame[title=\"Raporlar\"]')).toHaveCount(0);
+
+    // Native denemeler route (iframe'siz)
+    await page.goto('/dashboard#denemeler');
+    await expect(page).toHaveURL(/\/dashboard#denemeler/i);
+    await expect(page.locator('#examsGrid')).toBeVisible();
+    await expect(page.locator('iframe.user-shell-frame[title=\"Denemeler\"]')).toHaveCount(0);
+
     await context.close();
   });
 });

@@ -35,8 +35,9 @@ const ROUTES = {
         legacyPath: "/denemeler",
         title: "Denemeler | GOLD GYS",
         focusLabel: "Denemeler",
+        focusTarget: "#examCountNote",
         pageId: "trials",
-        moduleKind: "iframe",
+        moduleKind: "native",
         prefetchPriority: "high",
         scrollPolicy: "restore"
     },
@@ -68,8 +69,9 @@ const ROUTES = {
         legacyPath: "/analiz",
         title: "Raporlar | GOLD GYS",
         focusLabel: "Raporlar",
+        focusTarget: "#lastUpdate",
         pageId: "analysis",
-        moduleKind: "iframe",
+        moduleKind: "native",
         prefetchPriority: "high",
         scrollPolicy: "restore"
     },
@@ -567,7 +569,7 @@ function setupIntentPrefetch(modulesByKey) {
         prefetched.add(routeKey);
         void module.prefetch().catch((error) => {
             prefetched.delete(routeKey);
-            console.warn(`Intent prefetch atlandi (${routeKey})`, error);
+            console.warn(`Intent prefetch atlandı (${routeKey})`, error);
         });
     };
 
@@ -608,6 +610,10 @@ export function initUserShellRouter(siteConfig) {
 
     const loadNativeModuleFactory = (routeKey) => {
         switch (routeKey) {
+            case "analiz":
+                return import("./modules/user/analysis-shell.js").then((mod) => mod.createAnalysisShellModule);
+            case "denemeler":
+                return import("./modules/user/denemeler-shell.js").then((mod) => mod.createDenemelerShellModule);
             case "profil":
                 return import("./modules/user/profile-shell.js").then((mod) => mod.createProfileShellModule);
             default:
@@ -655,7 +661,27 @@ export function initUserShellRouter(siteConfig) {
 
     const announceRouteForA11y = (route) => {
         if (!views.liveRegion) return;
-        views.liveRegion.textContent = `${route.focusLabel} sayfasi acildi`;
+        views.liveRegion.textContent = `${route.focusLabel} sayfası açıldı`;
+    };
+
+    const fallbackToLegacyPage = (route, error) => {
+        console.error(`User shell route fallback (${route.key})`, error);
+        if (analytics) {
+            try {
+                logEvent(analytics, "user_shell_transition_error", {
+                    route_key: route.key,
+                    fallback_path: route.legacyPath
+                });
+            } catch {
+                // noop
+            }
+        }
+
+        const params = new URLSearchParams(window.location.search);
+        params.delete("shellV2");
+        const search = params.toString();
+        const fallbackUrl = `${route.legacyPath}${search ? `?${search}` : ""}`;
+        window.location.assign(fallbackUrl);
     };
 
     const navigateToRoute = (nextRouteKey, options = {}) => {
@@ -676,7 +702,12 @@ export function initUserShellRouter(siteConfig) {
                 if (previousModule && previousRouteKey !== route.key) {
                     await previousModule.deactivate();
                 }
-                await nextModule.activate();
+                try {
+                    await nextModule.activate();
+                } catch (activationError) {
+                    fallbackToLegacyPage(route, activationError);
+                    return;
+                }
                 currentRouteKey = route.key;
                 document.title = route.title;
                 markActiveNav(route.key);
