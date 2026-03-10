@@ -117,50 +117,40 @@ body.sidebar-collapsed.admin-body .app-sidebar .nav-label {
 
 .dashboard-overview-grid {
     display: grid;
-    grid-template-columns: repeat(12, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 2fr) minmax(320px, 1fr);
     gap: 20px;
+    align-items: start;
 }
 
 .overview-main,
 .overview-side {
-    display: contents;
+    display: grid;
+    gap: 20px;
+    align-content: start;
 }
 
 .dashboard-block {
     margin-bottom: 0;
 }
 
-.block-trend {
-    grid-column: 1 / span 8;
-}
-
-.block-observability {
-    grid-column: 9 / span 4;
-}
-
-.block-users {
-    grid-column: 1 / span 6;
-}
-
-.block-reports {
-    grid-column: 7 / span 6;
-}
-
-.block-release {
-    grid-column: 1 / span 8;
-}
-
-.block-actions {
-    grid-column: 9 / span 4;
-}
-
+.block-trend,
+.block-users,
+.block-reports,
+.block-release,
+.block-actions,
+.block-observability,
 .block-system {
-    grid-column: 1 / span 12;
+    grid-column: auto;
 }
 
 @media (max-width: 1200px) {
     .dashboard-overview-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .overview-main,
+    .overview-side {
+        display: contents;
     }
 
     .block-trend,

@@ -125,6 +125,28 @@
                                     </table>
                                 </div>
                             </div>
+                            <div class="card system-health dashboard-block block-release">
+                                <h3>Yayın Sağlığı</h3>
+                                <p class="text-muted" id="releaseHealthDate">Son kontrol: -</p>
+                                <div class="observability-kpis">
+                                    <div><span>Yayın Kararı</span><strong id="releaseHealthDecision">BELİRSİZ</strong></div>
+                                    <div><span>Sorunlu Kontrol</span><strong id="releaseHealthFailingGates">-</strong></div>
+                                    <div><span>Kalan Performans Payı</span><strong id="releaseHealthHeadroom">-</strong></div>
+                                </div>
+                                <details class="release-details" open>
+                                    <summary>Kontrol Sonuçları</summary>
+                                    <div class="release-chip-wrap" id="releaseHealthGateList">
+                                        <span class="release-chip release-chip--info">Veri bekleniyor</span>
+                                    </div>
+                                </details>
+                                <details class="release-details" open>
+                                    <summary>Ne Yapmalıyım?</summary>
+                                    <div class="release-action-list" id="releaseHealthActionsList">
+                                        <div class="release-action-item">Aksiyon önerisi bekleniyor</div>
+                                    </div>
+                                </details>
+                                <p class="text-muted release-summary-note" id="releaseHealthAction">Yönlendirme bekleniyor...</p>
+                            </div>
                         </div>
 
                         <div class="overview-side">
@@ -190,45 +212,6 @@
                                         <tbody id="observabilityCollectionsTbody"></tbody>
                                     </table>
                                 </div>
-                            </div>
-                            <div class="card system-health dashboard-block block-release">
-                                <h3>Yayın Sağlığı</h3>
-                                <p class="text-muted" id="releaseHealthDate">Son kontrol: -</p>
-                                <div class="observability-kpis">
-                                    <div><span>Yayın Kararı</span><strong id="releaseHealthDecision">BELİRSİZ</strong></div>
-                                    <div><span>Sorunlu Kontrol</span><strong id="releaseHealthFailingGates">-</strong></div>
-                                    <div><span>Kalan Performans Payı</span><strong id="releaseHealthHeadroom">-</strong></div>
-                                </div>
-                                <details class="release-details">
-                                    <summary>Kontrol Sonuçları</summary>
-                                    <div class="release-chip-wrap" id="releaseHealthGateList">
-                                        <span class="release-chip release-chip--info">Veri bekleniyor</span>
-                                    </div>
-                                </details>
-                                <details class="release-details">
-                                    <summary>Faz Durumu</summary>
-                                    <div class="release-chip-wrap" id="releaseHealthPhaseList">
-                                        <span class="release-chip release-chip--info">Veri bekleniyor</span>
-                                    </div>
-                                </details>
-                                <details class="release-details" open>
-                                    <summary>Ne Yapmalıyım?</summary>
-                                    <div class="release-action-list" id="releaseHealthActionsList">
-                                        <div class="release-action-item">Aksiyon önerisi bekleniyor</div>
-                                    </div>
-                                </details>
-                                <p class="text-muted release-summary-note" id="releaseHealthAction">Yönlendirme bekleniyor...</p>
-                            </div>
-
-                            <div class="card system-health dashboard-block block-system">
-                                <h3>🟢 Sistem Özeti</h3>
-                                <ul class="status-list">
-                                    <li><span class="status-dot status-success"></span>Sunucu ve hizmetler aktif</li>
-                                    <li><span class="status-dot status-info"></span>Yedekleme son 6 saat içinde alındı
-                                    </li>
-                                    <li><span class="status-dot status-warning"></span>Bildirim kuyruğunu kontrol edin
-                                    </li>
-                                </ul>
                             </div>
                         </div>
                     </div>

@@ -487,11 +487,10 @@ function renderReleaseHealthCard(summary) {
     const failingGateEl = document.getElementById("releaseHealthFailingGates");
     const headroomEl = document.getElementById("releaseHealthHeadroom");
     const gateListEl = document.getElementById("releaseHealthGateList");
-    const phaseListEl = document.getElementById("releaseHealthPhaseList");
     const actionsListEl = document.getElementById("releaseHealthActionsList");
     const actionEl = document.getElementById("releaseHealthAction");
 
-    if (!dateEl || !decisionEl || !failingGateEl || !headroomEl || !gateListEl || !phaseListEl || !actionsListEl || !actionEl) return;
+    if (!dateEl || !decisionEl || !failingGateEl || !headroomEl || !gateListEl || !actionsListEl || !actionEl) return;
 
     const decision = String(summary?.decision || "UNKNOWN").toUpperCase();
     dateEl.textContent = formatDateLabel(summary?.lastDate);
@@ -509,15 +508,6 @@ function renderReleaseHealthCard(summary) {
     }).join("");
 
     gateListEl.innerHTML = rows || '<span class="release-chip release-chip--info">Kontrol verisi yok</span>';
-
-    const phaseEntries = Object.entries(summary?.phases || {});
-    const phaseRows = phaseEntries.map(([phaseName, phaseStatus]) => {
-        const normalized = String(phaseStatus || "").toUpperCase();
-        const chipClass = normalized === "COMPLETED" ? "release-chip--ok" : "release-chip--warn";
-        return `<span class="release-chip ${chipClass}">${formatPhaseLabel(phaseName)}: ${formatPhaseStatus(phaseStatus)}</span>`;
-    }).join("");
-
-    phaseListEl.innerHTML = phaseRows || '<span class="release-chip release-chip--info">Faz verisi yok</span>';
 
     const actions = Array.isArray(summary?.recommendedActions) ? summary.recommendedActions : [];
     const actionRows = actions.map((item) => `<div class="release-action-item">${item}</div>`).join("");
@@ -543,18 +533,6 @@ function formatGateStatus(status) {
     return "Bilinmiyor";
 }
 
-function formatPhaseLabel(name) {
-    const m = String(name || "").match(/^phase(\d+)$/i);
-    if (!m) return name;
-    return `Faz ${m[1]}`;
-}
-
-function formatPhaseStatus(status) {
-    const normalized = String(status || "").toUpperCase();
-    if (normalized === "COMPLETED") return "Tamamlandı";
-    if (normalized === "IN_PROGRESS") return "Devam ediyor";
-    return "Bilinmiyor";
-}
 
 function getChipClass(status) {
     const normalized = String(status || "").toUpperCase();
