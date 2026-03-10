@@ -89,37 +89,42 @@ test.describe('Gold GYS authenticated smoke (@optional)', () => {
     });
     const page = await context.newPage();
 
-    await page.goto('/dashboard');
+    await page.goto('/dashboard?shellV2=1');
     await expect(page).not.toHaveURL(/login(\.html)?/i);
     await expect(page.locator('#welcomeMsg')).toBeVisible();
 
-    await page.goto('/konular');
-    await expect(page).not.toHaveURL(/login(\.html)?/i);
-    const topicLink = page.locator('.topic-main-link').first();
+    const lessonsNav = page.locator('.sidebar-nav .nav-item[data-shell-route="konular"]').first();
+    await expect(lessonsNav).toBeVisible();
+    await lessonsNav.click();
+    await expect(page).toHaveURL(/\/dashboard#konular/i);
+
+    const topicFrame = page.frameLocator('iframe.user-shell-frame[title="Dersler"]');
+    const topicLink = topicFrame.locator('.topic-main-link').first();
     await expect(topicLink).toBeVisible();
     await topicLink.click();
 
-    await expect(page).toHaveURL(/\/konu\//i);
-    const modeButton = page.locator('.mode-btn').first();
+    await expect(page).toHaveURL(/\/dashboard#konular/i);
+    const topicDetailFrame = page.frameLocator('iframe.user-shell-frame[title="Dersler"]');
+    const modeButton = topicDetailFrame.locator('.mode-btn').first();
     await expect(modeButton).toBeVisible();
     await modeButton.click();
 
-    await expect(page).toHaveURL(/\/test-coz\//i);
-    await expect(page.locator('#quizContainer')).toBeVisible();
-    const firstOption = page.locator('.sik-btn').first();
+    await expect(page).toHaveURL(/\/dashboard#konular/i);
+    await expect(topicDetailFrame.locator('#quizContainer')).toBeVisible();
+    const firstOption = topicDetailFrame.locator('.sik-btn').first();
     await expect(firstOption).toBeVisible();
     await firstOption.click();
 
-    const finishButton = page.locator('#btnFinish');
+    const finishButton = topicDetailFrame.locator('#btnFinish');
     await expect(finishButton).toBeVisible();
     await finishButton.click();
 
-    const finishConfirmButton = page.locator('#finishConfirmBtn');
+    const finishConfirmButton = topicDetailFrame.locator('#finishConfirmBtn');
     await expect(finishConfirmButton).toBeVisible();
     await finishConfirmButton.click();
 
-    await expect(page.locator('#resultModal')).toBeVisible();
-    await expect(page.locator('#resultText')).toBeVisible();
+    await expect(topicDetailFrame.locator('#resultModal')).toBeVisible();
+    await expect(topicDetailFrame.locator('#resultText')).toBeVisible();
 
     await context.close();
   });

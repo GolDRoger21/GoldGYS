@@ -5,6 +5,12 @@ import { showConfirm } from './notifications.js';
 import { applySiteConfigToDocument } from './site-config.js';
 import { initObservability } from './observability.js';
 import { resolveTheme, applyTheme, toggleTheme, syncThemeToggleIcon } from './theme-manager.js';
+import {
+    getLegacyRouteKey,
+    initUserShellRouter,
+    maybeRedirectLegacyPathToShell,
+    shouldSkipEmbeddedChrome
+} from './user-shell-router.js';
 
 const PAGE_CONFIG = {
     '/dashboard': { id: 'dashboard', title: 'Genel Bakış' },
@@ -26,6 +32,7 @@ const PAGE_CONFIG = {
 };
 
 let layoutInitPromise = null;
+let userShellRouter = null;
 
 function isPublicPath(pathname = window.location.pathname) {
     if (!pathname) return false;
@@ -47,13 +54,16 @@ export async function initLayout() {
 
     layoutInitPromise = (async () => {
         const path = window.location.pathname;
+        const isEmbeddedShellPage = shouldSkipEmbeddedChrome();
         initObservability();
         const isAdminPage = path.includes('/admin');
         const config = PAGE_CONFIG[path] || { id: 'unknown', title: 'Gold GYS' };
 
         try {
             // 1. HTML Parçalarını Yükle
-            await loadRequiredHTML(isAdminPage);
+            if (!isEmbeddedShellPage) {
+                await loadRequiredHTML(isAdminPage);
+            }
 
             // 2. Tema ve Sidebar Durumunu Yükle
             initThemeAndSidebar();
@@ -62,16 +72,25 @@ export async function initLayout() {
             await checkUserAuthState();
 
             // 4. Event Listener'ları Bağla
-            setupEventListeners();
+            if (!isEmbeddedShellPage) {
+                setupEventListeners();
+            }
 
             // 5. Aktif Menüyü İşaretle
-            setActiveMenuItem(config.id);
+            if (!isEmbeddedShellPage) {
+                setActiveMenuItem(config.id);
+            }
 
             // 6. Varsayılan başlığı ayarla
             document.title = `${config.title} | GOLD GYS`;
 
             // 7. Site ayarlarını uygula (örn. SEO override)
             const siteConfig = await applySiteConfigToDocument();
+
+            // Feature flag aktifse legacy route -> dashboard hash shell
+            if (!isAdminPage && !isEmbeddedShellPage && maybeRedirectLegacyPathToShell(siteConfig)) {
+                return true;
+            }
 
             // 8. Maintenance Mode Check
             if (siteConfig?.features?.maintenanceMode) {
@@ -102,6 +121,25 @@ export async function initLayout() {
             }
 
             // 9. Sayfayı Göster
+            // User shell router sadece dashboard kokunde aktif edilir
+            if (!isAdminPage && !isEmbeddedShellPage) {
+                userShellRouter = initUserShellRouter(siteConfig) || userShellRouter;
+                if (userShellRouter && window.location.pathname === '/dashboard') {
+                    const hashRoute = (window.location.hash || '').replace(/^#/, '');
+                    const routeKey = hashRoute || getLegacyRouteKey(window.location.pathname) || 'dashboard';
+                    const pageMap = {
+                        dashboard: 'dashboard',
+                        konular: 'lessons',
+                        denemeler: 'trials',
+                        yanlislarim: 'mistakes',
+                        favoriler: 'favorites',
+                        analiz: 'analysis',
+                        profil: 'profile'
+                    };
+                    setActiveMenuItem(pageMap[routeKey] || 'dashboard');
+                }
+            }
+
             document.body.style.visibility = 'visible';
 
             return true;
