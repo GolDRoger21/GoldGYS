@@ -12,7 +12,9 @@ const ROUTES = {
         legacyPath: "/dashboard",
         title: "Genel Bakış | GOLD GYS",
         focusLabel: "Genel Bakış",
+        focusTarget: "#welcomeMsg",
         pageId: "dashboard",
+        moduleKind: "dashboard",
         prefetchPriority: "low",
         scrollPolicy: "restore"
     },
@@ -23,6 +25,7 @@ const ROUTES = {
         title: "Dersler | GOLD GYS",
         focusLabel: "Dersler",
         pageId: "lessons",
+        moduleKind: "iframe",
         prefetchPriority: "high",
         scrollPolicy: "restore"
     },
@@ -33,6 +36,7 @@ const ROUTES = {
         title: "Denemeler | GOLD GYS",
         focusLabel: "Denemeler",
         pageId: "trials",
+        moduleKind: "iframe",
         prefetchPriority: "high",
         scrollPolicy: "restore"
     },
@@ -43,6 +47,7 @@ const ROUTES = {
         title: "Yanlışlarım | GOLD GYS",
         focusLabel: "Yanlışlarım",
         pageId: "mistakes",
+        moduleKind: "iframe",
         prefetchPriority: "low",
         scrollPolicy: "restore"
     },
@@ -53,6 +58,7 @@ const ROUTES = {
         title: "Favoriler | GOLD GYS",
         focusLabel: "Favoriler",
         pageId: "favorites",
+        moduleKind: "iframe",
         prefetchPriority: "low",
         scrollPolicy: "restore"
     },
@@ -63,6 +69,7 @@ const ROUTES = {
         title: "Raporlar | GOLD GYS",
         focusLabel: "Raporlar",
         pageId: "analysis",
+        moduleKind: "iframe",
         prefetchPriority: "high",
         scrollPolicy: "restore"
     },
@@ -72,7 +79,9 @@ const ROUTES = {
         legacyPath: "/profil",
         title: "Profilim | GOLD GYS",
         focusLabel: "Profilim",
+        focusTarget: "#profileNameMain",
         pageId: "profile",
+        moduleKind: "native",
         prefetchPriority: "low",
         scrollPolicy: "restore"
     }
@@ -217,6 +226,16 @@ function ensureProgressStyle() {
         height: 1px;
         overflow: hidden;
       }
+      .user-shell-live-region {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        margin: -1px;
+        padding: 0;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        border: 0;
+      }
     `;
     document.head.appendChild(style);
 }
@@ -344,6 +363,53 @@ class IframeModule extends BaseShellModule {
     }
 }
 
+class NativeModule extends BaseShellModule {
+    constructor(route, viewEl, moduleLoader) {
+        super(route);
+        this.viewEl = viewEl;
+        this.moduleLoader = moduleLoader;
+        this.impl = null;
+    }
+
+    async init() {
+        if (this.initialized) return;
+        await super.init();
+        this.impl = await this.moduleLoader({ route: this.route, viewEl: this.viewEl });
+        if (this.impl && typeof this.impl.init === "function") {
+            await this.impl.init();
+        }
+    }
+
+    async prefetch() {
+        if (!this.initialized) await this.init();
+    }
+
+    async activate() {
+        await super.activate();
+        if (!this.initialized) await this.init();
+        if (this.viewEl) this.viewEl.hidden = false;
+        if (this.impl && typeof this.impl.activate === "function") {
+            await this.impl.activate();
+        }
+    }
+
+    async deactivate() {
+        await super.deactivate();
+        if (this.impl && typeof this.impl.deactivate === "function") {
+            await this.impl.deactivate();
+        }
+        if (this.viewEl) this.viewEl.hidden = true;
+    }
+
+    async dispose() {
+        await super.dispose();
+        if (this.impl && typeof this.impl.dispose === "function") {
+            await this.impl.dispose();
+        }
+        this.impl = null;
+    }
+}
+
 function createProgressBar() {
     const bar = document.createElement("div");
     bar.className = "user-shell-progress";
@@ -413,6 +479,13 @@ function createShellViews() {
     focusAnchor.tabIndex = -1;
     shellMain.appendChild(focusAnchor);
 
+    const liveRegion = document.createElement("div");
+    liveRegion.id = "userShellLiveRegion";
+    liveRegion.className = "user-shell-live-region";
+    liveRegion.setAttribute("aria-live", "polite");
+    liveRegion.setAttribute("aria-atomic", "true");
+    shellMain.appendChild(liveRegion);
+
     Object.values(ROUTES).forEach((route) => {
         if (route.key === "dashboard") return;
         const view = document.createElement("section");
@@ -423,11 +496,11 @@ function createShellViews() {
     });
 
     dashboardContainer.parentElement.appendChild(shellMain);
-    return { shellMain, dashboardContainer, focusAnchor };
+    return { shellMain, dashboardContainer, focusAnchor, liveRegion };
 }
 
 function setupNavInterception(navigateToRoute) {
-    document.body.addEventListener("click", (event) => {
+    const clickHandler = (event) => {
         const link = event.target.closest("a");
         if (!link) return;
         if (link.target && link.target !== "_self") return;
@@ -443,7 +516,12 @@ function setupNavInterception(navigateToRoute) {
 
         event.preventDefault();
         navigateToRoute(targetKey);
-    });
+    };
+
+    document.body.addEventListener("click", clickHandler);
+    return () => {
+        document.body.removeEventListener("click", clickHandler);
+    };
 }
 
 function markActiveNav(routeKey) {
@@ -479,6 +557,41 @@ function scheduleIdlePrefetch(modulesByKey) {
     }
 }
 
+function setupIntentPrefetch(modulesByKey) {
+    const prefetched = new Set();
+
+    const prefetchRoute = (routeKey) => {
+        if (!routeKey || prefetched.has(routeKey)) return;
+        const module = modulesByKey.get(routeKey);
+        if (!module || typeof module.prefetch !== "function") return;
+        prefetched.add(routeKey);
+        void module.prefetch().catch((error) => {
+            prefetched.delete(routeKey);
+            console.warn(`Intent prefetch atlandi (${routeKey})`, error);
+        });
+    };
+
+    const handleMouseOver = (event) => {
+        const navItem = event.target.closest(".nav-item[data-shell-route]");
+        if (!navItem) return;
+        prefetchRoute(navItem.dataset.shellRoute);
+    };
+
+    const handleFocusIn = (event) => {
+        const navItem = event.target.closest(".nav-item[data-shell-route]");
+        if (!navItem) return;
+        prefetchRoute(navItem.dataset.shellRoute);
+    };
+
+    document.body.addEventListener("mouseover", handleMouseOver);
+    document.body.addEventListener("focusin", handleFocusIn);
+
+    return () => {
+        document.body.removeEventListener("mouseover", handleMouseOver);
+        document.body.removeEventListener("focusin", handleFocusIn);
+    };
+}
+
 export function initUserShellRouter(siteConfig) {
     const state = resolveUserShellState(siteConfig);
     if (!state.enabled || state.isEmbed) return null;
@@ -493,9 +606,28 @@ export function initUserShellRouter(siteConfig) {
     const dashboardModule = new DashboardModule(ROUTES.dashboard, views.dashboardContainer);
     modulesByKey.set("dashboard", dashboardModule);
 
+    const loadNativeModuleFactory = (routeKey) => {
+        switch (routeKey) {
+            case "profil":
+                return import("./modules/user/profile-shell.js").then((mod) => mod.createProfileShellModule);
+            default:
+                return null;
+        }
+    };
+
     Object.values(ROUTES).forEach((route) => {
         if (route.key === "dashboard") return;
         const viewEl = views.shellMain.querySelector(`.user-shell-view[data-route-key="${route.key}"]`);
+        if (route.moduleKind === "native") {
+            const nativeFactoryPromise = loadNativeModuleFactory(route.key);
+            if (nativeFactoryPromise) {
+                modulesByKey.set(route.key, new NativeModule(route, viewEl, async ({ route: rt, viewEl: el }) => {
+                    const nativeFactory = await nativeFactoryPromise;
+                    return nativeFactory({ route: rt, viewEl: el });
+                }));
+                return;
+            }
+        }
         modulesByKey.set(route.key, new IframeModule(route, viewEl));
     });
 
@@ -504,13 +636,31 @@ export function initUserShellRouter(siteConfig) {
     const frameByWindow = new WeakMap();
 
     const focusRouteAnchor = (route) => {
+        const routeView = route.key === "dashboard"
+            ? views.dashboardContainer
+            : views.shellMain.querySelector(`.user-shell-view[data-route-key="${route.key}"]`);
+        const target = route.focusTarget && routeView
+            ? routeView.querySelector(route.focusTarget)
+            : null;
+        if (target && typeof target.focus === "function") {
+            if (!target.hasAttribute("tabindex")) target.setAttribute("tabindex", "-1");
+            target.focus({ preventScroll: true });
+            return;
+        }
+
         if (!views.focusAnchor) return;
         views.focusAnchor.textContent = route.focusLabel;
         views.focusAnchor.focus({ preventScroll: true });
     };
 
+    const announceRouteForA11y = (route) => {
+        if (!views.liveRegion) return;
+        views.liveRegion.textContent = `${route.focusLabel} sayfasi acildi`;
+    };
+
     const navigateToRoute = (nextRouteKey, options = {}) => {
         transitionPromise = transitionPromise.then(async () => {
+            const transitionStartedAt = performance.now();
             const route = ROUTES[nextRouteKey] || ROUTES.dashboard;
             const previousRouteKey = currentRouteKey;
             const previousModule = previousRouteKey ? modulesByKey.get(previousRouteKey) : null;
@@ -531,7 +681,19 @@ export function initUserShellRouter(siteConfig) {
                 document.title = route.title;
                 markActiveNav(route.key);
                 focusRouteAnchor(route);
+                announceRouteForA11y(route);
                 trackPageView(route);
+                const transitionMs = Math.round(performance.now() - transitionStartedAt);
+                if (analytics) {
+                    try {
+                        logEvent(analytics, "user_shell_transition", {
+                            route_key: route.key,
+                            transition_ms: transitionMs
+                        });
+                    } catch {
+                        // noop
+                    }
+                }
                 if (ROUTES[route.key]?.scrollPolicy === "restore") {
                     restoreScroll(route.key);
                 } else if (!options.preserveScroll) {
@@ -556,14 +718,16 @@ export function initUserShellRouter(siteConfig) {
     };
     window.addEventListener("message", handleFrameMessage);
 
-    window.addEventListener("hashchange", () => {
+    const handleHashChange = () => {
         const routeKey = getRouteFromHash();
         void navigateToRoute(routeKey, { preserveScroll: true });
-    });
+    };
+    window.addEventListener("hashchange", handleHashChange);
 
-    setupNavInterception((routeKey) => {
+    const removeNavInterception = setupNavInterception((routeKey) => {
         setHashForRoute(routeKey);
     });
+    const removeIntentPrefetch = setupIntentPrefetch(modulesByKey);
 
     // iframe referansları hazır oldukça yükseklik eşlemesi için kaydet
     modulesByKey.forEach((module) => {
@@ -587,6 +751,9 @@ export function initUserShellRouter(siteConfig) {
         getCurrentRoute: () => currentRouteKey,
         dispose: async () => {
             window.removeEventListener("message", handleFrameMessage);
+            window.removeEventListener("hashchange", handleHashChange);
+            if (typeof removeNavInterception === "function") removeNavInterception();
+            if (typeof removeIntentPrefetch === "function") removeIntentPrefetch();
             for (const module of modulesByKey.values()) {
                 await module.dispose();
             }

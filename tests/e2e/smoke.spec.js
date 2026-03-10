@@ -126,6 +126,12 @@ test.describe('Gold GYS authenticated smoke (@optional)', () => {
     await expect(topicDetailFrame.locator('#resultModal')).toBeVisible();
     await expect(topicDetailFrame.locator('#resultText')).toBeVisible();
 
+    // Native profile route (iframe'siz)
+    await page.goto('/dashboard#profil');
+    await expect(page).toHaveURL(/\/dashboard#profil/i);
+    await expect(page.locator('#profileForm')).toBeVisible();
+    await expect(page.locator('iframe.user-shell-frame[title=\"Profilim\"]')).toHaveCount(0);
+
     await context.close();
   });
 });
