@@ -565,11 +565,6 @@ export function initUserShellRouter(siteConfig) {
         setHashForRoute(routeKey);
     });
 
-    const initialRoute = getRouteFromHash();
-    setHashForRoute(initialRoute, { replace: !window.location.hash });
-    void navigateToRoute(initialRoute, { preserveScroll: true });
-    scheduleIdlePrefetch(modulesByKey);
-
     // iframe referansları hazır oldukça yükseklik eşlemesi için kaydet
     modulesByKey.forEach((module) => {
         if (!(module instanceof IframeModule)) return;
@@ -581,6 +576,11 @@ export function initUserShellRouter(siteConfig) {
             }
         };
     });
+
+    const initialRoute = getRouteFromHash();
+    setHashForRoute(initialRoute, { replace: !window.location.hash });
+    void navigateToRoute(initialRoute, { preserveScroll: true });
+    scheduleIdlePrefetch(modulesByKey);
 
     return {
         navigate: (routeKey, options) => navigateToRoute(routeKey, options),
