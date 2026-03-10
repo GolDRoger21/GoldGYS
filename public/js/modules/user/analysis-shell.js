@@ -1,15 +1,23 @@
 import { disposeAnalysisPage, initAnalysisPage } from "../../analysis.js";
+import { injectScopedStyle, removeScopedStyle } from "./shell-style-scope.js";
 
-const ANALYSIS_STYLE_ID = "user-shell-analysis-style";
+const ANALYSIS_STYLE_ID = "user-shell-analysis-scoped-style";
 const ANALYSIS_CHART_SCRIPT_ID = "user-shell-analysis-chartjs";
+const ANALYSIS_SCOPE_SELECTOR = '.user-shell-view[data-route-key="analiz"]';
 
 async function ensureAnalysisStyles() {
     if (document.getElementById(ANALYSIS_STYLE_ID)) return;
-    const link = document.createElement("link");
-    link.id = ANALYSIS_STYLE_ID;
-    link.rel = "stylesheet";
-    link.href = "/css/analysis.css";
-    document.head.appendChild(link);
+
+    const response = await fetch("/css/analysis.css");
+    if (!response.ok) {
+        throw new Error(`Analiz stili yüklenemedi: HTTP ${response.status}`);
+    }
+    const cssText = await response.text();
+    injectScopedStyle({
+        styleId: ANALYSIS_STYLE_ID,
+        cssText,
+        scopeSelector: ANALYSIS_SCOPE_SELECTOR
+    });
 }
 
 async function ensureChartJs() {
@@ -78,8 +86,7 @@ export function createAnalysisShellModule({ viewEl }) {
         },
         async dispose() {
             disposeAnalysisPage();
-            const analysisStyle = document.getElementById(ANALYSIS_STYLE_ID);
-            if (analysisStyle) analysisStyle.remove();
+            removeScopedStyle(ANALYSIS_STYLE_ID);
         }
     };
 }

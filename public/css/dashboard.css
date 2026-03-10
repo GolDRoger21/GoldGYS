@@ -69,6 +69,9 @@
     margin-bottom: 8px;
     font-weight: 700;
     color: var(--text-main);
+    line-height: 1.2;
+    letter-spacing: 0.01em;
+    user-select: none;
 }
 
 [data-theme="light"] .welcome-text h1 {
@@ -128,6 +131,8 @@
 .stats-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    align-items: stretch;
+    grid-auto-rows: 1fr;
     gap: 24px;
     margin-bottom: 40px;
 }
@@ -140,6 +145,7 @@
     padding: 24px;
     display: flex;
     align-items: center;
+    min-height: 132px;
     gap: 16px;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
@@ -1556,7 +1562,6 @@
 }
 
 /* --- Luxury theme harmonization --- */
-.welcome-text h1,
 .exam-countdown .days {
     background: var(--text-gradient-gold, linear-gradient(135deg, var(--color-primary), var(--color-primary-dim)));
     -webkit-background-clip: text;

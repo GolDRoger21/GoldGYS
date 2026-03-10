@@ -1,14 +1,22 @@
 import { disposeProfilePage, initProfilePage } from "../../profile-page.js";
+import { injectScopedStyle, removeScopedStyle } from "./shell-style-scope.js";
 
-const PROFILE_STYLE_ID = "user-shell-profile-style";
+const PROFILE_STYLE_ID = "user-shell-profile-scoped-style";
+const PROFILE_SCOPE_SELECTOR = '.user-shell-view[data-route-key="profil"]';
 
-function ensureProfileStyles() {
+async function ensureProfileStyles() {
     if (document.getElementById(PROFILE_STYLE_ID)) return;
-    const link = document.createElement("link");
-    link.id = PROFILE_STYLE_ID;
-    link.rel = "stylesheet";
-    link.href = "/css/profile.css";
-    document.head.appendChild(link);
+
+    const response = await fetch("/css/profile.css");
+    if (!response.ok) {
+        throw new Error(`Profil stili yüklenemedi: HTTP ${response.status}`);
+    }
+    const cssText = await response.text();
+    injectScopedStyle({
+        styleId: PROFILE_STYLE_ID,
+        cssText,
+        scopeSelector: PROFILE_SCOPE_SELECTOR
+    });
 }
 
 function renderProfileTemplate(viewEl) {
@@ -113,7 +121,7 @@ export function createProfileShellModule({ viewEl }) {
         },
         async init() {
             if (initialized) return;
-            ensureProfileStyles();
+            await ensureProfileStyles();
             renderProfileTemplate(viewEl);
             initProfilePage();
             initialized = true;
@@ -129,8 +137,7 @@ export function createProfileShellModule({ viewEl }) {
         async dispose() {
             clearSubscriptions();
             disposeProfilePage();
-            const profileStyle = document.getElementById(PROFILE_STYLE_ID);
-            if (profileStyle) profileStyle.remove();
+            removeScopedStyle(PROFILE_STYLE_ID);
         }
     };
 }
