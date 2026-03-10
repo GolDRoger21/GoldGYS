@@ -1,4 +1,4 @@
-import { initDenemelerPage } from "../../denemeler-page.js";
+import { disposeDenemelerPage, initDenemelerPage } from "../../denemeler-page.js";
 
 const DENEMELER_INLINE_STYLE_ID = "user-shell-denemeler-inline-style";
 
@@ -65,7 +65,7 @@ export function createDenemelerShellModule({ viewEl }) {
             // Keep rendered DOM for warm transitions.
         },
         async dispose() {
-            // Intentionally keep state for quick re-entry.
+            disposeDenemelerPage();
         }
     };
 }

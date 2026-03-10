@@ -1,4 +1,4 @@
-import { initAnalysisPage } from "../../analysis.js";
+import { disposeAnalysisPage, initAnalysisPage } from "../../analysis.js";
 
 const ANALYSIS_STYLE_ID = "user-shell-analysis-style";
 const ANALYSIS_CHART_SCRIPT_ID = "user-shell-analysis-chartjs";
@@ -77,7 +77,7 @@ export function createAnalysisShellModule({ viewEl }) {
             // Analysis module keeps in-memory state for fast re-entry.
         },
         async dispose() {
-            // Intentionally no DOM teardown for warm transitions.
+            disposeAnalysisPage();
         }
     };
 }

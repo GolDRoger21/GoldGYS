@@ -28,11 +28,12 @@ const state = {
 };
 
 let analysisPageInitialized = false;
+let analysisAuthUnsubscribe = null;
 
 export function initAnalysisPage() {
     if (analysisPageInitialized) return;
     analysisPageInitialized = true;
-    onAuthStateChanged(auth, async (user) => {
+    analysisAuthUnsubscribe = onAuthStateChanged(auth, async (user) => {
         if (!user) {
             window.location.href = '/login.html';
             return;
@@ -46,6 +47,22 @@ export function initAnalysisPage() {
 document.addEventListener('DOMContentLoaded', () => {
     initAnalysisPage();
 });
+
+export function disposeAnalysisPage() {
+    if (typeof analysisAuthUnsubscribe === "function") {
+        analysisAuthUnsubscribe();
+        analysisAuthUnsubscribe = null;
+    }
+    if (state.charts.progress && typeof state.charts.progress.destroy === "function") {
+        state.charts.progress.destroy();
+        state.charts.progress = null;
+    }
+    if (state.charts.topic && typeof state.charts.topic.destroy === "function") {
+        state.charts.topic.destroy();
+        state.charts.topic = null;
+    }
+    analysisPageInitialized = false;
+}
 
 
 function getEffectiveTopics(topics = state.topics) {

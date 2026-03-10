@@ -774,6 +774,16 @@ export function initUserShellRouter(siteConfig) {
                 currentRouteKey = route.key;
                 document.title = route.title;
                 markActiveNav(route.key);
+                try {
+                    window.dispatchEvent(new CustomEvent("user-shell:route-changed", {
+                        detail: {
+                            routeKey: route.key,
+                            previousRouteKey
+                        }
+                    }));
+                } catch {
+                    // noop
+                }
                 focusRouteAnchor(route);
                 announceRouteForA11y(route);
                 trackPageView(route);

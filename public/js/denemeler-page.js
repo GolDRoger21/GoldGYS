@@ -9,6 +9,8 @@ const state = {
 
 let denemelerPageInitialized = false;
 let denemelerFiltersBound = false;
+let denemelerSearchHandler = null;
+let denemelerRoleHandler = null;
 
 const formatDate = (timestamp) => {
     if (!timestamp) return "-";
@@ -182,9 +184,26 @@ function bindFilterEvents() {
     const examSearch = document.getElementById("examSearch");
     const roleFilter = document.getElementById("roleFilter");
     if (!examSearch || !roleFilter) return;
-    examSearch.addEventListener("input", applyFilters);
-    roleFilter.addEventListener("change", applyFilters);
+    denemelerSearchHandler = () => applyFilters();
+    denemelerRoleHandler = () => applyFilters();
+    examSearch.addEventListener("input", denemelerSearchHandler);
+    roleFilter.addEventListener("change", denemelerRoleHandler);
     denemelerFiltersBound = true;
+}
+
+export function disposeDenemelerPage() {
+    const examSearch = document.getElementById("examSearch");
+    const roleFilter = document.getElementById("roleFilter");
+    if (examSearch && denemelerSearchHandler) {
+        examSearch.removeEventListener("input", denemelerSearchHandler);
+    }
+    if (roleFilter && denemelerRoleHandler) {
+        roleFilter.removeEventListener("change", denemelerRoleHandler);
+    }
+    denemelerSearchHandler = null;
+    denemelerRoleHandler = null;
+    denemelerFiltersBound = false;
+    denemelerPageInitialized = false;
 }
 
 export async function initDenemelerPage(options = {}) {

@@ -1,4 +1,4 @@
-import { initProfilePage } from "../../profile-page.js";
+import { disposeProfilePage, initProfilePage } from "../../profile-page.js";
 
 const PROFILE_STYLE_ID = "user-shell-profile-style";
 
@@ -128,6 +128,7 @@ export function createProfileShellModule({ viewEl }) {
         },
         async dispose() {
             clearSubscriptions();
+            disposeProfilePage();
         }
     };
 }

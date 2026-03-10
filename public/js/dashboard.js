@@ -40,6 +40,7 @@ let examCountdownInterval = null;
 let examAnnouncementUnsubscribe = null;
 let dashboardAnnouncementsUnsubscribe = null;
 let shellMetricsInterval = null;
+let shellRouteChangeHandler = null;
 
 
 const DASHBOARD_FEED_TTL = 6 * 60 * 60 * 1000; // 6 saat
@@ -263,6 +264,18 @@ function startShellMetricsPolling() {
     shellMetricsInterval = setInterval(renderShellTransitionMetrics, 2500);
 }
 
+function stopShellMetricsPolling() {
+    if (shellMetricsInterval) {
+        clearInterval(shellMetricsInterval);
+        shellMetricsInterval = null;
+    }
+}
+
+function isDashboardRouteActive() {
+    const hash = (window.location.hash || "").replace(/^#/, "").trim();
+    return !hash || hash === "dashboard";
+}
+
 document.addEventListener("DOMContentLoaded", async () => {
     try {
         if (ui.loaderText) ui.loaderText.textContent = "Sistem başlatılıyor...";
@@ -276,9 +289,10 @@ document.addEventListener("DOMContentLoaded", async () => {
             examAnnouncementUnsubscribe = null;
             safeUnsubscribe(dashboardAnnouncementsUnsubscribe);
             dashboardAnnouncementsUnsubscribe = null;
-            if (shellMetricsInterval) {
-                clearInterval(shellMetricsInterval);
-                shellMetricsInterval = null;
+            stopShellMetricsPolling();
+            if (shellRouteChangeHandler) {
+                window.removeEventListener("user-shell:route-changed", shellRouteChangeHandler);
+                shellRouteChangeHandler = null;
             }
         }, { once: true });
 
@@ -302,7 +316,20 @@ document.addEventListener("DOMContentLoaded", async () => {
             } catch (statsError) {
                 console.error("Dashboard istatistikleri yüklenemedi:", statsError);
             }
-            startShellMetricsPolling();
+            shellRouteChangeHandler = (event) => {
+                const routeKey = event?.detail?.routeKey;
+                if (routeKey === "dashboard") {
+                    startShellMetricsPolling();
+                } else {
+                    stopShellMetricsPolling();
+                }
+            };
+            window.addEventListener("user-shell:route-changed", shellRouteChangeHandler);
+            if (isDashboardRouteActive()) {
+                startShellMetricsPolling();
+            } else {
+                stopShellMetricsPolling();
+            }
 
             // Sınav ilanını, duyuruları ve aktiviteleri yükle
             let userData = {};

@@ -31,6 +31,8 @@ const getDom = () => ({
 });
 
 export function initProfilePage() {
+    if (initProfilePage.initialized) return;
+    initProfilePage.initialized = true;
     const user = auth.currentUser;
     if (user) {
         initTabs();
@@ -48,6 +50,14 @@ export function initProfilePage() {
             dom.btnResetPassword.onclick = () => handlePasswordReset(user.email);
         }
     }
+}
+initProfilePage.initialized = false;
+
+export function disposeProfilePage() {
+    const dom = getDom();
+    if (dom.profileForm) dom.profileForm.onsubmit = null;
+    if (dom.btnResetPassword) dom.btnResetPassword.onclick = null;
+    initProfilePage.initialized = false;
 }
 
 async function loadFullProfile(user) {
