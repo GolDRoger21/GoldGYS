@@ -478,17 +478,6 @@ function createProgressBar() {
     };
 }
 
-function resolveShouldEnableUserShell(siteConfig) {
-    const params = getQueryParams();
-    const forceDisable = params.get("shellV2") === "0";
-    if (forceDisable) return false;
-
-    const forceEnable = params.get("shellV2") === "1" || localStorage.getItem("userShellV2") === "1";
-    if (forceEnable) return true;
-
-    return siteConfig?.features?.userShellV2 === true;
-}
-
 function resolveUserShellReason(siteConfig) {
     const params = getQueryParams();
     if (isShellEmbedMode()) {
@@ -520,7 +509,7 @@ export function getLegacyRouteKey(pathname = getPathname()) {
 export function resolveUserShellState(siteConfig) {
     const stateReason = resolveUserShellReason(siteConfig);
     return {
-        enabled: resolveShouldEnableUserShell(siteConfig),
+        enabled: stateReason.enabled,
         source: stateReason.source,
         reason: stateReason.reason,
         isEmbed: isShellEmbedMode(),

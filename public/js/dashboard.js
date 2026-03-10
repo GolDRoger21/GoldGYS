@@ -235,10 +235,21 @@ function setShellPerfFallback(message = "Shell V2 Kapalı") {
     if (ui.shellAllCount) ui.shellAllCount.textContent = "0";
 }
 
+function resolveShellStatusMessage() {
+    const shellState = window.__userShellDebug;
+    if (!shellState || typeof shellState !== "object") return "Shell V2 Kapalı";
+    if (shellState.enabled === true) return "Veri Bekleniyor";
+
+    if (shellState.reason === "shellV2=0 override") return "Shell V2 Kapalı (URL Parametresi)";
+    if (shellState.reason === "siteConfig.features.userShellV2 is false") return "Shell V2 Kapalı (Özellik Bayrağı)";
+    if (shellState.reason === "shell embed mode active") return "Shell V2 Kapalı (Embed Modu)";
+    return "Shell V2 Kapalı";
+}
+
 function renderShellTransitionMetrics() {
     const metricsReader = window.__userShellMetrics?.getTransitionMetrics;
     if (typeof metricsReader !== "function") {
-        setShellPerfFallback("Shell V2 Kapalı");
+        setShellPerfFallback(resolveShellStatusMessage());
         return;
     }
 

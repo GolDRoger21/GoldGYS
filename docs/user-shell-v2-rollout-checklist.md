@@ -49,6 +49,9 @@
   - `page_view` (hash route geçişlerinde tekil)
   - `user_shell_transition`
   - hata durumunda `user_shell_transition_error`
+- Hızlı teşhis:
+  - tarayıcı konsolunda `window.__userShellDebug` çalıştır.
+  - `enabled=false` ise `reason` alanından kapanma sebebini doğrula.
 
 ## 6) Stabilization Watch (İlk 24 Saat)
 
