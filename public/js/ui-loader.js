@@ -140,6 +140,10 @@ export async function initLayout() {
                 }
             }
 
+            if (isEmbeddedShellPage) {
+                initShellEmbedBridge();
+            }
+
             document.body.style.visibility = 'visible';
 
             return true;
