@@ -114,7 +114,7 @@
 /* --- STATS GRID (Old Dashboard) --- */
 .stats-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
     gap: 24px;
     margin-bottom: 40px;
 }
@@ -128,6 +128,7 @@
     display: flex;
     align-items: center;
     gap: 16px;
+    min-height: 118px;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
@@ -194,6 +195,7 @@
     flex: 1;
     display: flex;
     flex-direction: column;
+    min-width: 0;
 }
 
 .stat-info h3 {
@@ -202,6 +204,8 @@
     margin-bottom: 6px;
     font-weight: 600;
     text-transform: uppercase;
+    line-height: 1.35;
+    word-break: break-word;
 }
 
 [data-theme="light"] .stat-info h3 {
@@ -1551,4 +1555,19 @@
     background-clip: text;
     -webkit-text-fill-color: transparent;
     color: transparent;
+}
+
+/* Router A11y focus: keep focus transfer without visual "selected text" effect */
+#welcomeMsg:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+/* Keep dashboard hero title stable and readable */
+.welcome-text h1 {
+    background: none;
+    -webkit-background-clip: initial;
+    background-clip: initial;
+    -webkit-text-fill-color: initial;
+    color: var(--text-main);
 }
