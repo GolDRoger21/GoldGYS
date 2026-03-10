@@ -1,4 +1,4 @@
-const { test, expect } = require('@playwright/test');
+﻿const { test, expect } = require('@playwright/test');
 const fs = require('fs');
 const path = require('path');
 
@@ -107,7 +107,7 @@ test.describe('Gold GYS authenticated smoke (@optional)', () => {
     const lessonsNav = page.locator('.sidebar-nav .nav-item[data-shell-route="konular"]').first();
     await expect(lessonsNav).toBeVisible();
     await lessonsNav.click();
-    await expect(page).toHaveURL(/\/dashboard#konular/i);
+    await expect(page).toHaveURL(/\/dashboard(?:\?[^#]*)?#konular/i);
     await expect(page.locator('#topicsContainer')).toBeVisible();
     await expect(page.locator('iframe.user-shell-frame[title=\"Dersler\"]')).toHaveCount(0);
     await expect(page).toHaveTitle(/Dersler \| GOLD GYS/i);
@@ -122,15 +122,15 @@ test.describe('Gold GYS authenticated smoke (@optional)', () => {
     const analysisNav = page.locator('.sidebar-nav .nav-item[data-shell-route="analiz"]').first();
     await expect(analysisNav).toBeVisible();
     await analysisNav.click();
-    await expect(page).toHaveURL(/\/dashboard#analiz/i);
+    await expect(page).toHaveURL(/\/dashboard(?:\?[^#]*)?#analiz/i);
 
     await page.goBack();
-    await expect(page).toHaveURL(/\/dashboard#konular/i);
+    await expect(page).toHaveURL(/\/dashboard(?:\?[^#]*)?#konular/i);
     await page.goForward();
-    await expect(page).toHaveURL(/\/dashboard#analiz/i);
+    await expect(page).toHaveURL(/\/dashboard(?:\?[^#]*)?#analiz/i);
 
     await lessonsNav.click();
-    await expect(page).toHaveURL(/\/dashboard#konular/i);
+    await expect(page).toHaveURL(/\/dashboard(?:\?[^#]*)?#konular/i);
 
     const restoredScrollY = await page.evaluate(() => window.scrollY || 0);
     expect(restoredScrollY).toBeGreaterThan(700);
@@ -140,35 +140,35 @@ test.describe('Gold GYS authenticated smoke (@optional)', () => {
 
     // Native profile route (iframe'siz)
     await page.goto('/dashboard#profil');
-    await expect(page).toHaveURL(/\/dashboard#profil/i);
+    await expect(page).toHaveURL(/\/dashboard(?:\?[^#]*)?#profil/i);
     await expect(page.locator('#profileForm')).toBeVisible();
     await expect(page.locator('iframe.user-shell-frame')).toHaveCount(0);
 
     // Native analysis route (iframe'siz)
     await page.goto('/dashboard#analiz');
-    await expect(page).toHaveURL(/\/dashboard#analiz/i);
+    await expect(page).toHaveURL(/\/dashboard(?:\?[^#]*)?#analiz/i);
     await expect(page.locator('#lastUpdate')).toBeVisible();
     await expect(page.locator('iframe.user-shell-frame')).toHaveCount(0);
 
     // Native denemeler route (iframe'siz)
     await page.goto('/dashboard#denemeler');
-    await expect(page).toHaveURL(/\/dashboard#denemeler/i);
+    await expect(page).toHaveURL(/\/dashboard(?:\?[^#]*)?#denemeler/i);
     await expect(page.locator('#examsGrid')).toBeVisible();
     await expect(page.locator('iframe.user-shell-frame')).toHaveCount(0);
 
     // Native favoriler route (iframe'siz)
     await page.goto('/dashboard#favoriler');
-    await expect(page).toHaveURL(/\/dashboard#favoriler/i);
+    await expect(page).toHaveURL(/\/dashboard(?:\?[^#]*)?#favoriler/i);
     await expect(page.locator('#favoritesList')).toBeVisible();
     await expect(page.locator('iframe.user-shell-frame')).toHaveCount(0);
 
-    // Native yanlışlarım route (iframe'siz)
+    // Native yanlÄ±ÅŸlarÄ±m route (iframe'siz)
     await page.goto('/dashboard#yanlislarim');
-    await expect(page).toHaveURL(/\/dashboard#yanlislarim/i);
+    await expect(page).toHaveURL(/\/dashboard(?:\?[^#]*)?#yanlislarim/i);
     await expect(page.locator('#mistakesList')).toBeVisible();
     await expect(page.locator('iframe.user-shell-frame')).toHaveCount(0);
 
-    // Router stabilitesi: çoklu geçiş sonrası metriklerin tutarlı kalması
+    // Router stabilitesi: Ã§oklu geÃ§iÅŸ sonrasÄ± metriklerin tutarlÄ± kalmasÄ±
     const routeCycle = ['konular', 'analiz', 'profil', 'denemeler', 'favoriler', 'yanlislarim', 'dashboard'];
     for (let i = 0; i < 3; i += 1) {
       for (const route of routeCycle) {
@@ -186,12 +186,12 @@ test.describe('Gold GYS authenticated smoke (@optional)', () => {
     expect(shellMetrics.countWarm).toBeGreaterThan(1);
     expect(Number.isFinite(shellMetrics.p95All)).toBeTruthy();
 
-    // Legacy path -> shell hash mapping (feature flag açıkken)
+    // Legacy path -> shell hash mapping (feature flag aÃ§Ä±kken)
     await page.goto('/konular?shellV2=1');
-    await expect(page).toHaveURL(/\/dashboard#konular/i);
+    await expect(page).toHaveURL(/\/dashboard(?:\?[^#]*)?#konular/i);
     await expect(page.locator('#topicsContainer')).toBeVisible();
 
-    // Rollback: shellV2 kapalıyken legacy full-page geçiş devam etmeli
+    // Rollback: shellV2 kapalÄ±yken legacy full-page geÃ§iÅŸ devam etmeli
     await page.goto('/dashboard?shellV2=0');
     await expect(page).not.toHaveURL(/\/dashboard#/i);
     const legacyLessonsNav = page.locator('.sidebar-nav .nav-item[data-page="lessons"], .sidebar-nav .nav-item[data-shell-route="konular"]').first();
@@ -228,16 +228,20 @@ test.describe('Gold GYS admin authenticated smoke (@optional)', () => {
     await expect(page.locator('#section-dashboard')).toBeVisible();
     await expect(page.locator('#statsGrid')).toBeVisible();
 
-    await page.goto('/admin/importer');
+    await page.goto('/admin#importer');
     await expect(page).not.toHaveURL(/login(\.html)?/i);
     await expect(page.locator('#section-importer')).toBeVisible();
 
     const usersTab = page.locator('.sidebar-nav .nav-item[data-tab="users"]').first();
     await expect(usersTab).toBeVisible();
     await usersTab.click();
+    await expect(page).toHaveURL(/\/admin#users/i);
     await expect(page.locator('#section-users')).toBeVisible();
 
     await context.close();
   });
 });
+
+
+
 

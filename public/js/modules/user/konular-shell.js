@@ -1,7 +1,5 @@
 ﻿import { initKonularPage, disposeKonularPage } from "../../konular-page.js";
 
-const KONULAR_INLINE_STYLE_ID = "user-shell-konular-inline-style";
-
 function ensureHeadAssets(parsedDoc) {
     if (!parsedDoc?.head) return;
 
@@ -17,15 +15,6 @@ function ensureHeadAssets(parsedDoc) {
         document.head.appendChild(clone);
     });
 
-    if (!document.getElementById(KONULAR_INLINE_STYLE_ID)) {
-        const styleSource = parsedDoc.head.querySelector("style");
-        if (styleSource?.textContent) {
-            const style = document.createElement("style");
-            style.id = KONULAR_INLINE_STYLE_ID;
-            style.textContent = styleSource.textContent;
-            document.head.appendChild(style);
-        }
-    }
 }
 
 async function renderTemplate(viewEl) {

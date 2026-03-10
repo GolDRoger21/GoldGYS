@@ -10,7 +10,7 @@ module.exports = {
     timeout: 10_000,
   },
   use: {
-    baseURL: process.env.E2E_BASE_URL || 'http://127.0.0.1:5000',
+    baseURL: process.env.E2E_BASE_URL || 'http://localhost:5000',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',

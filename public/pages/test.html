@@ -758,7 +758,7 @@
             const inferredReturnUrl = topicId
                 ? `/konu/${encodeURIComponent(topicId)}`
                 : '/denemeler';
-            const returnUrl = explicitReturnUrl || inferredReturnUrl;
+            const returnUrl = normalizeReturnUrlForShell(explicitReturnUrl || inferredReturnUrl);
 
             if (exitLink) exitLink.href = returnUrl;
             if (returnBtn) {
@@ -1316,6 +1316,39 @@
                 return fallback;
             }
             return fallback;
+        }
+
+        function normalizeReturnUrlForShell(rawReturnUrl) {
+            if (!rawReturnUrl) return "/dashboard#dashboard";
+
+            const shellEnabled = localStorage.getItem("userShellV2") === "1";
+            if (!shellEnabled) return rawReturnUrl;
+
+            try {
+                const resolved = new URL(rawReturnUrl, window.location.origin);
+                const legacyToHash = {
+                    "/dashboard": "/dashboard#dashboard",
+                    "/konular": "/dashboard#konular",
+                    "/denemeler": "/dashboard#denemeler",
+                    "/yanlislarim": "/dashboard#yanlislarim",
+                    "/favoriler": "/dashboard#favoriler",
+                    "/analiz": "/dashboard#analiz",
+                    "/profil": "/dashboard#profil"
+                };
+
+                if (resolved.pathname === "/dashboard") {
+                    if (!resolved.hash) return "/dashboard#dashboard";
+                    return `${resolved.pathname}${resolved.search}${resolved.hash}`;
+                }
+
+                if (legacyToHash[resolved.pathname]) {
+                    return legacyToHash[resolved.pathname];
+                }
+
+                return `${resolved.pathname}${resolved.search}${resolved.hash}`;
+            } catch (_) {
+                return rawReturnUrl;
+            }
         }
 
         function promptForModeSelection() {

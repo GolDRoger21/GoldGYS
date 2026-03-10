@@ -45,8 +45,11 @@
     "test:e2e:auth:prepare": "node scripts/prepare-e2e-auth-state.cjs",
     "test:e2e:auth:encode:user": "node scripts/encode-e2e-auth-state.cjs --in=tests/e2e/.auth/user.json",
     "test:e2e:auth:encode:admin": "node scripts/encode-e2e-auth-state.cjs --in=tests/e2e/.auth/admin.json",
-    "test:e2e:auth:capture:user": "firebase emulators:exec --only hosting \"node scripts/capture-e2e-storage-state.cjs --role=user --out=tests/e2e/.auth/user.json\"",
-    "test:e2e:auth:capture:admin": "firebase emulators:exec --only hosting \"node scripts/capture-e2e-storage-state.cjs --role=admin --out=tests/e2e/.auth/admin.json\"",
+    "test:e2e:auth:capture:user": "firebase emulators:exec --only hosting \"node scripts/capture-e2e-storage-state.cjs --role=user --base-url=http://localhost:5000 --browser-channel=chrome --out=tests/e2e/.auth/user.json\"",
+    "test:e2e:auth:capture:admin": "firebase emulators:exec --only hosting \"node scripts/capture-e2e-storage-state.cjs --role=admin --base-url=http://localhost:5000 --browser-channel=chrome --out=tests/e2e/.auth/admin.json\"",
+    "test:e2e:auth:capture:all": "node scripts/capture-e2e-auth-all.cjs",
+    "test:e2e:auth:capture:user:cdp": "firebase emulators:exec --only hosting \"node scripts/capture-e2e-storage-state-cdp.cjs --role=user --base-url=http://localhost:5000 --out=tests/e2e/.auth/user.json\"",
+    "test:e2e:auth:capture:admin:cdp": "firebase emulators:exec --only hosting \"node scripts/capture-e2e-storage-state-cdp.cjs --role=admin --base-url=http://localhost:5000 --out=tests/e2e/.auth/admin.json\"",
     "ci:checks": "npm run check:syntax && npm run check:budgets && npm run audit:queries",
     "ci:full": "npm run ci:checks && npm run test:rules",
     "ci:quick": "npm run check:syntax && npm run audit:queries && npm run audit:content-model && npm run test:content-model:contract"

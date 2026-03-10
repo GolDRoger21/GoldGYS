@@ -581,7 +581,11 @@ function setupNavInterception(navigateToRoute) {
         if (url.pathname !== SHELL_ROOT_PATH && !LEGACY_PATH_TO_ROUTE[url.pathname]) return;
         if (url.searchParams.get("shell") === "1") return;
 
-        const targetKey = LEGACY_PATH_TO_ROUTE[url.pathname] || (url.hash ? url.hash.replace(/^#/, "") : null);
+        const hashRouteKey = url.hash ? url.hash.replace(/^#/, "") : null;
+        const legacyRouteKey = LEGACY_PATH_TO_ROUTE[url.pathname] || null;
+        const targetKey = hashRouteKey && ROUTES[hashRouteKey]
+            ? hashRouteKey
+            : legacyRouteKey;
         if (!targetKey || !ROUTES[targetKey]) return;
 
         event.preventDefault();

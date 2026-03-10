@@ -34,6 +34,25 @@ const PAGE_CONFIG = {
 
 let layoutInitPromise = null;
 let userShellRouter = null;
+const USER_SHELL_ROUTE_TO_HASH = Object.freeze({
+    dashboard: "/dashboard#dashboard",
+    konular: "/dashboard#konular",
+    denemeler: "/dashboard#denemeler",
+    yanlislarim: "/dashboard#yanlislarim",
+    favoriler: "/dashboard#favoriler",
+    analiz: "/dashboard#analiz",
+    profil: "/dashboard#profil"
+});
+
+const USER_SHELL_LEGACY_TO_HASH = Object.freeze({
+    "/dashboard": "/dashboard#dashboard",
+    "/konular": "/dashboard#konular",
+    "/denemeler": "/dashboard#denemeler",
+    "/yanlislarim": "/dashboard#yanlislarim",
+    "/favoriler": "/dashboard#favoriler",
+    "/analiz": "/dashboard#analiz",
+    "/profil": "/dashboard#profil"
+});
 
 function isPublicPath(pathname = window.location.pathname) {
     if (!pathname) return false;
@@ -48,6 +67,38 @@ function isPublicPath(pathname = window.location.pathname) {
     if (normalizedPath.startsWith('/pages/legal/')) return true;
 
     return false;
+}
+
+function persistUserShellPreference(shellState) {
+    if (!shellState || typeof shellState !== "object") return;
+    if (shellState.reason === "shellV2=0 override") {
+        localStorage.removeItem("userShellV2");
+        return;
+    }
+    if (shellState.enabled === true) {
+        localStorage.setItem("userShellV2", "1");
+    }
+}
+
+function rewriteUserShellLinks(shellState) {
+    if (!shellState?.enabled) return;
+
+    Object.entries(USER_SHELL_LEGACY_TO_HASH).forEach(([legacyPath, hashUrl]) => {
+        document.querySelectorAll(`a[href="${legacyPath}"]`).forEach((anchor) => {
+            anchor.setAttribute("href", hashUrl);
+        });
+    });
+
+    document.querySelectorAll(".nav-item[data-shell-route]").forEach((navItem) => {
+        const routeKey = navItem.dataset.shellRoute;
+        const hashUrl = USER_SHELL_ROUTE_TO_HASH[routeKey];
+        if (!hashUrl) return;
+        navItem.setAttribute("href", hashUrl);
+    });
+
+    document.querySelectorAll('a.topic-back-btn[href="/konular"], a[href="/konular"][data-shell-route="konular"]').forEach((anchor) => {
+        anchor.setAttribute("href", USER_SHELL_ROUTE_TO_HASH.konular);
+    });
 }
 
 export async function initLayout() {
@@ -124,10 +175,13 @@ export async function initLayout() {
             // 9. Sayfayı Göster
             // User shell router sadece dashboard kokunde aktif edilir
             if (!isAdminPage && !isEmbeddedShellPage) {
+                const shellState = resolveUserShellState(siteConfig);
+                window.__userShellDebug = shellState;
+                persistUserShellPreference(shellState);
+                rewriteUserShellLinks(shellState);
+
                 userShellRouter = initUserShellRouter(siteConfig) || userShellRouter;
                 if (window.location.pathname === '/dashboard') {
-                    const shellState = resolveUserShellState(siteConfig);
-                    window.__userShellDebug = shellState;
                     if (!userShellRouter && !shellState.enabled) {
                         console.info('User Shell V2 devre dışı:', shellState.reason);
                     }

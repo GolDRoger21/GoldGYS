@@ -2446,7 +2446,8 @@
 
             const topicSlug = slugifyTopicTitle(topicTitle) || currentTopicId;
             const testSlug = slugifyTopicTitle(item.title) || item.id;
-            const testUrl = `/konu/${encodeURIComponent(topicSlug)}/test-coz/${encodeURIComponent(testSlug)}--${encodeURIComponent(item.id)}?mode=select`;
+            const returnParam = encodeURIComponent(`${window.location.pathname}${window.location.search || ''}`);
+            const testUrl = `/konu/${encodeURIComponent(topicSlug)}/test-coz/${encodeURIComponent(testSlug)}--${encodeURIComponent(item.id)}?mode=select&return=${returnParam}`;
 
             const isCompleted = validCompletedIds.has(item.id);
             const title = item.title || 'İsimsiz Test';
@@ -2965,7 +2966,8 @@
       // SEO-Friendly Smart Mode Link
       const filter = encodeURIComponent(mode);
       const topicSlug = slugifyTopicTitle(topicTitle) || currentTopicId;
-      window.location.href = `/konu/${encodeURIComponent(topicSlug)}/test-coz/serbest-calisma-modu--smart?filter=${filter}`;
+      const returnParam = encodeURIComponent(`${window.location.pathname}${window.location.search || ''}`);
+      window.location.href = `/konu/${encodeURIComponent(topicSlug)}/test-coz/serbest-calisma-modu--smart?filter=${filter}&return=${returnParam}`;
     };
 
     // --- MOBİL SEKMELER ---

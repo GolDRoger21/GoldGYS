@@ -7,7 +7,8 @@ const { chromium } = require("@playwright/test");
 const DEFAULTS = {
   role: "user",
   out: "tests/e2e/.auth/user.json",
-  baseUrl: "http://127.0.0.1:5000"
+  baseUrl: "http://localhost:5000",
+  browserChannel: "chrome"
 };
 
 function parseArgs(argv) {
@@ -21,6 +22,7 @@ function parseArgs(argv) {
     if (key === "role") args.role = value;
     if (key === "out") args.out = value;
     if (key === "base-url") args.baseUrl = value;
+    if (key === "browser-channel") args.browserChannel = value;
   });
   return args;
 }
@@ -58,33 +60,50 @@ async function run() {
   }
 
   const outputPath = path.resolve(process.cwd(), args.out);
+  const loginUrl = new URL("/login.html", args.baseUrl).toString();
   const targetUrl = new URL(getTargetPath(role), args.baseUrl).toString();
   fs.mkdirSync(path.dirname(outputPath), { recursive: true });
 
+  if (!process.stdin.isTTY) {
+    console.error("[capture] Etkileşimli terminal bulunamadı. Bu komut manuel giriş gerektirir.");
+    console.error("[capture] Yerel terminalde şu komutu çalıştırın:");
+    console.error(`  node scripts/capture-e2e-storage-state.cjs --role=${role} --out=${args.out}`);
+    process.exit(1);
+  }
+
   console.log(`[capture] role=${role}`);
+  console.log(`[capture] login=${loginUrl}`);
   console.log(`[capture] target=${targetUrl}`);
   console.log(`[capture] output=${outputPath}`);
-  console.log("[capture] Browser aciliyor. Google ile giris yapin ve hedef sayfaya ulasin.");
+  console.log("[capture] Tarayıcı açılıyor. Google ile giriş yapın ve hedef sayfaya ulaşın.");
 
-  const browser = await chromium.launch({ headless: false });
+  const browser = await chromium.launch({
+    headless: false,
+    channel: args.browserChannel || "chrome",
+    ignoreDefaultArgs: ["--enable-automation"],
+    args: ["--disable-blink-features=AutomationControlled"]
+  });
   const context = await browser.newContext();
   const page = await context.newPage();
-  await page.goto("/login.html", { waitUntil: "domcontentloaded" });
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, "webdriver", { get: () => false });
+  });
+  await page.goto(loginUrl, { waitUntil: "domcontentloaded" });
 
-  console.log("[capture] Login tamamlandiginda ve hedef sayfa acildiginda Enter'a basin.");
+  console.log("[capture] Giriş tamamlandığında ve hedef sayfa açıldığında Enter'a basın.");
   await waitForEnter("> Enter");
 
   await page.goto(targetUrl, { waitUntil: "domcontentloaded" });
   const finalUrl = page.url();
   if (/login(\.html)?/i.test(finalUrl)) {
-    console.error(`[capture] Hata: Oturum dogrulanmadi, login sayfasina yonlendirildi: ${finalUrl}`);
+    console.error(`[capture] Hata: Oturum doğrulanmadı, login sayfasına yönlendirildi: ${finalUrl}`);
     await context.close();
     await browser.close();
     process.exit(1);
   }
 
-  await context.storageState({ path: outputPath });
-  console.log("[capture] Basarili. storageState kaydedildi.");
+  await context.storageState({ path: outputPath, indexedDB: true });
+  console.log("[capture] Başarılı. storageState kaydedildi.");
   await context.close();
   await browser.close();
 }

@@ -68,5 +68,13 @@
 - Kontrol:
   - `npm run test:e2e:auth:check`
 - Gerekirse yeniden üretim:
+  - Tek komut (önerilen): `npm run test:e2e:auth:capture:all`
+  - Adım adım:
   - `npm run test:e2e:auth:capture:user`
   - `npm run test:e2e:auth:capture:admin`
+  - Google güvenlik hatasında CDP fallback:
+  - `npm run test:e2e:auth:capture:user:cdp`
+  - `npm run test:e2e:auth:capture:admin:cdp`
+- Not (lokal giriş):
+  - Capture akışı `http://localhost:5000/login` üzerinden çalışır.
+  - App Check debug token istenirse tokenı Firebase Console > App Check'e ekleyip tekrar giriş yapın.

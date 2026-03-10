@@ -1544,9 +1544,8 @@
 
 /* --- Luxury theme harmonization --- */
 .welcome-text h1,
-.exam-countdown .days,
-.stat-info .stat-value {
-    background: var(--text-gradient-gold);
+.exam-countdown .days {
+    background: var(--text-gradient-gold, linear-gradient(135deg, var(--color-primary), var(--color-primary-dim)));
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
