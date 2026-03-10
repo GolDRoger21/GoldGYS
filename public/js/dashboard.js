@@ -26,16 +26,24 @@ const ui = {
     successRateText: document.getElementById("successRateText"),
     solvedTodayCount: document.getElementById("solvedTodayCount"),
     solvedTotalCount: document.getElementById("solvedTotalCount"),
-    wrongTodayCount: document.getElementById("wrongTodayCount")
+    wrongTodayCount: document.getElementById("wrongTodayCount"),
+    shellPerfModeBadge: document.getElementById("shellPerfModeBadge"),
+    shellWarmP95: document.getElementById("shellWarmP95"),
+    shellWarmCount: document.getElementById("shellWarmCount"),
+    shellColdP95: document.getElementById("shellColdP95"),
+    shellColdCount: document.getElementById("shellColdCount"),
+    shellAllP95: document.getElementById("shellAllP95"),
+    shellAllCount: document.getElementById("shellAllCount")
 };
 
 let examCountdownInterval = null;
 let examAnnouncementUnsubscribe = null;
 let dashboardAnnouncementsUnsubscribe = null;
+let shellMetricsInterval = null;
 
 
 const DASHBOARD_FEED_TTL = 6 * 60 * 60 * 1000; // 6 saat
-const DASHBOARD_ENABLE_LIVE_LISTEN = false; // Kota koruma: varsayilan one-shot fetch
+const DASHBOARD_ENABLE_LIVE_LISTEN = false; // Kota koruma: varsayılan one-shot fetch
 const DASHBOARD_DATA_CACHE_TTL = 30 * 60 * 1000; // 30 dakika
 const ALL_TOPICS_CACHE_KEY = 'all_topics';
 const ALL_TOPICS_CACHE_TTL = 24 * 60 * 60 * 1000;
@@ -216,6 +224,45 @@ function applyStatsToUI(totalStats, todayStats) {
     if (ui.successRateBar) ui.successRateBar.style.width = `${successRate}%`;
 }
 
+function setShellPerfFallback(message = "Shell V2 Kapalı") {
+    if (ui.shellPerfModeBadge) ui.shellPerfModeBadge.textContent = message;
+    if (ui.shellWarmP95) ui.shellWarmP95.textContent = "--";
+    if (ui.shellColdP95) ui.shellColdP95.textContent = "--";
+    if (ui.shellAllP95) ui.shellAllP95.textContent = "--";
+    if (ui.shellWarmCount) ui.shellWarmCount.textContent = "0";
+    if (ui.shellColdCount) ui.shellColdCount.textContent = "0";
+    if (ui.shellAllCount) ui.shellAllCount.textContent = "0";
+}
+
+function renderShellTransitionMetrics() {
+    const metricsReader = window.__userShellMetrics?.getTransitionMetrics;
+    if (typeof metricsReader !== "function") {
+        setShellPerfFallback("Shell V2 Kapalı");
+        return;
+    }
+
+    const metrics = metricsReader();
+    if (!metrics || typeof metrics !== "object") {
+        setShellPerfFallback("Veri Yok");
+        return;
+    }
+
+    const fmt = (value) => (Number.isFinite(value) && value > 0 ? String(Math.round(value)) : "--");
+    if (ui.shellPerfModeBadge) ui.shellPerfModeBadge.textContent = "Aktif";
+    if (ui.shellWarmP95) ui.shellWarmP95.textContent = fmt(metrics.p95Warm);
+    if (ui.shellColdP95) ui.shellColdP95.textContent = fmt(metrics.p95Cold);
+    if (ui.shellAllP95) ui.shellAllP95.textContent = fmt(metrics.p95All);
+    if (ui.shellWarmCount) ui.shellWarmCount.textContent = String(metrics.countWarm || 0);
+    if (ui.shellColdCount) ui.shellColdCount.textContent = String(metrics.countCold || 0);
+    if (ui.shellAllCount) ui.shellAllCount.textContent = String(metrics.countAll || 0);
+}
+
+function startShellMetricsPolling() {
+    if (shellMetricsInterval) clearInterval(shellMetricsInterval);
+    renderShellTransitionMetrics();
+    shellMetricsInterval = setInterval(renderShellTransitionMetrics, 2500);
+}
+
 document.addEventListener("DOMContentLoaded", async () => {
     try {
         if (ui.loaderText) ui.loaderText.textContent = "Sistem başlatılıyor...";
@@ -229,6 +276,10 @@ document.addEventListener("DOMContentLoaded", async () => {
             examAnnouncementUnsubscribe = null;
             safeUnsubscribe(dashboardAnnouncementsUnsubscribe);
             dashboardAnnouncementsUnsubscribe = null;
+            if (shellMetricsInterval) {
+                clearInterval(shellMetricsInterval);
+                shellMetricsInterval = null;
+            }
         }, { once: true });
 
         // 2. Dashboard'a Özel İçeriği Hazırla
@@ -251,6 +302,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             } catch (statsError) {
                 console.error("Dashboard istatistikleri yüklenemedi:", statsError);
             }
+            startShellMetricsPolling();
 
             // Sınav ilanını, duyuruları ve aktiviteleri yükle
             let userData = {};

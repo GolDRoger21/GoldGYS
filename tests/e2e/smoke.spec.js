@@ -126,31 +126,39 @@ test.describe('Gold GYS authenticated smoke (@optional)', () => {
     await page.goto('/dashboard#profil');
     await expect(page).toHaveURL(/\/dashboard#profil/i);
     await expect(page.locator('#profileForm')).toBeVisible();
-    await expect(page.locator('iframe.user-shell-frame[title=\"Profilim\"]')).toHaveCount(0);
+    await expect(page.locator('iframe.user-shell-frame')).toHaveCount(0);
 
     // Native analysis route (iframe'siz)
     await page.goto('/dashboard#analiz');
     await expect(page).toHaveURL(/\/dashboard#analiz/i);
     await expect(page.locator('#lastUpdate')).toBeVisible();
-    await expect(page.locator('iframe.user-shell-frame[title=\"Raporlar\"]')).toHaveCount(0);
+    await expect(page.locator('iframe.user-shell-frame')).toHaveCount(0);
 
     // Native denemeler route (iframe'siz)
     await page.goto('/dashboard#denemeler');
     await expect(page).toHaveURL(/\/dashboard#denemeler/i);
     await expect(page.locator('#examsGrid')).toBeVisible();
-    await expect(page.locator('iframe.user-shell-frame[title=\"Denemeler\"]')).toHaveCount(0);
+    await expect(page.locator('iframe.user-shell-frame')).toHaveCount(0);
 
     // Native favoriler route (iframe'siz)
     await page.goto('/dashboard#favoriler');
     await expect(page).toHaveURL(/\/dashboard#favoriler/i);
     await expect(page.locator('#favoritesList')).toBeVisible();
-    await expect(page.locator('iframe.user-shell-frame[title=\"Favoriler\"]')).toHaveCount(0);
+    await expect(page.locator('iframe.user-shell-frame')).toHaveCount(0);
 
     // Native yanlışlarım route (iframe'siz)
     await page.goto('/dashboard#yanlislarim');
     await expect(page).toHaveURL(/\/dashboard#yanlislarim/i);
     await expect(page.locator('#mistakesList')).toBeVisible();
-    await expect(page.locator('iframe.user-shell-frame[title=\"Yanlışlarım\"]')).toHaveCount(0);
+    await expect(page.locator('iframe.user-shell-frame')).toHaveCount(0);
+
+    // Rollback: shellV2 kapalıyken legacy full-page geçiş devam etmeli
+    await page.goto('/dashboard?shellV2=0');
+    await expect(page).not.toHaveURL(/\/dashboard#/i);
+    const legacyLessonsNav = page.locator('.sidebar-nav .nav-item[data-page="lessons"], .sidebar-nav .nav-item[data-shell-route="konular"]').first();
+    await expect(legacyLessonsNav).toBeVisible();
+    await legacyLessonsNav.click();
+    await expect(page).toHaveURL(/\/konular(\?.*)?$/i);
 
     await context.close();
   });
