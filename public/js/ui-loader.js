@@ -473,6 +473,36 @@ async function checkUserAuthState() {
     });
 }
 
+function initShellEmbedBridge() {
+    if (window.__shellEmbedBridgeInitialized) return;
+    window.__shellEmbedBridgeInitialized = true;
+
+    const publishHeight = () => {
+        try {
+            const bodyHeight = document.body ? document.body.scrollHeight : 0;
+            const docHeight = document.documentElement ? document.documentElement.scrollHeight : 0;
+            const height = Math.max(bodyHeight, docHeight, 300);
+            window.parent.postMessage({
+                type: 'user-shell:height',
+                path: window.location.pathname,
+                height
+            }, window.location.origin);
+        } catch (error) {
+            console.warn('Shell embed height publish atlandi:', error);
+        }
+    };
+
+    publishHeight();
+    window.addEventListener('load', publishHeight);
+    window.addEventListener('resize', publishHeight);
+
+    if (typeof ResizeObserver === 'function' && document.body) {
+        const resizeObserver = new ResizeObserver(() => publishHeight());
+        resizeObserver.observe(document.body);
+        window.addEventListener('beforeunload', () => resizeObserver.disconnect(), { once: true });
+    }
+}
+
 function updateUIWithUserData(user, profile, hasPrivilege) {
     const name = (profile?.ad && profile?.soyad) ? `${profile.ad} ${profile.soyad}` : (user.displayName || "Kullanıcı");
     const email = user.email;
