@@ -457,7 +457,11 @@ async function checkUserAuthState() {
             } else {
                 // Public sayfalarda değilsek login'e at
                 if (!isPublicPath(window.location.pathname)) {
-                    window.location.href = '/login.html';
+                    if (shouldSkipEmbeddedChrome() && window.top && window.top !== window) {
+                        window.top.location.href = '/login.html';
+                    } else {
+                        window.location.href = '/login.html';
+                    }
                 }
             }
             resolve();
