@@ -1,4 +1,8 @@
 ﻿import { initKonularPage, disposeKonularPage } from "../../konular-page.js";
+import { injectScopedStyle } from "./shell-style-scope.js";
+
+const KONULAR_INLINE_STYLE_ID = "user-shell-konular-inline-style";
+const KONULAR_SCOPE_SELECTOR = '.user-shell-view[data-route-key="konular"]';
 
 function ensureHeadAssets(parsedDoc) {
     if (!parsedDoc?.head) return;
@@ -15,6 +19,14 @@ function ensureHeadAssets(parsedDoc) {
         document.head.appendChild(clone);
     });
 
+    const styleSource = parsedDoc.head.querySelector("style");
+    if (styleSource?.textContent) {
+        injectScopedStyle({
+            styleId: KONULAR_INLINE_STYLE_ID,
+            cssText: styleSource.textContent,
+            scopeSelector: KONULAR_SCOPE_SELECTOR
+        });
+    }
 }
 
 async function renderTemplate(viewEl) {

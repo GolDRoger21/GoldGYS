@@ -1,6 +1,8 @@
 import { initFavorilerPage, disposeFavorilerPage } from "../../favoriler-page.js";
+import { injectScopedStyle } from "./shell-style-scope.js";
 
 const FAVORILER_INLINE_STYLE_ID = "user-shell-favoriler-inline-style";
+const FAVORILER_SCOPE_SELECTOR = '.user-shell-view[data-route-key="favoriler"]';
 
 function ensureHeadAssets(parsedDoc) {
     if (!parsedDoc?.head) return;
@@ -19,10 +21,11 @@ function ensureHeadAssets(parsedDoc) {
     if (!document.getElementById(FAVORILER_INLINE_STYLE_ID)) {
         const styleSource = parsedDoc.head.querySelector("style");
         if (styleSource?.textContent) {
-            const style = document.createElement("style");
-            style.id = FAVORILER_INLINE_STYLE_ID;
-            style.textContent = styleSource.textContent;
-            document.head.appendChild(style);
+            injectScopedStyle({
+                styleId: FAVORILER_INLINE_STYLE_ID,
+                cssText: styleSource.textContent,
+                scopeSelector: FAVORILER_SCOPE_SELECTOR
+            });
         }
     }
 }

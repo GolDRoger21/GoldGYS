@@ -1,6 +1,8 @@
 ﻿import { initYanlislarimPage, disposeYanlislarimPage } from "../../yanlislarim-page.js";
+import { injectScopedStyle } from "./shell-style-scope.js";
 
 const YANLISLARIM_INLINE_STYLE_ID = "user-shell-yanlislarim-inline-style";
+const YANLISLARIM_SCOPE_SELECTOR = '.user-shell-view[data-route-key="yanlislarim"]';
 
 function ensureHeadAssets(parsedDoc) {
     if (!parsedDoc?.head) return;
@@ -17,14 +19,13 @@ function ensureHeadAssets(parsedDoc) {
         document.head.appendChild(clone);
     });
 
-    if (!document.getElementById(YANLISLARIM_INLINE_STYLE_ID)) {
-        const styleSource = parsedDoc.head.querySelector("style");
-        if (styleSource?.textContent) {
-            const style = document.createElement("style");
-            style.id = YANLISLARIM_INLINE_STYLE_ID;
-            style.textContent = styleSource.textContent;
-            document.head.appendChild(style);
-        }
+    const styleSource = parsedDoc.head.querySelector("style");
+    if (styleSource?.textContent) {
+        injectScopedStyle({
+            styleId: YANLISLARIM_INLINE_STYLE_ID,
+            cssText: styleSource.textContent,
+            scopeSelector: YANLISLARIM_SCOPE_SELECTOR
+        });
     }
 }
 

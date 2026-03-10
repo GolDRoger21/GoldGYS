@@ -1,6 +1,8 @@
 import { disposeDenemelerPage, initDenemelerPage } from "../../denemeler-page.js";
+import { injectScopedStyle } from "./shell-style-scope.js";
 
 const DENEMELER_INLINE_STYLE_ID = "user-shell-denemeler-inline-style";
+const DENEMELER_SCOPE_SELECTOR = '.user-shell-view[data-route-key="denemeler"]';
 
 function ensureHeadAssets(parsedDoc) {
     if (!parsedDoc?.head) return;
@@ -19,10 +21,11 @@ function ensureHeadAssets(parsedDoc) {
     if (!document.getElementById(DENEMELER_INLINE_STYLE_ID)) {
         const styleSource = parsedDoc.head.querySelector("style");
         if (styleSource?.textContent) {
-            const style = document.createElement("style");
-            style.id = DENEMELER_INLINE_STYLE_ID;
-            style.textContent = styleSource.textContent;
-            document.head.appendChild(style);
+            injectScopedStyle({
+                styleId: DENEMELER_INLINE_STYLE_ID,
+                cssText: styleSource.textContent,
+                scopeSelector: DENEMELER_SCOPE_SELECTOR
+            });
         }
     }
 }
