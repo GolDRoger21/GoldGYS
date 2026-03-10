@@ -489,6 +489,26 @@ function resolveShouldEnableUserShell(siteConfig) {
     return siteConfig?.features?.userShellV2 === true;
 }
 
+function resolveUserShellReason(siteConfig) {
+    const params = getQueryParams();
+    if (isShellEmbedMode()) {
+        return { enabled: false, source: "embed", reason: "shell embed mode active" };
+    }
+    if (params.get("shellV2") === "0") {
+        return { enabled: false, source: "query", reason: "shellV2=0 override" };
+    }
+    if (params.get("shellV2") === "1") {
+        return { enabled: true, source: "query", reason: "shellV2=1 override" };
+    }
+    if (localStorage.getItem("userShellV2") === "1") {
+        return { enabled: true, source: "localStorage", reason: "localStorage userShellV2=1 override" };
+    }
+    if (siteConfig?.features?.userShellV2 === true) {
+        return { enabled: true, source: "remoteConfig", reason: "siteConfig.features.userShellV2=true" };
+    }
+    return { enabled: false, source: "remoteConfig", reason: "siteConfig.features.userShellV2 is false" };
+}
+
 export function shouldSkipEmbeddedChrome() {
     return isShellEmbedMode();
 }
@@ -498,8 +518,11 @@ export function getLegacyRouteKey(pathname = getPathname()) {
 }
 
 export function resolveUserShellState(siteConfig) {
+    const stateReason = resolveUserShellReason(siteConfig);
     return {
         enabled: resolveShouldEnableUserShell(siteConfig),
+        source: stateReason.source,
+        reason: stateReason.reason,
         isEmbed: isShellEmbedMode(),
         pathname: getPathname(),
         legacyRouteKey: getLegacyRouteKey()

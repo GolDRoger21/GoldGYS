@@ -9,6 +9,7 @@ import {
     getLegacyRouteKey,
     initUserShellRouter,
     maybeRedirectLegacyPathToShell,
+    resolveUserShellState,
     shouldSkipEmbeddedChrome
 } from './user-shell-router.js';
 
@@ -124,6 +125,13 @@ export async function initLayout() {
             // User shell router sadece dashboard kokunde aktif edilir
             if (!isAdminPage && !isEmbeddedShellPage) {
                 userShellRouter = initUserShellRouter(siteConfig) || userShellRouter;
+                if (window.location.pathname === '/dashboard') {
+                    const shellState = resolveUserShellState(siteConfig);
+                    window.__userShellDebug = shellState;
+                    if (!userShellRouter && !shellState.enabled) {
+                        console.info('User Shell V2 devre dışı:', shellState.reason);
+                    }
+                }
                 if (userShellRouter && window.location.pathname === '/dashboard') {
                     const hashRoute = (window.location.hash || '').replace(/^#/, '');
                     const routeKey = hashRoute || getLegacyRouteKey(window.location.pathname) || 'dashboard';

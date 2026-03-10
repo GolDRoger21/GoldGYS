@@ -20,6 +20,7 @@ function resolveStorageStatePath(envVarValue, defaultRelativePath) {
   const candidates = [];
   if (envVarValue) candidates.push(envVarValue);
   if (defaultRelativePath) candidates.push(defaultRelativePath);
+  const invalidCandidates = [];
 
   for (const candidate of candidates) {
     const absPath = path.resolve(process.cwd(), candidate);
@@ -31,13 +32,20 @@ function resolveStorageStatePath(envVarValue, defaultRelativePath) {
       const hasCookies = Array.isArray(parsed?.cookies);
       const hasOrigins = Array.isArray(parsed?.origins);
       if (hasCookies && hasOrigins) {
-        return absPath;
+        return { path: absPath, reason: null };
       }
+      invalidCandidates.push(`${absPath} (missing cookies/origins arrays)`);
     } catch (_) {
       // invalid file -> try next candidate
+      invalidCandidates.push(`${absPath} (invalid JSON)`);
     }
   }
-  return null;
+  return {
+    path: null,
+    reason: invalidCandidates.length
+      ? `Invalid storage state file(s): ${invalidCandidates.join("; ")}`
+      : "No storage state file found."
+  };
 }
 
 test.describe('Gold GYS smoke', () => {
@@ -74,18 +82,21 @@ test.describe('Gold GYS smoke', () => {
 
 test.describe('Gold GYS authenticated smoke (@optional)', () => {
   test('authenticated user can traverse native dashboard shell routes', async ({ browser, baseURL }) => {
-    const storageStatePath = resolveStorageStatePath(
+    const authState = resolveStorageStatePath(
       process.env.E2E_AUTH_STORAGE_STATE,
       'tests/e2e/.auth/user.json'
     );
+    if (!authState.path && authState.reason) {
+      console.warn(`[auth-smoke:user] ${authState.reason}`);
+    }
     test.skip(
-      !storageStatePath,
-      'Provide E2E_AUTH_STORAGE_STATE or create tests/e2e/.auth/user.json to enable authenticated smoke coverage.'
+      !authState.path,
+      `Provide E2E_AUTH_STORAGE_STATE or create tests/e2e/.auth/user.json to enable authenticated smoke coverage. ${authState.reason || ''}`.trim()
     );
 
     const context = await browser.newContext({
       baseURL,
-      storageState: storageStatePath,
+      storageState: authState.path,
     });
     const page = await context.newPage();
 
@@ -175,6 +186,11 @@ test.describe('Gold GYS authenticated smoke (@optional)', () => {
     expect(shellMetrics.countWarm).toBeGreaterThan(1);
     expect(Number.isFinite(shellMetrics.p95All)).toBeTruthy();
 
+    // Legacy path -> shell hash mapping (feature flag açıkken)
+    await page.goto('/konular?shellV2=1');
+    await expect(page).toHaveURL(/\/dashboard#konular/i);
+    await expect(page.locator('#topicsContainer')).toBeVisible();
+
     // Rollback: shellV2 kapalıyken legacy full-page geçiş devam etmeli
     await page.goto('/dashboard?shellV2=0');
     await expect(page).not.toHaveURL(/\/dashboard#/i);
@@ -189,18 +205,21 @@ test.describe('Gold GYS authenticated smoke (@optional)', () => {
 
 test.describe('Gold GYS admin authenticated smoke (@optional)', () => {
   test('authenticated admin can access dashboard, importer and users tab', async ({ browser, baseURL }) => {
-    const storageStatePath = resolveStorageStatePath(
+    const authState = resolveStorageStatePath(
       process.env.E2E_ADMIN_AUTH_STORAGE_STATE,
       'tests/e2e/.auth/admin.json'
     );
+    if (!authState.path && authState.reason) {
+      console.warn(`[auth-smoke:admin] ${authState.reason}`);
+    }
     test.skip(
-      !storageStatePath,
-      'Provide E2E_ADMIN_AUTH_STORAGE_STATE or create tests/e2e/.auth/admin.json to enable admin authenticated smoke coverage.'
+      !authState.path,
+      `Provide E2E_ADMIN_AUTH_STORAGE_STATE or create tests/e2e/.auth/admin.json to enable admin authenticated smoke coverage. ${authState.reason || ''}`.trim()
     );
 
     const context = await browser.newContext({
       baseURL,
-      storageState: storageStatePath,
+      storageState: authState.path,
     });
     const page = await context.newPage();
 
@@ -221,3 +240,4 @@ test.describe('Gold GYS admin authenticated smoke (@optional)', () => {
     await context.close();
   });
 });
+

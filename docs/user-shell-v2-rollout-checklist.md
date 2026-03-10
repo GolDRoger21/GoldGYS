@@ -5,6 +5,7 @@
 - `npm run check:syntax`
 - `npm run test:e2e:smoke:core`
 - (Varsa auth state) `npm run test:e2e:smoke:auth`
+- Otomatik akış: `npm run test:e2e:smoke:auto`
 
 ## 2) Feature Flag
 
@@ -55,3 +56,14 @@
 - Beklenmeyen legacy redirect var mı?
 - p95 warm geçiş trendi bozuluyor mu?
 - Kullanıcı raporlarında "sayfa kendini yeniliyor" şikayeti sürüyor mu?
+
+## 7) Auth Smoke Hazırlığı
+
+- Auth smoke koşulları:
+  - `tests/e2e/.auth/user.json` geçerli storageState olmalı
+  - `tests/e2e/.auth/admin.json` geçerli storageState olmalı
+- Kontrol:
+  - `npm run test:e2e:auth:check`
+- Gerekirse yeniden üretim:
+  - `npm run test:e2e:auth:capture:user`
+  - `npm run test:e2e:auth:capture:admin`
