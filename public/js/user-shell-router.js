@@ -845,9 +845,26 @@ export function initUserShellRouter(siteConfig) {
     void navigateToRoute(initialRoute, { preserveScroll: true });
     scheduleIdlePrefetch(modulesByKey);
 
+    const getTransitionMetrics = () => {
+        const metrics = readTransitionMetrics();
+        return {
+            p95All: calculateP95(metrics.all),
+            p95Warm: calculateP95(metrics.warm),
+            p95Cold: calculateP95(metrics.cold),
+            countAll: metrics.all.length,
+            countWarm: metrics.warm.length,
+            countCold: metrics.cold.length
+        };
+    };
+
+    window.__userShellMetrics = {
+        getTransitionMetrics
+    };
+
     return {
         navigate: (routeKey, options) => navigateToRoute(routeKey, options),
         getCurrentRoute: () => currentRouteKey,
+        getTransitionMetrics,
         dispose: async () => {
             window.removeEventListener("message", handleFrameMessage);
             window.removeEventListener("hashchange", handleHashChange);
@@ -856,6 +873,7 @@ export function initUserShellRouter(siteConfig) {
             for (const module of modulesByKey.values()) {
                 await module.dispose();
             }
+            delete window.__userShellMetrics;
         }
     };
 }
