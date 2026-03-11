@@ -470,6 +470,31 @@ body:not(.admin-body) .app-sidebar .nav-label {
     color: var(--color-primary);
 }
 
+.btn-secondary {
+    background: color-mix(in srgb, var(--bg-surface-elevated) 82%, var(--color-primary) 18%);
+    border-color: color-mix(in srgb, var(--color-primary) 32%, var(--border-color) 68%);
+    color: var(--text-main);
+    box-shadow: var(--shadow-sm);
+}
+
+.btn-secondary:hover {
+    background: color-mix(in srgb, var(--bg-surface-elevated) 72%, var(--color-primary) 28%);
+    border-color: var(--color-primary);
+    color: var(--color-primary-hover);
+}
+
+.btn-outline-secondary {
+    background: transparent;
+    border-color: var(--border-color);
+    color: var(--text-main);
+}
+
+.btn-outline-secondary:hover {
+    background: var(--gold-surface);
+    border-color: var(--color-primary);
+    color: var(--text-main);
+}
+
 .btn:focus-visible,
 .menu-toggle-btn:focus-visible,
 .user-avatar-btn:focus-visible,
@@ -479,14 +504,16 @@ body:not(.admin-body) .app-sidebar .nav-label {
 }
 
 .btn-dark {
-    background-color: #0f172a;
-    border-color: #0f172a;
-    color: #f8fafc;
+    background: linear-gradient(135deg, color-mix(in srgb, var(--bg-surface-elevated) 84%, var(--color-primary) 16%), color-mix(in srgb, var(--bg-surface) 92%, var(--color-primary) 8%));
+    border-color: color-mix(in srgb, var(--color-primary) 38%, var(--border-color) 62%);
+    color: var(--text-main);
+    box-shadow: var(--shadow-sm);
 }
 
 .btn-dark:hover {
-    background-color: #111827;
-    border-color: #111827;
+    background: linear-gradient(135deg, color-mix(in srgb, var(--bg-surface-elevated) 78%, var(--color-primary) 22%), color-mix(in srgb, var(--bg-surface) 88%, var(--color-primary) 12%));
+    border-color: var(--color-primary);
+    color: var(--color-primary-hover);
 }
 
 .btn-light {
@@ -511,7 +538,9 @@ body:not(.admin-body) .app-sidebar .nav-label {
 }
 
 .bg-light {
-    background-color: var(--bg-hover);
+    background-color: color-mix(in srgb, var(--bg-surface-elevated) 76%, var(--color-primary) 24%);
+    color: var(--text-main);
+    border-color: var(--border-subtle);
 }
 
 .bg-dark {
@@ -535,11 +564,13 @@ body:not(.admin-body) .app-sidebar .nav-label {
 }
 
 .bg-purple-subtle {
-    background-color: rgba(139, 92, 246, 0.18);
+    background-color: color-mix(in srgb, var(--color-primary) 16%, transparent);
+    color: var(--color-primary);
+    border: 1px solid color-mix(in srgb, var(--color-primary) 28%, transparent);
 }
 
 .text-dark {
-    color: #0f172a;
+    color: var(--text-main);
 }
 
 [data-theme="dark"] .text-dark {

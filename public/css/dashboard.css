@@ -1681,3 +1681,123 @@
     border-color: rgba(15, 23, 42, 0.08);
     box-shadow: var(--shadow-sm);
 }
+
+/* Shared theme harmonization for user dashboard routes */
+.dashboard-container h1,
+.dashboard-container h2,
+.dashboard-container h3,
+.dashboard-container h4,
+.dashboard-container .card-title,
+.dashboard-container .section-title,
+.dashboard-container .topic-title,
+.dashboard-container .analysis-header h1,
+.dashboard-container .favorites-hero h2,
+.dashboard-container .mistakes-hero h2,
+.dashboard-container .deneme-hero h1 {
+    color: var(--text-main);
+}
+
+.dashboard-container .analysis-header h1,
+.dashboard-container .deneme-hero h1 {
+    background: var(--text-gradient-gold);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+    text-shadow: none;
+}
+
+.dashboard-container p,
+.dashboard-container small,
+.dashboard-container label,
+.dashboard-container .text-muted,
+.dashboard-container .panel-meta,
+.dashboard-container .category-meta,
+.dashboard-container .exam-meta,
+.dashboard-container .fav-detail-title,
+.dashboard-container .mistake-card-footer {
+    color: var(--text-muted);
+}
+
+.dashboard-container strong,
+.dashboard-container .stat-val,
+.dashboard-container .kpi-value,
+.dashboard-container .favorite-stat-card strong,
+.dashboard-container .mistake-stat-card strong,
+.dashboard-container .prediction-stat-item .stat-val,
+.dashboard-container .hero-panel-item .value {
+    color: var(--text-main);
+}
+
+.dashboard-container input,
+.dashboard-container select,
+.dashboard-container textarea,
+.dashboard-container .search-box input,
+.dashboard-container .filter-group input,
+.dashboard-container .filter-group select,
+.dashboard-container .filter-field input,
+.dashboard-container .filter-field select,
+.dashboard-container .topic-controls input,
+.dashboard-container .topic-controls select {
+    color: var(--text-main);
+    background: color-mix(in srgb, var(--bg-input) 92%, transparent 8%);
+    border-color: var(--border-subtle);
+    caret-color: var(--color-primary);
+}
+
+.dashboard-container input::placeholder,
+.dashboard-container textarea::placeholder {
+    color: var(--text-muted);
+    opacity: 0.88;
+}
+
+.dashboard-container input:focus,
+.dashboard-container select:focus,
+.dashboard-container textarea:focus {
+    color: var(--text-main);
+    border-color: var(--color-primary);
+    box-shadow: var(--focus-ring);
+    outline: none;
+}
+
+.dashboard-container input:-webkit-autofill,
+.dashboard-container input:-webkit-autofill:hover,
+.dashboard-container input:-webkit-autofill:focus {
+    -webkit-text-fill-color: var(--text-main);
+    box-shadow: 0 0 0 1000px color-mix(in srgb, var(--bg-input) 94%, transparent 6%) inset;
+    transition: background-color 9999s ease-in-out 0s;
+}
+
+.dashboard-container .tab-btn.active,
+.dashboard-container .btn-primary,
+.dashboard-container .btn-outline-primary:hover {
+    color: var(--text-on-gold);
+}
+
+.dashboard-container .btn-outline-primary,
+.dashboard-container .btn-outline-secondary,
+.dashboard-container .btn-secondary {
+    color: var(--text-main);
+    border-color: var(--border-subtle);
+}
+
+.dashboard-container .btn-outline-primary:hover,
+.dashboard-container .btn-outline-secondary:hover,
+.dashboard-container .btn-secondary:hover {
+    border-color: var(--color-primary);
+}
+
+[data-theme="dark"] .dashboard-container .analysis-page .glass-card,
+[data-theme="dark"] .dashboard-container .glass-card,
+[data-theme="dark"] .dashboard-container .info-section,
+[data-theme="dark"] .dashboard-container .info-card,
+[data-theme="dark"] .dashboard-container .favorite-stat-card,
+[data-theme="dark"] .dashboard-container .mistake-stat-card,
+[data-theme="dark"] .dashboard-container .category-card,
+[data-theme="dark"] .dashboard-container .fav-card,
+[data-theme="dark"] .dashboard-container .mistake-card,
+[data-theme="dark"] .dashboard-container .exam-card,
+[data-theme="dark"] .dashboard-container .favorites-filters,
+[data-theme="dark"] .dashboard-container .mistakes-filters {
+    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.28), inset 0 1px 0 rgba(250, 237, 204, 0.04);
+}

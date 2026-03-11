@@ -55,6 +55,8 @@
 
   /* Typography */
   --text-main: #2F2516; /* İstenen premium okunabilir koyu gri */
+  --text-primary: var(--text-main);
+  --text-secondary: #8A7358;
   --text-muted: #7A6650;
   --text-on-gold: #FAF9F6;
   --heading-color: #A06B1E; /* Heading'lerde sınıf bazlı gradyan tercih edilir */
@@ -65,6 +67,7 @@
   --color-primary: #B38728; /* Golden Brown */
   --color-primary-hover: #C79A35;
   --color-primary-dim: #7B571B;
+  --color-primary-soft: rgba(191, 149, 63, 0.16);
 
   /* Glass / Surfaces */
   --glass-surface: rgba(255, 251, 243, 0.78); /* Beyazın %70 opak hali */
@@ -131,8 +134,10 @@
 
   /* Typography */
   --text-main: #F4E6C3; /* Premium altın ana metin */
+  --text-primary: var(--text-main);
+  --text-secondary: #E6D0A3;
   --text-muted: #D2BA88;
-  --text-on-gold: #0B0D12;
+  --text-on-gold: #FFF8EA;
   --heading-color: #F8E8BE; /* Champagne Gold */
   --heading-text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
   --text-gradient-gold: linear-gradient(135deg, #FAEDCC 0%, #E7C76C 48%, #BE912E 100%); /* Champagne + metallic */
@@ -141,6 +146,7 @@
   --color-primary: #E0BC56; /* Metallic Gold */
   --color-primary-hover: #FAEDCC;
   --color-primary-dim: #B48726;
+  --color-primary-soft: rgba(217, 178, 74, 0.18);
 
   /* Glass / Surfaces */
   --glass-surface: rgba(20, 16, 11, 0.68);
