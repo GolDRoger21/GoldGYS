@@ -2101,7 +2101,7 @@
 
       } catch (error) {
         console.error("Veri yükleme sırasında hata:", error);
-        document.getElementById('testsList').innerHTML = '<div class="test-card">Veriler yüklenirken bir bağlantı hatası oluştu.</div>';
+        document.getElementById('testsList').innerHTML = '<div class="test-card" style="padding: 14px 16px;">Veriler yüklenirken bir bağlantı hatası oluştu.</div>';
       }
     });
 
@@ -2692,7 +2692,7 @@
         } else {
           // Normal boş durum mesajı
           testsContainer.innerHTML = `
-              <div class="test-card">
+              <div class="test-card" style="padding: 14px 16px;">
                 <strong>Henüz test eklenmemiş</strong>
                 <div class="text-muted small mt-1">Bu konu için testler hazırlanıyor.</div>
               </div>
@@ -2725,7 +2725,7 @@
           ];
 
           materialsContainer.innerHTML = placeholders.map((item) => `
-            <div class="test-card" style="opacity: 0.7; border-style: dashed;">
+            <div class="test-card p-3" style="opacity: 0.7; border-style: dashed; padding: 14px 16px;">
               <div class="d-flex align-items-center" style="gap:10px;">
                 <span style="font-size:1.3rem;">${item.icon}</span>
                 <strong>${item.title}</strong>
