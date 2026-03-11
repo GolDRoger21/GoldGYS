@@ -271,6 +271,9 @@ function ensureProgressStyle() {
       .user-shell-view {
         width: 100%;
       }
+      .user-shell-view[data-route-key^="konu/"] {
+        background: var(--bg-body-gradient);
+      }
       .user-shell-view[hidden] {
         display: none !important;
       }

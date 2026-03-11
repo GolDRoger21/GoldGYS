@@ -34,12 +34,19 @@
     body {
       scrollbar-width: none;
       -ms-overflow-style: none;
+      background: var(--bg-body-gradient);
+      color: var(--text-main);
     }
 
     html::-webkit-scrollbar,
     body::-webkit-scrollbar {
       width: 0;
       height: 0;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
     }
     /* --- MEVCUT STİLLERİNİZ --- */
     .study-mode-card {
@@ -2193,6 +2200,19 @@
         if (window.location.pathname !== topicPath) {
           window.history.replaceState({}, '', topicPath);
         }
+
+        // Keep slug->id map warm for faster subsequent topic openings.
+        try {
+          const rawIndex = sessionStorage.getItem('topic_slug_index_v1');
+          const nextIndex = rawIndex ? JSON.parse(rawIndex) : {};
+          const titleSlug = slugifyTopicTitle(data.title || '');
+          const dbSlug = String(data.slug || '').trim();
+          if (titleSlug) nextIndex[titleSlug] = currentTopicId;
+          if (dbSlug) nextIndex[dbSlug] = currentTopicId;
+          sessionStorage.setItem('topic_slug_index_v1', JSON.stringify(nextIndex));
+        } catch {
+          // noop
+        }
       }
     }
 
@@ -2216,6 +2236,27 @@
         ? sessionStorage.getItem(`resolve_topic_${normalizedSegment}`)
         : null;
       if (normalizedCache) return normalizedCache;
+
+      // Fast path: in-session slug index (built from previous full scan/header loads)
+      let slugIndex = null;
+      try {
+        const rawIndex = sessionStorage.getItem('topic_slug_index_v1');
+        if (rawIndex) {
+          const parsed = JSON.parse(rawIndex);
+          if (parsed && typeof parsed === 'object') slugIndex = parsed;
+        }
+      } catch {
+        slugIndex = null;
+      }
+
+      if (slugIndex) {
+        const fromIndex = slugIndex[segment] || (normalizedSegment ? slugIndex[normalizedSegment] : null);
+        if (fromIndex) {
+          sessionStorage.setItem(cacheKey, fromIndex);
+          if (normalizedSegment) sessionStorage.setItem(`resolve_topic_${normalizedSegment}`, fromIndex);
+          return fromIndex;
+        }
+      }
 
       // 2. Slug field üzerinden tek sorgu dene (daha verimli)
       try {
@@ -2246,9 +2287,24 @@
       const allTopicsSnap = await getDocs(collection(db, "topics"));
       const allTopics = allTopicsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
 
+      // Build slug index once to make next topic openings faster.
+      try {
+        const nextIndex = { ...(slugIndex || {}) };
+        allTopics.forEach((topic) => {
+          const titleSlug = slugifyTopicTitle(topic.title || '');
+          const dbSlug = String(topic.slug || '').trim();
+          if (titleSlug) nextIndex[titleSlug] = topic.id;
+          if (dbSlug) nextIndex[dbSlug] = topic.id;
+        });
+        sessionStorage.setItem('topic_slug_index_v1', JSON.stringify(nextIndex));
+      } catch {
+        // noop
+      }
+
       const titleMatch = allTopics.find(t => slugifyTopicTitle(t.title || '') === normalizedSegment);
       if (titleMatch) {
         sessionStorage.setItem(cacheKey, titleMatch.id);
+        if (normalizedSegment) sessionStorage.setItem(`resolve_topic_${normalizedSegment}`, titleMatch.id);
         return titleMatch.id;
       }
 
@@ -2256,6 +2312,7 @@
       const dbSlugMatch = allTopics.find(t => t.slug === segment);
       if (dbSlugMatch) {
         sessionStorage.setItem(cacheKey, dbSlugMatch.id);
+        if (normalizedSegment) sessionStorage.setItem(`resolve_topic_${normalizedSegment}`, dbSlugMatch.id);
         return dbSlugMatch.id;
       }
 
