@@ -54,6 +54,27 @@ const USER_SHELL_LEGACY_TO_HASH = Object.freeze({
     "/profil": "/dashboard#profil"
 });
 
+function isValidTheme(theme) {
+    return theme === 'dark' || theme === 'light';
+}
+
+function broadcastThemeToShellEmbeds(theme) {
+    if (!isValidTheme(theme)) return;
+    const frames = document.querySelectorAll('iframe.user-shell-frame');
+    frames.forEach((frame) => {
+        const targetWindow = frame?.contentWindow;
+        if (!targetWindow) return;
+        try {
+            targetWindow.postMessage({
+                type: 'user-shell:set-theme',
+                theme
+            }, window.location.origin);
+        } catch {
+            // noop
+        }
+    });
+}
+
 function isPublicPath(pathname = window.location.pathname) {
     if (!pathname) return false;
     const normalizedPath = pathname !== '/' && pathname.endsWith('/')
@@ -345,6 +366,7 @@ function initThemeAndSidebar() {
     // Tema Kontrolü
     const theme = applyTheme(resolveTheme());
     syncThemeToggleIcon(theme);
+    broadcastThemeToShellEmbeds(theme);
 
     // Sidebar Kontrolü (Desktop için collapsed durumu)
     const isCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
@@ -432,6 +454,7 @@ function setupEventListeners() {
         if (themeBtn) {
             const next = toggleTheme();
             syncThemeToggleIcon(next, themeBtn);
+            broadcastThemeToShellEmbeds(next);
             return;
         }
 
@@ -569,6 +592,32 @@ function initShellEmbedBridge() {
         });
     };
 
+    const applyIncomingTheme = (theme) => {
+        if (!isValidTheme(theme)) return;
+        try {
+            localStorage.setItem('theme', theme);
+        } catch {
+            // noop
+        }
+        applyTheme(theme);
+        schedulePublishHeight();
+    };
+
+    const handleParentMessage = (event) => {
+        if (event.origin !== window.location.origin) return;
+        const data = event.data;
+        if (!data || data.type !== 'user-shell:set-theme') return;
+        applyIncomingTheme(String(data.theme || '').trim());
+    };
+
+    const handleStorageSync = (event) => {
+        if (event.key !== 'theme') return;
+        applyIncomingTheme(String(event.newValue || '').trim());
+    };
+
+    window.addEventListener('message', handleParentMessage);
+    window.addEventListener('storage', handleStorageSync);
+
     publishHeight();
     window.addEventListener('load', schedulePublishHeight);
     window.addEventListener('resize', schedulePublishHeight);
@@ -594,6 +643,8 @@ function initShellEmbedBridge() {
     }
 
     window.addEventListener('beforeunload', () => {
+        window.removeEventListener('message', handleParentMessage);
+        window.removeEventListener('storage', handleStorageSync);
         if (rafId) {
             window.cancelAnimationFrame(rafId);
             rafId = 0;
