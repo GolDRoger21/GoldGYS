@@ -276,7 +276,9 @@ function ensureProgressStyle() {
       .user-shell-frame {
         width: 100%;
         border: 0;
-        min-height: 76vh;
+        min-height: 320px;
+        display: block;
+        overflow: hidden;
         background: transparent;
       }
       .user-shell-focus-anchor {
@@ -368,6 +370,7 @@ class IframeModule extends BaseShellModule {
         this.iframe.className = "user-shell-frame";
         this.iframe.setAttribute("title", this.route.focusLabel);
         this.iframe.setAttribute("loading", "eager");
+        this.iframe.setAttribute("scrolling", "no");
         this.iframe.setAttribute("referrerpolicy", "strict-origin-when-cross-origin");
         this.viewEl.appendChild(this.iframe);
     }

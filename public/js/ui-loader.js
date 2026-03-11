@@ -539,6 +539,14 @@ function initShellEmbedBridge() {
     if (window.__shellEmbedBridgeInitialized) return;
     window.__shellEmbedBridgeInitialized = true;
 
+    // Shell embed modunda sadece parent sayfa kayar; iframe ic scroll kapatilir.
+    document.documentElement.style.overflowY = 'hidden';
+    if (document.body) {
+        document.body.style.overflowY = 'hidden';
+        document.body.style.overflowX = 'clip';
+    }
+
+    let rafId = 0;
     const publishHeight = () => {
         try {
             const bodyHeight = document.body ? document.body.scrollHeight : 0;
@@ -553,16 +561,47 @@ function initShellEmbedBridge() {
             console.warn('Shell embed height publish atlandi:', error);
         }
     };
+    const schedulePublishHeight = () => {
+        if (rafId) return;
+        rafId = window.requestAnimationFrame(() => {
+            rafId = 0;
+            publishHeight();
+        });
+    };
 
     publishHeight();
-    window.addEventListener('load', publishHeight);
-    window.addEventListener('resize', publishHeight);
+    window.addEventListener('load', schedulePublishHeight);
+    window.addEventListener('resize', schedulePublishHeight);
 
-    if (typeof ResizeObserver === 'function' && document.body) {
-        const resizeObserver = new ResizeObserver(() => publishHeight());
-        resizeObserver.observe(document.body);
-        window.addEventListener('beforeunload', () => resizeObserver.disconnect(), { once: true });
+    const disconnectors = [];
+
+    if (typeof ResizeObserver === 'function') {
+        const resizeObserver = new ResizeObserver(() => schedulePublishHeight());
+        if (document.body) resizeObserver.observe(document.body);
+        if (document.documentElement) resizeObserver.observe(document.documentElement);
+        disconnectors.push(() => resizeObserver.disconnect());
     }
+
+    if (typeof MutationObserver === 'function' && document.body) {
+        const mutationObserver = new MutationObserver(() => schedulePublishHeight());
+        mutationObserver.observe(document.body, {
+            childList: true,
+            subtree: true,
+            attributes: true,
+            characterData: true
+        });
+        disconnectors.push(() => mutationObserver.disconnect());
+    }
+
+    window.addEventListener('beforeunload', () => {
+        if (rafId) {
+            window.cancelAnimationFrame(rafId);
+            rafId = 0;
+        }
+        disconnectors.forEach((disconnect) => {
+            try { disconnect(); } catch { /* noop */ }
+        });
+    }, { once: true });
 }
 
 function updateUIWithUserData(user, profile, hasPrivilege) {
