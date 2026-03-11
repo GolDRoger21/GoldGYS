@@ -2223,6 +2223,16 @@
         const href = String(link.getAttribute('href') || '').trim();
         if (!href) return;
 
+        if (href.includes('/test-coz/')) {
+          event.preventDefault();
+          try {
+            window.top.location.href = href;
+          } catch {
+            window.location.href = href;
+          }
+          return;
+        }
+
         let routeKey = '';
         if (href.startsWith('/dashboard#')) {
           routeKey = href.slice('/dashboard#'.length);
@@ -2232,7 +2242,7 @@
           return;
         }
 
-        if (!routeKey.startsWith('konu/')) return;
+        if (!/^konu\/[^/]+$/.test(routeKey)) return;
         event.preventDefault();
         try {
           window.parent.postMessage({ type: 'user-shell:navigate', routeKey }, window.location.origin);
@@ -2785,7 +2795,10 @@
 
             const topicSlug = slugifyTopicTitle(topicTitle) || currentTopicId;
             const testSlug = slugifyTopicTitle(item.title) || item.id;
-            const returnParam = encodeURIComponent(`${window.location.pathname}${window.location.search || ''}`);
+            const returnPath = isShellEmbedMode()
+              ? `/dashboard#konu/${encodeURIComponent(topicSlug)}`
+              : `${window.location.pathname}${window.location.search || ''}`;
+            const returnParam = encodeURIComponent(returnPath);
             const testUrl = `/konu/${encodeURIComponent(topicSlug)}/test-coz/${encodeURIComponent(testSlug)}--${encodeURIComponent(item.id)}?mode=select&return=${returnParam}`;
 
             const isCompleted = validCompletedIds.has(item.id);
@@ -3398,8 +3411,16 @@
       // SEO-Friendly Smart Mode Link
       const filter = encodeURIComponent(mode);
       const topicSlug = slugifyTopicTitle(topicTitle) || currentTopicId;
-      const returnParam = encodeURIComponent(`${window.location.pathname}${window.location.search || ''}`);
-      window.location.href = `/konu/${encodeURIComponent(topicSlug)}/test-coz/serbest-calisma-modu--smart?filter=${filter}&return=${returnParam}`;
+      const returnPath = isShellEmbedMode()
+        ? `/dashboard#konu/${encodeURIComponent(topicSlug)}`
+        : `${window.location.pathname}${window.location.search || ''}`;
+      const returnParam = encodeURIComponent(returnPath);
+      const smartTestUrl = `/konu/${encodeURIComponent(topicSlug)}/test-coz/serbest-calisma-modu--smart?filter=${filter}&return=${returnParam}`;
+      if (isShellEmbedMode() && window.top && window.top !== window) {
+        window.top.location.href = smartTestUrl;
+        return;
+      }
+      window.location.href = smartTestUrl;
     };
 
     // --- MOBİL SEKMELER ---

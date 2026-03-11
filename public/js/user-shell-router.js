@@ -6,6 +6,8 @@ const SCROLL_STORAGE_KEY = "user_shell_scroll_v1";
 const PROGRESS_STYLE_ID = "user-shell-progress-style";
 const TRANSITION_METRICS_KEY = "user_shell_transition_metrics_v1";
 const TOPIC_SCROLLBAR_CLASS = "user-shell-topic-scrollbars-hidden";
+const TOPIC_DETAIL_PATH_RE = /^\/konu\/[^/]+$/;
+const TOPIC_DETAIL_ROUTE_RE = /^konu\/[^/]+$/;
 
 const ROUTES = {
     dashboard: {
@@ -112,10 +114,18 @@ function isShellEmbedMode() {
     return getQueryParams().get("shell") === "1";
 }
 
+function isTopicDetailPath(pathname) {
+    return typeof pathname === "string" && TOPIC_DETAIL_PATH_RE.test(pathname);
+}
+
+function isTopicDetailRouteKey(routeKey) {
+    return typeof routeKey === "string" && TOPIC_DETAIL_ROUTE_RE.test(routeKey);
+}
+
 function getRouteFromHash() {
     const hash = (window.location.hash || "").replace(/^#/, "").trim();
     if (!hash) return "dashboard";
-    if (hash.startsWith("konu/")) return hash; // Dynamic topic route
+    if (isTopicDetailRouteKey(hash)) return hash; // Dynamic topic route (detail only)
     return ROUTES[hash] ? hash : "dashboard";
 }
 
@@ -546,7 +556,7 @@ export function maybeRedirectLegacyPathToShell(siteConfig) {
     if (!state.enabled) return false;
     
     // Check if it's a dynamic konu route
-    const isKonuPath = state.pathname && state.pathname.startsWith('/konu/');
+    const isKonuPath = isTopicDetailPath(state.pathname);
     
     if (!state.legacyRouteKey && !isKonuPath) return false;
     if (state.pathname === SHELL_ROOT_PATH) return false;
@@ -608,7 +618,7 @@ function getRouteViewElement(views, routeKey) {
 }
 
 function isDynamicTopicRouteKey(routeKey) {
-    return typeof routeKey === "string" && routeKey.startsWith("konu/");
+    return isTopicDetailRouteKey(routeKey);
 }
 
 function resolveActiveRouteKey(routeKey) {
@@ -646,14 +656,14 @@ function setupNavInterception(navigateToRoute) {
 
         const url = new URL(link.href, window.location.origin);
         if (url.origin !== window.location.origin) return;
-        const isKonuLink = url.pathname.startsWith('/konu/') && url.pathname.length > 6;
+        const isKonuLink = isTopicDetailPath(url.pathname);
         if (url.pathname !== SHELL_ROOT_PATH && !LEGACY_PATH_TO_ROUTE[url.pathname] && !isKonuLink) return;
         if (url.searchParams.get("shell") === "1") return;
 
         const hashRouteKey = url.hash ? url.hash.replace(/^#/, "") : null;
         const legacyRouteKey = LEGACY_PATH_TO_ROUTE[url.pathname] || null;
         
-        let targetKey = hashRouteKey && (ROUTES[hashRouteKey] || hashRouteKey.startsWith("konu/"))
+        let targetKey = hashRouteKey && (ROUTES[hashRouteKey] || isTopicDetailRouteKey(hashRouteKey))
             ? hashRouteKey
             : legacyRouteKey;
             
@@ -661,7 +671,7 @@ function setupNavInterception(navigateToRoute) {
             targetKey = url.pathname.replace(/^\//, ''); // /konu/abc -> konu/abc
         }
 
-        if (!targetKey || (!ROUTES[targetKey] && !targetKey.startsWith("konu/"))) return;
+        if (!targetKey || (!ROUTES[targetKey] && !isTopicDetailRouteKey(targetKey))) return;
 
         event.preventDefault();
         navigateToRoute(targetKey);
@@ -736,7 +746,7 @@ function setupIntentPrefetch(modulesByKey, resolveRouteForPrefetch) {
         try {
             const url = new URL(href, window.location.origin);
             if (url.origin !== window.location.origin) return null;
-            if (!url.pathname.startsWith("/konu/") || url.pathname.length <= 6) return null;
+            if (!isTopicDetailPath(url.pathname)) return null;
             return url.pathname.replace(/^\//, "");
         } catch {
             return null;
