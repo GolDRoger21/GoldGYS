@@ -5,6 +5,7 @@ const SHELL_ROOT_PATH = "/dashboard";
 const SCROLL_STORAGE_KEY = "user_shell_scroll_v1";
 const PROGRESS_STYLE_ID = "user-shell-progress-style";
 const TRANSITION_METRICS_KEY = "user_shell_transition_metrics_v1";
+const TOPIC_SCROLLBAR_CLASS = "user-shell-topic-scrollbars-hidden";
 
 const ROUTES = {
     dashboard: {
@@ -297,6 +298,16 @@ function ensureProgressStyle() {
         overflow: hidden;
         clip: rect(0, 0, 0, 0);
         border: 0;
+      }
+      html.${TOPIC_SCROLLBAR_CLASS},
+      body.${TOPIC_SCROLLBAR_CLASS} {
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+      }
+      html.${TOPIC_SCROLLBAR_CLASS}::-webkit-scrollbar,
+      body.${TOPIC_SCROLLBAR_CLASS}::-webkit-scrollbar {
+        width: 0;
+        height: 0;
       }
     `;
     document.head.appendChild(style);
@@ -668,6 +679,12 @@ function markActiveNav(routeKey) {
     if (navItem) navItem.classList.add("active");
 }
 
+function syncTopicScrollbarVisibility(routeKey) {
+    const shouldHideScrollbar = isDynamicTopicRouteKey(routeKey);
+    document.documentElement.classList.toggle(TOPIC_SCROLLBAR_CLASS, shouldHideScrollbar);
+    document.body.classList.toggle(TOPIC_SCROLLBAR_CLASS, shouldHideScrollbar);
+}
+
 function scheduleIdlePrefetch(modulesByKey) {
     const prefetchList = Object.values(ROUTES)
         .filter((route) => route.prefetchPriority === "high")
@@ -938,6 +955,7 @@ export function initUserShellRouter(siteConfig) {
                 currentRouteKey = route.key;
                 document.title = route.title;
                 markActiveNav(route.key);
+                syncTopicScrollbarVisibility(route.key);
                 try {
                     window.dispatchEvent(new CustomEvent("user-shell:route-changed", {
                         detail: {
@@ -1063,6 +1081,8 @@ export function initUserShellRouter(siteConfig) {
             window.removeEventListener("hashchange", handleHashChange);
             if (typeof removeNavInterception === "function") removeNavInterception();
             if (typeof removeIntentPrefetch === "function") removeIntentPrefetch();
+            document.documentElement.classList.remove(TOPIC_SCROLLBAR_CLASS);
+            document.body.classList.remove(TOPIC_SCROLLBAR_CLASS);
             for (const module of modulesByKey.values()) {
                 await module.dispose();
             }

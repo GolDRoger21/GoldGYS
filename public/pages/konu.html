@@ -30,6 +30,17 @@
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
+    html,
+    body {
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+
+    html::-webkit-scrollbar,
+    body::-webkit-scrollbar {
+      width: 0;
+      height: 0;
+    }
     /* --- MEVCUT STİLLERİNİZ --- */
     .study-mode-card {
       background: var(--bg-surface);
@@ -2084,8 +2095,45 @@
       });
     };
 
+    const buildSubtopicNavigationHref = (topic) => {
+      const topicPath = buildTopicPath(topic);
+      if (!isShellEmbedMode()) return topicPath;
+      const routeKey = topicPath.replace(/^\//, '');
+      return `/dashboard#${routeKey}`;
+    };
+
+    const setupEmbeddedTopicNavigation = () => {
+      if (!isShellEmbedMode() || !window.parent || window.parent === window) return;
+      document.addEventListener('click', (event) => {
+        const link = event.target.closest('a.topic-main-link, a[href^="/dashboard#konu/"], a[href^="/konu/"]');
+        if (!link) return;
+
+        const href = String(link.getAttribute('href') || '').trim();
+        if (!href) return;
+
+        let routeKey = '';
+        if (href.startsWith('/dashboard#')) {
+          routeKey = href.slice('/dashboard#'.length);
+        } else if (href.startsWith('/konu/')) {
+          routeKey = href.replace(/^\//, '');
+        } else {
+          return;
+        }
+
+        if (!routeKey.startsWith('konu/')) return;
+        event.preventDefault();
+        try {
+          window.parent.postMessage({ type: 'user-shell:navigate', routeKey }, window.location.origin);
+        } catch (error) {
+          console.warn('Alt konu shell yönlendirmesi başarısız, fallback uygulanıyor:', error);
+          window.location.href = href.startsWith('/dashboard#') ? href : `/dashboard#${routeKey}`;
+        }
+      });
+    };
+
     document.addEventListener('DOMContentLoaded', async () => {
       setupTopicBackButton();
+      setupEmbeddedTopicNavigation();
       const urlParams = new URLSearchParams(window.location.search);
       currentTopicId = urlParams.get('id');
       let currentTopicSlug = null;
@@ -2950,7 +2998,7 @@
 
         return `
           <div class="topic-card ${isCompleted ? 'is-completed' : ''}">
-            <a href="${buildTopicPath(subtopic)}" class="topic-main-link" style="text-decoration:none; color:inherit; display:block; flex-grow: 1;">
+            <a href="${buildSubtopicNavigationHref(subtopic)}" class="topic-main-link" style="text-decoration:none; color:inherit; display:block; flex-grow: 1;">
                 <div class="card-header-row">
                     ${iconHtml}
                     <span class="topic-badge badge-${subtopic.category || 'ortak'}">${subtopic.category === 'alan' ? 'Alan' : 'Ortak'}</span>
