@@ -108,7 +108,7 @@
       cursor: pointer;
       font-weight: 600;
       font-size: 0.95rem;
-      transition: all var(--transition-medium);
+      transition: color 120ms ease, background-color 120ms ease, box-shadow 120ms ease;
     }
 
     .tab-btn:hover {
@@ -302,10 +302,10 @@
       display: grid;
       grid-template-columns: minmax(0, 1fr);
       align-items: center;
-      gap: 10px;
-      margin-top: 18px;
-      padding: 12px 14px;
-      border-radius: 16px;
+      gap: 8px;
+      margin-top: 14px;
+      padding: 9px 10px;
+      border-radius: 14px;
       border: 1px solid rgba(255, 235, 190, 0.18);
       background: linear-gradient(165deg, rgba(255, 244, 214, 0.12), rgba(191, 149, 63, 0.06) 45%, rgba(19, 19, 22, 0.22));
       box-shadow: inset 0 1px 0 rgba(255, 244, 214, 0.18), 0 8px 18px rgba(120, 79, 18, 0.1);
@@ -515,7 +515,7 @@
     .progress-container {
       margin-top: 0;
       width: 100%;
-      height: 6px;
+      height: 4px;
       background: rgba(27, 23, 18, 0.42);
       border-radius: 999px;
       overflow: hidden;
@@ -555,10 +555,10 @@
     .progress-info-item {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
-      min-height: 48px;
-      padding: 8px 10px;
-      border-radius: 14px;
+      gap: 6px;
+      min-height: 30px;
+      padding: 4px 7px;
+      border-radius: 10px;
       border: 1px solid rgba(191, 149, 63, 0.18);
       background: rgba(18, 18, 20, 0.24);
       min-width: 0;
@@ -589,9 +589,10 @@
 
     .progress-info-copy {
       display: flex;
-      flex-direction: column;
-      gap: 2px;
+      flex-direction: row;
+      gap: 4px;
       min-width: 0;
+      align-items: center;
     }
 
     .progress-info-label {
@@ -606,32 +607,33 @@
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
       align-items: stretch;
-      gap: 10px;
+      gap: 6px;
     }
 
     .topic-progress-line strong {
       color: var(--text-main);
       font-weight: 700;
-      font-size: 0.92rem;
+      font-size: 0.82rem;
+      line-height: 1;
     }
 
     .progress-legend {
       display: flex;
       flex-wrap: wrap;
-      gap: 8px;
-      margin: -12px 0 18px;
+      gap: 6px;
+      margin: -8px 0 12px;
     }
 
     .progress-legend-item {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      padding: 6px 10px;
+      gap: 5px;
+      padding: 4px 8px;
       border-radius: var(--radius-full);
       border: 1px solid var(--border-subtle);
       background: var(--bg-surface-elevated);
       color: var(--text-muted);
-      font-size: 0.72rem;
+      font-size: 0.68rem;
       font-weight: 600;
       white-space: nowrap;
     }
@@ -642,8 +644,8 @@
     }
 
     .ui-icon {
-      width: 14px;
-      height: 14px;
+      width: 12px;
+      height: 12px;
       display: inline-block;
       color: currentColor;
       flex-shrink: 0;
@@ -769,22 +771,39 @@
       }
 
       .topic-progress-line {
-        grid-template-columns: 1fr 1fr;
-        gap: 8px;
-        font-size: 0.74rem;
+        display: flex;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        gap: 6px;
+        font-size: 0.72rem;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+      }
+
+      .topic-progress-line::-webkit-scrollbar {
+        display: none;
       }
 
       .progress-legend {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 8px;
-        margin: -8px 0 16px;
+        display: flex;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        gap: 6px;
+        margin: -6px 0 10px;
+        padding-bottom: 2px;
+      }
+
+      .progress-legend::-webkit-scrollbar {
+        display: none;
       }
 
       .progress-legend-item {
-        justify-content: center;
-        font-size: 0.72rem;
-        padding: 6px 8px;
+        justify-content: flex-start;
+        font-size: 0.64rem;
+        padding: 4px 7px;
+        flex: 0 0 auto;
       }
 
       .topic-title {
@@ -860,7 +879,7 @@
       }
 
       .progress-container {
-        height: 5px;
+        height: 4px;
         padding: 0;
       }
 
@@ -887,14 +906,14 @@
       }
 
       .progress-info-item {
-        min-height: 44px;
-        padding: 7px 9px;
+        min-height: 28px;
+        padding: 4px 7px;
+        flex: 0 0 auto;
       }
 
       .progress-info-item-target {
         margin-left: 0;
-        grid-column: 1 / -1;
-        justify-self: end;
+        justify-self: auto;
       }
     }
 
@@ -916,12 +935,21 @@
       }
 
       .progress-info-item {
-        width: 100%;
-        justify-content: flex-start;
+        width: auto;
+        justify-content: center;
       }
 
       .progress-info-item-target {
-        justify-self: stretch;
+        justify-self: auto;
+      }
+
+      .progress-legend-item {
+        font-size: 0.6rem;
+        padding: 4px 6px;
+      }
+
+      .topic-progress-line strong {
+        font-size: 0.76rem;
       }
     }
 
@@ -1010,7 +1038,7 @@
     <div class="filter-section">
       <div class="search-box">
         <span class="search-icon">🔍</span>
-        <input type="text" id="searchInput" placeholder="Konu veya ders ara..." aria-label="Konu veya ders ara">
+        <input type="text" id="searchInput" placeholder="Konu veya ders ara..." aria-label="Konu veya ders ara" autocomplete="off" autocapitalize="off" spellcheck="false">
       </div>
       <div class="tabs">
         <button class="tab-btn active" data-category="all" onclick="filterTopics('all', event)">Tümü</button>
@@ -1067,8 +1095,19 @@
     let allTopics = [];
     let userStats = {};
     let questionCounts = new Map();
+    let activeCategory = 'all';
+    let currentSearch = '';
+    let renderFrameId = null;
+    const tabButtons = Array.from(document.querySelectorAll('.tab-btn'));
 
     document.addEventListener('DOMContentLoaded', () => {
+      const searchInputEl = document.getElementById('searchInput');
+      if (searchInputEl) {
+        // Mobilde ilk açılışta klavye açılmasını engelle
+        searchInputEl.blur();
+      }
+      window.addEventListener('pageshow', () => searchInputEl?.blur());
+
       onAuthStateChanged(auth, async (user) => {
         if (user) {
           await loadUserStats(user.uid);
@@ -1231,7 +1270,7 @@
         return;
       }
 
-      container.innerHTML = '';
+      const cardsHtml = [];
       const getQuestionCount = (id) => questionCounts.get(id) || 0;
       const decorateTopic = (t) => {
         const icon = pickTopicIcon(t.title, t.category);
@@ -1288,9 +1327,6 @@
 
       decoratedTopics.forEach(({ topic: t, icon, childrenToShow, progress, progressBase, successRate, isCompleted, solvedTotal, expectedQuestionCount }) => {
 
-        const card = document.createElement('div');
-        card.className = `topic-card${isCompleted ? ' is-completed' : ''}`;
-
         const subtopicsHtml = childrenToShow.length ? `
                     <div class="subtopic-list">
                         ${childrenToShow.map(child => `
@@ -1321,7 +1357,8 @@
                     </div>
         `;
 
-        card.innerHTML = `
+        cardsHtml.push(`
+            <div class="topic-card${isCompleted ? ' is-completed' : ''}">
             <a href="${buildTopicPath(t)}" class="topic-main-link" style="text-decoration:none; color:inherit; display:block; flex-grow: 1;">
                 <div class="card-header-row">
                     <div class="topic-icon">${icon}</div>
@@ -1336,27 +1373,38 @@
             </a>
             ${subtopicsHtml}
             ${progressHtml}
-        `;
-        container.appendChild(card);
+            </div>
+        `);
+      });
+
+      container.innerHTML = cardsHtml.join('');
+    }
+
+    function scheduleRender() {
+      if (renderFrameId) cancelAnimationFrame(renderFrameId);
+      renderFrameId = requestAnimationFrame(() => {
+        renderTopics(allTopics, { category: activeCategory, search: currentSearch });
+        renderFrameId = null;
       });
     }
 
     // Filtreleme Fonksiyonu (Global)
     window.filterTopics = (category, ev) => {
+      activeCategory = category;
       // Tab butonlarını güncelle
-      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      tabButtons.forEach(btn => btn.classList.remove('active'));
       if (ev?.target) ev.target.classList.add('active');
 
-      const search = document.getElementById('searchInput').value.toLowerCase();
-      renderTopics(allTopics, { category, search });
+      currentSearch = document.getElementById('searchInput').value.toLowerCase();
+      scheduleRender();
     };
 
     // Arama Dinleyicisi
     document.getElementById('searchInput').addEventListener('input', (e) => {
+      currentSearch = e.target.value.toLowerCase();
       const activeTab = document.querySelector('.tab-btn.active');
-      const category = activeTab?.dataset?.category || 'all';
-      const search = e.target.value.toLowerCase();
-      renderTopics(allTopics, { category, search });
+      activeCategory = activeTab?.dataset?.category || activeCategory || 'all';
+      scheduleRender();
     });
   </script>
 </body>
