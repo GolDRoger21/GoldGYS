@@ -1,5 +1,5 @@
 ﻿import { db, auth } from "./firebase-config.js";
-import { buildTopicPath } from "./topic-url.js";
+import { buildTopicHref } from "./topic-url.js";
 import { TopicService } from "./topic-service.js";
 import { CacheManager } from "./cache-manager.js";
 import { pickTopicIcon } from "./topic-icon-map.js";
@@ -267,7 +267,7 @@ function renderTopics(topics, options = {}) {
         const subtopicsHtml = childrenToShow.length ? `
           <div class="subtopic-list">
             ${childrenToShow.map((child) => `
-              <a class="subtopic-link" href="${buildTopicPath(child)}">
+              <a class="subtopic-link" href="${buildTopicHref(child)}">
                 <span class="subtopic-title-wrap">
                   <span class="subtopic-icon">${pickTopicIcon(child.title, child.category, { isSubtopic: true })}</span>
                   <span title="${child.title}">${child.title}</span>
@@ -307,7 +307,7 @@ function renderTopics(topics, options = {}) {
         `;
 
         card.innerHTML = `
-          <a href="${buildTopicPath(topic)}" class="topic-main-link" style="text-decoration:none; color:inherit; display:block; flex-grow: 1;">
+          <a href="${buildTopicHref(topic)}" class="topic-main-link" style="text-decoration:none; color:inherit; display:block; flex-grow: 1;">
             <div class="card-header-row">
               <div class="topic-icon">${icon}</div>
               <span class="topic-badge badge-${topic.category}">${topic.category === "ortak" ? "Ortak" : "Alan"}</span>

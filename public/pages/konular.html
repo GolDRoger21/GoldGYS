@@ -1111,7 +1111,7 @@
 
   <script type="module">
     import { db, auth } from '../js/firebase-config.js';
-    import { buildTopicPath } from '../js/topic-url.js';
+    import { buildTopicHref } from '../js/topic-url.js';
     import { collection, getDocs, query, orderBy, where, documentId, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
     import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
     import { TopicService } from '../js/topic-service.js';
@@ -1356,7 +1356,7 @@
         const subtopicsHtml = childrenToShow.length ? `
                     <div class="subtopic-list">
                         ${childrenToShow.map(child => `
-                            <a class="subtopic-link" href="${buildTopicPath(child)}">
+                            <a class="subtopic-link" href="${buildTopicHref(child)}">
                                 <span class="subtopic-title-wrap">
                                   <span class="subtopic-icon">${pickTopicIcon(child.title, child.category, { isSubtopic: true })}</span>
                                   <span title="${child.title}">${child.title}</span>
@@ -1385,7 +1385,7 @@
 
         cardsHtml.push(`
             <div class="topic-card${isCompleted ? ' is-completed' : ''}">
-            <a href="${buildTopicPath(t)}" class="topic-main-link" style="text-decoration:none; color:inherit; display:block; flex-grow: 1;">
+            <a href="${buildTopicHref(t)}" class="topic-main-link" style="text-decoration:none; color:inherit; display:block; flex-grow: 1;">
                 <div class="card-header-row">
                     <div class="topic-icon">${icon}</div>
                     <span class="topic-badge badge-${t.category}">${t.category === 'ortak' ? 'Ortak' : 'Alan'}</span>

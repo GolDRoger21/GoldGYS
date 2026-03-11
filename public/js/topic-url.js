@@ -33,3 +33,26 @@ export function buildTopicPath(topicOrId, title = '') {
   const fallback = String(topicOrId || '').trim();
   return `/konu/${encodeURIComponent(fallback)}`;
 }
+
+function isShellNavigationPreferred() {
+  if (typeof window === "undefined") return false;
+  try {
+    const params = new URLSearchParams(window.location.search || "");
+    if (params.get("shell") === "1") return false;
+    if (params.get("shellV2") === "0") return false;
+    if (params.get("shellV2") === "1") return true;
+
+    const pathname = window.location.pathname || "";
+    if (pathname === "/dashboard") return true;
+    return localStorage.getItem("userShellV2") === "1";
+  } catch {
+    return false;
+  }
+}
+
+export function buildTopicHref(topicOrId, title = '') {
+  const topicPath = buildTopicPath(topicOrId, title);
+  if (!isShellNavigationPreferred()) return topicPath;
+  const routeKey = topicPath.replace(/^\//, "");
+  return `/dashboard#${routeKey}`;
+}

@@ -113,12 +113,15 @@ test.describe('Gold GYS authenticated smoke (@optional)', () => {
     await expect(page).toHaveTitle(/Dersler \| GOLD GYS/i);
 
     // Dynamic konu route: konu kartı tıklandığında shell hash route'a geçmeli.
-    const firstTopicLink = page.locator('#topicsContainer .topic-main-link[href^="/konu/"]').first();
+    const firstTopicLink = page.locator('#topicsContainer .topic-main-link[href*="konu/"]').first();
     const discoveredTopicHref = (await firstTopicLink.count()) > 0
       ? await firstTopicLink.getAttribute('href')
       : null;
-    const topicPath = (discoveredTopicHref && discoveredTopicHref.startsWith('/konu/'))
-      ? discoveredTopicHref
+    const normalizedTopicPath = discoveredTopicHref
+      ? (new URL(discoveredTopicHref, baseURL)).pathname
+      : '/konu/turkiye-cumhuriyeti-anayasasi';
+    const topicPath = normalizedTopicPath.startsWith('/konu/')
+      ? normalizedTopicPath
       : '/konu/turkiye-cumhuriyeti-anayasasi';
     const topicHashRoute = topicPath.replace(/^\//, '');
     const topicShellUrlPattern = /\/dashboard(?:\?[^#]*)?#konu\/[^/?#]+$/i;

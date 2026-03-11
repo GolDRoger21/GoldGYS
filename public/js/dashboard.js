@@ -4,7 +4,7 @@ import { initLayout } from './ui-loader.js';
 import { auth, db } from "./firebase-config.js";
 import { getUserProfile } from "./user-profile.js";
 import { collection, doc, getDoc, getDocs, limit, onSnapshot, orderBy, documentId, query, where } from "./firestore-metrics.js";
-import { buildTopicPath } from './topic-url.js';
+import { buildTopicHref } from './topic-url.js';
 import { CacheManager } from './cache-manager.js';
 import { pickTopicIcon } from './topic-icon-map.js';
 import { USER_CACHE_KEYS } from './cache-keys.js';
@@ -210,7 +210,7 @@ function buildTopicLookup(allTopics = []) {
 }
 
 function getTopicUrl(topicId, slug) {
-    return buildTopicPath ? buildTopicPath({ id: topicId, slug }) : `/konu/${slug || topicId}`;
+    return buildTopicHref ? buildTopicHref({ id: topicId, slug }) : `/konu/${slug || topicId}`;
 }
 
 function applyStatsToUI(totalStats, todayStats) {

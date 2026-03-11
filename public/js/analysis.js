@@ -3,7 +3,7 @@ import { collection, query, orderBy, documentId, limit, getDocs, doc, setDoc, ge
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { showConfirm, showToast } from "./notifications.js";
 import { TopicService } from "./topic-service.js";
-import { buildTopicPath } from "./topic-url.js";
+import { buildTopicHref } from "./topic-url.js";
 import { CacheManager } from "./cache-manager.js";
 import { USER_CACHE_KEYS } from "./cache-keys.js";
 
@@ -810,7 +810,7 @@ function renderTopicList() {
         const badgeData = getBadgeHTMLForStatus(status);
         const focusEmoji = topic.id === state.currentTopicId ? '🎯' : '⭕';
         const isCurrentRow = topic.id === state.currentTopicId ? 'active-focus-row' : '';
-        const topicUrl = buildTopicPath ? buildTopicPath(topic) : `/konu/${topic.slug || topic.id}`;
+        const topicUrl = buildTopicHref ? buildTopicHref(topic) : `/konu/${topic.slug || topic.id}`;
 
         return `<tr class="topic-row ${isCurrentRow}" data-status="${status}">
             <td data-label="Konu">
