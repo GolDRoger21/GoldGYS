@@ -170,7 +170,7 @@
 
 .stat-icon.blue {
     background: rgba(59, 130, 246, 0.15);
-    color: #3b82f6;
+    color: var(--color-info);
 }
 
 .stat-icon.red {
@@ -262,7 +262,7 @@
 }
 
 [data-theme="light"] .link-small a {
-    color: #ef4444;
+    color: var(--color-danger);
     background: rgba(239, 68, 68, 0.08);
     border-color: rgba(239, 68, 68, 0.15);
 }
@@ -343,7 +343,7 @@
 }
 
 [data-theme="light"] .quick-card:hover {
-    background: #fff;
+    background: var(--bg-surface-elevated);
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
 }
 
@@ -498,12 +498,12 @@
 
 .focus-badge {
     background: rgba(16, 185, 129, 0.15);
-    color: #34d399;
+    color: var(--color-success);
 }
 
 [data-theme="light"] .focus-badge {
     background: rgba(16, 185, 129, 0.12);
-    color: #047857;
+    color: var(--color-success);
 }
 
 .panel-card,
@@ -653,7 +653,7 @@
     justify-content: center;
     font-size: 1.2rem;
     background: rgba(59, 130, 246, 0.15);
-    color: #3b82f6;
+    color: var(--color-info);
     flex-shrink: 0;
 }
 
@@ -664,12 +664,12 @@
 
 .panel-item-icon.purple {
     background: rgba(99, 102, 241, 0.2);
-    color: #6366f1;
+    color: var(--color-primary-dim);
 }
 
 .panel-item-icon.teal {
     background: rgba(45, 212, 191, 0.2);
-    color: #2dd4bf;
+    color: var(--color-success);
 }
 
 .activity-list {
@@ -703,7 +703,7 @@
     justify-content: center;
     font-size: 1.2rem;
     background: rgba(59, 130, 246, 0.15);
-    color: #3b82f6;
+    color: var(--color-info);
 }
 
 .activity-title {
@@ -784,7 +784,7 @@
 }
 
 [data-theme="light"] .metric-label {
-    color: #64748b;
+    color: var(--text-muted);
 }
 
 /* Card Header & Content */
@@ -884,7 +884,7 @@
 
 [data-theme="light"] .kpi-stat-card .bg-icon {
     opacity: 0.08;
-    color: #000;
+    color: var(--text-main);
 }
 
 .kpi-value {
@@ -1044,7 +1044,7 @@
 
 .status-in-progress {
     background: rgba(59, 130, 246, 0.15);
-    color: #3b82f6;
+    color: var(--color-info);
     border: 1px solid rgba(59, 130, 246, 0.3);
 }
 
@@ -1057,13 +1057,13 @@
 .reset-stats-btn {
     border: 1px solid rgba(239, 68, 68, 0.4);
     background: rgba(239, 68, 68, 0.12);
-    color: #ef4444;
+    color: var(--color-danger);
     cursor: pointer;
 }
 
 .reset-stats-btn:hover {
     background: rgba(239, 68, 68, 0.2);
-    color: #f87171;
+    color: var(--color-danger);
 }
 
 /* --- EXAM HISTORY TABLE (PREMIUM LIST) --- */
@@ -1609,12 +1609,12 @@
 
 [data-theme="light"] .dashboard-container .search-box input {
     background: rgba(255, 255, 255, 0.92);
-    color: #1f2937;
+    color: var(--text-main);
     border-color: rgba(148, 163, 184, 0.45);
 }
 
 [data-theme="light"] .dashboard-container .search-box input::placeholder {
-    color: #64748b;
+    color: var(--text-muted);
 }
 
 .dashboard-container .topic-card,

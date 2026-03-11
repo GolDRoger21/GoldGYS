@@ -292,31 +292,31 @@
         /* --- LIGHT THEME OVERRIDES --- */
         [data-theme="light"] .deneme-hero {
             background: linear-gradient(135deg, #FFF9E5 0%, #FFFFFF 100%);
-            border-color: #E8D29A;
+            border-color: color-mix(in srgb, var(--color-primary) 35%, var(--border-subtle) 65%);
             box-shadow: 0 4px 20px rgba(212, 175, 55, 0.15);
         }
 
         [data-theme="light"] .deneme-hero h1 {
-            color: #856d20;
+            color: var(--color-primary-dim);
             text-shadow: none;
         }
 
         [data-theme="light"] .deneme-hero p {
-            color: #856d20;
+            color: var(--text-muted);
             opacity: 0.8;
         }
 
         [data-theme="light"] .hero-panel {
             background: rgba(255, 255, 255, 0.7);
-            border-color: #E8D29A;
+            border-color: color-mix(in srgb, var(--color-primary) 35%, var(--border-subtle) 65%);
         }
 
         [data-theme="light"] .hero-panel-item .value {
-            color: #856d20;
+            color: var(--color-primary-dim);
         }
 
         [data-theme="light"] .hero-panel-item .label {
-            color: #B5952F;
+            color: var(--text-muted);
         }
 
         [data-theme="light"] .exam-highlight {

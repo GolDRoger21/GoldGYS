@@ -544,11 +544,13 @@ body:not(.admin-body) .app-sidebar .nav-label {
 }
 
 .bg-dark {
-    background-color: #0f172a;
+    background-color: color-mix(in srgb, var(--bg-surface-elevated) 76%, #000 24%);
+    color: var(--text-main);
 }
 
 .bg-secondary {
-    background-color: #64748b;
+    background-color: color-mix(in srgb, var(--text-muted) 62%, var(--bg-surface-elevated) 38%);
+    color: var(--text-main);
 }
 
 .bg-warning-subtle {
@@ -578,7 +580,7 @@ body:not(.admin-body) .app-sidebar .nav-label {
 }
 
 .text-white {
-    color: #f8fafc;
+    color: var(--text-main);
 }
 
 .text-muted {

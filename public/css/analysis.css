@@ -330,15 +330,15 @@
 
 [data-theme="light"] .topic-controls input,
 [data-theme="light"] .topic-controls select {
-  color: #2f2516;
+  color: var(--text-main);
 }
 
 [data-theme="light"] .topic-controls input::placeholder {
-  color: #64748b;
+  color: var(--text-muted);
 }
 
 [data-theme="light"] .chip-group .status-badge {
-  color: #2f2516;
+  color: var(--text-main);
 }
 
 [data-theme="light"] .chip-group .status-badge:hover {
@@ -347,7 +347,7 @@
 }
 
 [data-theme="light"] .chip-group .status-badge.is-active {
-  color: #2f2516;
+  color: var(--text-main);
   border-color: rgba(179, 135, 40, 0.56);
   box-shadow: 0 10px 20px rgba(120, 79, 18, 0.18);
 }
@@ -710,7 +710,7 @@
 }
 
 .weakness-item strong span.alert-color {
-  color: #D4AF37;
+  color: var(--color-primary);
 }
 
 .weakness-item p {
@@ -738,12 +738,12 @@
 }
 
 .exam-bar-correct {
-  background: #10b981;
+  background: var(--color-success);
   height: 100%;
 }
 
 .exam-bar-wrong {
-  background: #ef4444;
+  background: var(--color-danger);
   height: 100%;
 }
 
@@ -755,12 +755,12 @@
 }
 
 .exam-stats-text span.s-correct {
-  color: #34d399;
+  color: var(--color-success);
   font-weight: 600;
 }
 
 .exam-stats-text span.s-wrong {
-  color: #f87171;
+  color: var(--color-danger);
   font-weight: 600;
 }
 
@@ -793,12 +793,12 @@
 
 [data-theme="light"] .exam-stats-text span.s-correct,
 :root:not([data-theme="dark"]) .exam-stats-text span.s-correct {
-  color: #2F7A55;
+  color: var(--color-success);
 }
 
 [data-theme="light"] .exam-stats-text span.s-wrong,
 :root:not([data-theme="dark"]) .exam-stats-text span.s-wrong {
-  color: #B94B45;
+  color: var(--color-danger);
 }
 
 /* --- Exam bar container background --- */
@@ -1487,7 +1487,7 @@
 /* --- History Topic Badge light mode contrast --- */
 [data-theme="light"] .history-topic-badge,
 :root:not([data-theme="dark"]) .history-topic-badge {
-  color: #4A3716;
+  color: var(--color-primary-dim);
   background: rgba(191, 149, 63, 0.18);
   border-color: rgba(191, 149, 63, 0.45);
   font-weight: 700;
@@ -1496,17 +1496,17 @@
 /* --- Ensure chart headings and other labels are readable --- */
 [data-theme="light"] .card-title,
 :root:not([data-theme="dark"]) .card-title {
-  color: #2F2516 !important;
+  color: var(--text-main) !important;
 }
 
 [data-theme="light"] .text-muted,
 :root:not([data-theme="dark"]) .text-muted {
-  color: #645542 !important;
+  color: var(--text-muted) !important;
 }
 
 [data-theme="light"] .stat-label,
 :root:not([data-theme="dark"]) .stat-label {
-  color: #7A6650 !important;
+  color: var(--text-muted) !important;
 }
 
 [data-theme="light"] .prediction-stat-item,
@@ -1519,17 +1519,27 @@
 [data-theme="dark"] .analysis-page .card-title,
 [data-theme="dark"] .analysis-page .topic-title-main,
 [data-theme="dark"] .analysis-page .history-test-title,
+[data-theme="dark"] .analysis-page .analysis-header h1,
+[data-theme="dark"] .analysis-page .analysis-header h1 *,
+[data-theme="dark"] .analysis-page .card-header,
+[data-theme="dark"] .analysis-page .card-header *,
+[data-theme="dark"] .analysis-page .card-title *,
+[data-theme="dark"] .analysis-page .prediction-value,
+[data-theme="dark"] .analysis-page .prediction-label,
+[data-theme="dark"] .analysis-page .prediction-stat-item,
+[data-theme="dark"] .analysis-page .prediction-stat-item *,
+[data-theme="dark"] .analysis-page .topic-controls,
+[data-theme="dark"] .analysis-page .topic-controls *,
 [data-theme="dark"] .analysis-page .mastery-table th,
 [data-theme="dark"] .analysis-page .admin-table th,
 [data-theme="dark"] .analysis-page .mastery-table td,
 [data-theme="dark"] .analysis-page .admin-table td,
 [data-theme="dark"] .analysis-page .prediction-stat-item .stat-val,
-[data-theme="dark"] .analysis-page .prediction-label,
 [data-theme="dark"] .analysis-page .progress-val,
 [data-theme="dark"] .analysis-page .score-badge,
 [data-theme="dark"] .analysis-page .level-row,
 [data-theme="dark"] .analysis-page .analysis-header p {
-  color: var(--text-main);
+  color: var(--text-main) !important;
 }
 
 [data-theme="dark"] .analysis-page .topic-desc-sub,
@@ -1539,7 +1549,7 @@
 [data-theme="dark"] .analysis-page .level-row.small,
 [data-theme="dark"] .analysis-page .exam-stats-text,
 [data-theme="dark"] .analysis-page .text-muted {
-  color: var(--text-muted);
+  color: var(--text-muted) !important;
 }
 
 [data-theme="dark"] .analysis-page .prediction-stat-item,

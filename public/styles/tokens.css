@@ -115,6 +115,8 @@
   --nav-glass-border: rgba(179, 135, 40, 0.28);
   --bg-surface: rgba(255, 251, 244, 0.82);
   --bg-surface-elevated: rgba(255, 250, 240, 0.93);
+  --bg-panel: var(--bg-surface-elevated);
+  --bg-dark: color-mix(in srgb, var(--bg-surface) 86%, #000 14%);
   --border-subtle: rgba(179, 135, 40, 0.18);
   --text-light: #1B1B1B;
   --text-white: #F4E6C3;
@@ -193,6 +195,8 @@
   --nav-glass-border: rgba(217, 178, 74, 0.3);
   --bg-surface: rgba(25, 20, 14, 0.82);
   --bg-surface-elevated: rgba(34, 27, 19, 0.92);
+  --bg-panel: var(--bg-surface-elevated);
+  --bg-dark: color-mix(in srgb, var(--bg-surface) 82%, #000 18%);
   --border-subtle: rgba(217, 178, 74, 0.2);
   --text-light: #F4E6C3;
   --text-white: #F4E6C3;
