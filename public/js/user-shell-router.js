@@ -590,8 +590,18 @@ function getRouteViewElement(views, routeKey) {
     return views.shellMain.querySelector(`.user-shell-view[data-route-key="${routeKey}"]`);
 }
 
+function isDynamicTopicRouteKey(routeKey) {
+    return typeof routeKey === "string" && routeKey.startsWith("konu/");
+}
+
+function resolveActiveRouteKey(routeKey) {
+    if (ROUTES[routeKey]) return routeKey;
+    if (isDynamicTopicRouteKey(routeKey)) return routeKey;
+    return "dashboard";
+}
+
 function setExclusiveRouteVisibility(views, activeRouteKey) {
-    const activeKey = ROUTES[activeRouteKey] ? activeRouteKey : "dashboard";
+    const activeKey = resolveActiveRouteKey(activeRouteKey);
     const dashboardView = views?.dashboardContainer;
     if (dashboardView) {
         dashboardView.hidden = activeKey !== "dashboard";
@@ -648,7 +658,8 @@ function setupNavInterception(navigateToRoute) {
 
 function markActiveNav(routeKey) {
     document.querySelectorAll(".nav-item").forEach((item) => item.classList.remove("active"));
-    const route = ROUTES[routeKey] || ROUTES.dashboard;
+    const navRouteKey = isDynamicTopicRouteKey(routeKey) ? "konular" : routeKey;
+    const route = ROUTES[navRouteKey] || ROUTES.dashboard;
     const navItem = document.querySelector(`.nav-item[data-shell-route="${route.key}"]`)
         || document.querySelector(`.nav-item[data-page="${route.pageId}"]`);
     if (navItem) navItem.classList.add("active");
@@ -999,5 +1010,4 @@ export function initUserShellRouter(siteConfig) {
         }
     };
 }
-
 

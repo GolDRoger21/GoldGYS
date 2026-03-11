@@ -112,12 +112,50 @@ test.describe('Gold GYS authenticated smoke (@optional)', () => {
     await expect(page.locator('iframe.user-shell-frame[title=\"Dersler\"]')).toHaveCount(0);
     await expect(page).toHaveTitle(/Dersler \| GOLD GYS/i);
 
+    // Dynamic konu route: konu kartı tıklandığında shell hash route'a geçmeli.
+    const firstTopicLink = page.locator('#topicsContainer .topic-main-link[href^="/konu/"]').first();
+    const discoveredTopicHref = (await firstTopicLink.count()) > 0
+      ? await firstTopicLink.getAttribute('href')
+      : null;
+    const topicPath = (discoveredTopicHref && discoveredTopicHref.startsWith('/konu/'))
+      ? discoveredTopicHref
+      : '/konu/turkiye-cumhuriyeti-anayasasi';
+    const topicHashRoute = topicPath.replace(/^\//, '');
+    const topicShellUrlPattern = /\/dashboard(?:\?[^#]*)?#konu\/[^/?#]+$/i;
+
+    if (discoveredTopicHref) {
+      await firstTopicLink.click();
+    } else {
+      await page.goto(`/dashboard#${topicHashRoute}`);
+    }
+
+    await expect(page).toHaveURL(topicShellUrlPattern);
+    await expect(page.locator('iframe.user-shell-frame[title="Konu İçeriği"]')).toBeVisible();
+    await expect(page.locator('.sidebar-nav .nav-item[data-shell-route="konular"].active')).toHaveCount(1);
+    await expect.poll(async () => page.evaluate(() => window.location.pathname)).toBe('/dashboard');
+
+    // Ping-pong koruması: back/forward ve tekrar girişlerde hash route stabil kalmalı.
+    for (let i = 0; i < 3; i += 1) {
+      await lessonsNav.click();
+      await expect(page).toHaveURL(/\/dashboard(?:\?[^#]*)?#konular/i);
+      await page.goto(`/dashboard#${topicHashRoute}`);
+      await expect(page).toHaveURL(topicShellUrlPattern);
+      await page.goBack();
+      await expect(page).toHaveURL(/\/dashboard(?:\?[^#]*)?#konular/i);
+      await page.goForward();
+      await expect(page).toHaveURL(topicShellUrlPattern);
+      await expect.poll(async () => page.evaluate(() => window.location.pathname)).toBe('/dashboard');
+    }
+
     // Scroll restore + focus transfer (native shell behavior)
     await page.evaluate(() => {
       document.documentElement.style.minHeight = '3200px';
       document.body.style.minHeight = '3200px';
       window.scrollTo({ top: 900, behavior: 'auto' });
     });
+
+    await lessonsNav.click();
+    await expect(page).toHaveURL(/\/dashboard(?:\?[^#]*)?#konular/i);
 
     const analysisNav = page.locator('.sidebar-nav .nav-item[data-shell-route="analiz"]').first();
     await expect(analysisNav).toBeVisible();
@@ -152,31 +190,31 @@ test.describe('Gold GYS authenticated smoke (@optional)', () => {
     await page.goto('/dashboard#profil');
     await expect(page).toHaveURL(/\/dashboard(?:\?[^#]*)?#profil/i);
     await expect(page.locator('#profileForm')).toBeVisible();
-    await expect(page.locator('iframe.user-shell-frame')).toHaveCount(0);
+    await expect(page.locator('section.user-shell-view:not([hidden]) iframe.user-shell-frame')).toHaveCount(0);
 
     // Native analysis route (iframe'siz)
     await page.goto('/dashboard#analiz');
     await expect(page).toHaveURL(/\/dashboard(?:\?[^#]*)?#analiz/i);
     await expect(page.locator('#lastUpdate')).toBeVisible();
-    await expect(page.locator('iframe.user-shell-frame')).toHaveCount(0);
+    await expect(page.locator('section.user-shell-view:not([hidden]) iframe.user-shell-frame')).toHaveCount(0);
 
     // Native denemeler route (iframe'siz)
     await page.goto('/dashboard#denemeler');
     await expect(page).toHaveURL(/\/dashboard(?:\?[^#]*)?#denemeler/i);
     await expect(page.locator('#examsGrid')).toBeVisible();
-    await expect(page.locator('iframe.user-shell-frame')).toHaveCount(0);
+    await expect(page.locator('section.user-shell-view:not([hidden]) iframe.user-shell-frame')).toHaveCount(0);
 
     // Native favoriler route (iframe'siz)
     await page.goto('/dashboard#favoriler');
     await expect(page).toHaveURL(/\/dashboard(?:\?[^#]*)?#favoriler/i);
     await expect(page.locator('#favoritesList')).toBeVisible();
-    await expect(page.locator('iframe.user-shell-frame')).toHaveCount(0);
+    await expect(page.locator('section.user-shell-view:not([hidden]) iframe.user-shell-frame')).toHaveCount(0);
 
     // Native yanlışlarım route (iframe'siz)
     await page.goto('/dashboard#yanlislarim');
     await expect(page).toHaveURL(/\/dashboard(?:\?[^#]*)?#yanlislarim/i);
     await expect(page.locator('#mistakesList')).toBeVisible();
-    await expect(page.locator('iframe.user-shell-frame')).toHaveCount(0);
+    await expect(page.locator('section.user-shell-view:not([hidden]) iframe.user-shell-frame')).toHaveCount(0);
 
     // Konu sayfasından dashboard'a dönüş sonrası shell geçişleri çalışmaya devam etmeli.
     await page.goto('/konu/turkiye-cumhuriyeti-anayasasi');
