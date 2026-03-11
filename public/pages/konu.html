@@ -2192,7 +2192,7 @@
       let subtopics = [];
       let hasCache = false;
 
-      if (cachedData?.cached && cachedData.data) {
+      if (cachedData?.cached && Array.isArray(cachedData.data) && cachedData.data.length > 0) {
         subtopics = cachedData.data;
         hasCache = true;
         console.log(`[Cache Hit] Alt konular IndexedDB'den yüklendi (${cacheKey}) ve Firestore sorgusu atlandı.`);
@@ -2208,8 +2208,7 @@
           );
           const subtopicFallbackQuery = query(
             collection(db, "topics"),
-            where("parentId", "==", currentTopicId),
-            orderBy("order", "asc")
+            where("parentId", "==", currentTopicId)
           );
 
           const subtopicSnap = await safeGetDocs(subtopicQuery, subtopicFallbackQuery, 'Alt konular');
@@ -2317,6 +2316,76 @@
         return title;
       };
 
+      const normalizeType = (value) => String(value || '').trim().toLowerCase();
+
+      const toFiniteNumber = (value) => {
+        const num = Number(value);
+        return Number.isFinite(num) ? num : 0;
+      };
+
+      const isTestItem = (item) => {
+        const type = normalizeType(item?.type);
+        if (['test', 'quiz', 'exam', 'deneme'].includes(type)) return true;
+        if (Array.isArray(item?.questions) && item.questions.length > 0) return true;
+        if (toFiniteNumber(item?.qCount) > 0) return true;
+        return false;
+      };
+
+      const detectMaterialType = (rawType, candidateUrl = '') => {
+        const type = normalizeType(rawType);
+        if (['video', 'podcast', 'pdf', 'html'].includes(type)) return type;
+        const url = String(candidateUrl || '').toLowerCase();
+        if (url.includes('youtube.com') || url.includes('youtu.be') || url.includes('vimeo.com')) return 'video';
+        if (url.endsWith('.pdf')) return 'pdf';
+        if (url.includes('.mp3') || url.includes('.wav') || url.includes('.ogg') || url.includes('.m4a')) return 'podcast';
+        return 'html';
+      };
+
+      const normalizeMaterial = (mat = {}, fallbackTitle = '') => {
+        const resolvedUrl = mat.url || mat.link || mat.fileUrl || mat.contentUrl || mat.src || mat.content || '';
+        return {
+          ...mat,
+          title: mat.title || fallbackTitle || 'İçerik',
+          url: resolvedUrl,
+          type: detectMaterialType(mat.type, resolvedUrl),
+          duration: mat.duration || mat.length || ''
+        };
+      };
+
+      const getLessonMaterials = (lesson = {}) => {
+        const normalized = [];
+        const sourceMaterials = Array.isArray(lesson.materials)
+          ? lesson.materials
+          : (lesson.materials && typeof lesson.materials === 'object')
+            ? Object.values(lesson.materials)
+            : [];
+
+        sourceMaterials.forEach((mat) => {
+          if (!mat || typeof mat !== 'object') return;
+          const normalizedMat = normalizeMaterial(mat, lesson.title || 'İçerik');
+          if (!normalizedMat.url) return;
+          normalized.push(normalizedMat);
+        });
+
+        if (normalized.length > 0) return normalized;
+
+        const fallbackCandidates = [
+          { type: lesson.type, title: lesson.title, url: lesson.url || lesson.link || lesson.content || lesson.contentUrl || lesson.fileUrl },
+          { type: 'video', title: `${lesson.title || 'Konu'} - Video`, url: lesson.videoUrl || lesson.video },
+          { type: 'pdf', title: `${lesson.title || 'Konu'} - PDF`, url: lesson.pdfUrl || lesson.pdf },
+          { type: 'podcast', title: `${lesson.title || 'Konu'} - Podcast`, url: lesson.podcastUrl || lesson.audioUrl || lesson.audio }
+        ];
+
+        fallbackCandidates.forEach((candidate) => {
+          const normalizedMat = normalizeMaterial(candidate, lesson.title || 'İçerik');
+          if (normalizedMat.url) normalized.push(normalizedMat);
+        });
+
+        return normalized;
+      };
+
+      const hasRenderableLessonContent = (lesson = {}) => getLessonMaterials(lesson).length > 0;
+
       // Tamamlanmış testler sorgusu
       const fetchCompletedTests = async () => {
         if (auth.currentUser) {
@@ -2340,7 +2409,9 @@
 
         let materialsHtml = '';
 
-        const renderMaterialCard = (mat, fallbackTitle, fallbackSummary = '') => {
+        const renderMaterialCard = (rawMat, fallbackTitle, fallbackSummary = '') => {
+          const mat = normalizeMaterial(rawMat, fallbackTitle);
+          if (!mat.url) return '';
           materialCount++;
           let icon = '<i class="fas fa-file-alt"></i>';
           let iconColor = 'var(--text-main)';
@@ -2350,26 +2421,26 @@
 
           if (mat.type === 'video') {
             icon = '<i class="fas fa-play" style="margin-left: 2px;"></i>';
-            iconColor = '#ef4444';
-            bgSubtle = 'rgba(239, 68, 68, 0.12)';
-            borderStyle = 'border-left: 3px solid #ef4444;';
+            iconColor = 'var(--color-danger)';
+            bgSubtle = 'color-mix(in srgb, var(--color-danger) 15%, transparent)';
+            borderStyle = 'border-left: 3px solid var(--color-danger);';
             if (mat.duration) badge = `<span style="font-size: 0.7rem; color: var(--text-muted); font-weight: 600;"><i class="far fa-clock me-1"></i>${mat.duration}</span>`;
           } else if (mat.type === 'podcast') {
             icon = '<i class="fas fa-headphones-alt"></i>';
-            iconColor = '#8b5cf6';
-            bgSubtle = 'rgba(139, 92, 246, 0.12)';
-            borderStyle = 'border-left: 3px solid #8b5cf6;';
+            iconColor = 'var(--color-info)';
+            bgSubtle = 'color-mix(in srgb, var(--color-info) 15%, transparent)';
+            borderStyle = 'border-left: 3px solid var(--color-info);';
             if (mat.duration) badge = `<span style="font-size: 0.7rem; color: var(--text-muted); font-weight: 600;"><i class="far fa-clock me-1"></i>${mat.duration}</span>`;
           } else if (mat.type === 'pdf') {
             icon = '<i class="fas fa-file-pdf"></i>';
-            iconColor = '#e11d48';
-            bgSubtle = 'linear-gradient(135deg, rgba(225, 29, 72, 0.15), rgba(225, 29, 72, 0.05))';
-            borderStyle = 'border-left: 3px solid #e11d48;';
+            iconColor = 'var(--color-danger)';
+            bgSubtle = 'linear-gradient(135deg, color-mix(in srgb, var(--color-danger) 16%, transparent), color-mix(in srgb, var(--color-danger) 8%, transparent))';
+            borderStyle = 'border-left: 3px solid var(--color-danger);';
           } else if (mat.type === 'html') {
             icon = '<i class="fas fa-file-invoice"></i>';
-            iconColor = '#10b981';
-            bgSubtle = 'rgba(16, 185, 129, 0.12)';
-            borderStyle = 'border-left: 3px solid #10b981;';
+            iconColor = 'var(--color-success)';
+            bgSubtle = 'color-mix(in srgb, var(--color-success) 14%, transparent)';
+            borderStyle = 'border-left: 3px solid var(--color-success);';
           }
 
           const contentTitle = mat.title || fallbackTitle || 'İçerik';
@@ -2417,8 +2488,9 @@
               <div class="material-group-body">
                 <div class="material-group-stack">`;
 
-          if (item.materials && item.materials.length > 0) {
-            item.materials.forEach((mat) => {
+          const itemMaterials = getLessonMaterials(item);
+          if (itemMaterials.length > 0) {
+            itemMaterials.forEach((mat) => {
               materialsHtml += renderMaterialCard(mat, displayTitle, item.summary || 'Genel icerik');
             });
             materialsHtml += '</div></div></details>';
@@ -2442,11 +2514,11 @@
         };
 
         contentLessons.forEach(item => {
-          const isTest = item.type === 'test' || (Array.isArray(item.questions) && item.questions.length > 0) || Number.isFinite(item.qCount);
+          const isTest = isTestItem(item);
 
           if (isTest) {
             testCount += 1;
-            const qCount = item.qCount || (item.questions ? item.questions.length : 0);
+            const qCount = toFiniteNumber(item.qCount) || (Array.isArray(item.questions) ? item.questions.length : 0);
 
             const topicSlug = slugifyTopicTitle(topicTitle) || currentTopicId;
             const testSlug = slugifyTopicTitle(item.title) || item.id;
@@ -2473,7 +2545,9 @@
           }
         });
 
-        const lessonItems = contentLessons.filter(item => !(item.type === 'test' || (Array.isArray(item.questions) && item.questions.length > 0) || Number.isFinite(item.qCount)));
+        const lessonItems = contentLessons
+          .filter(item => !isTestItem(item))
+          .filter(item => hasRenderableLessonContent(item));
         const generalLessons = lessonItems.filter(item => isGeneralScope(item.scope));
         const sectionLessons = lessonItems.filter(item => !isGeneralScope(item.scope));
 
@@ -2493,14 +2567,10 @@
                 <div class="material-group-stack" style="gap: 8px;">`;
 
           generalLessons.forEach(item => {
-            if (item.materials && item.materials.length > 0) {
-              item.materials.forEach((mat) => {
-                materialsHtml += renderMaterialCard(mat, item.title, item.summary || 'Genel içerik');
-              });
-            } else if (item.content || item.url) {
-              const fallbackMaterial = { type: item.type || 'html', title: item.title, description: item.summary, url: item.url || item.content };
-              materialsHtml += renderMaterialCard(fallbackMaterial, item.title, item.summary || 'Genel içerik');
-            }
+            const materials = getLessonMaterials(item);
+            materials.forEach((mat) => {
+              materialsHtml += renderMaterialCard(mat, item.title, item.summary || 'Genel içerik');
+            });
           });
           materialsHtml += `
                 </div>
@@ -2563,7 +2633,7 @@
           // Localhost'ta veya test ortamında her zaman en güncel veriyi çekmesi için küçük bir bypass
           const isDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 
-          if (!isDev && cachedData?.cached && cachedData.data) {
+          if (!isDev && cachedData?.cached && Array.isArray(cachedData.data) && cachedData.data.length > 0) {
             console.log(`[Cache Hit] Ders notları IndexedDB'den yüklendi (${cacheKey}) ve Firestore sorgusu atlandı.`);
             return cachedData.data;
           } else {
