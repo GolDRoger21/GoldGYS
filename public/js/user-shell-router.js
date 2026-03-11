@@ -522,7 +522,11 @@ export function resolveUserShellState(siteConfig) {
 
 export function maybeRedirectLegacyPathToShell(siteConfig) {
     const state = resolveUserShellState(siteConfig);
-    if (!state.enabled || state.isEmbed) return false;
+    
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("shell") === "1" || state.isEmbed) return false;
+    
+    if (!state.enabled) return false;
     
     // Check if it's a dynamic konu route
     const isKonuPath = state.pathname && state.pathname.startsWith('/konu/');
@@ -530,7 +534,6 @@ export function maybeRedirectLegacyPathToShell(siteConfig) {
     if (!state.legacyRouteKey && !isKonuPath) return false;
     if (state.pathname === SHELL_ROOT_PATH) return false;
 
-    const params = new URLSearchParams(window.location.search);
     params.delete("shell");
     const search = params.toString();
     
