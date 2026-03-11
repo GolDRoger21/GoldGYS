@@ -1,4 +1,4 @@
-﻿import { analytics } from "./firebase-config.js";
+import { analytics } from "./firebase-config.js";
 import { logEvent } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js";
 
 const SHELL_ROOT_PATH = "/dashboard";
@@ -114,11 +114,13 @@ function isShellEmbedMode() {
 function getRouteFromHash() {
     const hash = (window.location.hash || "").replace(/^#/, "").trim();
     if (!hash) return "dashboard";
+    if (hash.startsWith("konu/")) return hash; // Dynamic topic route
     return ROUTES[hash] ? hash : "dashboard";
 }
 
 function setHashForRoute(routeKey, options = {}) {
-    const route = ROUTES[routeKey] || ROUTES.dashboard;
+    const isDynamicKonu = routeKey.startsWith("konu/");
+    const route = isDynamicKonu ? { hash: `#${routeKey}`, key: routeKey } : (ROUTES[routeKey] || ROUTES.dashboard);
     const hash = route.hash;
     const currentHash = window.location.hash || "";
     if (currentHash === hash) return;
@@ -521,13 +523,23 @@ export function resolveUserShellState(siteConfig) {
 export function maybeRedirectLegacyPathToShell(siteConfig) {
     const state = resolveUserShellState(siteConfig);
     if (!state.enabled || state.isEmbed) return false;
-    if (!state.legacyRouteKey) return false;
+    
+    // Check if it's a dynamic konu route
+    const isKonuPath = state.pathname && state.pathname.startsWith('/konu/');
+    
+    if (!state.legacyRouteKey && !isKonuPath) return false;
     if (state.pathname === SHELL_ROOT_PATH) return false;
 
     const params = new URLSearchParams(window.location.search);
     params.delete("shell");
     const search = params.toString();
-    const target = `${SHELL_ROOT_PATH}${search ? `?${search}` : ""}#${state.legacyRouteKey}`;
+    
+    let targetHash = state.legacyRouteKey;
+    if (isKonuPath) {
+       targetHash = state.pathname.replace(/^\//, ''); // /konu/abc -> konu/abc
+    }
+    
+    const target = `${SHELL_ROOT_PATH}${search ? `?${search}` : ""}#${targetHash}`;
     window.location.replace(target);
     return true;
 }
@@ -604,15 +616,22 @@ function setupNavInterception(navigateToRoute) {
 
         const url = new URL(link.href, window.location.origin);
         if (url.origin !== window.location.origin) return;
-        if (url.pathname !== SHELL_ROOT_PATH && !LEGACY_PATH_TO_ROUTE[url.pathname]) return;
+        const isKonuLink = url.pathname.startsWith('/konu/') && url.pathname.length > 6;
+        if (url.pathname !== SHELL_ROOT_PATH && !LEGACY_PATH_TO_ROUTE[url.pathname] && !isKonuLink) return;
         if (url.searchParams.get("shell") === "1") return;
 
         const hashRouteKey = url.hash ? url.hash.replace(/^#/, "") : null;
         const legacyRouteKey = LEGACY_PATH_TO_ROUTE[url.pathname] || null;
-        const targetKey = hashRouteKey && ROUTES[hashRouteKey]
+        
+        let targetKey = hashRouteKey && (ROUTES[hashRouteKey] || hashRouteKey.startsWith("konu/"))
             ? hashRouteKey
             : legacyRouteKey;
-        if (!targetKey || !ROUTES[targetKey]) return;
+            
+        if (isKonuLink && !hashRouteKey) {
+            targetKey = url.pathname.replace(/^\//, ''); // /konu/abc -> konu/abc
+        }
+
+        if (!targetKey || (!ROUTES[targetKey] && !targetKey.startsWith("konu/"))) return;
 
         event.preventDefault();
         navigateToRoute(targetKey);
@@ -788,12 +807,51 @@ export function initUserShellRouter(siteConfig) {
         window.location.assign(fallbackUrl);
     };
 
+    const getOrCreateDynamicRoute = (routeKey) => {
+        if (ROUTES[routeKey]) return ROUTES[routeKey];
+        if (routeKey.startsWith("konu/")) {
+            return {
+                key: routeKey,
+                hash: `#${routeKey}`,
+                legacyPath: `/${routeKey}`,
+                title: "Konu Detayı | GOLD GYS",
+                focusLabel: "Konu İçeriği",
+                moduleKind: "iframe",
+                prefetchPriority: "low",
+                scrollPolicy: "reset"
+            };
+        }
+        return null;
+    };
+
     const navigateToRoute = (nextRouteKey, options = {}) => {
         transitionPromise = transitionPromise.then(async () => {
             const transitionStartedAt = performance.now();
-            const route = ROUTES[nextRouteKey] || ROUTES.dashboard;
+            const route = getOrCreateDynamicRoute(nextRouteKey) || ROUTES.dashboard;
             const previousRouteKey = currentRouteKey;
             const previousModule = previousRouteKey ? modulesByKey.get(previousRouteKey) : null;
+            
+            // Dinamik route için modül henüz oluşturulmadıysa oluştur ve DOM'a ekle
+            if (!modulesByKey.has(route.key) && route.moduleKind === "iframe" && route.key.startsWith("konu/")) {
+               const viewEl = document.createElement("section");
+               viewEl.className = "user-shell-view";
+               viewEl.dataset.routeKey = route.key;
+               viewEl.hidden = true;
+               views.shellMain.appendChild(viewEl);
+               
+               const iframeModule = new IframeModule(route, viewEl);
+               modulesByKey.set(route.key, iframeModule);
+               
+               // Wrap the iframe loading logic for height resizing tracking
+               const originalLoadIfNeeded = iframeModule.loadIfNeeded.bind(iframeModule);
+               iframeModule.loadIfNeeded = async () => {
+                   await originalLoadIfNeeded();
+                   if (iframeModule.iframe?.contentWindow) {
+                       frameByWindow.set(iframeModule.iframe.contentWindow, iframeModule.iframe);
+                   }
+               };
+            }
+            
             const nextModule = modulesByKey.get(route.key);
             if (!nextModule) return;
             const transitionType = nextModule.initialized ? "warm" : "cold";
@@ -859,7 +917,7 @@ export function initUserShellRouter(siteConfig) {
                 progress.stop();
             }
         }).catch((error) => {
-            const route = ROUTES[nextRouteKey] || ROUTES.dashboard;
+            const route = getOrCreateDynamicRoute(nextRouteKey) || ROUTES.dashboard;
             fallbackToLegacyPage(route, error);
         });
         return transitionPromise;
