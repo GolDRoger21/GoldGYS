@@ -34,6 +34,30 @@ export function buildTopicPath(topicOrId, title = '') {
   return `/konu/${encodeURIComponent(fallback)}`;
 }
 
+function seedTopicResolveCache(topicOrId, explicitTitle = "") {
+  if (typeof window === "undefined") return;
+  if (!topicOrId || typeof topicOrId !== "object") return;
+  const topicId = String(topicOrId.id || "").trim();
+  if (!topicId) return;
+
+  const slugFromTopic = String(topicOrId.slug || "").trim();
+  const titleFromTopic = String(explicitTitle || topicOrId.title || "").trim();
+  const normalizedSlug = slugifyTopicTitle(titleFromTopic);
+
+  const slugCandidates = [slugFromTopic, normalizedSlug]
+    .map((value) => String(value || "").trim())
+    .filter(Boolean);
+
+  try {
+    slugCandidates.forEach((slug) => {
+      sessionStorage.setItem(`resolve_topic_${slug}`, topicId);
+      sessionStorage.setItem(`resolve_topic_${encodeURIComponent(slug)}`, topicId);
+    });
+  } catch {
+    // noop: storage can be unavailable in private mode
+  }
+}
+
 function isShellNavigationPreferred() {
   if (typeof window === "undefined") return false;
   try {
@@ -51,6 +75,7 @@ function isShellNavigationPreferred() {
 }
 
 export function buildTopicHref(topicOrId, title = '') {
+  seedTopicResolveCache(topicOrId, title);
   const topicPath = buildTopicPath(topicOrId, title);
   if (!isShellNavigationPreferred()) return topicPath;
   const routeKey = topicPath.replace(/^\//, "");

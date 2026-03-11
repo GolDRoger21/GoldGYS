@@ -1176,7 +1176,7 @@
 
     @media (max-width: 768px) {
       body {
-        background: color-mix(in srgb, var(--bg-main) 90%, var(--bg-surface));
+        background: var(--bg-body-gradient);
       }
 
       .content-container {
@@ -2164,6 +2164,10 @@
       }
 
       const normalizedSegment = slugifyTopicTitle(segment);
+      const normalizedCache = normalizedSegment
+        ? sessionStorage.getItem(`resolve_topic_${normalizedSegment}`)
+        : null;
+      if (normalizedCache) return normalizedCache;
 
       // 2. Slug field üzerinden tek sorgu dene (daha verimli)
       try {
