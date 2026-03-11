@@ -43,11 +43,11 @@
 .analysis-header h1 {
   margin: 0 0 8px;
   font-size: clamp(1.35rem, 1.1rem + 1.2vw, 1.85rem);
-  color: var(--heading-color);
-  background: var(--text-gradient-gold);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: var(--text-main);
+  background: none;
+  -webkit-background-clip: initial;
+  background-clip: initial;
+  -webkit-text-fill-color: initial;
   font-weight: 800;
   letter-spacing: -0.4px;
   line-height: 1.25;
@@ -946,9 +946,9 @@
 
   .prediction-stat-item {
     padding: 8px;
-    background: rgba(255, 255, 255, 0.02);
+    background: color-mix(in srgb, var(--bg-surface-elevated) 90%, transparent 10%);
     border-radius: 8px;
-    border: 1px solid rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border-subtle);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -967,16 +967,16 @@
     border-radius: 14px;
     gap: 10px;
     backdrop-filter: blur(14px);
-    background: linear-gradient(140deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
+    background: linear-gradient(140deg, color-mix(in srgb, var(--bg-surface-elevated) 92%, transparent 8%), color-mix(in srgb, var(--bg-surface) 92%, transparent 8%));
   }
 
   .analysis-header h1 {
-    font-size: 0.95rem;
+    font-size: 1.1rem;
     margin-bottom: 4px;
   }
 
   .analysis-header p {
-    font-size: 0.72rem;
+    font-size: 0.82rem;
     line-height: 1.4;
     color: var(--text-muted);
   }
@@ -992,18 +992,18 @@
   .header-actions .status-badge {
     flex: 1;
     justify-content: center;
-    min-height: 32px;
+    min-height: 44px;
     padding: 6px 8px;
-    font-size: 0.7rem;
+    font-size: 0.76rem;
     border-radius: 10px;
   }
 
   .header-actions .glass-btn {
     flex: 1;
     justify-content: center;
-    min-height: 32px;
+    min-height: 44px;
     padding: 6px 10px !important;
-    font-size: 0.75rem;
+    font-size: 0.82rem;
     border-radius: 10px;
   }
 
@@ -1079,7 +1079,7 @@
   }
 
   .analysis-page .card-title {
-    font-size: 0.84rem;
+    font-size: 0.92rem;
     line-height: 1.25;
   }
 
@@ -1103,7 +1103,7 @@
   .topic-controls input,
   .topic-controls select {
     width: 100%;
-    min-height: 38px;
+    min-height: 44px;
     padding: 8px 10px;
   }
 
@@ -1118,7 +1118,7 @@
   .chip-group .status-badge {
     justify-content: center;
     border-radius: 10px;
-    min-height: 34px;
+    min-height: 40px;
     padding: 6px 8px;
     min-width: 0;
     width: 100%;
@@ -1136,7 +1136,7 @@
 
   .chip-group .status-badge .fb-text {
     display: inline;
-    font-size: 0.76rem;
+    font-size: 0.8rem;
     white-space: nowrap;
   }
 
@@ -1450,7 +1450,7 @@
   }
 
   .chip-group .status-badge {
-    min-height: 32px;
+    min-height: 38px;
     padding: 5px 4px;
     border-radius: 8px;
     gap: 4px;
@@ -1462,7 +1462,7 @@
   }
 
   .chip-group .status-badge .fb-text {
-    font-size: 0.64rem;
+    font-size: 0.72rem;
     letter-spacing: 0;
   }
 
@@ -1497,6 +1497,81 @@
 [data-theme="light"] .card-title,
 :root:not([data-theme="dark"]) .card-title {
   color: var(--text-main) !important;
+}
+
+@media (max-width: 480px) {
+  .prediction-stats-section {
+    grid-template-columns: 1fr;
+  }
+
+  .header-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .header-actions .status-badge,
+  .header-actions .glass-btn {
+    width: 100%;
+    min-height: 40px;
+  }
+
+  .analysis-header h1 {
+    font-size: 1.02rem;
+    line-height: 1.35;
+  }
+}
+
+@media (max-width: 390px) {
+  .analysis-header {
+    padding: 10px 11px;
+  }
+
+  .analysis-header h1 {
+    font-size: 0.96rem;
+  }
+
+  .analysis-header p {
+    font-size: 0.76rem;
+  }
+
+  .stats-grid .kpi-card {
+    min-width: 68px;
+    padding: 7px 4px;
+  }
+
+  .stats-grid .kpi-card strong {
+    font-size: 0.88rem;
+  }
+
+  .topic-controls {
+    padding: 7px;
+    gap: 6px;
+  }
+
+  .topic-controls-label {
+    font-size: 0.72rem;
+    padding: 6px 10px;
+  }
+
+  .topic-controls input,
+  .topic-controls select {
+    min-height: 42px;
+    font-size: 0.84rem;
+  }
+
+  .chip-group .status-badge {
+    min-height: 36px;
+    padding: 5px 6px;
+  }
+
+  .chip-group .status-badge .chip-icon {
+    width: 14px;
+    height: 14px;
+  }
+
+  .chip-group .status-badge .fb-text {
+    font-size: 0.66rem;
+  }
 }
 
 [data-theme="light"] .text-muted,

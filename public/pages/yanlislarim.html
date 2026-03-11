@@ -250,11 +250,12 @@
         min-width: 0;
         font-size: 0.82rem;
         padding: 10px 8px;
+        min-height: 44px;
         line-height: 1.2;
       }
 
       .mistakes-stats {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 8px;
       }
 
@@ -306,8 +307,13 @@
     }
 
     @media (max-width: 420px) {
+      .mistakes-stats {
+        grid-template-columns: 1fr;
+      }
+
       .mistakes-hero-actions .btn {
         font-size: 0.78rem;
+        min-height: 44px;
       }
 
       .mistake-stat-card {
@@ -321,6 +327,43 @@
 
       .mistake-stat-card strong {
         font-size: 1.05rem;
+      }
+    }
+
+    @media (max-width: 390px) {
+      .mistakes-hero {
+        padding: 14px 12px;
+      }
+
+      .mistakes-hero h2 {
+        font-size: 1.15rem;
+      }
+
+      .mistakes-hero p {
+        font-size: 0.84rem;
+      }
+
+      .mistakes-hero-actions {
+        grid-template-columns: 1fr;
+      }
+
+      .mistakes-hero-actions .btn {
+        font-size: 0.8rem;
+      }
+
+      .mistakes-filters {
+        padding: 12px;
+      }
+
+      .filter-group input,
+      .filter-group select {
+        min-height: 42px;
+      }
+
+      .category-card,
+      .mistake-card {
+        padding: 12px;
+        border-radius: 12px;
       }
     }
 
@@ -692,7 +735,7 @@
       if (state.filteredMistakes.length > state.visibleCount) {
         const btnDiv = document.createElement('div');
         btnDiv.className = 'text-center mt-3';
-        btnDiv.innerHTML = `<button id="btnLoadMore" class="btn btn-outline-secondary" style="width: 200px;">Daha Fazla Yükle</button>`;
+        btnDiv.innerHTML = `<button id="btnLoadMore" class="btn btn-outline-secondary" style="width: min(100%, 240px);">Daha Fazla Yükle</button>`;
         ui.mistakesList.appendChild(btnDiv);
       }
     }

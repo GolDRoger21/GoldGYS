@@ -319,11 +319,12 @@
         min-width: 0;
         font-size: 0.82rem;
         padding: 10px 8px;
+        min-height: 44px;
         line-height: 1.2;
       }
 
       .favorites-stats {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 8px;
       }
 
@@ -379,8 +380,13 @@
     }
 
     @media (max-width: 420px) {
+      .favorites-stats {
+        grid-template-columns: 1fr;
+      }
+
       .favorites-hero-actions .btn {
         font-size: 0.78rem;
+        min-height: 44px;
       }
 
       .favorite-stat-card {
@@ -394,6 +400,43 @@
 
       .favorite-stat-card strong {
         font-size: 1.05rem;
+      }
+    }
+
+    @media (max-width: 390px) {
+      .favorites-hero {
+        padding: 14px 12px;
+      }
+
+      .favorites-hero h2 {
+        font-size: 1.15rem;
+      }
+
+      .favorites-hero p {
+        font-size: 0.84rem;
+      }
+
+      .favorites-hero-actions {
+        grid-template-columns: 1fr;
+      }
+
+      .favorites-hero-actions .btn {
+        font-size: 0.8rem;
+      }
+
+      .favorites-filters {
+        padding: 12px;
+      }
+
+      .filter-group input,
+      .filter-group select {
+        min-height: 42px;
+      }
+
+      .category-card,
+      .fav-card {
+        padding: 12px;
+        border-radius: 12px;
       }
     }
   </style>

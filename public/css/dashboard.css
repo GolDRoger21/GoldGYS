@@ -1546,6 +1546,35 @@
     }
 }
 
+@media (max-width: 390px) {
+    .dashboard-container {
+        padding: 10px 8px;
+    }
+
+    .welcome-section,
+    .panel-card,
+    .recent-activity {
+        border-radius: 14px;
+    }
+
+    .section-title {
+        font-size: 0.98rem;
+    }
+
+    .section-icon {
+        width: 30px;
+        height: 30px;
+        border-radius: 9px;
+        font-size: 0.95rem;
+    }
+
+    .panel-link {
+        min-height: 42px;
+        padding: 8px 12px;
+        font-size: 0.8rem;
+    }
+}
+
 /* --- Luxury theme harmonization --- */
 .welcome-text h1,
 .exam-countdown .days,

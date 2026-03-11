@@ -721,6 +721,7 @@
         text-align: center;
         padding: 12px 16px;
         min-width: 80px;
+        min-height: 44px;
         white-space: nowrap;
       }
 
@@ -747,7 +748,7 @@
         align-items: center;
         padding: 12px;
         gap: 12px;
-        min-height: 48px;
+        min-height: 52px;
       }
 
       .subtopic-title-wrap {
@@ -866,6 +867,8 @@
       .progress-overlay {
         font-size: 0.64rem;
         gap: 6px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
       }
 
       .topic-health {
@@ -890,6 +893,35 @@
 
       .progress-info-item-target {
         margin-left: 0;
+        grid-column: 1 / -1;
+        justify-self: end;
+      }
+    }
+
+    @media (max-width: 390px) {
+      .topic-card {
+        padding: 12px;
+      }
+
+      .topic-title {
+        font-size: 1rem;
+      }
+
+      .subtopic-link {
+        padding: 10px;
+      }
+
+      .progress-overlay {
+        grid-template-columns: 1fr;
+      }
+
+      .progress-info-item {
+        width: 100%;
+        justify-content: flex-start;
+      }
+
+      .progress-info-item-target {
+        justify-self: stretch;
       }
     }
 

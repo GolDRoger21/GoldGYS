@@ -242,6 +242,20 @@
             gap: 12px;
         }
 
+        .exam-role-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4px 10px;
+            border-radius: 999px;
+            border: 1px solid color-mix(in srgb, var(--color-primary) 32%, var(--border-subtle) 68%);
+            background: color-mix(in srgb, var(--color-primary) 14%, transparent);
+            color: var(--text-main);
+            font-size: 0.76rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+        }
+
         .exam-card h3 {
             color: var(--text-main);
         }
@@ -331,6 +345,20 @@
                 background: linear-gradient(135deg, rgba(212, 175, 55, 0.1) 0%, rgba(15, 23, 42, 1) 100%);
             }
 
+            .hero-actions {
+                width: 100%;
+                display: grid;
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .hero-actions .btn {
+                width: 100%;
+                min-height: 44px;
+                justify-content: center;
+                font-size: 0.9rem;
+            }
+
             .hero-panel {
                 /* order: -1; Mobilde panel sayılarının başlığın üzerine çıkması kafa karıştırıcı olabilir, kaldırıldı. */
                 margin-top: 12px;
@@ -354,9 +382,55 @@
                 font-size: 1.75rem;
             }
 
+            .hero-panel-item .value {
+                font-size: 1.2rem;
+            }
+
             /* Ensure grid wraps nicely */
             .info-grid {
                 grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 390px) {
+            .deneme-hero {
+                padding: 16px 14px;
+                gap: 14px;
+            }
+
+            .deneme-hero h1 {
+                font-size: 1.35rem;
+                line-height: 1.25;
+            }
+
+            .deneme-hero p {
+                font-size: 0.84rem;
+            }
+
+            .hero-panel {
+                padding: 14px;
+            }
+
+            .hero-panel-item {
+                gap: 8px;
+            }
+
+            .hero-panel-item .label {
+                font-size: 0.78rem;
+            }
+
+            .hero-panel-item .value {
+                font-size: 1.05rem;
+            }
+
+            .exam-card {
+                padding: 14px;
+                border-radius: 14px;
+            }
+
+            .exam-meta {
+                gap: 8px;
+                font-size: 0.8rem;
             }
         }
     </style>
@@ -429,7 +503,7 @@
                 card.className = `exam-card ${index === 0 ? 'exam-highlight' : ''}`;
                 card.innerHTML = `
                     <div class="exam-card-header">
-                        <span class="badge bg-light text-dark">${exam.role || 'Genel'}</span>
+                        <span class="exam-role-badge">${exam.role || 'Genel'}</span>
                         <span class="small text-muted">${formatDate(exam.createdAt)}</span>
                     </div>
                     <div>
