@@ -222,7 +222,7 @@
     /* Modern Konu Kartı - Glassmorphism */
     .topic-card {
       background:
-        linear-gradient(160deg, rgba(255, 244, 214, 0.12), rgba(191, 149, 63, 0.08) 26%, rgba(18, 18, 20, 0.38) 100%);
+        linear-gradient(160deg, rgba(255, 244, 214, 0.1), rgba(191, 149, 63, 0.07) 26%, rgba(18, 18, 20, 0.3) 100%);
       border-radius: 22px;
       padding: 28px;
       position: relative;
@@ -232,10 +232,14 @@
       text-decoration: none;
       color: var(--text-main);
       min-height: 280px;
-      box-shadow: 0 14px 30px rgba(0, 0, 0, 0.16), inset 0 1px 0 rgba(255, 246, 223, 0.12);
+      box-shadow:
+        0 14px 30px rgba(0, 0, 0, 0.16),
+        0 0 0 1px rgba(191, 149, 63, 0.22),
+        0 0 18px rgba(191, 149, 63, 0.12),
+        inset 0 1px 0 rgba(255, 246, 223, 0.12);
       backdrop-filter: var(--glass-backdrop-filter);
       -webkit-backdrop-filter: var(--glass-backdrop-filter);
-      border: 1px solid rgba(255, 235, 190, 0.16);
+      border: 1px solid rgba(255, 235, 190, 0.22);
       overflow: hidden;
     }
 
@@ -272,7 +276,11 @@
 
     .topic-card:hover {
       transform: translateY(-5px);
-      box-shadow: 0 18px 36px rgba(0, 0, 0, 0.2), 0 0 20px rgba(191, 149, 63, 0.16);
+      box-shadow:
+        0 18px 36px rgba(0, 0, 0, 0.22),
+        0 0 0 1px rgba(191, 149, 63, 0.38),
+        0 0 28px rgba(191, 149, 63, 0.28),
+        0 0 44px rgba(191, 149, 63, 0.12);
     }
 
     .topic-card:hover::before {
@@ -605,9 +613,30 @@
 
     .topic-progress-line {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
-      align-items: stretch;
+      grid-template-columns: minmax(0, 1fr) auto auto minmax(0, 1fr);
+      align-items: center;
       gap: 6px;
+    }
+
+    .progress-info-item-main {
+      grid-column: 1;
+      justify-self: start;
+    }
+
+    .progress-info-item-count {
+      grid-column: 2;
+      justify-self: center;
+    }
+
+    .progress-info-item-success {
+      grid-column: 3;
+      justify-self: center;
+    }
+
+    .progress-info-item-target {
+      grid-column: 4;
+      justify-self: end;
+      margin-left: 0;
     }
 
     .topic-progress-line strong {
@@ -771,17 +800,10 @@
       }
 
       .topic-progress-line {
-        display: flex;
-        flex-wrap: nowrap;
-        overflow-x: auto;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto auto minmax(0, 1fr);
         gap: 6px;
         font-size: 0.72rem;
-        -webkit-overflow-scrolling: touch;
-        scrollbar-width: none;
-      }
-
-      .topic-progress-line::-webkit-scrollbar {
-        display: none;
       }
 
       .progress-legend {
@@ -908,12 +930,10 @@
       .progress-info-item {
         min-height: 28px;
         padding: 4px 7px;
-        flex: 0 0 auto;
       }
 
       .progress-info-item-target {
-        margin-left: 0;
-        justify-self: auto;
+        justify-self: end;
       }
     }
 
@@ -937,10 +957,12 @@
       .progress-info-item {
         width: auto;
         justify-content: center;
+        min-height: 26px;
+        padding: 3px 6px;
       }
 
       .progress-info-item-target {
-        justify-self: auto;
+        justify-self: end;
       }
 
       .progress-legend-item {
@@ -954,9 +976,13 @@
     }
 
     [data-theme="light"] .topic-card {
-      background: linear-gradient(165deg, rgba(255, 246, 224, 0.68), rgba(255, 250, 238, 0.52) 50%, rgba(255, 255, 255, 0.74));
-      border-color: rgba(191, 149, 63, 0.34);
-      box-shadow: 0 14px 28px rgba(120, 79, 18, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.58);
+      background: linear-gradient(165deg, rgba(255, 246, 224, 0.52), rgba(255, 250, 238, 0.42) 50%, rgba(255, 255, 255, 0.58));
+      border-color: rgba(191, 149, 63, 0.38);
+      box-shadow:
+        0 14px 28px rgba(120, 79, 18, 0.1),
+        0 0 0 1px rgba(191, 149, 63, 0.22),
+        0 0 16px rgba(191, 149, 63, 0.12),
+        inset 0 1px 0 rgba(255, 255, 255, 0.58);
     }
 
     [data-theme="light"] .topic-progress-hero {
