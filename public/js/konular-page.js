@@ -285,17 +285,24 @@ function renderTopics(topics, options = {}) {
 
         const progressHtml = `
           <div class="topic-progress-hero">
-            <div>
-              <div class="progress-container" role="progressbar" aria-label="${topic.title} ilerleme" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${progress}">
-                <div class="progress-fill" style="width: ${progress}%"></div>
-              </div>
-              <div class="topic-progress-line">
-                <span class="progress-info-item progress-info-item-main" title="İlerleme: %${progress}" aria-label="İlerleme %${progress}"><span class="ui-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 19h16"/><path d="M7 15l4-4 3 3 4-5"/><path d="M18 9h3v3"/></svg></span> <strong>%${progress}</strong></span>
-                <span class="progress-info-item progress-info-item-count" title="Çözülen / Toplam: ${solvedTotal}/${progressBase}" aria-label="Çözülen ${solvedTotal}, toplam ${progressBase}"><span class="ui-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="4" y="7" width="10" height="10" rx="2"/><path d="M10 7v-2h10a2 2 0 0 1 2 2v10h-2"/></svg></span> <strong>${solvedTotal}/${progressBase}</strong></span>
-                <span class="progress-info-item progress-info-item-success" title="Başarı: %${successRate}" aria-label="Başarı %${successRate}"><span class="ui-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20 7 10 17l-5-5"/></svg></span> <strong>%${successRate}</strong></span>
-              </div>
+            <div class="progress-container" role="progressbar" aria-label="${topic.title} ilerleme" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${progress}">
+              <div class="progress-fill" style="width: ${progress}%"></div>
             </div>
-            ${topic.totalQuestionTarget ? `<div class="topic-question-chip" title="Sınavda çıkacak hedef soru sayısı"><span class="ui-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/><path d="M12 4v2M12 18v2M4 12h2M18 12h2"/></svg></span> ${topic.totalQuestionTarget}</div>` : ""}
+            <div class="topic-progress-line">
+              <span class="progress-info-item progress-info-item-main" title="İlerleme: %${progress}" aria-label="İlerleme %${progress}">
+                <span class="ui-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 19h16"/><path d="M7 15l4-4 3 3 4-5"/><path d="M18 9h3v3"/></svg></span>
+                <span class="progress-info-copy"><span class="progress-info-label">İlerleme</span><strong>%${progress}</strong></span>
+              </span>
+              <span class="progress-info-item progress-info-item-count" title="Çözülen / Toplam: ${solvedTotal}/${progressBase}" aria-label="Çözülen ${solvedTotal}, toplam ${progressBase}">
+                <span class="ui-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="4" y="7" width="10" height="10" rx="2"/><path d="M10 7v-2h10a2 2 0 0 1 2 2v10h-2"/></svg></span>
+                <span class="progress-info-copy"><span class="progress-info-label">Çözülen / Toplam</span><strong>${solvedTotal}/${progressBase}</strong></span>
+              </span>
+              <span class="progress-info-item progress-info-item-success" title="Başarı: %${successRate}" aria-label="Başarı %${successRate}">
+                <span class="ui-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20 7 10 17l-5-5"/></svg></span>
+                <span class="progress-info-copy"><span class="progress-info-label">Başarı</span><strong>%${successRate}</strong></span>
+              </span>
+              ${topic.totalQuestionTarget ? `<span class="progress-info-item progress-info-item-target" title="Sınavda çıkacak hedef soru sayısı" aria-label="Hedef soru ${topic.totalQuestionTarget}"><span class="ui-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/><path d="M12 4v2M12 18v2M4 12h2M18 12h2"/></svg></span><span class="progress-info-copy"><span class="progress-info-label">Hedef soru</span><strong>${topic.totalQuestionTarget}</strong></span></span>` : ""}
+            </div>
           </div>
         `;
 
