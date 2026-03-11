@@ -2057,8 +2057,35 @@
 
     let currentTopicId = null;
     let topicTitle = "";
+    const isShellEmbedMode = () => {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('shell') === '1';
+    };
+
+    const navigateBackToTopics = () => {
+      const target = normalizeReturnUrlForShell('/konular', '/konular');
+      if (isShellEmbedMode() && window.parent && window.parent !== window) {
+        try {
+          window.parent.postMessage({ type: 'user-shell:navigate', routeKey: 'konular' }, window.location.origin);
+          return;
+        } catch (error) {
+          console.warn('Parent shell yönlendirmesi başarısız, direct fallback uygulanıyor:', error);
+        }
+      }
+      window.location.href = target;
+    };
+
+    const setupTopicBackButton = () => {
+      const backButton = document.querySelector('.topic-back-btn');
+      if (!backButton) return;
+      backButton.addEventListener('click', (event) => {
+        event.preventDefault();
+        navigateBackToTopics();
+      });
+    };
 
     document.addEventListener('DOMContentLoaded', async () => {
+      setupTopicBackButton();
       const urlParams = new URLSearchParams(window.location.search);
       currentTopicId = urlParams.get('id');
       let currentTopicSlug = null;
@@ -2146,6 +2173,16 @@
           const topicId = slugSnap.docs[0].id;
           sessionStorage.setItem(cacheKey, topicId);
           return topicId;
+        }
+
+        if (normalizedSegment && normalizedSegment !== segment) {
+          const normalizedSlugQuery = query(collection(db, "topics"), where("slug", "==", normalizedSegment), limit(1));
+          const normalizedSlugSnap = await getDocs(normalizedSlugQuery);
+          if (!normalizedSlugSnap.empty) {
+            const topicId = normalizedSlugSnap.docs[0].id;
+            sessionStorage.setItem(cacheKey, topicId);
+            return topicId;
+          }
         }
       } catch (slugErr) {
         console.warn("Slug sorgusu başarısız, başlık bazlı fallback uygulanıyor:", slugErr);

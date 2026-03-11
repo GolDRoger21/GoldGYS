@@ -690,12 +690,14 @@ function scheduleIdlePrefetch(modulesByKey) {
     }
 }
 
-function setupIntentPrefetch(modulesByKey) {
+function setupIntentPrefetch(modulesByKey, resolveRouteForPrefetch) {
     const prefetched = new Set();
 
     const prefetchRoute = (routeKey) => {
         if (!routeKey || prefetched.has(routeKey)) return;
-        const module = modulesByKey.get(routeKey);
+        const module = typeof resolveRouteForPrefetch === "function"
+            ? resolveRouteForPrefetch(routeKey)
+            : modulesByKey.get(routeKey);
         if (!module || typeof module.prefetch !== "function") return;
         prefetched.add(routeKey);
         void module.prefetch().catch((error) => {
@@ -704,24 +706,56 @@ function setupIntentPrefetch(modulesByKey) {
         });
     };
 
+    const getTopicRouteKeyFromAnchor = (anchor) => {
+        if (!anchor) return null;
+        const href = anchor.getAttribute("href") || "";
+        if (!href || href.startsWith("#")) return null;
+        try {
+            const url = new URL(href, window.location.origin);
+            if (url.origin !== window.location.origin) return null;
+            if (!url.pathname.startsWith("/konu/") || url.pathname.length <= 6) return null;
+            return url.pathname.replace(/^\//, "");
+        } catch {
+            return null;
+        }
+    };
+
     const handleMouseOver = (event) => {
         const navItem = event.target.closest(".nav-item[data-shell-route]");
-        if (!navItem) return;
-        prefetchRoute(navItem.dataset.shellRoute);
+        if (navItem) {
+            prefetchRoute(navItem.dataset.shellRoute);
+            return;
+        }
+        const topicLink = event.target.closest('a[href^="/konu/"]');
+        const topicRouteKey = getTopicRouteKeyFromAnchor(topicLink);
+        if (topicRouteKey) prefetchRoute(topicRouteKey);
     };
 
     const handleFocusIn = (event) => {
         const navItem = event.target.closest(".nav-item[data-shell-route]");
-        if (!navItem) return;
-        prefetchRoute(navItem.dataset.shellRoute);
+        if (navItem) {
+            prefetchRoute(navItem.dataset.shellRoute);
+            return;
+        }
+        const topicLink = event.target.closest('a[href^="/konu/"]');
+        const topicRouteKey = getTopicRouteKeyFromAnchor(topicLink);
+        if (topicRouteKey) prefetchRoute(topicRouteKey);
+    };
+
+    const handleTouchStart = (event) => {
+        const topicLink = event.target.closest('a[href^="/konu/"]');
+        const topicRouteKey = getTopicRouteKeyFromAnchor(topicLink);
+        if (topicRouteKey) prefetchRoute(topicRouteKey);
     };
 
     document.body.addEventListener("mouseover", handleMouseOver);
     document.body.addEventListener("focusin", handleFocusIn);
+    document.body.addEventListener("touchstart", handleTouchStart, { passive: true });
 
     return () => {
         document.body.removeEventListener("mouseover", handleMouseOver);
         document.body.removeEventListener("focusin", handleFocusIn);
+        document.body.removeEventListener("touchstart", handleTouchStart);
     };
 }
 
@@ -838,6 +872,32 @@ export function initUserShellRouter(siteConfig) {
         return null;
     };
 
+    const ensureDynamicTopicModule = (routeKey) => {
+        if (!isDynamicTopicRouteKey(routeKey)) return modulesByKey.get(routeKey) || null;
+        if (modulesByKey.has(routeKey)) return modulesByKey.get(routeKey);
+        const route = getOrCreateDynamicRoute(routeKey);
+        if (!route || route.moduleKind !== "iframe") return null;
+
+        const viewEl = document.createElement("section");
+        viewEl.className = "user-shell-view";
+        viewEl.dataset.routeKey = route.key;
+        viewEl.hidden = true;
+        views.shellMain.appendChild(viewEl);
+
+        const iframeModule = new IframeModule(route, viewEl);
+        modulesByKey.set(route.key, iframeModule);
+
+        const originalLoadIfNeeded = iframeModule.loadIfNeeded.bind(iframeModule);
+        iframeModule.loadIfNeeded = async () => {
+            await originalLoadIfNeeded();
+            if (iframeModule.iframe?.contentWindow) {
+                frameByWindow.set(iframeModule.iframe.contentWindow, iframeModule.iframe);
+            }
+        };
+
+        return iframeModule;
+    };
+
     const navigateToRoute = (nextRouteKey, options = {}) => {
         transitionPromise = transitionPromise.then(async () => {
             const transitionStartedAt = performance.now();
@@ -846,27 +906,9 @@ export function initUserShellRouter(siteConfig) {
             const previousModule = previousRouteKey ? modulesByKey.get(previousRouteKey) : null;
             
             // Dinamik route için modül henüz oluşturulmadıysa oluştur ve DOM'a ekle
-            if (!modulesByKey.has(route.key) && route.moduleKind === "iframe" && route.key.startsWith("konu/")) {
-               const viewEl = document.createElement("section");
-               viewEl.className = "user-shell-view";
-               viewEl.dataset.routeKey = route.key;
-               viewEl.hidden = true;
-               views.shellMain.appendChild(viewEl);
-               
-               const iframeModule = new IframeModule(route, viewEl);
-               modulesByKey.set(route.key, iframeModule);
-               
-               // Wrap the iframe loading logic for height resizing tracking
-               const originalLoadIfNeeded = iframeModule.loadIfNeeded.bind(iframeModule);
-               iframeModule.loadIfNeeded = async () => {
-                   await originalLoadIfNeeded();
-                   if (iframeModule.iframe?.contentWindow) {
-                       frameByWindow.set(iframeModule.iframe.contentWindow, iframeModule.iframe);
-                   }
-               };
-            }
-            
-            const nextModule = modulesByKey.get(route.key);
+            const nextModule = isDynamicTopicRouteKey(route.key)
+                ? ensureDynamicTopicModule(route.key)
+                : modulesByKey.get(route.key);
             if (!nextModule) return;
             const transitionType = nextModule.initialized ? "warm" : "cold";
 
@@ -940,7 +982,17 @@ export function initUserShellRouter(siteConfig) {
     const handleFrameMessage = (event) => {
         if (event.origin !== window.location.origin) return;
         const data = event.data;
-        if (!data || data.type !== "user-shell:height") return;
+        if (!data || typeof data.type !== "string") return;
+
+        if (data.type === "user-shell:navigate") {
+            const routeKey = String(data.routeKey || "").trim();
+            if (!routeKey) return;
+            if (!ROUTES[routeKey] && !isDynamicTopicRouteKey(routeKey)) return;
+            setHashForRoute(routeKey);
+            return;
+        }
+
+        if (data.type !== "user-shell:height") return;
         const iframe = frameByWindow.get(event.source);
         if (!iframe) return;
         const nextHeight = Number(data.height || 0);
@@ -958,7 +1010,12 @@ export function initUserShellRouter(siteConfig) {
     const removeNavInterception = setupNavInterception((routeKey) => {
         setHashForRoute(routeKey);
     });
-    const removeIntentPrefetch = setupIntentPrefetch(modulesByKey);
+    const removeIntentPrefetch = setupIntentPrefetch(modulesByKey, (routeKey) => {
+        if (isDynamicTopicRouteKey(routeKey)) {
+            return ensureDynamicTopicModule(routeKey);
+        }
+        return modulesByKey.get(routeKey) || null;
+    });
 
     // iframe referansları hazır oldukça yükseklik eşlemesi için kaydet
     modulesByKey.forEach((module) => {
@@ -1010,4 +1067,3 @@ export function initUserShellRouter(siteConfig) {
         }
     };
 }
-

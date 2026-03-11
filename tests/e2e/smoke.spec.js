@@ -134,6 +134,11 @@ test.describe('Gold GYS authenticated smoke (@optional)', () => {
     await expect(page.locator('.sidebar-nav .nav-item[data-shell-route="konular"].active')).toHaveCount(1);
     await expect.poll(async () => page.evaluate(() => window.location.pathname)).toBe('/dashboard');
 
+    // Konu içinden "Tüm Konular" geri akışı iframe içinde dashboard render etmemeli.
+    await page.frameLocator('iframe.user-shell-frame[title="Konu İçeriği"]').locator('.topic-back-btn').first().click();
+    await expect(page).toHaveURL(/\/dashboard(?:\?[^#]*)?#konular/i);
+    await expect(page.locator('#topicsContainer')).toBeVisible();
+
     // Ping-pong koruması: back/forward ve tekrar girişlerde hash route stabil kalmalı.
     for (let i = 0; i < 3; i += 1) {
       await lessonsNav.click();
