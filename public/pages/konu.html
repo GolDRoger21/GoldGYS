@@ -2485,15 +2485,29 @@
 
       const hasSubtopics = subtopics.length > 0;
       const subtopicSection = document.getElementById('subtopicSection');
+      const topicContentSection = document.getElementById('topicContentSection');
       const testsTitle = document.querySelector('#topicContentSection h3');
       const testsContainer = document.getElementById('testsList');
       const materialsSection = document.getElementById('topicMaterialsSection');
       const contentContainer = document.querySelector('.content-container');
       const learningCompanion = document.getElementById('learningCompanion');
+      const materialsWrapper = document.getElementById('materialsSectionWrapper');
+      const testsWrapper = document.getElementById('testsSectionWrapper');
+      const mobileTabs = document.getElementById('mobileContentTabs');
 
       if (hasSubtopics) {
         await renderSubtopics(subtopics);
         if (subtopicSection) subtopicSection.style.display = 'block';
+        if (contentContainer) {
+          contentContainer.style.gridTemplateColumns = '';
+          contentContainer.classList.remove('full-width');
+        }
+        if (learningCompanion) learningCompanion.style.display = 'none';
+        if (topicContentSection) topicContentSection.style.display = 'none';
+        if (testsWrapper) testsWrapper.style.display = 'none';
+        if (materialsWrapper) materialsWrapper.style.display = 'none';
+        if (mobileTabs) mobileTabs.style.display = 'none';
+        return hasSubtopics;
 
         // Başlıkları "Genel Konu" olarak güncelle (varsa)
         if (testsTitle) testsTitle.innerHTML = '<i class="fas fa-tasks me-2 text-primary"></i> Genel Konu Testleri';
@@ -2528,13 +2542,10 @@
       if (testsContainer) testsContainer.style.display = 'block';
       if (materialsSection) materialsSection.style.display = 'block';
 
-      const materialsWrapper = document.getElementById('materialsSectionWrapper');
       if (materialsWrapper) materialsWrapper.style.display = 'block';
 
-      const testsWrapper = document.getElementById('testsSectionWrapper');
       if (testsWrapper) testsWrapper.style.display = 'block';
 
-      const mobileTabs = document.getElementById('mobileContentTabs');
       if (window.innerWidth <= 1100 && mobileTabs) {
         mobileTabs.style.display = 'flex';
         switchMobileTab('tests'); // her zaman testlerde başlasın 
@@ -2543,7 +2554,7 @@
       // İÇERİKLERİ YÜKLE (Index hatası olsa bile burası çalışmalı)
       await loadTopicContent(hasSubtopics);
 
-      document.getElementById('topicContentSection').style.display = 'block';
+      if (topicContentSection) topicContentSection.style.display = 'block';
 
       return hasSubtopics;
     }
