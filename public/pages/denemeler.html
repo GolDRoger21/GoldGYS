@@ -69,15 +69,11 @@
             z-index: 1;
         }
 
-        .deneme-hero h1 {
-            font-size: 2rem;
+        .deneme-hero .dashboard-page-title {
             margin-bottom: 12px;
-            font-family: var(--font-family-serif);
-            color: var(--color-primary);
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
         }
 
-        .deneme-hero p {
+        .deneme-hero .dashboard-page-subtitle {
             opacity: 0.9;
             margin-bottom: 20px;
             color: var(--text-muted);
@@ -310,12 +306,7 @@
             box-shadow: 0 4px 20px rgba(212, 175, 55, 0.15);
         }
 
-        [data-theme="light"] .deneme-hero h1 {
-            color: var(--color-primary-dim);
-            text-shadow: none;
-        }
-
-        [data-theme="light"] .deneme-hero p {
+        [data-theme="light"] .deneme-hero .dashboard-page-subtitle {
             color: var(--text-muted);
             opacity: 0.8;
         }
@@ -378,7 +369,7 @@
                 /* Touch friendly */
             }
 
-            .deneme-hero h1 {
+            .deneme-hero .dashboard-page-title {
                 font-size: 1.75rem;
             }
 
@@ -398,12 +389,12 @@
                 gap: 14px;
             }
 
-            .deneme-hero h1 {
+            .deneme-hero .dashboard-page-title {
                 font-size: 1.35rem;
                 line-height: 1.25;
             }
 
-            .deneme-hero p {
+            .deneme-hero .dashboard-page-subtitle {
                 font-size: 0.84rem;
             }
 
@@ -616,8 +607,8 @@
         <section class="deneme-hero">
             <div>
                 <span class="badge bg-purple-subtle">Otomatik Deneme Sistemi</span>
-                <h1>Deneme Sınavları</h1>
-                <p>Denemeler, aktif soru havuzundan mevzuat şablonuna göre seçilir. Sistem 75 soruluk dağılımı tamamlar,
+                <h1 class="dashboard-page-title">Deneme Sınavları</h1>
+                <p class="dashboard-page-subtitle">Denemeler, aktif soru havuzundan mevzuat şablonuna göre seçilir. Sistem 75 soruluk dağılımı tamamlar,
                     kalan 5 soruyu da rastgele ekleyerek 80 soruluk gerçek sınav formatını oluşturur.</p>
                 <div class="hero-actions">
                     <a href="#examListSection" class="btn btn-dark">Denemeleri Gör</a>

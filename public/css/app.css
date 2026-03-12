@@ -137,6 +137,23 @@
     display: inline-block;
 }
 
+/* --- DASHBOARD PAGE HEADING STANDARD --- */
+.dashboard-page-title {
+    margin: 0 0 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-main);
+    font-size: clamp(1.25rem, 1.7vw, 1.75rem);
+    font-weight: 700;
+    line-height: 1.28;
+}
+
+.dashboard-page-subtitle {
+    margin: 0;
+    color: var(--text-muted);
+}
+
 /* --- BİLDİRİM TOASTLARI (Moved to layout.css) --- */
 
 /* --- BİLDİRİM BANNERLARI (Moved to layout.css) --- */

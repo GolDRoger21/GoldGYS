@@ -38,7 +38,7 @@
       .topic-mastery-page .analysis-header {
         padding: 22px 24px;
       }
-      .topic-mastery-page .analysis-header h1 {
+      .topic-mastery-page .analysis-header .dashboard-page-title {
         display: flex;
         align-items: center;
         gap: 10px;
@@ -240,10 +240,10 @@
         }
       }
       @media (max-width: 420px) {
-        .topic-mastery-page .analysis-header h1 {
+        .topic-mastery-page .analysis-header .dashboard-page-title {
           font-size: 1rem;
         }
-        .topic-mastery-page .analysis-header p {
+        .topic-mastery-page .analysis-header .dashboard-page-subtitle {
           font-size: .8rem;
         }
       }
@@ -253,11 +253,11 @@
     <div class="dashboard-container topic-mastery-page">
         <section class="analysis-header glass-card">
             <div>
-                <h1>
+                <h1 class="dashboard-page-title">
                     <span class="page-title-icon" aria-hidden="true">📚</span>
                     Konu Hakimiyet Merkezi
                 </h1>
-                <p class="text-muted">Konu bazlı başarı durumunu takip et, odak konunu belirle ve çalışma ritmini düzenli ilerlet.</p>
+                <p class="dashboard-page-subtitle">Konu bazlı başarı durumunu takip et, odak konunu belirle ve çalışma ritmini düzenli ilerlet.</p>
             </div>
             <div class="header-actions">
                 <div class="status-badge badge-blue" id="masteryLastUpdate"><span class="badge-dot pulse"></span>Güncelleniyor...</div>
