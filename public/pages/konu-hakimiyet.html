@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="tr">
-
 <head>
 <script id="early-theme-init">
 (function(){
@@ -24,17 +23,50 @@
     <link rel="icon" type="image/png" href="/icons/favicon.png">
     <script src="/js/theme-init.js"></script>
     <style>
+      .topic-mastery-page {
+        display: grid;
+        gap: 16px;
+        margin-bottom: 24px;
+        padding-bottom: max(90px, env(safe-area-inset-bottom));
+      }
+      .topic-mastery-page .glass-card {
+        padding: 0;
+      }
+      .topic-mastery-page .card-body {
+        padding: 18px;
+      }
+      .topic-mastery-page .analysis-header {
+        padding: 22px 24px;
+      }
+      .topic-mastery-page .analysis-header h1 {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .topic-mastery-page .page-title-icon {
+        width: 34px;
+        height: 34px;
+        border-radius: 10px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+        line-height: 1;
+        background: linear-gradient(135deg, rgba(212, 175, 55, 0.24), rgba(212, 175, 55, 0.1));
+        border: 1px solid rgba(212, 175, 55, 0.42);
+        box-shadow: 0 6px 14px rgba(212, 175, 55, 0.18);
+      }
       .topic-mastery-page .mastery-summary-grid {
         display: grid;
         grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: 10px;
-        margin-bottom: 14px;
+        gap: 12px;
+        margin-bottom: 16px;
       }
       .topic-mastery-page .summary-pill {
         border: 1px solid var(--border-subtle);
         border-radius: 14px;
         background: var(--bg-surface-elevated);
-        padding: 10px 12px;
+        padding: 11px 13px;
       }
       .topic-mastery-page .summary-pill .label {
         color: var(--text-muted);
@@ -43,39 +75,90 @@
       .topic-mastery-page .summary-pill .value {
         color: var(--text-main);
         font-weight: 700;
-        font-size: 1.05rem;
+        font-size: 1.02rem;
         margin-top: 4px;
       }
       .topic-mastery-page .mastery-cards {
         display: none;
-        gap: 10px;
+        gap: 12px;
       }
       .topic-mastery-page .mastery-card {
         border: 1px solid var(--border-subtle);
         border-radius: 14px;
         background: var(--bg-surface-elevated);
-        padding: 12px;
+        padding: 14px;
       }
       .topic-mastery-page .mastery-card-title {
         color: var(--text-main);
         font-weight: 700;
-        margin-bottom: 8px;
+        margin-bottom: 10px;
       }
       .topic-mastery-page .mastery-card-meta {
         display: flex;
         align-items: center;
         justify-content: space-between;
         gap: 8px;
-        margin-bottom: 10px;
+        margin-bottom: 12px;
       }
       .topic-mastery-page .mastery-card-actions {
         display: flex;
-        gap: 8px;
+        gap: 9px;
+        justify-content: flex-end;
       }
-      .topic-mastery-page .mastery-card-actions .glass-btn {
-        min-height: 40px;
+      .topic-mastery-page .mastery-card-actions .glass-btn,
+      .topic-mastery-page .action-buttons .glass-btn {
+        width: 36px;
+        height: 36px;
+        border-radius: 11px;
+        transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+      }
+      .topic-mastery-page .mastery-card-actions .glass-btn:hover,
+      .topic-mastery-page .action-buttons .glass-btn:hover {
+        transform: translateY(-1px);
+      }
+      .topic-mastery-page .btn-complete {
+        background: linear-gradient(135deg, rgba(34, 197, 94, 0.28), rgba(21, 128, 61, 0.22));
+        border-color: rgba(74, 222, 128, 0.46);
+        box-shadow: 0 8px 18px rgba(34, 197, 94, 0.22);
+      }
+      .topic-mastery-page .btn-focus {
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.3), rgba(30, 64, 175, 0.22));
+        border-color: rgba(96, 165, 250, 0.48);
+        box-shadow: 0 8px 18px rgba(59, 130, 246, 0.2);
+      }
+      .topic-mastery-page .btn-focus.is-focused {
+        box-shadow: 0 0 0 1px rgba(147, 197, 253, 0.4), 0 10px 22px rgba(59, 130, 246, 0.28);
+      }
+      .topic-mastery-page .btn-reset {
+        background: linear-gradient(135deg, rgba(239, 68, 68, 0.24), rgba(153, 27, 27, 0.2));
+        border-color: rgba(248, 113, 113, 0.44);
+        box-shadow: 0 8px 18px rgba(239, 68, 68, 0.22);
+      }
+      .topic-mastery-page .chip-group .status-badge {
+        min-height: 36px;
       }
       @media (max-width: 768px) {
+        .topic-mastery-page {
+          gap: 12px;
+        }
+        .topic-mastery-page .analysis-header {
+          padding: 16px;
+        }
+        .topic-mastery-page .card-body {
+          padding: 14px;
+        }
+        .topic-mastery-page .topic-controls {
+          gap: 10px;
+          padding: 10px;
+        }
+        .topic-mastery-page .topic-controls input,
+        .topic-mastery-page .topic-controls select {
+          min-width: 100%;
+          flex-basis: 100%;
+        }
+        .topic-mastery-page .chip-group {
+          flex: 1 1 100%;
+        }
         .topic-mastery-page .mastery-summary-grid {
           grid-template-columns: 1fr 1fr;
         }
@@ -86,26 +169,29 @@
           display: grid;
         }
       }
+      @media (max-width: 420px) {
+        .topic-mastery-page .analysis-header h1 {
+          font-size: 1rem;
+        }
+        .topic-mastery-page .analysis-header p {
+          font-size: .8rem;
+        }
+      }
     </style>
 </head>
-
 <body>
-
-
     <div class="dashboard-container topic-mastery-page">
         <section class="analysis-header glass-card">
             <div>
-                <h1 style="display:flex; align-items:center; gap:8px;">
-                    <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+                <h1>
+                    <span class="page-title-icon" aria-hidden="true">📚</span>
                     Konu Hakimiyet Merkezi
                 </h1>
                 <p class="text-muted">Konu bazlı başarı durumunu takip et, odak konunu belirle ve çalışma ritmini düzenli ilerlet.</p>
             </div>
             <div class="header-actions">
                 <div class="status-badge badge-blue" id="masteryLastUpdate"><span class="badge-dot pulse"></span>Güncelleniyor...</div>
-                
-                <button class="glass-btn btn-reset reset-stats-btn" id="resetAllMasteryStatsBtn" type="button" 
-                    title="Tüm Analiz ve Konu Verilerini Sıfırla" style="width: auto; padding: 0 16px;">
+                <button class="glass-btn btn-reset reset-stats-btn" id="resetAllMasteryStatsBtn" type="button" title="Tüm analiz ve konu verilerini sıfırla" style="width: auto; padding: 0 16px;">
                     <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="margin-right: 6px;">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                     </svg>
@@ -166,5 +252,4 @@
 
     <script type="module" src="../js/topic-mastery-page.js"></script>
 </body>
-
 </html>
