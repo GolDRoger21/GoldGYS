@@ -255,7 +255,6 @@ function renderSummary(rows) {
     const completed = rows.filter((row) => row.status === "completed").length;
     const inProgress = rows.filter((row) => row.status === "in_progress").length;
     const pending = rows.filter((row) => row.status === "pending").length;
-    const focusTopic = state.topics.find((topic) => topic.id === state.currentTopicId)?.title || "-";
 
     const setText = (id, value) => {
         const el = document.getElementById(id);
@@ -264,7 +263,6 @@ function renderSummary(rows) {
     setText("masteryCompleted", completed);
     setText("masteryInProgress", inProgress);
     setText("masteryPending", pending);
-    setText("masteryFocusTopic", focusTopic.length > 20 ? `${focusTopic.slice(0, 20)}...` : focusTopic);
 }
 
 function renderTopicCards(rows) {

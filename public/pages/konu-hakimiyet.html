@@ -58,9 +58,8 @@
       }
       .topic-mastery-page .mastery-summary-grid {
         display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
+        grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 12px;
-        margin-bottom: 16px;
       }
       .topic-mastery-page .summary-pill {
         border: 1px solid var(--border-subtle);
@@ -160,7 +159,7 @@
           flex: 1 1 100%;
         }
         .topic-mastery-page .mastery-summary-grid {
-          grid-template-columns: 1fr 1fr;
+          grid-template-columns: repeat(3, 1fr);
         }
         .topic-mastery-page .mastery-table-container {
           display: none;
@@ -200,30 +199,42 @@
             </div>
         </section>
 
-        <section class="glass-card">
+        <section class="glass-card" style="margin-bottom: 16px;">
             <div class="card-body">
+                <div style="font-size: 1.05rem; font-weight: 600; color: var(--text-main); margin-bottom: 14px; display: flex; align-items: center; gap: 8px;">
+                     <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                     Genel Durum
+                </div>
                 <div class="mastery-summary-grid">
                     <div class="summary-pill"><div class="label">Tamamlanan</div><div class="value" id="masteryCompleted">0</div></div>
                     <div class="summary-pill"><div class="label">Çalışılıyor</div><div class="value" id="masteryInProgress">0</div></div>
                     <div class="summary-pill"><div class="label">Başlanmadı</div><div class="value" id="masteryPending">0</div></div>
-                    <div class="summary-pill"><div class="label">Odak Konu</div><div class="value" id="masteryFocusTopic">-</div></div>
                 </div>
-                <div class="topic-controls">
-                    <div class="topic-controls-label">Filtre & Sıralama</div>
-                    <input type="search" id="topicMasterySearchInput" placeholder="Konu ara...">
-                    <select id="topicMasterySortSelect">
+            </div>
+        </section>
+
+        <section class="glass-card" style="border: 1px solid var(--color-primary); box-shadow: 0 4px 20px rgba(59, 130, 246, 0.12); position: relative; overflow: hidden;">
+            <div style="position: absolute; top:0; left:0; width: 4px; height: 100%; background: var(--color-primary);"></div>
+            <div class="card-body" style="padding: 16px 20px;">
+                <div class="topic-controls" style="margin: 0; padding: 0; background: transparent; border: none; align-items: flex-start;">
+                    <div class="topic-controls-label" style="width: 100%; display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 1.05rem; font-weight: 600; color: var(--color-primary);">
+                        <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
+                        Filtre & Sıralama
+                    </div>
+                    <input type="search" id="topicMasterySearchInput" placeholder="Konu ara..." style="flex: 1 1 200px;">
+                    <select id="topicMasterySortSelect" style="flex: 1 1 150px;">
                         <option value="smart">Akıllı (Varsayılan)</option>
                         <option value="weakest">En Zayıf Başarı</option>
                         <option value="strongest">En Yüksek Başarı</option>
                         <option value="alphabetical">A-Z</option>
                     </select>
-                    <div class="chip-group" id="topicMasteryFilterChips">
+                    <div class="chip-group" id="topicMasteryFilterChips" style="flex: 2 1 min-content; display: flex; flex-wrap: wrap; gap: 8px;">
                         <button class="status-badge badge-blue status-in-progress" data-filter="in_progress">Çalışılıyor</button>
                         <button class="status-badge badge-gray status-pending" data-filter="pending">Başlanmadı</button>
                         <button class="status-badge badge-gray status-pending" data-filter="completed">Tamamlanan</button>
                         <button class="status-badge badge-gray status-pending" data-filter="all">Tümü</button>
                     </div>
-                    <div id="topicMasteryFilterDescription" class="filter-description-text text-muted" style="display:none;"></div>
+                    <div id="topicMasteryFilterDescription" class="filter-description-text text-muted" style="display:none; width: 100%; margin-top: 8px;"></div>
                 </div>
             </div>
         </section>
