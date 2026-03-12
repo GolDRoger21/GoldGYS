@@ -502,9 +502,9 @@
                         <p class="text-muted small">${exam.description || 'Mevzuat dağılımına uygun, otomatik seçilmiş sorularla hazırlandı.'}</p>
                     </div>
                     <div class="exam-meta">
-                        <span>🧩 ${exam.totalQuestions || 0} Soru</span>
+                        <span>&#129513; ${exam.totalQuestions || 0} Soru</span>
                         <span>⏱️ ${exam.duration || 0} dk</span>
-                        <span>🎯 Puan: %0-100</span>
+                        <span>&#127919; Puan: %0-100</span>
                     </div>
                     <div class="exam-card-actions">
                         <a href="/deneme/${encodeURIComponent(exam.id)}" class="btn btn-outline-primary w-100">Sınava Başla</a>
@@ -641,8 +641,8 @@
         <section class="info-section">
             <div class="section-header">
                 <div>
-                    <h2>Deneme Sistemi Nasıl Çalışır?</h2>
-                    <p class="text-muted">Admin panelindeki otomatik deneme üreticisinin adımlarını özetledik.</p>
+                    <h2 class="dashboard-section-title">Deneme Sistemi Nasıl Çalışır?</h2>
+                    <p class="text-muted dashboard-section-subtitle">Admin panelindeki otomatik deneme üreticisinin adımlarını özetledik.</p>
                 </div>
             </div>
             <div class="info-grid">
@@ -669,8 +669,8 @@
         <section class="info-section">
             <div class="section-header">
                 <div>
-                    <h2>Deneme Formatı</h2>
-                    <p class="text-muted">Sınav deneyimini önceden bilin, stratejinizi planlayın.</p>
+                    <h2 class="dashboard-section-title">Deneme Formatı</h2>
+                    <p class="text-muted dashboard-section-subtitle">Sınav deneyimini önceden bilin, stratejinizi planlayın.</p>
                 </div>
             </div>
             <div class="pill-list">
@@ -685,8 +685,8 @@
         <section id="examListSection" class="exam-list-section">
             <div class="section-header">
                 <div>
-                    <h2>Yayınlanan Denemeler</h2>
-                    <p class="text-muted">Seviyene uygun denemeyi seç, gerçek sınav temposunu yakala.</p>
+                    <h2 class="dashboard-section-title">Yayınlanan Denemeler</h2>
+                    <p class="text-muted dashboard-section-subtitle">Seviyene uygun denemeyi seç, gerçek sınav temposunu yakala.</p>
                 </div>
                 <div class="filter-bar">
                     <div class="filter-field">
@@ -709,3 +709,5 @@
 </body>
 
 </html>
+
+

@@ -62,6 +62,12 @@
   --heading-color: #A06B1E; /* Heading'lerde sınıf bazlı gradyan tercih edilir */
   --heading-text-shadow: 0 1px 2px rgba(184, 158, 95, 0.15); /* Hafif metalik his */
   --text-gradient-gold: linear-gradient(135deg, #BF953F 0%, #FCF6BA 50%, #B38728 100%);
+  --ui-title-color: color-mix(in srgb, var(--text-main) 96%, #2c2415 4%);
+  --ui-heading-color: var(--text-main);
+  --ui-body-color: var(--text-main);
+  --ui-muted-color: var(--text-muted);
+  --ui-icon-chip-bg: linear-gradient(135deg, rgba(191, 149, 63, 0.2), rgba(191, 149, 63, 0.07));
+  --ui-icon-chip-border: rgba(179, 135, 40, 0.36);
 
   /* Primary Colors - Gold/Bronze */
   --color-primary: #B38728; /* Golden Brown */
@@ -143,6 +149,12 @@
   --heading-color: #F8E8BE; /* Champagne Gold */
   --heading-text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
   --text-gradient-gold: linear-gradient(135deg, #FAEDCC 0%, #E7C76C 48%, #BE912E 100%); /* Champagne + metallic */
+  --ui-title-color: var(--text-main);
+  --ui-heading-color: var(--text-main);
+  --ui-body-color: var(--text-main);
+  --ui-muted-color: var(--text-muted);
+  --ui-icon-chip-bg: linear-gradient(135deg, rgba(217, 178, 74, 0.24), rgba(217, 178, 74, 0.1));
+  --ui-icon-chip-border: rgba(217, 178, 74, 0.42);
 
   /* Primary Colors - Gold */
   --color-primary: #E0BC56; /* Metallic Gold */
@@ -217,3 +229,4 @@
     --space-2xl: 40px;
   }
 }
+

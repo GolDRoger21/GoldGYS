@@ -1059,11 +1059,18 @@
   </script>
 
   <div class="dashboard-container">
+    <section class="dashboard-page-intro">
+      <h1 class="dashboard-page-title">
+        <span class="dashboard-page-title-icon" aria-hidden="true">&#128218;</span>
+        <span>Dersler</span>
+      </h1>
+      <p class="dashboard-page-subtitle">Müfredatı filtreleyip konu bazında planlı çalış ve ilerlemeni tek ekrandan takip et.</p>
+    </section>
 
     <!-- Filtreleme ve Arama -->
     <div class="filter-section">
       <div class="search-box">
-        <span class="search-icon">🔍</span>
+        <span class="search-icon">&#128269;</span>
         <input type="text" id="searchInput" placeholder="Konu veya ders ara..." aria-label="Konu veya ders ara" autocomplete="off" autocapitalize="off" spellcheck="false">
       </div>
       <div class="tabs">
@@ -1289,7 +1296,7 @@
       if (visibleParents.length === 0) {
         container.innerHTML = `
           <div class="text-center p-5 text-muted" style="grid-column: 1/-1;">
-            <div style="font-size: 2rem; margin-bottom: 8px;">🧭</div>
+            <div style="font-size: 2rem; margin-bottom: 8px;">&#129517;</div>
             Aradığınız kriterde konu bulunamadı.
           </div>
         `;
@@ -1393,7 +1400,7 @@
                 
                 <h3 class="topic-title">${t.title}</h3>
                 
-                ${isCompleted ? '<div class="topic-completed-badge">🏁 Bu konu tamamlandı</div>' : ''}
+                ${isCompleted ? '<div class="topic-completed-badge">&#127937; Bu konu tamamlandı</div>' : ''}
                 <p class="topic-desc">${t.description || 'Konu açıklaması bulunmuyor.'}</p>
 
             </a>
@@ -1436,3 +1443,4 @@
 </body>
 
 </html>
+

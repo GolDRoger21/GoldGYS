@@ -69,6 +69,36 @@
   justify-content: flex-end;
 }
 
+.analysis-card-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.analysis-card-title-danger {
+  color: var(--color-danger);
+}
+
+.analysis-card-title-primary-icon {
+  color: var(--color-primary);
+}
+
+.analysis-reset-btn {
+  width: auto;
+  padding: 0 16px !important;
+  min-height: 38px;
+}
+
+.analysis-reset-btn-icon {
+  margin-right: 6px;
+}
+
+.analysis-kpi-divider {
+  margin-top: 14px;
+  border-top: 1px dashed color-mix(in srgb, var(--border-color) 74%, transparent);
+  padding-top: 14px;
+}
+
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
@@ -834,13 +864,6 @@
 [data-theme="light"] .exam-bar-container,
 :root:not([data-theme="dark"]) .exam-bar-container {
   background: rgba(0, 0, 0, 0.08);
-}
-
-/* --- Insight pills --- */
-[data-theme="light"] .insight-pill,
-:root:not([data-theme="dark"]) .insight-pill {
-  border-color: rgba(179, 135, 40, 0.16);
-  background: rgba(179, 135, 40, 0.04);
 }
 
 /* --- Mission items --- */
@@ -1678,3 +1701,4 @@
   background: rgba(179, 135, 40, 0.08);
   border-color: rgba(179, 135, 40, 0.22);
 }
+

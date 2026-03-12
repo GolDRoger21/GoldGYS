@@ -58,6 +58,22 @@
     color: var(--text-main);
 }
 
+.dashboard-home-title::before {
+    content: "\1F3E0";
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    font-size: 1.05rem;
+    line-height: 1;
+    background: var(--ui-icon-chip-bg);
+    border: 1px solid var(--ui-icon-chip-border);
+    box-shadow: 0 6px 14px rgba(212, 175, 55, 0.18);
+    flex-shrink: 0;
+}
+
 [data-theme="light"] .welcome-text h1 {
     color: var(--text-main);
 }
@@ -1831,3 +1847,4 @@
 [data-theme="dark"] .dashboard-container .mistakes-filters {
     box-shadow: 0 16px 36px rgba(0, 0, 0, 0.28), inset 0 1px 0 rgba(250, 237, 204, 0.04);
 }
+

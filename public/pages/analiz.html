@@ -43,7 +43,7 @@
         <section class="analysis-header glass-card">
             <div>
                 <h1 class="dashboard-page-title">
-                    <span class="dashboard-page-title-icon" aria-hidden="true">📈</span>
+                    <span class="dashboard-page-title-icon" aria-hidden="true">&#128200;</span>
                     <span>Öğrenci Analiz Merkezi</span>
                 </h1>
                 <p class="dashboard-page-subtitle">Performansını detaylı incele, zayıf olduğun konulara odaklan ve gerçek netlerin
@@ -54,10 +54,9 @@
                 <div class="status-badge badge-blue" id="lastUpdate"><span
                         class="badge-dot pulse"></span>Güncelleniyor...</div>
 
-                <button class="glass-btn btn-reset reset-stats-btn" id="resetAllStatsBtn" type="button"
-                    title="Tüm Analiz ve Konu Verilerini Sıfırla" style="width: auto; padding: 0 16px;">
-                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                        style="margin-right: 6px;">
+                <button class="glass-btn btn-reset reset-stats-btn analysis-reset-btn" id="resetAllStatsBtn" type="button"
+                    title="Tüm Analiz ve Konu Verilerini Sıfırla">
+                    <svg class="analysis-reset-btn-icon" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
                         </path>
@@ -100,8 +99,8 @@
 
             <article class="glass-card">
                 <div class="card-header">
-                    <div class="card-title" style="display:flex; align-items:center; gap:8px;">
-                        <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="color:var(--color-primary)"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                    <div class="card-title analysis-card-title">
+                        <svg class="analysis-card-title-primary-icon" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
                         Profil & Başarı İvmesi
                     </div>
                     <div class="score-badge" id="currentLevelBadge">Seviye 1</div>
@@ -119,7 +118,7 @@
                         <span id="levelNextTarget">Sonraki: -</span>
                     </div>
 
-                    <div style="margin-top: 14px; border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 14px;">
+                    <div class="analysis-kpi-divider">
                         <div class="insight-kpis" id="insightKpiGrid"></div>
                     </div>
                 </div>
@@ -128,7 +127,7 @@
 
         <section class="glass-card">
             <div class="card-header">
-                <div class="card-title" style="display:flex; align-items:center; gap:8px;">
+                <div class="card-title analysis-card-title">
                     <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                     Son Sınavlar
                 </div>
@@ -150,7 +149,7 @@
         <section class="analysis-main-grid">
             <article class="glass-card chart-card">
                 <div class="card-header">
-                    <div class="card-title" style="display:flex; align-items:center; gap:8px;">
+                    <div class="card-title analysis-card-title">
                         <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
                         Gelişim Grafiği (Son 12 Deneme)
                     </div>
@@ -160,7 +159,7 @@
 
             <article class="glass-card chart-card">
                 <div class="card-header">
-                    <div class="card-title" style="display:flex; align-items:center; gap:8px; color: var(--color-danger);">
+                    <div class="card-title analysis-card-title analysis-card-title-danger">
                         <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
                         Dikkat: Zayıf Olduğun İlk 8 Konu
                     </div>
@@ -174,3 +173,4 @@
 </body>
 
 </html>
+

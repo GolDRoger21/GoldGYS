@@ -389,8 +389,8 @@
         <p class="dashboard-page-subtitle">Yanlış yaptığın soruları konuya göre filtrele, tekrar çöz ve başarıya dönüştür.</p>
       </div>
       <div class="mistakes-hero-actions">
-        <button class="btn btn-primary" id="btnSolveAllExam">🎯 Karma Test (Sınav)</button>
-        <button class="btn btn-outline-primary" id="btnSolveAllPractice">📖 Karma Öğrenme</button>
+        <button class="btn btn-primary" id="btnSolveAllExam">&#127919; Karma Test (Sınav)</button>
+        <button class="btn btn-outline-primary" id="btnSolveAllPractice">&#128214; Karma Öğrenme</button>
       </div>
     </section>
 
@@ -439,16 +439,16 @@
 
     <section>
       <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-        <h3 class="m-0">Konu Bazlı Tekrar</h3>
-        <small class="text-muted">Konu kartından öğrenme veya sınav modunu başlatabilirsin.</small>
+        <h3 class="m-0 dashboard-section-title">Konu Bazlı Tekrar</h3>
+        <small class="text-muted dashboard-section-subtitle">Konu kartından öğrenme veya sınav modunu başlatabilirsin.</small>
       </div>
       <div class="category-grid" id="categoryCards"></div>
     </section>
 
     <section>
       <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-        <h3 class="m-0">Filtrelenen Sorular</h3>
-        <small class="text-muted" id="filteredCount">0 soru</small>
+        <h3 class="m-0 dashboard-section-title">Filtrelenen Sorular</h3>
+        <small class="text-muted dashboard-section-subtitle" id="filteredCount">0 soru</small>
       </div>
       <div class="mistake-list" id="mistakesList">
         <div class="card p-4 text-center">Hatalarınız analiz ediliyor...</div>
@@ -586,7 +586,7 @@
       ui.totalCategories.textContent = '0';
       ui.lastAttempt.textContent = '-';
       ui.categoryCards.innerHTML = '<div class="empty-state">Hiç yanlış soru bulunamadı.</div>';
-      ui.mistakesList.innerHTML = '<div class="empty-state">Yanlış yaptığın soru yok, böyle devam! 🎉</div>';
+      ui.mistakesList.innerHTML = '<div class="empty-state">Yanlış yaptığın soru yok, böyle devam! &#127881;</div>';
       ui.filteredCount.textContent = '0 soru';
       setSolveButtonsEnabled(false);
     }
@@ -646,8 +646,8 @@
               </div>
             </div>
             <div class="category-actions">
-              <button class="btn btn-outline-primary" data-category="${category}" data-mode="practice">📖 Öğrenme</button>
-              <button class="btn btn-primary" data-category="${category}" data-mode="exam">🎯 Sınav</button>
+              <button class="btn btn-outline-primary" data-category="${category}" data-mode="practice">&#128214; Öğrenme</button>
+              <button class="btn btn-primary" data-category="${category}" data-mode="exam">&#127919; Sınav</button>
             </div>
           </div>
         `;
@@ -793,3 +793,5 @@
 </body>
 
 </html>
+
+

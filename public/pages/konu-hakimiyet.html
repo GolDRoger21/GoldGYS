@@ -47,6 +47,7 @@
         display: grid;
         grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 12px;
+      margin-bottom: 24px;
       }
       .topic-mastery-page .summary-pill.mini-stat-card {
         padding: 18px;
@@ -188,11 +189,78 @@
         border-color: var(--border-color);
         transform: translateY(-1px);
       }
-      .topic-mastery-page .chip-group .status-badge.badge-blue {
-        background: var(--color-primary) !important;
-        color: white !important;
-        box-shadow: 0 4px 14px rgba(59, 130, 246, 0.35);
+      .topic-mastery-page .summary-pill .stat-icon.stat-icon-success {
+        color: var(--color-success);
+        background: linear-gradient(135deg, rgba(34, 197, 94, 0.18), rgba(21, 128, 61, 0.08));
+        border: 1px solid rgba(34, 197, 94, 0.2);
+      }
+      .topic-mastery-page .summary-pill .stat-icon.stat-icon-primary {
+        color: var(--color-primary);
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(30, 64, 175, 0.08));
+        border: 1px solid rgba(59, 130, 246, 0.2);
+      }
+      .topic-mastery-page .summary-pill .stat-icon.stat-icon-muted {
+        color: var(--text-muted);
+        background: linear-gradient(135deg, rgba(156, 163, 175, 0.18), rgba(107, 114, 128, 0.08));
+        border: 1px solid rgba(156, 163, 175, 0.2);
+      }
+      .topic-mastery-page .mastery-header-reset {
+        width: auto;
+        padding: 0 16px;
+      }
+      .topic-mastery-page .mastery-header-reset-icon {
+        margin-right: 6px;
+      }
+      .topic-mastery-page .mastery-filter-panel {
+        border: 1px solid var(--color-primary);
+        box-shadow: 0 4px 20px rgba(59, 130, 246, 0.12);
+        position: relative;
+        overflow: hidden;
+      }
+      .topic-mastery-page .mastery-filter-panel-accent {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 4px;
+        height: 100%;
+        background: var(--color-primary);
+      }
+      .topic-mastery-page .mastery-filter-panel-body {
+        padding: 16px 20px;
+      }
+      .topic-mastery-page .mastery-filter-controls {
+        margin: 0;
+        padding: 0;
+        background: transparent;
         border: none;
+        align-items: flex-start;
+      }
+      .topic-mastery-page .mastery-filter-label {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 8px;
+        font-size: 1.05rem;
+        font-weight: 600;
+        color: var(--color-primary);
+      }
+      .topic-mastery-page .mastery-filter-search {
+        flex: 1 1 200px;
+      }
+      .topic-mastery-page .mastery-filter-sort {
+        flex: 1 1 150px;
+      }
+      .topic-mastery-page .mastery-filter-chips {
+        flex: 2 1 min-content;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .topic-mastery-page .mastery-filter-description {
+        display: none;
+        width: 100%;
+        margin-top: 8px;
       }
       @media (max-width: 768px) {
         .topic-mastery-page {
@@ -241,15 +309,15 @@
         <section class="analysis-header glass-card">
             <div>
                 <h1 class="dashboard-page-title">
-                    <span class="dashboard-page-title-icon" aria-hidden="true">📚</span>
+                    <span class="dashboard-page-title-icon" aria-hidden="true">&#128218;</span>
                     Konu Hakimiyet Merkezi
                 </h1>
                 <p class="dashboard-page-subtitle">Konu bazlı başarı durumunu takip et, odak konunu belirle ve çalışma ritmini düzenli ilerlet.</p>
             </div>
             <div class="header-actions">
                 <div class="status-badge badge-blue" id="masteryLastUpdate"><span class="badge-dot pulse"></span>Güncelleniyor...</div>
-                <button class="glass-btn btn-reset reset-stats-btn" id="resetAllMasteryStatsBtn" type="button" title="Tüm analiz ve konu verilerini sıfırla" style="width: auto; padding: 0 16px;">
-                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="margin-right: 6px;">
+                <button class="glass-btn btn-reset reset-stats-btn mastery-header-reset" id="resetAllMasteryStatsBtn" type="button" title="Tüm analiz ve konu verilerini sıfırla">
+                    <svg class="mastery-header-reset-icon" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                     </svg>
                     Tümünü Sıfırla
@@ -257,9 +325,9 @@
             </div>
         </section>
 
-        <div class="mastery-summary-grid" style="margin-bottom: 24px;">
+        <div class="mastery-summary-grid">
             <div class="summary-pill mini-stat-card">
-                <div class="stat-icon" style="color: var(--color-success); background: linear-gradient(135deg, rgba(34, 197, 94, 0.18), rgba(21, 128, 61, 0.08)); border: 1px solid rgba(34, 197, 94, 0.2);">
+                <div class="stat-icon stat-icon-success">
                     <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                 </div>
                 <div>
@@ -268,7 +336,7 @@
                 </div>
             </div>
             <div class="summary-pill mini-stat-card">
-                 <div class="stat-icon" style="color: var(--color-primary); background: linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(30, 64, 175, 0.08)); border: 1px solid rgba(59, 130, 246, 0.2);">
+                 <div class="stat-icon stat-icon-primary">
                     <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                  </div>
                  <div>
@@ -277,7 +345,7 @@
                  </div>
             </div>
             <div class="summary-pill mini-stat-card">
-                 <div class="stat-icon" style="color: var(--text-muted); background: linear-gradient(135deg, rgba(156, 163, 175, 0.18), rgba(107, 114, 128, 0.08)); border: 1px solid rgba(156, 163, 175, 0.2);">
+                 <div class="stat-icon stat-icon-muted">
                     <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path></svg>
                  </div>
                  <div>
@@ -287,28 +355,28 @@
             </div>
         </div>
 
-        <section class="glass-card" style="border: 1px solid var(--color-primary); box-shadow: 0 4px 20px rgba(59, 130, 246, 0.12); position: relative; overflow: hidden;">
-            <div style="position: absolute; top:0; left:0; width: 4px; height: 100%; background: var(--color-primary);"></div>
-            <div class="card-body" style="padding: 16px 20px;">
-                <div class="topic-controls" style="margin: 0; padding: 0; background: transparent; border: none; align-items: flex-start;">
-                    <div class="topic-controls-label" style="width: 100%; display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 1.05rem; font-weight: 600; color: var(--color-primary);">
+        <section class="glass-card mastery-filter-panel">
+            <div class="mastery-filter-panel-accent"></div>
+            <div class="card-body mastery-filter-panel-body">
+                <div class="topic-controls mastery-filter-controls">
+                    <div class="topic-controls-label mastery-filter-label">
                         <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
                         Filtre & Sıralama
                     </div>
-                    <input type="search" id="topicMasterySearchInput" placeholder="Konu ara..." style="flex: 1 1 200px;">
-                    <select id="topicMasterySortSelect" style="flex: 1 1 150px;">
+                    <input type="search" id="topicMasterySearchInput" class="mastery-filter-search" placeholder="Konu ara...">
+                    <select id="topicMasterySortSelect" class="mastery-filter-sort">
                         <option value="smart">Akıllı (Varsayılan)</option>
                         <option value="weakest">En Zayıf Başarı</option>
                         <option value="strongest">En Yüksek Başarı</option>
                         <option value="alphabetical">A-Z</option>
                     </select>
-                    <div class="chip-group" id="topicMasteryFilterChips" style="flex: 2 1 min-content; display: flex; flex-wrap: wrap; gap: 8px;">
+                    <div class="chip-group mastery-filter-chips" id="topicMasteryFilterChips">
                         <button class="status-badge badge-blue status-in-progress" data-filter="in_progress">Çalışılıyor</button>
                         <button class="status-badge badge-gray status-pending" data-filter="pending">Başlanmadı</button>
                         <button class="status-badge badge-gray status-pending" data-filter="completed">Tamamlanan</button>
                         <button class="status-badge badge-gray status-pending" data-filter="all">Tümü</button>
                     </div>
-                    <div id="topicMasteryFilterDescription" class="filter-description-text text-muted" style="display:none; width: 100%; margin-top: 8px;"></div>
+                    <div id="topicMasteryFilterDescription" class="filter-description-text text-muted mastery-filter-description"></div>
                 </div>
             </div>
         </section>
@@ -338,3 +406,8 @@
     <script type="module" src="../js/topic-mastery-page.js"></script>
 </body>
 </html>
+
+
+
+
+
