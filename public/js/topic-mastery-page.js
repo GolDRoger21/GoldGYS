@@ -142,10 +142,13 @@ function buildCategoryTotals(results, topics, topicResets) {
         const completedAt = getCompletedSeconds(exam);
         Object.entries(exam.categoryStats).forEach(([cat, stats]) => {
             const normCat = normalizeStr(cat);
-            const topic = topics.find((t) =>
+            const topic = topics.find(t =>
                 t.id === cat ||
                 t.slug === cat ||
-                normalizeStr(t.title) === normCat
+                normalizeStr(t.title) === normCat ||
+                (t.shortName && normalizeStr(t.shortName) === normCat) ||
+                (normCat.length > 5 && normalizeStr(t.title).includes(normCat)) ||
+                (normCat.length > 5 && normCat.includes(normalizeStr(t.title)))
             );
             if (!topic) return;
             const resetAt = topicResets?.[topic.id];
@@ -288,19 +291,20 @@ function renderTopicList() {
     if (!tableBody) return;
 
     const effectiveTopics = getEffectiveTopics(state.topics);
-    let rows = effectiveTopics.map((topic) => ({
+    let allRows = effectiveTopics.map((topic) => ({
         topic,
         success: state.successMap.get(topic.id) || 0,
         status: getTopicStatus(topic.id)
     }));
+    
+    renderSummary(allRows);
 
-    rows = rows.filter((row) => state.topicFilter === "all" || row.status === state.topicFilter);
+    let rows = allRows.filter((row) => state.topicFilter === "all" || row.status === state.topicFilter);
     if (state.search.trim()) {
         const q = normalizeStr(state.search);
         rows = rows.filter((row) => normalizeStr(row.topic.title).includes(q));
     }
     rows = sortTopics(rows);
-    renderSummary(rows);
     renderTopicCards(rows);
 
     if (!rows.length) {
@@ -377,6 +381,17 @@ function bindEvents() {
                 renderTopicList();
             });
         });
+    }
+
+    const activeChip = Array.from(chips).find(c => c.dataset.filter === state.topicFilter) || Array.from(chips).find(c => c.classList.contains('badge-blue'));
+    if (activeChip) {
+        chips.forEach(c => c.classList.remove('is-active'));
+        activeChip.classList.add('is-active');
+    }
+
+    if (filterDesc && window.innerWidth <= 768 && activeChip) {
+        filterDesc.style.display = 'block';
+        filterDesc.innerText = filterTexts[activeChip.dataset.filter] || '';
     }
 
     if (searchInput) {
@@ -481,6 +496,12 @@ window.resetMasteryTopicStats = async (topicId) => {
     renderTopicList();
 };
 
+async function runChunked(tasks, chunkSize) {
+    for (let i = 0; i < tasks.length; i += chunkSize) {
+        await Promise.all(tasks.slice(i, i + chunkSize).map((task) => task()));
+    }
+}
+
 async function resetAllStats() {
     const ok = await showConfirm("Tüm konu takip istatistikleri sıfırlanacak. Onaylıyor musun?", { title: "Tüm Verileri Sıfırla", confirmText: "Evet", cancelText: "Hayır", tone: "warning" });
     if (!ok) return;
@@ -491,9 +512,57 @@ async function resetAllStats() {
         currentTopicUpdatedAt: serverTimestamp(),
         updatedAt: serverTimestamp()
     }, { merge: true });
-    state.statsResetAt = Math.floor(Date.now() / 1000);
+
+    try {
+        const progressSnap = await getDocs(
+            query(
+                collection(db, `users/${state.userId}/topic_progress`),
+                orderBy(documentId()),
+                limit(1000)
+            ),
+            "users.topic_progress"
+        );
+        const updateTasks = progressSnap.docs.map((d) => () => setDoc(d.ref, {
+            status: 'pending',
+            manualCompleted: false,
+            updatedAt: serverTimestamp(),
+            lastSyncedAt: serverTimestamp(),
+            solvedCount: 0,
+            solvedIds: [],
+            answers: {}
+        }, { merge: true }));
+        await runChunked(updateTasks, 100);
+    } catch (err) {
+        console.warn("Toplu progress sıfırlama uyarısı:", err);
+    }
+
+    const nowSeconds = Math.floor(Date.now() / 1000);
+    state.statsResetAt = nowSeconds;
     state.topicResets = {};
     state.currentTopicId = null;
+    
+    await syncCachedUserProfilePatch(state.userId, {
+        statsResetAt: { seconds: nowSeconds },
+        topicResets: {},
+        currentTopicId: null,
+        currentTopicUpdatedAt: { seconds: nowSeconds },
+        updatedAt: { seconds: nowSeconds }
+    });
+
+    state.progressMap.forEach((data, key) => {
+        state.progressMap.set(key, {
+            ...data,
+            status: 'pending',
+            manualCompleted: false,
+            updatedAt: { seconds: nowSeconds },
+            lastSyncedAt: { seconds: nowSeconds },
+            solvedCount: 0,
+            solvedIds: [],
+            answers: {}
+        });
+    });
+    
+    await CacheManager.saveData(USER_CACHE_KEYS.topicProgressCollection(state.userId), [...state.progressMap.entries()].map(([id, data]) => ({ id, data })), ANALYSIS_CACHE_TTL);
     renderTopicList();
     showToast("Konu hakimiyet verileri sıfırlandı.", "success");
 }

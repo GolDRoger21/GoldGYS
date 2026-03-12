@@ -21,9 +21,6 @@ const state = {
     currentTopicId: null,
     statsResetAt: null,
     topicResets: {},
-    topicFilter: 'in_progress',
-    search: '',
-    sortBy: 'smart',
     charts: { progress: null, topic: null }
 };
 
@@ -271,7 +268,6 @@ function renderAnalysisState(categoryTotals = null) {
     renderProgressChart(state.results);
     renderTopicChart(totals);
     renderHistoryTable(state.results);
-    renderTopicList();
     renderLevelSystem();
     renderScientificInsights(totals);
     setLastUpdateState();
@@ -762,94 +758,7 @@ function renderScientificInsights(categoryTotals) {
     }).join('');
 }
 
-function sortTopics(rows) {
-    if (state.sortBy === 'alphabetical') return rows.sort((a, b) => a.topic.title.localeCompare(b.topic.title, 'tr'));
-    if (state.sortBy === 'strongest') return rows.sort((a, b) => b.success - a.success);
-    if (state.sortBy === 'weakest') return rows.sort((a, b) => a.success - b.success);
 
-    // state.sortBy === 'smart' varsayılan sıralama stratejisi
-    return rows.sort((a, b) => {
-        // Eğer Çalışılanlar veya Bitirilenler sekmesindeysek, ilerleme oranına (success) göre en iyi olanı başa koy (soru saysından ziyade)
-        if (state.topicFilter === 'in_progress' || state.topicFilter === 'completed') {
-            if (b.success !== a.success) return b.success - a.success;
-        }
-
-        // Diğer sekmelerde (Başlanmayanlar / Tümü) veya oran aynıysa -> Sınavda çıkacak Soru/Hedef sayısına göre sırala (En çok soru çıkan 1. sıraya)
-        const tA = parseNum(a.topic.totalQuestionTarget || a.topic.targetQuestions || a.topic._fetchedTotal);
-        const tB = parseNum(b.topic.totalQuestionTarget || b.topic.targetQuestions || b.topic._fetchedTotal);
-
-        if (tB !== tA) return tB - tA;
-        return b.success - a.success;
-    });
-}
-
-function renderTopicList() {
-    const container = document.getElementById('topicMasteryList');
-    if (!container) return;
-    // Sadece etkili konuları (alt konuları olan üst konuları hariç tut) gösteriyoruz:
-    const effectiveTopics = getEffectiveTopics(state.topics);
-
-    let rows = effectiveTopics.map(topic => {
-        const success = state.successMap.get(topic.id) || 0;
-        const status = getTopicStatus(topic.id);
-        return { topic, success, status };
-    });
-
-    rows = rows.filter(row => state.topicFilter === 'all' || row.status === state.topicFilter);
-    if (state.search.trim()) {
-        const q = normalizeStr(state.search);
-        rows = rows.filter(row => normalizeStr(row.topic.title).includes(q));
-    }
-    rows = sortTopics(rows);
-
-    if (!rows.length) {
-        container.innerHTML = '<tr><td colspan="4" class="text-center">Filtreye uygun konu bulunamadı.</td></tr>';
-        return;
-    }
-
-    container.innerHTML = rows.map(({ topic, success, status }) => {
-        const badgeData = getBadgeHTMLForStatus(status);
-        const focusEmoji = topic.id === state.currentTopicId ? '🎯' : '⭕';
-        const isCurrentRow = topic.id === state.currentTopicId ? 'active-focus-row' : '';
-        const topicUrl = buildTopicHref ? buildTopicHref(topic) : `/konu/${topic.slug || topic.id}`;
-
-        return `<tr class="topic-row ${isCurrentRow}" data-status="${status}">
-            <td data-label="Konu">
-                <a href="${topicUrl}" class="topic-title-main" style="text-decoration:none; display:flex; align-items:center; gap:8px;">
-                    <span style="color:var(--text-main); transition:color 0.2s;" onmouseover="this.style.color='var(--color-primary)'" onmouseout="this.style.color='var(--text-main)'">${topic.title}</span>
-                </a>
-                <div class="topic-desc-sub" style="margin-top:4px;">${topic.description || ''}</div>
-            </td>
-            <td data-label="Başarı">
-                <div class="progress-container">
-                    <div class="progress-bar-wrap">
-                        <div class="progress-bar-fill" style="width:${success}%; background: ${getProgressColor(success)};"></div>
-                    </div>
-                    <span class="progress-val" style="color: ${getProgressColor(success)};">%${success}</span>
-                </div>
-            </td>
-            <td data-label="Durum">
-                <div class="topic-status-cell">
-                    ${badgeData}
-                    ${topic.id === state.currentTopicId ? '<span class="focus-indicator">Odak</span>' : ''}
-                </div>
-            </td>
-            <td data-label="İşlemler">
-              <div class="action-buttons">
-                <button class="glass-btn btn-complete" onclick="window.toggleTopicStatus('${topic.id}', 'completed')" title="Öğrendim / Çalıştım">
-                    <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                </button>
-                <button class="glass-btn btn-focus ${topic.id === state.currentTopicId ? 'is-focused' : ''}" onclick="window.setFocusTopic('${topic.id}')" title="Bu konuya odaklan">
-                    ${focusEmoji}
-                </button>
-                <button class="glass-btn btn-reset" onclick="window.resetTopicStats('${topic.id}')" title="İstatistikleri ve ilerlemeyi tamemen sıfırla">
-                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-                </button>
-              </div>
-            </td>
-        </tr>`;
-    }).join('');
-}
 
 function renderLevelSystem() {
     const totalCorrect = state.results.reduce((sum, exam) => sum + parseNum(exam.correct), 0);
@@ -907,151 +816,9 @@ function calculateStudyStreak(results) {
 function bindUIEvents() {
     const resetBtn = document.getElementById('resetAllStatsBtn');
     if (resetBtn) resetBtn.addEventListener('click', resetAllStats);
-    const chips = document.querySelectorAll('#topicFilterChips button');
-    const filterDesc = document.getElementById('filterDescription');
-    const filterTexts = {
-        'in_progress': 'Şu an çalışmaya devam ettiğiniz veya odaklandığınız konular',
-        'pending': 'Henüz çalışmaya veya test çözmeye başlamadığınız konular',
-        'completed': 'Başarıyla tamamladığınız veya testlerini bitirdiğiniz konular',
-        'all': 'Müfredattaki tüm konuların listesi'
-    };
-
-    chips.forEach(chip => {
-        chip.addEventListener('click', () => {
-            state.topicFilter = chip.dataset.filter;
-            chips.forEach(c => {
-                c.classList.remove('badge-blue', 'is-active');
-                c.classList.add('badge-gray');
-            });
-            chip.classList.remove('badge-gray');
-            chip.classList.add('badge-blue', 'is-active');
-
-            if (filterDesc) {
-                if (window.innerWidth <= 768) {
-                    filterDesc.style.display = 'block';
-                    filterDesc.innerText = filterTexts[state.topicFilter] || '';
-                } else {
-                    filterDesc.style.display = 'none';
-                }
-            }
-
-            renderTopicList();
-        });
-    });
-
-    // Initial setup for the description if a default filter is active on mobile
-    const activeChip = Array.from(chips).find(c => c.dataset.filter === state.topicFilter) || Array.from(chips).find(c => c.classList.contains('badge-blue'));
-    if (activeChip) {
-        chips.forEach(c => c.classList.remove('is-active'));
-        activeChip.classList.add('is-active');
-    }
-
-    if (filterDesc && window.innerWidth <= 768 && activeChip) {
-        filterDesc.style.display = 'block';
-        filterDesc.innerText = filterTexts[activeChip.dataset.filter] || '';
-    }
-    const topicSearchInput = document.getElementById('topicSearchInput');
-    if (topicSearchInput) {
-        topicSearchInput.addEventListener('input', (e) => {
-            state.search = e.target.value;
-            renderTopicList();
-        });
-    }
-    const topicSortSelect = document.getElementById('topicSortSelect');
-    if (topicSortSelect) {
-        topicSortSelect.addEventListener('change', (e) => {
-            state.sortBy = e.target.value;
-            renderTopicList();
-        });
-    }
 }
 
-window.toggleTopicStatus = async (topicId, newStatus) => {
-    const shouldUpdate = await showConfirm('Konu durumunu güncellemek istiyor musun?', { title: 'Durum Güncelle', confirmText: 'Güncelle', cancelText: 'Vazgeç', tone: 'warning' });
-    if (!shouldUpdate) return;
-    await setDoc(doc(db, `users/${state.userId}/topic_progress`, topicId), { status: newStatus, manualCompleted: true, updatedAt: serverTimestamp() }, { merge: true });
-    const nowSeconds = Math.floor(Date.now() / 1000);
-    const current = state.progressMap.get(topicId) || {};
-    state.progressMap.set(topicId, { ...current, status: newStatus, manualCompleted: true, updatedAt: { seconds: nowSeconds } });
-    await CacheManager.saveData(USER_CACHE_KEYS.topicProgressCollection(state.userId), [...state.progressMap.entries()].map(([id, data]) => ({ id, data })), ANALYSIS_CACHE_TTL);
-    renderAnalysisState();
-};
 
-window.setFocusTopic = async (topicId) => {
-    const isCurrent = state.currentTopicId === topicId;
-    await setDoc(doc(db, 'users', state.userId), {
-        currentTopicId: isCurrent ? null : topicId,
-        currentTopicUpdatedAt: serverTimestamp(),
-        updatedAt: serverTimestamp()
-    }, { merge: true });
-    if (!isCurrent) {
-        await setDoc(doc(db, `users/${state.userId}/topic_progress`, topicId), { status: 'in_progress', updatedAt: serverTimestamp() }, { merge: true });
-    }
-
-    const nowSeconds = Math.floor(Date.now() / 1000);
-    state.currentTopicId = isCurrent ? null : topicId;
-    await syncCachedUserProfilePatch(state.userId, {
-        currentTopicId: state.currentTopicId,
-        currentTopicUpdatedAt: { seconds: nowSeconds },
-        updatedAt: { seconds: nowSeconds }
-    });
-    if (!isCurrent) {
-        const current = state.progressMap.get(topicId) || {};
-        state.progressMap.set(topicId, { ...current, status: 'in_progress', updatedAt: { seconds: nowSeconds } });
-    }
-    await CacheManager.saveData(USER_CACHE_KEYS.topicProgressCollection(state.userId), [...state.progressMap.entries()].map(([id, data]) => ({ id, data })), ANALYSIS_CACHE_TTL);
-    renderAnalysisState();
-};
-
-window.resetTopicStats = async (topicId) => {
-    const shouldReset = await showConfirm('Bu konuya ait istatistikleri sıfırlamak istediğine emin misin?', { title: 'Konu İstatistiğini Sıfırla', confirmText: 'Sıfırla', cancelText: 'Vazgeç', tone: 'warning' });
-    if (!shouldReset) return;
-
-    const updates = {
-        [`topicResets.${topicId}`]: serverTimestamp(),
-        updatedAt: serverTimestamp()
-    };
-    if (state.currentTopicId === topicId) {
-        updates.currentTopicId = null;
-        updates.currentTopicUpdatedAt = serverTimestamp();
-    }
-
-    await setDoc(doc(db, 'users', state.userId), updates, { merge: true });
-
-    // Güvenliği garantiye almak ve %100 sıfırlama için topic_progress bilgilerini siliyoruz.
-    await setDoc(doc(db, `users/${state.userId}/topic_progress`, topicId), {
-        status: 'pending',
-        manualCompleted: false,
-        updatedAt: serverTimestamp(),
-        lastSyncedAt: serverTimestamp(),
-        solvedCount: 0,
-        solvedIds: [],
-        answers: {}
-    }, { merge: true });
-
-    const nowSeconds = Math.floor(Date.now() / 1000);
-    state.topicResets[topicId] = nowSeconds;
-    if (state.currentTopicId === topicId) state.currentTopicId = null;
-    await syncCachedUserProfilePatch(state.userId, {
-        topicResets: { ...(state.topicResets || {}) },
-        currentTopicId: state.currentTopicId,
-        currentTopicUpdatedAt: { seconds: nowSeconds },
-        updatedAt: { seconds: nowSeconds }
-    });
-    const current = state.progressMap.get(topicId) || {};
-    state.progressMap.set(topicId, {
-        ...current,
-        status: 'pending',
-        manualCompleted: false,
-        updatedAt: { seconds: nowSeconds },
-        lastSyncedAt: { seconds: nowSeconds },
-        solvedCount: 0,
-        solvedIds: [],
-        answers: {}
-    });
-    await CacheManager.saveData(USER_CACHE_KEYS.topicProgressCollection(state.userId), [...state.progressMap.entries()].map(([id, data]) => ({ id, data })), ANALYSIS_CACHE_TTL);
-    renderAnalysisState();
-};
 
 async function resetAllStats() {
     const shouldReset = await showConfirm('Tüm istatistikler sıfırlanacak. Onaylıyor musun?', { title: 'Tüm Verileri Sıfırla', confirmText: 'Evet', cancelText: 'Hayır', tone: 'warning' });
