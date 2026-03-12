@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+<script id="early-theme-init">
+(function(){
+  try {
+    var t = localStorage.getItem('theme');
+    if (t !== 'light' && t !== 'dark') t = 'dark';
+    document.documentElement.setAttribute('data-theme', t);
+  } catch (e) {
+    document.documentElement.setAttribute('data-theme', 'dark');
+  }
+})();
+</script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Konu Hakimiyet Merkezi | GOLD GYS</title>
+    <link rel="stylesheet" href="../styles/tokens.css">
+    <link rel="stylesheet" href="../css/layout.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <link rel="stylesheet" href="../css/app.css">
+    <link rel="stylesheet" href="../css/analysis.css">
+    <link rel="icon" type="image/png" href="/icons/favicon.png">
+    <script src="/js/theme-init.js"></script>
+    <style>
+      .topic-mastery-page .mastery-summary-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 10px;
+        margin-bottom: 14px;
+      }
+      .topic-mastery-page .summary-pill {
+        border: 1px solid var(--border-subtle);
+        border-radius: 14px;
+        background: var(--bg-surface-elevated);
+        padding: 10px 12px;
+      }
+      .topic-mastery-page .summary-pill .label {
+        color: var(--text-muted);
+        font-size: 0.76rem;
+      }
+      .topic-mastery-page .summary-pill .value {
+        color: var(--text-main);
+        font-weight: 700;
+        font-size: 1.05rem;
+        margin-top: 4px;
+      }
+      .topic-mastery-page .mastery-cards {
+        display: none;
+        gap: 10px;
+      }
+      .topic-mastery-page .mastery-card {
+        border: 1px solid var(--border-subtle);
+        border-radius: 14px;
+        background: var(--bg-surface-elevated);
+        padding: 12px;
+      }
+      .topic-mastery-page .mastery-card-title {
+        color: var(--text-main);
+        font-weight: 700;
+        margin-bottom: 8px;
+      }
+      .topic-mastery-page .mastery-card-meta {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        margin-bottom: 10px;
+      }
+      .topic-mastery-page .mastery-card-actions {
+        display: flex;
+        gap: 8px;
+      }
+      .topic-mastery-page .mastery-card-actions .glass-btn {
+        min-height: 40px;
+      }
+      @media (max-width: 768px) {
+        .topic-mastery-page .mastery-summary-grid {
+          grid-template-columns: 1fr 1fr;
+        }
+        .topic-mastery-page .mastery-table-container {
+          display: none;
+        }
+        .topic-mastery-page .mastery-cards {
+          display: grid;
+        }
+      }
+    </style>
+</head>
+
+<body>
+    <script type="module">
+        import { initLayout } from '../js/ui-loader.js';
+        document.addEventListener('DOMContentLoaded', () => initLayout());
+    </script>
+
+    <div class="dashboard-container topic-mastery-page">
+        <section class="analysis-header glass-card">
+            <div>
+                <h1>📚 Konu Hakimiyet Merkezi</h1>
+                <p class="text-muted">Konu bazlı başarı durumunu takip et, odak konunu belirle ve çalışma ritmini düzenli ilerlet.</p>
+            </div>
+            <div class="header-actions">
+                <div class="status-badge badge-blue" id="masteryLastUpdate"><span class="badge-dot pulse"></span>Güncelleniyor...</div>
+                <button class="glass-btn btn-reset" id="resetAllMasteryStatsBtn" type="button">Tümünü Sıfırla</button>
+            </div>
+        </section>
+
+        <section class="glass-card">
+            <div class="card-body">
+                <div class="mastery-summary-grid">
+                    <div class="summary-pill"><div class="label">Tamamlanan</div><div class="value" id="masteryCompleted">0</div></div>
+                    <div class="summary-pill"><div class="label">Çalışılıyor</div><div class="value" id="masteryInProgress">0</div></div>
+                    <div class="summary-pill"><div class="label">Başlanmadı</div><div class="value" id="masteryPending">0</div></div>
+                    <div class="summary-pill"><div class="label">Odak Konu</div><div class="value" id="masteryFocusTopic">-</div></div>
+                </div>
+                <div class="topic-controls">
+                    <div class="topic-controls-label">Filtre & Sıralama</div>
+                    <input type="search" id="topicMasterySearchInput" placeholder="Konu ara...">
+                    <select id="topicMasterySortSelect">
+                        <option value="smart">Akıllı (Varsayılan)</option>
+                        <option value="weakest">En Zayıf Başarı</option>
+                        <option value="strongest">En Yüksek Başarı</option>
+                        <option value="alphabetical">A-Z</option>
+                    </select>
+                    <div class="chip-group" id="topicMasteryFilterChips">
+                        <button class="status-badge badge-blue status-in-progress" data-filter="in_progress">Çalışılıyor</button>
+                        <button class="status-badge badge-gray status-pending" data-filter="pending">Başlanmadı</button>
+                        <button class="status-badge badge-gray status-pending" data-filter="completed">Tamamlanan</button>
+                        <button class="status-badge badge-gray status-pending" data-filter="all">Tümü</button>
+                    </div>
+                    <div id="topicMasteryFilterDescription" class="filter-description-text text-muted" style="display:none;"></div>
+                </div>
+            </div>
+        </section>
+
+        <section class="glass-card">
+            <div class="card-body">
+                <div class="mastery-table-container">
+                    <table class="mastery-table">
+                        <thead>
+                            <tr>
+                                <th>Konu</th>
+                                <th>Başarı</th>
+                                <th>Durum</th>
+                                <th class="align-right">İşlemler</th>
+                            </tr>
+                        </thead>
+                        <tbody id="topicMasteryList">
+                            <tr><td colspan="4" class="text-center">Yükleniyor...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="mastery-cards" id="topicMasteryCards"></div>
+            </div>
+        </section>
+    </div>
+
+    <script type="module" src="../js/topic-mastery-page.js"></script>
+</body>
+
+</html>

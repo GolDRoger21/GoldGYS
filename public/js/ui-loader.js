@@ -29,7 +29,9 @@ const PAGE_CONFIG = {
     '/favoriler': { id: 'favorites', title: 'Favoriler' },
     '/pages/favoriler.html': { id: 'favorites', title: 'Favoriler' },
     '/analiz': { id: 'analysis', title: 'Analiz' },
-    '/pages/analiz.html': { id: 'analysis', title: 'Analiz' }
+    '/pages/analiz.html': { id: 'analysis', title: 'Analiz' },
+    '/konu-hakimiyet': { id: 'topic-mastery', title: 'Konu Hakimiyet' },
+    '/pages/konu-hakimiyet.html': { id: 'topic-mastery', title: 'Konu Hakimiyet' }
 };
 
 let layoutInitPromise = null;
@@ -41,6 +43,7 @@ const USER_SHELL_ROUTE_TO_HASH = Object.freeze({
     yanlislarim: "/dashboard#yanlislarim",
     favoriler: "/dashboard#favoriler",
     analiz: "/dashboard#analiz",
+    "konu-hakimiyet": "/dashboard#konu-hakimiyet",
     profil: "/dashboard#profil"
 });
 
@@ -51,6 +54,7 @@ const USER_SHELL_LEGACY_TO_HASH = Object.freeze({
     "/yanlislarim": "/dashboard#yanlislarim",
     "/favoriler": "/dashboard#favoriler",
     "/analiz": "/dashboard#analiz",
+    "/konu-hakimiyet": "/dashboard#konu-hakimiyet",
     "/profil": "/dashboard#profil"
 });
 
@@ -217,6 +221,7 @@ export async function initLayout() {
                         yanlislarim: 'mistakes',
                         favoriler: 'favorites',
                         analiz: 'analysis',
+                        "konu-hakimiyet": 'topic-mastery',
                         profil: 'profile'
                     };
                     setActiveMenuItem(pageMap[routeKey] || 'dashboard');

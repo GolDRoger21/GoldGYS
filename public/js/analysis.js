@@ -785,6 +785,7 @@ function sortTopics(rows) {
 
 function renderTopicList() {
     const container = document.getElementById('topicMasteryList');
+    if (!container) return;
     // Sadece etkili konuları (alt konuları olan üst konuları hariç tut) gösteriyoruz:
     const effectiveTopics = getEffectiveTopics(state.topics);
 
@@ -904,7 +905,8 @@ function calculateStudyStreak(results) {
 }
 
 function bindUIEvents() {
-    document.getElementById('resetAllStatsBtn').addEventListener('click', resetAllStats);
+    const resetBtn = document.getElementById('resetAllStatsBtn');
+    if (resetBtn) resetBtn.addEventListener('click', resetAllStats);
     const chips = document.querySelectorAll('#topicFilterChips button');
     const filterDesc = document.getElementById('filterDescription');
     const filterTexts = {
@@ -948,14 +950,20 @@ function bindUIEvents() {
         filterDesc.style.display = 'block';
         filterDesc.innerText = filterTexts[activeChip.dataset.filter] || '';
     }
-    document.getElementById('topicSearchInput').addEventListener('input', (e) => {
-        state.search = e.target.value;
-        renderTopicList();
-    });
-    document.getElementById('topicSortSelect').addEventListener('change', (e) => {
-        state.sortBy = e.target.value;
-        renderTopicList();
-    });
+    const topicSearchInput = document.getElementById('topicSearchInput');
+    if (topicSearchInput) {
+        topicSearchInput.addEventListener('input', (e) => {
+            state.search = e.target.value;
+            renderTopicList();
+        });
+    }
+    const topicSortSelect = document.getElementById('topicSortSelect');
+    if (topicSortSelect) {
+        topicSortSelect.addEventListener('change', (e) => {
+            state.sortBy = e.target.value;
+            renderTopicList();
+        });
+    }
 }
 
 window.toggleTopicStatus = async (topicId, newStatus) => {

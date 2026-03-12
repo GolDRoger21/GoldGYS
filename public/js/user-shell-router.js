@@ -82,6 +82,18 @@ const ROUTES = {
         prefetchPriority: "high",
         scrollPolicy: "restore"
     },
+    "konu-hakimiyet": {
+        key: "konu-hakimiyet",
+        hash: "#konu-hakimiyet",
+        legacyPath: "/konu-hakimiyet",
+        title: "Konu Hakimiyet | GOLD GYS",
+        focusLabel: "Konu Hakimiyet",
+        focusTarget: "#topicMasterySearchInput",
+        pageId: "topic-mastery",
+        moduleKind: "native",
+        prefetchPriority: "high",
+        scrollPolicy: "restore"
+    },
     profil: {
         key: "profil",
         hash: "#profil",
@@ -820,6 +832,8 @@ export function initUserShellRouter(siteConfig) {
                 return import("./modules/user/yanlislarim-shell.js").then((mod) => mod.createYanlislarimShellModule);
             case "profil":
                 return import("./modules/user/profile-shell.js").then((mod) => mod.createProfileShellModule);
+            case "konu-hakimiyet":
+                return import("./modules/user/topic-mastery-shell.js").then((mod) => mod.createTopicMasteryShellModule);
             default:
                 return null;
         }
