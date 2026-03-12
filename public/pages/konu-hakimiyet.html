@@ -61,21 +61,50 @@
         grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 12px;
       }
-      .topic-mastery-page .summary-pill {
+      .topic-mastery-page .summary-pill.mini-stat-card {
+        padding: 18px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
         border: 1px solid var(--border-subtle);
-        border-radius: 14px;
         background: var(--bg-surface-elevated);
-        padding: 11px 13px;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.03);
+        border-radius: 16px;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+      }
+      @media (prefers-color-scheme: dark) {
+        [data-theme="dark"] .topic-mastery-page .summary-pill.mini-stat-card {
+           background: rgba(30, 30, 35, 0.6);
+        }
+      }
+      .topic-mastery-page .summary-pill.mini-stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+        border-color: var(--border-color);
+      }
+      .topic-mastery-page .summary-pill .stat-icon {
+        width: 46px;
+        height: 46px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
       }
       .topic-mastery-page .summary-pill .label {
         color: var(--text-muted);
-        font-size: 0.76rem;
+        font-size: 0.85rem;
+        font-weight: 500;
+        margin-bottom: 4px;
       }
       .topic-mastery-page .summary-pill .value {
         color: var(--text-main);
         font-weight: 700;
-        font-size: 1.02rem;
-        margin-top: 4px;
+        font-size: 1.4rem;
+        line-height: 1;
+        margin: 0;
       }
       .topic-mastery-page .mastery-cards {
         display: none;
@@ -133,8 +162,50 @@
         border-color: rgba(248, 113, 113, 0.44);
         box-shadow: 0 8px 18px rgba(239, 68, 68, 0.22);
       }
+      .topic-mastery-page .topic-controls input,
+      .topic-mastery-page .topic-controls select {
+        padding: 12px 18px;
+        border-radius: 12px;
+        border: 1px solid var(--border-subtle);
+        background: var(--bg-body);
+        color: var(--text-main);
+        font-size: 0.95rem;
+        transition: all 0.2s ease;
+        box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+      }
+      .topic-mastery-page .topic-controls input:focus,
+      .topic-mastery-page .topic-controls select:focus {
+        border-color: var(--color-primary);
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+        outline: none;
+        background: var(--bg-surface);
+      }
       .topic-mastery-page .chip-group .status-badge {
-        min-height: 36px;
+        min-height: 38px;
+        padding: 8px 18px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        transition: all 0.2s ease;
+        border: 1px solid transparent;
+        cursor: pointer;
+      }
+      .topic-mastery-page .chip-group .status-badge.badge-gray {
+        background: var(--bg-body);
+        color: var(--text-muted);
+        border-color: var(--border-subtle);
+      }
+      .topic-mastery-page .chip-group .status-badge.badge-gray:hover {
+        background: var(--bg-surface-elevated);
+        color: var(--text-main);
+        border-color: var(--border-color);
+        transform: translateY(-1px);
+      }
+      .topic-mastery-page .chip-group .status-badge.badge-blue {
+        background: var(--color-primary) !important;
+        color: white !important;
+        box-shadow: 0 4px 14px rgba(59, 130, 246, 0.35);
+        border: none;
       }
       @media (max-width: 768px) {
         .topic-mastery-page {
@@ -199,19 +270,35 @@
             </div>
         </section>
 
-        <section class="glass-card" style="margin-bottom: 16px;">
-            <div class="card-body">
-                <div style="font-size: 1.05rem; font-weight: 600; color: var(--text-main); margin-bottom: 14px; display: flex; align-items: center; gap: 8px;">
-                     <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-                     Genel Durum
+        <div class="mastery-summary-grid" style="margin-bottom: 24px;">
+            <div class="summary-pill mini-stat-card">
+                <div class="stat-icon" style="color: var(--color-success); background: linear-gradient(135deg, rgba(34, 197, 94, 0.18), rgba(21, 128, 61, 0.08)); border: 1px solid rgba(34, 197, 94, 0.2);">
+                    <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                 </div>
-                <div class="mastery-summary-grid">
-                    <div class="summary-pill"><div class="label">Tamamlanan</div><div class="value" id="masteryCompleted">0</div></div>
-                    <div class="summary-pill"><div class="label">Çalışılıyor</div><div class="value" id="masteryInProgress">0</div></div>
-                    <div class="summary-pill"><div class="label">Başlanmadı</div><div class="value" id="masteryPending">0</div></div>
+                <div>
+                    <div class="label">Tamamlanan</div>
+                    <div class="value" id="masteryCompleted">0</div>
                 </div>
             </div>
-        </section>
+            <div class="summary-pill mini-stat-card">
+                 <div class="stat-icon" style="color: var(--color-primary); background: linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(30, 64, 175, 0.08)); border: 1px solid rgba(59, 130, 246, 0.2);">
+                    <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                 </div>
+                 <div>
+                    <div class="label">Çalışılıyor</div>
+                    <div class="value" id="masteryInProgress">0</div>
+                 </div>
+            </div>
+            <div class="summary-pill mini-stat-card">
+                 <div class="stat-icon" style="color: var(--text-muted); background: linear-gradient(135deg, rgba(156, 163, 175, 0.18), rgba(107, 114, 128, 0.08)); border: 1px solid rgba(156, 163, 175, 0.2);">
+                    <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path></svg>
+                 </div>
+                 <div>
+                    <div class="label">Başlanmadı</div>
+                    <div class="value" id="masteryPending">0</div>
+                 </div>
+            </div>
+        </div>
 
         <section class="glass-card" style="border: 1px solid var(--color-primary); box-shadow: 0 4px 20px rgba(59, 130, 246, 0.12); position: relative; overflow: hidden;">
             <div style="position: absolute; top:0; left:0; width: 4px; height: 100%; background: var(--color-primary);"></div>
