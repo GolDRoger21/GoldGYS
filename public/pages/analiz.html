@@ -45,13 +45,12 @@
                 <h1>📊 Öğrenci Analiz & Konu Takip Merkezi</h1>
                 <p class="text-muted">Performansını detaylı incele, zayıf olduğun konulara odaklan ve gerçek netlerin
                     üzerinden sınav stratejini oluştur.</p>
+
             </div>
             <div class="header-actions">
                 <div class="status-badge badge-blue" id="lastUpdate"><span
                         class="badge-dot pulse"></span>Güncelleniyor...</div>
-                <a class="glass-btn" href="/dashboard#konu-hakimiyet" style="display:inline-flex; align-items:center; gap:8px; width:auto; padding:0 14px;">
-                    Konu Hakimiyet
-                </a>
+
                 <button class="glass-btn btn-reset reset-stats-btn" id="resetAllStatsBtn" type="button"
                     title="Tüm Analiz ve Konu Verilerini Sıfırla" style="width: auto; padding: 0 16px;">
                     <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"
@@ -102,12 +101,27 @@
                     <div class="score-badge" id="currentLevelBadge">Seviye 1</div>
                 </div>
                 <div class="card-body compact">
-                    <div class="level-row"><span id="currentLevel">Çaylak</span><strong id="currentLevelXp">0
-                            XP</strong></div>
+                    <div class="level-row">
+                        <span id="currentLevel">Çaylak</span>
+                        <strong id="currentLevelXp">0 XP</strong>
+                    </div>
                     <div class="progress-bar-container">
                         <div class="progress-bar" id="levelProgressBar"></div>
                     </div>
-                    <div class="level-row text-muted small"><span id="levelProgressText">0 / 0 XP</span><span
+                    <div class="level-row text-muted small">
+                        <span id="levelProgressText">0 / 0 XP</span>
+                        <span id="levelNextTarget">Sonraki: -</span>
+                    </div>
+
+                    <div style="margin-top: 14px; border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 14px;">
+                        <div class="insight-kpis" id="insightKpiGrid"></div>
+                    </div>
+                </div>
+            </article>
+        </section>
+
+        <section class="glass-card">
+            <div class="card-header">
                 <div class="card-title">📜 Son Sınavlar</div>
             </div>
             <div class="card-body table-responsive">
