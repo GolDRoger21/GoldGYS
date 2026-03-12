@@ -40,7 +40,7 @@
   padding: 26px 28px;
 }
 
-.analysis-header h1 {
+.analysis-header .dashboard-page-title {
   margin: 0 0 8px;
   font-size: clamp(1.35rem, 1.1rem + 1.2vw, 1.85rem);
   color: var(--text-main);
@@ -53,7 +53,7 @@
   line-height: 1.25;
 }
 
-.analysis-header p {
+.analysis-header .dashboard-page-subtitle {
   margin: 0;
   font-size: 0.96rem;
   line-height: 1.55;
@@ -691,9 +691,32 @@
   cursor: pointer;
 }
 
+.insight-kpis {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.insight-pill {
+  display: grid;
+  gap: 6px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border-subtle);
+  background: color-mix(in srgb, var(--glass-surface) 92%, transparent 8%);
+  min-width: 0;
+}
+
+.insight-pill span {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  line-height: 1.25;
+}
+
 .insight-pill strong {
   font-size: 0.95rem;
   color: var(--text-main);
+  line-height: 1.2;
 }
 
 .insight-summary {
@@ -976,12 +999,12 @@
     background: linear-gradient(140deg, color-mix(in srgb, var(--bg-surface-elevated) 92%, transparent 8%), color-mix(in srgb, var(--bg-surface) 92%, transparent 8%));
   }
 
-  .analysis-header h1 {
+  .analysis-header .dashboard-page-title {
     font-size: 1.1rem;
     margin-bottom: 4px;
   }
 
-  .analysis-header p {
+  .analysis-header .dashboard-page-subtitle {
     font-size: 0.82rem;
     line-height: 1.4;
     color: var(--text-muted);
@@ -1521,7 +1544,7 @@
     min-height: 40px;
   }
 
-  .analysis-header h1 {
+  .analysis-header .dashboard-page-title {
     font-size: 1.02rem;
     line-height: 1.35;
   }
@@ -1532,11 +1555,11 @@
     padding: 10px 11px;
   }
 
-  .analysis-header h1 {
+  .analysis-header .dashboard-page-title {
     font-size: 0.96rem;
   }
 
-  .analysis-header p {
+  .analysis-header .dashboard-page-subtitle {
     font-size: 0.76rem;
   }
 
@@ -1600,8 +1623,8 @@
 [data-theme="dark"] .analysis-page .card-title,
 [data-theme="dark"] .analysis-page .topic-title-main,
 [data-theme="dark"] .analysis-page .history-test-title,
-[data-theme="dark"] .analysis-page .analysis-header h1,
-[data-theme="dark"] .analysis-page .analysis-header h1 *,
+[data-theme="dark"] .analysis-page .analysis-header .dashboard-page-title,
+[data-theme="dark"] .analysis-page .analysis-header .dashboard-page-title *,
 [data-theme="dark"] .analysis-page .card-header,
 [data-theme="dark"] .analysis-page .card-header *,
 [data-theme="dark"] .analysis-page .card-title *,
@@ -1619,7 +1642,7 @@
 [data-theme="dark"] .analysis-page .progress-val,
 [data-theme="dark"] .analysis-page .score-badge,
 [data-theme="dark"] .analysis-page .level-row,
-[data-theme="dark"] .analysis-page .analysis-header p {
+[data-theme="dark"] .analysis-page .analysis-header .dashboard-page-subtitle {
   color: var(--text-main) !important;
 }
 
