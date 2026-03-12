@@ -42,7 +42,10 @@
     <div class="dashboard-container analysis-page">
         <section class="analysis-header glass-card">
             <div>
-                <h1>📊 Öğrenci Analiz & Konu Takip Merkezi</h1>
+                <h1 style="display:flex; align-items:center; gap:8px;">
+                    <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"></path></svg>
+                    Öğrenci Analiz Merkezi
+                </h1>
                 <p class="text-muted">Performansını detaylı incele, zayıf olduğun konulara odaklan ve gerçek netlerin
                     üzerinden sınav stratejini oluştur.</p>
 
@@ -97,7 +100,10 @@
 
             <article class="glass-card">
                 <div class="card-header">
-                    <div class="card-title">🚀 Profil & Başarı İvmesi</div>
+                    <div class="card-title" style="display:flex; align-items:center; gap:8px;">
+                        <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="color:var(--color-primary)"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                        Profil & Başarı İvmesi
+                    </div>
                     <div class="score-badge" id="currentLevelBadge">Seviye 1</div>
                 </div>
                 <div class="card-body compact">
@@ -122,7 +128,10 @@
 
         <section class="glass-card">
             <div class="card-header">
-                <div class="card-title">📜 Son Sınavlar</div>
+                <div class="card-title" style="display:flex; align-items:center; gap:8px;">
+                    <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                    Son Sınavlar
+                </div>
             </div>
             <div class="card-body table-responsive">
                 <table class="admin-table">
@@ -141,14 +150,20 @@
         <section class="analysis-main-grid">
             <article class="glass-card chart-card">
                 <div class="card-header">
-                    <div class="card-title">📈 Gelişim Grafiği (Son 12 Deneme)</div>
+                    <div class="card-title" style="display:flex; align-items:center; gap:8px;">
+                        <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+                        Gelişim Grafiği (Son 12 Deneme)
+                    </div>
                 </div>
                 <div class="card-body chart-body"><canvas id="progressChart"></canvas></div>
             </article>
 
             <article class="glass-card chart-card">
                 <div class="card-header">
-                    <div class="card-title">⚠️ Dikkat: Zayıf Olduğun İlk 8 Konu</div>
+                    <div class="card-title" style="display:flex; align-items:center; gap:8px; color: var(--color-danger);">
+                        <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                        Dikkat: Zayıf Olduğun İlk 8 Konu
+                    </div>
                 </div>
                 <div class="card-body chart-body"><canvas id="topicChart"></canvas></div>
             </article>

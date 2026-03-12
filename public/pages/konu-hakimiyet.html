@@ -95,12 +95,22 @@
     <div class="dashboard-container topic-mastery-page">
         <section class="analysis-header glass-card">
             <div>
-                <h1>📚 Konu Hakimiyet Merkezi</h1>
+                <h1 style="display:flex; align-items:center; gap:8px;">
+                    <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+                    Konu Hakimiyet Merkezi
+                </h1>
                 <p class="text-muted">Konu bazlı başarı durumunu takip et, odak konunu belirle ve çalışma ritmini düzenli ilerlet.</p>
             </div>
             <div class="header-actions">
                 <div class="status-badge badge-blue" id="masteryLastUpdate"><span class="badge-dot pulse"></span>Güncelleniyor...</div>
-                <button class="glass-btn btn-reset" id="resetAllMasteryStatsBtn" type="button">Tümünü Sıfırla</button>
+                
+                <button class="glass-btn btn-reset reset-stats-btn" id="resetAllMasteryStatsBtn" type="button" 
+                    title="Tüm Analiz ve Konu Verilerini Sıfırla" style="width: auto; padding: 0 16px;">
+                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="margin-right: 6px;">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                    </svg>
+                    Tümünü Sıfırla
+                </button>
             </div>
         </section>
 

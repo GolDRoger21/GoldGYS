@@ -723,10 +723,10 @@ function renderScientificInsights(categoryTotals) {
     const insightGrid = document.getElementById('insightKpiGrid');
     if (insightGrid) {
         insightGrid.innerHTML = `
-        <div class="insight-pill"><span>🏃 Haftalık Tempo</span><strong>${weeklyCount} deneme</strong></div>
-        <div class="insight-pill"><span>🛡️ İstikrar</span><strong>%${consistency}</strong></div>
-        <div class="insight-pill"><span>📈 İvme/Trend</span><strong>${trend.delta > 0 ? '+' : ''}${trend.delta} puan</strong></div>
-        <div class="insight-pill"><span>📚 Toplam Birikim</span><strong>${exams} deneme</strong></div>
+        <div class="insight-pill"><span><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="vertical-align: text-bottom; margin-right: 4px; color: var(--color-info)"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>Haftalık Tempo</span><strong>${weeklyCount} deneme</strong></div>
+        <div class="insight-pill"><span><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="vertical-align: text-bottom; margin-right: 4px; color: var(--color-success)"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>İstikrar</span><strong>%${consistency}</strong></div>
+        <div class="insight-pill"><span><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="vertical-align: text-bottom; margin-right: 4px; color: var(--color-warning)"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>İvme/Trend</span><strong>${trend.delta > 0 ? '+' : ''}${trend.delta} puan</strong></div>
+        <div class="insight-pill"><span><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="vertical-align: text-bottom; margin-right: 4px; color: var(--gold-main)"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>Toplam Birikim</span><strong>${exams} deneme</strong></div>
       `;
     }
 
@@ -736,7 +736,7 @@ function renderScientificInsights(categoryTotals) {
     if (!weakTopics.length) {
         weaknessPlanList.innerHTML = `
         <div style="text-align:center; padding: 20px 10px;">
-           <div style="font-size:2rem; margin-bottom:10px;">🛡️</div>
+           <div style="margin-bottom:10px;"><svg width="40" height="40" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="color:var(--color-success)"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></div>
            <strong style="color:var(--text-main); font-size:1rem;">Zayıf Nokta Tespit Edilmedi</strong>
            <p class="text-muted" style="margin-top:6px; font-size:0.85rem;">Şu an için analiz sistemine takılan kritik bir zayıf konun bulunmuyor. Düzenli olarak branş ve genel deneme çözmeye devam et!</p>
         </div>`;
@@ -746,8 +746,8 @@ function renderScientificInsights(categoryTotals) {
     weaknessPlanList.innerHTML = weakTopics.map((item, index) => {
         const total = categoryTotals[item.topicId]?.total || 0;
         const plan = total < 15
-            ? '⚡ Veri eksik. Hemen 20 soruluk mini bir tekrar testi çözerek zayıflığını ölç.'
-            : '🎯 Öncelikli Görev: 2 gün arayla kısa konu tekrarı yap ve 10 soruluk bir konsept pekiştirme testi uygulamadan diğer konuya geçme.';
+            ? '<svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="vertical-align: text-bottom; margin-right: 4px; color: var(--color-warning)"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg> Veri eksik. Hemen 20 soruluk mini bir tekrar testi çözerek zayıflığını ölç.'
+            : '<svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="vertical-align: text-bottom; margin-right: 4px; color: var(--color-primary)"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg> Öncelikli Görev: 2 gün arayla kısa konu tekrarı yap ve 10 soruluk bir konsept pekiştirme testi uygulamadan diğer konuya geçme.';
         return `
           <article class="weakness-item">
             <strong><span class="alert-color">Kritik Tespit ${index + 1}:</span> ${item.topic.title}</strong>
