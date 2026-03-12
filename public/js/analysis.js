@@ -587,13 +587,14 @@ function renderHistoryTable(results) {
         let displayTopicTitle = r.examTitle || 'Genel Test';
         let isSmartTest = false;
         let smartTestBadge = '';
+        const titleLower = displayTopicTitle.toLowerCase();
 
-        if (r.mode === 'wrongs' || displayTopicTitle.toLowerCase().includes('yanlış')) {
+        if (r.mode === 'wrongs' || titleLower.includes('yanlış')) {
             isSmartTest = true;
-            smartTestBadge = '<span class="status-badge badge-red" style="padding: 2px 6px; font-size: 0.65rem; margin-top:4px;">🚨 Yanlışlar Testi</span>';
-        } else if (r.mode === 'random') {
+            smartTestBadge = '<span class="status-badge badge-red" style="padding: 2px 6px; font-size: 0.65rem; margin-top:4px;"><svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="vertical-align:text-bottom; margin-right:3px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>Yanlışlar Testi</span>';
+        } else if (r.mode === 'random' || titleLower.includes('karışık')) {
             isSmartTest = true;
-            smartTestBadge = '<span class="status-badge badge-gray" style="padding: 2px 6px; font-size: 0.65rem; margin-top:4px;">🔀 Karışık Tekrar</span>';
+            smartTestBadge = '<span class="status-badge badge-gray" style="padding: 2px 6px; font-size: 0.65rem; margin-top:4px;"><svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="vertical-align:text-bottom; margin-right:3px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg>Karışık Tekrar</span>';
         }
 
         let topicSlug = null;
@@ -653,7 +654,7 @@ function renderHistoryTable(results) {
             </td>
             <td data-label="Sınav / Test Adı" class="history-title-cell">
                  <a href="${testUrl}" style="text-decoration:none; display:flex; flex-direction:column; align-items:flex-start;">
-                    ${parentTopicName ? `<div class="history-topic-badge">📚 ${parentTopicName}</div>` : `<div class="history-topic-badge">📚 Genel Konu</div>`}
+                    ${parentTopicName ? `<div class="history-topic-badge"><svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="vertical-align:-1px; margin-right:4px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>${parentTopicName}</div>` : `<div class="history-topic-badge"><svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="vertical-align:-1px; margin-right:4px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>Genel Konu</div>`}
                     <strong class="history-test-title" style="color:var(--text-primary); font-weight:600; font-size: 0.95rem; transition: color 0.2s;" onmouseover="this.style.color='var(--color-primary)'" onmouseout="this.style.color='var(--text-primary)'">${r.examTitle || displayTopicTitle}</strong>
                     ${smartTestBadge}
                 </a>
@@ -797,8 +798,8 @@ function renderLevelSystem() {
     const missionList = document.getElementById('missionList');
     if (missionList) {
         missionList.innerHTML = `
-            <div class="mission-item"><strong>🔥 Çalışma Serisi</strong><div class="text-muted">${streakDays} gün kesintisiz</div></div>
-            <div class="mission-item"><strong>🏆 Yetkinlik Seviyesi</strong><div class="text-muted">${xp} Toplam TP</div></div>
+            <div class="mission-item"><strong><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="color:var(--color-warning); vertical-align:-2px; margin-right:4px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.879 16.121A3 3 0 1012.015 11L11 14H9c0 .768.293 1.536.879 2.121z"></path></svg>Çalışma Serisi</strong><div class="text-muted">${streakDays} gün kesintisiz</div></div>
+            <div class="mission-item"><strong><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="color:var(--gold-main); vertical-align:-2px; margin-right:4px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path></svg>Yetkinlik Seviyesi</strong><div class="text-muted">${xp} Toplam TP</div></div>
         `;
     }
 
