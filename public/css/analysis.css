@@ -55,6 +55,13 @@
   align-items: center;
   flex-wrap: wrap;
   justify-content: flex-end;
+  align-self: center;
+}
+
+.header-actions .status-badge {
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
 }
 
 .analysis-card-title {
@@ -73,12 +80,18 @@
 
 .analysis-reset-btn {
   width: auto;
+  height: auto;
   padding: 0 16px !important;
-  min-height: 38px;
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
 }
 
 .analysis-reset-btn-icon {
   margin-right: 6px;
+  display: block;
 }
 
 .analysis-kpi-divider {
