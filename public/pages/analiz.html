@@ -44,15 +44,15 @@
             <div>
                 <h1 class="dashboard-page-title">
                     <span class="dashboard-page-title-icon" aria-hidden="true">&#128200;</span>
-                    <span>Ã–ÄŸrenci Analiz Merkezi</span>
+                    <span>Öğrenci Analiz Merkezi</span>
                 </h1>
-                <p class="dashboard-page-subtitle">PerformansÄ±nÄ± detaylÄ± incele, zayÄ±f olduÄŸun konulara odaklan ve gerÃ§ek netlerin
-                    Ã¼zerinden sÄ±nav stratejini oluÅŸtur.</p>
+                <p class="dashboard-page-subtitle">Performansını detaylı incele, zayıf olduğun konulara odaklan ve gerçek netlerin
+                    üzerinden sınav stratejini oluştur.</p>
 
             </div>
             <div class="header-actions">
                 <div class="status-badge badge-blue" id="lastUpdate"><span
-                        class="badge-dot pulse"></span>GÃ¼ncelleniyor...</div>
+                        class="badge-dot pulse"></span>Güncelleniyor...</div>
 
                 <button class="glass-btn btn-reset reset-stats-btn analysis-reset-btn" id="resetAllStatsBtn" type="button"
                     title="T&#252;m analiz ve konu verilerini s&#305;f&#305;rla">
@@ -69,12 +69,12 @@
         <section class="analysis-main-grid">
             <article class="glass-card prediction-card">
                 <div class="card-header">
-                    <div class="card-title">Tahmini Puan & Analiz Ã–zeti</div>
+                    <div class="card-title">Tahmini Puan & Analiz Özeti</div>
                 </div>
                 <div class="prediction-grid-layout">
                     <div class="prediction-score-section">
                         <div id="predictedScore" class="prediction-value">--</div>
-                        <div class="prediction-label text-muted">AÄŸÄ±rlÄ±klÄ± PuanÄ±</div>
+                        <div class="prediction-label text-muted">Ağırlıklı Puanı</div>
                     </div>
                     <div class="prediction-stats-section">
                         <div class="prediction-stat-item">
@@ -90,7 +90,7 @@
                             <strong class="stat-val" id="wrongRate">%0</strong>
                         </div>
                         <div class="prediction-stat-item">
-                            <span class="stat-label">BÄ°TEN / KALAN KONU</span>
+                            <span class="stat-label">BİTEN / KALAN KONU</span>
                             <strong class="stat-val" id="combinedTopicsCount">0 / 0</strong>
                         </div>
                     </div>
@@ -101,13 +101,13 @@
                 <div class="card-header">
                     <div class="card-title analysis-card-title">
                         <svg class="analysis-card-title-primary-icon" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                        Profil & BaÅŸarÄ± Ä°vmesi
+                        Profil & Başarı İvmesi
                     </div>
                     <div class="score-badge" id="currentLevelBadge">Seviye 1</div>
                 </div>
                 <div class="card-body compact">
                     <div class="level-row">
-                        <span id="currentLevel">Ã‡aylak</span>
+                        <span id="currentLevel">Çaylak</span>
                         <strong id="currentLevelXp">0 XP</strong>
                     </div>
                     <div class="progress-bar-container">
@@ -129,7 +129,7 @@
             <div class="card-header">
                 <div class="card-title analysis-card-title">
                     <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                    Son SÄ±navlar
+                    Son Sınavlar
                 </div>
             </div>
             <div class="card-body table-responsive">
@@ -137,8 +137,8 @@
                     <thead>
                         <tr>
                             <th>Test Tarihi</th>
-                            <th>SÄ±nav / Test AdÄ±</th>
-                            <th>Performans & BaÅŸarÄ± Ã–zeti</th>
+                            <th>Sınav / Test Adı</th>
+                            <th>Performans & Başarı Özeti</th>
                         </tr>
                     </thead>
                     <tbody id="historyTableBody"></tbody>
@@ -151,7 +151,7 @@
                 <div class="card-header">
                     <div class="card-title analysis-card-title">
                         <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
-                        GeliÅŸim GrafiÄŸi (Son 12 Deneme)
+                        Gelişim Grafiği (Son 12 Deneme)
                     </div>
                 </div>
                 <div class="card-body chart-body"><canvas id="progressChart"></canvas></div>
@@ -161,7 +161,7 @@
                 <div class="card-header">
                     <div class="card-title analysis-card-title analysis-card-title-danger">
                         <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-                        Dikkat: ZayÄ±f OlduÄŸun Ä°lk 8 Konu
+                        Dikkat: Zayıf Olduğun İlk 8 Konu
                     </div>
                 </div>
                 <div class="card-body chart-body"><canvas id="topicChart"></canvas></div>
@@ -173,5 +173,6 @@
 </body>
 
 </html>
+
 
 

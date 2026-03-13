@@ -76,10 +76,29 @@
   height: 34px;
   padding: 0 16px !important;
   min-height: 34px;
+  min-width: 176px;
+  white-space: nowrap;
+  gap: 6px;
+  flex: 0 0 auto;
 }
 
 .analysis-reset-btn-icon {
   margin-right: 6px;
+  flex-shrink: 0;
+}
+
+.analysis-header .header-actions {
+  flex-wrap: nowrap;
+}
+
+@media (max-width: 768px) {
+  .analysis-header .header-actions {
+    flex-wrap: wrap;
+  }
+
+  .analysis-reset-btn {
+    min-width: 160px;
+  }
 }
 
 .analysis-kpi-divider {
