@@ -37,7 +37,7 @@
   justify-content: space-between;
   gap: 20px;
   align-items: center;
-  padding: 26px 28px;
+  padding: 22px 24px;
 }
 
 .analysis-header .dashboard-page-title {
@@ -55,13 +55,6 @@
   align-items: center;
   flex-wrap: wrap;
   justify-content: flex-end;
-  align-self: center;
-}
-
-.header-actions .status-badge {
-  min-height: 40px;
-  display: inline-flex;
-  align-items: center;
 }
 
 .analysis-card-title {
@@ -80,18 +73,13 @@
 
 .analysis-reset-btn {
   width: auto;
-  height: auto;
+  height: 34px;
   padding: 0 16px !important;
-  min-height: 40px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  white-space: nowrap;
+  min-height: 34px;
 }
 
 .analysis-reset-btn-icon {
   margin-right: 6px;
-  display: block;
 }
 
 .analysis-kpi-divider {
@@ -1040,52 +1028,11 @@
   }
 
   .analysis-header {
-    position: sticky;
-    top: 6px;
-    z-index: 20;
-    flex-direction: column;
-    align-items: flex-start;
-    padding: 12px 14px;
-    border-radius: 14px;
-    gap: 10px;
-    backdrop-filter: blur(14px);
-    background: linear-gradient(140deg, color-mix(in srgb, var(--bg-surface-elevated) 92%, transparent 8%), color-mix(in srgb, var(--bg-surface) 92%, transparent 8%));
+    padding: 16px;
   }
 
   .analysis-header .dashboard-page-title {
     margin-bottom: 4px;
-  }
-
-  .header-actions {
-    width: 100%;
-    justify-content: space-between;
-    align-items: center;
-    gap: 8px;
-    margin-top: 2px;
-  }
-
-  .header-actions .status-badge {
-    flex: 1;
-    justify-content: center;
-    min-height: 44px;
-    padding: 6px 8px;
-    font-size: 0.76rem;
-    border-radius: 10px;
-  }
-
-  .header-actions .glass-btn {
-    flex: 1;
-    justify-content: center;
-    min-height: 44px;
-    padding: 6px 10px !important;
-    font-size: 0.82rem;
-    border-radius: 10px;
-  }
-
-  .header-actions .glass-btn svg {
-    width: 14px;
-    height: 14px;
-    margin-right: 6px !important;
   }
 
   .stats-grid {
@@ -1578,32 +1525,15 @@
   .prediction-stats-section {
     grid-template-columns: 1fr;
   }
-
-  .header-actions {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .header-actions .status-badge,
-  .header-actions .glass-btn {
-    width: 100%;
-    min-height: 40px;
-  }
-
 }
 
 @media (max-width: 390px) {
-  .analysis-header {
-    padding: 10px 11px;
-  }
-
   .analysis-header .dashboard-page-title {
     font-size: 1rem;
   }
 
   .analysis-header .dashboard-page-subtitle {
-    font-size: 0.84rem;
-    line-height: 1.4;
+    font-size: 0.8rem;
   }
 
   .stats-grid .kpi-card {
