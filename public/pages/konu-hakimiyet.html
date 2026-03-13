@@ -45,52 +45,25 @@
       }
       .topic-mastery-page .mastery-summary-grid {
         display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 12px;
-      margin-bottom: 24px;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 18px;
+        margin-bottom: 24px;
       }
-      .topic-mastery-page .summary-pill.mini-stat-card {
-        padding: 18px;
-        display: flex;
-        align-items: center;
-        gap: 16px;
-        border: 1px solid var(--border-subtle);
-        background: var(--bg-surface-elevated);
-        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.03);
-        border-radius: 16px;
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-      }
-      @media (prefers-color-scheme: dark) {
-        [data-theme="dark"] .topic-mastery-page .summary-pill.mini-stat-card {
-           background: rgba(30, 30, 35, 0.6);
-        }
-      }
-      .topic-mastery-page .summary-pill.mini-stat-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
-        border-color: var(--border-color);
-      }
-      .topic-mastery-page .summary-pill .stat-icon {
-        width: 46px;
-        height: 46px;
-        border-radius: 14px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
+      .topic-mastery-page .mastery-summary-grid .summary-pill {
+        min-height: 112px;
       }
       .topic-mastery-page .summary-pill .label {
         color: var(--text-muted);
-        font-size: 0.85rem;
-        font-weight: 500;
+        font-size: 0.88rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.02em;
         margin-bottom: 4px;
       }
       .topic-mastery-page .summary-pill .value {
         color: var(--text-main);
-        font-weight: 700;
-        font-size: 1.4rem;
+        font-weight: 800;
+        font-size: 1.75rem;
         line-height: 1;
         margin: 0;
       }
@@ -191,18 +164,15 @@
       }
       .topic-mastery-page .summary-pill .stat-icon.stat-icon-success {
         color: var(--color-success);
-        background: linear-gradient(135deg, rgba(34, 197, 94, 0.18), rgba(21, 128, 61, 0.08));
-        border: 1px solid rgba(34, 197, 94, 0.2);
+        background: rgba(34, 197, 94, 0.15);
       }
       .topic-mastery-page .summary-pill .stat-icon.stat-icon-primary {
         color: var(--color-primary);
-        background: linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(30, 64, 175, 0.08));
-        border: 1px solid rgba(59, 130, 246, 0.2);
+        background: rgba(59, 130, 246, 0.15);
       }
       .topic-mastery-page .summary-pill .stat-icon.stat-icon-muted {
         color: var(--text-muted);
-        background: linear-gradient(135deg, rgba(156, 163, 175, 0.18), rgba(107, 114, 128, 0.08));
-        border: 1px solid rgba(156, 163, 175, 0.2);
+        background: rgba(156, 163, 175, 0.15);
       }
       .topic-mastery-page .mastery-filter-panel {
         border: 1px solid var(--color-primary);
@@ -278,7 +248,8 @@
           flex: 1 1 100%;
         }
         .topic-mastery-page .mastery-summary-grid {
-          grid-template-columns: repeat(3, 1fr);
+          grid-template-columns: 1fr;
+          gap: 12px;
         }
         .topic-mastery-page .mastery-table-container {
           display: none;
@@ -319,29 +290,29 @@
         </section>
 
         <div class="mastery-summary-grid">
-            <div class="summary-pill mini-stat-card">
+            <div class="summary-pill stat-card">
                 <div class="stat-icon stat-icon-success">
                     <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                 </div>
-                <div>
+                <div class="stat-info">
                     <div class="label">Tamamlanan</div>
                     <div class="value" id="masteryCompleted">0</div>
                 </div>
             </div>
-            <div class="summary-pill mini-stat-card">
+            <div class="summary-pill stat-card">
                  <div class="stat-icon stat-icon-primary">
                     <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                  </div>
-                 <div>
+                 <div class="stat-info">
                     <div class="label">Çalışılıyor</div>
                     <div class="value" id="masteryInProgress">0</div>
                  </div>
             </div>
-            <div class="summary-pill mini-stat-card">
+            <div class="summary-pill stat-card">
                  <div class="stat-icon stat-icon-muted">
                     <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path></svg>
                  </div>
-                 <div>
+                 <div class="stat-info">
                     <div class="label">Başlanmadı</div>
                     <div class="value" id="masteryPending">0</div>
                  </div>
@@ -399,7 +370,6 @@
     <script type="module" src="../js/topic-mastery-page.js"></script>
 </body>
 </html>
-
 
 
 
