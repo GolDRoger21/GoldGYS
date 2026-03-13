@@ -31,13 +31,7 @@
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
     position: relative;
     overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-[data-theme="light"] .welcome-section {
-    background: linear-gradient(135deg, color-mix(in srgb, var(--bg-surface-elevated) 90%, #fff 10%) 0%, color-mix(in srgb, var(--bg-surface) 94%, #fff 6%) 100%);
     border: 1px solid var(--border-subtle);
-    box-shadow: var(--shadow-sm);
 }
 
 .welcome-section::before {
@@ -74,33 +68,20 @@
     flex-shrink: 0;
 }
 
-[data-theme="light"] .welcome-text h1 {
-    color: var(--text-main);
-}
-
 .welcome-text p {
     font-size: 1.1rem;
     color: var(--text-muted);
 }
 
-[data-theme="light"] .welcome-text p {
-    color: var(--text-muted);
-}
-
 /* Geri Sayım (Restored) */
 .exam-countdown {
-    background: rgba(255, 255, 255, 0.05);
+    background: color-mix(in srgb, var(--bg-surface-elevated) 60%, transparent);
     backdrop-filter: blur(10px);
     padding: 15px 25px;
     border-radius: 16px;
     text-align: center;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--border-subtle);
     min-width: 120px;
-}
-
-[data-theme="light"] .exam-countdown {
-    background: rgba(255, 255, 255, 0.6);
-    border: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .exam-countdown .days {
@@ -111,10 +92,6 @@
     color: var(--color-primary);
 }
 
-[data-theme="light"] .exam-countdown .days {
-    color: var(--color-primary-dim);
-}
-
 .exam-countdown .label {
     font-size: 0.85rem;
     font-weight: 700;
@@ -123,15 +100,11 @@
     color: var(--text-muted);
 }
 
-[data-theme="light"] .exam-countdown .label {
-    color: var(--text-muted);
-}
-
 /* --- STATS GRID (Old Dashboard) --- */
 .stats-grid {
-    display: grid !important;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)) !important;
-    gap: 24px !important;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 24px;
     margin-bottom: 40px;
 }
 
@@ -141,27 +114,18 @@
     border: 1px solid var(--border-subtle);
     border-radius: 20px;
     padding: 24px;
-    display: flex !important;
-    align-items: center !important;
-    gap: 16px !important;
+    display: flex;
+    align-items: center;
+    gap: 16px;
     min-height: 118px;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
     box-shadow: var(--shadow-sm);
-}
-
-[data-theme="light"] .stat-card {
-    background: var(--bg-surface);
-    border: 1px solid var(--border-subtle);
 }
 
 .stat-card:hover {
     transform: translateY(-4px);
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
-    border-color: rgba(212, 175, 55, 0.3);
-}
-
-[data-theme="light"] .stat-card:hover {
     box-shadow: var(--shadow-md);
+    border-color: var(--color-primary);
 }
 
 .stat-icon {
@@ -180,37 +144,24 @@
 }
 
 .stat-icon.gold {
-    background: rgba(212, 175, 55, 0.15);
+    background: color-mix(in srgb, var(--color-primary) 15%, transparent);
     color: var(--color-primary);
 }
 
 .stat-icon.blue {
-    background: rgba(59, 130, 246, 0.15);
+    background: color-mix(in srgb, var(--color-info) 15%, transparent);
     color: var(--color-info);
 }
 
 .stat-icon.red {
-    background: rgba(239, 68, 68, 0.15);
+    background: color-mix(in srgb, var(--color-danger) 15%, transparent);
     color: var(--color-danger);
 }
 
-[data-theme="light"] .stat-icon.gold {
-    background: rgba(212, 175, 55, 0.1);
-    color: var(--color-primary-dim);
-}
-
-[data-theme="light"] .stat-icon.blue {
-    background: rgba(59, 130, 246, 0.1);
-}
-
-[data-theme="light"] .stat-icon.red {
-    background: rgba(239, 68, 68, 0.1);
-}
-
 .stat-info {
-    flex: 1 1 auto !important;
-    display: flex !important;
-    flex-direction: column !important;
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
     min-width: 0;
     justify-content: center;
 }
@@ -225,10 +176,6 @@
     word-break: break-word;
 }
 
-[data-theme="light"] .stat-info h3 {
-    color: var(--text-muted);
-}
-
 .stat-info .stat-value {
     font-size: 1.8rem;
     font-weight: 800;
@@ -236,21 +183,14 @@
     line-height: 1.2;
 }
 
-[data-theme="light"] .stat-info .stat-value {
-    color: var(--text-main);
-}
-
 .progress-bar-container {
     width: 100%;
     height: 6px;
-    background: rgba(255, 255, 255, 0.1);
+    background: color-mix(in srgb, var(--bg-surface-elevated) 80%, transparent);
+    border: 1px solid var(--border-subtle);
     border-radius: 99px;
     margin: 8px 0;
     overflow: hidden;
-}
-
-[data-theme="light"] .progress-bar-container {
-    background: rgba(0, 0, 0, 0.05);
 }
 
 .progress-bar {
