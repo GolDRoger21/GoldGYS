@@ -2,6 +2,7 @@ import { disposeProfilePage, initProfilePage } from "../../profile-page.js";
 import { injectScopedStyle, removeScopedStyle } from "./shell-style-scope.js";
 
 const PROFILE_STYLE_ID = "user-shell-profile-scoped-style";
+const PROFILE_ROUTE_STYLE_ID = "user-shell-profile-route-style";
 const PROFILE_SCOPE_SELECTOR = '.user-shell-view[data-route-key="profil"]';
 
 async function ensureProfileStyles() {
@@ -11,9 +12,26 @@ async function ensureProfileStyles() {
     if (!response.ok) {
         throw new Error(`Profil stili yüklenemedi: HTTP ${response.status}`);
     }
+
     const cssText = await response.text();
     injectScopedStyle({
         styleId: PROFILE_STYLE_ID,
+        cssText,
+        scopeSelector: PROFILE_SCOPE_SELECTOR
+    });
+}
+
+async function ensureRouteStyles() {
+    if (document.getElementById(PROFILE_ROUTE_STYLE_ID)) return;
+
+    const response = await fetch("/css/dashboard-route-overrides.css");
+    if (!response.ok) {
+        throw new Error(`Profil route stili yüklenemedi: HTTP ${response.status}`);
+    }
+
+    const cssText = await response.text();
+    injectScopedStyle({
+        styleId: PROFILE_ROUTE_STYLE_ID,
         cssText,
         scopeSelector: PROFILE_SCOPE_SELECTOR
     });
@@ -26,7 +44,7 @@ function renderProfileTemplate(viewEl) {
           <div class="profile-card">
             <div class="profile-cover"></div>
             <div class="profile-avatar-container">
-              <img src="" alt="Avatar" id="profileAvatarMain" class="avatar-img" style="display:none;">
+              <img src="" alt="Avatar" id="profileAvatarMain" class="avatar-img">
               <div class="avatar-placeholder" id="profileAvatarPlaceholder">?</div>
             </div>
 
@@ -122,6 +140,7 @@ export function createProfileShellModule({ viewEl }) {
         async init() {
             if (initialized) return;
             await ensureProfileStyles();
+            await ensureRouteStyles();
             renderProfileTemplate(viewEl);
             initProfilePage();
             initialized = true;
@@ -138,6 +157,7 @@ export function createProfileShellModule({ viewEl }) {
             clearSubscriptions();
             disposeProfilePage();
             removeScopedStyle(PROFILE_STYLE_ID);
+            removeScopedStyle(PROFILE_ROUTE_STYLE_ID);
         }
     };
 }

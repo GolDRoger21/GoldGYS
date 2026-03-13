@@ -1,4 +1,4 @@
-﻿const { test, expect } = require('@playwright/test');
+const { test, expect } = require('@playwright/test');
 const fs = require('fs');
 const path = require('path');
 
@@ -15,6 +15,49 @@ const PROTECTED_ROUTES = [
   '/admin/index.html',
   '/admin/importer.html',
 ];
+
+const RESPONSIVE_VIEWPORTS = [
+  { name: 'mobile-390', width: 390, height: 844 },
+  { name: 'mobile-430', width: 430, height: 932 },
+  { name: 'tablet-768', width: 768, height: 1024 },
+  { name: 'tablet-834', width: 834, height: 1112 },
+  { name: 'tablet-1024', width: 1024, height: 1366 },
+  { name: 'desktop-1280', width: 1280, height: 900 },
+];
+
+const THEME_MATRIX = ['dark', 'light'];
+
+async function setTheme(page, theme) {
+  await page.evaluate((nextTheme) => {
+    localStorage.setItem('theme', nextTheme);
+    document.documentElement.setAttribute('data-theme', nextTheme);
+  }, theme);
+}
+
+async function assertNoHorizontalOverflow(page, label) {
+  const metrics = await page.evaluate(() => {
+    const activeView = document.querySelector('section.user-shell-view:not([hidden])');
+    const container = activeView?.querySelector('.dashboard-container') || document.documentElement;
+    const root = document.documentElement;
+    return {
+      containerDelta: Math.ceil(container.scrollWidth - container.clientWidth),
+      rootDelta: Math.ceil(root.scrollWidth - root.clientWidth)
+    };
+  });
+
+  expect(metrics.containerDelta, `${label}: container overflow`).toBeLessThanOrEqual(2);
+  expect(metrics.rootDelta, `${label}: root overflow`).toBeLessThanOrEqual(2);
+}
+
+async function readPremiumThemeSignals(page) {
+  return page.evaluate(() => {
+    const css = getComputedStyle(document.documentElement);
+    const btn = css.getPropertyValue('--premium-btn-surface').trim();
+    const icon = css.getPropertyValue('--premium-icon-surface').trim();
+    const chip = css.getPropertyValue('--premium-chip-surface').trim();
+    return { btn, icon, chip };
+  });
+}
 
 function resolveStorageStatePath(envVarValue, defaultRelativePath) {
   const candidates = [];
@@ -274,6 +317,78 @@ test.describe('Gold GYS authenticated smoke (@optional)', () => {
     await expect(legacyLessonsNav).toBeVisible();
     await legacyLessonsNav.click();
     await expect(page).toHaveURL(/\/konular(\?.*)?$/i);
+
+    await context.close();
+  });
+
+  test('analysis + topic mastery responsive/theme matrix stays compact and overflow-free', async ({ browser, baseURL }) => {
+    const authState = resolveStorageStatePath(
+      process.env.E2E_AUTH_STORAGE_STATE,
+      'tests/e2e/.auth/user.json'
+    );
+    if (!authState.path && authState.reason) {
+      console.warn(`[auth-smoke:user-responsive] ${authState.reason}`);
+    }
+    test.skip(
+      !authState.path,
+      `Provide E2E_AUTH_STORAGE_STATE or create tests/e2e/.auth/user.json to enable responsive authenticated smoke coverage. ${authState.reason || ''}`.trim()
+    );
+
+    const context = await browser.newContext({
+      baseURL,
+      storageState: authState.path,
+      viewport: { width: RESPONSIVE_VIEWPORTS[0].width, height: RESPONSIVE_VIEWPORTS[0].height },
+    });
+    const page = await context.newPage();
+    await page.goto('/dashboard?shellV2=1');
+    await expect(page).not.toHaveURL(/login(\.html)?/i);
+
+    for (const viewport of RESPONSIVE_VIEWPORTS) {
+      await page.setViewportSize({ width: viewport.width, height: viewport.height });
+
+      for (const theme of THEME_MATRIX) {
+        await setTheme(page, theme);
+
+        await page.goto('/dashboard#analiz');
+        await expect(page.locator('#predictedScore')).toBeVisible();
+        await assertNoHorizontalOverflow(page, `analiz/${viewport.name}/${theme}`);
+
+        const kpiColumns = await page.evaluate(() => {
+          const grid = document.querySelector('section.user-shell-view[data-route-key="analiz"]:not([hidden]) .prediction-stats-section');
+          if (!grid) return 0;
+          const template = getComputedStyle(grid).gridTemplateColumns || '';
+          if (!template || template === 'none') return 0;
+          return template.split(' ').filter(Boolean).length;
+        });
+        if (viewport.width <= 430) {
+          expect(kpiColumns, `analiz KPI should be 2x2 on ${viewport.name}/${theme}`).toBe(2);
+        }
+
+        const analysisThemeSignals = await readPremiumThemeSignals(page);
+        expect(analysisThemeSignals.btn.length, `analiz premium button token missing (${theme})`).toBeGreaterThan(0);
+        expect(analysisThemeSignals.icon.length, `analiz premium icon token missing (${theme})`).toBeGreaterThan(0);
+
+        await page.goto('/dashboard#konu-hakimiyet');
+        await expect(page.locator('#topicMasteryFilterChips .status-badge').first()).toBeVisible();
+        await assertNoHorizontalOverflow(page, `konu-hakimiyet/${viewport.name}/${theme}`);
+
+        const chipRows = await page.evaluate(() => {
+          const chips = Array.from(document.querySelectorAll('section.user-shell-view[data-route-key="konu-hakimiyet"]:not([hidden]) #topicMasteryFilterChips .status-badge'));
+          if (!chips.length) return 0;
+          const tops = new Set(chips.map((chip) => Math.round(chip.getBoundingClientRect().top)));
+          return tops.size;
+        });
+        if (viewport.width > 360) {
+          expect(chipRows, `topic mastery chips should stay single-row on ${viewport.name}/${theme}`).toBe(1);
+        } else {
+          expect(chipRows, `topic mastery chips should remain usable on tiny viewport ${viewport.name}/${theme}`).toBeGreaterThanOrEqual(1);
+        }
+
+        const masteryThemeSignals = await readPremiumThemeSignals(page);
+        expect(masteryThemeSignals.btn.length, `topic mastery premium button token missing (${theme})`).toBeGreaterThan(0);
+        expect(masteryThemeSignals.chip.length, `topic mastery premium chip token missing (${theme})`).toBeGreaterThan(0);
+      }
+    }
 
     await context.close();
   });

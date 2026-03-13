@@ -68,6 +68,18 @@
   --ui-muted-color: var(--text-muted);
   --ui-icon-chip-bg: linear-gradient(135deg, rgba(191, 149, 63, 0.2), rgba(191, 149, 63, 0.07));
   --ui-icon-chip-border: rgba(179, 135, 40, 0.36);
+  --premium-gold-gradient: linear-gradient(135deg, #BF953F 0%, #FCF6BA 50%, #B38728 100%);
+  --premium-accent-ring: 0 0 0 3px rgba(191, 149, 63, 0.22);
+  --premium-icon-surface: linear-gradient(145deg, rgba(191, 149, 63, 0.22), rgba(252, 246, 186, 0.12));
+  --premium-icon-border: rgba(179, 135, 40, 0.38);
+  --premium-icon-color: color-mix(in srgb, var(--text-main) 74%, var(--color-primary) 26%);
+  --premium-btn-surface: color-mix(in srgb, var(--bg-input) 90%, rgba(191, 149, 63, 0.1) 10%);
+  --premium-btn-surface-hover: color-mix(in srgb, var(--bg-input) 82%, rgba(191, 149, 63, 0.18) 18%);
+  --premium-btn-border: color-mix(in srgb, var(--color-primary) 34%, var(--border-subtle) 66%);
+  --premium-btn-border-hover: color-mix(in srgb, var(--color-primary) 52%, var(--border-subtle) 48%);
+  --premium-btn-shadow: 0 10px 24px rgba(120, 79, 18, 0.18);
+  --premium-chip-surface: color-mix(in srgb, var(--bg-surface-elevated) 90%, rgba(191, 149, 63, 0.1) 10%);
+  --premium-chip-border: color-mix(in srgb, var(--color-primary) 28%, var(--border-subtle) 72%);
 
   /* Primary Colors - Gold/Bronze */
   --color-primary: #B38728; /* Golden Brown */
@@ -155,6 +167,18 @@
   --ui-muted-color: var(--text-muted);
   --ui-icon-chip-bg: linear-gradient(135deg, rgba(217, 178, 74, 0.24), rgba(217, 178, 74, 0.1));
   --ui-icon-chip-border: rgba(217, 178, 74, 0.42);
+  --premium-gold-gradient: linear-gradient(135deg, #FAEDCC 0%, #E7C76C 45%, #BE912E 100%);
+  --premium-accent-ring: 0 0 0 3px rgba(217, 178, 74, 0.26);
+  --premium-icon-surface: linear-gradient(145deg, rgba(217, 178, 74, 0.24), rgba(245, 230, 190, 0.08));
+  --premium-icon-border: rgba(217, 178, 74, 0.44);
+  --premium-icon-color: color-mix(in srgb, var(--text-main) 76%, var(--color-primary) 24%);
+  --premium-btn-surface: color-mix(in srgb, var(--bg-input) 92%, rgba(217, 178, 74, 0.12) 8%);
+  --premium-btn-surface-hover: color-mix(in srgb, var(--bg-input) 84%, rgba(217, 178, 74, 0.2) 16%);
+  --premium-btn-border: color-mix(in srgb, var(--color-primary) 40%, var(--border-subtle) 60%);
+  --premium-btn-border-hover: color-mix(in srgb, var(--color-primary) 62%, var(--border-subtle) 38%);
+  --premium-btn-shadow: 0 12px 28px rgba(0, 0, 0, 0.4);
+  --premium-chip-surface: color-mix(in srgb, var(--bg-surface-elevated) 92%, rgba(217, 178, 74, 0.1) 8%);
+  --premium-chip-border: color-mix(in srgb, var(--color-primary) 34%, var(--border-subtle) 66%);
 
   /* Primary Colors - Gold */
   --color-primary: #E0BC56; /* Metallic Gold */

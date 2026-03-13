@@ -554,7 +554,7 @@ function renderTopicChart(categoryTotals) {
 function renderHistoryTable(results) {
     const body = document.getElementById('historyTableBody');
     if (!results.length) {
-        body.innerHTML = '<tr><td colspan="4" class="text-center" style="padding: 24px; color: var(--text-muted);">Henüz sınav verisi bulunmuyor. İlk denemeni çöz!</td></tr>';
+        body.innerHTML = '<tr><td colspan="3" class="text-center history-empty">Henüz sınav verisi bulunmuyor. İlk denemeni çöz!</td></tr>';
         return;
     }
 
@@ -570,6 +570,17 @@ function renderHistoryTable(results) {
         }
     }
 
+    const topicIcon = `
+        <svg class="history-topic-icon" width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+        </svg>
+    `;
+
+    const smartBadgeIcons = {
+        wrongs: '<svg class="badge-icon" width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>',
+        random: '<svg class="badge-icon" width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg>'
+    };
+
     body.innerHTML = uniqueResults.slice(0, 12).map(r => {
         const completed = getCompletedSeconds(r);
         const dateObj = completed ? new Date(completed * 1000) : null;
@@ -577,7 +588,7 @@ function renderHistoryTable(results) {
 
         const correctCount = parseNum(r.correct);
         const wrongCount = parseNum(r.wrong);
-        const total = getExamTotal(r) || (correctCount + wrongCount) || 1; // avoid divide by zero
+        const total = getExamTotal(r) || (correctCount + wrongCount) || 1;
         const net = correctCount - (wrongCount * 0.25);
         const finalNet = net > 0 ? (net % 1 === 0 ? net : net.toFixed(2)) : 0;
         const correctPct = Math.round((correctCount / total) * 100);
@@ -591,10 +602,10 @@ function renderHistoryTable(results) {
 
         if (r.mode === 'wrongs' || titleLower.includes('yanlış')) {
             isSmartTest = true;
-            smartTestBadge = '<span class="status-badge badge-red" style="padding: 2px 6px; font-size: 0.65rem; margin-top:4px;"><svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="vertical-align:text-bottom; margin-right:3px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>Yanlışlar Testi</span>';
+            smartTestBadge = `<span class="status-badge badge-red history-smart-badge">${smartBadgeIcons.wrongs}Yanlışlar Testi</span>`;
         } else if (r.mode === 'random' || titleLower.includes('karışık')) {
             isSmartTest = true;
-            smartTestBadge = '<span class="status-badge badge-gray" style="padding: 2px 6px; font-size: 0.65rem; margin-top:4px;"><svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="vertical-align:text-bottom; margin-right:3px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg>Karışık Tekrar</span>';
+            smartTestBadge = `<span class="status-badge badge-gray history-smart-badge">${smartBadgeIcons.random}Karışık Tekrar</span>`;
         }
 
         let topicSlug = null;
@@ -635,8 +646,8 @@ function renderHistoryTable(results) {
         }
 
         if (!parentTopicName && isSmartTest) {
-            displayTopicTitle = "Genel Karışık Soru Modu";
-            parentTopicName = "Genel Tekrar";
+            displayTopicTitle = 'Genel Karışık Soru Modu';
+            parentTopicName = 'Genel Tekrar';
         }
 
         let testUrl = '#';
@@ -648,41 +659,48 @@ function renderHistoryTable(results) {
             testUrl = `/konu/${urlSlug}/test-coz/${testSlug}--${r.examId}?mode=select&ref=/analiz`;
         }
 
+        const topicBadgeLabel = parentTopicName || 'Genel Konu';
+
         return `<tr>
-            <td data-label="Test Tarihi" style="width: 100px;">
-                 <div class="table-date-pill">${date}</div>
+            <td data-label="Test Tarihi" class="history-date-cell">
+                <div class="table-date-pill">${date}</div>
             </td>
             <td data-label="Sınav / Test Adı" class="history-title-cell">
-                 <a href="${testUrl}" style="text-decoration:none; display:flex; flex-direction:column; align-items:flex-start;">
-                    ${parentTopicName ? `<div class="history-topic-badge"><svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="vertical-align:-1px; margin-right:4px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>${parentTopicName}</div>` : `<div class="history-topic-badge"><svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="vertical-align:-1px; margin-right:4px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>Genel Konu</div>`}
-                    <strong class="history-test-title" style="color:var(--text-primary); font-weight:600; font-size: 0.95rem; transition: color 0.2s;" onmouseover="this.style.color='var(--color-primary)'" onmouseout="this.style.color='var(--text-primary)'">${r.examTitle || displayTopicTitle}</strong>
+                <a href="${testUrl}" class="history-title-link">
+                    <div class="history-topic-badge">${topicIcon}<span>${topicBadgeLabel}</span></div>
+                    <strong class="history-test-title">${r.examTitle || displayTopicTitle}</strong>
                     ${smartTestBadge}
                 </a>
             </td>
-            <td data-label="Performans" style="flex: 2;">
-               <div class="exam-progress-wrap" style="margin-top: 2px;">
-                  <div class="exam-stats-text" style="display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 6px;">
-                     <span style="color: var(--text-muted);">Toplam: ${total} Soru</span>
-                     <span class="s-net" style="font-weight: 600; color: var(--text-main);">${finalNet} Net</span>
+            <td data-label="Performans" class="history-performance-cell">
+               <div class="exam-progress-wrap">
+                  <div class="exam-stats-head">
+                     <span class="exam-total-label">Toplam: ${total} Soru</span>
+                     <span class="s-net">${finalNet} Net</span>
                   </div>
-                  <div class="exam-bar-container" style="position: relative; height: 22px; border-radius: 6px; background: rgba(255,255,255,0.05); overflow: hidden;">
-                     <div class="exam-bar-correct" style="width: ${correctPct}%; height: 100%; transition: width 0.5s;"></div>
-                     <div class="exam-bar-wrong" style="width: ${wrongPct}%; height: 100%; transition: width 0.5s;"></div>
-                     
-                     <!-- Score Badge inside Progress Bar -->
-                     <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 5; pointer-events: none;">
-                        <span style="font-size: 0.75rem; font-weight: 700; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,0.9); letter-spacing: 0.5px;">Başarı: %${score}</span>
-                     </div>
+                  <div class="exam-bar-container" data-correct="${correctPct}" data-wrong="${wrongPct}">
+                     <div class="exam-bar-correct"></div>
+                     <div class="exam-bar-wrong"></div>
+                     <span class="exam-score-overlay">Başarı: %${score}</span>
                   </div>
-                  <div class="exam-stats-text" style="font-size: 0.65rem; margin-top: 6px; display: flex; gap: 12px; opacity: 0.8;">
-                     <span class="s-correct" style="color: #34d399;">${correctCount} Doğru</span>
-                     <span class="s-wrong" style="color: #f87171;">${wrongCount} Yanlış</span>
-                     <span style="color: var(--text-muted);">${total - correctCount - wrongCount} Boş</span>
+                  <div class="exam-stats-breakdown">
+                     <span class="s-correct">${correctCount} Doğru</span>
+                     <span class="s-wrong">${wrongCount} Yanlış</span>
+                     <span class="exam-empty">${total - correctCount - wrongCount} Boş</span>
                   </div>
                </div>
             </td>
         </tr>`;
     }).join('');
+
+    body.querySelectorAll('.exam-bar-container').forEach((bar) => {
+        const correct = Math.max(0, Math.min(100, parseNum(bar.dataset.correct)));
+        const wrong = Math.max(0, Math.min(100 - correct, parseNum(bar.dataset.wrong)));
+        const correctEl = bar.querySelector('.exam-bar-correct');
+        const wrongEl = bar.querySelector('.exam-bar-wrong');
+        if (correctEl) correctEl.style.width = `${correct}%`;
+        if (wrongEl) wrongEl.style.width = `${wrong}%`;
+    });
 }
 
 function calculateConsistencyScore(results) {
@@ -723,12 +741,42 @@ function renderScientificInsights(categoryTotals) {
 
     const insightGrid = document.getElementById('insightKpiGrid');
     if (insightGrid) {
-        insightGrid.innerHTML = `
-        <div class="insight-pill"><span><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="vertical-align: text-bottom; margin-right: 4px; color: var(--color-info)"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>Haftalık Tempo</span><strong>${weeklyCount} deneme</strong></div>
-        <div class="insight-pill"><span><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="vertical-align: text-bottom; margin-right: 4px; color: var(--color-success)"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>İstikrar</span><strong>%${consistency}</strong></div>
-        <div class="insight-pill"><span><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="vertical-align: text-bottom; margin-right: 4px; color: var(--color-warning)"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>İvme/Trend</span><strong>${trend.delta > 0 ? '+' : ''}${trend.delta} puan</strong></div>
-        <div class="insight-pill"><span><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="vertical-align: text-bottom; margin-right: 4px; color: var(--gold-main)"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>Toplam Birikim</span><strong>${exams} deneme</strong></div>
-      `;
+        const insightItems = [
+            {
+                label: 'Haftalık Tempo',
+                value: `${weeklyCount} deneme`,
+                tone: 'info',
+                icon: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>'
+            },
+            {
+                label: 'İstikrar',
+                value: `%${consistency}`,
+                tone: 'success',
+                icon: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>'
+            },
+            {
+                label: 'İvme/Trend',
+                value: `${trend.delta > 0 ? '+' : ''}${trend.delta} puan`,
+                tone: 'warning',
+                icon: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>'
+            },
+            {
+                label: 'Toplam Birikim',
+                value: `${exams} deneme`,
+                tone: 'gold',
+                icon: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>'
+            }
+        ];
+
+        insightGrid.innerHTML = insightItems.map((item) => `
+            <div class="insight-pill">
+                <span>
+                    <svg class="insight-pill-icon ${item.tone}" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">${item.icon}</svg>
+                    ${item.label}
+                </span>
+                <strong>${item.value}</strong>
+            </div>
+        `).join('');
     }
 
     const weaknessPlanList = document.getElementById('weaknessPlanList');
@@ -736,24 +784,29 @@ function renderScientificInsights(categoryTotals) {
 
     if (!weakTopics.length) {
         weaknessPlanList.innerHTML = `
-        <div style="text-align:center; padding: 20px 10px;">
-           <div style="margin-bottom:10px;"><svg width="40" height="40" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="color:var(--color-success)"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></div>
-           <strong style="color:var(--text-main); font-size:1rem;">Zayıf Nokta Tespit Edilmedi</strong>
-           <p class="text-muted" style="margin-top:6px; font-size:0.85rem;">Şu an için analiz sistemine takılan kritik bir zayıf konun bulunmuyor. Düzenli olarak branş ve genel deneme çözmeye devam et!</p>
+        <div class="insight-empty">
+           <svg class="insight-empty-icon" width="40" height="40" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+           <strong class="insight-empty-title">Zayıf Nokta Tespit Edilmedi</strong>
+           <p class="insight-empty-description">Şu an için analiz sistemine takılan kritik bir zayıf konun bulunmuyor. Düzenli olarak branş ve genel deneme çözmeye devam et.</p>
         </div>`;
         return;
     }
 
     weaknessPlanList.innerHTML = weakTopics.map((item, index) => {
         const total = categoryTotals[item.topicId]?.total || 0;
-        const plan = total < 15
-            ? '<svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="vertical-align: text-bottom; margin-right: 4px; color: var(--color-warning)"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg> Veri eksik. Hemen 20 soruluk mini bir tekrar testi çözerek zayıflığını ölç.'
-            : '<svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="vertical-align: text-bottom; margin-right: 4px; color: var(--color-primary)"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg> Öncelikli Görev: 2 gün arayla kısa konu tekrarı yap ve 10 soruluk bir konsept pekiştirme testi uygulamadan diğer konuya geçme.';
+        const isLowData = total < 15;
+        const planIcon = isLowData
+            ? '<svg class="weakness-plan-icon warning" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>'
+            : '<svg class="weakness-plan-icon primary" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>';
+        const planText = isLowData
+            ? 'Veri eksik. Hemen 20 soruluk mini bir tekrar testi çözerek zayıflığını ölç.'
+            : 'Öncelikli görev: 2 gün arayla kısa konu tekrarı yap ve 10 soruluk bir konsept pekiştirme testi uygulamadan diğer konuya geçme.';
+
         return `
           <article class="weakness-item">
             <strong><span class="alert-color">Kritik Tespit ${index + 1}:</span> ${item.topic.title}</strong>
-            <div class="text-muted" style="margin-top: 4px; font-size: 0.78rem;">Başarı Durumu: <strong>%${item.success}</strong> · Toplam Analiz Edilen Soru: ${total}</div>
-            <p>${plan}</p>
+            <div class="weakness-meta">Başarı Durumu: <strong>%${item.success}</strong> · Toplam Analiz Edilen Soru: ${total}</div>
+            <p class="weakness-plan">${planIcon}<span>${planText}</span></p>
           </article>
         `;
     }).join('');
@@ -794,24 +847,9 @@ function renderLevelSystem() {
         document.getElementById('levelNextTarget').innerText = '-';
     }
 
-    const streakDays = calculateStudyStreak(state.results);
-    const missionList = document.getElementById('missionList');
-    if (missionList) {
-        missionList.innerHTML = `
-            <div class="mission-item"><strong><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="color:var(--color-warning); vertical-align:-2px; margin-right:4px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.879 16.121A3 3 0 1012.015 11L11 14H9c0 .768.293 1.536.879 2.121z"></path></svg>Çalışma Serisi</strong><div class="text-muted">${streakDays} gün kesintisiz</div></div>
-            <div class="mission-item"><strong><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="color:var(--gold-main); vertical-align:-2px; margin-right:4px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path></svg>Yetkinlik Seviyesi</strong><div class="text-muted">${xp} Toplam TP</div></div>
-        `;
-    }
-
     // combinedTopics KPI update
     const combinedTopicsEl = document.getElementById('combinedTopicsCount');
     if (combinedTopicsEl) combinedTopicsEl.innerText = `${completedTopics} / ${remainingTopics}`;
-}
-
-function calculateStudyStreak(results) {
-    if (!results.length) return 0;
-    const days = new Set(results.map(r => getCompletedSeconds(r)).filter(Boolean).map(sec => new Date(sec * 1000).toISOString().slice(0, 10)));
-    return days.size;
 }
 
 function bindUIEvents() {
