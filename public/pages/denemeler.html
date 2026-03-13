@@ -71,6 +71,20 @@
 
         .deneme-hero .dashboard-page-title {
             margin-bottom: 12px;
+            align-items: flex-start;
+            flex-wrap: nowrap;
+            gap: 10px;
+        }
+
+        .deneme-hero .dashboard-page-title-icon {
+            margin-top: 1px;
+        }
+
+        .deneme-hero .badge {
+            display: inline-flex;
+            align-items: center;
+            width: fit-content;
+            margin-bottom: 8px;
         }
 
         .deneme-hero .dashboard-page-subtitle {
@@ -336,6 +350,12 @@
                 background: linear-gradient(135deg, rgba(212, 175, 55, 0.1) 0%, rgba(15, 23, 42, 1) 100%);
             }
 
+            .deneme-hero>div:first-child {
+                display: grid;
+                gap: 8px;
+                align-content: start;
+            }
+
             .hero-actions {
                 width: 100%;
                 display: grid;
@@ -371,6 +391,16 @@
 
             .deneme-hero .dashboard-page-title {
                 font-size: 1.75rem;
+                margin-bottom: 0;
+                gap: 8px;
+            }
+
+            .deneme-hero .dashboard-page-title-icon {
+                margin-top: 2px;
+            }
+
+            .deneme-hero .badge {
+                margin-bottom: 2px;
             }
 
             .hero-panel-item .value {
@@ -392,6 +422,14 @@
             .deneme-hero .dashboard-page-title {
                 font-size: 1.35rem;
                 line-height: 1.25;
+                gap: 7px;
+            }
+
+            .deneme-hero .dashboard-page-title-icon {
+                width: 28px;
+                height: 28px;
+                border-radius: 9px;
+                font-size: 0.92rem;
             }
 
             .deneme-hero .dashboard-page-subtitle {
@@ -710,5 +748,4 @@
 </body>
 
 </html>
-
 

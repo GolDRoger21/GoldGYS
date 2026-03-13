@@ -60,18 +60,38 @@
       border: 1px solid var(--border-subtle);
       background: var(--bg-input);
       color: var(--text-main);
+      appearance: none;
+      -webkit-appearance: none;
       backdrop-filter: var(--glass-backdrop-filter);
       -webkit-backdrop-filter: var(--glass-backdrop-filter);
       box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
       transition: all var(--transition-medium);
       font-size: 0.95rem;
+      outline: none;
     }
 
-    .search-box input:focus {
+    .search-box input::placeholder {
+      color: color-mix(in srgb, var(--text-muted) 82%, transparent);
+    }
+
+    .filter-section .search-box:focus-within {
+      border-color: color-mix(in srgb, var(--color-primary) 62%, var(--border-subtle) 38%);
+      box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 22%, transparent);
+    }
+
+    .filter-section .search-box input:focus,
+    .filter-section .search-box input:focus-visible {
       border-color: var(--color-primary);
       box-shadow: 0 0 0 3px rgba(191, 149, 63, 0.25), inset 0 2px 4px rgba(0, 0, 0, 0.05);
       outline: none;
       background: var(--bg-surface-elevated);
+    }
+
+    .search-box input:-webkit-autofill,
+    .search-box input:-webkit-autofill:focus {
+      -webkit-text-fill-color: var(--text-main);
+      -webkit-box-shadow: 0 0 0 1000px var(--bg-input) inset;
+      transition: background-color 9999s ease-out;
     }
 
     .search-icon {
@@ -907,9 +927,16 @@
 
       .progress-overlay {
         font-size: 0.64rem;
-        gap: 6px;
-        display: grid;
-        grid-template-columns: 1fr 1fr;
+        gap: 5px;
+        display: flex;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+      }
+
+      .progress-overlay::-webkit-scrollbar {
+        display: none;
       }
 
       .topic-health {
@@ -928,12 +955,14 @@
       }
 
       .progress-info-item {
+        flex: 0 0 auto;
         min-height: 28px;
-        padding: 4px 7px;
+        padding: 3px 6px;
       }
 
       .progress-info-item-target {
-        justify-self: end;
+        justify-self: auto;
+        margin-inline-start: auto;
       }
     }
 
@@ -951,18 +980,19 @@
       }
 
       .progress-overlay {
-        grid-template-columns: 1fr;
+        gap: 4px;
       }
 
       .progress-info-item {
         width: auto;
         justify-content: center;
-        min-height: 26px;
-        padding: 3px 6px;
+        min-height: 24px;
+        padding: 2px 5px;
       }
 
       .progress-info-item-target {
-        justify-self: end;
+        justify-self: auto;
+        margin-inline-start: auto;
       }
 
       .progress-legend-item {
@@ -1444,5 +1474,3 @@
 </body>
 
 </html>
-
-
