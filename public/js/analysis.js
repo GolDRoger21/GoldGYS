@@ -244,20 +244,37 @@ async function initAnalysis(userId) {
         state.successMap = buildTopicSuccessMap(state.topics, categoryTotals);
         renderAnalysisState(categoryTotals);
     } catch (error) {
-        console.error("Analiz hatası:", error);
-        const updateEl = document.getElementById('lastUpdate');
-        updateEl.innerText = 'Veriler yüklenemedi';
-        updateEl.classList.remove('status-in-progress');
-        updateEl.classList.add('status-pending');
-        showToast('Analiz verisi yüklenirken hata oluştu.', 'error');
+        console.error("Analiz hatas\u0131:", error);
+        setHeaderBadgeState('lastUpdate', 'error', 'Veriler y\u00fcklenemedi');
+        showToast('Analiz verisi y\u00fcklenirken hata olu\u015ftu.', 'error');
     }
 }
 
+function setHeaderBadgeState(elementId, stateName, label) {
+    const badge = document.getElementById(elementId);
+    if (!badge) return;
+
+    badge.classList.remove('badge-blue', 'badge-green', 'badge-red', 'badge-gray');
+
+    if (stateName === 'ready') {
+        badge.classList.add('badge-green');
+    } else if (stateName === 'error') {
+        badge.classList.add('badge-red');
+    } else if (stateName === 'idle') {
+        badge.classList.add('badge-gray');
+    } else {
+        badge.classList.add('badge-blue');
+    }
+
+    badge.innerHTML = `<span class="badge-dot${stateName === 'loading' ? ' pulse' : ''}"></span>${label}`;
+}
+
 function setLastUpdateState() {
-    const updateEl = document.getElementById('lastUpdate');
-    updateEl.innerText = `Son Güncelleme: ${new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}`;
-    updateEl.classList.remove('status-in-progress');
-    updateEl.classList.add('status-completed');
+    setHeaderBadgeState(
+        'lastUpdate',
+        'ready',
+        `Son G\u00fcncelleme ${new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}`
+    );
 }
 
 function renderAnalysisState(categoryTotals = null) {
@@ -351,14 +368,14 @@ function calculateKPIs(results) {
 }
 
 function calculatePredictedScore(results) {
+    const predictedScoreEl = document.getElementById('predictedScore');
+    if (!predictedScoreEl) return;
     const recent = results;
     if (!recent.length) {
-        document.getElementById('predictedScore').innerText = '--';
+        predictedScoreEl.classList.add('is-empty');
+        predictedScoreEl.innerHTML = '<span class="prediction-score-empty">--</span>';
         return;
     }
-
-    // YENİ MANTIK: 80 Soru = 100 Puan. (Yani 1 Doğru = 1.25 Puan).
-    // Yanlışlar doğruları götürmemektedir.
 
     let totalCorrects = 0;
     let totalQuestions = 0;
@@ -370,18 +387,19 @@ function calculatePredictedScore(results) {
     });
 
     if (totalQuestions <= 0) {
-        document.getElementById('predictedScore').innerText = '--';
+        predictedScoreEl.classList.add('is-empty');
+        predictedScoreEl.innerHTML = '<span class="prediction-score-empty">--</span>';
         return;
     }
 
-    // Soruların yüzde kaçını doğru yaptı?
     const successRatio = totalCorrects / totalQuestions;
-
-    // 100 Puan üzerinden tahmini puanı (maks 100)
     const predictedBase100 = Math.min(100, Math.round(successRatio * 100));
 
-    document.getElementById('predictedScore').innerText = `${predictedBase100} Puan`;
-    document.getElementById('predictedScore').style.fontSize = "clamp(2rem, 1.5rem + 3vw, 3rem)"; // Text'e uyumlu font küçültmesi
+    predictedScoreEl.classList.remove('is-empty');
+    predictedScoreEl.innerHTML = `
+        <span class="prediction-score-number">${predictedBase100}</span>
+        <span class="prediction-score-unit">puan</span>
+    `;
 }
 
 function ensureChartDestroy(chartKey) {

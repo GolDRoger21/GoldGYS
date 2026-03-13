@@ -214,18 +214,18 @@ function getProgressColor(val) {
 }
 
 function getCompleteIcon() {
-    return '<svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.1" d="M5 13l4 4L19 7"></path></svg>';
+    return '<svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" d="M9 12.75l2 2 4-5"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" d="M8.5 4.75h7l4 4v6.75a4.75 4.75 0 01-4.75 4.75h-5.5A4.75 4.75 0 014.5 15.5V9.5A4.75 4.75 0 019.25 4.75z"></path></svg>';
 }
 
 function getFocusIcon(isFocused) {
     if (isFocused) {
-        return '<svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>';
+        return '<svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><circle cx="12" cy="12" r="6" stroke-width="1.9"></circle><circle cx="12" cy="12" r="2.5" stroke-width="1.9"></circle><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" d="M12 3.75v2.5M12 17.75v2.5M20.25 12h-2.5M6.25 12h-2.5"></path></svg>';
     }
-    return '<svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>';
+    return '<svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><circle cx="12" cy="12" r="6" stroke-width="1.9"></circle><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" d="M12 3.75v2.5M12 17.75v2.5M20.25 12h-2.5M6.25 12h-2.5"></path></svg>';
 }
 
 function getResetIcon() {
-    return '<svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m14.356 2A8 8 0 106.582 9m0 0H9"></path></svg>';
+    return '<svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" d="M4.75 12a7.25 7.25 0 0112.38-5.126l1.37 1.376"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" d="M18.5 4.75v3.75h-3.75"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" d="M19.25 12a7.25 7.25 0 01-12.376 5.12L5.5 15.75"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" d="M5.5 19.25V15.5h3.75"></path></svg>';
 }
 
 function sortTopics(rows) {
@@ -243,12 +243,31 @@ function sortTopics(rows) {
     });
 }
 
+function setHeaderBadgeState(elementId, stateName, label) {
+    const badge = document.getElementById(elementId);
+    if (!badge) return;
+
+    badge.classList.remove("badge-blue", "badge-green", "badge-red", "badge-gray");
+
+    if (stateName === "ready") {
+        badge.classList.add("badge-green");
+    } else if (stateName === "error") {
+        badge.classList.add("badge-red");
+    } else if (stateName === "idle") {
+        badge.classList.add("badge-gray");
+    } else {
+        badge.classList.add("badge-blue");
+    }
+
+    badge.innerHTML = `<span class="badge-dot${stateName === "loading" ? " pulse" : ""}"></span>${label}`;
+}
+
 function updateLastUpdate() {
-    const el = document.getElementById("masteryLastUpdate");
-    if (!el) return;
-    el.innerText = `Son güncelleme: ${new Date().toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" })}`;
-    el.classList.remove("status-in-progress");
-    el.classList.add("status-completed");
+    setHeaderBadgeState(
+        "masteryLastUpdate",
+        "ready",
+        `Son g\u00fcncelleme ${new Date().toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" })}`
+    );
 }
 
 function renderSummary(rows) {
@@ -290,9 +309,9 @@ function renderTopicCards(rows) {
               ${badgeData}
             </div>
             <div class="mastery-card-actions">
-              <button class="glass-icon-btn btn-complete" onclick="window.toggleMasteryTopicStatus('${topic.id}', 'completed')" title="Öğrendim / Çalıştım">${getCompleteIcon()}</button>
-              <button class="glass-icon-btn btn-focus ${topic.id === state.currentTopicId ? "is-focused" : ""}" onclick="window.setMasteryFocusTopic('${topic.id}')" title="Bu konuya odaklan">${focusIcon}</button>
-              <button class="glass-icon-btn btn-reset" onclick="window.resetMasteryTopicStats('${topic.id}')" title="Konu istatistiğini sıfırla">${getResetIcon()}</button>
+              <button class="glass-icon-btn btn-complete" onclick="window.toggleMasteryTopicStatus('${topic.id}', 'completed')" title="Öğrendim / Çalıştım" aria-label="${topic.title} konusunu tamamlandı olarak işaretle">${getCompleteIcon()}</button>
+              <button class="glass-icon-btn btn-focus ${topic.id === state.currentTopicId ? "is-focused" : ""}" onclick="window.setMasteryFocusTopic('${topic.id}')" title="Bu konuya odaklan" aria-label="${topic.title} konusunu odak konusu yap">${focusIcon}</button>
+              <button class="glass-icon-btn btn-reset" onclick="window.resetMasteryTopicStats('${topic.id}')" title="Konu istatistiğini sıfırla" aria-label="${topic.title} konu istatistiklerini sıfırla">${getResetIcon()}</button>
             </div>
           </article>
         `;
@@ -350,9 +369,9 @@ function renderTopicList() {
             </td>
             <td data-label="İşlemler">
               <div class="action-buttons">
-                <button class="glass-icon-btn btn-complete" onclick="window.toggleMasteryTopicStatus('${topic.id}', 'completed')" title="Öğrendim / Çalıştım">${getCompleteIcon()}</button>
-                <button class="glass-icon-btn btn-focus ${topic.id === state.currentTopicId ? "is-focused" : ""}" onclick="window.setMasteryFocusTopic('${topic.id}')" title="Bu konuya odaklan">${focusIcon}</button>
-                <button class="glass-icon-btn btn-reset" onclick="window.resetMasteryTopicStats('${topic.id}')" title="İstatistikleri sıfırla">${getResetIcon()}</button>
+                <button class="glass-icon-btn btn-complete" onclick="window.toggleMasteryTopicStatus('${topic.id}', 'completed')" title="Öğrendim / Çalıştım" aria-label="${topic.title} konusunu tamamlandı olarak işaretle">${getCompleteIcon()}</button>
+                <button class="glass-icon-btn btn-focus ${topic.id === state.currentTopicId ? "is-focused" : ""}" onclick="window.setMasteryFocusTopic('${topic.id}')" title="Bu konuya odaklan" aria-label="${topic.title} konusunu odak konusu yap">${focusIcon}</button>
+                <button class="glass-icon-btn btn-reset" onclick="window.resetMasteryTopicStats('${topic.id}')" title="İstatistikleri sıfırla" aria-label="${topic.title} konu istatistiklerini sıfırla">${getResetIcon()}</button>
               </div>
             </td>
         </tr>`;
@@ -634,8 +653,9 @@ async function initTopicMastery(userId) {
         renderTopicList();
         updateLastUpdate();
     } catch (error) {
-        console.error("Konu hakimiyet verisi yüklenemedi:", error);
-        showToast("Konu hakimiyet verileri yüklenirken hata oluştu.", "error");
+        console.error("Konu hakimiyet verisi y\u00fcklenemedi:", error);
+        setHeaderBadgeState("masteryLastUpdate", "error", "Veriler y\u00fcklenemedi");
+        showToast("Konu hakimiyet verileri y\u00fcklenirken hata olu\u015ftu.", "error");
     }
 }
 
