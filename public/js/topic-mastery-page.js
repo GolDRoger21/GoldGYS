@@ -290,9 +290,9 @@ function renderTopicCards(rows) {
               ${badgeData}
             </div>
             <div class="mastery-card-actions">
-              <button class="glass-btn btn-complete" onclick="window.toggleMasteryTopicStatus('${topic.id}', 'completed')" title="Öğrendim / Çalıştım">${getCompleteIcon()}</button>
-              <button class="glass-btn btn-focus ${topic.id === state.currentTopicId ? "is-focused" : ""}" onclick="window.setMasteryFocusTopic('${topic.id}')" title="Bu konuya odaklan">${focusIcon}</button>
-              <button class="glass-btn btn-reset" onclick="window.resetMasteryTopicStats('${topic.id}')" title="Konu istatistiğini sıfırla">${getResetIcon()}</button>
+              <button class="glass-icon-btn btn-complete" onclick="window.toggleMasteryTopicStatus('${topic.id}', 'completed')" title="Öğrendim / Çalıştım">${getCompleteIcon()}</button>
+              <button class="glass-icon-btn btn-focus ${topic.id === state.currentTopicId ? "is-focused" : ""}" onclick="window.setMasteryFocusTopic('${topic.id}')" title="Bu konuya odaklan">${focusIcon}</button>
+              <button class="glass-icon-btn btn-reset" onclick="window.resetMasteryTopicStats('${topic.id}')" title="Konu istatistiğini sıfırla">${getResetIcon()}</button>
             </div>
           </article>
         `;
@@ -350,9 +350,9 @@ function renderTopicList() {
             </td>
             <td data-label="İşlemler">
               <div class="action-buttons">
-                <button class="glass-btn btn-complete" onclick="window.toggleMasteryTopicStatus('${topic.id}', 'completed')" title="Öğrendim / Çalıştım">${getCompleteIcon()}</button>
-                <button class="glass-btn btn-focus ${topic.id === state.currentTopicId ? "is-focused" : ""}" onclick="window.setMasteryFocusTopic('${topic.id}')" title="Bu konuya odaklan">${focusIcon}</button>
-                <button class="glass-btn btn-reset" onclick="window.resetMasteryTopicStats('${topic.id}')" title="İstatistikleri sıfırla">${getResetIcon()}</button>
+                <button class="glass-icon-btn btn-complete" onclick="window.toggleMasteryTopicStatus('${topic.id}', 'completed')" title="Öğrendim / Çalıştım">${getCompleteIcon()}</button>
+                <button class="glass-icon-btn btn-focus ${topic.id === state.currentTopicId ? "is-focused" : ""}" onclick="window.setMasteryFocusTopic('${topic.id}')" title="Bu konuya odaklan">${focusIcon}</button>
+                <button class="glass-icon-btn btn-reset" onclick="window.resetMasteryTopicStats('${topic.id}')" title="İstatistikleri sıfırla">${getResetIcon()}</button>
               </div>
             </td>
         </tr>`;

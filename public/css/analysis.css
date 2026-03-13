@@ -196,6 +196,69 @@
   flex-shrink: 0;
 }
 
+/* --- PREMIUM ICON BUTTONS (Topic Mastery Actions) --- */
+.glass-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--premium-btn-border);
+  color: var(--text-muted);
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-fast);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+[data-theme="dark"] .glass-icon-btn {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.glass-icon-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(179, 135, 40, 0.15);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.glass-icon-btn:active {
+  transform: translateY(0);
+}
+
+.glass-icon-btn.is-focused,
+.glass-icon-btn.is-active,
+.glass-icon-btn:focus {
+  background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  outline: none;
+}
+
+.glass-icon-btn.btn-complete:hover {
+  border-color: var(--color-success);
+  color: var(--color-success);
+  background: color-mix(in srgb, var(--color-success) 8%, transparent);
+  box-shadow: 0 8px 16px rgba(47, 122, 85, 0.2);
+}
+
+.glass-icon-btn.btn-reset:hover {
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+  background: color-mix(in srgb, var(--color-danger) 8%, transparent);
+  box-shadow: 0 8px 16px rgba(185, 75, 69, 0.2);
+}
+
+.action-buttons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+
 .analysis-main-grid {
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
@@ -237,29 +300,37 @@
   font-size: clamp(2.2rem, 1.1rem + 3.2vw, 3.3rem);
   font-weight: 900;
   line-height: 1;
-  color: color-mix(in srgb, var(--color-primary) 82%, var(--text-main) 18%);
+  color: var(--color-primary);
   -webkit-text-fill-color: currentColor;
-  text-shadow: 0 1px 0 color-mix(in srgb, var(--bg-base) 65%, transparent);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
 }
 
 @supports ((-webkit-background-clip: text) or (background-clip: text)) {
   .prediction-score-section .prediction-value {
-    background: linear-gradient(140deg, var(--gold-light), var(--color-primary), var(--gold-dark));
+    background: var(--premium-gold-gradient);
+    background-size: 200% auto;
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
     -webkit-text-fill-color: transparent;
-    text-shadow: none;
+    animation: shimmer 4s linear infinite;
+    /* Gölgeleri filter veya drop-shadow ile eklemek karanlık temada çok daha iyi parlamasını sağlar */
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
   }
 }
 
+[data-theme="light"] .prediction-score-section .prediction-value {
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
 .prediction-label {
-  margin-top: 8px;
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
+  margin-top: 10px;
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: color-mix(in srgb, var(--text-main) 64%, var(--text-muted) 36%);
+  color: var(--text-main);
+  opacity: 0.9;
 }
 
 .prediction-stats-section {
@@ -1240,17 +1311,25 @@
   }
 
   .topic-mastery-page .mastery-summary-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 8px;
+    grid-template-columns: 1fr;
+    gap: 10px;
   }
 
   .topic-mastery-page .summary-pill {
-    min-height: 88px;
-    padding: 12px 10px;
-    gap: 8px;
-    flex-direction: column;
-    text-align: center;
-    justify-content: center;
+    min-height: 72px;
+    padding: 14px 18px;
+    gap: 16px;
+    flex-direction: row;
+    text-align: left;
+    justify-content: flex-start;
+  }
+
+  .topic-mastery-page .summary-pill .stat-info {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
   }
 
   .topic-mastery-page .summary-pill .stat-icon {
