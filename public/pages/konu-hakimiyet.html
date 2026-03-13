@@ -204,13 +204,6 @@
         background: linear-gradient(135deg, rgba(156, 163, 175, 0.18), rgba(107, 114, 128, 0.08));
         border: 1px solid rgba(156, 163, 175, 0.2);
       }
-      .topic-mastery-page .mastery-header-reset {
-        width: auto;
-        padding: 0 16px;
-      }
-      .topic-mastery-page .mastery-header-reset-icon {
-        margin-right: 6px;
-      }
       .topic-mastery-page .mastery-filter-panel {
         border: 1px solid var(--color-primary);
         box-shadow: 0 4px 20px rgba(59, 130, 246, 0.12);
@@ -310,14 +303,14 @@
             <div>
                 <h1 class="dashboard-page-title">
                     <span class="dashboard-page-title-icon" aria-hidden="true">&#128218;</span>
-                    Konu Hakimiyet Merkezi
+                    <span>Konu Hakimiyet Merkezi</span>
                 </h1>
                 <p class="dashboard-page-subtitle">Konu bazlı başarı durumunu takip et, odak konunu belirle ve çalışma ritmini düzenli ilerlet.</p>
             </div>
             <div class="header-actions">
                 <div class="status-badge badge-blue" id="masteryLastUpdate"><span class="badge-dot pulse"></span>Güncelleniyor...</div>
-                <button class="glass-btn btn-reset reset-stats-btn mastery-header-reset" id="resetAllMasteryStatsBtn" type="button" title="Tüm analiz ve konu verilerini sıfırla">
-                    <svg class="mastery-header-reset-icon" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <button class="glass-btn btn-reset reset-stats-btn analysis-reset-btn" id="resetAllMasteryStatsBtn" type="button" title="Tüm analiz ve konu verilerini sıfırla">
+                    <svg class="analysis-reset-btn-icon" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                     </svg>
                     Tümünü Sıfırla
