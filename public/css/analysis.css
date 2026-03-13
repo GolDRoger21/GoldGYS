@@ -230,6 +230,8 @@
 }
 
 .analysis-reset-btn {
+  --reset-accent: color-mix(in srgb, var(--color-danger) 54%, var(--color-primary) 46%);
+  --reset-accent-strong: color-mix(in srgb, var(--color-danger) 68%, var(--color-primary) 32%);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -239,19 +241,22 @@
   height: 42px;
   padding: 0 14px 0 10px !important;
   border-radius: 999px;
-  border: 1px solid color-mix(in srgb, var(--color-danger) 34%, var(--premium-btn-border) 66%);
+  border: 1px solid color-mix(in srgb, var(--reset-accent) 38%, var(--premium-btn-border) 62%);
   background: linear-gradient(135deg,
-      color-mix(in srgb, var(--premium-btn-surface) 90%, rgba(255, 255, 255, 0.08)),
-      color-mix(in srgb, var(--color-danger) 10%, var(--premium-btn-surface) 90%));
-  color: var(--color-danger);
+      color-mix(in srgb, var(--premium-btn-surface) 82%, rgba(255, 255, 255, 0.1)),
+      color-mix(in srgb, var(--reset-accent) 14%, var(--premium-btn-surface) 86%));
+  color: color-mix(in srgb, var(--reset-accent-strong) 74%, var(--text-main) 26%);
   font-size: 0.82rem;
-  font-weight: 700;
+  font-weight: 800;
+  letter-spacing: 0.01em;
   white-space: nowrap;
   gap: 8px;
   flex: 0 0 auto;
   position: relative;
   overflow: hidden;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 14px 28px color-mix(in srgb, var(--color-danger) 14%, transparent);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 14px 30px color-mix(in srgb, var(--reset-accent) 16%, transparent);
   transition: transform var(--transition-fast), box-shadow var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast), background var(--transition-fast);
 }
 
@@ -265,16 +270,19 @@
 
 .analysis-reset-btn:hover {
   transform: translateY(-1px);
-  border-color: color-mix(in srgb, var(--color-danger) 50%, var(--border-subtle) 50%);
+  border-color: color-mix(in srgb, var(--reset-accent-strong) 58%, var(--border-subtle) 42%);
   background: linear-gradient(135deg,
-      color-mix(in srgb, var(--premium-btn-surface-hover) 84%, rgba(255, 255, 255, 0.06)),
-      color-mix(in srgb, var(--color-danger) 14%, var(--premium-btn-surface-hover) 86%));
-  box-shadow: 0 18px 34px color-mix(in srgb, var(--color-danger) 18%, transparent);
+      color-mix(in srgb, var(--premium-btn-surface-hover) 78%, rgba(255, 255, 255, 0.08)),
+      color-mix(in srgb, var(--reset-accent-strong) 18%, var(--premium-btn-surface-hover) 82%));
+  color: color-mix(in srgb, var(--reset-accent-strong) 82%, var(--text-main) 18%);
+  box-shadow: 0 18px 34px color-mix(in srgb, var(--reset-accent) 22%, transparent);
 }
 
 .analysis-reset-btn:focus-visible {
   outline: none;
-  box-shadow: var(--focus-ring), 0 18px 34px color-mix(in srgb, var(--color-danger) 18%, transparent);
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--reset-accent) 22%, transparent),
+    0 18px 34px color-mix(in srgb, var(--reset-accent) 22%, transparent);
 }
 
 .analysis-reset-btn-icon-shell {
@@ -284,8 +292,11 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: color-mix(in srgb, var(--color-danger) 14%, transparent);
-  border: 1px solid color-mix(in srgb, var(--color-danger) 26%, transparent);
+  background: linear-gradient(145deg,
+      color-mix(in srgb, var(--reset-accent) 18%, transparent),
+      color-mix(in srgb, var(--premium-btn-surface) 76%, transparent));
+  border: 1px solid color-mix(in srgb, var(--reset-accent) 32%, transparent);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
   flex-shrink: 0;
   position: relative;
   z-index: 1;
@@ -322,6 +333,19 @@
   overflow: hidden;
 }
 
+.glass-icon-btn.btn-complete,
+.glass-icon-btn.btn-focus,
+.glass-icon-btn.btn-reset {
+  color: color-mix(in srgb, var(--action-accent, var(--text-main)) 68%, var(--text-main) 32%);
+  border-color: color-mix(in srgb, var(--action-accent, var(--color-primary)) 32%, var(--premium-btn-border) 68%);
+  background: linear-gradient(145deg,
+      color-mix(in srgb, var(--bg-surface-elevated) 84%, rgba(255, 255, 255, 0.1)),
+      color-mix(in srgb, var(--action-tint, var(--color-primary)) 14%, var(--bg-surface) 86%));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    0 10px 22px color-mix(in srgb, var(--action-accent, var(--color-primary)) 14%, transparent);
+}
+
 .glass-icon-btn::before {
   content: "";
   position: absolute;
@@ -355,16 +379,39 @@
 .glass-icon-btn.is-active,
 .glass-icon-btn:focus {
   background: linear-gradient(145deg,
-      color-mix(in srgb, var(--bg-surface-elevated) 86%, rgba(255, 255, 255, 0.08)),
-      color-mix(in srgb, var(--action-tint, var(--color-primary)) 20%, var(--bg-surface) 80%));
+      color-mix(in srgb, var(--bg-surface-elevated) 84%, rgba(255, 255, 255, 0.08)),
+      color-mix(in srgb, var(--action-tint, var(--color-primary)) 24%, var(--bg-surface) 76%));
   border-color: color-mix(in srgb, var(--action-accent, var(--color-primary)) 62%, var(--premium-btn-border-hover) 38%);
   color: var(--action-accent, var(--color-primary));
   outline: none;
   box-shadow: var(--premium-accent-ring), 0 16px 30px color-mix(in srgb, var(--action-accent, var(--color-primary)) 14%, transparent);
 }
 
+.glass-icon-btn.btn-complete:hover,
+.glass-icon-btn.btn-complete:focus-visible {
+  border-color: color-mix(in srgb, var(--color-success) 58%, var(--premium-btn-border-hover) 42%);
+  box-shadow: 0 16px 30px color-mix(in srgb, var(--color-success) 20%, transparent);
+}
+
 .glass-icon-btn.btn-complete:hover {
   color: var(--color-success);
+}
+
+.glass-icon-btn.btn-focus:hover,
+.glass-icon-btn.btn-focus:focus-visible,
+.glass-icon-btn.btn-focus.is-focused {
+  border-color: color-mix(in srgb, var(--color-info) 58%, var(--premium-btn-border-hover) 42%);
+  box-shadow: 0 16px 30px color-mix(in srgb, var(--color-info) 22%, transparent);
+}
+
+.glass-icon-btn.btn-focus:hover {
+  color: var(--color-info);
+}
+
+.glass-icon-btn.btn-reset:hover,
+.glass-icon-btn.btn-reset:focus-visible {
+  border-color: color-mix(in srgb, var(--color-danger) 52%, var(--premium-btn-border-hover) 48%);
+  box-shadow: 0 16px 30px color-mix(in srgb, var(--color-danger) 18%, transparent);
 }
 
 .glass-icon-btn.btn-reset:hover {
