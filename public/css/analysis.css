@@ -42,22 +42,10 @@
 
 .analysis-header .dashboard-page-title {
   margin: 0 0 8px;
-  font-size: clamp(1.35rem, 1.1rem + 1.2vw, 1.85rem);
-  color: var(--text-main);
-  background: none;
-  -webkit-background-clip: initial;
-  background-clip: initial;
-  -webkit-text-fill-color: initial;
-  font-weight: 800;
-  letter-spacing: -0.4px;
-  line-height: 1.25;
 }
 
 .analysis-header .dashboard-page-subtitle {
   margin: 0;
-  font-size: 0.96rem;
-  line-height: 1.55;
-  color: var(--text-muted);
   max-width: 640px;
 }
 
@@ -728,7 +716,10 @@
 }
 
 .insight-pill {
-  display: grid;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
   gap: 6px;
   padding: 12px 14px;
   border-radius: 12px;
@@ -738,15 +729,41 @@
 }
 
 .insight-pill span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   font-size: 0.78rem;
   color: var(--text-muted);
   line-height: 1.25;
 }
 
 .insight-pill strong {
+  display: block;
   font-size: 0.95rem;
   color: var(--text-main);
   line-height: 1.2;
+}
+
+.insight-pill-icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+.insight-pill-icon.info {
+  color: var(--color-info);
+}
+
+.insight-pill-icon.success {
+  color: var(--color-success);
+}
+
+.insight-pill-icon.warning {
+  color: var(--color-warning);
+}
+
+.insight-pill-icon.gold {
+  color: var(--gold-main);
 }
 
 .insight-summary {
@@ -1023,14 +1040,7 @@
   }
 
   .analysis-header .dashboard-page-title {
-    font-size: 1.1rem;
     margin-bottom: 4px;
-  }
-
-  .analysis-header .dashboard-page-subtitle {
-    font-size: 0.82rem;
-    line-height: 1.4;
-    color: var(--text-muted);
   }
 
   .header-actions {
@@ -1567,10 +1577,6 @@
     min-height: 40px;
   }
 
-  .analysis-header .dashboard-page-title {
-    font-size: 1.02rem;
-    line-height: 1.35;
-  }
 }
 
 @media (max-width: 390px) {
@@ -1579,11 +1585,12 @@
   }
 
   .analysis-header .dashboard-page-title {
-    font-size: 0.96rem;
+    font-size: 1rem;
   }
 
   .analysis-header .dashboard-page-subtitle {
-    font-size: 0.76rem;
+    font-size: 0.84rem;
+    line-height: 1.4;
   }
 
   .stats-grid .kpi-card {
@@ -1665,11 +1672,12 @@
 [data-theme="dark"] .analysis-page .progress-val,
 [data-theme="dark"] .analysis-page .score-badge,
 [data-theme="dark"] .analysis-page .level-row,
-[data-theme="dark"] .analysis-page .analysis-header .dashboard-page-subtitle {
+[data-theme="dark"] .analysis-page .analysis-header .dashboard-page-title {
   color: var(--text-main) !important;
 }
 
 [data-theme="dark"] .analysis-page .topic-desc-sub,
+[data-theme="dark"] .analysis-page .analysis-header .dashboard-page-subtitle,
 [data-theme="dark"] .analysis-page .filter-description-text,
 [data-theme="dark"] .analysis-page .prediction-stat-item .stat-label,
 [data-theme="dark"] .analysis-page .table-date-pill,

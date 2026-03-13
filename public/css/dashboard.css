@@ -1729,40 +1729,23 @@
 }
 
 /* Shared theme harmonization for user dashboard routes */
-.dashboard-container h1,
-.dashboard-container h2,
-.dashboard-container h3,
-.dashboard-container h4,
 .dashboard-container .card-title,
 .dashboard-container .section-title,
-.dashboard-container .topic-title,
-.dashboard-container .analysis-header h1,
-.dashboard-container .favorites-hero h2,
-.dashboard-container .mistakes-hero h2,
-.dashboard-container .deneme-hero h1 {
-    color: var(--text-main);
+.dashboard-container .topic-title {
+    color: var(--ui-heading-color);
 }
 
-.dashboard-container .analysis-header h1,
-.dashboard-container .deneme-hero h1 {
-    background: var(--text-gradient-gold);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    color: transparent;
-    text-shadow: none;
-}
-
-.dashboard-container p,
 .dashboard-container small,
 .dashboard-container label,
+.dashboard-container .dashboard-page-subtitle,
+.dashboard-container .dashboard-section-subtitle,
 .dashboard-container .text-muted,
 .dashboard-container .panel-meta,
 .dashboard-container .category-meta,
 .dashboard-container .exam-meta,
 .dashboard-container .fav-detail-title,
 .dashboard-container .mistake-card-footer {
-    color: var(--text-muted);
+    color: var(--ui-muted-color);
 }
 
 .dashboard-container strong,
@@ -1772,7 +1755,7 @@
 .dashboard-container .mistake-stat-card strong,
 .dashboard-container .prediction-stat-item .stat-val,
 .dashboard-container .hero-panel-item .value {
-    color: var(--text-main);
+    color: var(--ui-body-color);
 }
 
 .dashboard-container input,
