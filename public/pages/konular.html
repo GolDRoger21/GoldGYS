@@ -74,17 +74,12 @@
       color: color-mix(in srgb, var(--text-muted) 82%, transparent);
     }
 
-    .filter-section .search-box:focus-within {
-      border-color: color-mix(in srgb, var(--color-primary) 62%, var(--border-subtle) 38%);
-      box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 22%, transparent);
-    }
-
     .filter-section .search-box input:focus,
     .filter-section .search-box input:focus-visible {
-      border-color: var(--color-primary);
-      box-shadow: 0 0 0 3px rgba(191, 149, 63, 0.25), inset 0 2px 4px rgba(0, 0, 0, 0.05);
+      border-color: var(--border-subtle);
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
       outline: none;
-      background: var(--bg-surface-elevated);
+      background: var(--bg-input);
     }
 
     .search-box input:-webkit-autofill,
@@ -821,9 +816,24 @@
 
       .topic-progress-line {
         display: grid;
-        grid-template-columns: minmax(0, 1fr) auto auto minmax(0, 1fr);
+        grid-template-columns: repeat(4, minmax(0, 1fr));
         gap: 6px;
         font-size: 0.72rem;
+      }
+
+      .progress-info-item,
+      .progress-info-item-main,
+      .progress-info-item-count,
+      .progress-info-item-success,
+      .progress-info-item-target {
+        grid-column: auto;
+        justify-self: stretch;
+        justify-content: center;
+        min-width: 0;
+      }
+
+      .progress-info-copy {
+        justify-content: center;
       }
 
       .progress-legend {
@@ -957,12 +967,16 @@
       .progress-info-item {
         flex: 0 0 auto;
         min-height: 28px;
-        padding: 3px 6px;
+        padding: 3px 4px;
       }
 
       .progress-info-item-target {
-        justify-self: auto;
-        margin-inline-start: auto;
+        justify-self: stretch;
+        margin-inline-start: 0;
+      }
+
+      .topic-progress-line strong {
+        font-size: 0.74rem;
       }
     }
 
@@ -984,15 +998,15 @@
       }
 
       .progress-info-item {
-        width: auto;
+        width: 100%;
         justify-content: center;
         min-height: 24px;
-        padding: 2px 5px;
+        padding: 2px 4px;
       }
 
       .progress-info-item-target {
-        justify-self: auto;
-        margin-inline-start: auto;
+        justify-self: stretch;
+        margin-inline-start: 0;
       }
 
       .progress-legend-item {
@@ -1001,7 +1015,7 @@
       }
 
       .topic-progress-line strong {
-        font-size: 0.76rem;
+        font-size: 0.7rem;
       }
     }
 
@@ -1168,9 +1182,21 @@
       const searchInputEl = document.getElementById('searchInput');
       if (searchInputEl) {
         // Mobilde ilk açılışta klavye açılmasını engelle
-        searchInputEl.blur();
+        const releaseSearchFocus = () => {
+          if (document.activeElement === searchInputEl) {
+            searchInputEl.blur();
+          }
+        };
+        requestAnimationFrame(releaseSearchFocus);
+        setTimeout(releaseSearchFocus, 0);
+        setTimeout(releaseSearchFocus, 180);
+        window.addEventListener('pageshow', releaseSearchFocus);
+        document.addEventListener('visibilitychange', () => {
+          if (document.visibilityState === 'visible') {
+            requestAnimationFrame(releaseSearchFocus);
+          }
+        });
       }
-      window.addEventListener('pageshow', () => searchInputEl?.blur());
 
       onAuthStateChanged(auth, async (user) => {
         if (user) {

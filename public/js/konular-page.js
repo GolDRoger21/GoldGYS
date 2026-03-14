@@ -43,6 +43,22 @@ function bindUiEvents() {
     const searchInput = document.getElementById("searchInput");
     if (!searchInput) return;
 
+    const releaseSearchFocus = () => {
+        if (document.activeElement === searchInput) {
+            searchInput.blur();
+        }
+    };
+
+    requestAnimationFrame(releaseSearchFocus);
+    setTimeout(releaseSearchFocus, 0);
+    setTimeout(releaseSearchFocus, 180);
+    window.addEventListener("pageshow", releaseSearchFocus);
+    document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible") {
+            requestAnimationFrame(releaseSearchFocus);
+        }
+    });
+
     window.filterTopics = (category, event) => {
         document.querySelectorAll(".tab-btn").forEach((btn) => btn.classList.remove("active"));
         if (event?.target) event.target.classList.add("active");
