@@ -527,17 +527,20 @@ function getCurrentTabItems(scope = null) {
 function navDragStart(id, ev) {
     state._navDragId = id;
     ev.dataTransfer.effectAllowed = 'move';
-    ev.currentTarget.classList.add('nav-dragging');
+    const item = ev.currentTarget.closest('.nav-item');
+    item?.classList.add('nav-dragging');
 }
 
 function navDragOver(id, ev) {
     ev.preventDefault();
     if (id === state._navDragId) return;
-    ev.currentTarget.classList.add('nav-drop-over');
+    const item = ev.currentTarget.closest('.nav-item') || ev.currentTarget;
+    item.classList.add('nav-drop-over');
 }
 
 function navDragLeave(ev) {
-    ev.currentTarget.classList.remove('nav-drop-over');
+    const item = ev.currentTarget.closest('.nav-item') || ev.currentTarget;
+    item.classList.remove('nav-drop-over');
 }
 
 async function navDrop(targetId, ev) {
