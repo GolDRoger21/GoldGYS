@@ -82,6 +82,15 @@
       background: var(--bg-input);
     }
 
+    /* Override dashboard.css global focus ring for this search field */
+    .dashboard-container .filter-section .search-box #searchInput:focus,
+    .dashboard-container .filter-section .search-box #searchInput:focus-visible {
+      border-color: var(--border-subtle) !important;
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05) !important;
+      outline: none !important;
+      background: var(--bg-input) !important;
+    }
+
     .search-box input:-webkit-autofill,
     .search-box input:-webkit-autofill:focus {
       -webkit-text-fill-color: var(--text-main);

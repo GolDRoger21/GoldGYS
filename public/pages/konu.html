@@ -2532,8 +2532,8 @@
         await renderSubtopics(subtopics);
         if (subtopicSection) subtopicSection.style.display = 'block';
         if (contentContainer) {
-          contentContainer.style.gridTemplateColumns = '';
-          contentContainer.classList.remove('full-width');
+          contentContainer.style.gridTemplateColumns = '1fr';
+          contentContainer.classList.add('full-width');
         }
         if (learningCompanion) learningCompanion.style.display = 'none';
         if (topicContentSection) topicContentSection.style.display = 'none';
