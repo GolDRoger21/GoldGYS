@@ -5,7 +5,7 @@
 .app-footer {
     grid-column: 1 / -1;
     padding: 3rem 2rem 2rem;
-    background-color: #0B1120; /* Sidebar ile aynı koyu ton */
+    background-color: var(--bg-footer);
     border-top: 1px solid var(--border-color);
     color: var(--text-muted);
     font-size: 0.95rem;
@@ -74,7 +74,7 @@
     align-items: center;
     justify-content: space-between;
     padding-top: 2rem;
-    border-top: 1px solid rgba(51, 65, 85, 0.5);
+    border-top: 1px solid var(--border-subtle);
     flex-wrap: wrap;
     gap: 1.5rem;
 }

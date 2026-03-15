@@ -1,0 +1,474 @@
+/* public/css/login.css */
+
+/* Reset & Base */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: var(--bg-body);
+    color: var(--text-light);
+    font-family: var(--font-family-sans);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow-x: hidden;
+    background-image: radial-gradient(circle at top, color-mix(in srgb, var(--color-primary) 8%, transparent), transparent 60%),
+        radial-gradient(circle at bottom, color-mix(in srgb, var(--color-primary) 5%, transparent), transparent 60%);
+}
+
+/* Arkaplan Efekti */
+body::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle at center, color-mix(in srgb, var(--color-primary) 3%, transparent) 0%, transparent 50%);
+    z-index: 0;
+    pointer-events: none;
+}
+
+/* Navbar / Geri Don Butonu */
+.auth-nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: 1rem;
+    z-index: var(--z-overlay);
+}
+
+.btn-back {
+    display: inline-flex;
+    align-items: center;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: var(--transition-fast);
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-md);
+}
+
+.btn-back:hover {
+    color: var(--color-primary);
+    border-color: var(--color-primary);
+    background: var(--bg-hover);
+}
+
+.btn-back svg {
+    display: none;
+    flex-shrink: 0;
+}
+
+/* Responsive Back Button */
+@media (max-width: 480px) {
+    .btn-back span {
+        display: none;
+    }
+
+    .btn-back {
+        padding: 0.5rem;
+        width: 40px;
+        height: 40px;
+        justify-content: center;
+        border-radius: 50%;
+        background: var(--bg-surface);
+        backdrop-filter: blur(4px);
+    }
+
+    .btn-back svg {
+        display: block;
+        width: 20px;
+        height: 20px;
+    }
+
+    .auth-nav {
+        padding: calc(10px + env(safe-area-inset-top)) 10px 10px;
+        top: 0.5rem;
+        left: 0.5rem;
+    }
+}
+
+/* Login Container */
+.auth-wrapper {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    z-index: 1;
+}
+
+.auth-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    padding: 0;
+    width: 100%;
+    max-width: 900px;
+    box-shadow: var(--shadow-gold), 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    position: relative;
+    display: flex;
+    flex-direction: row;
+    overflow: hidden;
+}
+
+.auth-card.is-login {
+    max-width: 520px;
+}
+
+.auth-card.is-login .auth-main {
+    border-right: none;
+}
+
+.auth-card.is-login .auth-agreement-panel {
+    display: none;
+}
+
+/* Sol Taraf: Giris ve Logo */
+.auth-main {
+    flex: 1;
+    padding: 3rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    text-align: center;
+    border-right: 1px solid var(--border-subtle);
+}
+
+/* Sag Taraf: Sozlesme */
+.auth-agreement-panel {
+    flex: 1;
+    padding: 3rem;
+    background: var(--bg-dark);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+/* Logo & Basliklar */
+.brand-logo {
+    font-family: var(--font-family-serif);
+    font-size: 2.75rem;
+    color: var(--text-light);
+    margin-bottom: 0.5rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    letter-spacing: 0.05em;
+}
+
+.brand-logo span {
+    color: var(--logo-khaki);
+    text-shadow: 0 0 20px rgba(194, 97, 68, 0.2);
+}
+
+.header-logo {
+    height: auto;
+    max-height: 80px;
+    width: auto;
+    max-width: 100%;
+    object-fit: contain;
+}
+
+.card-subtitle {
+    color: var(--text-muted);
+    font-size: 1rem;
+    margin-bottom: 2rem;
+    line-height: 1.6;
+}
+
+/* Gold Themed Google Button */
+.btn-google {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    background-color: var(--bg-surface);
+    color: var(--color-primary);
+    font-family: var(--font-family-sans);
+    font-weight: 600;
+    font-size: 1rem;
+    padding: 1rem 1.25rem;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-primary);
+    cursor: pointer;
+    transition: var(--transition-fast);
+    gap: 12px;
+}
+
+.btn-google:hover {
+    background-color: var(--color-primary-soft);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px color-mix(in srgb, var(--color-primary) 20%, transparent);
+}
+
+.btn-google svg {
+    width: 24px;
+    height: 24px;
+}
+
+/* Bilgi Kutusu */
+.info-banner {
+    background: var(--color-primary-soft);
+    border: 1px solid color-mix(in srgb, var(--color-primary) 20%, transparent);
+    color: var(--gold-light);
+    padding: 1rem;
+    border-radius: var(--radius-md);
+    font-size: 0.9rem;
+    line-height: 1.5;
+    text-align: left;
+    margin-bottom: 2rem;
+}
+
+.info-banner strong {
+    color: var(--color-primary);
+    display: block;
+    margin-bottom: 0.25rem;
+}
+
+/* Sozlesme Alani */
+.agreement-section h3 {
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+    color: var(--color-primary);
+    font-family: var(--font-family-serif);
+}
+
+.agreement-text {
+    height: 300px;
+    overflow-y: auto;
+    padding: 1rem;
+    font-size: 0.9rem;
+    line-height: 1.7;
+    color: var(--text-light);
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    margin-bottom: 1rem;
+}
+
+/* Scrollbar Styling */
+.agreement-text::-webkit-scrollbar {
+    width: 6px;
+}
+
+.agreement-text::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.agreement-text::-webkit-scrollbar-thumb {
+    background: color-mix(in srgb, var(--color-primary) 30%, transparent);
+    border-radius: 3px;
+}
+
+.agreement-text::-webkit-scrollbar-thumb:hover {
+    background: color-mix(in srgb, var(--color-primary) 50%, transparent);
+}
+
+.agreement-text h4 {
+    font-size: 0.95rem;
+    margin: 1.25rem 0 0.5rem;
+    color: var(--gold-primary);
+    font-weight: 600;
+}
+
+.agreement-text h4:first-child {
+    margin-top: 0;
+}
+
+.agreement-text ol {
+    padding-left: 1.25rem;
+    margin-bottom: 1rem;
+}
+
+.agreement-text li {
+    margin-bottom: 0.5rem;
+}
+
+.agreement-ack {
+    display: flex;
+    gap: 0.75rem;
+    align-items: flex-start;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    cursor: pointer;
+}
+
+.agreement-ack input {
+    margin-top: 0.25rem;
+    width: 16px;
+    height: 16px;
+    accent-color: var(--color-primary);
+    cursor: pointer;
+}
+
+/* Status & Loader */
+.status-box {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    border-radius: var(--radius-md);
+    font-size: 0.9rem;
+    display: none;
+    text-align: left;
+}
+
+.status-error {
+    background-color: var(--color-danger-soft);
+    border: 1px solid color-mix(in srgb, var(--color-danger) 20%, transparent);
+    color: var(--color-danger);
+}
+
+.status-pending {
+    background-color: var(--color-success-soft);
+    border: 1px solid color-mix(in srgb, var(--color-success) 20%, transparent);
+    color: var(--color-success);
+}
+
+.loader {
+    display: none;
+    width: 24px;
+    height: 24px;
+    border: 2px solid var(--text-muted);
+    border-bottom-color: var(--color-primary);
+    border-radius: 50%;
+    animation: rotation 1s linear infinite;
+    margin: 1.5rem auto 0;
+}
+
+@keyframes rotation {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* Footer */
+.auth-footer {
+    margin-top: 2rem;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    opacity: 0.8;
+}
+
+.auth-footer a {
+    color: var(--color-primary);
+    text-decoration: none;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+    .auth-card {
+        flex-direction: column;
+        max-width: 480px;
+    }
+
+    .auth-main {
+        padding: 2.5rem 2rem;
+        border-right: none;
+        border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .auth-agreement-panel {
+        padding: 2rem;
+    }
+
+    .agreement-text {
+        height: 200px;
+    }
+}
+
+@media (max-width: 480px) {
+    .auth-nav {
+        padding: 0.75rem;
+        background: var(--bg-surface);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .btn-back {
+        padding: 0.5rem 0.75rem;
+        width: auto;
+        height: auto;
+        justify-content: flex-start;
+        border-radius: var(--radius-md);
+        background: transparent;
+        backdrop-filter: none;
+        border: none;
+    }
+
+    .btn-back span {
+        display: none;
+    }
+
+    .btn-back svg {
+        display: block;
+        width: 24px;
+        height: 24px;
+    }
+
+    .auth-card {
+        border: none;
+        background: transparent;
+        box-shadow: none;
+        margin-top: 0;
+    }
+
+    .auth-main,
+    .auth-agreement-panel {
+        background: var(--bg-surface);
+        border-radius: var(--radius-lg);
+        margin-bottom: 1rem;
+        border: 1px solid var(--border-subtle);
+        padding: 1.25rem;
+        width: 100%;
+    }
+
+    .auth-wrapper {
+        align-items: flex-start;
+        padding-top: 5rem;
+        padding-left: 1rem;
+        padding-right: 1rem;
+        padding-bottom: 2rem;
+    }
+
+    .auth-agreement-panel {
+        order: 2;
+        display: flex;
+    }
+
+    .brand-logo {
+        font-size: 1.75rem;
+        margin-bottom: 0.25rem;
+    }
+
+    .header-logo {
+        max-height: 55px;
+    }
+
+    .card-subtitle {
+        font-size: 0.9rem;
+        margin-bottom: 1.25rem;
+    }
+
+    .btn-google {
+        padding: 0.75rem;
+        font-size: 0.9rem;
+    }
+
+    .agreement-text {
+        height: 180px;
+    }
+}

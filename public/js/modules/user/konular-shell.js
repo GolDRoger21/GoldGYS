@@ -1,5 +1,5 @@
 import { initKonularPage, disposeKonularPage } from "../../konular-page.js";
-import { injectScopedStyle, removeScopedStyle } from "./shell-style-scope.js";
+import { injectScopedStyle, removeScopedStyle, fetchCss } from "./shell-style-scope.js";
 
 const KONULAR_INLINE_STYLE_ID = "user-shell-konular-inline-style";
 const KONULAR_ROUTE_STYLE_ID = "user-shell-konular-route-style";
@@ -8,12 +8,7 @@ const KONULAR_SCOPE_SELECTOR = '.user-shell-view[data-route-key="konular"]';
 async function ensureRouteStyles() {
     if (document.getElementById(KONULAR_ROUTE_STYLE_ID)) return;
 
-    const response = await fetch("/css/dashboard-route-overrides.css");
-    if (!response.ok) {
-        throw new Error(`Konular route stili yüklenemedi: HTTP ${response.status}`);
-    }
-
-    const cssText = await response.text();
+    const cssText = await fetchCss("/css/dashboard-route-overrides.css");
     injectScopedStyle({
         styleId: KONULAR_ROUTE_STYLE_ID,
         cssText,

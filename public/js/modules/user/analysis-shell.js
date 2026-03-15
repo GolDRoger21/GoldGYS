@@ -1,5 +1,5 @@
 import { disposeAnalysisPage, initAnalysisPage } from "../../analysis.js";
-import { injectScopedStyle, removeScopedStyle } from "./shell-style-scope.js";
+import { injectScopedStyle, removeScopedStyle, fetchCss } from "./shell-style-scope.js";
 
 const ANALYSIS_STYLE_ID = "user-shell-analysis-scoped-style";
 const ANALYSIS_CHART_SCRIPT_ID = "user-shell-analysis-chartjs";
@@ -8,11 +8,7 @@ const ANALYSIS_SCOPE_SELECTOR = '.user-shell-view[data-route-key="analiz"]';
 async function ensureAnalysisStyles() {
     if (document.getElementById(ANALYSIS_STYLE_ID)) return;
 
-    const response = await fetch("/css/analysis.css");
-    if (!response.ok) {
-        throw new Error(`Analiz stili yüklenemedi: HTTP ${response.status}`);
-    }
-    const cssText = await response.text();
+    const cssText = await fetchCss("/css/analysis.css");
     injectScopedStyle({
         styleId: ANALYSIS_STYLE_ID,
         cssText,

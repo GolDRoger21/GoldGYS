@@ -40,6 +40,8 @@
   --z-dropdown: 1200;
   --z-toast: 1300;
   --z-modal: 2000;
+  --z-modal-backdrop: 2001;
+  --z-fullscreen: 2100;
 
   /* --- Transitions --- */
   --transition-fast: 0.2s ease;
@@ -144,6 +146,28 @@
   --logo-gold: #BF953F;
   --logo-khaki: #B38728;
   --logo-highlight: #FCF6BA;
+
+  /* --- Breakpoint References (for documentation & JS) --- */
+  --bp-sm: 480px;
+  --bp-md: 768px;
+  --bp-lg: 1024px;
+  --bp-xl: 1200px;
+
+  /* --- Semantic Soft Colors --- */
+  --color-success-soft: rgba(47, 122, 85, 0.15);
+  --color-warning-soft: rgba(179, 129, 47, 0.15);
+  --color-danger-soft: rgba(185, 75, 69, 0.15);
+  --color-info-soft: rgba(76, 110, 145, 0.15);
+
+  /* --- Component Tokens --- */
+  --bg-footer: #1A1610;
+  --btn-primary-gradient: linear-gradient(135deg, #BF953F 0%, #FCF6BA 50%, #B38728 100%);
+  --btn-primary-text: #0F172A;
+  --text-on-dark-bg: #F4E6C3;
+  --glass-blur-sm: blur(12px);
+  --glass-blur-md: blur(16px);
+  --glass-blur-lg: blur(20px);
+  --touch-target-min: 44px;
 }
 
 [data-theme="dark"] {
@@ -242,6 +266,18 @@
   --logo-gold: #E7C76C;
   --logo-khaki: #BF953F;
   --logo-highlight: #FAEDCC;
+
+  /* --- Semantic Soft Colors (dark) --- */
+  --color-success-soft: rgba(72, 177, 139, 0.18);
+  --color-warning-soft: rgba(214, 161, 73, 0.18);
+  --color-danger-soft: rgba(224, 102, 102, 0.18);
+  --color-info-soft: rgba(106, 147, 212, 0.18);
+
+  /* --- Component Tokens (dark) --- */
+  --bg-footer: #0B0A07;
+  --btn-primary-gradient: linear-gradient(135deg, #BF953F 0%, #FCF6BA 50%, #B38728 100%);
+  --btn-primary-text: #0F172A;
+  --text-on-dark-bg: #F4E6C3;
 }
 
 @media (max-width: 768px) {

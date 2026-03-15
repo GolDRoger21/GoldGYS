@@ -1,3 +1,20 @@
+/* --- CSS Fetch Cache --- */
+const _cssCache = new Map();
+
+/**
+ * Fetch CSS text with in-memory caching.
+ * Avoids duplicate network requests when multiple shell modules
+ * load the same stylesheet (e.g. dashboard-route-overrides.css).
+ */
+export async function fetchCss(url) {
+    if (_cssCache.has(url)) return _cssCache.get(url);
+    const resp = await fetch(url);
+    if (!resp.ok) throw new Error(`CSS fetch failed: ${resp.status} ${url}`);
+    const text = await resp.text();
+    _cssCache.set(url, text);
+    return text;
+}
+
 const STYLE_RULE_TYPE = 1;
 const MEDIA_RULE_TYPE = 4;
 const FONT_FACE_RULE_TYPE = 5;

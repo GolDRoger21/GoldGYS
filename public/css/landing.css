@@ -152,9 +152,9 @@ main {
 /* ... */
 
 .btn-primary {
-    background: linear-gradient(135deg, #D4AF37 0%, #F3E5AB 50%, #B8860B 100%);
+    background: var(--btn-primary-gradient);
     background-size: 200% auto;
-    color: #0F172A;
+    color: var(--btn-primary-text);
     /* Always dark text for gold buttons */
     border: 1px solid rgba(179, 135, 40, 0.45);
     box-shadow: 0 4px 15px rgba(212, 175, 55, 0.4);
@@ -184,7 +184,7 @@ main {
     background-position: right center;
     transform: translateY(-2px);
     box-shadow: 0 8px 25px rgba(212, 175, 55, 0.6);
-    color: #0F172A;
+    color: var(--btn-primary-text);
     animation: premiumPulse 1.5s infinite alternate;
 }
 

@@ -1,5 +1,5 @@
 import { disposeDenemelerPage, initDenemelerPage } from "../../denemeler-page.js";
-import { injectScopedStyle, removeScopedStyle } from "./shell-style-scope.js";
+import { injectScopedStyle, removeScopedStyle, fetchCss } from "./shell-style-scope.js";
 
 const DENEMELER_INLINE_STYLE_ID = "user-shell-denemeler-inline-style";
 const DENEMELER_ROUTE_STYLE_ID = "user-shell-denemeler-route-style";
@@ -8,12 +8,7 @@ const DENEMELER_SCOPE_SELECTOR = '.user-shell-view[data-route-key="denemeler"]';
 async function ensureRouteStyles() {
     if (document.getElementById(DENEMELER_ROUTE_STYLE_ID)) return;
 
-    const response = await fetch("/css/dashboard-route-overrides.css");
-    if (!response.ok) {
-        throw new Error(`Denemeler route stili yüklenemedi: HTTP ${response.status}`);
-    }
-
-    const cssText = await response.text();
+    const cssText = await fetchCss("/css/dashboard-route-overrides.css");
     injectScopedStyle({
         styleId: DENEMELER_ROUTE_STYLE_ID,
         cssText,

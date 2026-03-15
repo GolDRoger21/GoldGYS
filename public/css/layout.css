@@ -564,15 +564,15 @@ body:not(.admin-body) .app-sidebar .nav-label {
 }
 
 .bg-warning-subtle {
-    background-color: rgba(245, 158, 11, 0.18);
+    background-color: var(--color-warning-soft);
 }
 
 .bg-danger-subtle {
-    background-color: rgba(239, 68, 68, 0.18);
+    background-color: var(--color-danger-soft);
 }
 
 .bg-success-subtle {
-    background-color: rgba(16, 185, 129, 0.18);
+    background-color: var(--color-success-soft);
 }
 
 .bg-purple-subtle {
@@ -649,8 +649,7 @@ body:not(.admin-body) .app-sidebar .nav-label {
     display: flex;
     flex-direction: column;
     gap: 12px;
-    z-index: 100010;
-    /* Ensure this is higher than admin.css .modal-overlay */
+    z-index: var(--z-fullscreen);
     pointer-events: none;
 }
 
@@ -745,8 +744,7 @@ body:not(.admin-body) .app-sidebar .nav-label {
     opacity: 0;
     pointer-events: none;
     transition: opacity var(--transition-fast), transform var(--transition-fast);
-    z-index: 100010;
-    /* Ensure this is higher than admin.css .modal-overlay */
+    z-index: var(--z-fullscreen);
 }
 
 .alert-icon {
@@ -817,8 +815,7 @@ body:not(.admin-body) .app-sidebar .nav-label {
     padding: 24px;
     background: var(--bg-backdrop);
     backdrop-filter: blur(10px);
-    z-index: 100010;
-    /* Ensure this is higher than .modal-overlay (100005) in admin.css */
+    z-index: var(--z-fullscreen);
 }
 
 .confirm-dialog {
