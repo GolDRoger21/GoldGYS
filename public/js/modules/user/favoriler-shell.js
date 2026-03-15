@@ -1,5 +1,5 @@
 import { initFavorilerPage, disposeFavorilerPage } from "../../favoriler-page.js";
-import { injectScopedStyle, removeScopedStyle } from "./shell-style-scope.js";
+import { injectScopedStyle, removeScopedStyle, fetchCss } from "./shell-style-scope.js";
 
 const FAVORILER_INLINE_STYLE_ID = "user-shell-favoriler-inline-style";
 const FAVORILER_ROUTE_STYLE_ID = "user-shell-favoriler-route-style";
@@ -8,12 +8,7 @@ const FAVORILER_SCOPE_SELECTOR = '.user-shell-view[data-route-key="favoriler"]';
 async function ensureRouteStyles() {
     if (document.getElementById(FAVORILER_ROUTE_STYLE_ID)) return;
 
-    const response = await fetch("/css/dashboard-route-overrides.css");
-    if (!response.ok) {
-        throw new Error(`Favoriler route stili yüklenemedi: HTTP ${response.status}`);
-    }
-
-    const cssText = await response.text();
+    const cssText = await fetchCss("/css/dashboard-route-overrides.css");
     injectScopedStyle({
         styleId: FAVORILER_ROUTE_STYLE_ID,
         cssText,

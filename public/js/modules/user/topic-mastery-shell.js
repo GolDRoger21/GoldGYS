@@ -1,5 +1,5 @@
 import { initTopicMasteryPage, disposeTopicMasteryPage } from "../../topic-mastery-page.js";
-import { injectScopedStyle, removeScopedStyle } from "./shell-style-scope.js";
+import { injectScopedStyle, removeScopedStyle, fetchCss } from "./shell-style-scope.js";
 
 const MASTERY_INLINE_STYLE_ID = "user-shell-topic-mastery-inline-style";
 const MASTERY_ANALYSIS_STYLE_ID = "user-shell-topic-mastery-analysis-style";
@@ -8,12 +8,7 @@ const MASTERY_SCOPE_SELECTOR = '.user-shell-view[data-route-key="konu-hakimiyet"
 async function ensureScopedAnalysisStyles() {
     if (document.getElementById(MASTERY_ANALYSIS_STYLE_ID)) return;
 
-    const response = await fetch("/css/analysis.css");
-    if (!response.ok) {
-        throw new Error(`Konu hakimiyet scoped stili yüklenemedi: HTTP ${response.status}`);
-    }
-
-    const cssText = await response.text();
+    const cssText = await fetchCss("/css/analysis.css");
     injectScopedStyle({
         styleId: MASTERY_ANALYSIS_STYLE_ID,
         cssText,

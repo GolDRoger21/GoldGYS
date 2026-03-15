@@ -864,11 +864,11 @@
 }
 
 .analysis-page .exam-bar-correct {
-  background: color-mix(in srgb, var(--color-success) 82%, #0f172a 18%);
+  background: color-mix(in srgb, var(--color-success) 82%, var(--bg-body) 18%);
 }
 
 .analysis-page .exam-bar-wrong {
-  background: color-mix(in srgb, var(--color-danger) 78%, #0f172a 22%);
+  background: color-mix(in srgb, var(--color-danger) 78%, var(--bg-body) 22%);
 }
 
 .analysis-page .exam-score-overlay {
@@ -881,7 +881,7 @@
   pointer-events: none;
   font-size: 0.72rem;
   font-weight: 800;
-  color: #fffdf3;
+  color: var(--text-on-gold);
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.82);
   letter-spacing: 0.02em;
 }

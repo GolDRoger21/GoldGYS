@@ -17,7 +17,7 @@
 }
 
 .premium-gold-text {
-    background: linear-gradient(135deg, #BF953F 0%, #FCF6BA 50%, #B38728 100%);
+    background: var(--premium-gold-gradient);
     background-size: 220% auto;
     -webkit-background-clip: text;
     background-clip: text;
@@ -27,7 +27,7 @@
 }
 
 .premium-gold-btn {
-    background: linear-gradient(135deg, #BF953F 0%, #FCF6BA 50%, #B38728 100%);
+    background: var(--premium-gold-gradient);
     background-size: 220% auto;
     animation: shimmer 4s linear infinite;
     color: var(--text-on-gold);
@@ -128,7 +128,7 @@
 }
 
 .text-gradient-gold {
-    background: linear-gradient(135deg, #BF953F 0%, #FCF6BA 50%, #B38728 100%);
+    background: var(--premium-gold-gradient);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;

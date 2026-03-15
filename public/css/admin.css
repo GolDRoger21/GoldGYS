@@ -7,7 +7,7 @@
 /* --- VARIABLES NOW IN TOKENS.CSS --- */
 
 /* Section Header */
-.section-header {
+.admin-body .section-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -18,7 +18,7 @@
     gap: 16px;
 }
 
-.section-header h2 {
+.admin-body .section-header h2 {
     font-size: 1.5rem;
     font-weight: 700;
     color: var(--text-main);
@@ -285,7 +285,7 @@ body.sidebar-collapsed.admin-body .app-sidebar .nav-label {
 }
 
 /* Kartlar (Cards) */
-.card {
+.admin-body .card {
     background: var(--bg-surface);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-lg);
@@ -296,7 +296,7 @@ body.sidebar-collapsed.admin-body .app-sidebar .nav-label {
     height: 100%;
 }
 
-.card:hover {
+.admin-body .card:hover {
     box-shadow: var(--shadow-md);
     border-color: var(--color-primary);
 }
@@ -609,12 +609,12 @@ body.sidebar-collapsed.admin-body .app-sidebar .nav-label {
     justify-content: center;
 }
 
-.btn-primary {
+.admin-body .btn-primary {
     background: var(--color-primary);
     color: var(--text-on-gold);
 }
 
-.btn-primary:hover {
+.admin-body .btn-primary:hover {
     background: var(--color-primary-hover);
     transform: translateY(-1px);
 }
@@ -698,9 +698,9 @@ body.sidebar-collapsed.admin-body .app-sidebar .nav-label {
     transition: all var(--transition-fast);
 }
 
-.border-dashed:hover {
-    border-color: var(--color-primary) !important;
-    background: rgba(212, 175, 55, 0.06);
+.admin-body .border-dashed:hover {
+    border-color: var(--color-primary);
+    background: color-mix(in srgb, var(--color-primary) 6%, transparent);
 }
 
 .importer-dropzone {
@@ -763,8 +763,8 @@ body.sidebar-collapsed.admin-body .app-sidebar .nav-label {
     overflow-y: auto;
     font-family: 'JetBrains Mono', ui-monospace, monospace;
     font-size: 0.8rem;
-    background: rgba(15, 23, 42, 0.2);
-    padding: 12px !important;
+    background: color-mix(in srgb, var(--bg-body) 20%, transparent);
+    padding: 12px;
 }
 
 .preview-card {
@@ -1739,8 +1739,7 @@ tr.highlight {
     width: 100%;
     height: 100%;
     background: rgba(0, 0, 0, 0.85);
-    z-index: 100005 !important;
-    /* Sidebar genellikle 1000-2000 arasındadır, üzerine çıkar */
+    z-index: var(--z-modal-backdrop);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -1749,7 +1748,7 @@ tr.highlight {
 
 /* SweetAlert2 Modal - Needs to be above everything, especially .modal-overlay */
 .swal2-container {
-    z-index: 100010 !important;
+    z-index: var(--z-fullscreen);
 }
 
 /* Modal İçeriği - Studio için */
@@ -3155,12 +3154,12 @@ tr.highlight {
     background-color: var(--bg-hover);
 }
 
-.preview-row-approved {
-    background-color: rgba(16, 185, 129, 0.08) !important;
+.preview-table .preview-row-approved td {
+    background-color: var(--color-success-soft);
 }
 
-.preview-row-approved:hover td {
-    background-color: rgba(16, 185, 129, 0.12) !important;
+.preview-table .preview-row-approved:hover td {
+    background-color: color-mix(in srgb, var(--color-success) 12%, transparent);
 }
 
 /* Form Elements inside Table */
@@ -3258,13 +3257,13 @@ tr.highlight {
 }
 
 /* Settings > Branding assets */
-.settings-asset-card {
-    border-color: var(--border-color) !important;
+.admin-body .settings-asset-card {
+    border-color: var(--border-color);
     transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
 }
 
-.settings-asset-card:hover {
-    border-color: rgba(212, 175, 55, 0.55) !important;
+.admin-body .settings-asset-card:hover {
+    border-color: color-mix(in srgb, var(--color-primary) 55%, transparent);
     box-shadow: var(--shadow-sm);
 }
 

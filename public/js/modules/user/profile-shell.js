@@ -1,5 +1,5 @@
 import { disposeProfilePage, initProfilePage } from "../../profile-page.js";
-import { injectScopedStyle, removeScopedStyle } from "./shell-style-scope.js";
+import { injectScopedStyle, removeScopedStyle, fetchCss } from "./shell-style-scope.js";
 
 const PROFILE_STYLE_ID = "user-shell-profile-scoped-style";
 const PROFILE_ROUTE_STYLE_ID = "user-shell-profile-route-style";
@@ -8,12 +8,7 @@ const PROFILE_SCOPE_SELECTOR = '.user-shell-view[data-route-key="profil"]';
 async function ensureProfileStyles() {
     if (document.getElementById(PROFILE_STYLE_ID)) return;
 
-    const response = await fetch("/css/profile.css");
-    if (!response.ok) {
-        throw new Error(`Profil stili yüklenemedi: HTTP ${response.status}`);
-    }
-
-    const cssText = await response.text();
+    const cssText = await fetchCss("/css/profile.css");
     injectScopedStyle({
         styleId: PROFILE_STYLE_ID,
         cssText,
@@ -24,12 +19,7 @@ async function ensureProfileStyles() {
 async function ensureRouteStyles() {
     if (document.getElementById(PROFILE_ROUTE_STYLE_ID)) return;
 
-    const response = await fetch("/css/dashboard-route-overrides.css");
-    if (!response.ok) {
-        throw new Error(`Profil route stili yüklenemedi: HTTP ${response.status}`);
-    }
-
-    const cssText = await response.text();
+    const cssText = await fetchCss("/css/dashboard-route-overrides.css");
     injectScopedStyle({
         styleId: PROFILE_ROUTE_STYLE_ID,
         cssText,
